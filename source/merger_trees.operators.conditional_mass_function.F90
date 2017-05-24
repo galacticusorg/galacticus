@@ -1121,26 +1121,28 @@ contains
     use Galacticus_Error
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                    :: self
-    double precision                                 , intent(in   )                    :: mass1                           , time1                                , &
-         &                                                                                 massLogarithmicMinimumBins1     , massLogarithmicWidthInverseBins1     , &
-         &                                                                                 mass2                           , time2                                , &
-         &                                                                                 massRatioLogarithmicMinimumBins2, massRatioLogarithmicWidthInverseBins2
-    integer                                          , intent(in   )                    :: countBins1                      , countBins2                           , &
+    double precision                                 , intent(in   )                    :: mass1                                  , time1                                , &
+         &                                                                                 massLogarithmicMinimumBins1            , massLogarithmicWidthInverseBins1     , &
+         &                                                                                 mass2                                  , time2                                , &
+         &                                                                                 massRatioLogarithmicMinimumBins2       , massRatioLogarithmicWidthInverseBins2
+    integer                                          , intent(in   )                    :: countBins1                             , countBins2                           , &
          &                                                                                 moment
     double precision                                 , dimension(countBins1,countBins2) :: conditionalMFBinWeights2D
-    type            (treeNode                       ), pointer                          :: node1                           , node2
-    class           (nodeComponentBasic             ), pointer                          :: basic1                          , basic2
+    type            (treeNode                       ), pointer                          :: node1                                  , node2
+    class           (nodeComponentBasic             ), pointer                          :: basic1                                 , basic2
     double precision                                 , parameter                        :: integrationExtent               =10.0d0
-    double precision                                                                    :: massError1                      , massError2                           , &
-         &                                                                                 mass1LowerLimit                 , mass1UpperLimit                      , &
-         &                                                                                 mass2LowerLimit                 , mass2UpperLimit
-    integer                                                                             :: i                               , j
+    double precision                                                                    :: massError1                             , massError2                           , &
+         &                                                                                 mass1LowerLimit                        , mass1UpperLimit                      , &
+         &                                                                                 mass2LowerLimit                        , mass2UpperLimit                      , &
+         &                                                                                 correlation                            , massError2Reduced
+    integer                                                                             :: i                                      , j
     type            (fgsl_function                  )                                   :: integrandFunction
     type            (fgsl_integration_workspace     )                                   :: integrationWorkspace
 
     ! Validate moment.
     if (moment < 0 .or. moment > 2) call Galacticus_Error_Report('conditionalMFBinWeights2D','moment must be 0, 1, or 2')
-    ! Construct nodes and find the mass errors.
+    ! Construct nodes and find the mass errors and their correlation. Given the correlation coefficient, C₁₂, between the mass
+    ! errors, σ₁ and σ₂, then once M₁ is fixed, M₂ is shifted by C₁₂ (σ₂/σ₁) (M₁-<M₁>), and has remaining variance (1-C₁₂²)σ₂²
     node1  => treeNode       (                 )
     node2  => treeNode       (                 )
     basic1 => node1    %basic(autoCreate=.true.)
@@ -1149,12 +1151,15 @@ contains
     call basic1%timeSet(time1)
     call basic2%massSet(mass2)
     call basic2%timeSet(time2)
-    massError1=basic1%mass()*self%haloMassError_%errorFractional(node1)
-    massError2=basic2%mass()*self%haloMassError_%errorFractional(node2)
+    massError1       =basic1%mass()*self%haloMassError_%errorFractional(node1      )
+    massError2       =basic2%mass()*self%haloMassError_%errorFractional(      node2)
+    correlation      =              self%haloMassError_%correlation    (node1,node2)
+    massError2Reduced=+massError2                 &
+         &            *sqrt(1.0d0-correlation**2)
     call node1%destroy()
     call node2%destroy()
     deallocate(node1)
-    deallocate(node2)
+    deallocate(node2)    
     ! Handle zero errors.
     if (massError1 <= 0.0d0 .or. massError2 <= 0.0d0) then
        ! We currently do not handle cases where only one error is zero.
@@ -1210,7 +1215,16 @@ contains
                      &              )                                       &
                      &          *mass1LowerLimit                            &
                      &          -integrationExtent                          &
-                     &          *massError2
+                     &          *massError2                                 &
+                     &          +correlation                                &
+                     &          *(                                          &
+                     &            +massError2                               &
+                     &            /massError1                               &
+                     &           )                                          &
+                     &          *(                                          &
+                     &            +mass1LowerLimit                          &
+                     &            -mass1                                    &
+                     &           )
                 mass2UpperLimit=+exp(                                       &
                      &               +massRatioLogarithmicMinimumBins2      &
                      &               +dble(j  )                             &
@@ -1218,7 +1232,16 @@ contains
                      &              )                                       &
                      &          *mass1UpperLimit                            &
                      &          +integrationExtent                          &
-                     &          *massError2
+                     &          *massError2                                 &
+                     &          +correlation                                &
+                     &          *(                                          &
+                     &            +massError2                               &
+                     &            /massError1                               &
+                     &           )                                          &
+                     &          *(                                          &
+                     &            +mass1UpperLimit                          &
+                     &            -mass1                                    &
+                     &           )
                 if     (                         &
                      &   mass2LowerLimit > mass2 &
                      &  .or.                     &
@@ -1256,7 +1279,8 @@ contains
       use Galacticus_Error
       implicit none
       double precision, intent(in   ) :: mass1Primed
-      double precision                :: mass2LowerLimit, mass2UpperLimit
+      double precision                :: mass2LowerLimit, mass2UpperLimit, &
+           &                             mass2Shifted
       
       mass2LowerLimit                   =+exp(                                       &
            &                                  +massRatioLogarithmicMinimumBins2      &
@@ -1270,6 +1294,17 @@ contains
            &                                  /massRatioLogarithmicWidthInverseBins2 &
            &                                 )                                       &
            &                             *mass1Primed
+      ! Find the shifted mass2.
+      mass2Shifted=+mass2         &
+           &       +correlation   &
+           &       *(             &
+           &         +massError2  &
+           &         /massError1  &
+           &        )             &
+           &       *(             &
+           &         +mass1Primed &
+           &         -mass1       &
+           &        )
       ! Evaluate integrand for the relevant moment.
       select case (moment)
       case (0)
@@ -1277,41 +1312,41 @@ contains
               &                               +erf(                   &
               &                                    +(                 &
               &                                      +mass2UpperLimit &
-              &                                      -mass2           &
+              &                                      -mass2Shifted    &
               &                                     )                 &
               &                                    /sqrt(2.0d0)       &
-              &                                    /massError2        &
+              &                                    /massError2Reduced &
               &                                   )                   &
               &                               -erf(                   &
               &                                    +(                 &
               &                                      +mass2LowerLimit &
-              &                                      -mass2           &
+              &                                      -mass2Shifted    &
               &                                     )                 &
               &                                    /sqrt(2.0d0)       &
-              &                                    /massError2        &
+              &                                    /massError2Reduced &
               &                                   )                   &
               &                              )                        &
               &                             /2.0d0
       case (1)
          conditionalMFBinWeights2DIntegrand=+(                          &
-              &                               +mass2                    &
+              &                               +mass2Shifted             &
               &                               *erf(                     &
               &                                    +(                   &
               &                                      +mass2UpperLimit   &
-              &                                      -mass2             &
+              &                                      -mass2Shifted      &
               &                                     )                   &
               &                                    /sqrt(2.0d0)         &
-              &                                    /massError2          &
+              &                                    /massError2Reduced   &
               &                                   )                     &
               &                               /2.0d0                    &
-              &                               -massError2               &
+              &                               -massError2Reduced        &
               &                               *exp(                     &
               &                                    -(                   &
               &                                      +(                 &
               &                                        +mass2UpperLimit &
-              &                                        -mass2           &
+              &                                        -mass2Shifted    &
               &                                       )                 &
-              &                                      /massError2        &
+              &                                      /massError2Reduced &
               &                                     )**2                &
               &                                    /2.0d0               &
               &                                   )                     &
@@ -1319,24 +1354,24 @@ contains
               &                                     +2.0d0              &
               &                                     *Pi                 &
               &                                    )                    &
-              &                               -mass2                    &
+              &                               -mass2Shifted             &
               &                               *erf(                     &
               &                                    +(                   &
               &                                      +mass2LowerLimit   &
-              &                                      -mass2             &
+              &                                      -mass2Shifted      &
               &                                     )                   &
               &                                    /sqrt(2.0d0)         &
-              &                                    /massError2          &
+              &                                    /massError2Reduced   &
               &                                   )                     &
               &                               /2.0d0                    &
-              &                               +massError2               &
+              &                               +massError2Reduced        &
               &                               *exp(                     &
               &                                    -(                   &
               &                                      +(                 &
               &                                        +mass2LowerLimit &
-              &                                        -mass2           &
+              &                                        -mass2Shifted    &
               &                                       )                 &
-              &                                      /massError2        &
+              &                                      /massError2Reduced &
               &                                     )**2                &
               &                                    /2.0d0               &
               &                                   )                     &
@@ -1347,18 +1382,18 @@ contains
               &                              )
       case (2)
          conditionalMFBinWeights2DIntegrand=+(                          &
-              &                               -massError2               &
+              &                               -massError2Reduced        &
               &                               *(                        &
               &                                 +mass2UpperLimit        &
-              &                                 +mass2                  &
+              &                                 +mass2Shifted           &
               &                                )                        &
               &                               *exp(                     &
               &                                    -(                   &
               &                                      +(                 &
               &                                        +mass2UpperLimit &
-              &                                        -mass2           &
+              &                                        -mass2Shifted    &
               &                                       )                 &
-              &                                      /massError2        &
+              &                                      /massError2Reduced &
               &                                     )**2                &
               &                                    /2.0d0               &
               &                                   )                     &
@@ -1367,30 +1402,30 @@ contains
               &                                     *Pi                 &
               &                                    )                    &
               &                               +(                        &
-              &                                 +massError2**2          &
-              &                                 +mass2     **2          &
+              &                                 +massError2Reduced**2   &
+              &                                 +mass2Shifted     **2   &
               &                                )                        &
               &                               *erf(                     &
               &                                    +(                   &
               &                                      +mass2UpperLimit   &
-              &                                      -mass2             &
+              &                                      -mass2Shifted      &
               &                                     )                   &
               &                                    /sqrt(2.0d0)         &
-              &                                    /massError2          &
+              &                                    /massError2Reduced   &
               &                                   )                     &
               &                               /2.0d0                    &
-              &                               +massError2               &
+              &                               +massError2Reduced        &
               &                               *(                        &
               &                                 +mass2LowerLimit        &
-              &                                 +mass2                  &
+              &                                 +mass2Shifted           &
               &                                )                        &
               &                               *exp(                     &
               &                                    -(                   &
               &                                      +(                 &
               &                                        +mass2LowerLimit &
-              &                                        -mass2           &
+              &                                        -mass2Shifted    &
               &                                       )                 &
-              &                                      /massError2        &
+              &                                      /massError2Reduced &
               &                                     )**2                &
               &                                    /2.0d0               &
               &                                   )                     &
@@ -1399,16 +1434,16 @@ contains
               &                                     *Pi                 &
               &                                    )                    &
               &                               -(                        &
-              &                                 +massError2**2          &
-              &                                 +mass2     **2          &
+              &                                 +massError2Reduced**2   &
+              &                                 +mass2Shifted     **2   &
               &                                )                        &
               &                               *erf(                     &
               &                                    +(                   &
               &                                      +mass2LowerLimit   &
-              &                                      -mass2             &
+              &                                      -mass2Shifted      &
               &                                     )                   &
               &                                    /sqrt(2.0d0)         &
-              &                                    /massError2          &
+              &                                    /massError2Reduced   &
               &                                   )                     &
               &                               /2.0d0                    &
               &                              )
