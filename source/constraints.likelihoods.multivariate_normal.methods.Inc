@@ -39,7 +39,7 @@ double precision function likelihoodMultivariateNormalEvaluate(self,simulationSt
   use Constraints_Convergence
   implicit none
   class           (likelihoodMultivariateNormal), intent(inout)               :: self
-  class           (state                       ), intent(in   )               :: simulationState
+  class           (state                       ), intent(inout)               :: simulationState
   type            (mappingList                 ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence                 ), intent(inout)               :: simulationConvergence
   double precision                              , intent(in   )               :: temperature    , logLikelihoodCurrent, &

@@ -77,7 +77,7 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
   use Constraints_Constants
   implicit none
   class           (likelihoodProjectedCorrelationFunction), intent(inout)               :: self
-  class           (state                                 ), intent(in   )               :: simulationState
+  class           (state                                 ), intent(inout)               :: simulationState
   type            (mappingList                           ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence                           ), intent(inout)               :: simulationConvergence
   double precision                                        , intent(in   )               :: temperature                , logLikelihoodCurrent, &

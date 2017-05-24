@@ -99,7 +99,7 @@ double precision function likelihoodHaloSpinDistributionEvaluate(self,simulation
   use               Dark_Matter_Halo_Scales
   implicit none
   class           (likelihoodHaloSpinDistribution ), intent(inout)               :: self
-  class           (state                          ), intent(in   )               :: simulationState
+  class           (state                          ), intent(inout)               :: simulationState
   type            (mappingList                    ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence                    ), intent(inout)               :: simulationConvergence
   double precision                                 , intent(in   )               :: temperature          , logLikelihoodCurrent, &

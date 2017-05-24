@@ -164,7 +164,7 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
   use Statistics_NBody_Halo_Mass_Errors
   implicit none
   class           (likelihoodHaloMassFunction    ), intent(inout)               :: self
-  class           (state                         ), intent(in   )               :: simulationState
+  class           (state                         ), intent(inout)               :: simulationState
   type            (mappingList                   ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence                   ), intent(inout)               :: simulationConvergence
   double precision                                , intent(in   )               :: temperature                     , logLikelihoodCurrent, &
