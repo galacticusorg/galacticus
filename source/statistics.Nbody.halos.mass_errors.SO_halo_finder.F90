@@ -34,6 +34,7 @@
      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
    contains
      procedure :: errorFractional => soHaloFinderErrorFractional
+     procedure :: correlation     => soHaloFinderCorrelation
   end type nbodyHaloMassErrorSOHaloFinder
 
   interface nbodyHaloMassErrorSOHaloFinder
@@ -128,4 +129,15 @@ contains
          &                                )
     return
   end function soHaloFinderErrorFractional
+  
+  double precision function soHaloFinderCorrelation(self,node1,node2)
+    !% Return the correlation of the masses of a pair of N-body halos.
+    implicit none
+    class(nbodyHaloMassErrorSOHaloFinder), intent(inout)          :: self
+    type (treeNode                      ), intent(inout), pointer :: node1, node2
+    !GCC$ attributes unused :: self, node1, node2
+
+    soHaloFinderCorrelation=0.0d0
+    return
+  end function soHaloFinderCorrelation
   

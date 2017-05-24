@@ -37,6 +37,12 @@ module Statistics_NBody_Halo_Mass_Errors
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
+  !#  <method name="correlation" >
+  !#   <description>Return the correlation in the  error on the mass of a pair of N-body halos corresponding to the given {\normalfont \ttfamily node1} and {\normalfont \ttfamily node2}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node1, node2</argument>
+  !#  </method>
   !#  <method name="errorZeroAlways" >
   !#   <description>Return {\normalfont \ttfamily true} if the mass error is always zero for any halo.</description>
   !#   <type>logical</type>
