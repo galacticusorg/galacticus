@@ -272,4 +272,24 @@ contains
     return
   end function Node_Component_Basic_Standard_Unresolved_Mass
 
+  !# <radiusSolverPlausibility>
+  !#  <unitName>Node_Component_Basic_Standard_Plausibility</unitName>
+  !# </radiusSolverPlausibility>
+  subroutine Node_Component_Basic_Standard_Plausibility(node)
+    !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    implicit none
+    type   (treeNode          ), intent(inout) :: node
+    class  (nodeComponentBasic), pointer       :: basic
+
+    basic => node%basic()
+    select type (basic)
+    class is (nodeComponentBasicStandard)
+       if (basic%mass() <= 0.0d0) then
+          node%isPhysicallyPlausible=.false.
+          node%isSolvable           =.false.
+       end if
+    end select
+    return
+  end subroutine Node_Component_Basic_Standard_Plausibility
+  
 end module Node_Component_Basic_Standard
