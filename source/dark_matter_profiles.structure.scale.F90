@@ -59,8 +59,7 @@ contains
     type            (treeNode                                          ), pointer                              :: workNode
     class           (nodeComponentBasic                                ), pointer                              :: workBasic                                        , basic
     class           (nodeComponentDarkMatterProfile                    ), pointer                              :: workDarkMatterProfile
-    type            (rootFinder                                        )             , save                    :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder                                        )                                       :: finder
     double precision                                                                 , save                    :: massRatioPrevious                       =  2.0d0
     !$omp threadprivate(massRatioPrevious)
     double precision                                                    , parameter                            :: massRatioBuffer                         =  1.1d0 , massRatioShrink       =0.99d0
