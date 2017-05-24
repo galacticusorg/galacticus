@@ -112,6 +112,7 @@ contains
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
     node%isPhysicallyPlausible=.true.
+    node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.

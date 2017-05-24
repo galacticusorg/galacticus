@@ -100,6 +100,7 @@ contains
   subroutine Galactic_Structure_Radii_Solve_Fixed(node)
     !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``fixed'' method.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
+    include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
     type            (treeNode                  ), intent(inout), target :: node
     procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                     => null(), Velocity_Get => null()
@@ -109,9 +110,12 @@ contains
     logical                                                             :: componentActive
     double precision                                                    :: specificAngularMomentum
 
-    ! Assume that the node is physically plausible, since in this fixed solver, we don't act on this.
+    ! Determine if the node is physically plausible.
     node%isPhysicallyPlausible=.true.
-
+    node%isSolvable           =.true.
+    include 'galactic_structure.radius_solver.plausible.inc'
+    if (.not.node%isPhysicallyPlausible) return
+    
     ! Solve for radii.
     include 'galactic_structure.radius_solver.tasks.inc'
 

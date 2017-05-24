@@ -81,8 +81,9 @@ contains
 
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
+    node%isSolvable           =.true.
     !# <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
-    !#  <functionArgs>node,node%isPhysicallyPlausible</functionArgs>
+    !#  <functionArgs>node</functionArgs>
     include 'galactic_structure.radius_solver.plausible.inc'
     !# </include>
 
