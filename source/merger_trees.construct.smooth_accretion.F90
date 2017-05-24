@@ -138,7 +138,8 @@ contains
           expansionFactorBase=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBaseRedshift)
           mergerTreeBaseTime =cosmologyFunctionsDefault%cosmicTime                 (expansionFactorBase   )
           ! Assign a time to the base node.
-          call baseBasicComponent%timeSet(mergerTreeBaseTime)
+          call baseBasicComponent%            timeSet(mergerTreeBaseTime)
+          call baseBasicComponent%timeLastIsolatedSet(mergerTreeBaseTime)
           ! Get a pointer to the current node (i.e. the base node).
           currentNode => thisTree%baseNode
           ! Initialize current node mass.
@@ -159,10 +160,11 @@ contains
              ! Find the time corresponding to this expansion factor.
              nodeTime=darkMatterHaloMassAccretionHistory_%time(thisTree%baseNode,nodeMass)
              ! Set the time for the new node.
-             call newBasicComponent%timeSet(nodeTime)
+             call newBasicComponent%            timeSet(nodeTime)
+             call newBasicComponent%timeLastIsolatedSet(nodeTime)
              ! Create parent and child links.
              currentNode%firstChild => newNode
-             newNode    %parent     => currentNode
+             newNode    %parent     => currentNode             
              ! Move the current node to the new node.
              currentNode => newNode
           end do
