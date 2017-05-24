@@ -26,6 +26,7 @@
      private
     contains
      procedure :: errorFractional => nullErrorFractional
+     procedure :: correlation     => nullCorrelation
      procedure :: errorZeroAlways => nullErrorZeroAlways
   end type nbodyHaloMassErrorNull
 
@@ -60,6 +61,17 @@ contains
     nullErrorFractional=0.0d0
     return
   end function nullErrorFractional
+  
+  double precision function nullCorrelation(self,node1,node2)
+    !% Return the correlation of the masses of a pair of N-body halos.
+    implicit none
+    class(nbodyHaloMassErrorNull), intent(inout)          :: self
+    type (treeNode              ), intent(inout), pointer :: node1, node2
+    !GCC$ attributes unused :: self, node1, node2
+
+    nullCorrelation=0.0d0
+    return
+  end function nullCorrelation
   
   logical function nullErrorZeroAlways(self)
     !% Return true since errors are always zero in this model.

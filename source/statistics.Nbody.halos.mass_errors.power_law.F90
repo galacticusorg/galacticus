@@ -29,6 +29,7 @@
           &              fractionalErrorHighMassSquared
    contains
      procedure :: errorFractional => powerLawErrorFractional
+     procedure :: correlation     => powerLawCorrelation
   end type nbodyHaloMassErrorPowerLaw
 
   interface nbodyHaloMassErrorPowerLaw
@@ -121,4 +122,15 @@ contains
          &                          )
     return
   end function powerLawErrorFractional
+  
+  double precision function powerLawCorrelation(self,node1,node2)
+    !% Return the correlation of the masses of a pair of N-body halos.
+    implicit none
+    class(nbodyHaloMassErrorPowerLaw), intent(inout)          :: self
+    type (treeNode                  ), intent(inout), pointer :: node1, node2
+    !GCC$ attributes unused :: self, node1, node2
+
+    powerLawCorrelation=0.0d0
+    return
+  end function powerLawCorrelation
   
