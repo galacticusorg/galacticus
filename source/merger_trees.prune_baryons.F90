@@ -41,15 +41,18 @@ contains
     use Merger_Trees_Pruning_Utilities
     use Input_Parameters
     use Accretion_Halos
+    use Virial_Density_Contrast
     implicit none
-    type   (mergerTree        ), intent(in   ), target :: tree
-    type   (treeNode          ), pointer               :: nodeNext      , nodePrevious, &
-         &                                                node
-    class  (nodeComponentBasic), pointer               :: basic
-    type   (mergerTree        ), pointer               :: treeCurrent
-    class  (accretionHaloClass), pointer               :: accretionHalo_
-    logical                                            :: didPruning
-
+    type   (mergerTree                ), intent(in   ), target :: tree
+    type   (treeNode                  ), pointer               :: nodeNext              , nodePrevious, &
+         &                                                        node
+    class  (nodeComponentBasic        ), pointer               :: basic
+    type   (mergerTree                ), pointer               :: treeCurrent
+    class  (accretionHaloClass        ), pointer               :: accretionHalo_
+    class  (virialDensityContrastClass), pointer               :: virialDensityContrast_
+    logical                                                    :: didPruning
+    double precision                                           :: densityContrast
+    
     ! Check if module is initialized.
     if (.not.pruneBaryonsModuleInitialized) then
        !$omp critical (Merger_Tree_Prune_Baryons_Initialize)
@@ -71,9 +74,20 @@ contains
        end if
        !$omp end critical (Merger_Tree_Prune_Baryons_Initialize)
     end if
-
     ! Prune tree if necessary.
     if (mergerTreePruneBaryons) then
+       !# <workaround type="unknown">
+       !#  <description>
+       !#    When using the percolation virial density contrast type we run into problems with initialization if we do not
+       !#    explicitly cause the percolation tables to be initialized here. The problem is a segmentation fault - I have not
+       !#    understood why this happens.
+       !#  </description>
+       ! Compute a density contrast.
+       node                   => tree                  %baseNode
+       basic                  => node                  %basic          (                         )
+       virialDensityContrast_ => virialDensityContrast                 (                         )
+       densityContrast        =  virialDensityContrast_%densityContrast(basic%mass(),basic%time())
+       !# </workaround>
        ! Get required objects.
        accretionHalo_ => accretionHalo()
        ! Iterate over trees.
