@@ -74,7 +74,11 @@ type is (treeNode)
 {join("",map {"   self%component".$_->{'name'}."(1)%hostNode => self\n"} &List::ExtraUtils::hashList($build->{'componentClasses'}))}
 end select
 ! Assign a host tree if supplied.
-if (present(hostTree)) self%hostTree => hostTree
+if (present(hostTree)) then
+   self%hostTree => hostTree
+else
+   self%hostTree => null()
+end if
 ! Assign index if supplied.
 if (present(index)) call self%indexSet(index)
 ! Assign a unique ID.
