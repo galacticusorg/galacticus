@@ -793,12 +793,11 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.                                                    
     use Dark_Matter_Halo_Scales
     implicit none
     type   (treeNode             ), intent(inout) :: node
-    logical                       , intent(inout) :: galaxyIsPhysicallyPlausible
     class  (nodeComponentSpheroid), pointer       :: spheroid
 
     ! Return immediately if our method is not selected.
@@ -807,7 +806,7 @@ contains
     spheroid => node%spheroid()
      select type (spheroid)
      class is (nodeComponentSpheroidVerySimple)
-        galaxyIsPhysicallyPlausible=(spheroid%massStellar()+spheroid%massGas() >= -spheroidMassToleranceAbsolute)
+        if (spheroid%massStellar()+spheroid%massGas() < -spheroidMassToleranceAbsolute) node%isPhysicallyPlausible=.false.
      end select
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility
