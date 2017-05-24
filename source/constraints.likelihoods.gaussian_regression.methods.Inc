@@ -82,35 +82,36 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   use Dates_and_Times
   implicit none
   class           (likelihoodGaussianRegression  ), intent(inout)                   :: self
-  class           (state                         ), intent(in   )                   :: simulationState
+  class           (state                         ), intent(inout)                   :: simulationState
   type            (mappingList                   ), intent(in   ), dimension(:)     :: parameterMappings
   class           (convergence                   ), intent(inout)                   :: simulationConvergence
-  double precision                                , intent(in   )                   :: temperature                      , logLikelihoodCurrent, &
-       &                                                                               logPriorCurrent                  ,&
-       & logPriorProposed
+  double precision                                , intent(in   )                   :: temperature                               , logLikelihoodCurrent  , &
+       &                                                                               logPriorCurrent                           , logPriorProposed
   real                                            , intent(inout)                   :: timeEvaluate
   double precision                                , intent(  out), optional         :: logLikelihoodVariance
   double precision                                , allocatable  , dimension(:,:,:) :: states
-  double precision                                , allocatable  , dimension(  :,:) :: likelihoods                      , workspace2D
-  double precision                                , allocatable  , dimension(    :) :: likelihoodsCombined              , workspace            , &
-       &                                                                               likelihoodsFitted                , separations          , &
+  double precision                                , allocatable  , dimension(  :,:) :: likelihoods                               , workspace2D
+  double precision                                , allocatable  , dimension(    :) :: likelihoodsCombined                       , workspace              , &
+       &                                                                               likelihoodsFitted                         , separations            , &
        &                                                                               semiVariances
   integer                                         , allocatable  , dimension(    :) :: stateCount
-  double precision                                , parameter                       :: emulatorFailureSignificance=  3.0d0
-  double precision                                , parameter                       :: emulatorFailureLimit       =  5.0d0
-  integer                                         , parameter                       :: checksTotalMinimum         =100
-  type            (polynomialIterator            )                                  :: iterator1                          , iterator2
-  type            (vector                        )                                  :: likelihoodSums                     , coefficients
+  double precision                                , parameter                       :: emulatorFailureSignificance        =  3.0d+0
+  double precision                                , parameter                       :: emulatorFailureSignificanceAbsolute=  1.0d-3
+  double precision                                , parameter                       :: emulatorFailureLimit               =  5.0d+0
+  integer                                         , parameter                       :: checksTotalMinimum                 =100
+  type            (polynomialIterator            )                                  :: iterator1                                   , iterator2
+  type            (vector                        )                                  :: likelihoodSums                              , coefficients
   type            (matrix                        )                                  :: stateSums
-  integer         (kind=FGSL_Int                 )                                  :: decompositionSign                  , status
-  integer                                                                           :: accumulatedStateCount              , i                    , &
-       &                                                                               j                                  , k                    , &
-       &                                                                               evaluationsTotal                   , simulationsTotal     , &
-       &                                                                               stateCountAccept                   , stateCountAcceptChain, &
-       &                                                                               determinantSign                    , checksTotal          , &
-       &                                                                               failuresTotal                      , fileUnit
-  double precision                                                                  :: separation                         , likelihoodError      , & 
-       &                                                                               likelihoodEmulated                 , failureRateExpected
+  integer         (kind=FGSL_Int                 )                                  :: decompositionSign                           , status
+  integer                                                                           :: accumulatedStateCount                       , i                    , &
+       &                                                                               j                                           , k                    , &
+       &                                                                               evaluationsTotal                            , simulationsTotal     , &
+       &                                                                               stateCountAccept                            , stateCountAcceptChain, &
+       &                                                                               determinantSign                             , checksTotal          , &
+       &                                                                               failuresTotal                               , fileUnit             , &
+       &                                                                               correlationLength                           , l
+  double precision                                                                  :: separation                                  , likelihoodError      , & 
+       &                                                                               likelihoodEmulated                          , failureRateExpected
   logical                                                                           :: likelihoodIsSimulated
   character       (len=8                         )                                  :: label
   type            (varying_string                )                                  :: message                            , fileName
@@ -134,8 +135,18 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      end if
   end if
   ! Rebuild emulator if necessary.
-  accumulatedStateCount=mpiSelf%sum(self%accumulatedStateCount)
-  if (accumulatedStateCount >= self%emulatorRebuildCount) then
+  allocate(stateCount(0:mpiSelf%count()-1))
+  stateCount                           =0
+  stateCount           (mpiSelf%rank())=self   %accumulatedStateCount
+  stateCount                           =mpiSelf%sum                  (stateCount)
+  accumulatedStateCount                =        sum                  (stateCount)
+  select type (simulationState)
+  class is (stateCorrelation)
+     correlationLength=simulationState%correlationLength()
+  class default
+     correlationLength=1
+  end select
+  if (accumulatedStateCount >= self%emulatorRebuildCount .and. (any(stateCount == self%emulatorRebuildCount) .or. .not.self%initialized) .and. correlationLength > 0) then
      if (mpiSelf%isMaster()) then
         call Galacticus_Display_Indent('Rebuilding Gaussian process emulator ['//char(Formatted_Date_and_Time())//']')
         call flush(0)
@@ -170,13 +181,13 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         call allocateArray(self%likelihoodResiduals  ,    [self%emulatorRebuildCount                                      ] )
         call allocateArray(self%statesCombined       ,    [simulationState%dimension()    ,self%emulatorRebuildCount      ] )
         call allocateArray(self%stateScales          ,    [simulationState%dimension()                                    ] )
+        call allocateArray(self%stateMeans           ,    [simulationState%dimension()                                    ] )
         self%initialized=.true.
      end if
      ! Gather the simulator state and likelihood from other chains.
      if (mpiSelf%isMaster()) call Galacticus_Display_Message('gathering states ['//char(Formatted_Date_and_Time())//']')
      allocate(states     (simulationState%dimension(),self%emulatorRebuildCount,0:mpiSelf%count()-1))
      allocate(likelihoods(                            self%emulatorRebuildCount,0:mpiSelf%count()-1))
-     allocate(stateCount (                                                      0:mpiSelf%count()-1))
      states                    =mpiSelf%gather(self%simulationState    )
      likelihoods               =mpiSelf%gather(self%simulatorLikelihood)
      stateCount                =0
@@ -197,19 +208,32 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      if (mpiSelf%isMaster()) call Galacticus_Display_Message('extracting states ['//char(Formatted_Date_and_Time())//']')
      j=0
      do while (j < self%emulatorRebuildCount)
-        stateCountAccept=minval(stateCount,mask=stateCount > 0)
+        stateCountAccept=min(minval(stateCount,mask=stateCount > 0),max(self%emulatorRebuildCount/mpiSelf%count(),1))
         do i=0,mpiSelf%count()-1
            stateCountAcceptChain=min(stateCountAccept,self%emulatorRebuildCount-j,stateCount(i))
-           likelihoodsCombined(  j+1:j+stateCountAcceptChain)=likelihoods(  stateCount(i)+1-stateCountAcceptChain:stateCount(i),i)
-           self%statesCombined(:,j+1:j+stateCountAcceptChain)=states     (:,stateCount(i)+1-stateCountAcceptChain:stateCount(i),i)
-           stateCount(i)=stateCount(i)-stateCountAcceptChain
-           j            =j            +stateCountAcceptChain
-        end do
+           k=stateCount(i)
+           l=0
+           do while (l < stateCountAcceptChain .and. k > 0)              
+              j                       =j                 +1
+              l                       =l                 +1
+              likelihoodsCombined(  j)=likelihoods(  k,i)
+              self%statesCombined(:,j)=states     (:,k,i)
+              if (k < stateCount(i)) states(:,k:stateCount(i)-1,i)=states(:,k+1:stateCount(i),i)
+              stateCount         (  i)=stateCount (    i)-1              
+              k                       =k                 -correlationLength
+           end do
+        end do        
      end do
      ! Deallocate workspace.
      deallocate(likelihoods)
-     deallocate(stateCount ) 
+     deallocate(stateCount )
      deallocate(states     )
+     ! Evaluate mean state.
+     self%stateMeans=sum(self%statesCombined,dim=2)/size(self%statesCombined,dim=2)
+     ! Subtract means from states.
+     do i=1,size(self%statesCombined,dim=2)
+        self%statesCombined(:,i)=self%statesCombined(:,i)-self%stateMeans
+     end do
      ! Evaluate sums needed in fitting polynomial trend model.
      if (mpiSelf%isMaster()) call Galacticus_Display_Message('fitting global trends (step #1) ['//char(Formatted_Date_and_Time())//']')
      iterator1=polynomialIterator(self%polynomialOrder,simulationState%dimension())
@@ -300,13 +324,11 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      status                 =FGSL_LinAlg_LU_Decomp (self%regressionMatrixLU,self%permutations,decompositionSign)     
      determinantSign        =FGSL_Linalg_LU_SgnDet (self%regressionMatrixLU                  ,decompositionSign)
      self%regressionMatrixIsSingular=(determinantSign == 0)
-     ! Retain every second of the currently stored states. This avoids losing all information and only replacing it with data from
-     ! regions where the new emulator is bad.
-     do i=1,self%accumulatedStateCount/2
-        self%simulatorLikelihood(  i)=self%simulatorLikelihood(  2*i)
-        self%simulationState    (:,i)=self%simulationState    (:,2*i)
-     end do
-     self%accumulatedStateCount=self%accumulatedStateCount/2
+     if (mpiSelf%isMaster().and.self%regressionMatrixIsSingular) call Galacticus_Display_Message('   ==> regression matrix is singular')
+     ! Retain (the most recent) 50% of the required number of points.
+     self%simulatorLikelihood  (  1:self%accumulatedStateCount/2)=self%simulatorLikelihood(  self%accumulatedStateCount/2+1:2*(self%accumulatedStateCount/2))
+     self%simulationState      (:,1:self%accumulatedStateCount/2)=self%simulationState    (:,self%accumulatedStateCount/2+1:2*(self%accumulatedStateCount/2))
+     self%accumulatedStateCount                                  =                           self%accumulatedStateCount/2
      ! Deallocate workspace.
      deallocate(likelihoodsCombined)
      deallocate(likelihoodsFitted  )
@@ -337,9 +359,16 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         likelihoodEmulated                  =likelihoodGaussianRegressionEvaluate
         likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
         likelihoodIsSimulated               =.true.
-        ! Count number of emulator checks and the failure rate.
-        self%emulatorCheckCount=self%emulatorCheckCount+1
-        if (abs(likelihoodEmulated-likelihoodGaussianRegressionEvaluate) > emulatorFailureSignificance*likelihoodError) self%emulatorFailCount=self%emulatorFailCount+1
+        ! Check that a non-impossible likelihood was returned.
+        if (likelihoodGaussianRegressionEvaluate > logImpossible) then
+           ! Count number of emulator checks and the failure rate.
+           self%emulatorCheckCount=self%emulatorCheckCount+1
+           if     (                                                                                                                    &
+                &   abs(likelihoodEmulated-likelihoodGaussianRegressionEvaluate) > emulatorFailureSignificance        *likelihoodError &
+                &  .and.                                                                                                               &
+                &   abs(likelihoodEmulated-likelihoodGaussianRegressionEvaluate) > emulatorFailureSignificanceAbsolute                 &
+                & ) self%emulatorFailCount=self%emulatorFailCount+1
+        end if
         checksTotal  =mpiSelf%sum(self%emulatorCheckCount)
         failuresTotal=mpiSelf%sum(self%emulatorFailCount )
         ! Determine if the emulator is sufficiently good to use or not.
@@ -361,8 +390,8 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
            message=message//trim(adjustl(label))//'% for perfect emulator)'
            call Galacticus_Display_Message(message)
            if (.not.self%isGood) call Galacticus_Display_Message('WARNING: emulator failure rate is too high - emulator will not be used')
-        end if
-     else
+        end if     
+     else        
         if (simulationConvergence%isConverged().and.simulationConvergence%chainIsOutlier(simulationState%chainIndex()).and.self%emulateOutliers) return
         if (likelihoodGaussianRegressionEvaluate+logPriorProposed+self%sigmaBuffer*likelihoodError < logLikelihoodCurrent+logPriorCurrent-self%logLikelihoodBuffer        *temperature) return
         if (                                                                       likelihoodError <                                      self%logLikelihoodErrorTolerance*temperature) return
@@ -378,7 +407,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      else
         likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
         ! Store the likelihood and state.
-        if (likelihoodGaussianRegressionEvaluate > logImpossible) then
+        if (likelihoodGaussianRegressionEvaluate > logImpossible .and. self%accumulatedStateCount < self%emulatorRebuildCount) then
            self%accumulatedStateCount                            =self%accumulatedStateCount+1
            self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate
            self%simulationState    (:,self%accumulatedStateCount)=simulationState%get()
@@ -394,8 +423,8 @@ elemental double precision function likelihoodGaussianRegressionEvaluateVariogra
   class           (likelihoodGaussianRegression), intent(in   ) :: self
   double precision                              , intent(in   ) :: h
   
-  if (h == 0.0d0) then
-     likelihoodGaussianRegressionEvaluateVariogram=0.0d0
+  if (h <= 0.0d0) then
+     likelihoodGaussianRegressionEvaluateVariogram=self%C0
   else if (h < self%CR) then
      likelihoodGaussianRegressionEvaluateVariogram=self%C0+self%C1*(1.5d0*h/self%CR-0.5d0*(h/self%CR)**3)
   else
@@ -429,29 +458,60 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
   use, intrinsic :: ISO_C_Binding
   use Galacticus_Error
   use FGSL
+  use Sort
   implicit none
   class           (likelihoodGaussianRegression), intent(inout)               :: self
   double precision                              , intent(in   ), dimension(:) :: separations                , semiVariances
   double precision                              , target       , dimension(3) :: C
   real            (fgsl_double                 ), pointer      , dimension(:) :: cPtr
-  integer                                       , parameter                   :: iterationsMaximum   =100
+  integer         (c_size_t                    ), allocatable  , dimension(:) :: rank
+  integer                                       , parameter                   :: iterationsMaximum   =10000
   double precision                              , parameter                   :: gradientTolerance   =1.0d-2
+  double precision                              , parameter                   :: binWidthMaximum     =2.0d0
+  integer                                       , parameter                   :: binCountMaximum     =100000
   type            (fgsl_multimin_function_fdf  )                              :: minimizationFunction
   type            (fgsl_multimin_fdfminimizer  )                              :: minimizer
   type            (fgsl_vector                 )                              :: cVector
   type            (c_ptr                       )                              :: parameters
   integer                                                                     :: status                     , iteration
+  integer         (c_size_t                    )                              :: k                          , j        , &
+       &                                                                         i
   double precision                                                            :: currentMinimum
 
   ! Allocate workspace.  
   allocate(separationsNormalized  (size(separations)))
   allocate(separationsLimited     (size(separations)))
   allocate(semiVariancesNormalized(size(separations)))
+  allocate(semiVariancesBinned    (size(separations)))
+  allocate(separationsBinned      (size(separations)))
+  allocate(rank                   (size(separations)))
   ! Compute normalized separations and variances.
   separationNormalization  =sum(separations  )/dble(size(separations))
   semiVarianceNormalization=sum(semiVariances)/dble(size(separations))
   separationsNormalized    =separations       /separationNormalization
   semiVariancesNormalized  =semiVariances     /semiVarianceNormalization
+  ! Get rank ordering by separation.
+  rank=Sort_Index_Do(separationsNormalized)
+  ! Compute binned estimates of the mean semi-variances.
+  binCount=0
+  j       =0
+  k       =1
+  do while (.true.)
+     j=j+1
+     if (j-k == binCountMaximum .or. separationsNormalized(rank(j)) > binWidthMaximum*separationsNormalized(rank(k)) .or. j == size(separations)) then
+        binCount=binCount+1
+        separationsBinned  (binCount)=0.0d0
+        semiVariancesBinned(binCount)=0.0d0        
+        do i=k,j
+           separationsBinned  (binCount)=separationsBinned  (binCount)+separationsNormalized  (rank(i))
+           semiVariancesBinned(binCount)=semiVariancesBinned(binCount)+semiVariancesNormalized(rank(i))
+        end do
+        separationsBinned  (binCount)=separationsBinned  (binCount)/dble(j-k+1)
+        semiVariancesBinned(binCount)=semiVariancesBinned(binCount)/dble(j-k+1)
+        k=j+1
+        if (j == size(separations)) exit
+     end if
+  end do
   ! Initialize the minimizer.
   minimizationFunction=FGSL_MultiMin_Function_FDF_Init(                                              &
        &                                               likelihoodGaussianRegressionVariogramModelF , &
@@ -462,7 +522,7 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
        &                                              )
   minimizer=FGSL_MultiMin_FDFMinimizer_Alloc(FGSL_MultiMin_FDFMinimizer_Conjugate_PR,3_FGSL_Size_T)
   cVector  =FGSL_Vector_Init(type=1.0_FGSL_Double)
-  C        =[0.5d0,1.0d0,0.5d0] ! Initial guess for the parameters.
+  C        =[semiVariancesBinned(1),semiVariancesBinned(binCount),separationsBinned(binCount/2)] ! Initial guess for the parameters.
   status   =FGSL_Vector_Align(C,3_FGSL_Size_T,cVector,3_FGSL_Size_T,0_FGSL_Size_T,1_FGSL_Size_T)
   if (status /= FGSL_Success) call Galacticus_Error_Report('likelihoodGaussianRegressionFitVariogram','failed to initialize parameter vector')
   status   =FGSL_MultiMin_FDFMinimizer_Set(minimizer,minimizationFunction,cVector,0.01d0,0.1d0)
@@ -471,21 +531,21 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
   currentMinimum=0.0d0
   iteration     =0
   do while (                                                                                                                                   &
-       &     FGSL_MultiMin_Test_Gradient(FGSL_MultiMin_FDFMinimizer_Gradient(minimizer),gradientTolerance*currentMinimum) == FGSL_CONTINUE     &
+       &     FGSL_MultiMin_Test_Gradient(FGSL_MultiMin_FDFMinimizer_Gradient(minimizer),gradientTolerance*currentMinimum) == FGSL_Continue     &
        &    .and.                                                                                                                              &
        &     iteration                                                                                                    <  iterationsMaximum &
        &   )
      iteration     =iteration+1
      status        =FGSL_MultiMin_FDFMinimizer_Iterate(minimizer)
-     if (status == FGSL_ENoProg) exit
-     if (status /= FGSL_Success) call Galacticus_Error_Report('likelihoodGaussianRegressionFitVariogram','failed to iterate minimizer')
      currentMinimum=FGSL_MultiMin_FDFMinimizer_Minimum(minimizer)
+     if (status == FGSL_ENoProg) exit
+     if (status /= FGSL_Success) call Galacticus_Error_Report('likelihoodGaussianRegressionFitVariogram','failed to iterate minimizer')  
   end do
   ! Extract the best fit parameters.
   call FGSL_Vector_Free(cVector)
-  cVector=FGSL_Vector_Init(type=1.0_FGSL_Double)
-  cVector=FGSL_Multimin_FDFMinimizer_x(minimizer   )
-  status =FGSL_Vector_Align           (cPtr,cVector)
+  cVector=FGSL_Vector_Init            (type=1.0_FGSL_Double        )
+  cVector=FGSL_Multimin_FDFMinimizer_x(     minimizer              )
+  status =FGSL_Vector_Align           (     cPtr           ,cVector)
   self%C0=cPtr(1)*semiVarianceNormalization
   self%C1=cPtr(2)*semiVarianceNormalization
   self%CR=cPtr(3)*separationNormalization
@@ -495,71 +555,74 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
   deallocate(separationsNormalized  )
   deallocate(separationsLimited     )
   deallocate(semiVariancesNormalized)
+  deallocate(separationsBinned      )
+  deallocate(semiVariancesBinned    )
+  deallocate(rank                   )
   return
 end subroutine likelihoodGaussianRegressionFitVariogram
 
 function likelihoodGaussianRegressionVariogramModelF(x, parameters) bind(c)
+  !% Function to be minimized when fitting the variogram.
   use, intrinsic :: ISO_C_Binding
   implicit none
-  type(c_ptr), value :: x, parameters
-  real(FGSL_double), pointer, dimension(:) :: xx
-  real(c_double) :: likelihoodGaussianRegressionVariogramModelF
-  type(FGSL_vector) :: vec
-  integer(FGSL_int) :: status
+  real   (c_double   )                        :: likelihoodGaussianRegressionVariogramModelF
+  type   (c_ptr      ), value                 :: x                                          , parameters
+  real   (FGSL_double), pointer, dimension(:) :: xx
+  type   (FGSL_vector)                        :: vec
+  integer(FGSL_int   )                        :: status
   !GCC$ attributes unused :: parameters
   
-  call FGSL_obj_c_ptr(vec, x)
-  status = FGSL_vector_align(xx, vec)
-  
-  if (any(xx < 0.0d0)) then
-     likelihoodGaussianRegressionVariogramModelF=huge(1.0d0)
-  else
-     where (separationsNormalized > xx(3))
-        separationsLimited=xx(3)
-     elsewhere
-        separationsLimited=separationsNormalized
-     end where
-     likelihoodGaussianRegressionVariogramModelF=sum((xx(1)+xx(2)*(1.5d0*separationsLimited/xx(3)-0.5d0*(separationsLimited/xx(3))**3)-semiVariancesNormalized)**2)
-  end if
+  call FGSL_obj_c_ptr(vec,x)
+  status=FGSL_vector_align(xx,vec)
+  where (separationsBinned(1:binCount) > xx(3))
+     separationsLimited(1:binCount)=xx(3)
+  elsewhere
+     separationsLimited(1:binCount)=separationsBinned(1:binCount)
+  end where
+  likelihoodGaussianRegressionVariogramModelF=sum(((xx(1)+xx(2)*(1.5d0*separationsLimited(1:binCount)/xx(3)-0.5d0*(separationsLimited(1:binCount)/xx(3))**3))/semiVariancesBinned(1:binCount)-1.0d0)**2)
   return
 end function likelihoodGaussianRegressionVariogramModelF
 
-subroutine likelihoodGaussianRegressionVariogramModelD(x, parameters, df) bind(c)
+subroutine likelihoodGaussianRegressionVariogramModelD(x,parameters,df) bind(c)
+  !% Derivatives of the function to be minimized when fitting the variogram.
   use, intrinsic :: ISO_C_Binding
   implicit none
-  type(c_ptr), value :: x, parameters, df
-  type(FGSL_vector) :: vec, grad
-  real(c_double), pointer, dimension(:) :: xx,ddf
-  integer(FGSL_int) :: status  
+  type   (c_ptr      ), value                 :: x     , parameters, &
+       &                                         df
+  real   (c_double   ), pointer, dimension(:) :: xx    , ddf
+  type   (FGSL_vector)                        :: vec   , grad
+  integer(FGSL_int   )                        :: status  
   !GCC$ attributes unused :: parameters
   
-   call FGSL_obj_c_ptr(vec, x)
-   call FGSL_obj_c_ptr(grad, df)
-   status = FGSL_vector_align(xx, vec)
-   status = FGSL_vector_align(ddf, grad)
-   
-   where (separationsNormalized > xx(3))
-      separationsLimited=xx(3)
-   elsewhere
-      separationsLimited=separationsNormalized
-   end where
-   ddf(1)=2.0d0*sum((xx(1)+xx(2)*(1.5d0*separationsLimited/xx(3)-0.5d0*(separationsLimited/xx(3))**3)-semiVariancesNormalized))
-   ddf(2)=2.0d0*sum((xx(1)+xx(2)*(1.5d0*separationsLimited/xx(3)-0.5d0*(separationsLimited/xx(3))**3)-semiVariancesNormalized)*(1.5d0*separationsLimited/xx(3)-0.5d0*(separationsLimited/xx(3))**3))
-   ddf(3)=2.0d0*sum((xx(1)+xx(2)*(1.5d0*separationsLimited/xx(3)-0.5d0*(separationsLimited/xx(3))**3)-semiVariancesNormalized)*xx(2)*(-1.5d0*separationsLimited/xx(3)+1.5d0*(separationsLimited/xx(3))**3)/xx(3))
-   where(abs(ddf) < 1.0d-30)
-      ddf=1.0d-30
-   end where
- end subroutine likelihoodGaussianRegressionVariogramModelD
- 
- subroutine likelihoodGaussianRegressionVariogramModelFD(x, parameters, f, df) bind(c)
-   use, intrinsic :: ISO_C_Binding
-   implicit none
-   real(c_double) :: f
-   type(c_ptr), value :: x, parameters, df
+  call FGSL_obj_c_ptr(vec ,x )
+  call FGSL_obj_c_ptr(grad,df)
+  status=FGSL_vector_align(xx ,vec )
+  status=FGSL_vector_align(ddf,grad)   
+  where (separationsBinned > xx(3))
+     separationsLimited(1:binCount)=xx(3)
+  elsewhere
+     separationsLimited(1:binCount)=separationsBinned(1:binCount)
+  end where
+  ddf(1)=2.0d0*sum(((xx(1)+xx(2)*(1.5d0*separationsLimited(1:binCount)/xx(3)-0.5d0*(separationsLimited(1:binCount)/xx(3))**3))/semiVariancesBinned(1:binCount)-1.0d0)/semiVariancesBinned(1:binCount))
+  ddf(2)=2.0d0*sum(((xx(1)+xx(2)*(1.5d0*separationsLimited(1:binCount)/xx(3)-0.5d0*(separationsLimited(1:binCount)/xx(3))**3))/semiVariancesBinned(1:binCount)-1.0d0)*(1.5d0*separationsLimited(1:binCount)/xx(3)-0.5d0*(separationsLimited(1:binCount)/xx(3))**3)/semiVariancesBinned(1:binCount))
+  ddf(3)=2.0d0*sum(((xx(1)+xx(2)*(1.5d0*separationsLimited(1:binCount)/xx(3)-0.5d0*(separationsLimited(1:binCount)/xx(3))**3))/semiVariancesBinned(1:binCount)-1.0d0)*xx(2)*(-1.5d0*separationsLimited(1:binCount)/xx(3)+1.5d0*(separationsLimited(1:binCount)/xx(3))**3)/xx(3)/semiVariancesBinned(1:binCount))
+  where(abs(ddf) < 1.0d-30)
+     ddf=1.0d-30
+  end where
+  return
+end subroutine likelihoodGaussianRegressionVariogramModelD
+
+subroutine likelihoodGaussianRegressionVariogramModelFD(x, parameters, f, df) bind(c)
+  !% Computes both function and derivatives to be minimized when fitting the variogram.
+  use, intrinsic :: ISO_C_Binding
+  implicit none
+  type(c_ptr   ), value :: x , parameters, &
+       &                   df
+  real(c_double)        :: f
   
-      f = likelihoodGaussianRegressionVariogramModelF(x, parameters)
-    call likelihoodGaussianRegressionVariogramModelD(x, parameters, df)
- 
+  f=   likelihoodGaussianRegressionVariogramModelF(x,parameters   )
+  call likelihoodGaussianRegressionVariogramModelD(x,parameters,df)
+  return
 end subroutine likelihoodGaussianRegressionVariogramModelFD
 
 integer function polynomialCoefficientCount(n,d)
@@ -672,7 +735,7 @@ subroutine likelihoodGaussianRegressionFunctionChanged(self)
   use Memory_Management
   implicit none
   class(likelihoodGaussianRegression), intent(inout) :: self
-  
+
   ! Reset emulator state.
   self%initialized          =.false.
   self%accumulatedStateCount=0
@@ -691,6 +754,7 @@ subroutine likelihoodGaussianRegressionFunctionChanged(self)
   if (allocated(self%likelihoodResiduals  )) call deallocateArray(self%likelihoodResiduals  )
   if (allocated(self%statesCombined       )) call deallocateArray(self%statesCombined       )
   if (allocated(self%stateScales          )) call deallocateArray(self%stateScales          )
+  if (allocated(self%stateMeans           )) call deallocateArray(self%stateMeans           )
   ! Let the simulator know that the likelihood function may have changed.
   call self%simulatorLikelihoodFunction%functionChanged()
   return
@@ -712,8 +776,14 @@ logical function likelihoodGaussianRegressionWillEvaluate(self,simulationState,p
        &                                                                           logPriorCurrent                  , logPriorProposed
   double precision                                                              :: likelihoodEmulated               , likelihoodEmulatedError
   !GCC$ attributes unused :: parameterMappings
-  
-  likelihoodGaussianRegressionWillEvaluate=.true.
+
+  if (logPriorProposed <= logImpossible) then
+     ! Prior is impossible, no need to evaluate.
+     likelihoodGaussianRegressionWillEvaluate=.false.
+     return
+  else
+     likelihoodGaussianRegressionWillEvaluate=.true.
+  end if
   if (self%initialized.and..not.self%regressionMatrixIsSingular) then
      if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
         ! Emulation will be tested, so the simulator is always run.
@@ -734,13 +804,8 @@ logical function likelihoodGaussianRegressionWillEvaluate(self,simulationState,p
      end if
      return
   else
-     if (logPriorProposed <= logImpossible) then
-        ! Prior is impossible, no need to evaluate.
-        likelihoodGaussianRegressionWillEvaluate=.false.
-     else
-        ! Evaluate the simulator.
-        likelihoodGaussianRegressionWillEvaluate=.true.
-     end if
+     ! Evaluate the simulator.
+     likelihoodGaussianRegressionWillEvaluate=.true.
   end if
   return
 end function likelihoodGaussianRegressionWillEvaluate
@@ -758,9 +823,9 @@ subroutine likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEm
   type            (fgsl_vector                   )                              :: stateOffsetVector         , weightVector
   integer         (kind=FGSL_Int                 )                              :: status
   type            (polynomialIterator            )                              :: iterator1
-  
+
   ! Compute vector D.
-  stateCurrent=simulationState%get()
+  stateCurrent=simulationState%get()-self%stateMeans
   do i=1,self%emulatorRebuildCount
      separation         =likelihoodGaussianRegressionSeparation (self,stateCurrent,self%statesCombined(:,i))
      self%stateOffset(i)=likelihoodGaussianRegressionCorrelation(self,separation                           )
@@ -777,7 +842,7 @@ subroutine likelihoodGaussianRegressionEmulate(self,simulationState,likelihoodEm
   ! Compute the likelihood and variance.
   likelihoodEmulated     =sum(self%likelihoodResiduals*self%weight(1:self%emulatorRebuildCount))
   likelihoodEmulatedError=likelihoodGaussianRegressionCorrelation(self,0.0d0)-sum(self%weight*self%stateOffset)
-  if (likelihoodEmulatedError > 0.0d0) then
+  if (likelihoodEmulatedError >= 0.0d0) then
      likelihoodEmulatedError=sqrt(likelihoodEmulatedError)
   else
      likelihoodEmulatedError=likelihoodErrorLarge
@@ -801,7 +866,7 @@ subroutine likelihoodGaussianRegressionRestore(self,simulationState,logLikelihoo
   class           (likelihoodGaussianRegression), intent(inout)               :: self
   double precision                              , intent(in   ), dimension(:) :: simulationState
   double precision                              , intent(in   )               :: logLikelihood
-  integer                                                                     :: i
+  logical                                                                     :: storeState
 
   if (logLikelihood > logImpossible) then
      if (.not.allocated(self%simulatorLikelihood)) then
@@ -809,17 +874,19 @@ subroutine likelihoodGaussianRegressionRestore(self,simulationState,logLikelihoo
         call allocateArray(self%simulationState    ,[size(simulationState),self%emulatorRebuildCount])
      end if
      if (self%accumulatedStateCount == self%emulatorRebuildCount) then
-        ! Retain every second of the currently stored states. This avoids losing all information and only replacing it with data from
-        ! regions where the new emulator is bad.
-        do i=1,self%accumulatedStateCount/2
-           self%simulatorLikelihood(  i)=self%simulatorLikelihood(  2*i)
-           self%simulationState    (:,i)=self%simulationState    (:,2*i)
-        end do
-        self%accumulatedStateCount=self%accumulatedStateCount/2
+        ! Discard the oldest state.
+        self%simulatorLikelihood  (  1:self%emulatorRebuildCount-1)=self%simulatorLikelihood  (  2:self%emulatorRebuildCount)
+        self%simulationState      (:,1:self%emulatorRebuildCount-1)=self%simulationState      (:,2:self%emulatorRebuildCount)
+        self%accumulatedStateCount                                 =self%accumulatedStateCount                               -1
      end if
-     self%accumulatedStateCount                            =self%accumulatedStateCount+1
-     self%simulatorLikelihood(  self%accumulatedStateCount)=logLikelihood
-     self%simulationState    (:,self%accumulatedStateCount)=simulationState
+     ! Store the state unless it is identical to the previous state.
+     storeState=self%accumulatedStateCount == 0
+     if (.not.storeState) storeState=any(simulationState /= self%simulationState(:,self%accumulatedStateCount))
+     if (storeState) then
+        self%accumulatedStateCount=min(self%accumulatedStateCount+1,self%emulatorRebuildCount)
+        self%simulatorLikelihood(  self%accumulatedStateCount)=logLikelihood
+        self%simulationState    (:,self%accumulatedStateCount)=simulationState
+     end if
   end if
   return
 end subroutine likelihoodGaussianRegressionRestore

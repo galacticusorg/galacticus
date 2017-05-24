@@ -30,7 +30,8 @@
      double precision                  , allocatable, dimension(:  ) :: simulatorLikelihood        , polynomialCoefficient      , &
           &                                                             likelihoodSums             , coefficients               , &
           &                                                             stateOffset                , weight                     , &
-          &                                                             likelihoodResiduals        , stateScales
+          &                                                             likelihoodResiduals        , stateScales                , &
+          &                                                             stateMeans
      double precision                  , allocatable, dimension(:,:) :: simulationState            , stateSums                  , &
           &                                                             regressionMatrix           , statesCombined
      logical                                                         :: initialized                , regressionMatrixIsSingular , &
@@ -107,6 +108,8 @@
   end interface polynomialIterator
 
   ! Workspaces used when fitting the semi-variogram.
-  double precision, allocatable, dimension(:) :: separationsNormalized  , semiVariancesNormalized, separationsLimited
+  double precision, allocatable, dimension(:) :: separationsNormalized  , semiVariancesNormalized, separationsLimited, &
+       &                                         separationsBinned      , semiVariancesBinned
   double precision                            :: separationNormalization, semiVarianceNormalization
+  integer                                     :: binCount
   
