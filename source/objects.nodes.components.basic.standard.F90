@@ -25,7 +25,7 @@ module Node_Component_Basic_Standard
   private
   public :: Node_Component_Basic_Standard_Rate_Compute   , Node_Component_Basic_Standard_Scale_Set     , &
        &    Node_Component_Basic_Standard_Tree_Initialize, Node_Component_Basic_Standard_Stop_Accretion, &
-       &    Node_Component_Basic_Standard_Promote
+       &    Node_Component_Basic_Standard_Promote        , Node_Component_Basic_Standard_Plausibility
 
   !# <component>
   !#  <class>basic</class>
