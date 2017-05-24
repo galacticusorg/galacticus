@@ -56,23 +56,16 @@ end subroutine stateCorrelationDestroy
 
 subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask)
   !% Update the current state.
-  use MPI_Utilities
-  use Galacticus_Display
-  use String_Handling
-  use ISO_Varying_String
   implicit none
   class           (stateCorrelation), intent(inout)                                      :: self
   double precision                  , intent(in   ), dimension(:             )           :: stateNew
   logical                           , intent(in   )                                      :: logState
   logical                           , intent(in   )                                      :: isConverged
   logical                           , intent(in   ), dimension(:)             , optional :: outlierMask
-  double precision                                 , dimension(size(stateNew))           :: stateMean
   double precision                  , allocatable  , dimension(:,:           )           :: statesTmp
   integer                                                                                :: storedStateCountMaximum
   integer                                                                                :: i                      , n, &
        &                                                                                    stepComputeInterval
-  double precision                                                                       :: correlation
-  type            (varying_string  )                                                     :: message
 
   call self%stateHistory%update(stateNew,logState,isConverged,outlierMask)
   ! Return if not logging states.
@@ -95,31 +88,8 @@ subroutine stateCorrelationUpdate(self,stateNew,logState,isConverged,outlierMask
      ! Update count of number of correlation lengths accrued post-convergence.
      if (isConverged.and..not.any(self%correlationLengths == -1)) &
           & self%convergedCorrelationLengthCount=self%convergedCorrelationLengthCount+1
-     ! Compute correlation lengths.
-     if (mpiSelf%isMaster()) call Galacticus_Display_Indent("Computing correlation lengths")
-     stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
-     self%correlationLengths=-1
-     do i=1,size(stateMean)
-        do n=1,self%storedStateCount-1
-           correlation=sum((self%states(i,1:self%storedStateCount-n)-stateMean(i))*(self%states(i,1+n:self%storedStateCount)-stateMean(i)))
-           if (correlation <= 0.0d0) then
-              self%correlationLengths(i)=n
-              exit
-           end if
-        end do
-     end do
-     self%correlationLengths =mpiSelf%median(self%correlationLengths,outlierMask)
+     call self%correlationLengthCompute(outlierMask)
      self%stepComputePrevious=self%stepCount
-     if (mpiSelf%isMaster()) then
-        message="Correlation length at step "
-        message=message//self%stepCount//" = "
-        do i=1,size(stateNew)
-           message=message//self%correlationLengths(i)
-           if (i < size(stateNew)) message=message//", "
-        end do
-        call Galacticus_Display_Message (message)
-        call Galacticus_Display_Unindent("done" )
-     end if
   end if
   ! If any correlation length is not found, extend the number of states stored.
   if (any(self%correlationLengths == -1) .and. self%storedStateCount == storedStateCountMaximum) then
@@ -155,8 +125,75 @@ end function stateCorrelationPostConvergenceCorrelationCount
 integer function stateCorrelationCorrelationLength(self)
   !% Return the correlation length.
   implicit none
-  class(stateCorrelation), intent(in   ) :: self
-  
+  class(stateCorrelation), intent(inout) :: self
+
+  if (any(self%correlationLengths <= 0)) call self%correlationLengthCompute()
   stateCorrelationCorrelationLength=maxval(self%correlationLengths)
   return
 end function stateCorrelationCorrelationLength
+
+subroutine stateCorrelationCorrelationLengthCompute(self,outlierMask)
+  !% Compute correlation lengths.
+  use MPI_Utilities
+  use Galacticus_Display
+  use String_Handling
+  use ISO_Varying_String
+  implicit none
+  class           (stateCorrelation), intent(inout)                            :: self
+  logical                           , intent(in   ), dimension(:), optional    :: outlierMask
+  double precision                                                             :: correlation
+  double precision                                 , dimension(:), allocatable :: stateMean
+  integer                                                                      :: i          , n
+  type            (varying_string  )                                           :: message
+
+  ! Compute correlation lengths.
+  if (mpiSelf%isMaster()) call Galacticus_Display_Indent("Computing correlation lengths")
+  stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
+  self%correlationLengths=-1
+  do i=1,size(stateMean)
+     do n=1,self%storedStateCount-1
+        correlation=sum((self%states(i,1:self%storedStateCount-n)-stateMean(i))*(self%states(i,1+n:self%storedStateCount)-stateMean(i)))
+        if (correlation <= 0.0d0) then
+           self%correlationLengths(i)=n
+           exit
+        end if
+     end do
+  end do
+  self%correlationLengths=mpiSelf%median(self%correlationLengths,outlierMask)
+  if (mpiSelf%isMaster()) then
+     message="Correlation length at step "
+     message=message//self%stepCount//" = "
+     do i=1,size(stateMean)
+        message=message//self%correlationLengths(i)
+        if (i < size(stateMean)) message=message//", "
+     end do
+     call Galacticus_Display_Message (message)
+     call Galacticus_Display_Unindent("done" )
+  end if
+  return
+end subroutine stateCorrelationCorrelationLengthCompute
+
+subroutine stateCorrelationRestore(self,stateVector,first)
+  !% Restore the state object from file.
+  use MPI_Utilities
+  use ISO_Varying_String
+  implicit none
+  class           (stateCorrelation), intent(inout)               :: self
+  double precision                  , intent(in   ), dimension(:) :: stateVector
+  logical                           , intent(in   )               :: first
+  integer                                                         :: storedStateCountMaximum
+
+  ! On first restore state, reset.
+  if (first) call self%reset()
+  ! Perform restore of parent class.
+  call self%stateHistory%restore(stateVector,first)
+  ! Store state.
+  self%storedStateCount=self%storedStateCount+1
+  storedStateCountMaximum=size(self%states,dim=2)
+  if (self%storedStateCount > storedStateCountMaximum) then
+     self%storedStateCount=storedStateCountMaximum
+     self%states(:,1:storedStateCountMaximum-1)=self%states(:,2:storedStateCountMaximum)
+  end if
+  self%states(:,self%storedStateCount)=stateVector
+  return
+end subroutine stateCorrelationRestore

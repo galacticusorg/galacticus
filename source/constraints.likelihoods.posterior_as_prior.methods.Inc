@@ -175,7 +175,7 @@ double precision function likelihoodPosteriorPriorEvaluate(self,simulationState,
   use Numerical_Constants_Math
   implicit none
   class           (likelihoodPosteriorPrior), intent(inout)               :: self
-  class           (state                   ), intent(in   )               :: simulationState
+  class           (state                   ), intent(inout)               :: simulationState
   type            (mappingList             ), intent(in   ), dimension(:) :: parameterMappings
   class           (convergence             ), intent(inout)               :: simulationConvergence
   double precision                          , intent(in   )               :: temperature          , logLikelihoodCurrent, &

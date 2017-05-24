@@ -126,7 +126,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
   use Stellar_Population_Luminosities
   implicit none
   class           (likelihoodSEDFit                  ), intent(inout)                 :: self
-  class           (state                             ), intent(in   )                 :: simulationState
+  class           (state                             ), intent(inout)                 :: simulationState
   type            (mappingList                       ), intent(in   ), dimension(:  ) :: parameterMappings
   class           (convergence                       ), intent(inout)                 :: simulationConvergence
   double precision                                    , intent(in   )                 :: temperature                         , logLikelihoodCurrent   , &

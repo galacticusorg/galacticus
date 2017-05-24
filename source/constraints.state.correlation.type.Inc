@@ -33,6 +33,12 @@
      !@     <description>Return the current correlation length in the chains.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>correlationLengthCompute</method>
+     !@     <type>\intzero</type>
+     !@     <arguments>\logicalone\ [outlierMask]\argin</arguments>
+     !@     <description>Compute correlation lengths in the chains.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>postConvergenceCorrelationCount</method>
      !@     <type>\intzero</type>
      !@     <arguments></arguments>
@@ -42,10 +48,12 @@
      final     ::                                    stateCorrelationDestroy
      procedure :: update                          => stateCorrelationUpdate
      procedure :: reset                           => stateCorrelationReset
+     procedure :: restore                         => stateCorrelationRestore
      procedure :: postConvergenceCorrelationCount => stateCorrelationPostConvergenceCorrelationCount
      procedure :: correlationLength               => stateCorrelationCorrelationLength
+     procedure :: correlationLengthCompute        => stateCorrelationCorrelationLengthCompute
   end type stateCorrelation
-  
+
   interface stateCorrelation
      !% Constructors for the ``correlation'' state class.
      module procedure stateCorrelationConstructor

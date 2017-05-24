@@ -66,7 +66,7 @@ module Constraints_Likelihoods
      double precision function likelihoodEvaluate(self,simulationState,parameterMappings,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
        import :: likelihood, state, convergence, mappingList
        class           (likelihood ), intent(inout)               :: self
-       class           (state      ), intent(in   )               :: simulationState
+       class           (state      ), intent(inout)               :: simulationState
        type            (mappingList), intent(in   ), dimension(:) :: parameterMappings
        class           (convergence), intent(inout)               :: simulationConvergence
        double precision             , intent(in   )               :: temperature          , logLikelihoodCurrent, &
