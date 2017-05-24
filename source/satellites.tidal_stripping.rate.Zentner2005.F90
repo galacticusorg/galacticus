@@ -16,7 +16,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Xiaolong Du.
 
 !% Contains a module with a \cite{king_structure_1962} implementation of calculations of satellite mass loss due to tidal
 !% stripping.
@@ -167,9 +167,9 @@ contains
        else
           tidalRadius=finder%find(rootGuess=tidalRadius)
        end if
-       outerSatelliteMass=max(                                                                                                   &
-            &                 Galactic_Structure_Enclosed_Mass(thisNode)-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius), &
-            &                 0.0d0                                                                                              &
+       outerSatelliteMass=max(                                                                      &
+            &                 satelliteMass-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius), &
+            &                 0.0d0                                                                 &
             &                )
     else
        outerSatelliteMass=0.0d0
