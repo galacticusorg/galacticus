@@ -613,16 +613,17 @@ contains
     type            (stellarLuminosities          ), save                      :: luminositiesStellarRates    , luminositiesTransferRate
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
     !GCC$ attributes unused :: odeConverged
-    
+
+    ! Return immediately if this class is not in use.
+    if (.not.defaultDiskComponent%standardIsActive()) return
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
-
     ! Get the disk and check that it is of our class.
     disk => node%disk()
     select type (disk)
-       class is (nodeComponentDiskStandard)
+    class is (nodeComponentDiskStandard)
 
-          ! Check for a realistic disk, return immediately if disk is unphysical.
+       ! Check for a realistic disk, return immediately if disk is unphysical.
        if     (     disk%angularMomentum() < 0.0d0 &
             &  .or. disk%radius         () < 0.0d0 &
             &  .or. disk%massGas        () < 0.0d0 &
@@ -1052,12 +1053,11 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Standard_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                ), intent(inout) :: node
-    logical                                   , intent(inout) :: galaxyIsPhysicallyPlausible
     class           (nodeComponentDisk       ), pointer       :: disk
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     double precision                                          :: angularMomentumScale
@@ -1070,14 +1070,14 @@ contains
      select type (disk)
      class is (nodeComponentDiskStandard)
         if      (disk%angularMomentum()                             <                       0.0d0) &
-             & galaxyIsPhysicallyPlausible=.false.
+             & node%isPhysicallyPlausible=.false.
         if      (disk%massStellar    ()+disk%massGas() <  -diskMassToleranceAbsolute) then
-           galaxyIsPhysicallyPlausible=.false.
+           node%isPhysicallyPlausible=.false.
         else if (disk%massStellar    ()+disk%massGas() >=                      0.0d0) then
            if      (                                                                               &
                 &   disk%angularMomentum() < 0.0d0                                                 &
                 &  ) then
-              galaxyIsPhysicallyPlausible=.false.
+              node%isPhysicallyPlausible=.false.
            else
               darkMatterHaloScale_ => darkMatterHaloScale()
               angularMomentumScale=(                                           &
@@ -1093,7 +1093,7 @@ contains
                    & ) then
                  ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
                  ! virial radius of their halo.
-                 galaxyIsPhysicallyPlausible=.false.
+                 node%isPhysicallyPlausible=.false.
              end if
            end if
         end if

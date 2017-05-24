@@ -575,6 +575,8 @@ contains
     !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if this class is not in use.
+    if (.not.defaultSpheroidComponent%standardIsActive()) return
     ! Get the disk and check that it is of our class.
     spheroid => node%spheroid()
     select type (spheroid)
@@ -1186,12 +1188,11 @@ contains
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Standard_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     implicit none
-    type   (treeNode             ), intent(inout) :: node
-    logical                       , intent(inout) :: galaxyIsPhysicallyPlausible
-    class  (nodeComponentSpheroid), pointer       :: spheroid
+    type (treeNode             ), intent(inout) :: node
+    class(nodeComponentSpheroid), pointer       :: spheroid
 
     ! Return immediately if our method is not selected.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -1202,11 +1203,11 @@ contains
        class is (nodeComponentSpheroidStandard)
           ! Determine the plausibility of the current spheroid.
        if        (spheroid%massStellar          ()+spheroid%massGas() < -spheroidMassToleranceAbsolute) then
-          galaxyIsPhysicallyPlausible=.false.
+          node%isPhysicallyPlausible=.false.
        else
           if     (      spheroid%massStellar    ()+spheroid%massGas() >  spheroidMassToleranceAbsolute &
                &  .and. spheroid%angularMomentum()                    <                          0.0d0 &
-               & ) galaxyIsPhysicallyPlausible=.false.
+               & ) node%isPhysicallyPlausible=.false.
        end if
     end select
     return

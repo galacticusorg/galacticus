@@ -270,7 +270,7 @@ sub Build_Tree_Node_Class {
 	 {
 	     intrinsic  => "logical",
 	     attributes => [ "public" ],
-	     variables  => [ "isPhysicallyPlausible" ]
+	     variables  => [ "isPhysicallyPlausible", "isSolvable" ]
 	 },
 	 {
 	     intrinsic  => "class",

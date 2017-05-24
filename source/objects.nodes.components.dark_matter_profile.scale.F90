@@ -196,20 +196,22 @@ contains
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
+  !#  <after>Node_Component_Basic_Standard_Plausibility</after>
   !# </radiusSolverPlausibility>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node,galaxyIsPhysicallyPlausible)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node)
     !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
     implicit none
     type   (treeNode                      ), intent(inout) :: node
-    logical                                , intent(inout) :: galaxyIsPhysicallyPlausible
     class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
 
+    ! Return immediately if already non-plausible.
+    if (.not.node%isPhysicallyPlausible) return
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale class.
     select type (darkMatterProfile)
-       class is (nodeComponentDarkMatterProfileScale)
-       if (darkMatterProfile%scale() <= 0.0d0) galaxyIsPhysicallyPlausible=.false.
+    class is (nodeComponentDarkMatterProfileScale)
+       if (darkMatterProfile%scale() <= 0.0d0) node%isPhysicallyPlausible=.false.
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
