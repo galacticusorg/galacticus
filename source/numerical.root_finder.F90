@@ -159,9 +159,16 @@ module Root_Finder
      end subroutine rootFunctionBothTemplate
   end interface
 
-  class(rootFinder), pointer :: currentFinder
-  !$omp threadprivate(currentFinder)
+  type :: rootFinderList
+     !% Type used to maintain a list of root finder objects when root finding is performed recursively.
+     class(rootFinder), pointer :: finder
+  end type rootFinderList
 
+  ! List of currently active root finders.
+  integer                                            :: currentFinderIndex=0
+  type   (rootFinderList), allocatable, dimension(:) :: currentFinders
+  !$omp threadprivate(currentFinders,currentFinderIndex)
+  
 contains
 
   subroutine Root_Finder_Destroy(self)
@@ -209,21 +216,32 @@ contains
     real            (kind=c_double       )              , intent(in   ), optional :: rootGuess
     real            (kind=c_double       ), dimension(2), intent(in   ), optional :: rootRange
     integer                                             , intent(  out), optional :: status
-    class           (rootFinder          ), pointer                               :: previousFinder
-    integer                               , parameter                             :: iterationMaximum=1000
-    type            (fgsl_error_handler_t)                                        :: rootErrorHandler     , standardGslErrorHandler
-    logical                                                                       :: rangeChanged         , rangeLowerAsExpected   , rangeUpperAsExpected
-    integer                                                                       :: iteration            , statusActual
-    double precision                                                              :: xHigh                , xLow                   , xRoot               , &
+    type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
+    integer                               , parameter                             :: iterationMaximum =1000
+    integer                               , parameter                             :: findersIncrement =   3
+    type            (fgsl_error_handler_t)                                        :: rootErrorHandler      , standardGslErrorHandler
+    logical                                                                       :: rangeChanged          , rangeLowerAsExpected   , rangeUpperAsExpected
+    integer                                                                       :: iteration             , statusActual
+    double precision                                                              :: xHigh                 , xLow                   , xRoot               , &
          &                                                                           xRootPrevious
     type            (c_ptr               )                                        :: parameterPointer
     type            (varying_string      )                                        :: message
     character       (len= 30             )                                        :: label
 
-    ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must
-    ! be able to return state to its original form before exiting the function.
-    previousFinder => currentFinder
-    currentFinder  => self
+    ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
+    currentFinderIndex=currentFinderIndex+1
+    if (allocated(currentFinders)) then
+       if (size(currentFinders) < currentFinderIndex) then
+          call move_alloc(currentFinders,currentFindersTmp)
+          allocate(currentFinders(size(currentFindersTmp)+findersIncrement))
+          currentFinders(1:size(currentFindersTmp))=currentFindersTmp
+          deallocate(currentFindersTmp)
+       else
+       end if
+    else
+       allocate(currentFinders(findersIncrement))
+    end if
+    currentFinders(currentFinderIndex)%finder => self
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
        if (.not.FGSL_Well_Defined(self%solverDerivative).or.self%resetRequired) then
@@ -454,7 +472,7 @@ contains
     ! Reset error handler.
     if (present(status)) standardGslErrorHandler=FGSL_Set_Error_Handler(standardGslErrorHandler)
     ! Restore state.
-    currentFinder => previousFinder
+    currentFinderIndex=currentFinderIndex-1
     return
 
   contains
@@ -599,7 +617,7 @@ contains
     real(kind=c_double)        :: Root_Finder_Wrapper_Function
     !GCC$ attributes unused :: parameterPointer
     
-    Root_Finder_Wrapper_Function=currentFinder%finderFunction(x)
+    Root_Finder_Wrapper_Function=currentFinders(currentFinderIndex)%finder%finderFunction(x)
     return
   end function Root_Finder_Wrapper_Function
 
@@ -611,7 +629,7 @@ contains
     type(c_ptr        ), value :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
 
-    Root_Finder_Wrapper_Function_Derivative=currentFinder%finderFunctionDerivative(x)
+    Root_Finder_Wrapper_Function_Derivative=currentFinders(currentFinderIndex)%finder%finderFunctionDerivative(x)
     return
   end function Root_Finder_Wrapper_Function_Derivative
 
@@ -623,7 +641,7 @@ contains
     real(kind=c_double), intent(  out) :: f               , df
     !GCC$ attributes unused :: parameterPointer
 
-    call currentFinder%finderFunctionBoth(x,f,df)
+    call currentFinders(currentFinderIndex)%finder%finderFunctionBoth(x,f,df)
     return
   end subroutine Root_Finder_Wrapper_Function_Both
 
