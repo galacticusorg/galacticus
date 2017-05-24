@@ -726,7 +726,7 @@ contains
     call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate &
          &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
     ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-    massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,starFormationRate,energyInputRate)
+    massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,energyInputRate,starFormationRate)
     if (massOutflowRate > 0.0d0) then
        ! Limit the outflow rate timescale to a multiple of the dynamical time.
        darkMatterHaloScale_ => darkMatterHaloScale()

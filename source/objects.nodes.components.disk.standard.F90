@@ -667,7 +667,7 @@ contains
 
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
        starFormationFeedbackDisks_ => starFormationFeedbackDisks                         (                                      )
-       massOutflowRateToHotHalo    =  starFormationFeedbackDisks_%outflowRate            (node,starFormationRate,energyInputRate)
+       massOutflowRateToHotHalo    =  starFormationFeedbackDisks_%outflowRate            (node,energyInputRate,starFormationRate)
        massOutflowRateFromHalo     =  Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(node,starFormationRate,energyInputRate)
        massOutflowRate             =  massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then

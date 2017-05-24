@@ -620,7 +620,7 @@ contains
 
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
        starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()
-       massOutflowRateToHotHalo=starFormationFeedbackSpheroids_%outflowRate            (node,starFormationRate,energyInputRate)
+       massOutflowRateToHotHalo=starFormationFeedbackSpheroids_%outflowRate            (node,energyInputRate,starFormationRate)
        massOutflowRateFromHalo =Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(node,starFormationRate,energyInputRate)
        massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
