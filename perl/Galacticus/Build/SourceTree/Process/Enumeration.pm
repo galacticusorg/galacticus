@@ -31,12 +31,13 @@ sub Process_Enumerations {
 	    $node->{'directive'}->{'processed'} =  1;
 	    my $visibility = exists($node->{'directive'}->{'visibility'}) ? $node->{'directive'}->{'visibility'} : "public";
 	    my $validator  = exists($node->{'directive'}->{'validator' }) ? $node->{'directive'}->{'validator' } : "no"    ;
-	    my $enumerationSource     ;	    
-	    my $i                 = -1;
+	    my $enumerationSource;
+	    my $indexing          = exists($node->{'directive'}->{'indexing'}) ? $node->{'directive'}->{'indexing'} : 0;
+	    my $i                 = $indexing-1;
 	    $enumerationSource .= "  ! Auto-generated enumeration\n";
 	    $enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}.ucfirst($_->{'label'})."=".++$i."\n"
 		foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
-	    my $enumerationCount   = $i+1;
+	    my $enumerationCount   = $i+1-$indexing;
 	    if ( $validator eq "yes" ) {
 		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Min  =0\n";
 		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Max  =".$i."\n";
@@ -106,7 +107,7 @@ sub Process_Enumerations {
 			$function .= "    else\n";
 		    }
 		    $function .= "      select case (trim(name))\n";
-		    my $i = -1;
+		    my $i = $indexing-1;
 		    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 			$function .= "      case ('";
 			if ( $j == 0 ) {
@@ -141,7 +142,7 @@ sub Process_Enumerations {
 			$function .= "    else\n";
 			$function .= "      ".$decodeFunctionName."=''\n";
 		    }
-		    my $i = -1;
+		    my $i = $indexing-1;
 		    $function .= "    select case(enumerationValue)\n";
 		    foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) ) {
 			$function .= "    case (".++$i.")\n";
