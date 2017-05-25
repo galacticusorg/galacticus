@@ -73,7 +73,10 @@ sub Process_InputParameterList {
 		    }
 		} elsif ( $sibling->{'type'} eq "objectBuilder" ) {
 		    # Add methods read by objectBuilder directives.
-		    push(@inputParameterNames,$sibling->{'directive'}->{'class'}."Method")
+		    push(
+			@inputParameterNames,
+			exists($sibling->{'directive'}->{'parameterName'}) ? $sibling->{'directive'}->{'parameterName'} : $sibling->{'directive'}->{'class'}."Method"
+			)
 			if ( ! $sourceMatch || $sourceMatch eq $sibling->{'directive'}->{'source'} );
 		}
 		$sibling = $sibling->{'sibling'};

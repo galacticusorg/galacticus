@@ -370,18 +370,24 @@ sub Process_FunctionClass {
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."ConstructorDefault\n\n";
 	    # Create XML constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorParameters(parameters,copyInstance)\n";
+	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorParameters(parameters,copyInstance,parameterName)\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters2\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
-	    $postContains->[0]->{'content'} .= "      class  (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorParameters\n";
-	    $postContains->[0]->{'content'} .= "      type   (inputParameters), intent(inout)           :: parameters\n";
-	    $postContains->[0]->{'content'} .= "      integer                 , intent(in   ), optional :: copyInstance\n";
-	    $postContains->[0]->{'content'} .= "      type   (inputParameters)                          :: subParameters\n";
-	    $postContains->[0]->{'content'} .= "      type   (varying_string )                          :: message      , instanceName\n\n";
-	    $postContains->[0]->{'content'} .= "      call parameters%value('".$directive->{'name'}."Method',instanceName,copyInstance=copyInstance)\n";
-	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters('".$directive->{'name'}."Method',copyInstance=copyInstance)\n";
+	    $postContains->[0]->{'content'} .= "      class    (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorParameters\n";
+	    $postContains->[0]->{'content'} .= "      type     (inputParameters), intent(inout)           :: parameters\n";
+	    $postContains->[0]->{'content'} .= "      integer                   , intent(in   ), optional :: copyInstance\n";
+	    $postContains->[0]->{'content'} .= "      character(len=*          ), intent(in   ), optional :: parameterName\n";
+	    $postContains->[0]->{'content'} .= "      type     (inputParameters)                          :: subParameters\n";
+	    $postContains->[0]->{'content'} .= "      type     (varying_string )                          :: message      , instanceName, parameterName_\n\n";
+	    $postContains->[0]->{'content'} .= "      if (present(parameterName)) then\n";
+	    $postContains->[0]->{'content'} .= "        parameterName_=parameterName\n";
+	    $postContains->[0]->{'content'} .= "      else\n";
+	    $postContains->[0]->{'content'} .= "        parameterName_='".$directive->{'name'}."Method'\n";
+	    $postContains->[0]->{'content'} .= "      end if\n";
+	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance)\n";
+	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(instanceName))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
 		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
