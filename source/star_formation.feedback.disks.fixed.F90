@@ -39,6 +39,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the fixed fraction star formation feedback in disks class which takes a parameter set as input.
+    use Input_Parameters2
     use Galacticus_Error
     implicit none
     type            (starFormationFeedbackDisksFixed)                :: self
