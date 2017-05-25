@@ -148,17 +148,21 @@
     <exponent value="3.5"/>
     <velocityCharacteristic value="100.0"/>
   </starFormationFeedbackSpheroidsMethod>
-
+  
   <!-- Accretion disk properties -->
-  <accretionDisksMethod value="switched"/>
-  <adafRadiativeEfficiencyType value="thinDisk"/>
-  <accretionDiskSwitchedScaleAdafRadiativeEfficiency value="true"/>
-  <accretionRateThinDiskMaximum value="0.30d0"/>
-  <accretionRateThinDiskMinimum value="0.01d0"/>
-  <adafAdiabaticIndex value="1.444"/>
-  <adafEnergyOption value="pureADAF"/>
-  <adafRadiativeEfficiency value="0.01"/>
-  <adafViscosityOption value="fit"/>
+  <accretionDisksMethod value="switched">
+    <accretionRateThinDiskMaximum       value="0.30"/>
+    <accretionRateThinDiskMinimum       value="0.01"/>
+    <scaleADAFRadiativeEfficiency       value="true"/>
+    <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
+    <accretionDisksADAFMethod           value="ADAF">
+      <efficiencyRadiationType value="thinDisk"/>
+      <adiabaticIndex          value="1.444"   />
+      <energyOption            value="pureADAF"/>
+      <efficiencyRadiation     value="0.01"    />
+      <viscosityOption         value="fit"     />
+    </accretionDisksADAFMethod>
+  </accretionDisksMethod>
 
   <!-- Black hole options -->
   <blackHoleBinaryMergersMethod value="Rezzolla2008"/>

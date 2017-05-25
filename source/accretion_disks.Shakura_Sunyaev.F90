@@ -16,112 +16,130 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of properties of thin Shakura-Sunyaev accretion disks.
+  !% Implementation of a \cite{shakura_black_1973} accretion disk.
+  
+  !# <accretionDisks name="accretionDisksShakuraSunyaev">
+  !#  <description>A \cite{shakura_black_1973} accretion disk class.</description>
+  !# </accretionDisks>
+  type, extends(accretionDisksClass) :: accretionDisksShakuraSunyaev
+     !% Implementation of a \cite{shakura_black_1973} accretion disk class.
+     private
+   contains
+     procedure :: efficiencyRadiative => shakuraSunyaevEfficiencyRadiative
+     procedure :: powerJet            => shakuraSunyaevPowerJet
+     procedure :: rateSpinUp          => shakuraSunyaevRateSpinUp
+  end type accretionDisksShakuraSunyaev
 
-module Accretion_Disks_Shakura_Sunyaev
-  !% Implements calculations of properties of thin Shakura-Sunyaev accretion disks.
-  implicit none
-  private
-  public :: Accretion_Disks_Shakura_Sunyaev_Initialize, Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev,&
-       & Black_Hole_Spin_Up_Rate_Shakura_Sunyaev, Accretion_Disk_Jet_Power_Shakura_Sunyaev
+  interface accretionDisksShakuraSunyaev
+     !% Constructors for the Eddington-limited accretion disk class.
+     module procedure shakuraSunyaevConstructorParameters
+  end interface accretionDisksShakuraSunyaev
 
 contains
-
-  !# <accretionDisksMethod>
-  !#  <unitName>Accretion_Disks_Shakura_Sunyaev_Initialize</unitName>
-  !# </accretionDisksMethod>
-  subroutine Accretion_Disks_Shakura_Sunyaev_Initialize(accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get&
-       &,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  
+  function shakuraSunyaevConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{shakura_black_1973} accretion disk class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                                     ), intent(in   )          :: accretionDisksMethod
-    procedure(Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get
-    procedure(Black_Hole_Spin_Up_Rate_Shakura_Sunyaev            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get
-    procedure(Accretion_Disk_Jet_Power_Shakura_Sunyaev           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get
+    type(accretionDisksShakuraSunyaev)                :: self
+    type(inputParameters             ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-    if (accretionDisksMethod == 'Shakura-Sunyaev') then
-       Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
-       Black_Hole_Spin_Up_Rate_Get             => Black_Hole_Spin_Up_Rate_Shakura_Sunyaev
-       Accretion_Disk_Jet_Power_Get            => Accretion_Disk_Jet_Power_Shakura_Sunyaev
-    end if
+    self=accretionDisksShakuraSunyaev()
     return
-  end subroutine Accretion_Disks_Shakura_Sunyaev_Initialize
-
-  double precision function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
-    !% Computes the radiative efficiency for a Shakura-Sunyaev (thin) accretion disk.
+  end function shakuraSunyaevConstructorParameters
+  
+  double precision function shakuraSunyaevEfficiencyRadiative(self,blackHole,accretionRateMass)
+    !% Return the radiative efficiency of a \cite{shakura_black_1973} accretion disk.
     use Black_Hole_Fundamentals
-    use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    !GCC$ attributes unused :: massAccretionRate
-    
-    Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev=1.0d0-Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)
-    return
-  end function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
+    class           (accretionDisksShakuraSunyaev), intent(inout) :: self
+    class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
+    double precision                              , intent(in   ) :: accretionRateMass
+    !GCC$ attributes unused :: self, accretionRateMass
 
-  double precision function Accretion_Disk_Jet_Power_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
-    !% Computes the jet power for a Shakura-Sunyaev (thin) accretion disk, using the expressions from
+    shakuraSunyaevEfficiencyRadiative=+1.0d0                                                                                   &
+         &                            -Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsGravitational,orbit=orbitPrograde)
+    return
+  end function shakuraSunyaevEfficiencyRadiative
+
+  double precision function shakuraSunyaevPowerJet(self,blackHole,accretionRateMass)
+    !% Computes the jet power for a \cite{shakura_black_1973} (thin) accretion disk, using the expressions from
     !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
-    use Galacticus_Nodes
     use Black_Hole_Fundamentals
+    use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    class           (nodeComponentBlackHole)           , intent(inout) :: thisBlackHole
-    double precision                                   , intent(in   ) :: massAccretionRate
-    double precision                        , parameter                :: alphaViscosity                =0.01d0
-    double precision                        , parameter                :: alphaViscosityNormalized      =alphaViscosity/0.01d0
-    double precision                        , parameter                :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2
-    double precision                        , parameter                :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2
-    double precision                        , parameter                :: meierMassNormalization        =1.0d9
-    double precision                                                   :: accretionRateDimensionless                                                   , blackHoleMassDimensionless, &
-         &                                                                blackHoleSpin
+    class           (accretionDisksShakuraSunyaev), intent(inout) :: self
+    class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
+    double precision                              , intent(in   ) :: accretionRateMass
+    double precision                              , parameter     :: alphaViscosity                =0.01d0
+    double precision                              , parameter     :: alphaViscosityNormalized      =alphaViscosity/0.01d0
+    double precision                              , parameter     :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2
+    double precision                              , parameter     :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2
+    double precision                              , parameter     :: meierMassNormalization        =1.0d9
+    double precision                                              :: accretionRateDimensionless                                                   , massBlackHoleDimensionless, &
+         &                                                           spinBlackHole
+    !GCC$ attributes unused :: self
 
     ! Return immediately for non-positive accretion rates.
-    if (massAccretionRate <= 0.0d0) then
-       Accretion_Disk_Jet_Power_Shakura_Sunyaev=0.0d0
-       return
-    end if
-
-    ! Get the black hole spin and dimensionless accretion rate and mass as defined by Meier (2001).
-    blackHoleSpin=thisBlackHole%spin()
-    accretionRateDimensionless=massAccretionRate/Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
-    blackHoleMassDimensionless=thisBlackHole%mass()/meierMassNormalization
-    if (blackHoleMassDimensionless > 0.0d0 .and. accretionRateDimensionless > 0.0d0) then
-       if (blackHoleSpin > 0.8d0) then
-          ! Use Meier's rapidly rotating (Kerr) solution for high spin black holes.
-          Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationKerr*(blackHoleMassDimensionless**0.9d0)&
-               &*(accretionRateDimensionless**1.2d0)*(1.0d0+1.1d0*blackHoleSpin+0.29d0*blackHoleSpin**2)/(alphaViscosityNormalized&
-               &**0.1d0)
-       else
-          ! Use Meier's Schwarzchild solution for low spin black holes. We, somewhat arbitrarily, interpolate
-          ! from the Schwarzchild solution assuming power grows exponentially with spin and matched to the Kerr solution at the
-          ! transition spin.
-          Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationSchwarzchild*(blackHoleMassDimensionless**0.9d0) &
-               &*(accretionRateDimensionless**1.2d0)*exp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
-       end if
+    if (accretionRateMass <= 0.0d0) then
+       shakuraSunyaevPowerJet=0.0d0
     else
-       Accretion_Disk_Jet_Power_Shakura_Sunyaev=0.0d0
+       ! Get the black hole spin and dimensionless accretion rate and mass as defined by Meier (2001).
+       spinBlackHole             =+                                    blackHole%spin()
+       accretionRateDimensionless=+accretionRateMass                                     &
+            &                     /Black_Hole_Eddington_Accretion_Rate(blackHole       )
+       massBlackHoleDimensionless=+                                    blackHole%mass()  &
+            &                     /meierMassNormalization
+       if (massBlackHoleDimensionless > 0.0d0 .and. accretionRateDimensionless > 0.0d0) then
+          if (spinBlackHole > 0.8d0) then
+             ! Use Meier's rapidly rotating (Kerr) solution for high spin black holes.
+             shakuraSunyaevPowerJet=+powerNormalizationKerr            &
+                  &                 *massBlackHoleDimensionless**0.9d0 &
+                  &                 *accretionRateDimensionless**1.2d0 &
+                  &                 /alphaViscosityNormalized  **0.1d0 &
+                  &                 *(                                 &
+                  &                   +1.00d0                          &
+                  &                   +1.10d0*spinBlackHole            &
+                  &                   +0.29d0*spinBlackHole    **2     &
+                  &                  )
+          else
+             ! Use Meier's Schwarzchild solution for low spin black holes. We, somewhat arbitrarily, interpolate from the
+             ! Schwarzchild solution assuming power grows exponentially with spin and matched to the Kerr solution at the
+             ! transition spin.
+             shakuraSunyaevPowerJet=+powerNormalizationSchwarzchild        &
+                  &                 *massBlackHoleDimensionless    **0.9d0 &
+                  &                 *accretionRateDimensionless    **1.2d0 &
+                  &                 /alphaViscosityNormalized      **0.1d0 &
+                  &                 *exp(                                  &
+                  &                      +3.785d0                          &
+                  &                      *spinBlackHole                    &
+                  &                     )
+          end if
+       else
+          shakuraSunyaevPowerJet=0.0d0
+       end if
     end if
     return
-  end function Accretion_Disk_Jet_Power_Shakura_Sunyaev
+  end function shakuraSunyaevPowerJet
 
-  double precision function Black_Hole_Spin_Up_Rate_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisBlackHole} due to accretion from a Shakura-Sunyaev (thin) accretion
-    !% disk.
-    use Galacticus_Nodes
+  double precision function shakuraSunyaevRateSpinUp(self,blackHole,accretionRateMass)
+    !% Compute the rate of spin up of a black hole by a \cite{shakura_black_1973} accretion disk.
     use Black_Hole_Fundamentals
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    double precision                                        :: spinToMassRateOfChangeRatio
+    class           (accretionDisksShakuraSunyaev), intent(inout) :: self
+    class           (nodeComponentBlackHole      ), intent(inout) :: blackHole
+    double precision                              , intent(in   ) :: accretionRateMass
+    double precision                                              :: spinToMassRateOfChangeRatio
+    !GCC$ attributes unused :: self
 
-    spinToMassRateOfChangeRatio=Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)&
-         &-2.0d0*thisBlackHole%spin()*Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit&
-         &=orbitPrograde)
-    Black_Hole_Spin_Up_Rate_Shakura_Sunyaev=spinToMassRateOfChangeRatio*massAccretionRate/thisBlackHole%mass()
+    spinToMassRateOfChangeRatio=+Black_Hole_ISCO_Specific_Angular_Momentum(blackHole       ,units=unitsGravitational,orbit=orbitPrograde) &
+         &                      -2.0d0                                                                                                    &
+         &                      *                                          blackHole%spin()                                               &
+         &                      *Black_Hole_ISCO_Specific_Energy          (blackHole       ,units=unitsGravitational,orbit=orbitPrograde)
+    shakuraSunyaevRateSpinUp   =+spinToMassRateOfChangeRatio &
+         &                      *accretionRateMass           &
+         &                      /blackHole%mass()
     return
-  end function Black_Hole_Spin_Up_Rate_Shakura_Sunyaev
-
-end module Accretion_Disks_Shakura_Sunyaev
+  end function shakuraSunyaevRateSpinUp

@@ -216,7 +216,7 @@ contains
           !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Specifies whether the black hole wind effiency should scale with the radiative effiency of the accretion disk.
+          !@     Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.
           !@   </description>
           !@   <type>double</type>
           !@   <cardinality>1</cardinality>
@@ -340,6 +340,7 @@ contains
     class           (nodeComponentBasic      )               , pointer   :: basic
     class           (cosmologyParametersClass)               , pointer   :: cosmologyParameters_
     class           (darkMatterHaloScaleClass)               , pointer   :: darkMatterHaloScale_
+    class           (accretionDisksClass     )               , pointer   :: accretionDisks_
     double precision                                         , parameter :: windVelocity                =1.0d4                                                                                                                                                     !    Velocity of disk wind.
     double precision                                         , parameter :: ismTemperature              =1.0d4                                                                                                                                                     !    Temperature of the ISM.
     double precision                                         , parameter :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
@@ -358,6 +359,8 @@ contains
     !GCC$ attributes unused :: odeConverged
 
     if (defaultBlackHoleComponent%standardIsActive()) then
+       ! Get required objects.
+       accretionDisks_      => accretionDisks     ()     
        darkMatterHaloScale_ => darkMatterHaloScale()
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
@@ -378,10 +381,10 @@ contains
           ! Finish if there is no accretion.
           if (restMassAccretionRate <= 0.0d0) cycle
           ! Find the radiative efficiency of the accretion.
-          radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(blackHole,restMassAccretionRate)
+          radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,restMassAccretionRate)
           ! Find the jet efficiency.
           if (restMassAccretionRate > 0.0d0) then
-             jetEfficiency=Accretion_Disk_Jet_Power(blackHole,restMassAccretionRate)/restMassAccretionRate/(speedLight&
+             jetEfficiency=accretionDisks_%powerJet(blackHole,restMassAccretionRate)/restMassAccretionRate/(speedLight&
                   &/kilo)**2
           else
              jetEfficiency=0.0d0
@@ -403,7 +406,7 @@ contains
           ! Remove the accreted mass from the hot halo component.
           call hotHalo  %   massSinkRate(-accretionRateHotHalo ,interrupt,interruptProcedure)
           ! Set spin-up rate due to accretion.         
-          if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(Black_Hole_Spin_Up_Rate(blackHole,restMassAccretionRate))
+          if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(accretionDisks_%rateSpinUp(blackHole,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
              ! Get the default cosmology.
@@ -890,6 +893,7 @@ contains
     class           (nodeComponentSpheroid         )               , pointer :: spheroid
     class           (nodeComponentHotHalo          )               , pointer :: hotHalo
     class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
+    class           (accretionDisksClass           )               , pointer :: accretionDisks_
     double precision                                , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
     double precision                                                         :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
          &                                                                      blackHoleMass               , gasDensity                                                                                                                             , &
@@ -904,6 +908,8 @@ contains
     blackHoleMass=blackHole%mass()
     ! Check black hole mass is positive.
     if (blackHoleMass > 0.0d0) then
+       ! Get required objects.
+       accretionDisks_ => accretionDisks()
        ! Compute the relative velocity of black hole and gas. We assume that relative motion arises only from the radial
        ! migration of the black hole.
        relativeVelocity=Black_Hole_Binary_Separation_Growth_Rate(blackHole)*Mpc_per_km_per_s_To_Gyr
@@ -940,7 +946,7 @@ contains
           accretionRateSpheroid=bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
                &,gasDensity ,relativeVelocity,bondiHoyleAccretionTemperatureSpheroid)
           ! Get the radiative efficiency of the accretion.
-          radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(blackHole,accretionRateSpheroid)
+          radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,accretionRateSpheroid)
           ! Limit the accretion rate to the Eddington limit.
           if (radiativeEfficiency > 0.0d0) accretionRateSpheroid=min(accretionRateSpheroid&
                &,Black_Hole_Eddington_Accretion_Rate(blackHole) /radiativeEfficiency)
@@ -1009,7 +1015,7 @@ contains
                &/Ideal_Gas_Sound_Speed(hotHaloTemperature))
           accretionRateHotHalo=min(accretionRateHotHalo,accretionRateMaximum)
           ! Get the radiative efficiency of the accretion.
-          radiativeEfficiency=Accretion_Disk_Radiative_Efficiency(blackHole,accretionRateHotHalo)
+          radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,accretionRateHotHalo)
           ! Limit the accretion rate to the Eddington limit.
           if (radiativeEfficiency > 0.0d0) accretionRateHotHalo=min(accretionRateHotHalo&
                &,Black_Hole_Eddington_Accretion_Rate(blackHole)/radiativeEfficiency)
@@ -1160,12 +1166,15 @@ contains
     double precision                        , intent(inout)          :: doubleBuffer          (:,:)
     type            (multiCounter          ), intent(inout)          :: instance
     class           (nodeComponentBlackHole)               , pointer :: blackHole
+    class           (accretionDisksClass   )               , pointer :: accretionDisks_
     double precision                                                 :: accretionRateHotHalo       , accretionRateSpheroid, restMassAccretionRate
     !GCC$ attributes unused :: time, instance
-    
+
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
        ! Store the properties.
        if (blackHoleOutputAccretion) then
+          ! Get required objects.
+          accretionDisks_ => accretionDisks()
           ! Get the black hole component.
           blackHole => node%blackHole(instance=1)
           ! Get the rest mass accretion rate.
@@ -1175,9 +1184,9 @@ contains
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=restMassAccretionRate
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Jet_Power           (blackHole,restMassAccretionRate)
+          doubleBuffer(doubleBufferCount,doubleProperty)=accretionDisks_%powerJet           (blackHole,restMassAccretionRate)
           doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Accretion_Disk_Radiative_Efficiency(blackHole,restMassAccretionRate)
+          doubleBuffer(doubleBufferCount,doubleProperty)=accretionDisks_%efficiencyRadiative(blackHole,restMassAccretionRate)
        end if
        ! Count number of black holes associated with this galaxy.
        integerProperty=integerProperty+1
@@ -1256,6 +1265,7 @@ contains
     integer         (c_size_t              )                           , intent(in   )          :: iOutput
     logical                                                            , intent(in   )          :: nodePassesFilter
     class           (nodeComponentBlackHole)                                          , pointer :: blackHole
+    class           (accretionDisksClass   )                                          , pointer :: accretionDisks_
     integer         (kind=kind_int8        ), allocatable, dimension(:)                         :: mergerTreeIndex       , nodeIndex
     double precision                        , allocatable, dimension(:)                         :: mass                  , massAccretionRate    , radiativeEfficiency, &
          &                                                                                         radius                , spin                 , timescale
@@ -1266,6 +1276,8 @@ contains
 
     ! If black hole output was requested , output their properties.
     if (nodePassesFilter .and. blackHoleOutputData) then
+       ! Get required objects.
+       accretionDisks_ => accretionDisks()
        ! Get a count of the number of black holes present.
        blackHoleCount=node%blackHoleCount()
        ! Open the output group.
@@ -1293,7 +1305,7 @@ contains
           spin               (instance)=blackHole%spin()
           radius             (instance)=blackHole%radialPosition()
           massAccretionRate  (instance)=accretionRateSpheroid+accretionRateHotHalo
-          radiativeEfficiency(instance)=Accretion_Disk_Radiative_Efficiency(blackHole,massAccretionRate(instance))
+          radiativeEfficiency(instance)=accretionDisks_%efficiencyRadiative(blackHole,massAccretionRate(instance))
           nodeIndex          (instance)=node%index()
           mergerTreeIndex    (instance)=treeIndex
           if (instance > 1) then
@@ -1374,9 +1386,11 @@ contains
     !% Return the radiative efficiency of a standard black hole.
     use Accretion_Disks
     implicit none
-    class           (nodeComponentBlackHoleStandard), intent(inout) :: self
+    class(nodeComponentBlackHoleStandard), intent(inout) :: self
+    class(accretionDisksClass           ), pointer       :: accretionDisks_
 
-    Node_Component_Black_Hole_Standard_Radiative_Efficiency=Accretion_Disk_Radiative_Efficiency(self,self%accretionRate())
+    accretionDisks_ => accretionDisks()
+    Node_Component_Black_Hole_Standard_Radiative_Efficiency=accretionDisks_%efficiencyRadiative(self,self%accretionRate())
     return
   end function Node_Component_Black_Hole_Standard_Radiative_Efficiency
 

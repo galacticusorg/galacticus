@@ -16,128 +16,126 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of properties of accretion disks which ignore the details of accretion physics
-!% and assume that black hole jets have a power that is a fixed fraction of the Eddington luminosity.
+  !% Implementation of an Eddington-limited accretion disk.
+  
+  !# <accretionDisks name="accretionDisksEddingtonLimited">
+  !#  <description>An accretion disk class in which accretion is always Eddington-limited.</description>
+  !# </accretionDisks>
+  type, extends(accretionDisksClass) :: accretionDisksEddingtonLimited
+     !% Implementation of an accretion disk class in which accretion is always Eddington-limited.
+     private
+     double precision :: efficiencyRadiation, efficiencyJet
+   contains
+     procedure :: efficiencyRadiative => eddingtonLimitedEfficiencyRadiative
+     procedure :: powerJet            => eddingtonLimitedPowerJet
+     procedure :: rateSpinUp          => eddingtonLimitedRateSpinUp
+  end type accretionDisksEddingtonLimited
 
-module Accretion_Disks_Eddington
-  !% Implements calculations of properties of accretion disks which ignore the details of accretion physics
-  !% and assume that black hole jets have a power that is a fixed fraction of the Eddington luminosity.
-  implicit none
-  private
-  public :: Accretion_Disks_Eddington_Initialize
-
-  ! Efficiency parameters for the accretion disk model.
-  double precision :: accretionDiskJetPowerEddington, accretionDiskRadiativeEfficiencyEddington
+  interface accretionDisksEddingtonLimited
+     !% Constructors for the Eddington-limited accretion disk class.
+     module procedure eddingtonLimitedConstructorParameters
+     module procedure eddingtonLimitedConstructorInternal
+  end interface accretionDisksEddingtonLimited
 
 contains
 
-  !# <accretionDisksMethod>
-  !#  <unitName>Accretion_Disks_Eddington_Initialize</unitName>
-  !# </accretionDisksMethod>
-  subroutine Accretion_Disks_Eddington_Initialize(accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get&
-       &,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
-    use Input_Parameters
+  function eddingtonLimitedConstructorParameters(parameters) result(self)
+    !% Constructor for the Eddington-limited accretion disk class which takes a parameter set as input.
+    use Galacticus_Error
+    use Input_Parameters2
     implicit none
-    type     (varying_string                               ), intent(in   )          :: accretionDisksMethod
-    procedure(Accretion_Disk_Radiative_Efficiency_Eddington), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get
-    procedure(Black_Hole_Spin_Up_Rate_Eddington            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get
-    procedure(Accretion_Disk_Jet_Power_Eddington           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get
+    type            (accretionDisksEddingtonLimited)                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    double precision                                                :: efficiencyRadiation, efficiencyJet
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (accretionDisksMethod == 'eddingtonLimited') then
-       Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Eddington
-       Black_Hole_Spin_Up_Rate_Get             => Black_Hole_Spin_Up_Rate_Eddington
-       Accretion_Disk_Jet_Power_Get            => Accretion_Disk_Jet_Power_Eddington
-       !@ <inputParameter>
-       !@   <name>accretionDiskJetPowerEddington</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The jet power produced by an Eddington limited accretion disk in units of the Eddington luminosity.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("accretionDiskJetPowerEddington",accretionDiskJetPowerEddington,defaultValue=0.1d0)
-       !@ <inputParameter>
-       !@   <name>accretionDiskRadiativeEfficiencyEddington</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The radiative efficiency of an Eddington limited accretion disk.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("accretionDiskRadiativeEfficiencyEddington",accretionDiskRadiativeEfficiencyEddington,defaultValue=0.1d0)
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>efficiencyRadiation</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The radiative efficiency of the Eddington-limited accretion disk.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>efficiencyJet</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The jet efficiency of the Eddington-limited accretion disk.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=accretionDisksEddingtonLimited(efficiencyRadiation,efficiencyJet)
     return
-  end subroutine Accretion_Disks_Eddington_Initialize
+  end function eddingtonLimitedConstructorParameters
 
-  double precision function Accretion_Disk_Radiative_Efficiency_Eddington(thisBlackHole,massAccretionRate)
-    !% Computes the radiative efficiency for an Eddington-limited accretion disk.
-    use Galacticus_Nodes
+  function eddingtonLimitedConstructorInternal(efficiencyRadiation,efficiencyJet) result(self)
+    !% Internal constructor for the Eddington-limited accretion disk class.
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    !GCC$ attributes unused :: thisBlackHole, massAccretionRate
-    
-    Accretion_Disk_Radiative_Efficiency_Eddington=accretionDiskRadiativeEfficiencyEddington
-    return
-  end function Accretion_Disk_Radiative_Efficiency_Eddington
+    type            (accretionDisksEddingtonLimited)                :: self
+    double precision                                , intent(in   ) :: efficiencyRadiation, efficiencyJet
 
-  double precision function Accretion_Disk_Jet_Power_Eddington(blackHole,massAccretionRate)
-    !% Computes the jet power for an Eddington-limited accretion disk. The jet power is held at
-    !% a fixed fraction of the Eddington accretion rate, independent of the mass accretion rate
-    !% onto the black hole, until the mass accretion rate falls below some small fraction of the
-    !% Eddington rate, at which point the jet power is smoothly reduced to zero as mass
-    !% accretion rate approaches zero. This avoids the unphysical behavior of having finite jet
-    !% power at zero accretion rate.
-    use Galacticus_Nodes
-    use Black_Hole_Fundamentals
+    !# <constructorAssign variables="efficiencyRadiation, efficiencyJet"/>    
+    return
+  end function eddingtonLimitedConstructorInternal
+
+  double precision function eddingtonLimitedEfficiencyRadiative(self,blackHole,accretionRateMass)
+    !% Return the radiative efficiency of an Eddington-limited accretion disk.
+    implicit none
+    class           (accretionDisksEddingtonLimited), intent(inout) :: self
+    class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
+    double precision                                , intent(in   ) :: accretionRateMass
+    !GCC$ attributes unused :: blackHole, accretionRateMass
+
+    eddingtonLimitedEfficiencyRadiative=self%efficiencyRadiation
+    return
+  end function eddingtonLimitedEfficiencyRadiative
+
+  double precision function eddingtonLimitedPowerJet(self,blackHole,accretionRateMass)
+    !% Return the jet power of an Eddington-limited accretion disk.
+   use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
-    implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: blackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    double precision                        , parameter     :: fractionalRateCutOff                    =0.01d0
-    double precision                                        :: massAccretionRateEddingtonLimited              , &
-         &                                                     massAccretionRateEddingtonLimitedReduced       , &
-         &                                                     fractionalRate
-
-    massAccretionRateEddingtonLimited=+accretionDiskJetPowerEddington                 &
-         &                            *Black_Hole_Eddington_Accretion_Rate(blackHole)
-    if (massAccretionRate > fractionalRateCutOff*massAccretionRateEddingtonLimited) then
-       massAccretionRateEddingtonLimitedReduced=massAccretionRateEddingtonLimited
-    else
-       fractionalRate                          =+massAccretionRate                 &
-            &                                   /fractionalRateCutOff              &
-            &                                   /massAccretionRateEddingtonLimited
-       massAccretionRateEddingtonLimitedReduced=+massAccretionRateEddingtonLimited &
-            &                                   *(                                 &
-            &                                     +3.0d0*fractionalRate**2         &
-            &                                     -2.0d0*fractionalRate**3         &
-            &                                   )
-    end if
-    Accretion_Disk_Jet_Power_Eddington=+massAccretionRateEddingtonLimitedReduced &
-         &                             *(                                        &
-         &                              +speedLight                              &
-         &                              /kilo                                    &
-         &                             )**2
-    return
-  end function Accretion_Disk_Jet_Power_Eddington
-
-  double precision function Black_Hole_Spin_Up_Rate_Eddington(thisBlackHole,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from an Eddington-limited accretion disk.
-    !% disk. This is always zero, as no physical model is specified for this accretion disk method.
-    use Galacticus_Nodes
-    implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    !GCC$ attributes unused :: thisBlackHole, massAccretionRate
+     implicit none
+    class           (accretionDisksEddingtonLimited), intent(inout) :: self
+    class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
+    double precision                                , intent(in   ) :: accretionRateMass
+    double precision                                , parameter     :: rateFractionalCutOff                =0.01d0
+    double precision                                                :: accretionRateEddingtonLimited              , &
+         &                                                             accretionRateEddingtonLimitedReduced       , &
+         &                                                             rateFractional
     
-    Black_Hole_Spin_Up_Rate_Eddington=0.0d0
+    accretionRateEddingtonLimited=+self%efficiencyJet                             &
+         &                        *Black_Hole_Eddington_Accretion_Rate(blackHole)
+    if (accretionRateMass > rateFractionalCutOff*accretionRateEddingtonLimited) then
+       accretionRateEddingtonLimitedReduced=accretionRateEddingtonLimited
+    else
+       rateFractional                      =+accretionRateMass             &
+            &                               /rateFractionalCutOff          &
+            &                               /accretionRateEddingtonLimited
+       accretionRateEddingtonLimitedReduced=+accretionRateEddingtonLimited &
+            &                               *(                             &
+            &                                 +3.0d0*rateFractional**2     &
+            &                                 -2.0d0*rateFractional**3     &
+            &                                )
+    end if
+    eddingtonLimitedPowerJet=+accretionRateEddingtonLimitedReduced &
+         &                   *(                                    &
+         &                     +speedLight                         &
+         &                     /kilo                               &
+         &                    )**2
     return
-  end function Black_Hole_Spin_Up_Rate_Eddington
+  end function eddingtonLimitedPowerJet
 
-end module Accretion_Disks_Eddington
+  double precision function eddingtonLimitedRateSpinUp(self,blackHole,accretionRateMass)
+    !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisNode} due to accretion from an Eddington-limited
+    !% accretion disk.  disk. This is always zero, as no physical model is specified for this accretion disk method.
+    implicit none
+    class           (accretionDisksEddingtonLimited), intent(inout) :: self
+    class           (nodeComponentBlackHole        ), intent(inout) :: blackHole
+    double precision                                , intent(in   ) :: accretionRateMass
+    !GCC$ attributes unused :: self, blackHole, accretionRateMass
+
+    eddingtonLimitedRateSpinUp=0.0d0
+    return
+  end function eddingtonLimitedRateSpinUp
