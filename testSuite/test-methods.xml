@@ -19,8 +19,9 @@
     <version>0.9.4</version>
     <accretionDisksMethod>
       <value>switched</value>
-      <value>Shakura-Sunyaev</value>
+      <value>shakuraSunyaev</value>
       <value>ADAF</value>
+      <value>eddingtonLimited</value>
     </accretionDisksMethod>
   </parameters>
   <parameters>

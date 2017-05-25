@@ -8,14 +8,17 @@
     <OmegaDarkEnergy value="0.7275"/>
     <OmegaBaryon value="0.0455"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod><accretionDisksMethod value="ADAF"/>
+  </cosmologyParametersMethod>
+  <accretionDisksMethod value="ADAF">
+      <efficiencyRadiationType value="thinDisk"/>
+      <adiabaticIndex          value="1.444"   />
+      <energyOption            value="pureADAF"/>
+      <efficiencyRadiation     value="0.01"    />
+      <viscosityOption         value="fit"     />
+  </accretionDisksMethod>
   <accretionHaloMethod value="simple"/>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
-  <adafAdiabaticIndex value="1.444"/>
-  <adafEnergyOption value="pure ADAF"/>
-  <adafRadiativeEfficiency value="0.01"/>
-  <adafViscosityOption value="fit"/>
   <adiabaticContractionGnedinA value="0.8"/>
   <adiabaticContractionGnedinOmega value="0.77"/>
   <barInstabilityMethod value="ELN"/>

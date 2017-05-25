@@ -16,829 +16,1249 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of properties of ADAFs based on the implementation of \cite{benson_maximum_2009}.
+  !% Implementation of an ADAF accretion disk.
 
-module Accretion_Disks_ADAF
-  !% Implements calculations of properties of ADAFs based on the implementation of \cite{benson_maximum_2009}.
-  use ISO_Varying_String
   use Tables
-  implicit none
-  private
-  public :: Accretion_Disks_ADAF_Initialize, Accretion_Disk_Radiative_Efficiency_ADAF,&
-       & Black_Hole_Spin_Up_Rate_ADAF, Accretion_Disk_Jet_Power_ADAF
+  !$use OMP_Lib
+  
+  !# <accretionDisks name="accretionDisksADAF">
+  !#  <description>An ADAF accretion disk class.</description>
+  !# </accretionDisks>
+  type, extends(accretionDisksClass) :: accretionDisksADAF
+     !% Implementation of an ADAF accretion disk class.
+     private
+     integer                                        :: efficiencyRadiationType                , viscosityOption                      , &
+          &                                            fieldEnhancementOption                 , energyOption
+     double precision                               :: efficiencyRadiation                    , adiabaticIndex                       , &
+          &                                            pressureThermalFractional              , efficiencyJetMaximum                 , &
+          &                                            viscosityAlpha
+     type            (table1DLogarithmicLinear    ) :: tabulations
+     integer         (omp_lock_kind               ) :: tabulationsLock
+     type            (accretionDisksShakuraSunyaev) :: thinDisk
+     ! Stored solutions.
+     !! Height.
+     double precision                               :: heightStored                           , heightSpinPrevious                   , &
+          &                                            heightRadiusPrevious
+     !! Velocity.
+     double precision                               :: velocityRadiusPrevious                 , velocitySpinPrevious                 , &
+          &                                            velocityStored
+     !! Temperature.
+     double precision                               :: temperatureRadiusPrevious              , temperatureSpinPrevious              , &
+          &                                            temperatureStored
+     !! Enthalpy.
+     double precision                               :: enthalpyRadiusPrevious                 , enthalpySpinPrevious                 , &
+          &                                            enthalpyStored
+     !! Enthalpy-angular momentum product.
+     double precision                               :: enthlpyAngMPrdctRadiusPrevious         , enthlpyAngMPrdctSpinPrevious         , &
+          &                                            enthlpyAngMPrdctStored
+     !! Angular momentum product.
+     double precision                               :: angularMomentumRadiusPrevious          , angularMomentumSpinPrevious          , &
+          &                                            angularMomentumStored
+     !! Radial gamma factor.
+     double precision                               :: gammaRadialRadiusPrevious              , gammaRadialSpinPrevious              , &
+          &                                            gammaRadialStored
+     !! Azimuthal gamma factor.
+     double precision                               :: gammaAzimuthalRadiusPrevious           , gammaAzimuthalSpinPrevious           , &
+          &                                            gammaAzimuthalStored
+     !! Total gamma factor.
+     double precision                               :: gammaRadiusPrevious                    , gammaSpinPrevious                    , &
+          &                                            gammaStored
+     !! Viscosity parameter.
+     double precision                               :: alphaStored                            , alphaSpinPrevious
+     !! Fluid angular velocity.
+     double precision                               :: fluidAngularVelocityRadiusPrevious     , fluidAngularVelocitySpinPrevious     , &
+          &                                            fluidAngularVelocityStored
+     !! Field enhancement.
+     double precision                               :: fieldEnhancementRadiusPrevious         , fieldEnhancementSpinPrevious         , &
+          &                                            fieldEnhancementStored
+     !! Black hole-launched jet power.
+     double precision                               :: jetPowerBlackHoleRadiusPrevious        , jetPowerBlackHoleSpinPrevious        , &
+          &                                            jetPowerBlackHoleStored
+     !! Disk-launched jet power.
+     double precision                               :: jetPowerDiskRadiusPrevious             , jetPowerDiskSpinPrevious             , &
+          &                                            jetPowerDiskStored
+     !! Disk-launched black hole jet power.
+     double precision                               :: jetPowerDiskFromBlackHoleRadiusPrevious, jetPowerDiskFromBlackHoleSpinPrevious, &
+          &                                            jetPowerDiskFromBlackHoleStored
+   contains
+     !@ <objectMethods>
+     !@   <object>accretionDisksADAF</object>
+     !@   <objectMethod>
+     !@     <method>height</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the dimensionless height of the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>velocity</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the dimensionless velocity of the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>temperature</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the dimensionless temperature of the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>enthalpy</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the dimensionless enthalpy of the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>enthalpyAngularMomentumProduct</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the product of dimensionless enthalpy and angular momentum of the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>enthalpyAngularMomentum</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the dimensionless angular momentum of the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>gammaRadial</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the radial part of the relativistic boost factor in the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>gammaAzimuthal</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the azimuthal part of the relativistic boost factor in the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>gamma</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the relativistic boost factor in the ADAF at a given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>viscosityParameter</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin</arguments>
+     !@     <description>Return the viscosity parameter, $\alpha$, in the ADAF.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fluidAngularVelocity</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the dimensionless angular velocity of the ADAF fluid at the given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fieldEnhancement</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the magnetic field enhancement factor in the ADAF at the given radius.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>jetPowerBlackHole</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the power of the jet launched by the black hole for the ADAF.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>jetPowerDisk</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the power of the jet launched from the disk for the ADAF.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>jetPowerDiskFromBlackHole</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
+     !@     <description>Return the power of the jet launched from the disk which is derived frm the black hole.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                                   adafDestructor
+     procedure :: efficiencyRadiative            => adafEfficiencyRadiative
+     procedure :: powerJet                       => adafPowerJet
+     procedure :: rateSpinUp                     => adafRateSpinUp
+     procedure :: height                         => adafHeight
+     procedure :: velocity                       => adafVelocity
+     procedure :: temperature                    => adafTemperature
+     procedure :: enthalpy                       => adafEnthalpy
+     procedure :: enthalpyAngularMomentumProduct => adafEnthalpyAngularMomentumProduct
+     procedure :: angularMomentum                => adafAngularMomentum
+     procedure :: gammaRadial                    => adafGammaRadial
+     procedure :: gammaAzimuthal                 => adafGammaAzimuthal
+     procedure :: gamma                          => adafGamma
+     procedure :: viscosityParameter             => adafViscosityParameter
+     procedure :: fluidAngularVelocity           => adafFluidAngularVelocity
+     procedure :: fieldEnhancement               => adafFieldEnhancement
+     procedure :: jetPowerBlackHole              => adafJetPowerBlackHole
+     procedure :: jetPowerDisk                   => adafJetPowerDisk
+     procedure :: jetPowerDiskFromBlackHole      => adafJetPowerDiskFromBlackHole
+  end type accretionDisksADAF
 
-  ! Flag indicating if the module has been initialized.
-  logical                                               :: adafInitialized                    =.false.
+  interface accretionDisksADAF
+     !% Constructors for the ADAF accretion disk class.
+     module procedure adafConstructorParameters
+     module procedure adafConstructorInternal
+  end interface accretionDisksADAF
 
-  ! Option controlling type of radiative effiency to use.
-  integer                                               :: adafRadiativeEfficiencyType
-  integer                                   , parameter :: adafRadiativeEfficiencyTypeFixed   =0
-  integer                                   , parameter :: adafRadiativeEfficiencyTypeThinDisk=1
+  !# <enumeration>
+  !#  <name>adafRadiativeEfficiencyType</name>
+  !#  <description>Type of radiative efficiency model to use for ADAFs.</description>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="fixed"   />
+  !#  <entry label="thinDisk"/>
+  !# </enumeration>
 
-  ! Radiative efficiency of the accretion flow.
-  double precision                                      :: adafRadiativeEfficiency
+  !# <enumeration>
+  !#  <name>adafViscosity</name>
+  !#  <description>Type of viscosity model to use for ADAFs.</description>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="fit"  />
+  !#  <entry label="fixed"/>
+  !# </enumeration>
 
-  ! Adiabatic index of the accretion flow.
-  double precision                                      :: adafAdiabaticIndex                         , adafThermalPressureFraction
+  !# <enumeration>
+  !#  <name>adafFieldEnhancement</name>
+  !#  <description>Type of field enhancement model to use for ADAFs.</description>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="exponential"/>
+  !#  <entry label="linear"     />
+  !# </enumeration>
 
-  ! Limit to the jet efficiency.
-  double precision                                      :: adafJetEfficiencyMaximum
+  !# <enumeration>
+  !#  <name>adafEnergy</name>
+  !#  <description>Type of energy model to use for ADAFs.</description>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="pureADAF"/>
+  !#  <entry label="ISCO"    />
+  !# </enumeration>
 
-  ! Options for the viscosity prescription.
-  type            (varying_string          )            :: adafViscosityOption
-  integer                                   , parameter :: adafViscosityFit                   =1      , adafViscosityFixed         =0
-  integer                                               :: adafViscosity
-  double precision                                      :: adafViscosityFixedAlpha
+  !# <enumeration>
+  !#  <name>adafTable</name>
+  !#  <description>Enumeration of ADAF look-up tables.</description>
+  !#  <visbility>private</visbility>
+  !#  <indexing>1</indexing>
+  !#  <entry label="powerJet"  />
+  !#  <entry label="rateSpinUp"/>
+  !# </enumeration>
 
-  ! Options for the field-enhancing shear.
-  type            (varying_string          )            :: adafFieldEnhanceType
-  integer                                   , parameter :: adafFieldEnhanceExponential        =0      , adafFieldEnhanceLinear     =1
-  integer                                               :: adafFieldEnhance
-
-  ! Variable determining whether ADAF energy is 1 or E_IS
-  type            (varying_string          )            :: adafEnergyOption
-  integer                                   , parameter :: adafEnergy1                        =1      , adafEnergyIsco             =0
-  integer                                               :: adafEnergy
-
-  ! Tables to store spin-up and jet power functions.
-  logical                                               :: adafTableTabulated                 =.false.
-  integer                                   , parameter :: adafTableCount                     =10000
-  integer                                   , parameter :: jetPowerTable                      =1      , spinUpTable                =2
-  type            (table1DLogarithmicLinear)            :: adafTable
+  ! Number of points to use in ADAF look-up tables.
+  integer, parameter :: adafTableCount=10000
 
 contains
 
-  !# <accretionDisksMethod>
-  !#  <unitName>Accretion_Disks_ADAF_Initialize</unitName>
-  !# </accretionDisksMethod>
-  subroutine Accretion_Disks_ADAF_Initialize(accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get&
-       &,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
+  function adafConstructorParameters(parameters) result(self)
+    !% Constructor for the ADAF accretion disk class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                          ), intent(in   )          :: accretionDisksMethod
-    procedure(Accretion_Disk_Radiative_Efficiency_ADAF), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get
-    procedure(Black_Hole_Spin_Up_Rate_ADAF            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get
-    procedure(Accretion_Disk_Jet_Power_ADAF           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get
+    type            (accretionDisksADAF)                :: self
+    type            (inputParameters   ), intent(inout) :: parameters
+    type            (varying_string    )                :: efficiencyRadiationType, energyOption        , &
+         &                                                 fieldEnhancementOption , viscosityOption
+    double precision                                    :: efficiencyRadiation    , adiabaticIndex      , &
+         &                                                 viscosityAlpha         , efficiencyJetMaximum
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (accretionDisksMethod == 'ADAF') then
-       Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_ADAF
-       Black_Hole_Spin_Up_Rate_Get             => Black_Hole_Spin_Up_Rate_ADAF
-       Accretion_Disk_Jet_Power_Get            => Accretion_Disk_Jet_Power_ADAF
-       call Accretion_Disks_ADAF_Get_Parameters
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>efficiencyRadiationType</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('thinDisk')</defaultValue>
+    !#   <description>Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
+    !#     to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
+    !#     stable circular orbit.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>        
+    !# <inputParameter>
+    !#   <name>efficiencyRadiation</name>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <description>Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>energyOption</name>
+    !#   <defaultValue>var_str('pureADAF')</defaultValue>
+    !#   <description>Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
+    !#     to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
+    !#     stable circular orbit.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>fieldEnhancementOption</name>
+    !#   <defaultValue>var_str('exponential')</defaultValue>
+    !#   <description>Controls how the field enhancing shear is determined. {\normalfont \ttfamily exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
+    !#    to be used, while {\normalfont \ttfamily linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
+    !#    to achieve a sensible spin-up function in each case.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>adiabaticIndex</name>
+    !#   <defaultValue>adafAdiabaticIndexDefault(enumerationAdafFieldEnhancementEncode(char(fieldEnhancementOption),includesPrefix=.false.))</defaultValue>
+    !#   <description>Specifies the effective adiabatic index of gas in an ADAF.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>viscosityOption</name>
+    !#   <defaultValue>var_str('fit')</defaultValue>
+    !#   <description>Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\normalfont \ttfamily fit} will cause $\alpha$ to be computed
+    !#    using the fitting function of \cite{benson_maximum_2009}; {\normalfont \ttfamily fixed} will cause $\alpha=${\normalfont \ttfamily [adafViscosityFixedAlpha]}
+    !#    to be used.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>viscosityAlpha</name>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\normalfont \ttfamily [adafViscosityOption]}$=${\normalfont \ttfamily fixed}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>efficiencyJetMaximum</name>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=accretionDisksADAF(                                                                                                    &
+         &                  enumerationAdafEnergyEncode                 (char(energyOption           ),includesPrefix=.false.), &
+         &                  enumerationAdafFieldEnhancementEncode       (char(fieldEnhancementOption ),includesPrefix=.false.), &
+         &                  enumerationAdafRadiativeEfficiencyTypeEncode(char(efficiencyRadiationType),includesPrefix=.false.), &
+         &                  enumerationAdafViscosityEncode              (char(viscosityOption        ),includesPrefix=.false.), &
+         &                  efficiencyJetMaximum                                                                              , &
+         &                  efficiencyRadiation                                                                               , &
+         &                  adiabaticIndex                                                                                    , &
+         &                  viscosityAlpha                                                                                      &
+         &                 )
     return
-  end subroutine Accretion_Disks_ADAF_Initialize
-
-  subroutine Accretion_Disks_ADAF_Get_Parameters
-    !% Initialize the module by reading in parameter values.
-    use Input_Parameters
-    use Galacticus_Error
-    implicit none
-    double precision                 :: adafAdiabaticIndexDefault
-    type            (varying_string) :: adafRadiativeEfficiencyTypeText
-
-    if (.not.adafInitialized) then
-       !$omp critical(adafInitalize)
-       if (.not.adafInitialized) then
-          !@ <inputParameter>
-          !@   <name>adafRadiativeEfficiencyType</name>
-          !@   <defaultValue>thinDisk</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
-          !@     to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
-          !@     stable circular orbit.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafRadiativeEfficiencyType",adafRadiativeEfficiencyTypeText,defaultValue="thinDisk")
-          select case (char(adafRadiativeEfficiencyTypeText))
-          case ("fixed")
-             adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeFixed
-          case ("thinDisk")
-             adafRadiativeEfficiencyType=adafRadiativeEfficiencyTypeThinDisk
-          case default
-             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafRadiativeEfficiencyType')
-          end select
-          !@ <inputParameter>
-          !@   <name>adafRadiativeEfficiency</name>
-          !@   <defaultValue>0.01</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies the radiative efficiency of an ADAF (i.e. the fraction of $\dot{M}\clight^2$ that is emitted in radiation).
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafRadiativeEfficiency",adafRadiativeEfficiency,defaultValue=0.01d0)
-          !@ <inputParameter>
-          !@   <name>adafEnergyOption</name>
-          !@   <defaultValue>pureADAF</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the specific energy of material at the inner edge of an ADAF. {\normalfont \ttfamily pureADAF} makes the specific energy equal
-          !@     to 1 (i.e. all energy is advected with the flow); {\normalfont \ttfamily ISCO} makes the specific energy equal to that for the innermost
-          !@     stable circular orbit.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafEnergyOption",adafEnergyOption,defaultValue="pureADAF")
-          select case (char(adafEnergyOption))
-          case ("pureADAF")
-             adafEnergy=adafEnergy1
-          case ("ISCO")
-             adafEnergy=adafEnergyIsco
-          case default
-             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafEnergyType')
-          end select
-          !@ <inputParameter>
-          !@   <name>adafFieldEnhanceType</name>
-          !@   <defaultValue>exponential</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Controls how the field enhancing shear is determined. {\normalfont \ttfamily exponential} will cause the form $g=\exp(\omega t)$ \citep{benson_maximum_2009}
-          !@    to be used, while {\normalfont \ttfamily linear} will cause $g=1+\omega t$ to be used instead. The functional form of $\alpha(j)$ (if used) will be adjusted
-          !@    to achieve a sensible spin-up function in each case.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafFieldEnhanceType",adafFieldEnhanceType,defaultValue="exponential")
-          select case (char(adafFieldEnhanceType))
-          case ("exponential")
-             adafFieldEnhance         =adafFieldEnhanceExponential
-             adafAdiabaticIndexDefault=1.444d0
-          case ("linear")
-             adafFieldEnhance         =adafFieldEnhanceLinear
-             adafAdiabaticIndexDefault=1.333d0
-          case default
-             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafFieldEnhanceType')
-          end select
-          !@ <inputParameter>
-          !@   <name>adafAdiabaticIndex</name>
-          !@   <defaultValue>1.444 (for exponential form of field-enhancing shear) or 1.333 (for linear form)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies the effective adiabatic index of gas in an ADAF.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafAdiabaticIndex",adafAdiabaticIndex,defaultValue=adafAdiabaticIndexDefault)
-          adafThermalPressureFraction=(8.0d0-6.0d0*adafAdiabaticIndex)/3.0d0/(1.0d0-adafAdiabaticIndex)
-          !@ <inputParameter>
-          !@   <name>adafViscosityOption</name>
-          !@   <defaultValue>fit</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Controls how the viscosity parameter $\alpha$ in an ADAF is determined. {\normalfont \ttfamily fit} will cause $\alpha$ to be computed
-          !@    using the fitting function of \cite{benson_maximum_2009}; {\normalfont \ttfamily fixed} will cause $\alpha=${\normalfont \ttfamily [adafViscosityFixedAlpha]}
-          !@    to be used.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafViscosityOption",adafViscosityOption,defaultValue="fit")
-          select case (char(adafViscosityOption))
-          case ("fixed")
-             adafViscosity=adafViscosityFixed
-             !@ <inputParameter>
-             !@   <name>adafViscosityFixedAlpha</name>
-             !@   <defaultValue>0.1</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@    The value for the viscosity parameter $\alpha$ in an ADAF to be used if {\normalfont \ttfamily [adafViscosityOption]}$=${\normalfont \ttfamily fixed}.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter("adafViscosityFixedAlpha",adafViscosityFixedAlpha,defaultValue=0.1d0)
-          case ("fit")
-             adafViscosity=adafViscosityFit
-          case default
-             call Galacticus_Error_Report('Accretion_Disks_ADAF_Initialize','unknown adafViscosityOption')
-          end select
-          !@ <inputParameter>
-          !@   <name>adafJetEfficiencyMaximum</name>
-          !@   <defaultValue>2</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum efficiency allowed for ADAF-driven jets (in units of the accretion power).
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("adafJetEfficiencyMaximum",adafJetEfficiencyMaximum,defaultValue=2.0d0)
-          adafInitialized=.true.
-       end if
-       !$omp end critical(adafInitalize)
-    end if
-    return
-  end subroutine Accretion_Disks_ADAF_Get_Parameters
-
-  double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisBlackHole,massAccretionRate)
-    !% Computes the radiative efficiency for an ADAF.
-    use Accretion_Disks_Shakura_Sunyaev
-    use Galacticus_Nodes
-    use Galacticus_Error
-    implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
-    ! Ensure that parameters have been read.
-    call Accretion_Disks_ADAF_Get_Parameters
-
-    select case (adafRadiativeEfficiencyType)
-    case (adafRadiativeEfficiencyTypeFixed   )
-       Accretion_Disk_Radiative_Efficiency_ADAF=adafRadiativeEfficiency
-    case (adafRadiativeEfficiencyTypeThinDisk)
-       Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
-    case default
-       Accretion_Disk_Radiative_Efficiency_ADAF=0.0d0
-       call Galacticus_Error_Report('Accretion_Disk_Radiative_Efficiency_ADAF','unknown radiative efficiency type')
-    end select
-    return
-  end function Accretion_Disk_Radiative_Efficiency_ADAF
-
-  subroutine Accretion_Disk_ADAF_Tabulate()
-    !% Tabulate jet power and spin-up efficiency for an ADAF.
+  end function adafConstructorParameters
+  
+  function adafConstructorInternal(energyOption,fieldEnhancementOption,efficiencyRadiationType,viscosityOption,efficiencyJetMaximum,efficiencyRadiation,adiabaticIndex,viscosityAlpha) result(self)
+    !% Internal constructor for the ADAF accretion disk class.
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
     use Table_Labels
     use Galacticus_Error
     implicit none
-    double precision, parameter :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
-    integer                     :: iSpin
-    double precision            :: adafEnergyValue                    , adafViscosityAlpha                  , &
-         &                         blackHoleSpin                      , radiusIsco                          , &
-         &                         radiusStatic
+    type            (accretionDisksADAF)                          :: self
+    integer                             , intent(in   )           :: energyOption                     , fieldEnhancementOption            , &
+         &                                                           efficiencyRadiationType          , viscosityOption
+    double precision                    , intent(in   )           :: efficiencyJetMaximum
+    double precision                    , intent(in   ), optional :: efficiencyRadiation              , adiabaticIndex                    , &
+         &                                                           viscosityAlpha
+    double precision                    , parameter               :: spinBlackHoleInverseMaximum=1.0d0, spinBlackHoleInverseMinimum=1.0d-6
+    integer                                                       :: iSpin
+    double precision                                              :: adafEnergy                       , radiusStatic                      , &
+         &                                                           spinBlackHole                    , radiusISCO
 
-    if (.not.adafTableTabulated) then
-       !$omp critical(ADAF_Interpolate)
-       if (.not.adafTableTabulated) then
-          call adafTable%destroy()
-          call adafTable%create (                                                                           &
-               &                 blackHoleSpinParameterMinimum                                            , &
-               &                 blackHoleSpinParameterMaximum                                            , &
-               &                 adafTableCount                                                           , &
-               &                 tableCount                   =2                                          , &
-               &                 extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
-               &                )
-          do iSpin=1,adafTableCount
-             ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack
-             ! many points close to j=1.
-             blackHoleSpin=1.0d0-adafTable%x(iSpin)
-             ! Determine the ADAF viscosity.
-             select case (adafViscosity)
-             case (adafViscosityFixed)
-                adafViscosityAlpha=adafViscosityFixedAlpha
-             case (adafViscosityFit)
-                adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
-             end select
-             ! Determine the ADAF energy.
-             select case (adafEnergy)
-             case (adafEnergy1)
-                adafEnergyValue=1.0d0
-             case (adafEnergyIsco)
-                adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
-             case default
-                adafEnergyValue=0.0d0
-                call Galacticus_Error_Report('Accretion_Disk_ADAF_Tabulate','unknown energy type')
-             end select
-             ! Compute jet launch radii.
-             radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
-             radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-             ! Compute the jet power.
-             call adafTable%populate(                                                                           &
-                  &                   min(                                                                      &
-                  &                       (                                                                     &
-                  &                         ADAF_BH_Jet_Power  (radiusStatic,blackHoleSpin,adafViscosityAlpha)  &
-                  &                        +ADAF_Disk_Jet_Power(radiusIsco  ,blackHoleSpin,adafViscosityAlpha)  &
-                  &                       ),                                                                    &
-                  &                       adafJetEfficiencyMaximum                                              &
-                  &                      )                                                                      &
-                  &                   *(speedLight/kilo)**2                                                   , &
-                  &                  iSpin                                                                    , &
-                  &                  table=jetPowerTable                                                        &
-                  &                 )
-             ! Compute the rate of spin up to mass rate of change ratio.
-             call adafTable%populate(                                                                                        &
-                  &                   ADAF_Angular_Momentum                 (radiusIsco  ,blackHoleSpin,adafViscosityAlpha)  &
-                  &                  -2.0d0*blackHoleSpin*adafEnergyValue                                                    &
-                  &                  -Black_Hole_Rotational_Energy_Spin_Down(             blackHoleSpin                   )  &
-                  &                  *(                                                                                      &
-                  &                     ADAF_BH_Jet_Power                   (radiusStatic,blackHoleSpin,adafViscosityAlpha)  &
-                  &                    +ADAF_Disk_Jet_Power_From_Black_Hole (radiusIsco  ,blackHoleSpin,adafViscosityAlpha)  &
-                  &                   )                                                                                    , &
-                  &                  iSpin                                                                                 , &
-                  &                  table=spinUpTable                                                                       &
-                  &                 )
-          end do
-          adafTableTabulated=.true.
-       end if
-       !$omp end critical(ADAF_Interpolate)
-    end if
+    ! Validate arguments.
+    if (efficiencyRadiationType == adafRadiativeEfficiencyTypeFixed .and. .not.present(efficiencyRadiation)) &
+         & call Galacticus_Error_Report('adafConstructorInternal','radiation efficiency must be provided')
+    if (viscosityOption         == adafViscosityFixed               .and. .not.present(viscosityAlpha     )) &
+         & call Galacticus_Error_Report('adafConstructorInternal','viscosity parameter must be provided' )
+    ! Make assignments.
+    !# <constructorAssign variables="energyOption, fieldEnhancementOption, efficiencyRadiationType, viscosityOption, efficiencyJetMaximum, efficiencyRadiation, adiabaticIndex, viscosityAlpha"/>  
+    ! Set the default adiabatic index if none was provided.
+    if (.not.present(adiabaticIndex)) self%adiabaticIndex=adafAdiabaticIndexDefault(fieldEnhancementOption)    
+    ! Set the thermal pressure fraction.
+    self%pressureThermalFractional=(8.0d0-6.0d0*self%adiabaticIndex)/3.0d0/(1.0d0-self%adiabaticIndex)
+    ! Initialize stored solutions.
+    self%heightStored                           =-     1.0d0
+    self%heightSpinPrevious                     =-huge(1.0d0)
+    self%heightRadiusPrevious                   =-     1.0d0
+    self%velocityRadiusPrevious                 =-     1.0d0
+    self%velocitySpinPrevious                   =-huge(1.0d0)
+    self%velocityStored                         =-     1.0d0
+    self%temperatureRadiusPrevious              =-     1.0d0
+    self%temperatureSpinPrevious                =-huge(1.0d0)
+    self%temperatureStored                      =-     1.0d0
+    self%enthalpyRadiusPrevious                 =-     1.0d0
+    self%enthalpySpinPrevious                   =-huge(1.0d0)
+    self%enthalpyStored                         =-     1.0d0
+    self%enthlpyAngMPrdctRadiusPrevious         =-     1.0d0
+    self%enthlpyAngMPrdctSpinPrevious           =-huge(1.0d0)
+    self%enthlpyAngMPrdctStored                 =-     1.0d0
+    self%angularMomentumRadiusPrevious          =-     1.0d0
+    self%angularMomentumSpinPrevious            =-huge(1.0d0)
+    self%angularMomentumStored                  =-     1.0d0
+    self%gammaRadialRadiusPrevious              =-     1.0d0
+    self%gammaRadialSpinPrevious                =-huge(1.0d0)
+    self%gammaRadialStored                      =-     1.0d0
+    self%gammaAzimuthalRadiusPrevious           =-     1.0d0
+    self%gammaAzimuthalSpinPrevious             =-huge(1.0d0)
+    self%gammaAzimuthalStored                   =-     1.0d0
+    self%gammaRadiusPrevious                    =-     1.0d0
+    self%gammaSpinPrevious                      =-huge(1.0d0)
+    self%gammaStored                            =-     1.0d0
+    self%alphaSpinPrevious                      =-huge(1.0d0)
+    self%alphaStored                            =-     1.0d0
+    self%fluidAngularVelocityRadiusPrevious     =-     1.0d0
+    self%fluidAngularVelocitySpinPrevious       =-huge(1.0d0)
+    self%fluidAngularVelocityStored             =-     1.0d0
+    self%fieldEnhancementRadiusPrevious         =-     1.0d0
+    self%fieldEnhancementSpinPrevious           =-huge(1.0d0)
+    self%fieldEnhancementStored                 =-     1.0d0
+    self%jetPowerBlackHoleRadiusPrevious        =-     1.0d0
+    self%jetPowerBlackHoleSpinPrevious          =-huge(1.0d0)
+    self%jetPowerBlackHoleStored                =-     1.0d0
+    self%jetPowerDiskRadiusPrevious             =-     1.0d0
+    self%jetPowerDiskSpinPrevious               =-huge(1.0d0)
+    self%jetPowerDiskStored                     =-     1.0d0
+    self%jetPowerDiskFromBlackHoleRadiusPrevious=-     1.0d0
+    self%jetPowerDiskFromBlackHoleSpinPrevious  =-huge(1.0d0)
+    self%jetPowerDiskFromBlackHoleStored        =-     1.0d0
+    ! Build tabulations of jet power and spin.
+    call self%tabulations%destroy()
+    call self%tabulations%create (                                                                           &
+         &                        spinBlackHoleInverseMinimum                                              , &
+         &                        spinBlackHoleInverseMaximum                                              , &
+         &                        adafTableCount                                                           , &
+         &                        tableCount                   =2                                          , &
+         &                        extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
+         &                       )
+    do iSpin=1,adafTableCount
+       ! Get the black hole spin. The "inverse spin parameter" that we tabulate in is 1-j so that we can easily pack
+       ! many points close to j=1.
+       spinBlackHole=1.0d0-self%tabulations%x(iSpin)
+       ! Determine the ADAF energy.
+       select case (self%energyOption)
+       case (adafEnergyPureADAF)
+          adafEnergy=1.0d0
+       case (adafEnergyISCO    )
+          adafEnergy=Black_Hole_ISCO_Specific_Energy(spinBlackHole,orbitPrograde)
+       case default
+          adafEnergy=0.0d0
+          call Galacticus_Error_Report('adafConstructorInternal','unknown energy type')
+       end select
+       ! Compute jet launch radii.
+       radiusISCO  =Black_Hole_ISCO_Radius  (spinBlackHole)
+       radiusStatic=Black_Hole_Static_Radius(spinBlackHole)
+       ! Compute the jet power.
+       call self%tabulations%populate(                                                                           &
+            &                               +min(                                                                &
+            &                                    (                                                               &
+            &                                     +self%jetPowerBlackHole          (spinBlackHole,radiusStatic)  &
+            &                                     +self%jetPowerDisk               (spinBlackHole,radiusISCO  )  &
+            &                                    ),                                                              &
+            &                                    self%efficiencyJetMaximum                                       &
+            &                                   )                                                                &
+            &                               *(speedLight/kilo)**2                                              , &
+            &                               iSpin                                                              , &
+            &                         table=adafTablePowerJet                                                    &
+            &                 )
+       ! Compute the rate of spin up to mass rate of change ratio.
+       call self%tabulations%populate(                                                                           &
+            &                               +self%angularMomentum                  (spinBlackHole,radiusISCO  )  &
+            &                               -2.0d0                                                               &
+            &                               *                                       spinBlackHole                &
+            &                               *adafEnergy                                                          &
+            &                               -Black_Hole_Rotational_Energy_Spin_Down(spinBlackHole             )  &
+            &                               *(                                                                   &
+            &                                 +self%jetPowerBlackHole              (spinBlackHole,radiusStatic)  &
+            &                                 +self%jetPowerDiskFromBlackHole      (spinBlackHole,radiusISCO  )  &
+            &                                )                                                                 , &
+            &                               iSpin                                                              , &
+            &                         table=adafTableRateSpinUp                                                  &
+            &                        )
+    end do
+    call OMP_Init_Lock(self%tabulationsLock)
+    ! Initialize the thin disk component used for radiative efficiency calculations.
+    self%thinDisk=accretionDisksShakuraSunyaev()
     return
-  end subroutine Accretion_Disk_ADAF_Tabulate
+  end function adafConstructorInternal
 
-  double precision function Accretion_Disk_Jet_Power_ADAF(thisBlackHole,massAccretionRate)
-    !% Computes the jet power for an ADAF in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
-    use Galacticus_Nodes
+  subroutine adafDestructor(self)
+    !% Destructor for the ADAF accretion disk class.
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    double precision                                        :: blackHoleSpin    , blackHoleSpinParameter
+    type(accretionDisksADAF), intent(inout) :: self
 
-    ! Ensure that parameters have been read.
-    call Accretion_Disks_ADAF_Get_Parameters()
+    call OMP_Destroy_Lock(self%tabulationsLock)
+    return
+  end subroutine adafDestructor
+  
+  double precision function adafEfficiencyRadiative(self,blackHole,accretionRateMass)
+    !% Computes the radiative efficiency for an ADAF.
+    use Galacticus_Error
+    implicit none
+    class           (accretionDisksADAF    ), intent(inout) :: self
+    class           (nodeComponentBlackHole), intent(inout) :: blackHole
+    double precision                        , intent(in   ) :: accretionRateMass
 
-    ! Ensure tables have been constructed.
-    call Accretion_Disk_ADAF_Tabulate()
+    select case (self%efficiencyRadiationType)
+    case (adafRadiativeEfficiencyTypeFixed   )
+       adafEfficiencyRadiative=self%efficiencyRadiation
+    case (adafRadiativeEfficiencyTypeThinDisk)
+       adafEfficiencyRadiative=self%thinDisk%efficiencyRadiative(blackHole,accretionRateMass)
+    case default
+       adafEfficiencyRadiative=0.0d0
+       call Galacticus_Error_Report('adafEfficiencyRadiative','unknown radiative efficiency type')
+    end select
+    return
+  end function adafEfficiencyRadiative
+
+  double precision function adafPowerJet(self,blackHole,accretionRateMass)
+    !% Computes the jet power of the given black hole in due to accretion from an ADAF disk.
+    use Black_Hole_Fundamentals
+    use Numerical_Constants_Physical
+    implicit none
+    class           (accretionDisksADAF    ), intent(inout) :: self
+    class           (nodeComponentBlackHole), intent(inout) :: blackHole
+    double precision                        , intent(in   ) :: accretionRateMass
+    double precision                                        :: spinBlackHole    , spinInverseBlackHole 
 
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
-
-    ! Get the "spin parameter".
-    blackHoleSpinParameter=1.0d0-blackHoleSpin
-
+    spinBlackHole       =blackHole%spin()
+    ! Get the "inverse spin parameter".
+    spinInverseBlackHole=+1.0d0-spinBlackHole
     ! Compute the jet power.
-    !$omp critical(ADAF_Interpolate)
-    Accretion_Disk_Jet_Power_ADAF=massAccretionRate*adafTable%interpolate(blackHoleSpinParameter,jetPowerTable)
-    !$omp end critical(ADAF_Interpolate)
+    call OMP_Set_Lock(self%tabulationsLock)
+    adafPowerJet        =+accretionRateMass                                                    &
+         &               *self%tabulations%interpolate(spinInverseBlackHole,adafTablePowerJet)
+    call OMP_Unset_Lock(self%tabulationsLock)
     return
-  end function Accretion_Disk_Jet_Power_ADAF
+  end function adafPowerJet
 
-  double precision function Black_Hole_Spin_Up_Rate_ADAF(thisBlackHole,massAccretionRate)
+  double precision function adafRateSpinUp(self,blackHole,accretionRateMass)
     !% Computes the spin up rate of the black hole in {\normalfont \ttfamily thisBlackHole} due to accretion from an ADAF.
     !% disk.
-    use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    double precision                                        :: blackHoleSpin              , blackHoleSpinParameter, &
+    class           (accretionDisksADAF    ), intent(inout) :: self
+    class           (nodeComponentBlackHole), intent(inout) :: blackHole
+    double precision                        , intent(in   ) :: accretionRateMass
+    double precision                                        :: spinBlackHole              , spinInverseBlackHole, &
          &                                                     spinToMassRateOfChangeRatio
 
-    ! Ensure that parameters have been read.
-    call Accretion_Disks_ADAF_Get_Parameters
-
-    ! Ensure tables have been constructed.
-    call Accretion_Disk_ADAF_Tabulate()
-
     ! Get the black hole spin.
-    blackHoleSpin=thisBlackHole%spin()
-
-    ! Get the "spin parameter".
-    blackHoleSpinParameter=1.0d0-blackHoleSpin
-
+    spinBlackHole              =blackHole%spin()
+    ! Get the "inverse spin parameter".
+    spinInverseBlackHole       =+1.0d0-spinBlackHole
     ! Compute the ratio of spin and mass rates of change.
-    !$omp critical(ADAF_Interpolate)
-    spinToMassRateOfChangeRatio=adafTable%interpolate(blackHoleSpinParameter,spinUpTable)
-    !$omp end critical(ADAF_Interpolate)
-
+    call OMP_Set_Lock(self%tabulationsLock)
+    spinToMassRateOfChangeRatio=self%tabulations%interpolate(spinInverseBlackHole,adafTableRateSpinUp)
+    call OMP_Unset_Lock(self%tabulationsLock)
     ! Scale to the mass rate of change.
-    Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/thisBlackHole%mass()
+    adafRateSpinUp             =+spinToMassRateOfChangeRatio &
+         &                      *accretionRateMass           &
+         &                      /blackHole%mass()
     return
-  end function Black_Hole_Spin_Up_Rate_ADAF
+  end function adafRateSpinUp
 
-  double precision function ADAF_Disk_Jet_Power_From_Black_Hole(radius,blackHoleSpin,adafViscosityAlpha)
+  double precision function adafJetPowerDiskFromBlackHole(self,spinBlackHole,radius)
     !% Returns the power extracted from the black hole by the disk-launched jet from an ADAF.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             jetPowerPrevious          , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,jetPowerPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       jetPowerPrevious=ADAF_Disk_Jet_Power(radius,blackHoleSpin,adafViscosityAlpha)*(1.0d0-1.0d0&
-            &/ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)**2)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_Disk_Jet_Power_From_Black_Hole=jetPowerPrevious
-    return
-  end function ADAF_Disk_Jet_Power_From_Black_Hole
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius, spinBlackHole
 
-  double precision function ADAF_Disk_Jet_Power(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= self%jetPowerDiskFromBlackHoleRadiusPrevious .or. spinBlackHole /= self%jetPowerDiskFromBlackHoleSpinPrevious) then
+       self%jetPowerDiskFromBlackHoleStored        =+  self%jetPowerDisk    (spinBlackHole,radius)    &
+            &                                       *(                                                &
+            &                                         +1.0d0                                          &
+            &                                         -1.0d0                                          &
+            &                                         /self%fieldEnhancement(spinBlackHole,radius)**2 &
+            &                                        )
+       self%jetPowerDiskFromBlackHoleRadiusPrevious=+                                      radius
+       self%jetPowerDiskFromBlackHoleSpinPrevious  =+                        spinBlackHole
+    end if
+    adafJetPowerDiskFromBlackHole=self%jetPowerDiskFromBlackHoleStored
+    return
+  end function adafJetPowerDiskFromBlackHole
+
+  double precision function adafJetPowerDisk(self,spinBlackHole,radius)
     !% Returns the power of the disk-launched jet from an ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             diskPowerPrevious         , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,diskPowerPrevious)
-    double precision                :: betaPhi
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius       , spinBlackHole
+    double precision                                    :: betaAzimuthal
 
     ! Check if arguments are the same as on the previous call.
-    if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
-       ! They are, so return the previously computed value.
-       ADAF_Disk_Jet_Power=diskPowerPrevious
-    else
+    if (radius /= self%jetPowerDiskRadiusPrevious .or. spinBlackHole /= self%jetPowerDiskSpinPrevious) then
        ! They are not, so compute (and store) a new value.
-       betaPhi=sqrt(1.0d0-1.0d0/ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)**2)
-       ADAF_Disk_Jet_Power=(3.0d0/80.0d0)*radius**2                                                                                                &
-            & *(2.0d0*blackHoleSpin*betaPhi/radius**2+sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)))**2                                  &
-            & *(1.0d0-adafThermalPressureFraction)                                                                                                 &
-            & *(ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma(radius,blackHoleSpin,adafViscosityAlpha))**2            &
-            & *sqrt((1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2)/Black_Hole_Metric_D_Factor(blackHoleSpin,radius))                  &
-            & *(ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)+Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius))**2 &
-            & *ADAF_Temperature          (radius,blackHoleSpin,adafViscosityAlpha)                                                                 &
-            & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)                                                                                    &
-            & /ADAF_V                    (radius,blackHoleSpin,adafViscosityAlpha)                                                                 &
-            & /ADAF_Height               (radius,blackHoleSpin,adafViscosityAlpha)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-       diskPowerPrevious         =ADAF_Disk_Jet_Power
+       betaAzimuthal                  =+sqrt(                                                                     &
+            &                                +1.0d0                                                               &
+            &                                -1.0d0                                                               &
+            &                                /  self%gammaAzimuthal                     (spinBlackHole,radius)**2 &
+            &                               )
+       self%jetPowerDiskStored        =+(                                                                         &
+            &                            + 3.0d0                                                                  &
+            &                            /80.0d0                                                                  &
+            &                           )                                                                         &
+            &                          *                                                               radius **2 &
+            &                          *(                                                                         &
+            &                            +2.0d0                                                                   &
+            &                            *                                               spinBlackHole            &
+            &                            *betaAzimuthal                                                           &
+            &                            /                                                             radius **2 &
+            &                            +sqrt(                                                                   &
+            &                                  +     Black_Hole_Metric_D_Factor         (spinBlackHole,radius)    &
+            &                                 )                                                                   &
+            &                           )**2                                                                      &
+            &                          *(                                                                         &
+            &                            +1.0d0                                                                   &
+            &                            -      self%pressureThermalFractional                                    &
+            &                           )                                                                         &
+            &                          *(                                                                         &
+            &                            +      self%fieldEnhancement                   (spinBlackHole,radius)    &
+            &                            *      self%gamma                              (spinBlackHole,radius)    &
+            &                           )**2                                                                      &
+            &                          *sqrt(                                                                     &
+            &                                +(                                                                   &
+            &                                  +1.0d0                                                             &
+            &                                  -self%velocity                           (spinBlackHole,radius)**2 &
+            &                                 )                                                                   &
+            &                                /       Black_Hole_Metric_D_Factor         (spinBlackHole,radius)    &
+            &                               )                                                                     &
+            &                          *(                                                                         &
+            &                            +      self%fluidAngularVelocity               (spinBlackHole,radius)    &
+            &                            +           Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)    &
+            &                           )**2                                                                      &
+            &                          *        self%temperature                        (spinBlackHole,radius)    &
+            &                          /             Black_Hole_Metric_A_Factor         (spinBlackHole,radius)    &
+            &                          /        self%velocity                           (spinBlackHole,radius)    &
+            &                          /        self%height                             (spinBlackHole,radius)
+       self%jetPowerDiskRadiusPrevious=+                                                               radius
+       self%jetPowerDiskSpinPrevious  =+                                                 spinBlackHole
     end if
+    adafJetPowerDisk=self%jetPowerDiskStored
     return
-  end function ADAF_Disk_Jet_Power
+  end function adafJetPowerDisk
 
-  double precision function ADAF_BH_Jet_Power(radius,blackHoleSpin,adafViscosityAlpha)
+  double precision function adafJetPowerBlackHole(self,spinBlackHole,radius)
     !% Returns the power of the black hole-launched jet from an ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha               , blackHoleSpin              , &
-         &                             radius
-    double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8
-    double precision, save          :: adafViscosityAlphaPrevious       , blackHoleSpinPrevious=2.0d0, &
-         &                             jetPowerPrevious                 , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,jetPowerPrevious)
-    double precision                :: betaPhi
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius                     , spinBlackHole
+    double precision                    , parameter     :: spinBlackHoleMinimum=5.0d-8
+    double precision                                    :: betaAzimuthal
 
-    if (blackHoleSpin > blackHoleSpinMinimum) then
+    if (spinBlackHole > spinBlackHoleMinimum) then
        ! Check if arguments are the same as on the previous call.
-       if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
-          ! They are, so return the previously computed value.
-          ADAF_BH_Jet_Power=jetPowerPrevious
-       else
+       if (radius /= self%jetPowerBlackHoleRadiusPrevious .or. spinBlackHole /= self%jetPowerBlackHoleSpinPrevious) then
           ! They are not, so compute (and store) a new value.
-          betaPhi=sqrt(1.0d0-1.0d0/ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)**2)
-          ADAF_BH_Jet_Power=(3.0d0/80.0d0)*radius**2                                                                                       &
-               & *(2.0d0*blackHoleSpin*betaPhi/radius**2+sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)))**2                       &
-               & *(1.0d0-adafThermalPressureFraction)                                                                                      &
-               & *(ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma(radius,blackHoleSpin,adafViscosityAlpha))**2 &
-               & *sqrt((1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2)/Black_Hole_Metric_D_Factor(blackHoleSpin,radius))       &
-               & *Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)**2                                                             &
-               & *ADAF_Temperature          (radius,blackHoleSpin,adafViscosityAlpha)                                                      &
-               & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)                                                                         &
-               & /ADAF_V                    (radius,blackHoleSpin,adafViscosityAlpha)                                                      &
-               & /ADAF_Height               (radius,blackHoleSpin,adafViscosityAlpha)
-          radiusPrevious            =radius
-          blackHoleSpinPrevious     =blackHoleSpin
-          adafViscosityAlphaPrevious=adafViscosityAlpha
-          jetPowerPrevious          =ADAF_BH_Jet_Power
+          betaAzimuthal                       =+sqrt(                                                                     &
+               &                                     +1.0d0                                                               &
+               &                                     -1.0d0                                                               &
+               &                                     /  self%gammaAzimuthal                     (spinBlackHole,radius)**2 &
+               &                                    )
+          self%jetPowerBlackHoleStored        =+(                                                                         &
+               &                                 + 3.0d0                                                                  &
+               &                                 /80.0d0                                                                  &
+               &                                )                                                                         &
+               &                               *                                                               radius **2 &
+               &                               *(                                                                         &
+               &                                 +2.0d0                                                                   &
+               &                                 *                                               spinBlackHole            &
+               &                                 *betaAzimuthal                                                           &
+               &                                 /                                                             radius **2 &
+               &                                 +sqrt(                                                                   &
+               &                                       +     Black_Hole_Metric_D_Factor         (spinBlackHole,radius)    &
+               &                                      )                                                                   &
+               &                                )**2                                                                      &
+               &                               *(                                                                         &
+               &                                 +1.0d0                                                                   &
+               &                                 -      self%pressureThermalFractional                                    &
+               &                                )                                                                         &
+               &                               *(                                                                         &
+               &                                 +      self%fieldEnhancement                   (spinBlackHole,radius)    &
+               &                                 *      self%gamma                              (spinBlackHole,radius)    &
+               &                                )**2                                                                      &
+               &                               *sqrt(                                                                     &
+               &                                     +(                                                                   &
+               &                                       +1.0d0                                                             &
+               &                                       -self%velocity                           (spinBlackHole,radius)**2 &
+               &                                      )                                                                   &
+               &                                     /       Black_Hole_Metric_D_Factor         (spinBlackHole,radius)    &
+               &                                    )                                                                     &
+               &                               *             Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)**2 &
+               &                               *        self%temperature                        (spinBlackHole,radius)    &
+               &                               /             Black_Hole_Metric_A_Factor         (spinBlackHole,radius)    &
+               &                               /        self%velocity                           (spinBlackHole,radius)    &
+               &                               /        self%height                             (spinBlackHole,radius)
+          self%jetPowerBlackHoleRadiusPrevious=+                                                               radius
+          self%jetPowerBlackHoleSpinPrevious  =+                                                 spinBlackHole
        end if
+       adafJetPowerBlackHole=self%jetPowerBlackHoleStored
     else
-       ADAF_BH_Jet_Power=0.0d0
+       adafJetPowerBlackHole=0.0d0
     end if
     return
-  end function ADAF_BH_Jet_Power
+  end function adafJetPowerBlackHole
 
-  double precision function ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)
+  double precision function adafFieldEnhancement(self,spinBlackHole,radius)
     !% Returns the field enhancement factor, $g$, in the ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             fieldEnhancementPrevious  , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,fieldEnhancementPrevious)
-    double precision                :: tau                       , tauPhi                     , &
-         &                             tauR
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius, spinBlackHole
+    double precision                                    :: timescale   , timescaleAzimuthal       , &
+         &                                                 timescaleRadial
 
     ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
-       tauPhi=1.0d0/ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
-       tauR  =radius*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)/sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius))&
-            &/ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
-       tau=min(tauPhi,tauR)
-       select case (adafFieldEnhance)
-       case (adafFieldEnhanceExponential)
-          fieldEnhancementPrevious= exp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
-       case (adafFieldEnhanceLinear     )
-          fieldEnhancementPrevious=1.0d0+Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau
+    if (radius /= self%fieldEnhancementRadiusPrevious .or. spinBlackHole /= self%fieldEnhancementSpinPrevious) then
+       timescaleAzimuthal=+1.0d0                                                       &
+            &             /     self%fluidAngularVelocity      (spinBlackHole,radius)
+       timescaleRadial   =+                                                   radius   &
+            &             *     self%gammaAzimuthal            (spinBlackHole,radius)  &
+            &             /     self%velocity                  (spinBlackHole,radius)  &
+            &             /sqrt(     Black_Hole_Metric_D_Factor(spinBlackHole,radius))
+       timescale         =min(timescaleAzimuthal,timescaleRadial)
+       select case (self%fieldEnhancementOption)
+       case (adafFieldEnhancementExponential)
+          self%fieldEnhancementStored=      +exp(Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)*timescale)
+       case (adafFieldEnhancementLinear     )
+          self%fieldEnhancementStored=+1.0d0+    Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)*timescale
        end select
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
+       self%fieldEnhancementRadiusPrevious            =radius
+       self%fieldEnhancementSpinPrevious     =spinBlackHole
     end if
-    ADAF_Field_Enhancement=fieldEnhancementPrevious
+    adafFieldEnhancement=self%fieldEnhancementStored
     return
-  end function ADAF_Field_Enhancement
+  end function adafFieldEnhancement
 
-  double precision function ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
+  double precision function adafFluidAngularVelocity(self,spinBlackHole,radius)
     !% Returns the angular velocity of the rotating fluid with respect to the local inertial observer (ZAMO).
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious      , angularVelocityPrevious, &
-         &                             blackHoleSpinPrevious     =2.0d0, radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,angularVelocityPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       angularVelocityPrevious=                                          &
-            & ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha) &
-            & *sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)        &
-            & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)**3)          &
-            & /radius**2                                                     &
-            & /ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)       &
-            & /ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_Fluid_Angular_Velocity=angularVelocityPrevious
-    return
-  end function ADAF_Fluid_Angular_Velocity
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius, spinBlackHole
 
-  double precision function ADAF_alpha(blackHoleSpin)
-    !% Returns the effective value of $\alpha$ for an ADAF.
-    implicit none
-    double precision, intent(in   ) :: blackHoleSpin
-    double precision, save          :: alphaPrevious, blackHoleSpinPrevious=2.0d0
-    !$omp threadprivate(blackHoleSpinPrevious,alphaPrevious)
     ! Check if we are being called with the same arguments as the previous call.
-    if (blackHoleSpin /= blackHoleSpinPrevious) then
-       select case (adafEnergy)
+    if (radius /= self%fluidAngularVelocityRadiusPrevious .or. spinBlackHole /= self%fluidAngularVelocitySpinPrevious) then
+       self%fluidAngularVelocityStored        =+     self%angularMomentum           (spinBlackHole,radius)    &
+            &                                  *sqrt(                                                         &
+            &                                             Black_Hole_Metric_D_Factor(spinBlackHole,radius)    &
+            &                                        /    Black_Hole_Metric_A_Factor(spinBlackHole,radius)**3 &
+            &                                       )                                                         &
+            &                                  /                                                   radius **2 &
+            &                                  /     self%gammaAzimuthal            (spinBlackHole,radius)    &
+            &                                  /     self%gammaRadial               (spinBlackHole,radius)
+       self%fluidAngularVelocityRadiusPrevious=+radius
+       self%fluidAngularVelocitySpinPrevious  =+spinBlackHole
+    end if
+    adafFluidAngularVelocity=self%fluidAngularVelocityStored
+    return
+  end function adafFluidAngularVelocity
+
+  double precision function adafViscosityParameter(self,spinBlackHole)
+    !% Returns the effective value of the $\alpha$ viscosity parameter for an ADAF.
+    implicit none
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: spinBlackHole
+
+    ! Check if we are being called with the same arguments as the previous call.
+    if (spinBlackHole /= self%alphaSpinPrevious) then
+       select case (self%energyOption)
        case (adafEnergyISCO)
-          select case (adafFieldEnhance)
-          case (adafFieldEnhanceExponential)
-             alphaPrevious=0.015d0+0.02d0*blackHoleSpin**4
-          case (adafFieldEnhanceLinear     )
-             alphaPrevious=0.025d0+0.08d0*blackHoleSpin**4
+          select case (self%fieldEnhancementOption)
+          case (adafFieldEnhancementExponential)
+             self%alphaStored=0.015d0+0.02d0*spinBlackHole**4
+          case (adafFieldEnhancementLinear     )
+             self%alphaStored=0.025d0+0.08d0*spinBlackHole**4
           end select
-       case (adafEnergy1   )
-          select case (adafFieldEnhance)
-          case (adafFieldEnhanceExponential)
-             alphaPrevious=0.010d0
-          case (adafFieldEnhanceLinear     )
-             alphaPrevious=0.025d0+0.02d0*blackHoleSpin**4
+       case (adafEnergyPureADAF   )
+          select case (self%fieldEnhancementOption)
+          case (adafFieldEnhancementExponential)
+             self%alphaStored=0.010d0
+          case (adafFieldEnhancementLinear     )
+             self%alphaStored=0.025d0+0.02d0*spinBlackHole**4
           end select
        end select
-       blackHoleSpinPrevious=blackHoleSpin
+       self%alphaSpinPrevious=spinBlackHole
     end if
-    ADAF_alpha=alphaPrevious
+    adafViscosityParameter=self%alphaStored
     return
-  end function ADAF_alpha
+  end function adafViscosityParameter
 
-  double precision function ADAF_gamma(radius,blackHoleSpin,adafViscosityAlpha)
+  double precision function adafGamma(self,spinBlackHole,radius)
     !% Returns the net relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
     !% The input quantities are in natural units.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             gammaPrevious             , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       gammaPrevious=ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_gamma=gammaPrevious
-    return
-  end function ADAF_gamma
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius, spinBlackHole
 
-  double precision function ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= self%gammaRadiusPrevious .or. spinBlackHole /= self%gammaSpinPrevious) then
+       self%gammaStored        =+self%gammaRadial   (spinBlackHole,radius) &
+            &                   *self%gammaAzimuthal(spinBlackHole,radius)
+       self%gammaRadiusPrevious=+radius
+       self%gammaSpinPrevious  =+spinBlackHole
+    end if
+    adafGamma=self%gammaStored
+    return
+  end function adafGamma
+
+  double precision function adafGammaAzimuthal(self,spinBlackHole,radius)
     !% Returns the $\phi$ component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
     !% The input quantities are in natural units.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             gammaPrevious             , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       gammaPrevious=sqrt(1.0d0+((ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)/radius/ADAF_gamma_r(radius&
-            &,blackHoleSpin,adafViscosityAlpha))**2)/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_gamma_phi=gammaPrevious
-    return
-  end function ADAF_gamma_phi
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius, spinBlackHole 
 
-  double precision function ADAF_gamma_r(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= self%gammaAzimuthalRadiusPrevious .or. spinBlackHole /= self%gammaAzimuthalSpinPrevious) then
+       self%gammaAzimuthalStored        =+sqrt(                                                  &
+            &                                  +1.0d0                                            &
+            &                                  +(                                                &
+            &                                    +(                                              &
+            &                                      +self%angularMomentum  (spinBlackHole,radius) &
+            &                                      /self%gammaRadial      (spinBlackHole,radius) &
+            &                                      /                                     radius  &
+            &                                     )**2                                           &
+            &                                   )                                                &
+            &                                  /Black_Hole_Metric_A_Factor(spinBlackHole,radius) &
+            &                                 )
+       self%gammaAzimuthalRadiusPrevious=+radius
+       self%gammaAzimuthalSpinPrevious  =+spinBlackHole
+    end if
+    adafGammaAzimuthal=self%gammaAzimuthalStored
+    return
+  end function adafGammaAzimuthal
+
+  double precision function adafGammaRadial(self,spinBlackHole,radius)
     !% Returns the $r$ component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
     !% The input quantities are in natural units.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             gammaPrevious             , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       gammaPrevious=sqrt(1.0d0/(1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2))
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_gamma_r=gammaPrevious
-    return
-  end function ADAF_gamma_r
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius, spinBlackHole
 
-  double precision function ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= self%gammaRadialRadiusPrevious .or. spinBlackHole /= self%gammaRadialSpinPrevious) then
+       self%gammaRadialStored        =+sqrt(                                          &
+            &                               +1.0d0                                    &
+            &                               /(                                        &
+            &                                 +1.0d0                                  &
+            &                                 -self%velocity(spinBlackHole,radius)**2 &
+            &                                )                                        &
+            &                              )
+       self%gammaRadialRadiusPrevious=+radius
+       self%gammaRadialSpinPrevious  =+spinBlackHole
+    end if
+    adafGammaRadial=self%gammaRadialStored
+    return
+  end function adafGammaRadial
+
+  double precision function adafAngularMomentum(self,spinBlackHole,radius)
     !% Returns the specific angular momentum of accreted material in the ADAF.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious      , angularMomentumPrevious, &
-         &                             blackHoleSpinPrevious     =2.0d0, radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,angularMomentumPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       angularMomentumPrevious=ADAF_Enthalpy_Angular_Momentum_Product(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius&
-            &,blackHoleSpin,adafViscosityAlpha)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_Angular_Momentum=angularMomentumPrevious
-    return
-  end function ADAF_Angular_Momentum
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: spinBlackHole, radius
 
-  double precision function ADAF_Enthalpy_Angular_Momentum_Product(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= self%angularMomentumRadiusPrevious .or. spinBlackHole /= self%angularMomentumSpinPrevious) then
+       self%angularMomentumStored        =+self%enthalpyAngularMomentumProduct(spinBlackHole,radius) &
+            &                             /self%enthalpy                      (spinBlackHole,radius)
+       self%angularMomentumRadiusPrevious=+radius
+       self%angularMomentumSpinPrevious  =+spinBlackHole
+    end if
+    adafAngularMomentum=self%angularMomentumStored
+    return
+  end function adafAngularMomentum
+
+  double precision function adafEnthalpyAngularMomentumProduct(self,spinBlackHole,radius)
     !% Return the product of enthalpy and angular momentum for the ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha             , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious     , blackHoleSpinPrevious=2.0d0, &
-         &                             enthalpyAngularMomentumPrevious, radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,enthalpyAngularMomentumPrevious)
-    double precision                :: etaLADAF1                      , etaLADAF2                  , &
-         &                             etaLADAF3                      , etaLADAF4                  , &
-         &                             etaLADAF5                      , etaLADAF6                  , &
-         &                             logarithmAlpha                 , radiusISCO
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius                       , spinBlackHole
+    double precision                                    :: enthalpyAngularMomentum1     , enthalpyAngularMomentum2, &
+         &                                                 enthalpyAngularMomentum3     , enthalpyAngularMomentum4, &
+         &                                                 enthalpyAngularMomentum5     , enthalpyAngularMomentum6, &
+         &                                                 viscosityParameterLogarithmic, radiusISCO
 
     ! Check if we are being called with the same arguments as the previous call.
-    if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
-       ! We are, so just return the stored value.
-       ADAF_Enthalpy_Angular_Momentum_Product=enthalpyAngularMomentumPrevious
-    else
+    if (radius /= self%enthlpyAngMPrdctRadiusPrevious .or. spinBlackHole /= self%enthlpyAngMPrdctSpinPrevious) then
        ! We are not, so compute (and store) the value.
-       logarithmAlpha=log10(adafViscosityAlpha)
-       radiusISCO=Black_Hole_ISCO_Radius(blackHoleSpin,unitsGravitational)
-       etaLADAF1=0.0871d0*radiusISCO-0.10282d0
-       etaLADAF2=0.5d0-7.7983d0*(adafAdiabaticIndex-1.333d0)**1.26d0
-       etaLADAF3=0.153d0*(radiusISCO-0.6d0)**0.30d0+0.105d0
-       etaLADAF4=etaLADAF3*(0.9d0*adafAdiabaticIndex-0.2996d0)*(1.202d0-0.08d0*(logarithmAlpha+2.5d0)**2.6d0)
-       etaLADAF5=-1.8d0*adafAdiabaticIndex+4.299d0-0.018d0+0.018d0*(logarithmAlpha+2.0d0)**3.571d0
-       etaLADAF6=etaLADAF4*(((0.14d0*log10(radius)**etaLADAF5+0.23d0)/etaLADAF4)**10.0d0+1.0d0)**0.1d0
-       ADAF_Enthalpy_Angular_Momentum_Product=etaLADAF2+(etaLADAF1+10.0d0**etaLADAF6)*(1.15d0-0.03d0*(3.0d0+logarithmAlpha)**2.37d0)
-       radiusPrevious                 =radius
-       blackHoleSpinPrevious          =blackHoleSpin
-       adafViscosityAlphaPrevious     =adafViscosityAlpha
-       enthalpyAngularMomentumPrevious=ADAF_Enthalpy_Angular_Momentum_Product
+       viscosityParameterLogarithmic     =+log10(                                                   &
+            &                                    +self%viscosityParameter(spinBlackHole)            &
+            &                                   )
+       radiusISCO                        =+Black_Hole_ISCO_Radius(spinBlackHole,unitsGravitational)
+       enthalpyAngularMomentum1          =+0.0871d0                                                 &
+            &                             *radiusISCO                                               &
+            &                             -0.10282d0
+       enthalpyAngularMomentum2          =+0.5000d0                                                 &
+            &                             -7.7983d0                                                 &
+            &                             *(                                                        &
+            &                               +self%adiabaticIndex                                    &
+            &                               -1.333d0                                                &
+            &                              )**1.26d0
+       enthalpyAngularMomentum3          =+0.153d0                                                  &
+            &                             *(                                                        &
+            &                               +radiusISCO                                             &
+            &                               -0.6d0                                                  &
+            &                              )**0.30d0                                                &
+            &                             +0.105d0
+       enthalpyAngularMomentum4          =+enthalpyAngularMomentum3                                 &
+            &                             *(                                                        &
+            &                               +0.9000d0                                               &
+            &                               *self%adiabaticIndex                                    &
+            &                               -0.2996d0                                               &
+            &                              )                                                        &
+            &                             *(                                                        &
+            &                               +1.202d0                                                &
+            &                               -0.080d0                                                &
+            &                               *(                                                      &
+            &                                 +viscosityParameterLogarithmic                        &
+            &                                 +2.5d0                                                &
+            &                                )**2.6d0                                               &
+            &                              )
+       enthalpyAngularMomentum5          =-1.800d0                                                  &
+            &                             *self%adiabaticIndex                                      &
+            &                             +4.299d0                                                  &
+            &                             -0.018d0                                                  &
+            &                             +0.018d0                                                  &
+            &                             *(                                                        &
+            &                               +viscosityParameterLogarithmic                          &
+            &                               +2.0d0                                                  &
+            &                              )**3.571d0
+       enthalpyAngularMomentum6          =+enthalpyAngularMomentum4                                 &
+            &                             *(                                                        &
+            &                               +(                                                      &
+            &                                 +(                                                    &
+            &                                   +0.14d0                                             &
+            &                                   *log10(radius)**enthalpyAngularMomentum5            &
+            &                                   +0.23d0                                             &
+            &                                  )                                                    &
+            &                                 /enthalpyAngularMomentum4                             &
+            &                                )**10.0d0                                              &
+            &                               +1.0d0                                                  &
+            &                              )**0.1d0
+       self%enthlpyAngMPrdctStored       =+enthalpyAngularMomentum2                                 &
+            &                             +(                                                        &
+            &                               +enthalpyAngularMomentum1                               &
+            &                               +10.0d0**enthalpyAngularMomentum6                       &
+            &                              )                                                        &
+            &                             *(                                                        &
+            &                               +1.15d0                                                 &
+            &                               -0.03d0                                                 &
+            &                               *(                                                      &
+            &                                 +3.0d0                                                &
+            &                                 +viscosityParameterLogarithmic                        &
+            &                                )**2.37d0                                              &
+            &                              )
+       self%enthlpyAngMPrdctRadiusPrevious=+radius
+       self%enthlpyAngMPrdctSpinPrevious  =+spinBlackHole
     end if
+    adafEnthalpyAngularMomentumProduct=self%enthlpyAngMPrdctStored
     return
-  end function ADAF_Enthalpy_Angular_Momentum_Product
+  end function adafEnthalpyAngularMomentumProduct
 
-  double precision function ADAF_Enthalpy(radius,blackHoleSpin,adafViscosityAlpha)
+  double precision function adafEnthalpy(self,spinBlackHole,radius)
     !% Returns the relativistic enthalpy of the ADAF.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             enthalpyPrevious          , radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,enthalpyPrevious)
-    ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       enthalpyPrevious=1.0d0+(adafAdiabaticIndex/(adafAdiabaticIndex-1.0d0))*ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
-    end if
-    ADAF_Enthalpy=enthalpyPrevious
-    return
-  end function ADAF_Enthalpy
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: spinBlackHole, radius  
 
-  double precision function ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)
+    ! Check if we are being called with the same arguments as the previous call.
+    if (radius /= self%enthalpyRadiusPrevious .or. spinBlackHole /= self%enthalpySpinPrevious) then
+       self%enthalpyStored        =+1.0d0                                  &
+            &                      +(                                      &
+            &                        +self%adiabaticIndex                  &
+            &                        /(                                    &
+            &                          +self%adiabaticIndex                &
+            &                          -1.0d0                              &
+            &                         )                                    &
+            &                       )                                      &
+            &                      *self%temperature(spinBlackHole,radius)
+       self%enthalpyRadiusPrevious=+radius
+       self%enthalpySpinPrevious  =+spinBlackHole
+    end if
+    adafEnthalpy=self%enthalpyStored
+    return
+  end function adafEnthalpy
+
+  double precision function adafTemperature(self,spinBlackHole,radius)
+    !% Return the dimensionless temperature of the ADAF
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
-         &                             radius
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
-         &                             radiusPrevious            , temperaturePrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,temperaturePrevious)
-    double precision                :: logarithmAlpha            , radiusISCO                 , &
-         &                             t1                        , t2                         , &
-         &                             t3                        , t4                         , &
-         &                             t5
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius                       , spinBlackHole
+    double precision                                    :: viscosityParameterLogarithmic, radiusISCO        , &
+         &                                                 temperatureFactor1           , temperatureFactor2, &
+         &                                                 temperatureFactor3           , temperatureFactor4, &
+         &                                                 temperatureFactor5
 
     ! Check if we are being called with the same arguments as the previous call.
-    if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
-       ! We are, so just return the stored value.
-       ADAF_Temperature=temperaturePrevious
-    else
-       ! We are not, so compute (and store) the value.
-       logarithmAlpha=log10(adafViscosityAlpha)
-       radiusISCO=Black_Hole_ISCO_Radius(blackHoleSpin,unitsGravitational)
-       t1=-0.270278d0*adafAdiabaticIndex+1.36027d0
-       t2=-0.94d0+4.4744d0*(adafAdiabaticIndex-1.444d0)-5.1402d0*(adafAdiabaticIndex-1.444d0)**2
-       t3=0.84d0*logarithmAlpha+0.919d0-0.643d0*exp(-0.209d0/adafViscosityAlpha)
-       t4=(0.6365d0*radiusISCO-0.4828d0)*(1.0d0+11.9d0*exp(-0.838d0*radiusISCO**4))
-       t5=1.444d0*exp(-1.01d0*radiusISCO**0.86d0)+0.1d0
-       ADAF_Temperature=0.31d0*((1.0d0+(t4/radius)**0.9d0)**(t2+t3))/((radius-t5)**t1)
-       radiusPrevious                 =radius
-       blackHoleSpinPrevious          =blackHoleSpin
-       adafViscosityAlphaPrevious     =adafViscosityAlpha
-       temperaturePrevious=ADAF_Temperature
+    if (radius /= self%temperatureRadiusPrevious .or. spinBlackHole /= self%temperatureSpinPrevious) then
+       viscosityParameterLogarithmic =+log10(                                        &
+            &                                +self%viscosityParameter(spinBlackHole) &
+            &                               )
+       radiusISCO                    =+Black_Hole_ISCO_Radius(spinBlackHole,unitsGravitational)
+       temperatureFactor1            =-0.270278d0                                               &
+            &                         *self%adiabaticIndex                                      &
+            &                         +1.360270d0
+       temperatureFactor2            =-0.9400d0                                                 &
+            &                         +4.4744d0                                                 &
+            &                         *(                                                        &
+            &                           +self%adiabaticIndex                                    &
+            &                           -1.444d0                                                &
+            &                          )                                                        &
+            &                         -5.1402d0                                                 &
+            &                         *(                                                        &
+            &                           +self%adiabaticIndex                                    &
+            &                           -1.444d0                                                &
+            &                          )**2
+       temperatureFactor3            =+0.840d0                                                  &
+            &                         *viscosityParameterLogarithmic                            &
+            &                         +0.919d0                                                  &
+            &                         -0.643d0                                                  &
+            &                         *exp(                                                     &
+            &                              -0.209d0                                             &
+            &                              /self%viscosityParameter(spinBlackHole)              &
+            &                             )
+       temperatureFactor4            =+(                                                        &
+            &                           + 0.6365d0                                              &
+            &                           *radiusISCO                                             &
+            &                           - 0.4828d0                                              &
+            &                          )                                                        &
+            &                         *(                                                        &
+            &                           + 1.0000d0                                              &
+            &                           +11.9000d0                                              &
+            &                           *exp(                                                   &
+            &                                -0.838d0                                           &
+            &                                *radiusISCO**4                                     &
+            &                               )                                                   &
+            &                          )
+       temperatureFactor5            =+1.444d0                                                  &
+            &                         *exp(                                                     &
+            &                              -1.01d0                                              &
+            &                              *radiusISCO**0.86d0                                  &
+            &                             )                                                     &
+            &                         +0.1d0
+       self%temperatureStored        =+0.31d0                                                   &
+            &                         *(                                                        &
+            &                           +(                                                      &
+            &                             +1.0d0                                                &
+            &                             +(                                                    &
+            &                               +temperatureFactor4                                 &
+            &                               /radius                                             &
+            &                              )**0.9d0                                             &
+            &                            )**(temperatureFactor2+temperatureFactor3)             &
+            &                          )                                                        &
+            &                         /(                                                        &
+            &                           +radius                                                 &
+            &                           -temperatureFactor5                                     &
+            &                          )**temperatureFactor1
+       self%temperatureRadiusPrevious=+radius
+       self%temperatureSpinPrevious  =+spinBlackHole
     end if
+    adafTemperature=self%temperatureStored
     return
-  end function ADAF_Temperature
+  end function adafTemperature
 
-  double precision function ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
-    !% Return the (dimensionless) velocity in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily blackHoleSpin} and a
-    !% flow with viscosity parameter {\normalfont \ttfamily adafViscosityAlpha}.
+  double precision function adafVelocity(self,spinBlackHole,radius)
+    !% Return the (dimensionless) velocity in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given
+    !% {\normalfont \ttfamily spinBlackHole}.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , &
-         &                             radius
-    double precision, save          :: adafVelocityPrevious       , adafViscosityAlphaPrevious, &
-         &                             blackHoleSpinPrevious=2.0d0, radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,adafVelocityPrevious)
-    double precision                :: Phi                        , alpha_eff                 , &
-         &                             rISCO                      , reff                      , &
-         &                             rh                         , v1                        , &
-         &                             v2                         , v3                        , &
-         &                             v4                         , v5                        , &
-         &                             z                          , zh
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius          , spinBlackHole
+    double precision                                    :: Phi             , viscosityParameterEffective, &
+         &                                                 radiusISCO      , radiusEffective            , &
+         &                                                 radiusHorizon   , PhiFactor1                 , &
+         &                                                 PhiFactor2      , PhiFactor3                 , &
+         &                                                 PhiFactor4      , PhiFactor5                 , &
+         &                                                 radiusFractional, radiusHorizonFractional
 
     ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
-       rh=Black_Hole_Horizon_Radius(blackHoleSpin)
-       rISCO=Black_Hole_ISCO_Radius(blackHoleSpin)
-       z=radius/rISCO
-       zh=rh/rISCO
-       alpha_eff=adafViscosityAlpha*(1.0d0+6.450d0*(adafAdiabaticIndex-1.444d0)+1.355d0*(adafAdiabaticIndex-1.444d0)**2)
-       v1=9.0d0*log(9.0d0*z)
-       v2=exp(-0.66d0*(1.0d0-2.0d0*alpha_eff)*log(alpha_eff/0.1d0)*log(z/zh))
-       v3=1.0d0-exp(-z*(0.16d0*(blackHoleSpin-1.0d0)+0.76d0))
-       v4=1.4d0+0.29065d0*(blackHoleSpin-0.5d0)**4-0.8756d0*(blackHoleSpin-0.5d0)**2+(-0.33d0*blackHoleSpin+0.45035d0)*(1.0d0-exp(-(z-zh)))
-       v5=2.3d0*exp(40.0d0*(blackHoleSpin-1.0d0))*exp(-15.0d0*rISCO*(z-zh))+1.0d0
-       Phi=v1*v2*v3*v4*v5
-       reff=rh+Phi*(radius-rh)
-       adafVelocityPrevious      =sqrt(1.0d0-(1.0d0-2.0d0/reff+(blackHoleSpin/reff)**2))
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
+    if     (                                              &
+         &   radius        /= self%velocityRadiusPrevious &
+         &  .or.                                          &
+         &   spinBlackHole /= self%velocitySpinPrevious   &
+         & ) then
+       radiusHorizon              =+Black_Hole_Horizon_Radius(spinBlackHole)
+       radiusISCO                 =+Black_Hole_ISCO_Radius   (spinBlackHole)
+       radiusFractional           =+radius                                        &
+            &                      /radiusISCO
+       radiusHorizonFractional    =+radiusHorizon                                 &
+            &                      /radiusISCO
+       viscosityParameterEffective=+self%viscosityParameter(spinBlackHole)        &
+            &                      *(                                             &
+            &                        +1.00d0                                      &
+            &                        +6.450d0*(+self%adiabaticIndex-1.444d0)      &
+            &                        +1.355d0*(+self%adiabaticIndex-1.444d0)**2   &
+            &                       )
+       PhiFactor1                 =+9.0d0                                         &
+            &                      *log(                                          &
+            &                           +9.0d0                                    &
+            &                           *radiusFractional                         &
+            &                          )
+       PhiFactor2                 =+exp(                                          &
+            &                           -0.66d0                                   &
+            &                           *(                                        &
+            &                             +1.0d0                                  &
+            &                             -2.0d0                                  &
+            &                             *viscosityParameterEffective            &
+            &                            )                                        &
+            &                           *log(                                     &
+            &                                +viscosityParameterEffective         &
+            &                                /0.1d0                               &
+            &                               )                                     &
+            &                           *log(                                     &
+            &                                +radiusFractional                    &
+            &                                /radiusHorizonFractional             &
+            &                               )                                     &
+            &                          )
+       PhiFactor3                 =+1.0d0                                         &
+            &                      -exp(                                          &
+            &                           -radiusFractional                         &
+            &                           *(                                        &
+            &                             +0.16d0                                 &
+            &                             *(                                      &
+            &                               +spinBlackHole                        &
+            &                               -1.0d0                                &
+            &                              )                                      &
+            &                             +0.76d0                                 &
+            &                            )                                        &
+            &                          )
+       PhiFactor4                 =+1.40000d0                                     &
+            &                      +0.29065d0*(+spinBlackHole-0.5d0)**4           &
+            &                      -0.87560d0*(+spinBlackHole-0.5d0)**2           &
+            &                      +(                                             &
+            &                        -0.33000d0                                   &
+            &                        *spinBlackHole                               &
+            &                        +0.45035d0                                   &
+            &                       )                                             &
+            &                      *(                                             &
+            &                        +1.0d0                                       &
+            &                        -exp(                                        &
+            &                             -(                                      &
+            &                               +radiusFractional                     &
+            &                               -radiusHorizonFractional              &
+            &                              )                                      &
+            &                            )                                        &
+            &                       )
+       PhiFactor5                 =+2.3d0                                         &
+            &                      *exp(                                          &
+            &                           +40.0d0                                   &
+            &                           *(                                        &
+            &                             +spinBlackHole                          &
+            &                             -1.0d0                                  &
+            &                            )                                        &
+            &                          )                                          &
+            &                      *exp(                                          &
+            &                           -15.0d0                                   &
+            &                           *radiusISCO                               &
+            &                           *(                                        &
+            &                             +radiusFractional                       &
+            &                             -radiusHorizonFractional                &
+            &                            )                                        &
+            &                          )                                          &
+            &                      +1.0d0
+       Phi                        =+PhiFactor1                                    &
+            &                      *PhiFactor2                                    &
+            &                      *PhiFactor3                                    &
+            &                      *PhiFactor4                                    &
+            &                      *PhiFactor5
+       radiusEffective            =+radiusHorizon                                 &
+            &                      +Phi                                           &
+            &                      *(                                             &
+            &                        +radius                                      &
+            &                        -radiusHorizon                               &
+            &                       )
+       self%velocityStored        =+sqrt(                                         &
+            &                            +1.0d0                                   &
+            &                            -(                                       &
+            &                              +1.0d0                                 &
+            &                              -2.0d0                                 &
+            &                              /radiusEffective                       &
+            &                              +(                                     &
+            &                                +spinBlackHole                       &
+            &                                /radiusEffective                     &
+            &                               )**2                                  &
+            &                             )                                       &
+            &                           )
+       self%velocityRadiusPrevious=+radius
+       self%velocitySpinPrevious  =+spinBlackHole
     end if
-    ADAF_V=adafVelocityPrevious
+    adafVelocity=self%velocityStored
     return
-  end function ADAF_V
+  end function adafVelocity
 
-  double precision function ADAF_Height(radius,blackHoleSpin,adafViscosityAlpha)
-    !% Return the (dimensionless) height in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily blackHoleSpin} and a
-    !% flow with viscosity parameter {\normalfont \ttfamily adafViscosityAlpha}.
+  double precision function adafHeight(self,spinBlackHole,radius)
+    !% Return the (dimensionless) height in an ADAF at given {\normalfont \ttfamily radius}, for a black hole of given {\normalfont \ttfamily spinBlackHole}.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , &
-         &                             radius
-    double precision, save          :: adafHeightPrevious         , adafViscosityAlphaPrevious, &
-         &                             blackHoleSpinPrevious=2.0d0, radiusPrevious
-    !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,adafHeightPrevious)
-    double precision                :: nuz2
+    class           (accretionDisksADAF), intent(inout) :: self
+    double precision                    , intent(in   ) :: radius                           , spinBlackHole
+    double precision                                    :: verticalFrequencyEffectiveSquared
 
     ! Check if we are being called with the same arguments as the previous call.
-    if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
-         & adafViscosityAlphaPrevious) then
-       nuz2=blackHoleSpin**2+(1.0d0-(blackHoleSpin*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius))**2) &
-            &*ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)**2-((blackHoleSpin*ADAF_gamma_phi(radius&
-            &,blackHoleSpin,adafViscosityAlpha))**2/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*ADAF_gamma_r(radius&
-            &,blackHoleSpin,adafViscosityAlpha)**2*Black_Hole_Metric_D_Factor(blackHoleSpin,radius)-ADAF_gamma_r(radius&
-            &,blackHoleSpin,adafViscosityAlpha)*sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)&
-            &/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*2.0d0*ADAF_Angular_Momentum(radius,blackHoleSpin&
-            &,adafViscosityAlpha)*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*ADAF_gamma_phi(radius,blackHoleSpin&
-            &,adafViscosityAlpha)*blackHoleSpin**2
-       nuz2=nuz2/radius**4
-       adafHeightPrevious=sqrt(ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius,blackHoleSpin &
-            &,adafViscosityAlpha)/radius**2/nuz2)
-       radiusPrevious            =radius
-       blackHoleSpinPrevious     =blackHoleSpin
-       adafViscosityAlphaPrevious=adafViscosityAlpha
+    if     (                                            &
+         &   radius        /= self%heightRadiusPrevious &
+         &  .or.                                        &
+         &   spinBlackHole /= self%heightSpinPrevious   &
+         & ) then
+       verticalFrequencyEffectiveSquared=+(                                                                  & 
+            &                              +                                        spinBlackHole        **2 &
+            &                              +(                                                                &
+            &                                +1.0d0                                                          &
+            &                                -(                                                              &
+            &                                  +                                    spinBlackHole            &
+            &                                  *Black_Hole_Frame_Dragging_Frequency(spinBlackHole,radius)    &
+            &                                 )                                                          **2 &
+            &                               )                                                                &
+            &                              *self%angularMomentum                   (spinBlackHole,radius)**2 &
+            &                              -(                                                                &
+            &                                +(                                                              &
+            &                                  +                                    spinBlackHole            &
+            &                                  *self%gammaAzimuthal                (spinBlackHole,radius)    &
+            &                                 )                                                          **2 &
+            &                                /Black_Hole_Metric_A_Factor           (spinBlackHole,radius)    &
+            &                               )                                                                &
+            &                              *self%gammaRadial                       (spinBlackHole,radius)**2 &
+            &                              *Black_Hole_Metric_D_Factor             (spinBlackHole,radius)    &
+            &                              -self%gammaRadial                       (spinBlackHole,radius)    &
+            &                              *sqrt(                                                            &
+            &                                    +Black_Hole_Metric_D_Factor       (spinBlackHole,radius)    &
+            &                                    /Black_Hole_Metric_A_Factor       (spinBlackHole,radius)    &
+            &                                   )                                                            &
+            &                              *2.0d0                                                            &
+            &                              *self%angularMomentum                   (spinBlackHole,radius)    &
+            &                              *Black_Hole_Frame_Dragging_Frequency    (spinBlackHole,radius)    &
+            &                              *self%gammaAzimuthal                    (spinBlackHole,radius)    &
+            &                              *                                        spinBlackHole        **2 &
+            &                             )                                                                  &
+            &                            /                                                        radius **4
+       self%heightStored                =+sqrt(                                                              &
+            &                                  +self%temperature                   (spinBlackHole,radius)    &
+            &                                  /self%enthalpy                      (spinBlackHole,radius)    &
+            &                                  /                                                  radius **2 &
+            &                                  /verticalFrequencyEffectiveSquared&
+            &                                 )
+       self%heightRadiusPrevious        =+radius
+       self%heightSpinPrevious          =+spinBlackHole
     end if
-    ADAF_Height=adafHeightPrevious
+    adafHeight=self%heightStored
     return
-  end function ADAF_Height
+  end function adafHeight
 
-end module Accretion_Disks_ADAF
+  double precision function adafAdiabaticIndexDefault(fieldEnhancementOption)
+    !% Returns the default adiabatic index in an ADAF give the field enhancement option.
+    use Galacticus_Error
+    implicit none
+    integer, intent(in   ) :: fieldEnhancementOption
+
+    select case (fieldEnhancementOption)
+    case (adafFieldEnhancementExponential)
+       adafAdiabaticIndexDefault=1.444d0
+    case (adafFieldEnhancementLinear     )
+       adafAdiabaticIndexDefault=1.333d0
+    case default
+       adafAdiabaticIndexDefault=0.000d0
+      call Galacticus_Error_Report('adafAdiabaticIndexDefault','unknown field enhancement option')
+    end select
+    return
+  end function adafAdiabaticIndexDefault
+  

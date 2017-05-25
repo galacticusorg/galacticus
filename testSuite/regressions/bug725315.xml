@@ -42,13 +42,11 @@
   <mergerTreeBuildTreesPerDecade value="4"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
-  <adafRadiativeEfficiency value="0.01"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
   <blackHoleWindEfficiency value="0.001"/>
   <outputVirialData value="false"/>
   <treeNodeMethodBlackHole value="standard"/>
-  <adafEnergyOption value="pureADAF"/>
   <mergerTreeBuildTreesBaseRedshift value="0"/>
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist"/>
@@ -89,10 +87,14 @@
   <starFormationSpheroidMinimumTimescale value="0.001"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
-  <adafViscosityOption value="fit"/>
   <haloMassFunctionMethod value="tinker2008"/>
-  <adafAdiabaticIndex value="1.444"/>
-  <accretionDisksMethod value="ADAF"/>
+  <accretionDisksMethod value="ADAF">
+      <efficiencyRadiationType value="thinDisk"/>
+      <adiabaticIndex          value="1.444"   />
+      <energyOption            value="pureADAF"/>
+      <efficiencyRadiation     value="0.01"    />
+      <viscosityOption         value="fit"     />
+  </accretionDisksMethod>
   <starFormationHistoriesMethod value="metallicitySplit"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <starFormationSpheroidVelocityExponent value="0"/>
