@@ -1070,7 +1070,7 @@ contains
   function Table_Logarithmic_1D_Xs(self)
     !% Return the $x$-values for a 1D table.
     implicit none
-    class(table1DLogarithmicLinear), intent(in   ) :: self
+    class           (table1DLogarithmicLinear), intent(in   ) :: self
     double precision                          , dimension(size(self%xv))  :: Table_Logarithmic_1D_Xs
 
     Table_Logarithmic_1D_Xs=exp(self%table1DLinearLinear%xs())
