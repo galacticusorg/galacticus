@@ -340,6 +340,10 @@ my @executablesToRun = (
     {
 	name     => "tests.cooling_functions.exe",                                        # Tests of cooling functions.
 	valgrind => 0
+    },
+    {
+	name     => "tests.accretion_disks.exe",                                          # Tests of accretion disks.
+	valgrind => 0
     }
     );
 
