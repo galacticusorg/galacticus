@@ -54,6 +54,12 @@ module Constraints_Likelihoods
      !@     <arguments></arguments>
      !@     <description>Informs the likelihood object that the likelihood function may have changed.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>restore</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ logLikelihood\argin</arguments>
+     !@     <description>Restore the state of the likelihood function. This method is called repeatedly with states and likelihoods from the previous run.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(likelihoodEvaluate       ), deferred :: evaluate
      procedure                                      :: willEvaluate    => likelihoodWillEvaluate
