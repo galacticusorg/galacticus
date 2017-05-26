@@ -41,6 +41,12 @@
      !@     <arguments>\textcolor{red}{\textless class(nodeComponentBlackHole)\textgreater} blackHole\argin, \doublezero\ accretionRateMass\argin</arguments>
      !@     <description>Return the fraction of the accretion flow to be represented as an ADAF.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>efficiencyRadiativeScalingADAF</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(nodeComponentBlackHole)\textgreater} blackHole\argin, \doublezero\ accretionRateMass\argin</arguments>
+     !@     <description>Return the scaling of radiative efficiency of the ADAF component in a switched accretion disk.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                   switchedDestructor
      procedure :: efficiencyRadiative            => switchedEfficiencyRadiative
