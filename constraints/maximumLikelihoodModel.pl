@@ -192,12 +192,13 @@ exit
     if ( $arguments{'runModel'} eq "no" );
 
 # Run the Galacticus model.
+my $executable = exists($config->{'likelihood'}->{'executable'}) ? $config->{'likelihood'}->{'executable'} : "Galacticus.exe";
 system("make Galacticus.exe")
-    unless ( -e "Galacticus.exe" );
+    unless ( -e "Galacticus.exe" || $executable ne "Galacticus.exe" );
 die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
     unless ( $? == 0 );
 my $glcCommand;
-$glcCommand .= "time ./Galacticus.exe ".$maximumLikelihoodDirectory."/parameters.xml";
+$glcCommand .= "time ./".$executable." ".$maximumLikelihoodDirectory."/parameters.xml";
 my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
 &System::Redirect::tofile($glcCommand,$logFile);
 die("maximumLikelihoodModel.pl: Galacticus model failed")
