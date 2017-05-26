@@ -77,11 +77,12 @@ module Hot_Halo_Mass_Distributions
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode                    ), intent(inout)  :: thisNode
+    type            (treeNode                    ), intent(inout)           :: thisNode
     integer                                       , intent(in   )           :: componentType, massType, weightBy, weightIndex
     double precision                              , intent(in   )           :: radius
     logical                                       , intent(in   ), optional :: haloLoaded
-    class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
+    class           (hotHaloMassDistributionClass)               , pointer  :: hotHaloMassDistribution_
+    class           (nodeComponentHotHalo        )               , pointer  :: hotHalo
     !GCC$ attributes unused :: haloLoaded, weightIndex
 
     ! Return zero mass if the requested mass type or component is not matched.
@@ -90,8 +91,13 @@ module Hot_Halo_Mass_Distributions
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
     if (.not.(weightBy      == weightByMass                                                                                )) return
     ! Return the enclosed mass.
-    hotHalo => hotHaloMassDistribution()
-    Hot_Halo_Mass_Distribution_Enclosed_Mass_Task=max(hotHalo%enclosedMass(thisNode,radius),0.0d0)
+    if (radius >= radiusLarge) then
+       hotHalo                                       => thisNode%hotHalo()
+       Hot_Halo_Mass_Distribution_Enclosed_Mass_Task =  hotHalo%mass()
+    else
+       hotHaloMassDistribution_                      => hotHaloMassDistribution()
+       Hot_Halo_Mass_Distribution_Enclosed_Mass_Task =  max(hotHaloMassDistribution_%enclosedMass(thisNode,radius),0.0d0)
+    end if
     return
   end function Hot_Halo_Mass_Distribution_Enclosed_Mass_Task
 
@@ -103,7 +109,7 @@ module Hot_Halo_Mass_Distributions
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout)  :: thisNode
+    type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
     double precision          , intent(in   )           :: radius
     logical                   , intent(in   ), optional :: haloLoaded
@@ -129,7 +135,7 @@ module Hot_Halo_Mass_Distributions
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode                    ), intent(inout)  :: thisNode
+    type            (treeNode                    ), intent(inout)           :: thisNode
     integer                                       , intent(in   )           :: componentType   , massType
     double precision                              , intent(in   )           :: radius
     logical                                       , intent(in   ), optional :: haloLoaded

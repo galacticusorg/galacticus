@@ -59,6 +59,11 @@ contains
     if (.not.(weightBy      == weightByMass                                                                                )) return
     ! Get the hot halo component.
     thisHotHalo => thisNode   %hotHalo    ()
+    ! Check for total mass request.
+    if (radius >= radiusLarge) then
+       Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=thisHotHalo%massCold()
+       return
+    end if
     ! Get the outer radius.
     radiusOuter =  thisHotHalo%outerRadius()
     if (radiusOuter <= 0.0d0) return
