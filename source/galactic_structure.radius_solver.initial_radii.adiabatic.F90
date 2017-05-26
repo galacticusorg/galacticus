@@ -50,7 +50,8 @@ module Galactic_Structure_Initial_Radii_Adiabatic
        &                                   radiusInitialMeanSelfDerivative                 , radiusShared                                    , &
        &                                   virialRadius
   type            (treeNode), pointer   :: activeNode
-  !$omp threadprivate(radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial,activeNode)
+  logical                               :: massesComputed                 =.false.
+  !$omp threadprivate(radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial,activeNode,massesComputed)
   
 contains
 
@@ -157,47 +158,51 @@ contains
        baryonicFinalTermDerivative=rotationCurveSquaredGradient*Adiabatic_Solver_Mean_Orbital_Radius_Derivative(radiusFinal)*radiusFinalMean*radiusFinal/gravitationalConstantGalacticus
     end if
     ! Compute the initial baryonic contribution from this halo, and any satellites.
-    baryonicMassTotal     =  0.0d0
-    baryonicMassSelfTotal =  0.0d0
-    currentNode           => node
-    nodeHost              => node
-    do while (associated(currentNode))
-       componentEnclosedMass => Component_Enclosed_Mass
-       baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
-       !# <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
-       !#  <exclude>Dark_Matter_Profile_Enclosed_Mass_Task</exclude>
-       !#  <functionArgs>currentNode,virialRadius,componentType,massType,weightBy,weightIndex,haloLoaded</functionArgs>
-       !#  <onReturn>baryonicMassTotal=baryonicMassTotal+componentMass</onReturn>
-       include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.inc'
-       !# </include>
-       if (associated(currentNode,nodeHost)) then
-          baryonicMassSelfTotal=baryonicMassTotal
-          do while (associated(currentNode%firstSatellite))
-             currentNode => currentNode%firstSatellite
-          end do
-          if (associated(currentNode,nodeHost)) currentNode => null()
-       else
-          if (associated(currentNode%sibling)) then
-             currentNode => currentNode%sibling
+    if (.not.massesComputed) then
+       baryonicMassTotal     =  0.0d0
+       baryonicMassSelfTotal =  0.0d0
+       currentNode           => node
+       nodeHost              => node
+       do while (associated(currentNode))
+          componentEnclosedMass => Component_Enclosed_Mass
+          baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
+          !# <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
+          !#  <exclude>Dark_Matter_Profile_Enclosed_Mass_Task</exclude>
+          !#  <functionArgs>currentNode,radiusLarge,componentType,massType,weightBy,weightIndex,haloLoaded</functionArgs>
+          !#  <onReturn>baryonicMassTotal=baryonicMassTotal+componentMass</onReturn>
+          include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.inc'
+          !# </include>
+          if (associated(currentNode,nodeHost)) then
+             baryonicMassSelfTotal=baryonicMassTotal
              do while (associated(currentNode%firstSatellite))
                 currentNode => currentNode%firstSatellite
              end do
+             if (associated(currentNode,nodeHost)) currentNode => null()
           else
-             currentNode => currentNode%parent
-             if (associated(currentNode,node)) currentNode => null()
+             if (associated(currentNode%sibling)) then
+                currentNode => currentNode%sibling
+                do while (associated(currentNode%firstSatellite))
+                   currentNode => currentNode%firstSatellite
+                end do
+             else
+                currentNode => currentNode%parent
+                if (associated(currentNode,node)) currentNode => null()
+             end if
           end if
-       end if
-    end do
-    ! Limit masses to physical values.
-    baryonicMassSelfTotal=max(baryonicMassSelfTotal,0.0d0)
-    baryonicMassTotal    =max(baryonicMassTotal    ,0.0d0)
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    ! Compute the dark matter fraction.
-    basic => node%basic()
-    darkMatterFraction =min((cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()+(baryonicMassTotal-baryonicMassSelfTotal)/basic%mass(),1.0d0)
-    ! Compute the initial mass fraction.
-    initialMassFraction=min((cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()+ baryonicMassTotal                       /basic%mass(),1.0d0)
+       end do
+       ! Limit masses to physical values.
+       baryonicMassSelfTotal=max(baryonicMassSelfTotal,0.0d0)
+       baryonicMassTotal    =max(baryonicMassTotal    ,0.0d0)
+       ! Get the default cosmology.
+       cosmologyParameters_ => cosmologyParameters()
+       ! Compute the dark matter fraction.
+       basic => node%basic()
+       darkMatterFraction =min((cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()+(baryonicMassTotal-baryonicMassSelfTotal)/basic%mass(),1.0d0)
+       ! Compute the initial mass fraction.
+       initialMassFraction=min((cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()+ baryonicMassTotal                       /basic%mass(),1.0d0)
+       ! Record that masses (and mass fractions) have been computed.
+       massesComputed=.true.
+    end if
     ! Store the current node.
     activeNode => node
     return
@@ -230,7 +235,7 @@ contains
        end do
     else
        ! Get the virial radius of the node.
-       darkMatterHaloScale_ => darkMatterHaloScale              (        )
+       darkMatterHaloScale_ => darkMatterHaloScale              (    )
        virialRadius         =  darkMatterHaloScale_%virialRadius(node)
        ! Return radius unchanged if larger than the virial radius.
        if (radius >= virialRadius) then
@@ -316,6 +321,8 @@ contains
        call finder%rootFunction(Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver)
        call finder%tolerance   (toleranceAbsolute,toleranceRelative                          )
     end if
+    ! Reset stored solutions if the node has changed.
+    if (node%uniqueID() /= uniqueIDPrevious) call Galactic_Structure_Initial_Radii_Adiabatic_Reset(node)
     ! Compute the various factors needed by this calculation.
     call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(node,radius,computeGradientFactors=.true.)
     ! Return unit derivative if radius is larger than the virial radius.
@@ -438,7 +445,7 @@ contains
     class is (nodeComponentDarkMatterProfile)
        Component_Enclosed_Mass=0.0d0
     class default
-       Component_Enclosed_Mass=component%enclosedMass(virialRadius,componentType ,massType,weightBy,weightIndex,haloLoaded)
+       Component_Enclosed_Mass=component%enclosedMass(radiusLarge,componentType,massType,weightBy,weightIndex,haloLoaded)
     end select
     return
   end function Component_Enclosed_Mass
@@ -483,6 +490,7 @@ contains
     radiusPreviousIndex       = 0
     radiusPreviousIndexMaximum= 0
     radiusPrevious            =-1.0d0
+    massesComputed            =.false.
     return
   end subroutine Galactic_Structure_Initial_Radii_Adiabatic_Reset
 
