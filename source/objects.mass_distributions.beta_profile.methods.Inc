@@ -211,7 +211,7 @@ double precision function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere(self
           &                     [2.5d0                ], &
           &                     -fractionalRadius**2     &
           &                    )
-end if
+  end if
   return
 end function Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere
 
@@ -312,24 +312,42 @@ end function Mass_Distribution_Beta_Profile_Potential
 double precision function Mass_Distribution_Beta_Profile_Density_Radial_Moment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
   !% Computes radial moments of the density in a $\beta$-profile mass distribution.
   use Hypergeometric_Functions
+  use Numerical_Comparison
   implicit none
   class           (massDistributionBetaProfile), intent(in   )           :: self
   double precision                             , intent(in   )           :: moment
-  double precision                             , intent(in   ), optional :: radiusMinimum, radiusMaximum
+  double precision                             , intent(in   ), optional :: radiusMinimum          , radiusMaximum
   logical                                      , intent(  out), optional :: isInfinite
   double precision                                                       :: fractionalRadiusMinimum, fractionalRadiusMaximum
-  
+  integer                                                                :: specialCaseMoment
+
+  ! Determine if special case solutions can be used.
+  specialCaseMoment=0
+  if (self%betaIsTwoThirds) then
+     if      (Values_Agree(moment,2.0d0,absTol=1.0d-6)) then
+        specialCaseMoment=2
+     else if (Values_Agree(moment,3.0d0,absTol=1.0d-6)) then
+        specialCaseMoment=3
+     end if
+  end if
   if (present(isInfinite)) isInfinite=.false.
   if (present(radiusMaximum)) then
      fractionalRadiusMaximum=radiusMaximum/self%coreRadius
-     Mass_Distribution_Beta_Profile_Density_Radial_Moment=                   &
-          & +fractionalRadiusMaximum**(moment+1.0d0)                         &
-          & *Hypergeometric_2F1     (                                        &
-          &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &
-          &                          [(moment+3.0d0)/2.0d0                ], &
-          &                          -fractionalRadiusMaximum**2             &
-          &                         )                                        &
-          & /                         (moment+1.0d0)
+     if (specialCaseMoment /= 0) then
+        ! Special case for 2ⁿᵈ and 3ʳᵈ moments of a β=2/3 distribution.
+        Mass_Distribution_Beta_Profile_Density_Radial_Moment=                    &
+             & +radialMomentTwoThirds(specialCaseMoment,fractionalRadiusMaximum)
+     else
+        ! General solution.
+        Mass_Distribution_Beta_Profile_Density_Radial_Moment=                   &
+             & +fractionalRadiusMaximum**(moment+1.0d0)                         &
+             & *Hypergeometric_2F1     (                                        &
+             &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &
+             &                          [(moment+3.0d0)/2.0d0                ], &
+             &                          -fractionalRadiusMaximum**2             &
+             &                         )                                        &
+             & /                         (moment+1.0d0)
+     end if
   else
      Mass_Distribution_Beta_Profile_Density_Radial_Moment=0.0d0
   end if
@@ -338,19 +356,70 @@ double precision function Mass_Distribution_Beta_Profile_Density_Radial_Moment(s
   else
      fractionalRadiusMinimum=0.0d0
   end if
-  Mass_Distribution_Beta_Profile_Density_Radial_Moment=                   &
-       & +Mass_Distribution_Beta_Profile_Density_Radial_Moment            &
-       & -fractionalRadiusMinimum**(moment+1.0d0)                         &
-       & *Hypergeometric_2F1     (                                        &
-       &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &
-       &                          [(moment+3.0d0)/2.0d0                ], &
-       &                          -fractionalRadiusMinimum**2             &
-       &                         )                                        &
-       & /                         (moment+1.0d0)
+  if (specialCaseMoment /= 0) then
+     ! Special case for 2ⁿᵈ and 3ʳᵈ moments of a β=2/3 distribution.
+     Mass_Distribution_Beta_Profile_Density_Radial_Moment=                    &
+          & +Mass_Distribution_Beta_Profile_Density_Radial_Moment             &
+          & -radialMomentTwoThirds(specialCaseMoment,fractionalRadiusMinimum)
+  else
+     Mass_Distribution_Beta_Profile_Density_Radial_Moment=                   &
+          & +Mass_Distribution_Beta_Profile_Density_Radial_Moment            &
+          & -fractionalRadiusMinimum**(moment+1.0d0)                         &
+          & *Hypergeometric_2F1     (                                        &
+          &                          [(moment+1.0d0)/2.0d0,1.5d0*self%beta], &
+          &                          [(moment+3.0d0)/2.0d0                ], &
+          &                          -fractionalRadiusMinimum**2             &
+          &                         )                                        &
+          & /                         (moment+1.0d0)
+  end if
   ! Convert to dimensionful units.
   Mass_Distribution_Beta_Profile_Density_Radial_Moment         &
        & =Mass_Distribution_Beta_Profile_Density_Radial_Moment &
        & *self%densityNormalization                            &
        & *self%coreRadius          **moment
   return
+
+contains
+
+  double precision function radialMomentTwoThirds(moment,x)
+    !% Special case of radial moment for $\beta=2/3$ $\beta$-profile.
+    use Galacticus_Error
+    implicit none
+    integer         , intent(in   ) :: moment
+    double precision, intent(in   ) :: x
+    double precision, parameter     :: xSmall=1.0d-6
+
+    if      (moment == 2) then
+       ! 2ⁿᵈ moment.
+       if (x < xSmall) then
+          ! Series solution for small x.
+          radialMomentTwoThirds=x**3*(1.0d0/3.0d0-x**2/5.0d0)
+       else
+          ! General solution.
+          radialMomentTwoThirds=+     x &
+               &                -atan(x)
+       end if
+    else if (moment == 3) then
+       ! 3ʳᵈ moment.
+       if (x < xSmall) then
+          ! Series solution for small x.
+          radialMomentTwoThirds=x**4*(1.0d0/4.0d0-x**2/6.0d0)
+       else
+          ! General solution.
+          radialMomentTwoThirds=+0.5d0        &
+               &                *(            &
+               &                  +x**2       &
+               &                  -log(       &
+               &                       +1.0d0 &
+               &                       +x**2  &
+               &                      )       &
+               &                 )
+       end if
+    else
+       radialMomentTwoThirds=0.0d0
+       call Galacticus_Error_Report('radialMomentTwoThirds','unsupported moment')
+    end if
+    return
+  end function radialMomentTwoThirds
+
 end function Mass_Distribution_Beta_Profile_Density_Radial_Moment
