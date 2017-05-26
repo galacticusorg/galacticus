@@ -167,20 +167,27 @@ sub Tree_Node_Map_Double0 {
     if (reduction /= reduction{ucfirst($reduction)}) call Galacticus_Error_Report('treeNodeMapDouble0','reduction mismatch')
     treeNodeMapDouble0={$reductionIdentity->{$reduction}}
 CODE
-	    # Iterate over classes.
-	    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
-		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+            # Iterate over classes.
+            foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+		# If any members of this class override the base class for this method then evaluate them.
+		if ( 
+		    grep {$_->{'method'} eq $code::boundFunction->{'name'}}
+		    map {@{$_->{'bindings'}->{'binding'}}}
+		    @{$code::class->{'members'}} 
+		    ) {	
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
    do i=1,size(self%component{ucfirst($class->{'name'})})
       treeNodeMapDouble0=treeNodeMapDouble0{$reductionOperator->{$reduction}}mapFunction(self%component{ucfirst($class->{'name'})}(i))
    end do
 end if
 CODE
-	    }
-	    # First optimization is completed.
-	    $code::firstOptimization = 0;
+		}
+            }
+            # First optimization is completed.
+            $code::firstOptimization = 0;
 	}
-    }
+    }    
     # Generate the generic, unoptimized function.
     if ( $hasOptimizations ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
