@@ -52,7 +52,7 @@
      double precision                               :: enthlpyAngMPrdctRadiusPrevious         , enthlpyAngMPrdctSpinPrevious         , &
           &                                            enthlpyAngMPrdctStored
      !! Angular momentum product.
-     double precision                               :: angularMomentumadiusPrevious          , angularMomentumSpinPrevious          , &
+     double precision                               :: angularMomentumRadiusPrevious         , angularMomentumSpinPrevious          , &
           &                                            angularMomentumStored
      !! Radial gamma factor.
      double precision                               :: gammaRadialRadiusPrevious              , gammaRadialSpinPrevious              , &
