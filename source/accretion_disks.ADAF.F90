@@ -52,7 +52,7 @@
      double precision                               :: enthlpyAngMPrdctRadiusPrevious         , enthlpyAngMPrdctSpinPrevious         , &
           &                                            enthlpyAngMPrdctStored
      !! Angular momentum product.
-     double precision                               :: angularMomentumRadiusPrevious          , angularMomentumSpinPrevious          , &
+     double precision                               :: angularMomentumadiusPrevious          , angularMomentumSpinPrevious          , &
           &                                            angularMomentumStored
      !! Radial gamma factor.
      double precision                               :: gammaRadialRadiusPrevious              , gammaRadialSpinPrevious              , &
@@ -114,7 +114,7 @@
      !@     <description>Return the product of dimensionless enthalpy and angular momentum of the ADAF at a given radius.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>enthalpyAngularMomentum</method>
+     !@     <method>angularMomentum</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ spinBlackHole\argin, \doublezero\ radius\argin</arguments>
      !@     <description>Return the dimensionless angular momentum of the ADAF at a given radius.</description>
