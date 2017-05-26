@@ -39,7 +39,7 @@ sub COSMOS2012 {
     my $massHaloHighData = $redshiftGroup->dataset('massHaloHigh'                   )->get();
     (my $redshiftMinimum, my $redshiftMaximum) = $redshiftGroup->attrGet('redshiftMinimum','redshiftMaximum');
     
-    # Find a spline fit to the observed data, and compute the uncertainty in logairhtm of halo mass.
+    # Find a spline fit to the observed data, and compute the uncertainty in logarithm of halo mass.
     my $massStellarDataLogarithmic   = log($massStellarData );
     my $massHaloMeanDataLogarithmic  = log($massHaloMeanData);
     my $massHaloLowDataLogarithmic   = log($massHaloLowData );
