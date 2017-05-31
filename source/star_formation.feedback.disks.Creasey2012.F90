@@ -72,7 +72,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>13.0d0</defaultValue>
     !#   <defaultSource>\citep{creasey_how_2012}</defaultSource>
-    !#   <description>The parameter $\beta_0 appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
+    !#   <description>The parameter $\beta_0$ appearing in the \cite{creasey_how_2012} model for supernovae feedback.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
