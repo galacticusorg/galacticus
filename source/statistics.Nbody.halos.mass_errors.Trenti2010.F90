@@ -87,7 +87,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>correlationRedshiftExponent</variable>
-    !#   <description>Variable $\beta in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
+    !#   <description>Variable $\beta$ in the model for the correlation between halo mass errors: $C_{12} = C_0 [M_2/M_1]^\alpha [(1+z_2)/(1+z_1)]^\beta$.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
