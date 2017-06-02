@@ -108,13 +108,14 @@
   <coolingMeanAngularMomentumFrom value="hotGas"/>
   <coolingRotationVelocityFrom value="hotGas"/>
   <coolingRadiusMethod value="simple"/>
-  <coolingRateMethod value="White-Frenk1991"/>
+  <coolingRateMethod value="whiteFrenk1991">
+    <velocityCutOff value="10000"/>
+  </coolingRateMethod>
   <coolingTimeMethod value="simple"/>
   <coolingTimeAvailableAgeFactor value="0"/>
   <coolingTimeAvailableMethod value="White-Frenk1991"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <starveSatellites value="false"/>
-  <zeroCoolingRateAboveVelocity value="10000"/>
 
   <!-- Hot halo ram pressure stripping options -->
   <hotHaloRamPressureStrippingMethod value="Font2008"/>

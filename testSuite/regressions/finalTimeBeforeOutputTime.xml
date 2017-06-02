@@ -37,12 +37,10 @@
   <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <conditionalMassFunctionBehrooziGamma value="1.16052646522"/>
-  <zeroCoolingRateAboveVelocity value="10000"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorAlpha value="-0.3"/>
   <barInstabilityMethod value="null"/>
   <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
-  <coolingRateSimpleScalingCutOffMass value="5.0e12"/>
   <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
   <mergerTreeReadPresetOrbits value="false"/>
   <transferFunctionMethod value="eisensteinHu1999">
@@ -52,7 +50,6 @@
   <modifiedPressSchechterG0 value="0.57"/>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <starFormationTimescaleDisksMethod value="haloScaling"/>
-  <coolingRateSimpleScalingTimescaleExponent value="3.0"/>
   <odeToleranceAbsolute value="0.01"/>
   <conditionalMassFunctionBehrooziBSatellite value="19.5579686429"/>
   <mergerTreeReadPresetMergerNodes value="false"/>
@@ -103,8 +100,11 @@
     <exponentRedshift value="0.0"/>
   </starFormationFeedbackDisksMethod>
   <haloMassFunctionSamplingStellarMassFunctionErrorMstar value="5.5e10"/>
-  <coolingRateMethod value="simpleScaling"/>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
+  <coolingRateMethod value="simpleScaling">
+    <exponentRedshift value="3.0"/>
+    <massCutOff value="5.0e12"/>
+    <timescale value="1.0"/>
+  </coolingRateMethod>
   <treeNodeMethodSpin value="null"/>
   <conditionalMassFunctionBehrooziBeta value="0.403618413165"/>
   <linearGrowthMethod value="simple"/>
@@ -127,7 +127,6 @@
   <haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth value="0.097"/>
   <starveSatellites value="true"/>
   <modifiedPressSchechterGamma1 value="0.38"/>
-  <coolingRateSimpleScalingTimescale value="1.0"/>
   <coolingRadiusMethod value="isothermal"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>

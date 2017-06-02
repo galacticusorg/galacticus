@@ -16,72 +16,69 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
-!% divided by a fixed timescale.
+  !% Implementation of a simple cooling rate class.
+  
+  !# <coolingRate name="coolingRateSimple">
+  !#  <description>A cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.</description>
+  !# </coolingRate>
+  type, extends(coolingRateClass) :: coolingRateSimple
+     !% Implementation of cooling rate class in which the cooling rate equals the mass of hot gas divided by a fixed timescale.
+     private
+     double precision :: timeScale
+   contains
+     procedure :: rate => simpleRate
+  end type coolingRateSimple
 
-module Cooling_Rates_Simple
-  !% Implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
-  !% divided by a fixed timescale.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Cooling_Rate_Simple_Initialize
-
-  ! The fixed timescale for cooling.
-  double precision :: coolingRateSimpleTimescale
+  interface coolingRateSimple
+     !% Constructors for the simple cooling rate class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface coolingRateSimple
 
 contains
 
-  !# <coolingRateMethod>
-  !#  <unitName>Cooling_Rate_Simple_Initialize</unitName>
-  !# </coolingRateMethod>
-  subroutine Cooling_Rate_Simple_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``simple'' cooling rate module.
-    use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Error
+  function simpleConstructorParameters(parameters) result(self)
+    !% Constructor for the simple cooling rate class which builds the object from a parameter set.
+    use Input_Parameters2
     implicit none
-    type     (varying_string     ), intent(in   )          :: coolingRateMethod
-    procedure(Cooling_Rate_Simple), intent(inout), pointer :: Cooling_Rate_Get
+    type            (coolingRateSimple)                :: self
+    type            (inputParameters  ), intent(inout) :: parameters
+    double precision                                   :: timeScale
+    !# <inputParameterList label="allowedParameterNames" />
 
-    if (coolingRateMethod == 'simple') then
-       Cooling_Rate_Get => Cooling_Rate_Simple
-
-       ! Get cooling rate parameters.
-       !@ <inputParameter>
-       !@   <name>coolingRateSimpleTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale (in Gyr) for cooling in the simple cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleTimescale',coolingRateSimpleTimescale,defaultValue=1.0d0)
-       ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massIsGettable())                                                                                &
-            & call Galacticus_Error_Report(                                                                                              &
-            &                              'Cooling_Rate_Simple_Initialize'                                                             ,&
-            &                              'Hot halo component must have gettable mass.'//                                               &
-            &                              Galacticus_Component_List(                                                                    &
-            &                                                        'hotHalo'                                                         , &
-            &                                                        defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
-            &                                                        )                                                                   &
-            &                             )
-    end if
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>timeScale</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The timescale (in Gyr) for cooling in the simple cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=coolingRateSimple(timeScale)
     return
-  end subroutine Cooling_Rate_Simple_Initialize
+  end function simpleConstructorParameters
 
-  double precision function Cooling_Rate_Simple(thisNode)
-    !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
+  function simpleConstructorInternal(timeScale) result(self)
+    !% Internal constructor for the simple cooling rate class.
     implicit none
-    type (treeNode            ), intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer       :: thisHotHaloComponent
+    type            (coolingRateSimple)                :: self
+    double precision                   , intent(in   ) :: timeScale
 
-    thisHotHaloComponent => thisNode%hotHalo()
-    Cooling_Rate_Simple=thisHotHaloComponent%mass()/coolingRateSimpleTimescale
+    !# <constructorAssign variables="timeScale"/>
     return
-  end function Cooling_Rate_Simple
+  end function simpleConstructorInternal
 
-end module Cooling_Rates_Simple
+  double precision function simpleRate(self,node)
+    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always simple.
+    implicit none
+    class(coolingRateSimple   ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    class(nodeComponentHotHalo), pointer       :: hotHalo
+
+    hotHalo    =>  node   %hotHalo  ()
+    simpleRate =  +hotHalo%mass     () &
+         &        /self   %timeScale
+    return
+  end function simpleRate
+

@@ -401,18 +401,18 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <coolingRateMethod>
-      <value>White-Frenk1991</value>
-      <value>Cole2000
-      <coolingTimeAvailableMethod>
-	<value>White-Frenk1991</value>
-	<value>haloFormation</value>
-      </coolingTimeAvailableMethod>
-      <treeNodeMethodFormationTime value="Cole2000"/>
-      <hotHaloCoolingFromNode value="formationNode"/>
-      <hotHaloOutputCooling>
-	<value>false</value>
-	<value>true</value>
-      </hotHaloOutputCooling>
+      <value>whiteFrenk1991</value>
+      <value>cole2000
+        <coolingTimeAvailableMethod>
+	  <value>White-Frenk1991</value>
+	  <value>haloFormation</value>
+	</coolingTimeAvailableMethod>
+	<treeNodeMethodFormationTime value="Cole2000"/>
+	<hotHaloCoolingFromNode value="formationNode"/>
+	<hotHaloOutputCooling>
+	  <value>false</value>
+	  <value>true</value>
+	</hotHaloOutputCooling>
       </value>
     </coolingRateMethod>
   </parameters>

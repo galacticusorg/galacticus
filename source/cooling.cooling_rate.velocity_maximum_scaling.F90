@@ -16,222 +16,233 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
-!% divided by a timescale which is a function of halo maximum velocity and redshift.
+  !% Implementation of a cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
 
-module Cooling_Rates_Velocity_Maximum_Scaling
-  !% Implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
-  !% divided by a timescale which is a function of halo maximum velocity and redshift.
-  use Galacticus_Nodes
   use Math_Exponentiation
-  implicit none
-  private
-  public :: Cooling_Rate_Velocity_Maximum_Scaling_Initialize
+  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
 
-  ! Parameters controlling the cooling rate.
-  double precision                    :: coolingRateVelocityMaximumScalingTimescale       , coolingRateVelocityMaximumScalingTimescaleExponent             , &
-       &                                 coolingRateVelocityMaximumScalingCutOffWidth     , coolingRateVelocityMaximumScalingCutOffVelocity                , &
-       &                                 coolingRateVelocityMaximumScalingCutOffExponent  , coolingRateVelocityMaximumScalingVelocityExponent              , &
-       &                                 coolingRateVelocityMaximumScalingTimescaleMinimum, coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent, &
-       &                                 normalization
-  ! Fast exponentiation tables for rapid computation of the cooling rate.
-  type            (fastExponentiator) :: velocityExponentiator                            , expansionFactorExponentiator                                   , &
-       &                                 expansionFactorCutOffExponentiator
-  
+  !# <coolingRate name="coolingRateVelocityMaximumScaling" defaultThreadPrivate="yes">
+  !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
+  !# </coolingRate>
+  type, extends(coolingRateClass) :: coolingRateVelocityMaximumScaling
+     !% Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
+     private
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     ! Parameters controlling the cooling rate.
+     double precision                                   :: timescale                         , exponentRedshift              , &
+          &                                                widthCutOff                       , velocityCutOff                , &
+          &                                                exponentCutOff                    , exponentVelocity              , &
+          &                                                timescaleMinimum                  , velocityCutOffExponentRedshift, &
+          &                                                normalization
+     ! Fast exponentiation tables for rapid computation of the cooling rate.
+     type            (fastExponentiator      )          :: exponentiatorVelocity             , exponentiatorExpansionFactor  , &
+          &                                                exponentiatorExpansionFactorCutOff
+     ! Stored values for rapid re-use.
+     double precision                                   :: expansionFactorPrevious           , velocityMaximumPrevious       , &
+          &                                                coolingRateStored
+   contains
+     final     ::         velocityMaximumScalingDestructor
+     procedure :: rate => velocityMaximumScalingRate
+  end type coolingRateVelocityMaximumScaling
+
+  interface coolingRateVelocityMaximumScaling
+     !% Constructors for the velocity maximum scaling cooling rate class.
+     module procedure velocityMaximumScalingConstructorParameters
+     module procedure velocityMaximumScalingConstructorInternal
+  end interface coolingRateVelocityMaximumScaling
+
 contains
 
-  !# <coolingRateMethod>
-  !#  <unitName>Cooling_Rate_Velocity_Maximum_Scaling_Initialize</unitName>
-  !# </coolingRateMethod>
-  subroutine Cooling_Rate_Velocity_Maximum_Scaling_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``simple scaling'' cooling rate module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function velocityMaximumScalingConstructorParameters(parameters) result(self)
+    !% Constructor for the velocity maximum scaling cooling rate class which builds the object from a parameter set.
+    use Input_Parameters2
+    implicit none
+    type            (coolingRateVelocityMaximumScaling)                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    double precision                                                   :: timeScale          , timescaleMinimum              , &
+         &                                                                exponentRedshift   , exponentVelocity              , &
+         &                                                                velocityCutOff     , velocityCutOffExponentRedshift, &
+         &                                                                widthCutOff        , exponentCutOff
+    !# <inputParameterList label="allowedParameterNames" />
+
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>timescale</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the velocity maximum scaling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timescaleMinimum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.001d0</defaultValue>
+    !#   <description>The minimum timescale (in Gyr) for cooling the velocity maximum scaling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentRedshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1.5d0</defaultValue>
+    !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentVelocity</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The exponent of velocity in the cooling timescale for low mass halos in the velocity maximum scaling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>200.0d0</defaultValue>
+    !#   <description>The halo maximum velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityCutOffExponentRedshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The exponent of $(1+z)$ in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>widthCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The width appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The exponent appearing in the exponential term for cooling timescale in the velocity maximum scaling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_)
+    return
+  end function velocityMaximumScalingConstructorParameters
+
+  function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
+    !% Internal constructor for the velocity maximum scaling cooling rate class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type            (varying_string                       ), intent(in   )          :: coolingRateMethod
-    procedure       (Cooling_Rate_Velocity_Maximum_Scaling), intent(inout), pointer :: Cooling_Rate_Get
-    double precision                                       , parameter              :: velocityNormalization=200.0d0
+    type            (coolingRateVelocityMaximumScaling)                        :: self
+    double precision                                   , intent(in   )         :: timeScale                    , timescaleMinimum              , &
+         &                                                                        exponentRedshift             , exponentVelocity              , &
+         &                                                                        velocityCutOff               , velocityCutOffExponentRedshift, &
+         &                                                                        widthCutOff                  , exponentCutOff
+    class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                   , parameter             :: velocityNormalization=200.0d0
 
-    if (coolingRateMethod == 'velocityMaximumScaling') then
-       Cooling_Rate_Get => Cooling_Rate_Velocity_Maximum_Scaling
-
-       ! Get cooling rate parameters.
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingTimescale',coolingRateVelocityMaximumScalingTimescale,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingTimescaleMinimum</name>
-       !@   <defaultValue>0.001 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum timescale (in Gyr) for cooling the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingTimescaleMinimum',coolingRateVelocityMaximumScalingTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingTimescaleExponent</name>
-       !@   <defaultValue>$-1.5$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingTimescaleExponent',coolingRateVelocityMaximumScalingTimescaleExponent,defaultValue=-1.5d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingVelocityExponent</name>
-       !@   <defaultValue>$0.0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of velocity in the cooling timescale for low mass halos in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingVelocityExponent',coolingRateVelocityMaximumScalingVelocityExponent,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingCutOffVelocity</name>
-       !@   <defaultValue>$200$ km/s</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The halo maximum velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingCutOffVelocity',coolingRateVelocityMaximumScalingCutOffVelocity,defaultValue=200.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of $(1+z)$ in the velocity scale appearing in the exponential term for cooling timescale in the velocity maximum scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent',coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingCutOffWidth</name>
-       !@   <defaultValue>$1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The width appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingCutOffWidth',coolingRateVelocityMaximumScalingCutOffWidth,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateVelocityMaximumScalingCutOffExponent</name>
-       !@   <defaultValue>$1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateVelocityMaximumScalingCutOffExponent',coolingRateVelocityMaximumScalingCutOffExponent,defaultValue=1.0d0)
-
-       ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
-            & call Galacticus_Error_Report(                                                                                               &
-            &                              'Cooling_Rate_Velocity_Maximum_Scaling_Initialize'                                           , &
-            &                              'Hot halo component must have gettable mass.'//                                                &
-            &                              Galacticus_Component_List(                                                                     &
-            &                                                        'hotHalo'                                                          , &
-            &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
-            &                                                       )                                                                     &
-            &                             )
-       if     (                                                                                                                           &
-            &  .not.(                                                                                                                     &
-            &         defaultBasicComponent%massIsGettable()                                                                              &
-            &        .and.                                                                                                                &
-            &         defaultBasicComponent%timeIsGettable()                                                                              &
-            &       )                                                                                                                     &
-            & ) call Galacticus_Error_Report(                                                                                             &
-            &                                'Cooling_Rate_Velocity_Maximum_Scaling_Initialize'                                         , &
-            &                                'Basic component must have gettable mass and time.'//                                        &
-            &                                Galacticus_Component_List(                                                                   &
-            &                                                          'basic'                                                          , &
-            &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
-            &                                                          .intersection.                                                     &
-            &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
-            &                                                         )                                                                   &
-            &                               )
-       ! Compute normalization.
-       normalization=1.0d0/coolingRateVelocityMaximumScalingTimescale/velocityNormalization**coolingRateVelocityMaximumScalingVelocityExponent
-       ! Initialize exponentiators.
-       velocityExponentiator             =fastExponentiator(1.0d+0,1.0d+3,coolingRateVelocityMaximumScalingVelocityExponent              ,1.0d+1,abortOutsideRange=.false.)
-       expansionFactorExponentiator      =fastExponentiator(1.0d-3,1.0d+0,coolingRateVelocityMaximumScalingTimescaleExponent             ,1.0d+3,abortOutsideRange=.false.)
-       expansionFactorCutOffExponentiator=fastExponentiator(1.0d-3,1.0d+0,coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent,1.0d+3,abortOutsideRange=.false.)
-    end if
+    !# <constructorAssign variables="timeScale, timescaleMinimum, exponentRedshift, exponentVelocity, velocityCutOff, velocityCutOffExponentRedshift, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
+    ! Check that the properties we need are gettable.
+    if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
+         & call Galacticus_Error_Report(                                                                                               &
+         &                              'velocityMaximumScalingConstructorParameters'                                                , &
+         &                              'Hot halo component must have gettable mass.'//                                                &
+         &                              Galacticus_Component_List(                                                                     &
+         &                                                        'hotHalo'                                                          , &
+         &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
+         &                                                       )                                                                     &
+         &                             )
+    if     (                                                                                                                           &
+         &  .not.(                                                                                                                     &
+         &         defaultBasicComponent%massIsGettable()                                                                              &
+         &        .and.                                                                                                                &
+         &         defaultBasicComponent%timeIsGettable()                                                                              &
+         &       )                                                                                                                     &
+         & ) call Galacticus_Error_Report(                                                                                             &
+         &                                'velocityMaximumScalingConstructorParameters'                                              , &
+         &                                'Basic component must have gettable mass and time.'//                                        &
+         &                                Galacticus_Component_List(                                                                   &
+         &                                                          'basic'                                                          , &
+         &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
+         &                                                          .intersection.                                                     &
+         &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
+         &                                                         )                                                                   &
+         &                               )
+    ! Compute normalization.
+    self%normalization=+1.0d0                                        &
+         &             /self%timescale                               &
+         &             /velocityNormalization**self%exponentVelocity
+    ! Initialize exponentiators.
+    self%exponentiatorVelocity             =fastExponentiator(1.0d+0,1.0d+3,self%exponentVelocity              ,1.0d+1,abortOutsideRange=.false.)
+    self%exponentiatorExpansionFactor      =fastExponentiator(1.0d-3,1.0d+0,self%exponentRedshift              ,1.0d+3,abortOutsideRange=.false.)
+    self%exponentiatorExpansionFactorCutOff=fastExponentiator(1.0d-3,1.0d+0,self%velocityCutOffExponentRedshift,1.0d+3,abortOutsideRange=.false.)
+    ! Initialize stored solutions.
+    self%expansionFactorPrevious=-1.0d0
+    self%velocityMaximumPrevious=-1.0d0
+    self%coolingRateStored      =-1.0d0
     return
-  end subroutine Cooling_Rate_Velocity_Maximum_Scaling_Initialize
+  end function velocityMaximumScalingConstructorInternal
 
-  double precision function Cooling_Rate_Velocity_Maximum_Scaling(node)
-    !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
-    use Cosmology_Functions
+  subroutine velocityMaximumScalingDestructor(self)
+    !% Destructor for the velocity maximum scaling cooling rate class.
+    implicit none
+    type(coolingRateVelocityMaximumScaling), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine velocityMaximumScalingDestructor
+
+  double precision function velocityMaximumScalingRate(self,node)
+    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode               ), intent(inout) :: node
-    double precision                         , parameter     :: expArgumentMaximum     =100.0d0
-    class           (nodeComponentBasic     ), pointer       :: basic
-    class           (nodeComponentHotHalo   ), pointer       :: hotHalo
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
-    double precision                         , save          :: expansionFactorPrevious=-1.0d0 , velocityMaximumPrevious=-1.0d0, &
-         &                                                      coolingRate
-    !$omp threadprivate(expansionFactorPrevious,velocityMaximumPrevious,coolingRate)
-    double precision                                         :: expFactor                      , expansionFactor               , &
-         &                                                      expArgument                    , velocityMaximum  
+    class           (coolingRateVelocityMaximumScaling), intent(inout) :: self
+    type            (treeNode                         ), intent(inout) :: node
+    double precision                                   , parameter     :: expArgumentMaximum=100.0d0
+    class           (nodeComponentBasic               ), pointer       :: basic
+    class           (nodeComponentHotHalo             ), pointer       :: hotHalo
+    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    double precision                                                   :: expFactor                 , expansionFactor, &
+         &                                                                expArgument               , velocityMaximum  
     
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions                         (            )
-    darkMatterProfile_  => darkMatterProfile                          (            )
-    basic               => node               %basic                  (            )
-    hotHalo             => node               %hotHalo                (            )
-    expansionFactor     =  cosmologyFunctions_%expansionFactor        (basic%time())
-    velocityMaximum     =  darkMatterProfile_ %circularVelocityMaximum(node        )
-    if (expansionFactor /= expansionFactorPrevious .or. velocityMaximum /= velocityMaximumPrevious) then
-       expArgument=log10(                                                                  &
-            &            +velocityMaximum                                                  &
-            &            /coolingRateVelocityMaximumScalingCutOffVelocity                  &
-            &            *expansionFactorCutOffExponentiator%exponentiate(expansionFactor) &
-            &           )                                                                  &
-            &      /coolingRateVelocityMaximumScalingCutOffWidth
+    ! Compute expansion factor and maximum velocity.
+    darkMatterProfile_  =>      darkMatterProfile                          (            )
+    basic               => node                    %basic                  (            )
+    hotHalo             => node                    %hotHalo                (            )
+    expansionFactor     =  self%cosmologyFunctions_%expansionFactor        (basic%time())
+    velocityMaximum     =       darkMatterProfile_ %circularVelocityMaximum(node        )
+    if (expansionFactor /= self%expansionFactorPrevious .or. velocityMaximum /= self%velocityMaximumPrevious) then
+       expArgument=log10(                                                                       &
+            &            +velocityMaximum                                                       &
+            &            /self%velocityCutOff                                                   &
+            &            *self%exponentiatorExpansionFactorCutOff%exponentiate(expansionFactor) &
+            &           )                                                                       &
+            &      /self%widthCutOff
        if (expArgument < expArgumentMaximum) then
-          expFactor=(1.0d0+exp(+expArgument))**(-coolingRateVelocityMaximumScalingCutOffExponent)
+          expFactor=(1.0d0+exp(+expArgument))**(-self%exponentCutOff)
        else
-          expFactor=       exp(+expArgument   *(-coolingRateVelocityMaximumScalingCutOffExponent))
+          expFactor=       exp(+expArgument   *(-self%exponentCutOff))
        end if
-       coolingRate=+normalization                                              &
-            &      *expansionFactorExponentiator%exponentiate(expansionFactor) &
-            &      *velocityExponentiator       %exponentiate(velocityMaximum) &            
-            &      *expFactor
-       coolingRate=min(                                                         &
-            &          coolingRate                                            , &
-            &          1.0d0/coolingRateVelocityMaximumScalingTimescaleMinimum  &
-            &         )
-       expansionFactorPrevious=expansionFactor
-       velocityMaximumPrevious=velocityMaximum
+       self%coolingRateStored=+self%normalization                                              &
+            &                 *self%exponentiatorExpansionFactor%exponentiate(expansionFactor) &
+            &                 *self%exponentiatorVelocity       %exponentiate(velocityMaximum) &            
+            &                 *expFactor
+       self%coolingRateStored=min(                                                        &
+            &                     self%coolingRateStored                                , &
+            &                     1.0d0/self%timescaleMinimum                             &
+            &                    )
+       self%expansionFactorPrevious=expansionFactor
+       self%velocityMaximumPrevious=velocityMaximum
     end if
-    Cooling_Rate_Velocity_Maximum_Scaling=hotHalo%mass()*coolingRate
+    velocityMaximumScalingRate=hotHalo%mass()*self%coolingRateStored
     return
-  end function Cooling_Rate_Velocity_Maximum_Scaling
-  
-end module Cooling_Rates_Velocity_Maximum_Scaling
+  end function velocityMaximumScalingRate
+

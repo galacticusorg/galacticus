@@ -80,15 +80,15 @@
   <reionizationSuppressionVelocity value="38.8165530377"/>
 
   <!-- Hot halo gas cooling model options -->
-  <coolingRateMethod value="simpleScaling"/>
+  <coolingRateMethod value="simpleScaling">
+    <exponentCutOff   value="0.646736423258"/>
+    <timescale        value="13.1613654864108"/>
+    <exponentRedshift value="-1.19351808068"/>
+    <widthCutOff      value="0.469296451798381"/>
+    <massCutOff       value="25175271578.01"/>
+  </coolingRateMethod>
   <coolingTimeMethod value="simple"/>
   <starveSatellites value="true"/>
-  <zeroCoolingRateAboveVelocity value="10000"/>
-  <coolingRateSimpleScalingCutOffExponent value="0.646736423258"/>
-  <coolingRateSimpleScalingTimescale value="13.1613654864108"/>
-  <coolingRateSimpleScalingTimescaleExponent value="-1.19351808068"/>
-  <coolingRateSimpleScalingCutOffWidth value="0.469296451798381"/>
-  <coolingRateSimpleScalingCutOffMass value="25175271578.01"/>
 
   <!-- Galactic structure solver options -->
   <galacticStructureRadiusSolverMethod value="fixed"/>

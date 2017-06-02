@@ -97,7 +97,6 @@
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-  <zeroCoolingRateAboveVelocity value="10000"/>
   <imfSalpeterRecycledInstantaneous value="0.39"/>
   <minorMergerGasMovesTo value="spheroid"/>
   <transferFunctionMethod value="eisensteinHu1999">
@@ -132,7 +131,9 @@
     <exponent value="2"/>
     <velocityCharacteristic value="200"/>
   </starFormationFeedbackDisksMethod>
-  <coolingRateMethod value="White-Frenk1991"/>
+  <coolingRateMethod value="whiteFrenk1991">
+    <velocityCutOff value="10000"/>
+  </coolingRateMethod>
   <treeNodeMethodSpin value="random"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>

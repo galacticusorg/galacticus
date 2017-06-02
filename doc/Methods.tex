@@ -763,56 +763,6 @@ Currently defined tree timing methods are:
  \item [{\normalfont \ttfamily Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
 \end{description}
 
-\subsubsection{Cooling Rate}
-
-Additional methods for the cooling rate from the hot halo can be added using the {\normalfont \ttfamily coolingRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily White-Frenk1991} method is described by a directive:
-\begin{verbatim}
- !# <coolingRateMethod>
- !#  <unitName>Cooling_Rate_White_Frenk_Initialize</unitName>
- !# </coolingRateMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Cooling\_Rate\_White\_Frenk\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: coolingRateMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Rate_Get
-    
-    if (coolingRateMethod == 'myMethod') Cooling_Rate_Get => My_Method_Get
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily coolingRateMethod} input parameter. The procedure pointer {\normalfont \ttfamily Cooling\_Rate\_Get} must be set to point to a function which returns the cooling rate from the hot halo. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The cooling rate function must have the form:
-\begin{verbatim}
- double precision function Cooling_Rate_Get(thisNode)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Cooling_Rate_Get
-\end{verbatim}
-The function must return the rate of mass drop-out from the hot halo (in units of $M_\odot$/Gyr) for {\normalfont \ttfamily thisNode}. 
-
-Currently defined cooling rate methods are:
-\begin{description}
- \item [\hyperlink{cooling.cooling_rate.White-Frenk.F90:cooling_rates_white_frenk:cooling_rate_white_frenk}{{\normalfont \ttfamily White-Frenk1991}}] Implements something similar to that proposed by \cite{white_galaxy_1991}. Namely, the cooling rate is set equal to
- \begin{equation}
-  \dot{M}_{\mathrm cool} = 4 \pi \rho(r_{\mathrm infal}) r_{\mathrm infall}^2 \dot{r}_{\mathrm infall}
- \end{equation}
- if the infall radius is within the outer radius of the hot halo and
- \begin{equation}
-  \dot{M}_{\mathrm cool} = {M_{\mathrm hot} \over \tau_{\mathrm dynamical,halo}}
- \end{equation}
- otherwise.
-\item [\hyperlink{cooling.cooling_rate.Cole2000.F90:cooling_rates_cole2000:cooling_rate_cole2000}{{\normalfont \ttfamily Cole2000}}] Implements the cooling rate algorithm from \cite{cole_hierarchical_2000}.
-\item [\hyperlink{cooling.cooling_rate.simple.F90:cooling_rates_simple:cooling_rate_simple}{{\normalfont \ttfamily simple}}] Implements a simple algorithm in which the cooling rate is determined from a fixed timescale.
-\item [\hyperlink{cooling.cooling_rate.simple_scaling.F90:cooling_rates_simple_scaling:cooling_rate_simple_scaling}{{\normalfont \ttfamily simpleScaling}}] Implements a simple algorithm in which the cooling rate is determined from a timescale which is a function of halo mass and redshift.
-\end{description}
-
 \subsubsection{Cooling Radius}
 
 Additional methods for cooling radius calculations can be added using the {\normalfont \ttfamily coolingRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:

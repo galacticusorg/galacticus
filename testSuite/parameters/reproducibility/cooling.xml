@@ -60,7 +60,9 @@
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingRadiusMethod value="simple"/>
-  <coolingRateMethod value="White-Frenk1991"/>
+  <coolingRateMethod value="whiteFrenk1991">
+    <velocityCutOff value="1.0e6"/>
+  </coolingRateMethod>
   <coolingTimeMethod value="simple"/>
   <coolingTimeAvailableAgeFactor value="0"/>
   <coolingTimeAvailableMethod value="White-Frenk1991"/>

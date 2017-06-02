@@ -74,7 +74,6 @@
   <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
   <modifiedPressSchechterGamma1 value="0.38"/>
-  <coolingRateSimpleScalingTimescale value="1.0"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
@@ -93,17 +92,14 @@
   <treeNodeMethodSatellite value="preset"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
-  <zeroCoolingRateAboveVelocity value="10000"/>
   <mergerTreeReadPresetSubhaloMasses value="false"/>
   <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
-  <coolingRateSimpleScalingCutOffMass value="5.0e12"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <odeToleranceAbsolute value="0.01"/>
-  <coolingRateSimpleScalingTimescaleExponent value="3.0"/>
   <starFormationTimescaleDisksMethod value="haloScaling"/>
   <mergerTreeReadPresetMergerNodes value="true"/>
   <treeBranchingMethod value="modifiedPress-Schechter"/>
@@ -134,7 +130,11 @@
     <exponentVelocity value="-3.0"/>
     <exponentRedshift value="0.0"/>
   </starFormationFeedbackDisksMethod>
-  <coolingRateMethod value="simpleScaling"/>
+  <coolingRateMethod value="simpleScaling">
+    <exponentRedshift value="3.0"/>
+    <massCutOff value="5.0e12"/>
+    <timescale value="1.0"/>
+  </coolingRateMethod>
   <treeNodeMethodSpin value="null"/>
   <treeNodeMethodPosition value="preset"/>
   <conditionalMassFunctionBehrooziLog10Mstar0 value="10.5980300058"/>
