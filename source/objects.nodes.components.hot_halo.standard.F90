@@ -206,9 +206,9 @@ module Node_Component_Hot_Halo_Standard
   integer         (kind=kind_int8              )            :: uniqueIDPrevious
   logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false., &
        &                                                       gotOuterRadiusGrowthRate                =.false.
-  double precision                                          :: angularMomentumHeatingRateRemaining             , coolingRate                                 , &
+  double precision                                          :: angularMomentumHeatingRateRemaining             , rateCooling                                 , &
        &                                                       massHeatingRateRemaining                        , outerRadiusGrowthRateStored
-  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
+  !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,rateCooling,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
   type            (radiationStructure          )            :: radiation
   !$omp threadprivate(radiation)
@@ -730,7 +730,7 @@ contains
           infallRadius=Infall_Radius(node)
           angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
           if (.not.gotAngularMomentumCoolingRate) then
-             angularMomentumHeatingRateRemaining=coolingRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
+             angularMomentumHeatingRateRemaining=rateCooling*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
              gotAngularMomentumCoolingRate=.true.
           end if
 
@@ -996,7 +996,7 @@ contains
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
        ! Pipe the cooling rate to which ever component claimed it.
-       call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(node,coolingRate,interrupt,interruptProcedure)
+       call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(node,rateCooling,interrupt,interruptProcedure)
        ! Get the rate at which abundances are accreted onto this halo.
        call hotHalo%abundancesRate(accretionHalo_%accretionRateMetals(node,accretionModeHot),interrupt,interruptProcedure)
        ! Next block of tasks occur only if the accretion rate is non-zero.
@@ -1012,9 +1012,9 @@ contains
           ! Get the rate at which chemicals are accreted onto this halo.
           call hotHalo%chemicalsRate(accretionHalo_%accretionRateChemicals(node,accretionModeHot),interrupt,interruptProcedure)
           ! For non-zero cooling rate, adjust the rates of chemical masses.
-          if (coolingRate > 0.0d0) then
+          if (rateCooling > 0.0d0) then
              ! Compute the rate at which chemicals are lost via cooling.
-             chemicalsCoolingRate=hotHalo%chemicals()*coolingRate/hotHalo%mass()
+             chemicalsCoolingRate=hotHalo%chemicals()*rateCooling/hotHalo%mass()
              ! Adjust the rates of chemical masses accordingly.
              call hotHalo%chemicalsRate(-chemicalsCoolingRate,interrupt,interruptProcedure)
           end if
@@ -1771,6 +1771,7 @@ contains
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     class(nodeComponentHotHalo)               , pointer :: hotHalo
+    class(coolingRateClass    )               , pointer :: coolingRate_
 
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.
@@ -1783,14 +1784,15 @@ contains
             &   hotHalo%outerRadius    () > 0.0d0 &
             & ) then
           ! Get the cooling rate.
-          coolingRate=Cooling_Rate(node)
+          coolingRate_ => coolingRate      (    )
+          rateCooling  =  coolingRate_%rate(node)
        else
-          coolingRate=0.0d0
+          rateCooling=0.0d0
        end if
 
        ! Store a copy of this cooling rate as the remaining mass heating rate budget. This is used to ensure that we never heat
        ! gas at a rate greater than it is cooling.
-       massHeatingRateRemaining=coolingRate
+       massHeatingRateRemaining=rateCooling
 
        ! Flag that cooling rate has now been computed.
        gotCoolingRate=.true.

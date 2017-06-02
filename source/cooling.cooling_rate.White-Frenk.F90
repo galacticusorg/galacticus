@@ -16,115 +16,139 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a \cite{white_galaxy_1991} cooling rate calculation.
+  !% Implementation of a cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
 
-module Cooling_Rates_White_Frenk
-  !% Implements a \cite{white_galaxy_1991} cooling rate calculation.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Cooling_Rate_White_Frenk_Initialize
+  use Dark_Matter_Halo_Scales
 
-  ! Velocity (in km/s) above which cooling rates in gas are forced to zero.
-  double precision :: zeroCoolingRateAboveVelocity
+  !# <coolingRate name="coolingRateWhiteFrenk1991" defaultThreadPrivate="yes">
+  !#  <description>A cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.</description>
+  !# </coolingRate>
+  type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
+     !% Implementation of cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
+     private
+      class         (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+    double precision                                    :: velocityCutOff
+  contains
+    final      ::         whiteFrenk1991Destructor
+     procedure :: rate => whiteFrenk1991Rate
+  end type coolingRateWhiteFrenk1991
+
+  interface coolingRateWhiteFrenk1991
+     !% Constructors for the \cite{white_galaxy_1991} cooling rate class.
+     module procedure whiteFrenk1991ConstructorParameters
+     module procedure whiteFrenk1991ConstructorInternal
+  end interface coolingRateWhiteFrenk1991
 
 contains
 
-  !# <coolingRateMethod>
-  !#  <unitName>Cooling_Rate_White_Frenk_Initialize</unitName>
-  !# </coolingRateMethod>
-  subroutine Cooling_Rate_White_Frenk_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``White-Frenk1991'' cooling rate module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function whiteFrenk1991ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{white_galaxy_1991} cooling rate class which builds the object from a parameter set.
+    use Input_Parameters2
+    implicit none
+    type            (coolingRateWhiteFrenk1991)                :: self
+    type            (inputParameters          ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
+    double precision                                           :: velocityCutOff
+    !# <inputParameterList label="allowedParameterNames" />
+
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>velocityCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d4</defaultValue>
+    !#   <description>The halo virial velocity (in km/s) above which cooling rates are forced to zero in the \cite{white_galaxy_1991} cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=coolingRateWhiteFrenk1991(velocityCutOff,darkMatterHaloScale_)
+    return
+  end function whiteFrenk1991ConstructorParameters
+
+  function whiteFrenk1991ConstructorInternal(velocityCutOff,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type     (varying_string              ), intent(in   )          :: coolingRateMethod
-    procedure(Cooling_Rate_White_Frenk    ), intent(inout), pointer :: Cooling_Rate_Get
+    type            (coolingRateWhiteFrenk1991)                        :: self
+    double precision                           , intent(in   )         :: velocityCutOff
+    class           (darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
 
-    if (coolingRateMethod == 'White-Frenk1991') then
-       Cooling_Rate_Get => Cooling_Rate_White_Frenk
-
-       ! Get cooling rate parameters.
-       !@ <inputParameter>
-       !@   <name>zeroCoolingRateAboveVelocity</name>
-       !@   <defaultValue>10000</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The halo virial velocity (in km/s) above which cooling rates are forced to zero in the {\normalfont \ttfamily White-Frenk1991} cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
-
-       ! Check that the properties we need are gettable.
-       if     (                                                                                                             &
-            &  .not.(                                                                                                       &
-            &         defaultHotHaloComponent%       massIsGettable()                                                       &
-            &        .and.                                                                                                  &
-            &         defaultHotHaloComponent%outerRadiusIsGettable()                                                       &
-            &       )                                                                                                       &
-            & ) call Galacticus_Error_Report                                                                                &
-            &        (                                                                                                      &
-            &         'Cooling_Rate_White_Frenk_Initialize'                                                               , &
-            &         'mass and outerRadius properties of hot halo component must be gettable.'//                           &
-            &         Galacticus_Component_List(                                                                            &
-            &                                   'hotHalo'                                                                 , &
-            &                                    defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)  &
-            &                                   .intersection.                                                              &
-            &                                    defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)  &
-            &                                  )                                                                            &
-            &        )
-    end if
+    !# <constructorAssign variables="velocityCutOff, *darkMatterHaloScale_"/>
+    ! Check that the properties we need are gettable.
+    if     (                                                                                                             &
+         &  .not.(                                                                                                       &
+         &         defaultHotHaloComponent%       massIsGettable()                                                       &
+         &        .and.                                                                                                  &
+         &         defaultHotHaloComponent%outerRadiusIsGettable()                                                       &
+         &       )                                                                                                       &
+         & ) call Galacticus_Error_Report                                                                                &
+         &        (                                                                                                      &
+         &         'whiteFrenk1991ConstructorInternal'                                                                 , &
+         &         'mass and outerRadius properties of hot halo component must be gettable.'//                           &
+         &         Galacticus_Component_List(                                                                            &
+         &                                   'hotHalo'                                                                 , &
+         &                                    defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)  &
+         &                                   .intersection.                                                              &
+         &                                    defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)  &
+         &                                  )                                                                            &
+         &        )
     return
-  end subroutine Cooling_Rate_White_Frenk_Initialize
+  end function whiteFrenk1991ConstructorInternal
 
-  double precision function Cooling_Rate_White_Frenk(thisNode)
-    !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{white_galaxy_1991} method.
-    use Dark_Matter_Halo_Scales
+  subroutine whiteFrenk1991Destructor(self)
+    !% Destructor for the velocity maximum scaling cooling rate class.
+    implicit none
+    type(coolingRateWhiteFrenk1991), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine whiteFrenk1991Destructor
+
+  double precision function whiteFrenk1991Rate(self,node)
+    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
+    !% model.
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
-    class           (nodeComponentHotHalo        ), pointer       :: thisHotHaloComponent
-    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
-    double precision                                              :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
-         &                                                           outerRadius         , virialVelocity
+    class           (coolingRateWhiteFrenk1991   ), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node    
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
+    double precision                                              :: densityCooling          , radiusInfall  , &
+         &                                                           radiusOuter             , velocityVirial, &
+         &                                                           radiusInfallGrowthRate
 
     ! Get the virial velocity.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    virialVelocity=darkMatterHaloScale_%virialVelocity(thisNode)
+    velocityVirial=self%darkMatterHaloScale_%virialVelocity(node)
     ! Return zero cooling rate if virial velocity exceeds critical value.
-    if (virialVelocity > zeroCoolingRateAboveVelocity) then
-       Cooling_Rate_White_Frenk=0.0d0
+    if (velocityVirial > self%velocityCutOff) then
+       whiteFrenk1991Rate=0.0d0
        return
     end if
-
     ! Get the outer radius of the hot halo.
-    thisHotHaloComponent => thisNode            %hotHalo    ()
-    outerRadius          =  thisHotHaloComponent%outerRadius()
-
-    ! Get the cooling radius.
-    infallRadius=Infall_Radius(thisNode)
-
-    if (infallRadius >= outerRadius) then
-       ! Cooling radius exceeds the outer radius. Limit infall to the dynamical timescale.
-       Cooling_Rate_White_Frenk=thisHotHaloComponent%mass()/darkMatterHaloScale_%dynamicalTimescale(thisNode)
+    hotHalo     => node   %hotHalo    ()
+    radiusOuter =  hotHalo%outerRadius()
+    ! Get the infall radius.
+    radiusInfall=Infall_Radius(node)
+    if (radiusInfall >= radiusOuter) then
+       ! Infall radius exceeds the outer radius. Limit infall to the dynamical timescale.
+       whiteFrenk1991Rate=+hotHalo                     %mass              (    ) &
+            &             /self   %darkMatterHaloScale_%dynamicalTimescale(node)
     else
        ! Get the hot halo mass distribution.
-       defaultHotHaloMassDistribution => hotHaloMassDistribution()
+       hotHaloMassDistribution_ => hotHaloMassDistribution           (                 )
         ! Find the density at the cooling radius.
-       coolingDensity=defaultHotHaloMassDistribution%density(thisNode,infallRadius)
-       ! Find cooling radius growth rate.
-       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode)
-       ! Compute the cooling rate.
-       Cooling_Rate_White_Frenk=4.0d0*Pi*(infallRadius**2)*coolingDensity*infallRadiusGrowthRate
+       densityCooling           =  hotHaloMassDistribution_  %density(node,radiusInfall)
+       ! Find infall radius growth rate.
+       radiusInfallGrowthRate   =  Infall_Radius_Growth_Rate         (node             )
+       ! Compute the infall rate.
+       whiteFrenk1991Rate       =  +4.0d0                     &
+            &                      *Pi                        &
+            &                      *radiusInfall          **2 &
+            &                      *densityCooling            &
+            &                      *radiusInfallGrowthRate
     end if
     return
-  end function Cooling_Rate_White_Frenk
-
-end module Cooling_Rates_White_Frenk
+  end function whiteFrenk1991Rate

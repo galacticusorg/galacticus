@@ -16,166 +16,181 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
-!% divided by a timescale which is a function of halo mass and redshift.
+  !% Implementation of a cooling rate class in which the cooling rate scales with the mass of the halo.
 
-module Cooling_Rates_Simple_Scaling
-  !% Implements a simple cooling rate calculation in which the cooling rate equals the mass of hot gas
-  !% divided by a timescale which is a function of halo mass and redshift.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Cooling_Rate_Simple_Scaling_Initialize
+  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
 
-  ! The fixed timescale for cooling.
-  double precision :: coolingRateSimpleScalingTimescale     , coolingRateSimpleScalingTimescaleExponent, &
-       &              coolingRateSimpleScalingCutOffWidth   , coolingRateSimpleScalingCutOffMass       , &
-       &              coolingRateSimpleScalingCutOffExponent
+  !# <coolingRate name="coolingRateSimpleScaling" defaultThreadPrivate="yes">
+  !#  <description>A cooling rate class in which the cooling rate scales with the mass of the halo.</description>
+  !# </coolingRate>
+  type, extends(coolingRateClass) :: coolingRateSimpleScaling
+     !% Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.
+     private
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     ! Parameters controlling the cooling rate.
+     double precision                                   :: timescale                         , exponentRedshift , &
+          &                                                widthCutOff                       , massCutOff       , &
+          &                                                exponentCutOff                    , normalization
+     ! Stored values for rapid re-use.
+     double precision                                   :: expansionFactorPrevious           , massBasicPrevious, &
+          &                                                coolingRateStored
+   contains
+     final     ::         simpleScalingDestructor
+     procedure :: rate => simpleScalingRate
+  end type coolingRateSimpleScaling
+
+  interface coolingRateSimpleScaling
+     !% Constructors for the simple caling cooling rate class.
+     module procedure simpleScalingConstructorParameters
+     module procedure simpleScalingConstructorInternal
+  end interface coolingRateSimpleScaling
 
 contains
 
-  !# <coolingRateMethod>
-  !#  <unitName>Cooling_Rate_Simple_Scaling_Initialize</unitName>
-  !# </coolingRateMethod>
-  subroutine Cooling_Rate_Simple_Scaling_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``simple scaling'' cooling rate module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function simpleScalingConstructorParameters(parameters) result(self)
+    !% Constructor for the simple caling cooling rate class which builds the object from a parameter set.
+    use Input_Parameters2
+    implicit none
+    type            (coolingRateSimpleScaling)                :: self
+    type            (inputParameters         ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    double precision                                          :: timeScale          , exponentCutOff, &
+         &                                                       exponentRedshift   , widthCutOff   , &
+         &                                                       massCutOff
+    !# <inputParameterList label="allowedParameterNames" />
+
+    call parameters%checkParameters(allowedParameterNames)    
+    !# <inputParameter>
+    !#   <name>timescale</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple caling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentRedshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1.5d0</defaultValue>
+    !#   <description>The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple caling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>200.0d0</defaultValue>
+    !#   <description>The halo mass scale appearing in the exponential term for cooling timescale in the simple caling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>widthCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The width appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentCutOff</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The exponent appearing in the exponential term for cooling timescale in the simple caling scaling cooling rate model.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=coolingRateSimpleScaling(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_)
+    return
+  end function simpleScalingConstructorParameters
+
+  function simpleScalingConstructorInternal(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
+    !% Internal constructor for the simple caling cooling rate class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type     (varying_string             ), intent(in   )               :: coolingRateMethod
-    procedure(Cooling_Rate_Simple_Scaling), intent(inout), pointer      :: Cooling_Rate_Get
+    type            (coolingRateSimpleScaling)                        :: self
+    double precision                          , intent(in   )         :: timeScale          , exponentRedshift, &
+         &                                                               massCutOff         , widthCutOff     , &
+         &                                                               exponentCutOff
+    class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
 
-    if (coolingRateMethod == 'simpleScaling') then
-       Cooling_Rate_Get => Cooling_Rate_Simple_Scaling
-
-       ! Get cooling rate parameters.
-       !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale (in Gyr) for cooling in low mass halos at $z=0$ in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingTimescale',coolingRateSimpleScalingTimescale,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingTimescaleExponent</name>
-       !@   <defaultValue>$-1.5$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of $(1+z)$ in the cooling timescale for low mass halos in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingTimescaleExponent',coolingRateSimpleScalingTimescaleExponent,defaultValue=-1.5d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingCutOffMass</name>
-       !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The halo mass scale appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingCutOffMass',coolingRateSimpleScalingCutOffMass,defaultValue=1.0d12)
-       !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingCutOffWidth</name>
-       !@   <defaultValue>$1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The width appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingCutOffWidth',coolingRateSimpleScalingCutOffWidth,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingCutOffExponent</name>
-       !@   <defaultValue>$1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingCutOffExponent',coolingRateSimpleScalingCutOffExponent,defaultValue=1.0d0)
-
-       ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
-            & call Galacticus_Error_Report(                                                                                               &
-            &                              'Cooling_Rate_Simple_Scaling_Initialize'                                                     , &
-            &                              'Hot halo component must have gettable mass.'//                                                &
-            &                              Galacticus_Component_List(                                                                     &
-            &                                                        'hotHalo'                                                          , &
-            &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
-            &                                                       )                                                                     &
-            &                             )
-       if     (                                                                                                                           &
-            &  .not.(                                                                                                                     &
-            &         defaultBasicComponent%massIsGettable()                                                                              &
-            &        .and.                                                                                                                &
-            &         defaultBasicComponent%timeIsGettable()                                                                              &
-            &       )                                                                                                                     &
-            & ) call Galacticus_Error_Report(                                                                                             &
-            &                                'Cooling_Rate_Simple_Scaling_Initialize'                                                   , &
-            &                                'Basic component must have gettable mass and time.'//                                        &
-            &                                Galacticus_Component_List(                                                                   &
-            &                                                          'basic'                                                          , &
-            &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
-            &                                                          .intersection.                                                     &
-            &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
-            &                                                         )                                                                   &
-            &                               )
-    end if
+    !# <constructorAssign variables="timeScale, exponentRedshift, massCutOff, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
+    ! Check that the properties we need are gettable.
+    if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
+         & call Galacticus_Error_Report(                                                                                               &
+         &                              'simpleScalingConstructorParameters'                                                , &
+         &                              'Hot halo component must have gettable mass.'//                                                &
+         &                              Galacticus_Component_List(                                                                     &
+         &                                                        'hotHalo'                                                          , &
+         &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
+         &                                                       )                                                                     &
+         &                             )
+    if     (                                                                                                                           &
+         &  .not.(                                                                                                                     &
+         &         defaultBasicComponent%massIsGettable()                                                                              &
+         &        .and.                                                                                                                &
+         &         defaultBasicComponent%timeIsGettable()                                                                              &
+         &       )                                                                                                                     &
+         & ) call Galacticus_Error_Report(                                                                                             &
+         &                                'simpleScalingConstructorParameters'                                              , &
+         &                                'Basic component must have gettable mass and time.'//                                        &
+         &                                Galacticus_Component_List(                                                                   &
+         &                                                          'basic'                                                          , &
+         &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
+         &                                                          .intersection.                                                     &
+         &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
+         &                                                         )                                                                   &
+         &                               )
+    ! Initialize stored solutions.
+    self%expansionFactorPrevious=-1.0d0
+    self%massBasicPrevious      =-1.0d0
+    self%coolingRateStored      =-1.0d0
     return
-  end subroutine Cooling_Rate_Simple_Scaling_Initialize
+  end function simpleScalingConstructorInternal
 
-  double precision function Cooling_Rate_Simple_Scaling(node)
-    !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
-    use Cosmology_Functions
+  subroutine simpleScalingDestructor(self)
+    !% Destructor for the simple caling cooling rate class.
     implicit none
-    type            (treeNode               ), intent(inout) :: node
-    double precision                         , parameter     :: expArgumentMaximum     =100.0d0
-    class           (nodeComponentBasic     ), pointer       :: basic
-    class           (nodeComponentHotHalo   ), pointer       :: hotHalo
-    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
-    double precision                         , save          :: expansionFactorPrevious=-1.0d0 , massBasicPrevious=-1.0d0, &
-         &                                                      coolingRate
-    !$omp threadprivate(expansionFactorPrevious,massBasicPrevious,coolingRate)
-    double precision                                         :: expFactor                      , expansionFactor, &
-         &                                                      expArgument
+    type(coolingRateSimpleScaling), intent(inout) :: self
 
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions                 (            )
-    basic               => node               %basic          (            )
-    hotHalo             => node               %hotHalo        (            )
-    expansionFactor     =  cosmologyFunctions_%expansionFactor(basic%time())
-    if (expansionFactor /= expansionFactorPrevious .or. basic%mass() /= massBasicPrevious) then
-       expArgument               =log10(                               &
-            &                       basic%mass()                       &
-            &                      /coolingRateSimpleScalingCutOffMass &
-            &                     )                                    &
-            &                /coolingRateSimpleScalingCutOffWidth
-       if (expArgument < expArgumentMaximum) then
-          expFactor=1.0d0/(1.0d0+exp(+expArgument))**coolingRateSimpleScalingCutOffExponent
-       else
-          expFactor=             exp(-expArgument   *coolingRateSimpleScalingCutOffExponent)
-       end if
-       coolingRate    = expansionFactor**coolingRateSimpleScalingTimescaleExponent &
-            &          /coolingRateSimpleScalingTimescale                          &
-            &          *expFactor
-       expansionFactorPrevious=expansionFactor
-       massBasicPrevious      =basic          %mass()
-    end if
-    Cooling_Rate_Simple_Scaling=hotHalo%mass()*coolingRate
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
-  end function Cooling_Rate_Simple_Scaling
+  end subroutine simpleScalingDestructor
 
-end module Cooling_Rates_Simple_Scaling
+  double precision function simpleScalingRate(self,node)
+    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the mass of the halo.
+    implicit none
+    class           (coolingRateSimpleScaling), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , parameter     :: expArgumentMaximum=100.0d0
+    class           (nodeComponentBasic      ), pointer       :: basic
+    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
+    double precision                                          :: expFactor                 , expansionFactor, &
+         &                                                       expArgument
+    
+    ! Compute expansion factor.
+    basic               => node                    %basic          (            )
+    hotHalo             => node                    %hotHalo        (            )
+    expansionFactor     =  self%cosmologyFunctions_%expansionFactor(basic%time())
+    if (expansionFactor /= self%expansionFactorPrevious .or. basic%mass() /= self%massBasicPrevious) then
+       expArgument=+log10(                 &
+            &              basic%mass()    &
+            &             /self%massCutOff &
+            &            )                 &
+            &      /self%widthCutOff
+       if (expArgument < expArgumentMaximum) then
+          expFactor=1.0d0/(1.0d0+exp(+expArgument))**self%exponentCutOff
+       else
+          expFactor=             exp(-expArgument   *self%exponentCutOff)
+       end if
+       self%coolingRateStored      =+expansionFactor**self%exponentRedshift &
+            &                       /self%timescale                         &
+            &                       *expFactor
+       self%expansionFactorPrevious= expansionFactor
+       self%massBasicPrevious      = basic          %mass()
+    end if
+    simpleScalingRate=hotHalo%mass()*self%coolingRateStored
+    return
+  end function simpleScalingRate

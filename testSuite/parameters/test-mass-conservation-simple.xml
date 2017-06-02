@@ -33,15 +33,16 @@
     <analysisMassFunctionsCorrelationTruncateLevel value="0.0" />
     <analysisMassFunctionsGravitationalLensingSize value="1.0e-3" />
     <analysisMassFunctionsPRIMUSInternalErrors value="false" />
-    <coolingRateMethod value="velocityMaximumScaling" />
-    <coolingRateVelocityMaximumScalingCutOffExponent value="1.7906261504610221" />
-    <coolingRateVelocityMaximumScalingCutOffVelocity value="173.12989399446917" />
-    <coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent value="0.56942822190412190" />
-    <coolingRateVelocityMaximumScalingCutOffWidth value="5.8048418622440277E-002" />
-    <coolingRateVelocityMaximumScalingTimescale value="2.8297712365864922" />
-    <coolingRateVelocityMaximumScalingTimescaleExponent value="-0.35077774364437497" />
-    <coolingRateVelocityMaximumScalingTimescaleMinimum value="6.3593537422067092E-003" />
-    <coolingRateVelocityMaximumScalingVelocityExponent value="1.6845255332717721" />
+    <coolingRateMethod value="velocityMaximumScaling">
+      <exponentCutOff value="1.7906261504610221" />
+      <velocityCutOff value="173.12989399446917" />
+      <velocityCutOffExponentRedshift value="0.56942822190412190" />
+      <widthCutOff value="5.8048418622440277E-002" />
+      <timescale value="2.8297712365864922" />
+      <exponentRedshift value="-0.35077774364437497" />
+      <timescaleMinimum value="6.3593537422067092E-003" />
+      <exponentVelocity value="1.6845255332717721" />
+    </coolingRateMethod>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.819344297851851" />
       <tolerance value="1.0e-7" />

@@ -89,8 +89,8 @@ module Node_Component_Hot_Halo_Very_Simple
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotCoolingRate   =.false.
-  double precision :: coolingRate
-  !$omp threadprivate(gotCoolingRate,coolingRate)
+  double precision :: rateCooling
+  !$omp threadprivate(gotCoolingRate,rateCooling)
   ! Record of whether this module has been initialized.
   logical          :: moduleInitialized=.false.
 
@@ -243,7 +243,7 @@ contains
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (node                                         )
        ! Pipe the cooling rate to which ever component claimed it.
-       call Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(node,coolingRate,interrupt,interruptProcedure)
+       call Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(node,rateCooling,interrupt,interruptProcedure)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute
@@ -532,15 +532,17 @@ contains
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     class(nodeComponentHotHalo)               , pointer :: hotHalo
+    class(coolingRateClass    )               , pointer :: coolingRate_
 
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
        if (hotHalo%mass() > 0.0d0) then
           ! Get the cooling time.
-          coolingRate=Cooling_Rate(node)
+          coolingRate_ => coolingRate      (    )
+          rateCooling  =  coolingRate_%rate(node)
        else
-          coolingRate=0.0d0
+          rateCooling=0.0d0
        end if
        ! Flag that cooling rate has now been computed.
        gotCoolingRate=.true.

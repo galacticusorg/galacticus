@@ -16,39 +16,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a zero cooling rate calculation.
+  !% Implementation of a zero cooling rate class.
+  
+  !# <coolingRate name="coolingRateZero">
+  !#  <description>A cooling rate class in which the cooling rate is always zero.</description>
+  !# </coolingRate>
+  type, extends(coolingRateClass) :: coolingRateZero
+     !% Implementation of cooling rate class in which the cooling rate is always zero.
+     private
+   contains
+     procedure :: rate => zeroRate
+  end type coolingRateZero
 
-module Cooling_Rates_Zero
-  !% Implements zero cooling rate calculation.
-  implicit none
-  private
-  public :: Cooling_Rate_Zero_Initialize
+  interface coolingRateZero
+     !% Constructors for the zero cooling rate class.
+     module procedure zeroConstructorParameters
+  end interface coolingRateZero
 
 contains
 
-  !# <coolingRateMethod>
-  !#  <unitName>Cooling_Rate_Zero_Initialize</unitName>
-  !# </coolingRateMethod>
-  subroutine Cooling_Rate_Zero_Initialize(coolingRateMethod,Cooling_Rate_Get)
-    !% Initializes the ``zero'' cooling rate module.
-    use ISO_Varying_String
+  function zeroConstructorParameters(parameters) result(self)
+    !% Constructor for the zero cooling rate class which builds the object from a parameter set.
+    use Input_Parameters2
     implicit none
-    type     (varying_string   ), intent(in   )          :: coolingRateMethod
-    procedure(Cooling_Rate_Zero), intent(inout), pointer :: Cooling_Rate_Get
+    type(coolingRateZero)                :: self
+    type(inputParameters), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-    if (coolingRateMethod == 'zero') Cooling_Rate_Get => Cooling_Rate_Zero
+    self=coolingRateZero()
     return
-  end subroutine Cooling_Rate_Zero_Initialize
+  end function zeroConstructorParameters
 
-  double precision function Cooling_Rate_Zero(thisNode)
-    !% Returns a zero mass cooling rate in a hot gas halos.
-    use Galacticus_Nodes
+  double precision function zeroRate(self,node)
+    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is always zero.
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    class           (coolingRateZero), intent(inout) :: self
+    type            (treeNode       ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
 
-    Cooling_Rate_Zero=0.0d0
+    zeroRate=0.0d0
     return
-  end function Cooling_Rate_Zero
-
-end module Cooling_Rates_Zero
+  end function zeroRate

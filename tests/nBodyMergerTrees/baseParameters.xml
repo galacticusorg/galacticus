@@ -30,7 +30,9 @@
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingRadiusMethod value="simple"/>
-  <coolingRateMethod value="White + Frenk"/>
+  <coolingRateMethod value="whiteFrenk1991">
+    <velocityCutOff value="10000"/>
+  </coolingRateMethod>
   <coolingTimeAvailableAgeFactor value="0"/>
   <coolingTimeAvailableMethod value="White-Frenk"/>
   <coolingTimeMethod value="simple"/>
@@ -128,7 +130,6 @@
   <verbosityLevel value="1"/>
   <virialDensityContrastMethod value="spherical top hat"/>
   <virialOrbitMethod value="benson2005"/>
-  <zeroCoolingRateAboveVelocity value="10000"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>
     <accretionLimit value="0.1"/>

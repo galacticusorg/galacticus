@@ -114,6 +114,7 @@ contains
     logical                                   ,          intent(inout) :: interrupt
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
+    class    (coolingRateClass               ), pointer                :: coolingRate_
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Return immediately if this class is not in use.
@@ -124,7 +125,8 @@ contains
     select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
        ! Cooled mass rate simply equals the cooling rate.
-       call massFlowStatistics%cooledMassRate(Cooling_Rate(node))
+       coolingRate_ => coolingRate()
+       call massFlowStatistics%cooledMassRate(coolingRate_%rate(node))
     end select
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute
