@@ -346,7 +346,7 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   select type (diskMassDistribution)
   class is (massDistributionCylindrical)
      ! Compute the surface density.
-     position=[positionCylindrical(1)/self%radius(),0.0d0,0.0d0]
+     call position%rSet(positionCylindrical(1)/self%radius())
      Node_Component_Disk_Standard_Surface_Density=         &
           & +Node_Component_Disk_Standard_Surface_Density  &
           & *diskMassDistribution%surfaceDensity(position)  
