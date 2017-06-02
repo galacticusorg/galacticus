@@ -25,33 +25,39 @@ module Galactic_Structure_Initial_Radii_Adiabatic
   use Galacticus_Nodes
   use Galactic_Structure_Options
   use Kind_Numbers
+  use Math_Exponentiation
   implicit none
   private
   public :: Galactic_Structure_Initial_Radii_Adiabatic_Initialize, Galactic_Structure_Initial_Radii_Adiabatic_Reset
 
   ! Stored solutions for reuse.
-  integer         (kind=kind_int8)                                 :: uniqueIDPrevious   =-1_kind_int8
-  integer                         , parameter                      :: radiusPreviousCount=10
-  integer                                                          :: radiusPreviousIndex                             , radiusPreviousIndexMaximum
-  double precision                , dimension(radiusPreviousCount) :: radiusPrevious                                  , radiusInitialPrevious
+  integer         (kind=kind_int8   )                                 :: uniqueIDPrevious   =-1_kind_int8
+  integer                            , parameter                      :: radiusPreviousCount=10
+  integer                                                             :: radiusPreviousIndex                             , radiusPreviousIndexMaximum
+  double precision                   , dimension(radiusPreviousCount) :: radiusPrevious                                  , radiusInitialPrevious
   !$omp threadprivate(uniqueIDPrevious,radiusPrevious,radiusInitialPrevious,radiusPreviousIndex,radiusPreviousIndexMaximum)
     
   ! Parameters of the adiabatic contraction algorithm.
-  double precision                      :: adiabaticContractionGnedinA                     , adiabaticContractionGnedinOmega
+  double precision                                                    :: adiabaticContractionGnedinA                     , adiabaticContractionGnedinOmega
 
   ! Module scope quantities used in solving the initial radius root function.
-  integer                   , parameter :: componentType                  =componentTypeAll, massType                       =massTypeBaryonic, &
-       &                                   weightBy                       =weightByMass    , weightIndex                    =weightIndexNull
-  logical                   , parameter :: haloLoaded                     =.false.
-  double precision                      :: baryonicFinalTerm                               , baryonicFinalTermDerivative                     , &
-       &                                   darkMatterFraction                              , initialMassFraction                             , &
-       &                                   radiusFinal                                     , radiusFinalMean                                 , &
-       &                                   radiusFinalMeanSelfDerivative                   , radiusInitial                                   , &
-       &                                   radiusInitialMeanSelfDerivative                 , radiusShared                                    , &
-       &                                   virialRadius
-  type            (treeNode), pointer   :: activeNode
-  logical                               :: massesComputed                 =.false.
+  integer                            , parameter                      :: componentType                  =componentTypeAll, massType                       =massTypeBaryonic, &
+       &                                                                 weightBy                       =weightByMass    , weightIndex                    =weightIndexNull
+  logical                            , parameter                      :: haloLoaded                     =.false.
+  double precision                                                    :: baryonicFinalTerm                               , baryonicFinalTermDerivative                     , &
+       &                                                                 darkMatterFraction                              , initialMassFraction                             , &
+       &                                                                 radiusFinal                                     , radiusFinalMean                                 , &
+       &                                                                 radiusFinalMeanSelfDerivative                   , radiusInitial                                   , &
+       &                                                                 radiusInitialMeanSelfDerivative                 , radiusShared                                    , &
+       &                                                                 virialRadius
+  type            (treeNode         ), pointer                        :: activeNode
+  logical                                                             :: massesComputed                 =.false.
   !$omp threadprivate(radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial,activeNode,massesComputed)
+
+  ! Fast exponentiator.
+  type            (fastExponentiator), save                           :: radiusExponentiator
+  logical                            , save                           :: radiusExponentiatorInitialized =.false.
+  !$omp threadprivate(radiusExponentiator,radiusExponentiatorInitialized)
   
 contains
 
@@ -129,7 +135,12 @@ contains
          &                                                                         componentMass                         , componentVelocity          , &
          &                                                                         componentVelocitySquaredGradient      , rotationCurveSquared       , &
          &                                                                         rotationCurveSquaredGradient
-
+    
+    ! Initialize exponentiator.
+    if (.not.radiusExponentiatorInitialized) then
+       radiusExponentiator           =fastExponentiator(1.0d-3,1.0d0,adiabaticContractionGnedinOmega,1.0d4,.false.)
+       radiusExponentiatorInitialized=.true.
+    end if
     ! Store the final radius and its orbit-averaged mean.
     radiusFinal    =                                     radius
     radiusFinalMean=Adiabatic_Solver_Mean_Orbital_Radius(radius)
@@ -211,17 +222,21 @@ contains
   double precision function Galactic_Structure_Radius_Initial_Adiabatic(node,radius)
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
+    use Dark_Matter_Profiles
     use Dark_Matter_Halo_Scales
     use Root_Finder
+    use FGSL
     implicit none
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: radius
     double precision                          , parameter     :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass  ), pointer       :: darkMatterProfile_
     type            (rootFinder              ), save          :: finder
     !$omp threadprivate(finder)
     integer                                                   :: i                         , j
-
+    double precision                                          :: radiusUpperBound
+    
     ! Reset stored solutions if the node has changed.
     if (node%uniqueID() /= uniqueIDPrevious) call Galactic_Structure_Initial_Radii_Adiabatic_Reset(node)
     ! Check for a previously computed solution.
@@ -263,19 +278,36 @@ contains
              end if
              ! Find the solution for initial radius.
              if (j == -1) then
-                ! No previous solution to use as an initial guess.
-                call finder%rangeExpand(                                                                  &
-                     &                  rangeExpandDownward          =0.5d0                             , &
-                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
-                     &                  rangeExpandType              =rangeExpandMultiplicative           &
-                     &                 )               
-                Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,virialRadius])
+                ! No previous solution to use as an initial guess. Instead, we make an estimate of the initial radius under the
+                ! assumption that the mass of dark matter (in the initial profile) enclosed within the mean initial radius is the
+                ! same as enclosed within the mean final radius. Since the initial and final radii are typically not too
+                ! different, and since the mean radius is a weak (ѡ<1) function of the radius this is a useful
+                ! approximation. Furthermore, since it will underestimate the actual mass within the initial mean radius it gives
+                ! an overestimate of the initial radius. This means that we have a bracketing of the initial radius which we can
+                ! use in the solver.
+                darkMatterProfile_ => darkMatterProfile()
+                radiusUpperBound   =  +(                                                                                               &
+                     &                  +baryonicFinalTerm                                                                             &
+                     &                  /darkMatterProfile_%enclosedMass(activeNode,Adiabatic_Solver_Mean_Orbital_Radius(radiusFinal)) &
+                     &                  +darkMatterFraction                                                                            &
+                     &                  *radiusFinal                                                                                   &
+                     &                 )                                                                                               &
+                     &                /initialMassFraction
+                if (radiusUpperBound < radius) radiusUpperBound=radius
+                call finder%rangeExpand(                                                             &
+                     &                  rangeExpandUpward            =1.1d0                        , &
+                     &                  rangeExpandDownward          =0.9d0                        , &
+                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+                     &                  rangeExpandType              =rangeExpandMultiplicative      &
+                     &                 )
+                Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,radiusUpperBound])
              else
                ! Use previous solution as an initial guess.
                call finder%rangeExpand(                                                                   &
                     &                  rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
+                    &                  rangeExpandUpward            =1.0d0*sqrt(1.0d0+toleranceRelative), &
                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
-                    &                  rangeExpandUpward            =     sqrt(1.0d0+toleranceRelative) , &
                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
                     &                  rangeExpandType              =rangeExpandMultiplicative            &
                     &                 )
@@ -361,7 +393,7 @@ contains
          &    initialMassFraction*radiusInitial         &
          &   -darkMatterFraction *radiusFinal           &
          &  )                                           &
-         & -baryonicFinalTerm    
+         & -baryonicFinalTerm
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic_Solver
 
@@ -416,10 +448,9 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    Adiabatic_Solver_Mean_Orbital_Radius=                                                        &
-         &                                adiabaticContractionGnedinA                            &
+    Adiabatic_Solver_Mean_Orbital_Radius=+adiabaticContractionGnedinA                            &
          &                               *virialRadius                                           &
-         &                               *(radius/virialRadius)**adiabaticContractionGnedinOmega
+         &                               *radiusExponentiator%exponentiate(radius/virialRadius)
     return
   end function Adiabatic_Solver_Mean_Orbital_Radius
 
