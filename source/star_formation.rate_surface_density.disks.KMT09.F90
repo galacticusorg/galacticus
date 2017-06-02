@@ -22,6 +22,7 @@ module Star_Formation_Rate_Surface_Density_Disks_KMT09
   !% Implements the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.
   use Galacticus_Nodes
   use Kind_Numbers
+  use Math_Exponentiation
   implicit none
   private
   public :: Star_Formation_Rate_Surface_Density_Disks_KMT09_Reset,&
@@ -49,6 +50,9 @@ module Star_Formation_Rate_Surface_Density_Disks_KMT09
   ! Minimum fraction of molecular hydrogen allowed.
   double precision                  , parameter :: molecularFractionMinimum           =1.0d-4
 
+  ! Fast exponentiator.
+  type(fastExponentiator) :: surfaceDensityExponentiator
+  
 contains
 
   !# <calculationResetTask>
@@ -123,6 +127,8 @@ contains
        case(.false.)
           KMT09_Molecular_Fraction => KMT09_Molecular_Fraction_Slow
        end select
+       ! Initialize exponentiator.
+       surfaceDensityExponentiator=fastExponentiator(1.0d0,100.0d0,0.33d0,100.0d0,.false.)
     end if
     return
   end subroutine Star_Formation_Rate_Surface_Density_Disks_KMT09_Initialize
@@ -191,13 +197,14 @@ contains
           ! Compute the cloud density factor.
           surfaceDensityGasDimensionless=hydrogenMassFraction*surfaceDensityGas/surfaceDensityTransition
           if (surfaceDensityGasDimensionless < 1.0d0) then
-             surfaceDensityFactor=surfaceDensityGas**(+0.67d0)*(hydrogenMassFraction/surfaceDensityTransition)**(-0.33d0)
+             surfaceDensityFactor=surfaceDensityExponentiator%exponentiate(1.0d0/surfaceDensityGasDimensionless)
           else
-             surfaceDensityFactor=surfaceDensityGas*surfaceDensityGasDimensionless**(+0.33d0)
+             surfaceDensityFactor=surfaceDensityExponentiator%exponentiate(      surfaceDensityGasDimensionless)
           end if
           ! Compute the star formation rate surface density.
           Star_Formation_Rate_Surface_Density_Disk_KMT09=                             &
                &                                          starFormationFrequencyKMT09 &
+               &                                         *surfaceDensityGas           &
                &                                         *surfaceDensityFactor        &
                &                                         *molecularFraction
        end if
