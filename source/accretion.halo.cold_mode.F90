@@ -26,7 +26,10 @@
   type, extends(accretionHaloSimple) :: accretionHaloColdMode
      !% A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
      private
-     double precision :: shockStabilityThreshold, shockStabilityTransitionWidth
+     double precision                 :: shockStabilityThreshold, shockStabilityTransitionWidth
+     integer         (kind=kind_int8) :: lastUniqueID
+     double precision                 :: coldFractionStored
+     logical                          :: coldFractionComputed
    contains
      !@ <objectMethods>
      !@   <object>accretionHaloColdMode</object>
@@ -43,6 +46,7 @@
      !@     <description>Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter).</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: calculationReset       => coldModeCalculationReset
      procedure :: accretionRate          => coldModeAccretionRate
      procedure :: accretedMass           => coldModeAccretedMass
      procedure :: failedAccretionRate    => coldModeFailedAccretionRate
@@ -131,6 +135,7 @@ contains
     coldModeDefaultConstructor=accretionHaloSimple()
     coldModeDefaultConstructor%shockStabilityThreshold      =coldModeShockStabilityThreshold
     coldModeDefaultConstructor%shockStabilityTransitionWidth=coldModeShockStabilityTransitionWidth
+    coldModeDefaultConstructor%coldFractionComputed         =.false.
     return
   end function coldModeDefaultConstructor
        
@@ -145,8 +150,20 @@ contains
     coldModeConstructor=accretionHaloSimple(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
     coldModeConstructor%shockStabilityThreshold      =shockStabilityThreshold
     coldModeConstructor%shockStabilityTransitionWidth=shockStabilityTransitionWidth
+    coldModeConstructor%coldFractionComputed         =.false.
     return
   end function coldModeConstructor
+
+  subroutine coldModeCalculationReset(self,node)
+    !% Reset the accretion rate calculation.
+    implicit none
+    class(accretionHaloColdMode), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node
+
+    self%coldFractionComputed=.false.
+    self%lastUniqueID        =node%uniqueID()
+    return
+  end subroutine coldModeCalculationReset
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
@@ -376,108 +393,114 @@ contains
     class           (coolingFunctionClass    ), pointer       :: coolingFunction_
     type            (chemicalAbundances      ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                          :: shockStability       , coldFraction        , &
+    double precision                                          :: shockStability       , stabilityRatio      , &
          &                                                       radiusShock          , coolingFunctionValue, &
          &                                                       densityPreShock      , densityPostShock    , &
          &                                                       numberDensityHydrogen, temperaturePostShock, &
-         &                                                       velocityPreShock     , stabilityRatio
+         &                                                       velocityPreShock
 
     select case (accretionMode)
     case (accretionModeTotal)
        coldModeColdModeFraction=1.0d0
     case (accretionModeHot,accretionModeCold)
-       ! Get required objects.
-       cosmologyParameters_ => cosmologyParameters()
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       chemicalState_       => chemicalState      ()
-       coolingFunction_     => coolingFunction    ()
-       ! Set the radiation field.
-       call self%radiation%set(node)
-       ! Get the basic component.
-       basic => node%basic()
-       ! Compute factors required for stability analysis.
-       radiusShock          =darkMatterHaloScale_%virialRadius  (node)
-       velocityPreShock     =darkMatterHaloScale_%virialVelocity(node)
-       temperaturePostShock =                                            &
-            &                 (3.0d0/16.0d0)                             &
-            &                *atomicMassUnit                             &
-            &                *meanAtomicMassPrimordial                   &
-            &                *(kilo*velocityPreShock)**2                 &
-            &                /boltzmannsConstant
-       densityPreShock      =                                            &
-            &                 (adiabaticIndex-1.0d0)                     &
-            &                /(adiabaticIndex+1.0d0)                     &
-            &                *(3.0d0/4.0d0/Pi)                           &
-            &                *basic               %mass       ()         &
-            &                *cosmologyParameters_%omegaBaryon()         &
-            &                /cosmologyParameters_%omegaMatter()         &
-            &                /radiusShock**3                             &
-            &                /(                                          &
-            &                   1.0d0                                    &
-            &                  +(perturbationInitialExponent+3.0d0)      &
-            &                  *(10.0d0+9.0d0*Pi)                        &
-            &                  /4.0d0                                    &
-            &                 )
-       densityPostShock     =                                            &
-            &                 densityPreShock                            &
-            &                *Shocks_1D_Density_Jump(                    &
-            &                                        adiabaticIndex    , &
-            &                                        machNumberInfinite  &
-            &                                       )
-       numberDensityHydrogen=                                            &
-            &                 massSolar                                  &
-            &                /megaParsec              **3                &
-            &                *centi                   **3                &
-            &                *densityPreShock                            &
-            &                *hydrogenByMassPrimordial                   &
-            &                /atomicMassUnit                             &
-            &                /atomicMassHydrogen
-       call chemicalState_%chemicalDensities(                            &
-            &                                chemicalDensities    ,      &
-            &                                numberDensityHydrogen,      &
-            &                                temperaturePostShock ,      &
-            &                                zeroAbundances       ,      &
-            &                                self%radiation              &
-            &                               )
-       coolingFunctionValue=                                                        &
-            &               coolingFunction_%coolingFunction(                       &
-            &                                                numberDensityHydrogen, &
-            &                                                temperaturePostShock , &
-            &                                                zeroAbundances       , &
-            &                                                chemicalDensities    , &
-            &                                                self%radiation         &
-            &                                               )
-       ! Compute the shock stability parameter from Birnboim & Dekel (2003).
-       shockStability=                           &
-            &          megaParsec            **4 &
-            &          /massSolar                &
-            &          *ergs                     &
-            &          /centi                **3 &
-            &          /kilo                 **3 &
-            &          /densityPreShock          &
-            &          *radiusShock              &
-            &          *coolingFunctionValue     &
-            &          /velocityPreShock**3
-       ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
-       ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
-       ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
-       stabilityRatio=self%shockStabilityThreshold/shockStability
-       if (log(stabilityRatio) > self%shockStabilityTransitionWidth*logStabilityRatioMaximum) then
-          coldFraction=0.0d0
-       else
-          coldFraction=                                                               &
-               &        1.0d0                                                         &
-               &        /(                                                            &
-               &           1.0d0                                                      &
-               &          +stabilityRatio**(1.0d0/self%shockStabilityTransitionWidth) &
-               &         )
+       ! Reset calculations if necessary.
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       ! Compute cold fraction if not already computed.
+       if (.not.self%coldFractionComputed) then
+          ! Get required objects.
+          cosmologyParameters_ => cosmologyParameters()
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          chemicalState_       => chemicalState      ()
+          coolingFunction_     => coolingFunction    ()
+          ! Set the radiation field.
+          call self%radiation%set(node)
+          ! Get the basic component.
+          basic => node%basic()
+          ! Compute factors required for stability analysis.
+          radiusShock          =darkMatterHaloScale_%virialRadius  (node)
+          velocityPreShock     =darkMatterHaloScale_%virialVelocity(node)
+          temperaturePostShock =                                            &
+               &                 (3.0d0/16.0d0)                             &
+               &                *atomicMassUnit                             &
+               &                *meanAtomicMassPrimordial                   &
+               &                *(kilo*velocityPreShock)**2                 &
+               &                /boltzmannsConstant
+          densityPreShock      =                                            &
+               &                 (adiabaticIndex-1.0d0)                     &
+               &                /(adiabaticIndex+1.0d0)                     &
+               &                *(3.0d0/4.0d0/Pi)                           &
+               &                *basic               %mass       ()         &
+               &                *cosmologyParameters_%omegaBaryon()         &
+               &                /cosmologyParameters_%omegaMatter()         &
+               &                /radiusShock**3                             &
+               &                /(                                          &
+               &                   1.0d0                                    &
+               &                  +(perturbationInitialExponent+3.0d0)      &
+               &                  *(10.0d0+9.0d0*Pi)                        &
+               &                  /4.0d0                                    &
+               &                 )
+          densityPostShock     =                                            &
+               &                 densityPreShock                            &
+               &                *Shocks_1D_Density_Jump(                    &
+               &                                        adiabaticIndex    , &
+               &                                        machNumberInfinite  &
+               &                                       )
+          numberDensityHydrogen=                                            &
+               &                 massSolar                                  &
+               &                /megaParsec              **3                &
+               &                *centi                   **3                &
+               &                *densityPreShock                            &
+               &                *hydrogenByMassPrimordial                   &
+               &                /atomicMassUnit                             &
+               &                /atomicMassHydrogen
+          call chemicalState_%chemicalDensities(                            &
+               &                                chemicalDensities    ,      &
+               &                                numberDensityHydrogen,      &
+               &                                temperaturePostShock ,      &
+               &                                zeroAbundances       ,      &
+               &                                self%radiation              &
+               &                               )
+          coolingFunctionValue=                                                        &
+               &               coolingFunction_%coolingFunction(                       &
+               &                                                numberDensityHydrogen, &
+               &                                                temperaturePostShock , &
+               &                                                zeroAbundances       , &
+               &                                                chemicalDensities    , &
+               &                                                self%radiation         &
+               &                                               )
+          ! Compute the shock stability parameter from Birnboim & Dekel (2003).
+          shockStability=                           &
+               &          megaParsec            **4 &
+               &          /massSolar                &
+               &          *ergs                     &
+               &          /centi                **3 &
+               &          /kilo                 **3 &
+               &          /densityPreShock          &
+               &          *radiusShock              &
+               &          *coolingFunctionValue     &
+               &          /velocityPreShock**3
+          ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
+          ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
+          ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
+          stabilityRatio=self%shockStabilityThreshold/shockStability
+          if (log(stabilityRatio) > self%shockStabilityTransitionWidth*logStabilityRatioMaximum) then
+             self%coldFractionStored=+0.0d0
+          else
+             self%coldFractionStored=+1.0d0                                                        &
+                  &                  /(                                                            &
+                  &                    +1.0d0                                                      &
+                  &                    +stabilityRatio**(1.0d0/self%shockStabilityTransitionWidth) &
+                  &                   )
+          end if
+          ! Mark cold fraction as computed.
+          self%coldFractionComputed=.true.
        end if
        ! Return the appropriate fraction.
        select case (accretionMode)
        case (accretionModeHot )
-          coldModeColdModeFraction=1.0d0-coldFraction
+          coldModeColdModeFraction=1.0d0-self%coldFractionStored
        case (accretionModeCold)
-          coldModeColdModeFraction=     +coldFraction
+          coldModeColdModeFraction=     +self%coldFractionStored
        case default
           coldModeColdModeFraction=1.0d0
           call Galacticus_Error_Report('coldModeColdModeFraction','unknown accretion mode - this should not happen')
