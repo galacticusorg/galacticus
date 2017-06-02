@@ -72,22 +72,22 @@ contains
     real   , intent(in   ), optional :: absTol         , relTol
     logical                          :: agreeAbsolutely, agreeRelatively
 
-    if (.not.(present(absTol).or.present(relTol))) then
-       Values_Agree_Real=(value1 == value2)
-       return
-    end if
-    if (present(absTol)) then
-       agreeAbsolutely=(abs(value1-value2) <= absTol)
+    if (value1 == value2) then
+       Values_Agree_Real=.true.
     else
-       agreeAbsolutely=.true.
+       if (present(absTol)) then
+          agreeAbsolutely=(abs(value1-value2) <= absTol)
+       else
+          agreeAbsolutely=.true.
+       end if
+       if (present(relTol)) then
+          agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
+       else
+          agreeRelatively=.true.
+       end if
+       Values_Agree_Real=    (present(absTol).and.agreeAbsolutely) &
+            &            .or.(present(relTol).and.agreeRelatively)
     end if
-    if (present(relTol)) then
-       agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
-    else
-       agreeRelatively=.true.
-    end if
-    Values_Agree_Real=    (present(absTol).and.agreeAbsolutely) &
-         &              .or.(present(relTol).and.agreeRelatively)
     return
   end function Values_Agree_Real
 
@@ -99,22 +99,22 @@ contains
     double precision, intent(in   ), optional :: absTol         , relTol
     logical                                   :: agreeAbsolutely, agreeRelatively
 
-    if (.not.(present(absTol).or.present(relTol))) then
-       Values_Agree_Double=(value1 == value2)
-       return
-    end if
-    if (present(absTol)) then
-       agreeAbsolutely=(abs(value1-value2) <= absTol)
+    if (value1 == value2) then
+       Values_Agree_Double=.true.
     else
-       agreeAbsolutely=.true.
+       if (present(absTol)) then
+          agreeAbsolutely=(abs(value1-value2) <= absTol)
+       else
+          agreeAbsolutely=.true.
+       end if
+       if (present(relTol)) then
+          agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
+       else
+          agreeRelatively=.true.
+       end if
+       Values_Agree_Double=    (present(absTol).and.agreeAbsolutely) &
+            &              .or.(present(relTol).and.agreeRelatively)
     end if
-    if (present(relTol)) then
-       agreeRelatively=(abs(value1-value2) <= 0.5d0*abs(value1+value2)*relTol)
-    else
-       agreeRelatively=.true.
-    end if
-    Values_Agree_Double=    (present(absTol).and.agreeAbsolutely) &
-         &              .or.(present(relTol).and.agreeRelatively)
     return
   end function Values_Agree_Double
 
