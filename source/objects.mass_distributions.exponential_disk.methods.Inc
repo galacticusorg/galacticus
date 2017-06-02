@@ -177,13 +177,11 @@ double precision function Mass_Distribution_Exponential_Disk_Surface_Density(sel
   implicit none
   class           (massDistributionExponentialDisk), intent(inout) :: self
   class           (coordinate                     ), intent(in   ) :: coordinates
-  type            (coordinateCylindrical          )                :: position
   double precision                                                 :: r
 
-  ! Get position in cylindrical coordinate system.
-  position=coordinates
-  ! Compute density.
-  r=position%r()/self%scaleRadius
+  ! Get the radial coordinate.
+  r=coordinates%rCylindrical()/self%scaleRadius
+  ! Compute the density.
   Mass_Distribution_Exponential_Disk_Surface_Density=self%surfaceDensityNormalization*exp(-r)
   return
 end function Mass_Distribution_Exponential_Disk_Surface_Density
