@@ -27,12 +27,14 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
   implicit none
   class           (massDistributionBetaProfile), intent(  out)           :: self
   double precision                             , intent(in   )           :: beta
-  double precision                             , intent(in   ), optional :: densityNormalization       , mass      , &
-       &                                                                    outerRadius                , coreRadius
+  double precision                             , intent(in   ), optional :: densityNormalization              , mass                      , &
+       &                                                                    outerRadius                       , coreRadius
   logical                                      , intent(in   ), optional :: isDimensionless
-  double precision                             , parameter               :: radiusTiny          =1.0d-6
+  double precision                             , parameter               :: radiusTiny                  =1.0d-6
   double precision                                                       :: r
   character       (len=64                     )                          :: message
+  double precision                             , save                    :: radiusCoreFractionalPrevious       , normalizationFactorStored
+  !$omp threadprivate(radiusCoreFractionalPrevious,normalizationFactorStored)
 
   ! Store beta parameter.
   self%beta=beta
@@ -52,8 +54,8 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
      if (present(densityNormalization)) then
         if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','densityNormalization should be unity for a dimensionless profile (or simply do not specify a densityNormalization)')
      end if
-     if (present(mass                )) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','mass cannot be specified for a dimensionless profile')
-     if (present(outerRadius         )) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','mass cannot be specified for a dimensionless profile')
+     if (present(mass                )) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize',        'mass cannot be specified for a dimensionless profile')
+     if (present(outerRadius         )) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','outer radius cannot be specified for a dimensionless profile')
      self%coreRadius          =1.0d0
      self%densityNormalization=1.0d0
   else
@@ -72,15 +74,19 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
         r=outerRadius/coreRadius
         if (outerRadius > 0.0d0) then
            if (self%betaIsTwoThirds) then
-              if (r < radiusTiny) then
-                 ! Use a series solution.
-                 self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3*(3.0d0/r**3+9.0d0/5.0d0/r-36.0d0*r/175.0d0)
-              else
-                 ! Use the full solution.
-                 self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3/(r-atan(r))
+              if (r /= radiusCoreFractionalPrevious) then
+                 radiusCoreFractionalPrevious=r
+                 if (r < radiusTiny) then
+                    ! Use a series solution.
+                    normalizationFactorStored=3.0d0/r**3+9.0d0/5.0d0/r-36.0d0*r/175.0d0
+                 else
+                    ! Use the full solution.
+                    normalizationFactorStored=1.0d0/(r-atan(r))
+                 end if
               end if
+              self%densityNormalization=      mass/4.0d0/Pi/coreRadius **3*normalizationFactorStored
            else
-              self   %densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
+              self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
            end if
         else
            call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','unphysical outer radius')
