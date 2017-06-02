@@ -161,7 +161,10 @@ module Root_Finder
 
   type :: rootFinderList
      !% Type used to maintain a list of root finder objects when root finding is performed recursively.
-     class(rootFinder), pointer :: finder
+     class           (rootFinder), pointer :: finder
+     logical                               :: lowInitialUsed, highInitialUsed
+     double precision                      :: xLowInitial   , xHighInitial   , &
+          &                                   fLowInitial   , fHighInitial
   end type rootFinderList
 
   ! List of currently active root finders.
@@ -223,7 +226,7 @@ contains
     logical                                                                       :: rangeChanged          , rangeLowerAsExpected   , rangeUpperAsExpected
     integer                                                                       :: iteration             , statusActual
     double precision                                                              :: xHigh                 , xLow                   , xRoot               , &
-         &                                                                           xRootPrevious
+         &                                                                           xRootPrevious         , fLow                   , fHigh
     type            (c_ptr               )                                        :: parameterPointer
     type            (varying_string      )                                        :: message
     character       (len= 30             )                                        :: label
@@ -277,21 +280,25 @@ contains
        xRoot       =0.5d0*(xLow+xHigh)
        statusActual=FGSL_Root_fdfSolver_Set(self%solverDerivative,self%fgslFunctionDerivative,xRoot)
     else
-       do while (self%finderFunction(xLow)*self%finderFunction(xHigh) > 0.0d0)
+       currentFinders(currentFinderIndex)%lowInitialUsed =.true.
+       currentFinders(currentFinderIndex)%highInitialUsed=.true.
+       fLow =self%finderFunction(xLow )
+       fHigh=self%finderFunction(xHigh)
+       do while (fLow*fHigh > 0.0d0)
           rangeChanged=.false.
           select case (self%rangeExpandDownwardSignExpect)
           case (rangeExpandSignExpectNegative)
-             rangeLowerAsExpected=(self%finderFunction(xLow ) < 0.0d0)
+             rangeLowerAsExpected=(fLow  < 0.0d0)
           case (rangeExpandSignExpectPositive)
-             rangeLowerAsExpected=(self%finderFunction(xLow ) > 0.0d0)
+             rangeLowerAsExpected=(fLow  > 0.0d0)
           case default
              rangeLowerAsExpected=.false.
           end select
           select case (self%rangeExpandUpwardSignExpect  )
           case (rangeExpandSignExpectNegative)
-             rangeUpperAsExpected=(self%finderFunction(xHigh) < 0.0d0)
+             rangeUpperAsExpected=(fHigh < 0.0d0)
           case (rangeExpandSignExpectPositive)
-             rangeUpperAsExpected=(self%finderFunction(xHigh) > 0.0d0)
+             rangeUpperAsExpected=(fHigh > 0.0d0)
           case default
              rangeUpperAsExpected=.false.
           end select
@@ -310,6 +317,7 @@ contains
                   & ) then
                 xHigh=xHigh+self%rangeExpandUpward
                 if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
+                fHigh=self%finderFunction(xHigh)
                 rangeChanged=.true.
              end if
              if     (                                  &
@@ -325,6 +333,7 @@ contains
                   & ) then
                 xLow =xLow +self%rangeExpandDownward
                 if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
+                fLow =self%finderFunction(xLow )
                 rangeChanged=.true.
              end if
           case (rangeExpandMultiplicative)
@@ -353,6 +362,7 @@ contains
                   & ) then
                 xHigh=xHigh*self%rangeExpandUpward
                 if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
+                fHigh=self%finderFunction(xHigh)
                 rangeChanged=.true.
              end if
              if     (                                    &
@@ -380,6 +390,7 @@ contains
                   & ) then
                 xLow =xLow *self%rangeExpandDownward
                 if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
+                fLow =self%finderFunction(xLow )
                 rangeChanged=.true.
              end if
           end select
@@ -421,6 +432,14 @@ contains
              end if
           end if
        end do
+       ! Store the values of the function at the lower and upper extremes of the range.
+       currentFinders(currentFinderIndex)%xLowInitial   = xLow
+       currentFinders(currentFinderIndex)%xHighInitial   =xHigh
+       currentFinders(currentFinderIndex)%fLowInitial    =fLow
+       currentFinders(currentFinderIndex)%fHighInitial   =fHigh
+       currentFinders(currentFinderIndex)%lowInitialUsed =.false.
+       currentFinders(currentFinderIndex)%highInitialUsed=.false.
+       ! Set the initial range for the solver.
        statusActual=FGSL_Root_fSolver_Set(self%solver,self%fgslFunction,xLow,xHigh)
     end if
     ! Set error handler if necessary.
@@ -617,7 +636,17 @@ contains
     real(kind=c_double)        :: Root_Finder_Wrapper_Function
     !GCC$ attributes unused :: parameterPointer
     
-    Root_Finder_Wrapper_Function=currentFinders(currentFinderIndex)%finder%finderFunction(x)
+    ! Attempt to use previously computed solutions if possible.
+    if      (.not.currentFinders(currentFinderIndex)%lowInitialUsed  .and. x == currentFinders(currentFinderIndex)%xLowInitial ) then
+       Root_Finder_Wrapper_Function=currentFinders(currentFinderIndex)%fLowInitial
+       currentFinders(currentFinderIndex)%lowInitialUsed =.true.
+    else if (.not.currentFinders(currentFinderIndex)%highInitialUsed .and. x == currentFinders(currentFinderIndex)%xHighInitial) then
+       Root_Finder_Wrapper_Function=currentFinders(currentFinderIndex)%fHighInitial
+       currentFinders(currentFinderIndex)%highInitialUsed=.true.
+    else
+       ! No previously computed solution available - evaluate the function.
+       Root_Finder_Wrapper_Function=currentFinders(currentFinderIndex)%finder%finderFunction(x)
+    end if
     return
   end function Root_Finder_Wrapper_Function
 
