@@ -50,8 +50,9 @@ module Coordinates
      !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} x\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian  =>Coordinates_Null_To
-     procedure :: fromCartesian=>Coordinates_Null_From
+     procedure :: toCartesian   => Coordinates_Null_To
+     procedure :: fromCartesian => Coordinates_Null_From
+     procedure :: rCylindrical  => Coordinates_Radius_Cylindrical
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
@@ -544,4 +545,21 @@ contains
     return
   end subroutine Coordinates_Cylindrical_Set_Z
 
+  double precision function Coordinates_Radius_Cylindrical(self)
+    implicit none
+    class(coordinate           ), intent(in   ) :: self
+    type (coordinateCylindrical)                :: coordinateCylindrical_
+
+    select type (self)
+    type is (coordinateCylindrical)
+       ! Already in cylindrical coordinates - simply return the radial coordinate.
+       Coordinates_Radius_Cylindrical=self%position(1)
+    class default
+       ! Convert to cylindrical coordinates and then return the radial coordinate.
+       coordinateCylindrical_        =self
+       Coordinates_Radius_Cylindrical=coordinateCylindrical_%position(1)
+    end select
+   return
+  end function Coordinates_Radius_Cylindrical
+  
 end module Coordinates
