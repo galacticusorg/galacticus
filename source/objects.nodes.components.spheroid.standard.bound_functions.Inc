@@ -47,7 +47,8 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   double precision                               , intent(in   )           :: radius
   logical                                        , intent(in   ), optional :: haloLoaded
   double precision                                                         :: fractionalRadius, spheroidRadius
-  type            (stellarLuminosities          )                          :: luminositiesSpheroid
+  type            (stellarLuminosities          ), save                    :: luminositiesSpheroid
+  !$omp threadprivate(luminositiesSpheroid)
   !GCC$ attributes unused :: haloLoaded
   
   ! Return if the spheroid component is not selected.
@@ -155,7 +156,8 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   double precision                               , intent(in   )           :: positionSpherical(3)
   logical                                        , intent(in   ), optional :: haloLoaded
   type            (coordinateSpherical          )                          :: position
-  type            (stellarLuminosities          )                          :: luminositiesSpheroid
+  type            (stellarLuminosities          ), save                    :: luminositiesSpheroid
+  !$omp threadprivate(luminositiesSpheroid)
   !GCC$ attributes unused :: haloLoaded
 
   Node_Component_Spheroid_Standard_Density=0.0d0
