@@ -74,6 +74,17 @@ sub Process_FunctionClass {
 			    $class->{'type'   } = $type;
 			    $class->{'extends'} = $extends;
 			    push(@{$dependencies{$extends}},$type);
+			    # Also determine if any other members of this class are used in this type definition, and add suitable dependencies.
+			    my $childNode = $classNode->{'firstChild'};
+			    while ( $childNode ) {
+				if ( $childNode->{'type'} eq "declaration" ) {
+				    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
+					push(@{$dependencies{$declaration->{'type'}}},$type)
+					    if ( ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) && $declaration->{'type'} =~ m/^$directive->{'name'}/ );
+				    }
+				}
+				$childNode = $childNode->{'sibling'};
+			    }
 			}
 		    }
 		    $classNode = &Galacticus::Build::SourceTree::Walk_Tree($classNode,\$classDepth);
