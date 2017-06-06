@@ -72,16 +72,19 @@ contains
     !% density of star formation rate.
     use Numerical_Constants_Math
     use Numerical_Integration
+    use Star_Formation_Rate_Surface_Density_Disks
     implicit none
-    type            (treeNode                  ), intent(inout), target :: thisNode
-    class           (nodeComponentDisk         ), pointer               :: thisDiskComponent
-    double precision                            , parameter             :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    double precision                                                    :: diskScaleRadius               , gasMass                        , &
-         &                                                                 radiusInner                   , radiusOuter                    , &
-         &                                                                 starFormationRate
-    type            (fgsl_function             )                        :: integrandFunction
-    type            (fgsl_integration_workspace)                        :: integrationWorkspace
-    logical                                                             :: integrationReset
+    type            (treeNode                  ), intent(inout), target         :: thisNode
+    double precision                            , allocatable  , dimension(:,:) :: intervals
+    class           (nodeComponentDisk         ), pointer                       :: thisDiskComponent
+    double precision                            , parameter                     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                                            :: diskScaleRadius               , gasMass                        , &
+         &                                                                         radiusInner                   , radiusOuter                    , &
+         &                                                                         starFormationRate
+    type            (fgsl_function             )                                :: integrandFunction
+    type            (fgsl_integration_workspace)                                :: integrationWorkspace
+    logical                                                                     :: integrationReset
+    integer                                                                     :: i
     
     ! Get the disk properties.
     thisDiskComponent => thisNode%disk()
@@ -97,22 +100,27 @@ contains
        ! Compute suitable limits for the integration.
        radiusInner=diskScaleRadius*radiusInnerDimensionless
        radiusOuter=diskScaleRadius*radiusOuterDimensionless
-       ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.
-       integrationReset=.true.
-       starFormationRate=+2.0d0                                                                                                            &
-            &            *Pi                                                                                                               &
-            &            *Integrate(                                                                                                       &
-            &                       radiusInner                                                                                          , &
-            &                       radiusOuter                                                                                          , &
-            &                       Star_Formation_Rate_Integrand_Surface_Density                                                        , &
-            &                       integrandFunction                                                                                    , &
-            &                       integrationWorkspace                                                                                 , &
-            &                       reset                                        =integrationReset                                       , &
-            &                       toleranceAbsolute                            =0.0d+0                                                 , &
-            &                       toleranceRelative                            =starFormationTimescaleIntegratedSurfaceDensityTolerance, &
-            &                       integrationRule                              =FGSL_Integ_Gauss15                                       &
-            &                      )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       ! Get a set of intervals into which this integral should be broken.
+       intervals=Star_Formation_Rate_Surface_Density_Disk_Intervals(thisNode,radiusInner,radiusOuter)
+       ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.       
+       starFormationRate=0.0d0
+       do i=1,size(intervals,dim=2)       
+          integrationReset=.true.
+          starFormationRate=+starFormationRate                                                                                                &
+               &            +Integrate(                                                                                                       &
+               &                       intervals(1,i)                                                                                       , &
+               &                       intervals(2,i)                                                                                       , &
+               &                       Star_Formation_Rate_Integrand_Surface_Density                                                        , &
+               &                       integrandFunction                                                                                    , &
+               &                       integrationWorkspace                                                                                 , &
+               &                       reset                                        =integrationReset                                       , &
+               &                       toleranceAbsolute                            =0.0d+0                                                 , &
+               &                       toleranceRelative                            =starFormationTimescaleIntegratedSurfaceDensityTolerance, &
+               &                       integrationRule                              =FGSL_Integ_Gauss15                                       &
+               &                      )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+       end do
+       starFormationRate=2.0d0*Pi*starFormationRate
        ! Compute the star formation timescale.
        if (starFormationRate > 0.0d0) then
           Star_Formation_Timescale_Disk_Integrated_SD=gasMass/starFormationRate
