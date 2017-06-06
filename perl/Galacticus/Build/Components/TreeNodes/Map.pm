@@ -57,11 +57,9 @@ sub Tree_Node_Map_Void {
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(self%component{ucfirst($class->{'name'})})) then
-  do i=1,size(self%component{ucfirst($class->{'name'})})
-    call mapFunction(self%component{ucfirst($class->{'name'})}(i))
-  end do
-end if
+do i=1,size(self%component{ucfirst($class->{'name'})})
+  call mapFunction(self%component{ucfirst($class->{'name'})}(i))
+end do
 CODE
     }
     # Insert a type-binding for this function into the treeNode type.
@@ -176,11 +174,9 @@ CODE
 		    @{$code::class->{'members'}} 
 		    ) {	
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(self%component{ucfirst($class->{'name'})})) then
-   do i=1,size(self%component{ucfirst($class->{'name'})})
-      treeNodeMapDouble0=treeNodeMapDouble0{$reductionOperator->{$reduction}}mapFunction(self%component{ucfirst($class->{'name'})}(i))
-   end do
-end if
+do i=1,size(self%component{ucfirst($class->{'name'})})
+  treeNodeMapDouble0=treeNodeMapDouble0{$reductionOperator->{$reduction}}mapFunction(self%component{ucfirst($class->{'name'})}(i))
+end do
 CODE
 		}
             }
@@ -207,17 +203,15 @@ end select
 CODE
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated(self%component{ucfirst($class->{'name'})})) then
-  do i=1,size(self%component{ucfirst($class->{'name'})})
-    componentValue=mapFunction(self%component{ucfirst($class->{'name'})}(i))
-    select case (reduction)
-    case (reductionSummation)
-      treeNodeMapDouble0=treeNodeMapDouble0+componentValue
-    case (reductionProduct  )
-      treeNodeMapDouble0=treeNodeMapDouble0*componentValue
-    end select
-  end do
-end if
+do i=1,size(self%component{ucfirst($class->{'name'})})
+  componentValue=mapFunction(self%component{ucfirst($class->{'name'})}(i))
+  select case (reduction)
+  case (reductionSummation)
+    treeNodeMapDouble0=treeNodeMapDouble0+componentValue
+  case (reductionProduct  )
+    treeNodeMapDouble0=treeNodeMapDouble0*componentValue
+  end select
+end do
 CODE
     }
     if ( $hasOptimizations ) {
