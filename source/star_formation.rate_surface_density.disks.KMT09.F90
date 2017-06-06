@@ -39,11 +39,15 @@ module Star_Formation_Rate_Surface_Density_Disks_KMT09
        &                                           gasMass                                    , hydrogenMassFraction       , &
        &                                           metallicityRelativeToSolar                 , sNormalization             , &
        &                                           sigmaMolecularComplexNormalization
-  !$omp threadprivate(hydrogenMassFraction,gasMass,diskScaleRadius,metallicityRelativeToSolar)
+  type            (treeNode        ), pointer   :: nodeActive
+  !$omp threadprivate(hydrogenMassFraction,gasMass,diskScaleRadius,metallicityRelativeToSolar,nodeActive)
   !$omp threadprivate(chi,sigmaMolecularComplexNormalization,sNormalization)
   ! Parameters of the model.
   double precision                              :: molecularComplexClumpingFactorKMT09        , starFormationFrequencyKMT09
 
+  ! Parameters controlling optimization assumptions.
+  logical                                       :: assumeMonotonicSurfaceDensityKMT09
+  
   ! Pointer the the molecular fraction function that is to be used.
   procedure       (double precision), pointer   :: KMT09_Molecular_Fraction           =>null()
 
@@ -72,17 +76,19 @@ contains
   !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_KMT09_Initialize</unitName>
   !# </starFormationRateSurfaceDensityDisksMethod>
   subroutine Star_Formation_Rate_Surface_Density_Disks_KMT09_Initialize(starFormationRateSurfaceDensityDisksMethod&
-       &,Star_Formation_Rate_Surface_Density_Disk_Get)
+       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get)
     !% Initializes the ``KMT09'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
-    procedure(Star_Formation_Rate_Surface_Density_Disk_KMT09), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
-    logical                                                                           :: molecularFractionFastKMT09
+    type     (varying_string                                          ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
+    procedure(Star_Formation_Rate_Surface_Density_Disk_KMT09          ), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Intervals_Get
+    logical                                                                                     :: molecularFractionFastKMT09
 
     if (starFormationRateSurfaceDensityDisksMethod == 'KMT09') then
-       Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_KMT09
+       Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_KMT09
+       Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09
        ! Get parameters of our model.
        !@ <inputParameter>
        !@   <name>starFormationFrequencyKMT09</name>
@@ -110,7 +116,7 @@ contains
        call Get_Input_Parameter('molecularComplexClumpingFactorKMT09',molecularComplexClumpingFactorKMT09,defaultValue=5.0d0)
        !@ <inputParameter>
        !@   <name>molecularFractionFastKMT09</name>
-       !@   <defaultValue>true</defaultValue>
+       !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@      Selects whether the fast (but less accurate) fitting formula for molecular hydrogen should be used in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
@@ -120,6 +126,18 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('molecularFractionFastKMT09',molecularFractionFastKMT09,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>assumeMonotonicSurfaceDensityKMT09</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@      If true, assume that the surface density in disks is always monotonically decreasing.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>starFormation</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('assumeMonotonicSurfaceDensityKMT09',assumeMonotonicSurfaceDensityKMT09,defaultValue=.false.)
        ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
        select case (molecularFractionFastKMT09)
        case (.true.)
@@ -133,24 +151,15 @@ contains
     return
   end subroutine Star_Formation_Rate_Surface_Density_Disks_KMT09_Initialize
 
-  double precision function Star_Formation_Rate_Surface_Density_Disk_KMT09(thisNode,radius)
-    !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    !% in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the
-    !% \cite{krumholz_star_2009} star formation rule.
+  subroutine KMT09_Compute_Factors(thisNode)
+    !% Compute constant factors needed in the \cite{krumholz_star_2009} star formation rule.
     use Abundances_Structure
-    use Galactic_Structure_Surface_Densities
-    use Galactic_Structure_Options
     use Numerical_Constants_Prefixes
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
-    double precision                   , intent(in   ) :: radius
+    type(treeNode), intent(inout) :: thisNode
     class           (nodeComponentDisk), pointer       :: thisDiskComponent
     type            (abundances       ), save          :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                   , parameter     :: surfaceDensityTransition=85.0d12                                 !   M_Solar/Mpc^2
-    double precision                                   :: surfaceDensityFactor            , molecularFraction                               , &
-         &                                                s                               , sigmaMolecularComplex                           , &
-         &                                                surfaceDensityGas               , surfaceDensityGasDimensionless
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_KMT09_Reset(thisNode)
@@ -174,15 +183,30 @@ contains
        ! Record that factors have now been computed.
        factorsComputed=.true.
     end if
+    return
+  end subroutine KMT09_Compute_Factors
+  
+  double precision function Star_Formation_Rate_Surface_Density_Disk_KMT09(thisNode,radius)
+    !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
+    !% in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the
+    !% \cite{krumholz_star_2009} star formation rule.
+    implicit none
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
+    double precision                          :: surfaceDensityFactor, molecularFraction             , &
+         &                                       s                   , sigmaMolecularComplex         , &
+         &                                       surfaceDensityGas   , surfaceDensityGasDimensionless
+
+    ! Compute factors.
+    call KMT09_Compute_Factors(thisNode)
     ! Check if the disk is physical.
     if (gasMass <= 0.0d0 .or. diskScaleRadius <= 0.0d0) then
        ! It is not, so return zero rate.
        Star_Formation_Rate_Surface_Density_Disk_KMT09=0.0d0
     else
-       ! Get gas surface density.
-       surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
-            &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
-       ! Check for non-positive gas mass.
+       ! Get surface density and related quantities.
+       call KMT09_Surface_Density_Factors(thisNode,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
+        ! Check for non-positive gas mass.
        if (surfaceDensityGas <= 0.0d0) then
           Star_Formation_Rate_Surface_Density_Disk_KMT09=0.0d0
        else
@@ -195,15 +219,13 @@ contains
              molecularFraction    =molecularFractionMinimum
           end if
           ! Compute the cloud density factor.
-          surfaceDensityGasDimensionless=hydrogenMassFraction*surfaceDensityGas/surfaceDensityTransition
           if (surfaceDensityGasDimensionless < 1.0d0) then
              surfaceDensityFactor=surfaceDensityExponentiator%exponentiate(1.0d0/surfaceDensityGasDimensionless)
           else
              surfaceDensityFactor=surfaceDensityExponentiator%exponentiate(      surfaceDensityGasDimensionless)
           end if
           ! Compute the star formation rate surface density.
-          Star_Formation_Rate_Surface_Density_Disk_KMT09=                             &
-               &                                          starFormationFrequencyKMT09 &
+          Star_Formation_Rate_Surface_Density_Disk_KMT09=+starFormationFrequencyKMT09 &
                &                                         *surfaceDensityGas           &
                &                                         *surfaceDensityFactor        &
                &                                         *molecularFraction
@@ -211,6 +233,31 @@ contains
     end if
     return
   end function Star_Formation_Rate_Surface_Density_Disk_KMT09
+  
+  subroutine KMT09_Surface_Density_Factors(thisNode,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
+    !% Compute surface density and related quantities needed for the \cite{krumholz_star_2009} star formation rate model.
+    use Galactic_Structure_Surface_Densities
+    use Galactic_Structure_Options
+    implicit none
+    type            (treeNode), intent(inout) :: thisNode
+    double precision          , intent(in   ) :: radius
+    double precision          , intent(  out) :: surfaceDensityGas               , surfaceDensityGasDimensionless
+    double precision          , parameter     :: surfaceDensityTransition=85.0d12                                 !   M☉/Mpc²
+
+    ! Get gas surface density.
+    surfaceDensityGas=Galactic_Structure_Surface_Density(                                                            &
+         &                                                                 thisNode                                , &
+         &                                                                [radius                     ,0.0d0,0.0d0], &
+         &                                               coordinateSystem= coordinateSystemCylindrical             , &
+         &                                               componentType   = componentTypeDisk                       , &
+         &                                               massType        = massTypeGaseous                           &
+         &                                              )
+    ! Compute the cloud density factor.
+    surfaceDensityGasDimensionless=+hydrogenMassFraction     &
+         &                         *surfaceDensityGas        &
+         &                         /surfaceDensityTransition
+    return
+  end subroutine KMT09_Surface_Density_Factors
 
   double precision function KMT09_Molecular_Fraction_Slow(s)
     !% Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular
@@ -249,4 +296,74 @@ contains
     return
   end function KMT09_Molecular_Fraction_Fast
 
+  function Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09(thisNode,radiusInner,radiusOuter)
+    !% Returns intervals to use for integrating the \cite{krumholz_star_2009} star formation rate over a galactic disk.
+    use Root_Finder
+    implicit none
+    double precision            , allocatable  , dimension(:,:) :: Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09
+    type            (treeNode  ), intent(inout), target         :: thisNode
+    double precision            , intent(in   )                 :: radiusInner      , radiusOuter
+    type            (rootFinder), save                          :: finder
+    !$omp threadprivate(finder)
+    double precision                                            :: surfaceDensityGas, surfaceDensityGasDimensionless, &
+         &                                                         radiusCritical
+
+    ! Check if we can assume a monotonic surface density.
+    if (assumeMonotonicSurfaceDensityKMT09) then
+       ! Compute factors.
+       call KMT09_Compute_Factors(thisNode)
+       ! Test if the inner radius is below the surface density threshold.
+       call KMT09_Surface_Density_Factors(thisNode,radiusInner,surfaceDensityGas,surfaceDensityGasDimensionless)
+       if (surfaceDensityGasDimensionless <= 1.0d0) then
+          ! The entire disk is below the critical surface density so use a single interval.
+          allocate(Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09(2,1))
+          Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09=reshape([radiusInner,radiusOuter],[2,1])
+       else
+          ! Test the surface density at the outer radius.
+          call KMT09_Surface_Density_Factors(thisNode,radiusOuter,surfaceDensityGas,surfaceDensityGasDimensionless)
+          if (surfaceDensityGasDimensionless >= 1.0d0) then
+             ! Entire disk is above the critical surface density threshold so use a single interval.
+             allocate(Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09(2,1))
+             Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09=reshape([radiusInner,radiusOuter],[2,1])
+          else
+             ! The disk transitions the critical surface density - attempt to locate the radius at which this happens and use two
+             ! intervals split at this point.
+             if (.not.finder%isInitialized()) then
+                call finder%rootFunction(KMT09_Critical_Density_Root)
+                call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-4)
+                call finder%rangeExpand(                                                             &
+                     &                  rangeExpandUpward            =2.0d0                        , &
+                     &                  rangeExpandDownward          =0.5d0                        , &
+                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+                     &                  rangeExpandType              =rangeExpandMultiplicative      &
+                     &                 )
+             end if
+             nodeActive => thisNode
+             radiusCritical=finder%find(rootRange=[radiusInner,radiusOuter])
+             allocate(Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09(2,2))
+             Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09=reshape([radiusInner,radiusCritical,radiusCritical,radiusOuter],[2,2])
+             call KMT09_Surface_Density_Factors(thisNode,radiusCritical,surfaceDensityGas,surfaceDensityGasDimensionless)
+          end if
+       end if
+    else
+       ! Disk surface density can not be assumed to be monotonic - use a single interval.
+       allocate(Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09(2,1))
+       Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09=reshape([radiusInner,radiusOuter],[2,1])
+    end if
+    return
+  end function Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09
+
+  double precision function KMT09_Critical_Density_Root(radius)
+    !% Root function used in finding the radius in a disk where the surface density equals the critical surface density in the
+    !% \cite{krumholz_star_2009} star formation rate model.
+    implicit none
+    double precision, intent(in   ) :: radius
+    double precision                :: surfaceDensityGas, surfaceDensityGasDimensionless
+
+    call KMT09_Surface_Density_Factors(nodeActive,radius,surfaceDensityGas,surfaceDensityGasDimensionless)
+    KMT09_Critical_Density_Root=surfaceDensityGasDimensionless-1.0d0
+    return
+  end function KMT09_Critical_Density_Root
+  
 end module Star_Formation_Rate_Surface_Density_Disks_KMT09

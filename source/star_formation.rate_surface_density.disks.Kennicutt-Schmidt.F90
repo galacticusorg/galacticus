@@ -61,17 +61,19 @@ contains
   !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_KS_Initialize</unitName>
   !# </starFormationRateSurfaceDensityDisksMethod>
   subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize(starFormationRateSurfaceDensityDisksMethod&
-       &,Star_Formation_Rate_Surface_Density_Disk_Get)
+       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get)
     !% Initializes the ``Kennicutt-Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
     use Numerical_Constants_Prefixes
     implicit none
-    type     (varying_string                             ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
-    procedure(Star_Formation_Rate_Surface_Density_Disk_KS), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
+    type     (varying_string                                       ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
+    procedure(Star_Formation_Rate_Surface_Density_Disk_KS          ), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_Intervals_KS), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Intervals_Get
 
     if (starFormationRateSurfaceDensityDisksMethod == 'Kennicutt-Schmidt') then
-       Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_KS
+       Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_KS
+       Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
        ! Get parameters of for the timescale calculation.
        !@ <inputParameter>
        !@   <name>starFormationKennicuttSchmidtNormalization</name>
@@ -220,5 +222,18 @@ contains
     end if
     return
   end function Star_Formation_Rate_Surface_Density_Disk_KS
+
+  function Star_Formation_Rate_Surface_Density_Disk_Intervals_KS(thisNode,radiusInner,radiusOuter)
+    !% Returns intervals to use for integrating the Kennicutt-Schmidt star formation rate over a galactic disk.
+    implicit none
+    double precision          , allocatable  , dimension(:,:) :: Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
+    type            (treeNode), intent(inout), target         :: thisNode
+    double precision          , intent(in   )                 :: radiusInner, radiusOuter
+    !GCC$ attributes unused :: thisNode
+
+    allocate(Star_Formation_Rate_Surface_Density_Disk_Intervals_KS(2,1))
+    Star_Formation_Rate_Surface_Density_Disk_Intervals_KS=reshape([radiusInner,radiusOuter],[2,1])
+    return
+  end function Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
 
 end module Star_Formation_Rate_Surface_Density_Disks_KS
