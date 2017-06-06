@@ -159,7 +159,7 @@ contains
     ! Compute the baryonic contribution to the rotation curve.
     if (computeGradientFactors) then
        componentRotationCurveGradient => Component_Rotation_Curve_Gradient
-       rotationCurveSquaredGradient   =currentNode%mapDouble0(componentRotationCurveGradient,reductionSummation)
+       rotationCurveSquaredGradient   =currentNode%mapDouble0(componentRotationCurveGradient,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
        !# <include directive="rotationCurveGradientTask" name="radiusSolverRotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentVelocitySquaredGradient">
        !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</exclude>
        !#  <functionArgs>node,radiusFinalMean,componentType,massType,haloLoaded</functionArgs>

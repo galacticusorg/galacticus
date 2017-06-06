@@ -205,6 +205,7 @@ sub Build_Node_Component_Class {
 	     name        => "rotationCurveGradient"                                                                                ,
 	     function    => "Node_Component_Rotation_Curve_Gradient_Null"                                                          ,
 	     description => "Compute the rotation curve gradient."                                                                 ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 }

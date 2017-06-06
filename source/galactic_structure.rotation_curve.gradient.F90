@@ -71,7 +71,7 @@ contains
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
     ! d(V^2)/dr so that they can be summed directly.
     componentRotationCurveGradientFunction => Component_Rotation_Curve_Gradient
-    Galactic_Structure_Rotation_Curve_Gradient=thisNode%mapDouble0(componentRotationCurveGradientFunction,reductionSummation)
+    Galactic_Structure_Rotation_Curve_Gradient=thisNode%mapDouble0(componentRotationCurveGradientFunction,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
     !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentRotationCurveGradient">
     !#  <functionArgs>thisNode,radiusShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
