@@ -284,9 +284,6 @@ contains
                 
                 ! Get the basic component of the node.
                 basic => node%basic()
-                
-                ! Initialize timestep for this node to an unphysical value so that it will be reset by the ODE evolver.
-                call node%timeStepSet(-1.0d0)
                    
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
                 treeWalkLoop: do while (associated(node))
@@ -440,17 +437,8 @@ contains
                       end if
                       ! Determine the next node to process.
                       if (.not.nextNodeFound) then
-                         ! If the node still exists and advanced forward in time, attempt to evolve it again.
-                         if (associated(node).and.nodeProgressed) then
-                            ! Set the next node pointer back to the current node so that we will evolve it again. Also, increase
-                            ! the timestep - hueristically this seems to give us small reductions in the number of ODE rate
-                            ! evaluations that must be made.
-                            nodeNext => node
-                            call node%timeStepSet(2.0d0*node%timeStep())
-                         else
-                            ! We will move to evolving the next node in the tree. If such exists, reset its timestep.
-                            if (associated(nodeNext)) call nodeNext%timeStepSet(-1.0d0)
-                         end if
+                         ! If the node still exists and advanced forward in time, attempt to evolve it again. Set the next node pointer back to the current node so that we will evolve it again.
+                         if (associated(node).and.nodeProgressed) nodeNext => node
                       end if                      
                    else
                       if (deadlockStatus == deadlockStatusIsReporting) then
