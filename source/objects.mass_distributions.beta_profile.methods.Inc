@@ -92,20 +92,22 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
            call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','unphysical outer radius')
         end if
         ! Assert that the mass within the outer radius equals that specified.
-        if (.not.Values_Agree(self%massEnclosedBySphere(outerRadius),mass,relTol=1.0d-6,absTol=tiny(0.0d0))) then
-           call Galacticus_Display_Indent('beta-profile parameters:')
-           write (message,'(a,e12.6)') '    coreRadius: ',coreRadius
-           call Galacticus_Display_Message(message)
-           write (message,'(a,e12.6)') '   outerRadius: ',outerRadius
-           call Galacticus_Display_Message(message)
-           write (message,'(a,e12.6)') '          mass: ',mass
-           call Galacticus_Display_Message(message)
-           write (message,'(a,e12.6)') '          beta: ',beta
-           call Galacticus_Display_Message(message)
-           write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(outerRadius)
-           call Galacticus_Display_Message(message)
-           call Galacticus_Display_Unindent('done')
-           call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','profile normalization failed')
+        if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+           if (.not.Values_Agree(self%massEnclosedBySphere(outerRadius),mass,relTol=1.0d-6,absTol=tiny(0.0d0))) then
+              call Galacticus_Display_Indent('beta-profile parameters:')
+              write (message,'(a,e12.6)') '    coreRadius: ',coreRadius
+              call Galacticus_Display_Message(message)
+              write (message,'(a,e12.6)') '   outerRadius: ',outerRadius
+              call Galacticus_Display_Message(message)
+              write (message,'(a,e12.6)') '          mass: ',mass
+              call Galacticus_Display_Message(message)
+              write (message,'(a,e12.6)') '          beta: ',beta
+              call Galacticus_Display_Message(message)
+              write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(outerRadius)
+              call Galacticus_Display_Message(message)
+              call Galacticus_Display_Unindent('done')
+              call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','profile normalization failed')
+           end if
         end if
      end if
   end if
