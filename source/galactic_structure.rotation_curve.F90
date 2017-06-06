@@ -68,7 +68,7 @@ contains
     radiusShared=radius
     ! Call routines to supply the velocities for all components.
     componentRotationCurveFunction => Component_Rotation_Curve
-    rotationCurveSquared=thisNode%mapDouble0(componentRotationCurveFunction,reductionSummation)
+    rotationCurveSquared=thisNode%mapDouble0(componentRotationCurveFunction,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
     !# <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
     !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>

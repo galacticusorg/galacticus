@@ -101,7 +101,7 @@ contains
 
     ! Call routines to supply the densities for all components.
     componentDensityFunction => Component_Density
-    Galactic_Structure_Density=thisNode%mapDouble0(componentDensityFunction,reductionSummation)
+    Galactic_Structure_Density=thisNode%mapDouble0(componentDensityFunction,reductionSummation,optimizeFor=optimizeForDensitySummation)
     !# <include directive="densityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
     !#  <functionArgs>thisNode,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>

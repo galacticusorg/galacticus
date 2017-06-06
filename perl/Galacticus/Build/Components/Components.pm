@@ -169,6 +169,7 @@ sub Build_Node_Component_Class {
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
 	     description => "Compute the density."                                                                                 ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionSpherical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
@@ -186,6 +187,7 @@ sub Build_Node_Component_Class {
 	     name        => "potential"                                                                                            ,
 	     function    => "Node_Component_Potential_Null"                                                                        ,
 	     description => "Compute the gravitational potential."                                                                 ,
+	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
 	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
