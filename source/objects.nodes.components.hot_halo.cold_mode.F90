@@ -291,8 +291,7 @@ contains
                   &  .and.                                                                                               &
                   &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
                   & ) then
-                ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
-                ! stripping radius on the halo dynamical timescale.
+                ! The ram pressure stripping radius is within the outer radius. Remove mass from the cold mode halo at the appropriate rate.
                 densityAtOuterRadius = Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous,haloLoaded=.true.)
                 ! Compute the mass loss rate.
                 massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
@@ -306,7 +305,7 @@ contains
                 ! Mass.
                 call hotHalo%       strippedMassRate(-                              massLossRate        ,interrupt,interruptProcedure)
                 ! Metal abundances.
-                call hotHalo% strippedAbundancesRate(-hotHalo%abundances         ()*massLossRate/gasMass,interrupt,interruptProcedure)
+                call hotHalo% strippedAbundancesRate(-hotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
              end if
           end if
        end select
