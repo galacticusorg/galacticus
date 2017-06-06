@@ -60,7 +60,7 @@ contains
     end if
     ! Compute the contribution from components directly, by mapping a function over all components.
     componentEnclosedMass => Component_Enclosed_Mass
-    Galactic_Structure_Enclosed_Mass=thisNode%mapDouble0(componentEnclosedMass,reductionSummation)
+    Galactic_Structure_Enclosed_Mass=thisNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
     ! Call routines to supply the masses for all components.
     !# <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
     !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>

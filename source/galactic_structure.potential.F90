@@ -80,7 +80,7 @@ contains
        darkMatterHaloScale_ => darkMatterHaloScale()
        radiusShared         =  darkMatterHaloScale_%virialRadius(thisNode)
        statusShared         =  structureErrorCodeSuccess
-       Galactic_Structure_Potential=thisNode%mapDouble0(componentPotentialFunction,reductionSummation)
+       Galactic_Structure_Potential=thisNode%mapDouble0(componentPotentialFunction,reductionSummation,optimizeFor=optimizeForPotentialSummation)
        if (statusShared /= structureErrorCodeSuccess) status=statusShared
        !# <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
        !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared,status</functionArgs>
@@ -107,7 +107,7 @@ contains
     ! Compute the potential offset such that the total gravitational potential at the virial radius is -V^2 where V is the virial
     ! velocity.
     statusShared=structureErrorCodeSuccess
-    Galactic_Structure_Potential=+thisNode%mapDouble0(componentPotentialFunction,reductionSummation) &
+    Galactic_Structure_Potential=+thisNode%mapDouble0(componentPotentialFunction,reductionSummation,optimizeFor=optimizeForPotentialSummation) &
          &                       +potentialOffset
     if (statusShared /= structureErrorCodeSuccess) status=statusShared
     include 'galactic_structure.potential.tasks.inc'    
