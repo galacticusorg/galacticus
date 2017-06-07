@@ -49,6 +49,12 @@ module Coordinates
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} x\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>rCylindrical</method>
+     !@     <description>Return the cylindrical radial coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: toCartesian   => Coordinates_Null_To
      procedure :: fromCartesian => Coordinates_Null_From
