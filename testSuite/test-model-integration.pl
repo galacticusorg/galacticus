@@ -3,53 +3,344 @@ use strict;
 use warnings;
 use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
+use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
-use Galacticus::HDF5;
+use PDL::Stats::Basic;
 use Stats::Histograms;
+use Stats::Percentiles;
+use Galacticus::HDF5;
+use Galacticus::StellarMass;
+use Galacticus::GasMass;
+use Galacticus::Options;
+use Galacticus::Launch::PBS;
 
-# Run a default Galacticus model as an integration test.
+# Run Galacticus models for integration testing.
 # Andrew Benson (05-December-2014)
 
-# Run the model.
-system("cd ..; scripts/aux/launch.pl testSuite/test-model-integration.xml");
+# Get arguments.
+my %options = (
+    calibrate           => "no",
+    calibrateCount      => 100 ,
+    calibratePercentile => 1.0
+    );
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
-# Create mass function bins.
-my $xBins = pdl sequence(10)/2.0+8.0;
-
-# Create data structure to read the results.
-my $dataSet;
-$dataSet->{'file' } = "outputs/test-model-integration/galacticus_0:1/galacticus.hdf5";
-$dataSet->{'store'} = 0;
-$dataSet->{'tree' } = "all";
-&Galacticus::HDF5::Get_Parameters($dataSet    );
-&Galacticus::HDF5::Get_Times     ($dataSet    );
-&Galacticus::HDF5::Select_Output ($dataSet,0.0);
-&Galacticus::HDF5::Count_Trees   ($dataSet    );
-&Galacticus::HDF5::Get_Dataset($dataSet,['mergerTreeWeight','diskMassStellar','spheroidMassStellar']);
-my $dataSets               = $dataSet->{'dataSets'};
-my $logarithmicMassStellar = log10($dataSets->{'diskMassStellar'}+$dataSets->{'spheroidMassStellar'});
-my $weight                 = $dataSets->{'mergerTreeWeight'};
-(my $massFunction, my $error) = &Stats::Histograms::Histogram($xBins,$logarithmicMassStellar,$weight,differential => 1);
-$massFunction /= log(10.0);
-$error        /= log(10.0);
+# Specify test statistics to compute.
+my @tests =
+    (
+     {
+	 name  => "halo mass function z=0.0",
+	 label => "massFunctionHalo",
+	 test  => \&massFunctionHalo
+     },
+     {
+	 name  => "stellar mass function z=0.0",
+	 label => "massFunctionStellar",
+	 test  => \&massFunctionStellar
+     },
+     {
+	 name  => "ISM gas mass function z=0.0",
+	 label => "massFunctionISM",
+	 test  => \&massFunctionISM
+     },
+     {
+	 name  => "median disk sizes z=0.0",
+	 label => "medianSizes",
+	 test  => \&medianSizes
+     },
+    );
 
 # Get Mercurial revision.
-my $hgRevision = "Unknown";
+my $mercurialRevision = "Unknown";
 open(my $hgHndl,"hg tip|");
 while ( my $line = <$hgHndl> ) {
-    if ( $line =~ m/^changeset:\s+(\d+)/ ) {
-	$hgRevision = $1;
+    if ( $line =~ m/^changeset:\s+([\d:]+)/ ) {
+	$mercurialRevision = $1;
     }
 }
 close($hgHndl);
 
-# Output the mass function.
-system("mkdir -p testSuite/archive/integration");
-open(my $outputFile,">testSuite/archive/integration/stellarMassFunctionZ0.000_r".$hgRevision.".txt");
-for(my $i=0;$i<nelem($xBins);++$i) {
-    print $outputFile $i."\t".$xBins->(($i))."\t".$massFunction->(($i))."\t".$error->(($i))."\n";
-}
-close($outputFile);
+# Choose a random seed.
+my $randomSeed = int(rand(1000));
 
-exit;
+# Get PBS configuration and determine number of threads.
+my $pbsConfig = &Galacticus::Options::Config("pbs");
+my $ppn       = exists($pbsConfig->{'ppn'}) ? $pbsConfig->{'ppn'} : 1;
+
+# Find integration models to run.
+opendir(my $testSuite,".");
+while ( my $fileName = readdir($testSuite) ) {
+    # Skip non-model integration files.
+    next
+	unless ( $fileName =~ m/^test\-model\-integration\-([a-zA-Z0-9]+)\.xml$/ );
+    my $modelName = $1;
+
+    
+    ## AJB HACK
+    next unless ( $fileName =~ m/default/ );
+
+
+    
+    # Iterate over realizations.
+    my @pbsJobs;
+    for(my $i=0;$i<($options{'calibrate'} eq "yes" ? $options{'calibrateCount'} : 1);++$i) {
+    	# Run the model.
+    	print "--> Generating model '".$modelName."' ".($options{'calibrate'} eq "yes" ? "[realization: ".$i."]" : "")." for model integration testing...\n";
+    	print "   --> ".($options{'calibrate'} eq "yes" ? "Queueing" : "Running")." model...\n";
+    	system("mkdir -p outputs/test-model-integration/".$modelName.($options{'calibrate'} eq "yes" ? $i : ""));
+    	my $xml = new XML::Simple();
+    	my $parameters = $xml->XMLin($fileName);
+    	if ( $options{'calibrate'} eq "yes" ) {
+    	    $parameters->{'galacticusOutputFileName'}->{'value'} = "testSuite/outputs/test-model-integration/".$modelName.$i."/galacticus.hdf5";
+    	    $parameters->{'randomSeed'              }->{'value'} = $randomSeed+$i;
+    	} else {
+    	    $parameters->{'galacticusOutputFileName'}->{'value'} = "testSuite/outputs/test-model-integration/".$modelName   ."/galacticus.hdf5";
+    	    $parameters->{'randomSeed'              }->{'value'} = $randomSeed;
+    	}
+    	open(my $parameterFile,">outputs/test-model-integration/".$modelName.($options{'calibrate'} eq "yes" ? $i : "")."/parameters.xml");
+    	print $parameterFile $xml->XMLout($parameters, RootName => "parameters");
+    	close($parameterFile);
+    	if ( $options{'calibrate'} eq "yes" ) {
+    	    my %job =
+    		(
+    		 launchFile   => "outputs/test-model-integration/".$modelName.$i."/launch.pbs",
+    		 label        => $modelName.$i,
+    		 logFile      => "outputs/test-model-integration/".$modelName.$i."/launch.log",
+    		 command      => "cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName.$i."/parameters.xml",
+    		 ppn          => $ppn
+    		);
+    	    push(@pbsJobs,\%job);
+    	} else {
+## AJB HACK    	    system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml");
+    	}
+    	print "   <-- ...done\n";
+    	print "<-- ...done\n";
+    }
+    &Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsJobs)
+    	if ( $options{'calibrate'} eq "yes" );
+    # If calibrating, aggregate statistics and compute means and variances.
+    if ( $options{'calibrate'} eq "yes" ) {
+	foreach my $test ( @tests ) {
+	    print "--> Calibrating test '".$test->{'name'}."'...\n";
+	    my $calibration;
+	    for(my $i=0;$i<$options{'calibrateCount'};++$i) {
+		(my $values) = rcols("outputs/test-model-integration/".$modelName.$i."/".$test->{'label'}."_r".$mercurialRevision.".txt",1);
+		$calibration = pdl zeroes($options{'calibrateCount'},nelem($values))
+		    unless ( defined($calibration) );
+		$calibration->(($i),:) .= $values;
+	    }
+	    my $percentiles       = pdl [ $options{'calibratePercentile'}, 50.0, 100.0-$options{'calibratePercentile'} ];
+	    my $calibrationMedian = pdl zeros($calibration->dim(1));
+	    my $calibrationLow    = pdl zeros($calibration->dim(1));
+	    my $calibrationHigh   = pdl zeros($calibration->dim(1));
+	    for(my $i=0;$i<nelem($calibrationLow);++$i) {
+		my $rank       = $calibration->(:,($i))->qsorti();
+		my $percentile = pdl 100.0*(sequence($options{'calibrateCount'})+1.0)/$options{'calibrateCount'};
+		(my $interpolants) = interpolate($percentiles,$percentile,$calibration->($rank,($i)));
+		$calibrationLow   ->(($i)) .= $interpolants->((0));
+		$calibrationMedian->(($i)) .= $interpolants->((1));
+		$calibrationHigh  ->(($i)) .= $interpolants->((2));
+	    }
+	    open(my $calibrationFile,">data/model-integration/".$test->{'label'}."_".$modelName.".txt");
+	    print $calibrationFile "# Model integration test: ".$test->{'name'}." [mercurial revision: ".$mercurialRevision."]\n";
+	    for(my $i=0;$i<nelem($calibrationLow);++$i) {
+		print $calibrationFile $i."\t".$calibrationLow->(($i))."\t".$calibrationMedian->(($i))."\t".$calibrationHigh->(($i))."\n";
+	    }
+	    close($calibrationFile);
+	    print "<-- ...done\n";
+	}
+    } else {
+	# Test models.
+	my $failureTotal;
+	my $testTotal;
+	for(my $i=0;$i<($options{'calibrate'} eq "yes" ? $options{'calibrateCount'} : 1);++$i) {
+	    # Generate test statistics.
+	    print "--> Testing model '".$modelName."' ".($options{'calibrate'} eq "yes" ? "[realization: ".$i."]" : "")." for model integration testing...\n";
+	    foreach my $test ( @tests ) {
+		print "   --> Test '".$test->{'name'}."'...\n";
+		(my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName.($options{'calibrate'} eq "yes" ? $i : ""),$test->{'label'},$mercurialRevision);
+		$failureTotal += $failureCount;
+		$testTotal    += $testCount;
+		print "   --> failure rate: ".$failureCount."/".$testCount."\n";
+	    }
+	    print "<-- ...done\n";
+	}
+	# Compute probability of failure count.
+	my $probabilityFailure = 2.0*$options{'calibratePercentile'}/100.0;
+	my $probability        = 0.0;
+	for(my $k=0;$k<=$failureTotal;++$k) {
+	    $probability += &binomialCoefficient($testTotal,$k)*$probabilityFailure**$k*(1.0-$probabilityFailure)**($testTotal-$k);
+	}
+	print "Probability of this number or fewer failures = ".$probability."\n";
+	my $probabilityExcess = 1.0-$probability;
+	print "Status: ".($probabilityExcess < 0.02 ? "FAILED" : "success")."\n";
+    }
+}
+closedir($testSuite);    
+exit 0;
+
+sub binomialCoefficient {
+    # Return the binomial coefficient (k,n).
+    my $r=1;$r*=$_/($_[0]-$_+1)for(1+pop..$_[0]);$r
+}
+
+sub massFunctionHalo {
+    my $modelName          = shift();
+    my $modelDirectoryName = shift();
+    my $label              = shift();
+    my $mercurialRevision  = shift();
+    # Create mass function bins.
+    my $massHaloLogarithmicBins = pdl sequence(10)/2.0+9.0;
+    # Create data structure to read the results.
+    my $model;
+    $model->{'file' } = $modelDirectoryName."/galacticus.hdf5";
+    $model->{'store'} = 0;
+    $model->{'tree' } = "all";
+    &Galacticus::HDF5::Get_Parameters($model    );
+    &Galacticus::HDF5::Get_Times     ($model    );
+    &Galacticus::HDF5::Select_Output ($model,0.0);
+    &Galacticus::HDF5::Count_Trees   ($model    );
+    &Galacticus::HDF5::Get_Dataset($model,['mergerTreeWeight','basicMass']);
+    my $massHaloLogarithmic = log10($model->{'dataSets'}->{'basicMass'});
+    my $weight                 = $model->{'dataSets'}->{'mergerTreeWeight'};
+    (my $massFunction, my $massFunctionError) = &Stats::Histograms::Histogram($massHaloLogarithmicBins,$massHaloLogarithmic,$weight,differential => 1);
+    $massFunction      /= log(10.0);
+    $massFunctionError /= log(10.0);
+    # Output the mass function.
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
+    print $outputFile "# Model integration test: Halo mass function at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    for(my $i=0;$i<nelem($massHaloLogarithmicBins);++$i) {
+	print $outputFile $i."\t".$massFunction->(($i))."\n";
+    }
+    close($outputFile);
+    # Read the reference dataset.
+    my $referenceDataFileName = "data/model-integration/".$label."_".$modelName.".txt";
+    if ( -e $referenceDataFileName ) {
+	(my $referenceLow, my $referenceHigh) = rcols($referenceDataFileName,1,3);
+	my $failures = which(($massFunction < $referenceLow*(1.0-1.0e-6)) | ($massFunction > $referenceHigh*(1.0+1.0e-6)));
+	return ( nelem($failures), nelem($massFunction) );
+    } else {
+	return ( 0               , nelem($massFunction) );
+    }
+}
+
+sub massFunctionStellar {
+    my $modelName          = shift();
+    my $modelDirectoryName = shift();
+    my $label              = shift();
+    my $mercurialRevision  = shift();
+    # Create mass function bins.
+    my $massStellarLogarithmicBins = pdl sequence(10)/2.0+8.0;
+    # Create data structure to read the results.
+    my $model;
+    $model->{'file' } = $modelDirectoryName."/galacticus.hdf5";
+    $model->{'store'} = 0;
+    $model->{'tree' } = "all";
+    &Galacticus::HDF5::Get_Parameters($model    );
+    &Galacticus::HDF5::Get_Times     ($model    );
+    &Galacticus::HDF5::Select_Output ($model,0.0);
+    &Galacticus::HDF5::Count_Trees   ($model    );
+    &Galacticus::HDF5::Get_Dataset($model,['mergerTreeWeight','massStellar']);
+    my $massStellarLogarithmic = log10($model->{'dataSets'}->{'massStellar'});
+    my $weight                 = $model->{'dataSets'}->{'mergerTreeWeight'};
+    (my $massFunction, my $massFunctionError) = &Stats::Histograms::Histogram($massStellarLogarithmicBins,$massStellarLogarithmic,$weight,differential => 1);
+    $massFunction      /= log(10.0);
+    $massFunctionError /= log(10.0);
+    # Output the mass function.
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
+    print $outputFile "# Model integration test: Stellar mass function at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    for(my $i=0;$i<nelem($massStellarLogarithmicBins);++$i) {
+	print $outputFile $i."\t".$massFunction->(($i))."\n";
+    }
+    close($outputFile);
+    # Read the reference dataset.
+    my $referenceDataFileName = "data/model-integration/".$label."_".$modelName.".txt";
+    if ( -e $referenceDataFileName ) {
+	(my $referenceLow, my $referenceHigh) = rcols($referenceDataFileName,1,3);
+	my $failures = which(($massFunction < $referenceLow*(1.0-1.0e-6)) | ($massFunction > $referenceHigh*(1.0+1.0e-6)));
+	return ( nelem($failures), nelem($massFunction) );
+    } else {
+	return ( 0               , nelem($massFunction) );
+    }
+}
+
+sub massFunctionISM {
+    my $modelName          = shift();
+    my $modelDirectoryName = shift();
+    my $label              = shift();
+    my $mercurialRevision  = shift();
+    # Create mass function bins.
+    my $massColdGasLogarithmicBins = pdl sequence(10)/2.0+6.0;
+    # Create data structure to read the results.
+    my $model;
+    $model->{'file' } = $modelDirectoryName."/galacticus.hdf5";
+    $model->{'store'} = 0;
+    $model->{'tree' } = "all";
+    &Galacticus::HDF5::Get_Parameters($model    );
+    &Galacticus::HDF5::Get_Times     ($model    );
+    &Galacticus::HDF5::Select_Output ($model,0.0);
+    &Galacticus::HDF5::Count_Trees   ($model    );
+    &Galacticus::HDF5::Get_Dataset($model,['mergerTreeWeight','massColdGas']);
+    my $massColdGasLogarithmic = log10($model->{'dataSets'}->{'massColdGas'});
+    my $weight                 = $model->{'dataSets'}->{'mergerTreeWeight'};
+    (my $massFunction, my $massFunctionError) = &Stats::Histograms::Histogram($massColdGasLogarithmicBins,$massColdGasLogarithmic,$weight,differential => 1);
+    $massFunction      /= log(10.0);
+    $massFunctionError /= log(10.0);
+    # Output the mass function.
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
+    print $outputFile "# Model integration test: ISM mass function at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    for(my $i=0;$i<nelem($massColdGasLogarithmicBins);++$i) {
+	print $outputFile $i."\t".$massFunction->(($i))."\n";
+    }
+    close($outputFile);
+    # Read the reference dataset.
+    my $referenceDataFileName = "data/model-integration/".$label."_".$modelName.".txt";
+    if ( -e $referenceDataFileName ) {
+	(my $referenceLow, my $referenceHigh) = rcols($referenceDataFileName,1,3);
+	my $failures = which(($massFunction < $referenceLow*(1.0-1.0e-6)) | ($massFunction > $referenceHigh*(1.0+1.0e-6)));
+	return ( nelem($failures), nelem($massFunction) );
+    } else {
+	return ( 0               , nelem($massFunction) );
+    }
+}
+
+sub medianSizes {
+    my $modelName          = shift();
+    my $modelDirectoryName = shift();
+    my $label              = shift();
+    my $mercurialRevision  = shift();
+    # Create mass function bins.
+    my $massStellarLogarithmicBins = pdl sequence(10)/2.0+8.0;
+    # Create data structure to read the results.
+    my $model;
+    $model->{'file' } = $modelDirectoryName."/galacticus.hdf5";
+    $model->{'store'} = 0;
+    $model->{'tree' } = "all";
+    &Galacticus::HDF5::Get_Parameters($model    );
+    &Galacticus::HDF5::Get_Times     ($model    );
+    &Galacticus::HDF5::Select_Output ($model,0.0);
+    &Galacticus::HDF5::Count_Trees   ($model    );
+    &Galacticus::HDF5::Get_Dataset($model,['mergerTreeWeight','massStellar','diskRadius']);
+    my $size                   =       $model->{'dataSets'}->{'diskRadius'      } ;
+    my $massStellarLogarithmic = log10($model->{'dataSets'}->{'massStellar'     });
+    my $weight                 =       $model->{'dataSets'}->{'mergerTreeWeight'};
+    my $percentiles            = pdl [50.0];
+    my $quantiles              = &Stats::Percentiles::BinnedPercentiles($massStellarLogarithmicBins,$massStellarLogarithmic,$size,$weight,$percentiles);
+    # Output the size distribution.
+    open(my $outputFile,">".$modelDirectoryName."/".$label."_r".$mercurialRevision.".txt");
+    print $outputFile "# Model integration test: Median disk sizes at z=0.0 [mercurial revision: ".$mercurialRevision."]\n";
+    for(my $i=0;$i<nelem($massStellarLogarithmicBins);++$i) {
+    	print $outputFile $i."\t".$quantiles->(($i),(0))."\n";
+    }
+    close($outputFile);
+    # Read the reference dataset.
+    my $referenceDataFileName = "data/model-integration/".$label."_".$modelName.".txt";
+    if ( -e $referenceDataFileName ) {
+	(my $referenceLow, my $referenceHigh) = rcols($referenceDataFileName,1,3);
+	my $failures = which(($quantiles->(:,(0)) < $referenceLow*(1.0-1.0e-6)) | ($quantiles->(:,(0)) > $referenceHigh*(1.0+1.0e-6)));
+	return ( nelem($failures), $quantiles->dim(0) );
+    } else {
+	return ( 0               , $quantiles->dim(0) );
+    }
+}
