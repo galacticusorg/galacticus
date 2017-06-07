@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<parameters formatVersion="2" version="0.9.4">
+  <!-- Beta model maximum likelihood model -->
+  
+  <!-- Logging -->
+  <verbosityLevel value="1"/>
+  
+  <!-- Cosmological model -->
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="66.5775039090067"/>
+    <OmegaBaryon value="0.0504247391487887"/>
+    <OmegaDarkEnergy value="0.672069962505004"/>
+    <OmegaMatter value="0.327930037494996"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod>
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  
+  <!-- Power spectrum -->
+  <powerSpectrumMethod value="standard"/>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index value="0.960052033479219"/>
+    <running value="0.0"/>
+    <wavenumberReference value="1.0"/>
+  </powerSpectrumPrimordialMethod>
+  <transferFunctionMethod value="eisensteinHu1999">
+    <neutrinoMassSummed value="0.0"/>
+    <neutrinoNumberEffective value="3.04"/>
+  </transferFunctionMethod>
+  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.823771931244257"/>
+    <tolerance value="1.0e-7"/>
+  </cosmologicalMassVarianceMethod>
+  <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
+  
+  <!-- Structure formation -->
+  <linearGrowthMethod value="simple"/>
+  <criticalOverdensityMethod value="kitayamaSuto1996"/>
+  <virialDensityContrastMethod value="percolation"/>
+  <virialDensityContrastPercolationLinkingLength value="0.2"/>
+  <haloMassFunctionMethod value="simpleSystematic">
+    <alpha value="-0.0771698265886211"/>
+    <beta value="0.0687959490593511"/>
+    <haloMassFunctionMethod value="tinker2008"/>
+  </haloMassFunctionMethod>
+  <gravitationalLensingMethod value="takahashi2011"/>
+  
+  <!-- Intergalactic medium and reionization -->
+  <reionizationSuppressionOpticalDepth value="0.0586876996811808"/>
+  <intergalacticMediumStateMethod value="instantReionization">
+    <electronScatteringOpticalDepth value="0.0586876996811808"/>
+    <intergalacticMediumStateMethod value="file">
+      <fileName value="data/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
+    </intergalacticMediumStateMethod>
+    <presentDayTemperature value="6740.8086092437970"/>
+    <reionizationTemperature value="9641.9553322180927"/>
+  </intergalacticMediumStateMethod>
+  
+  <!-- Tree node component selection -->
+  <treeNodeMethodBasic value="standardExtended"/>
+  <treeNodeMethodBlackHole value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
+  <treeNodeMethodDisk value="verySimpleSize"/>
+  <treeNodeMethodHotHalo value="verySimpleDelayed"/>
+  <treeNodeMethodSatellite value="verySimple"/>
+  <treeNodeMethodSpheroid value="null"/>
+  <treeNodeMethodSpin value="random"/>
+  <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
+  
+  <!-- Merger tree construction -->
+  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeBuilderMethod value="cole2000">
+    <accretionLimit value="0.1"/>
+    <branchIntervalStep value="true"/>
+    <mergeProbability value="0.1"/>
+    <randomSeedsFixed value="true"/>
+    <redshiftMaximum value="10.0"/>
+  </mergerTreeBuilderMethod>
+  <mergerTreeMassResolutionMethod value="scaled">
+    <massResolutionFractional value="0.00005"/>
+    <massResolutionMinimum value="1.0e6"/>
+  </mergerTreeMassResolutionMethod>
+  <mergerTreeBuildHaloMassMaximum value="1.0e13"/>
+  <mergerTreeBuildHaloMassMinimum value="1.0e09"/>
+  <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
+  <mergerTreeBuildTreesPerDecade value="100"/>
+  <treeBranchingMethod value="modifiedPress-Schechter"/>
+  <modifiedPressSchechterFirstOrderAccuracy value="0.025"/>
+  <modifiedPressSchechterG0 value="0.57"/>
+  <modifiedPressSchechterGamma1 value="0.38"/>
+  <modifiedPressSchechterGamma2 value="-0.01"/>
+  <modifiedPressSchechterHypergeometricPrecision value="1.0e-6"/>
+  <modifiedPressSchechterTabulateHypergeometricFactors value="true"/>
+  <modifiedPressSchechterUseCDMAssumptions value="true"/>
+  <haloMassFunctionSamplingMethod value="haloMassFunction"/>
+  <haloMassFunctionSamplingAbundanceMaximum value="1.0e-1"/>
+  <haloMassFunctionSamplingAbundanceMinimum value="1.0e-8"/>
+  
+  <!-- Merger tree operators -->
+  <mergerTreePruneBaryons value="true"/>
+  
+  <!-- Merger tree evolution flow control -->
+  <treeEvolveThreadLock value="false"/>
+  <treeEvolveThreadsMaximum value="processorCount"/>
+  
+  <!-- Merger tree halo hierarchy -->
+  <nodeMergersMethod value="singleLevelHierarchy"/>
+  
+  <!-- Dark matter halo structure -->
+  <darkMatterProfileMethod value="NFW"/>
+  <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
+    <alpha value="1.12"/>
+    <beta value="1.69"/>
+    <eta0 value="6.82"/>
+    <eta1 value="1.42"/>
+    <kappa value="0.69"/>
+    <phi0 value="7.1395684741179295"/>
+    <phi1 value="1.37"/>
+  </darkMatterProfileConcentrationMethod>
+  <darkMatterProfileScaleCorrectForConcentrationDefinition value="true"/>
+  
+  <!-- Dark matter halo spin -->
+  <haloSpinDistributionMethod value="bett2007">
+    <alpha value="2.5051096022584427"/>
+    <lambda0 value="4.3249047072217509E-002"/>
+  </haloSpinDistributionMethod>
+  <randomSpinResetMassFactor value="2.0"/>
+  
+  <!-- Satellite orbits -->
+  <virialOrbitMethod value="fixed"/>
+  <virialOrbitsFixedRadialVelocity value="-0.856"/>
+  <virialOrbitsFixedTangentialVelocity value="+0.842"/>
+  <virialOrbitsVirialDensityContrast value="fixedCritical200"/>
+  <satelliteMergingTimescalesMethod value="jiang2008"/>
+  <mergingTimescaleMultiplier value="1.2044009774202384"/>
+  
+  <!-- Hot atmosphere -->
+  <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling"/>
+  <hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent value="-0.35071002436845261"/>
+  <hotHaloOutflowReincorporationVlctyMxSclngTimeScale value="0.95502143265815487"/>
+  <hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum value="1.0992084405881730E-002"/>
+  <hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent value="-1.4059959597503769E-002"/>
+  
+  <!-- Accretion onto halos -->
+  <accretionHaloTotalMethod value="bertschinger"/>
+  
+  <!-- Accretion from the IGM -->
+  <accretionHaloMethod value="naozBarkana2007"/>
+  <accretionHaloNaozBarkana2007MassMinimum value="1.0e6"/>
+  <accretionHaloNaozBarkana2007RateAdjust value="0.5"/>
+  
+  <!-- Cooling and infall -->
+  <coolingRateMethod value="velocityMaximumScaling">
+    <exponentCutOff value="2.0459112996298177"/>
+    <velocityCutOff value="129.26375552237411"/>
+    <velocityCutOffExponentRedshift value="0.80165411939166409"/>
+    <widthCutOff value="3.9032993845812082E-002"/>
+    <timescale value="3.3554689509395819"/>
+    <exponentRedshift value="-0.13846847242712321"/>
+    <timescaleMinimum value="1.1938773305805278E-002"/>
+    <exponentVelocity value="1.5945852735390698"/>
+  </coolingRateMethod>
+  
+  <!-- Galactic structure -->
+  <galacticStructureRadiusSolverMethod value="fixed"/>
+  <galacticStructureRadiiFixedFactor value="0.26657982137919706"/>
+  <galacticStructureRadiiFixedRadius value="turnaround"/>
+  
+  <!-- Star formation in disks -->
+  <starFormationTimescaleDisksMethod value="velocityMaximumScaling"/>
+  <starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent value="-2.6841093892429728"/>
+  <starFormationTimescaleDisksVelocityMaximumScalingTimescale value="8.5952943576927687"/>
+  <starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent value="1.5643560026940344"/>
+  <diskStarFormationTimescaleMinimum value="2.2925637877309368E-005"/>
+  <diskVerySimpleSurfaceDensityThreshold value="128685124731.37694"/>
+  <diskVerySimpleSurfaceDensityVelocityExponent value="-0.82656309641695880"/>
+  
+  <!-- Stellar feedback in disks -->
+  <starFormationFeedbackDisksMethod value="vlctyMxSclng">
+    <fraction value="6.2513793382530228E-002"/>
+    <exponentRedshift value="2.6150327842305985"/>
+    <exponentVelocity value="-4.6058653822166820"/>
+  </starFormationFeedbackDisksMethod>
+  <diskOutflowTimescaleMinimum value="2.8035155505694409E-002"/>
+  
+  <!-- Stellar initial mass function -->
+  <imfSelectionMethod value="fixed"/>
+  <imfSelectionFixed value="Chabrier"/>
+  <imfChabrierRecycledInstantaneous value="0.46"/>
+  <imfChabrierYieldInstantaneous value="0.0"/>
+  
+  <!-- Stellar evolution -->
+  <stellarPopulationPropertiesMethod value="instantaneous"/>
+  
+  <!-- Galaxy merging -->
+  <satelliteMergingMassMovementsMethod value="verySimple"/>
+  <satelliteMergingRemnantSizeMethod value="null"/>
+  
+  <!-- Solvers and time-stepping -->
+  <odeAlgorithm value="Runge-Kutta-Second-Order"/>
+  <odeToleranceAbsolute value="1.0e-3"/>
+  <odeToleranceRelative value="0.1"/>
+  <diskMassToleranceAbsolute value="1.0e-6"/>
+  <diskVerySimpleMassScaleAbsolute value="1.0e6"/>
+  <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
+  <timestepHostAbsolute value="1.0"/>
+  <timestepHostRelative value="0.01"/>
+  <timestepSimpleAbsolute value="1.0"/>
+  <timestepSimpleRelative value="0.01"/>
+  <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
+  <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
+  <diskVerySimpleUseAnalyticSolver value="true"/>
+  
+  <!-- Output -->
+  <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
+  <hdf5CompressionLevel value="-1"/>
+  <mergerTreeOutput value="">
+    <outputMergerTrees value="true"/>
+    <outputReferences value="false"/>
+  </mergerTreeOutput>
+  <outputRedshifts value="0.0"/>
+  
+</parameters>
