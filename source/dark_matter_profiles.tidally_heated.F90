@@ -44,6 +44,7 @@
      procedure :: radiusInitial                     => tidallyHeatedRadiusInitial
      procedure :: density                           => tidallyHeatedDensity
      procedure :: densityLogSlope                   => tidallyHeatedDensityLogSlope
+     procedure :: radiusEnclosingDensity            => tidallyHeatedRadiusEnclosingDensity
      procedure :: radialMoment                      => tidallyHeatedRadialMoment
      procedure :: enclosedMass                      => tidallyHeatedEnclosedMass
      procedure :: potential                         => tidallyHeatedPotential
@@ -71,6 +72,7 @@
   logical                                                   :: darkMatterProfileTidallyHeatedUnimplementedIsFatal
   
   ! Warnings issued.
+  logical                                                   :: tidallyHeatedRadiusEnclosingDensityWarned           =.false.
   logical                                                   :: tidallyHeatedDensityLogSlopeWarned                  =.false.
   logical                                                   :: tidallyHeatedRadialMomentWarned                     =.false.
   logical                                                   :: tidallyHeatedCircularVelocityMaximumWarned          =.false.
@@ -275,6 +277,42 @@ contains
     return
   end function tidallyHeatedDensityLogSlope
 
+  double precision function tidallyHeatedRadiusEnclosingDensity(self,node,density)
+    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    use Galacticus_Error
+    use Galacticus_Display
+    implicit none
+    class           (darkMatterProfileTidallyHeated), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: density
+    class           (nodeComponentSatellite        ), pointer       :: satellite
+
+    satellite => node%satellite()
+    if (satellite%tidalHeatingNormalized() <= 0.0d0) then
+       ! No tidal heating has occurred - fall through to the unheated profile.
+       tidallyHeatedRadiusEnclosingDensity=self%unheatedProfile%radiusEnclosingDensity(node,density)
+    else
+       ! Check if unimplemented features are fatal.
+       if (self%unimplementedFatal) then
+          tidallyHeatedRadiusEnclosingDensity=0.0d0
+          call Galacticus_Error_Report('tidallyHeatedRadiusEnclosingDensity','radius enclosing density in tidally heated dark matter profiles is not supported')
+       else
+          ! Issue a warning and then fall through to the unheated profile.
+          if (.not.tidallyHeatedRadiusEnclosingDensityWarned) then
+             !$omp critical(tidallyHeatedDarkMatterProfileRadiusEnclosingDensityWarn)
+             if (.not.tidallyHeatedRadiusEnclosingDensityWarned) then
+                call Galacticus_Display_Message('WARNING: radius enclosing density in tidally heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+                tidallyHeatedRadiusEnclosingDensityWarned=.true.
+             end if
+             !$omp end critical(tidallyHeatedDarkMatterProfileRadiusEnclosingDensityWarn)
+          end if
+          tidallyHeatedRadiusEnclosingDensity=self%unheatedProfile%radiusEnclosingDensity(node,density)
+       end if
+    end if
+    return
+  end function tidallyHeatedRadiusEnclosingDensity
+
   double precision function tidallyHeatedRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
@@ -284,9 +322,8 @@ contains
     class           (darkMatterProfileTidallyHeated), intent(inout)           :: self
     type            (treeNode                      ), intent(inout)           :: node
     double precision                                , intent(in   )           :: moment
-    double precision                                , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
-
-    class           (nodeComponentSatellite        )               , pointer :: satellite
+    double precision                                , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    class           (nodeComponentSatellite        )               , pointer  :: satellite
 
     satellite => node%satellite()
     if (satellite%tidalHeatingNormalized() <= 0.0d0) then
