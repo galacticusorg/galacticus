@@ -37,9 +37,11 @@
      type            (fgsl_interp_accel       )                            :: interpolationAccelerator
      type            (fgsl_interp             )                            :: interpolationObject
    contains
-     final     ::               barkana2001WDMDestructor
-     procedure :: value      => barkana2001WDMValue
-     procedure :: descriptor => barkana2001WDMDescriptor
+     final     ::                 barkana2001WDMDestructor
+     procedure :: value        => barkana2001WDMValue
+     procedure :: gradientTime => barkana2001WDMGradientTime
+     procedure :: gradientMass => barkana2001WDMGradientMass
+     procedure :: descriptor   => barkana2001WDMDescriptor
   end type criticalOverdensityBarkana2001WDM
 
   interface criticalOverdensityBarkana2001WDM
@@ -175,12 +177,13 @@ contains
     use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: time                       , expansionFactor
+    double precision                                   , intent(in   ), optional :: time                         , expansionFactor
     logical                                            , intent(in   ), optional :: collapsing
     double precision                                   , intent(in   ), optional :: mass
-    double precision                                   , parameter               :: massScaleFreeMinimum=-10.d0
-    double precision                                                             :: exponentialFit             , massScaleFree   , &
-         &                                                                          powerLawFit                , smoothTransition
+    double precision                                   , parameter               :: massScaleFreeMinimum=- 10.0d0
+    double precision                                   , parameter               :: massScaleFreeLarge  =+100.0d0
+    double precision                                                             :: exponentialFit               , massScaleFree   , &
+         &                                                                          powerLawFit                  , smoothTransition
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('barkana2001WDMValue','mass is required for this critical overdensity class')
@@ -190,35 +193,40 @@ contains
     if (self%useFittingFunction) then
        ! Impose a minimum to avoid divergence in fit.
        massScaleFree   =max(massScaleFree,massScaleFreeMinimum)
-       smoothTransition=+1.0d0                                &
-            &           /(                                    &
-            &             +1.0d0                              &
-            &             +exp(                               &
-            &                  +(                             &
-            &                    +massScaleFree               &
-            &                    +barkana2001WDMFitParameterA &
-            &                   )                             &
-            &                  /  barkana2001WDMFitParameterB &
-            &                 )                               &
-            &            )
-       powerLawFit     =+     barkana2001WDMFitParameterC & 
-            &           /exp(                             &
-            &                +barkana2001WDMFitParameterD &
-            &                *massScaleFree               &
-            &               )
-       if (smoothTransition < 1.0d0) then
-          exponentialFit=+exp(                                  &
-               &              +     barkana2001WDMFitParameterE &
-               &              /exp(                             &
-               &                   +barkana2001WDMFitParameterF &
-               &                   *massScaleFree               &
-               &                  )                             &
-               &             )
+       ! Check for very large masses, and simply set critical overdensity multiplier to unity in such cases.
+       if (massScaleFree > massScaleFreeLarge*abs(log(barkana2001WDMFitParameterE))/barkana2001WDMFitParameterF) then
+          barkana2001WDMValue=1.0d0
        else
-          exponentialFit=+0.0d0
+          smoothTransition=+1.0d0                                &
+               &           /(                                    &
+               &             +1.0d0                              &
+               &             +exp(                               &
+               &                  +(                             &
+               &                    +massScaleFree               &
+               &                    +barkana2001WDMFitParameterA &
+               &                   )                             &
+               &                  /  barkana2001WDMFitParameterB &
+               &                 )                               &
+               &            )
+          powerLawFit     =+     barkana2001WDMFitParameterC & 
+               &           /exp(                             &
+               &                +barkana2001WDMFitParameterD &
+               &                *massScaleFree               &
+               &               )
+          if (smoothTransition < 1.0d0) then
+             exponentialFit=+exp(                                  &
+                  &              +     barkana2001WDMFitParameterE &
+                  &              /exp(                             &
+                  &                   +barkana2001WDMFitParameterF &
+                  &                   *massScaleFree               &
+                  &                  )                             &
+                  &             )
+          else
+             exponentialFit=+0.0d0
+          end if
+          barkana2001WDMValue=+       smoothTransition *powerLawFit    &
+               &              +(1.0d0-smoothTransition)*exponentialFit
        end if
-       barkana2001WDMValue=+       smoothTransition *powerLawFit    &
-            &              +(1.0d0-smoothTransition)*exponentialFit
     else
        if      (massScaleFree > self%deltaTableMass(self%deltaTableCount)) then
           barkana2001WDMValue=1.0d0
