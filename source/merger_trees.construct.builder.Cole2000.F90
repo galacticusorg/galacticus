@@ -27,17 +27,19 @@
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
-     class           (mergerTreeMassResolutionClass), pointer :: mergerTreeMassResolution_
+     class           (mergerTreeMassResolutionClass  ), pointer :: mergerTreeMassResolution_
      ! Variables controlling merger tree accuracy.
-     double precision                                         :: accretionLimit                          , timeEarliest      , &
-          &                                                      mergeProbability
+     double precision                                           :: accretionLimit                          , timeEarliest             , &
+          &                                                        mergeProbability
      ! Option controlling random number sequences.
-     logical                                                  :: randomSeedsFixed
+     logical                                                    :: randomSeedsFixed
      ! Random number sequence variables
-     logical                                                  :: branchIntervalStep
+     logical                                                    :: branchIntervalStep
      ! Interval distribution.
-     logical                                                  :: branchingIntervalDistributionInitialized
-     type            (distributionNegativeExponential       ) :: branchingIntervalDistribution
+     logical                                                    :: branchingIntervalDistributionInitialized
+     type            (distributionNegativeExponential)          :: branchingIntervalDistribution
+     ! Tolerances for behavior close to the resolution limit.
+     double precision                                           :: toleranceResolutionSelf                 , toleranceResolutionParent
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeBuilderCole2000</object>
@@ -132,6 +134,24 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>toleranceResolutionSelf</name>
+    !#   <source>parameters</source>
+    !#   <variable>cole2000ConstructorParameters%toleranceResolutionSelf</variable>
+    !#   <defaultValue>1.0d-6</defaultValue>
+    !#   <description>The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>toleranceResolutionParent</name>
+    !#   <source>parameters</source>
+    !#   <variable>cole2000ConstructorParameters%toleranceResolutionParent</variable>
+    !#   <defaultValue>1.0d-3</defaultValue>
+    !#   <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="mergerTreeMassResolution" name="cole2000ConstructorParameters%mergerTreeMassResolution_" source="parameters"/>
     ! Convert maximum redshift to earliest time.
     cosmologyFunctions_ => cosmologyFunctions()
@@ -143,14 +163,15 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed,branchIntervalStep,mergerTreeMassResolution_)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
     implicit none
     type            (mergerTreeBuilderCole2000    )                        :: cole2000ConstructorInternal
-    double precision                               , intent(in   )         :: mergeProbability           , accretionLimit    , &
-         &                                                                    timeEarliest
+    double precision                               , intent(in   )         :: mergeProbability           , accretionLimit         , &
+         &                                                                    timeEarliest               , toleranceResolutionSelf, &
+         &                                                                    toleranceResolutionParent
     logical                                        , intent(in   )         :: randomSeedsFixed           , branchIntervalStep
     class           (mergerTreeMassResolutionClass), intent(in   ), target :: mergerTreeMassResolution_
     
@@ -160,6 +181,8 @@ contains
     cole2000ConstructorInternal%timeEarliest              =  timeEarliest
     cole2000ConstructorInternal%randomSeedsFixed          =  randomSeedsFixed
     cole2000ConstructorInternal%branchIntervalStep        =  branchIntervalStep
+    cole2000ConstructorInternal%toleranceResolutionSelf   =  toleranceResolutionSelf
+    cole2000ConstructorInternal%toleranceResolutionParent =  toleranceResolutionParent
     cole2000ConstructorInternal%mergerTreeMassResolution_ => mergerTreeMassResolution_
     ! Initialize state.
     cole2000ConstructorInternal%branchingIntervalDistributionInitialized=.false.
@@ -197,8 +220,6 @@ contains
     class           (criticalOverdensityClass ), pointer               :: criticalOverdensity_
     class           (nodeComponentBasic       ), pointer               :: basicNew1                 , basicNew2                  , basic                 , &
          &                                                                basicParent
-    double precision                           , parameter             :: toleranceResolutionParent=1.0d-3
-    double precision                           , parameter             :: toleranceResolutionSelf  =1.0d-6
     double precision                           , parameter             :: toleranceDeltaCritical   =1.0d-6
     integer         (kind=kind_int8           )                        :: nodeIndex
     double precision                                                   :: accretionFraction         , baseNodeTime               , branchingProbability      , &
@@ -530,10 +551,10 @@ contains
           basic   => node       %basic()
           basicParent => node%parent%basic()
           if (basicParent%time() <= basic%time()) then
-             if     (                                                                       &
-                  &   basicParent%mass() < massResolution*(1.0d0+toleranceResolutionParent) &
-                  &  .and.                                                                  &
-                  &   basic      %mass() < massResolution*(1.0d0+toleranceResolutionSelf  ) &
+             if     (                                                                            &
+                  &   basicParent%mass() < massResolution*(1.0d0+self%toleranceResolutionParent) &
+                  &  .and.                                                                       &
+                  &   basic      %mass() < massResolution*(1.0d0+self%toleranceResolutionSelf  ) &
                   & ) then
                 ! Parent halo is very close to the resolution limit. Simply prune away the remainder of this branch.
                 call node%destroyBranch()
