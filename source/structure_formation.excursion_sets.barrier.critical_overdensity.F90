@@ -63,12 +63,12 @@ contains
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
-       Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time          )
+       Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time,mass=huge(0.0d0))
     else
        ! Get the halo mass corresponding to this variance.
        mass=cosmologicalMassVariance_%mass(sqrt(variance))
        ! Return the critical overdensity at this time at the computed mass scale.
-       Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time,mass=mass)
+       Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time,mass=mass       )
     end if
     return
   end function Excursion_Sets_Barrier_Critical_Overdensity
