@@ -679,7 +679,7 @@ sub Process_FunctionClass {
 			if ( $method->{'type'} =~ m/^class/ ) {
 			    $setValue = "> null()";
 			} elsif ( $method->{'type'} =~ m/^type\s*\(\s*(.*)\s*\)/ ) {
-			    $setValue = $2."()";
+			    $setValue = $1."()";
 			} elsif ( $method->{'type'} =~ m/^integer/ ) {
 			    $setValue = "0";
 			} elsif ( $method->{'type'} =~ m/^double\s+precision/ ) {
