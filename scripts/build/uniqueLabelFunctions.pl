@@ -93,7 +93,8 @@ foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     $ignoreParameters{$_} = 1
 	foreach ( &List::ExtraUtils::as_array($uniqueLabel->{'ignore'}) );
     # Begin creating the function for the definition.
-    my $definitionCode =
+    my $subParametersUsed = 0;
+    my $openingCode = 
 <<CODE;
 function $labelFunction(includeVersion,includeBuild,includeSourceDigest,asHash,parameters)
   implicit none
@@ -101,6 +102,9 @@ function $labelFunction(includeVersion,includeBuild,includeSourceDigest,asHash,p
   logical                    , intent(in   ), optional :: includeVersion,includeBuild,includeSourceDigest,asHash
   type   (varying_string    )                          :: parameterValue
   type   (inputParameterList), intent(  out), optional :: parameters
+CODE
+    my $definitionCode =
+<<CODE;
 
   $labelFunction=''
 CODE
@@ -119,9 +123,8 @@ CODE
 	    map {
 		$_->{'submatches'}->[1] =~ s/^\s*//;
 		$_->{'submatches'}->[1] =~ s/\s*$//;
-		$_->{'submatches'}->[1] =~ s/^'//;
-		$_->{'submatches'}->[1] =~ s/'$//;
-		$_->{'submatches'}->[1] =~ s/'/''/;
+		$_->{'submatches'}->[1] =~ s/^'(.*)'$/$1/;
+		$_->{'submatches'}->[1] =~ s/'/''/g;
 		$defaultValues{$_->{'submatches'}->[0]} = $_->{'submatches'}->[1];
 	    } &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/Get_Input_Parameter\s*\(\s*'([^']*)'.*defaultValue\s*=\s*(.*)[,\)]/);
 	    # Locate and process any new-style method definitions.
@@ -193,6 +196,9 @@ CODE
 	    #  abcd => cosmologyParameters()
 	    push(@directiveNamesUsed,$directive."Class")
 		if ( &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/^\s*[a-zA-Z0-9_]+\s*=>\s*$directive\s*\(\s*\)\s*$/i) );
+	    # Match object builder instantiations.
+	    push(@directiveNamesUsed,$directive."Class")
+		if ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"objectBuilder",conditions => {class => $directive}) );
 	    # Record which implementations were used.
 	    $methodStructure->{$directive}->{$_}->{'isUsed'} = 1
 		foreach ( @directiveNamesUsed );
@@ -232,10 +238,11 @@ CODE
 	    # Extract new-style method activation parameter names and values.
 	    foreach my $directive ( @directives ) {
 		map 
-		{$methodParameter = $directive."Method"; ($methodValue = $_->{'name'}) =~ s/^$directive//; $methodValue = lcfirst($methodValue);} 
+		{$methodParameter = $directive."Method"; ($methodValue = $_->{'name'}) =~ s/^$directive//; $methodValue = ($methodValue =~ m/^[A-Z]{2}/) ? $methodValue : lcfirst($methodValue);} 
 		&Galacticus::Build::Directives::Extract_Directives($sourceFile,$directive);
 	    }
 	    # Extract any input parameters from this file.
+	    my $requireSubParameters = 0;
 	    foreach my $directive ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"inputParameter",comment => qr/^\s*(\!|\/\/)(\@|\#)/) ) {
 		# Use parameter regEx as name if no name is defined.
 		unless ( exists($directive->{'name'}) ) {
@@ -246,7 +253,7 @@ CODE
 		    } else {
 			die('uniqueLabelFunctions.pl: parameter has no name');
 		    }
-		}
+		}	
 		# Extract default value.
 		$defaultValues{$directive->{'name'}} = $directive->{'defaultValue'}
 		    if ( exists($directive->{'defaultValue'}) && ! exists($defaultValues{$directive->{'name'}}) );
@@ -276,9 +283,24 @@ CODE
 		    } else {
 			# Determine the default value for this parameter.
 			my $defaultValue = exists($defaultValues{$directive->{'name'}}) ? $defaultValues{$directive->{'name'}} : "";
+			$defaultValue = "var_str('".$defaultValue."')"
+			    unless ( $defaultValue =~ m/^var_str/ );
+			# Check for a sub-parameter.
+			if ( exists($directive->{'source'}) && $directive->{'source'} eq "parameters" ) {
+			    $moduleCode .=
+<<CODE;
+  subParameters=globalParameters%subParameters('$methodParameter')
+  call subParameters%value('$directive->{'name'}',parameterValue,defaultValue=$defaultValue,writeOutput=.false.)
+CODE
+                            $requireSubParameters = 1;
+			} else {
+			    $moduleCode .=
+<<CODE;
+  call globalParameters%value('$directive->{'name'}',parameterValue,defaultValue=$defaultValue,writeOutput=.false.)
+CODE
+			}
 			$moduleCode .=
 <<CODE;
-  call globalParameters%value('$directive->{'name'}',parameterValue,defaultValue=var_str('$defaultValue'),writeOutput=.false.)
   $labelFunction=$labelFunction//'#$directive->{'name'}\['//parameterValue//']'
   if (present(parameters)) then
     call parameters%add("$directive->{'name'}",char(parameterValue))
@@ -337,12 +359,15 @@ CODE
 		    my $defaultValue  = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
  		    $definitionCode  .=
 <<CODE;
+  call globalParameters%value('$methodParameter',parameterValue,defaultValue=var_str('$defaultValue'),writeOutput=.false.)
   if (parameterValue == '$methodValue') then
 $moduleCode  end if
 CODE
 		} else {
 		    $definitionCode .= $moduleCode;
 		}
+		$subParametersUsed = 1
+		    if ( $requireSubParameters );
 	    }
 	} else {
 	    # A matching Fortran source file was not found. In this case, look for a matching file of other type, and include a
@@ -408,6 +433,13 @@ CODE
 end function $labelFunction
 
 CODE
+    if ( $subParametersUsed ) {
+	$openingCode .= 
+<<CODE;
+  type   (inputParameters)                          :: subParameters
+CODE
+    }
+    $definitionCode = $openingCode.$definitionCode;
     # Write the function definition to file.
     print $functionHandle $definitionCode;
     print $scopeHandle "public :: ".$labelFunction."\n";
