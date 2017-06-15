@@ -395,6 +395,8 @@ sub Sample_Matrix {
 	    close(iHndl);
 	}
     }
+    die("Galacticus::Constraints::Parameters::Sample_Matrix(): no viable samples found")
+	if ( nelem($viable) == 0 );
     # Sample parameters.
     my $randomSample = exists($arguments{'sampleCount'}) && $arguments{'sampleCount'} > 0 ? 1 : 0;
     $arguments{'sampleCount'} = nelem($viable)
