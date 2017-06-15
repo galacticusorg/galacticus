@@ -297,7 +297,7 @@ sub SubmitJobs {
 		    } else {
 			$exitStatus = 0;		    
 		    }
-		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus);
+		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@pbsStack);
 		}
 		# Remove the job ID from the list of active PBS jobs.
 		delete($pbsJobs{$jobID});		
@@ -315,9 +315,8 @@ sub SubmitJobs {
 		    last;
 		}
 		# Create the batch script.
-		my $ppn = 1;
-		$ppn = $newJob->{'ppn'}
-		    if ( exists($newJob->{'ppn'}) );
+		my $ppn   = exists($newJob->{'ppn'  }) ? $newJob->{'ppn'  } : 1;
+		my $nodes = exists($newJob->{'nodes'}) ? $newJob->{'nodes'} : 1;
 		open(my $scriptFile,">".$newJob->{'launchFile'});
 		print $scriptFile "#!/bin/bash\n";
 		print $scriptFile "#PBS -N ".$newJob->{'label'}."\n";
@@ -330,7 +329,7 @@ sub SubmitJobs {
 		} elsif ( exists($pbsConfig->{'queue'}) ) {
 		    print $scriptFile "#PBS -q ".$pbsConfig->{'queue'}."\n";
 		}
-		print $scriptFile "#PBS -l nodes=1:ppn=".$ppn."\n";
+		print $scriptFile "#PBS -l nodes=".$nodes.":ppn=".$ppn."\n";
 		print $scriptFile "#PBS -j oe\n";
 		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
 		print $scriptFile "#PBS -V\n";
