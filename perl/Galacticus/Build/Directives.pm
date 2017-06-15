@@ -27,11 +27,18 @@ sub Extract_Directive {
 		my $xml    = new XML::Simple();
 		$directive = $xml->XMLin($xmlText);
 		if ( %options && exists($options{'conditions'}) ) {
+		    my $matched = 1;
 		    foreach ( keys(%{$options{'conditions'}}) ) {
 			unless ( exists($directive->{$_}) && $directive->{$_} eq ${options{'conditions'}}{$_} ) {
-			    undef($directive);
-			    next;
+			    $matched = 0;
+			    last;
 			}
+		    }
+		    unless ( $matched ) {
+			undef($directive           );
+			undef($xmlText             );
+			undef($matchedDirectiveName);
+			next;
 		    }
 		}
 		last;
