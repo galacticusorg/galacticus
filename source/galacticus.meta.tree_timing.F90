@@ -20,28 +20,31 @@
 
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
+  use Kind_Numbers
   !$ use OMP_Lib
   implicit none
   private
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
 
   ! Flag indicating if the module is initialized.
-  logical                                     :: metaTimingDataInitialized=.false.
+  logical                                                :: metaTimingDataInitialized=.false.
 
   ! Flag indicating if timing data is to be collected.
-  logical                                     :: metaCollectTimingData
+  logical                                                :: metaCollectTimingData
 
   ! Record of processing times.
-  double precision                            :: timePostEvolution                , timePreConstruction, &
-       &                                         timePreEvolution                 , treeMass
-  real                                        :: time
-  !$omp threadprivate(timePreConstruction,timePreEvolution,timePostEvolution,treeMass)
+  double precision                                       :: timePostEvolution                , timePreConstruction, &
+       &                                                    timePreEvolution                 , treeMass
+  integer         (kind_int8)                            :: treeID
+  real                                                   :: time
+  !$omp threadprivate(timePreConstruction,timePreEvolution,timePostEvolution,treeMass,treeID)
   ! Arrays for storing timing.
-  integer         , parameter                 :: treeArrayIncreaseSize    =100
-  integer                                     :: treesRecordedCount       =0
-  double precision, allocatable, dimension(:) :: treeConstructTimes               , treeEvolveTimes    , &
-       &                                         treeMasses
-
+  integer                    , parameter                 :: treeArrayIncreaseSize    =100
+  integer                                                :: treesRecordedCount       =0
+  double precision           , allocatable, dimension(:) :: treeConstructTimes               , treeEvolveTimes    , &
+       &                                                    treeMasses
+  integer         (kind_int8), allocatable, dimension(:) :: treeIDs
+  
 contains
 
   subroutine Meta_Tree_Timing_Initialize()
@@ -120,10 +123,11 @@ contains
        call CPU_Time(time)
        timePreEvolution=dble(time)
        !$ end if
-       ! Record the mass of the tree.
+       ! Record the mass and ID of the tree.
        node     => tree %baseNode
        basic    => node %basic   ()
        treeMass =  basic%mass    ()
+       treeID   =  tree %index
     end if
 
     return
@@ -136,9 +140,10 @@ contains
     !% Record the CPU time after evolving a tree.
     use Memory_Management
     implicit none
-    double precision, allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, &
-         &                                         treeMassesTemporary
-
+    double precision           , allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, &
+         &                                                    treeMassesTemporary
+    integer         (kind_int8), allocatable, dimension(:) :: treeIDsTemporary
+    
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
 
@@ -156,25 +161,31 @@ contains
           call allocateArray(treeMasses        ,[                 treeArrayIncreaseSize])
           call allocateArray(treeConstructTimes,[                 treeArrayIncreaseSize])
           call allocateArray(treeEvolveTimes   ,[                 treeArrayIncreaseSize])
+          call allocateArray(treeIDs           ,[                 treeArrayIncreaseSize])
        else if (treesRecordedCount >= size(treeMasses)) then
           call Move_Alloc(treeMasses        ,treeMassesTemporary        )
           call Move_Alloc(treeConstructTimes,treeConstructTimesTemporary)
           call Move_Alloc(treeEvolveTimes   ,treeEvolveTimesTemporary   )
+          call Move_Alloc(treeIDs           ,treeIDsTemporary           )
           call allocateArray(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
           call allocateArray(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
           call allocateArray(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+          call allocateArray(treeIDs           ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
           treeMasses        (1:size(treeMassesTemporary))=treeMassesTemporary
           treeConstructTimes(1:size(treeMassesTemporary))=treeConstructTimesTemporary
           treeEvolveTimes   (1:size(treeMassesTemporary))=treeEvolveTimesTemporary
+          treeIDs           (1:size(treeMassesTemporary))=treeIDsTemporary
           call deallocateArray(treeMassesTemporary        )
           call deallocateArray(treeConstructTimesTemporary)
           call deallocateArray(treeEvolveTimesTemporary   )
+          call deallocateArray(treeIDsTemporary           )
        end if
        ! Store the timing data.
        treesRecordedCount=treesRecordedCount+1
        treeMasses        (treesRecordedCount)=treeMass
        treeConstructTimes(treesRecordedCount)=timePreEvolution -timePreConstruction
        treeEvolveTimes   (treesRecordedCount)=timePostEvolution-timePreEvolution
+       treeIDs           (treesRecordedCount)=treeID
        !$omp end critical (Meta_Tree_Timing_Pre_Construct_Record)
     end if
 
@@ -202,7 +213,8 @@ contains
        timingDataGroup=metaDataGroup       %openGroup('treeTiming','Meta-data on tree timing.')
 
        ! Write timing data.
-       call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M⊙]"       ,datasetReturned=metaDataDataset)
+       call timingDataGroup%writeDataset(treeIDs           (1:treesRecordedCount),"treeIDs"           ,"Tree ID"                                                   )
+       call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M⊙]"            ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(massSolar,"unitsInSI")
        call metaDataDataset%close()
        call timingDataGroup%writeDataset(treeConstructTimes(1:treesRecordedCount),"treeConstructTimes","Tree construction time [s]",datasetReturned=metaDataDataset)
