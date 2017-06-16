@@ -258,4 +258,26 @@ sub GetDeclaration {
     return $declarationFound;
 }
 
+sub DeclarationExists {
+    # Test whether a named variable is declared
+    my $node         = shift();
+    my $variableName = shift();
+    # Locate the declarations node.
+    my $exists       = 0;
+    my $childNode    = $node->{'firstChild'};
+    while ( $childNode ) {
+	if ( $childNode->{'type'} eq "declaration" ) {
+	    # Locate the variable in the list of declarations.
+	    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
+		if ( grep {lc($_) eq lc($variableName)} @{$declaration->{'variables'}} ) {
+		    $exists = 1;
+		    last;
+		}
+	    }
+	}
+ 	$childNode = $childNode->{'sibling'};
+    }
+    return $exists;
+}
+
 1;
