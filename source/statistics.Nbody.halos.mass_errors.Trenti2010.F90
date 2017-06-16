@@ -52,10 +52,8 @@ contains
     class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     double precision                                              :: massParticle           , correlationNormalization   , &
          &                                                           correlationMassExponent, correlationRedshiftExponent
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
@@ -93,6 +91,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=nbodyHaloMassErrorTrenti2010(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyHaloMassErrorTrenti2010Parameters
 

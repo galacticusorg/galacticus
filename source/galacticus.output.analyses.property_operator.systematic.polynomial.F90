@@ -46,10 +46,8 @@ contains
     type            (inputParameters                                ), intent(inout)               :: parameters
     double precision                                                                               :: zeroPoint
     double precision                                                 , allocatable  , dimension(:) :: coefficient
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     allocate(coefficient(parameters%count('coefficient')))
     !# <inputParameter>
     !#   <name>zeroPoint</name>
@@ -69,6 +67,7 @@ contains
     !# </inputParameter>
     ! Construct the object.
     self=outputAnalysisPropertyOperatorSystmtcPolynomial(zeroPoint,coefficient)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function systmtcPolynomialConstructorParameters
 

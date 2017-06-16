@@ -51,10 +51,8 @@ contains
     type            (varying_string                        )                :: normalizationText
     character       (len=32                                )                :: normalizationChar
     double precision                                                        :: normalization
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
@@ -77,6 +75,7 @@ contains
        read (normalizationChar,*) normalization
     end if
     sharpKSpaceConstructorParameters=sharpKSpaceConstructorInternal(cosmologyParameters_,normalization)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function sharpKSpaceConstructorParameters
 

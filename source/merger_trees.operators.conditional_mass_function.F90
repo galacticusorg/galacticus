@@ -215,9 +215,7 @@ contains
     logical                                                                        :: alwaysIsolatedHalosOnly           , extendedStatistics   , &
          &                                                                            computeCovariances
     type            (varying_string                 )                              :: outputGroupName
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="nbodyHaloMassError" name="haloMassError_" source="parameters"/>
     !# <inputParameter>
     !#   <name>parentMassCount</name>
@@ -360,6 +358,7 @@ contains
          &                                                              outputGroupName          , &
          &                                                              haloMassError_             &
          &                                                             )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function conditionalMFConstructorParameters
 

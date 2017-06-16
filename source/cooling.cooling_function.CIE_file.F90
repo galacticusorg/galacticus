@@ -194,12 +194,10 @@ contains
     implicit none
     type(coolingFunctionCIEFile)                :: cieFileConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     if (.not.cieFileInitialized) then
        !$omp critical(cieFileInitialize)
        if (.not.cieFileInitialized) then
-          call parameters%checkParameters(allowedParameterNames)    
           !# <inputParameter>
           !#   <name>fileName</name>
           !#   <source>parameters</source>
@@ -214,6 +212,7 @@ contains
     end if
     ! Construct the instance.    
     cieFileConstructorParameters=cieFileConstructorInternal(char(cieFileFileName))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cieFileConstructorParameters
   

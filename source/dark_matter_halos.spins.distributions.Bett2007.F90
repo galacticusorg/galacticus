@@ -62,10 +62,8 @@ contains
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorParameters
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: lambda0                      , alpha
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>lambda0</name>
     !#   <source>parameters</source>
@@ -85,6 +83,7 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     bett2007ConstructorParameters=bett2007ConstructorInternal(lambda0,alpha)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function bett2007ConstructorParameters
 

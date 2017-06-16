@@ -57,9 +57,7 @@ contains
     double precision                                          :: timeScale          , exponentCutOff, &
          &                                                       exponentRedshift   , widthCutOff   , &
          &                                                       massCutOff
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>timescale</name>
     !#   <source>parameters</source>
@@ -102,6 +100,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=coolingRateSimpleScaling(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function simpleScalingConstructorParameters
 

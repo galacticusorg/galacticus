@@ -70,10 +70,8 @@ contains
     double precision                                                                :: a1                                   , a2, &
          &                                                                             a3                                   , a4, &
          &                                                                             b1                                   , b2
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>fitType</name>
     !#   <source>parameters</source>
@@ -129,6 +127,7 @@ contains
     else
        duttonMaccio2014ConstructorParameters=duttonMaccio2014ConstructorInternalType   (char(fitType))
     end if
+    !# <inputParametersValidate source="parameters"/>
     return
   end function duttonMaccio2014ConstructorParameters
 

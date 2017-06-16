@@ -86,10 +86,8 @@ contains
     type            (inputParameters          ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     double precision                                           :: redshiftMaximum
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>mergeProbability</name>
     !#   <source>parameters</source>
@@ -160,6 +158,7 @@ contains
     cole2000ConstructorParameters%branchingIntervalDistributionInitialized=.false.
     ! Validate parameters.
     call cole2000ConstructorParameters%validateParameters()
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cole2000ConstructorParameters
 

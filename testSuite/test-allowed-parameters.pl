@@ -1,0 +1,32 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Cwd;
+use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/../perl';
+use System::Redirect;
+use List::Uniq ':all';
+
+# Run a Galacticus model to test allowed parameter functionality.
+# Andrew Benson (16-June-2017)
+
+# Run the test model.
+&System::Redirect::tofile("mkdir -p outputs; cd ..; ./Galacticus.exe testSuite/parameters/test-allowed-parameters.xml","outputs/test-allowed-parameters.log");
+
+# Parse the log file looking for disallowed parameters.
+my @disallowed;
+open(my $log,"outputs/test-allowed-parameters.log");
+while ( my $line = <$log> ) {
+    if ( $line =~ m/unrecognised parameter \[([a-zA-Z0-9\-]+)\]/ ) {
+	push(@disallowed,$1);
+    }
+}
+close($log);
+
+# Extract a sorted list of unique disallowed parameters.
+@disallowed = uniq(sort(@disallowed));
+
+# Check against expectations.
+my $status = join(":",@disallowed) eq "scaleCutOff" ? "success" : "FAILURE";
+print "Test allowed parameters functionality: ".$status."\n";
+
+exit 0;

@@ -51,10 +51,8 @@ contains
     type   (inputParameters                  ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     integer                                                   :: redshiftBin
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
     !#   <name>redshiftBin</name>
@@ -64,6 +62,7 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function caputi2011UKIDSSUDSConstructorParameters
 

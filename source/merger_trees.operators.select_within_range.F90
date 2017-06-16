@@ -44,9 +44,7 @@ contains
     implicit none
     type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>baseMassMinimum</name>
     !#   <source>parameters</source>
@@ -65,6 +63,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function selectWithinRangeConstructorParameters
 

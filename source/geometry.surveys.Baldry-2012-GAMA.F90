@@ -58,13 +58,12 @@ contains
     type (surveyGeometryBaldry2012GAMA)                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build the object.
     self=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function baldry2012GAMAConstructorParameters
   

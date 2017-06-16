@@ -49,9 +49,7 @@ contains
     type            (inputParameters          ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
     double precision                                           :: velocityCutOff
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>velocityCutOff</name>
     !#   <source>parameters</source>
@@ -62,6 +60,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coolingRateWhiteFrenk1991(velocityCutOff,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function whiteFrenk1991ConstructorParameters
 

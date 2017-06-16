@@ -51,10 +51,8 @@ contains
          &                                                             A1        , A2     , &
          &                                                             alpha1    , alpha2 , &
          &                                                             beta      , scatter
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>K</name>
     !#   <defaultValue>11.3d0</defaultValue>
@@ -130,6 +128,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisMolecularRatioObreschkow2009(K,fSigma,A1,A2,alpha1,alpha2,beta,scatter)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function obreschkow2009ConstructorParameters
 

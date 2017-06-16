@@ -44,10 +44,8 @@ contains
     double precision                                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
     integer                                                                                             :: redshiftInterval
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
@@ -73,6 +71,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build the object.
     self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,systematicErrorPolynomialCoefficient,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 

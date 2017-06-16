@@ -123,9 +123,7 @@ contains
     type   (varying_string              ), dimension(:) , allocatable :: fileNames
     logical                                                           :: forceZeroMetallicity
     integer                                                           :: i                        , imfCount
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>forceZeroMetallicity</name>
     !#   <defaultValue>.false.</defaultValue>
@@ -153,6 +151,7 @@ contains
     !# </inputParameter>
     ! Construct the instance.    
     fileConstructorParameters=fileConstructorInternal(forceZeroMetallicity,imfIndices,fileNames)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
   

@@ -54,9 +54,7 @@ contains
     type  (inputParameters            ), intent(inout) :: parameters
     class (transferFunctionClass      ), pointer       :: transferFunction_
     integer                                            :: tablePointsPerDecade
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>tablePointsPerDecade</name>
     !#   <source>parameters</source>
@@ -67,6 +65,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
     self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function acceleratorConstructorParameters
   

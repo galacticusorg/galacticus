@@ -68,9 +68,7 @@ contains
     double precision                                          :: velocityCutOff      , redshiftCutOff
     logical                                                   :: useFormationNode
     type            (varying_string          )                :: whenCutOff
-    !# <inputParameterList label="allowedParameterNames" />
     
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>useFormationNode</name>
     !#   <defaultValue>.false.</defaultValue>
@@ -121,6 +119,7 @@ contains
          &                                                                   coolingRate_          &
          &                )
     !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cutOffConstructorParameters
 

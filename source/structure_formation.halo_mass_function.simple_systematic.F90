@@ -45,10 +45,8 @@ contains
     implicit none
     type(haloMassFunctionSimpleSystematic)                :: simpleSystematicConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>alpha</name>
     !#   <source>parameters</source>
@@ -69,6 +67,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="simpleSystematicConstructorParameters%cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="simpleSystematicConstructorParameters%referenceMassFunction" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function simpleSystematicConstructorParameters
 

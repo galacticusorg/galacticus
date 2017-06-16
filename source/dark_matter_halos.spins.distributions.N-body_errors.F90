@@ -106,10 +106,8 @@ contains
     double precision                                                 :: massParticle                    , redshift                          , &
          &                                                              time                            , energyEstimateParticleCountMaximum
     integer                                                          :: particleCountMinimum
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
@@ -167,6 +165,7 @@ contains
          &                                                          darkMatterHaloScale_              , &
          &                                                          darkMatterProfile_                  &
          &                                                         )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyErrorsConstructorParameters
 

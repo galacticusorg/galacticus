@@ -54,16 +54,14 @@ contains
     type            (inputParameters                        ), intent(inout)               :: parameters
     double precision                                         , allocatable  , dimension(:) :: apparentMagnitudeThreshold
     class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     if (parameters%count('apparentMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.)) &
          & call  Galacticus_Error_Report(                                                                                                  &
          &                                 'stellarApparentMagnitudesConstructorParameters'                                              , &
          &                                 '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'  &
          &                              )
-    call allocateArray(stellarApparentMagnitudesConstructorParameters%apparentMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
+    call allocateArray(apparentMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
     !# <inputParameter>
     !#   <name>apparentMagnitudeThreshold</name>
     !#   <source>parameters</source>
@@ -73,6 +71,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
     stellarApparentMagnitudesConstructorParameters=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
    return
   end function stellarApparentMagnitudesConstructorParameters
 

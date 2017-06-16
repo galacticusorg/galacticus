@@ -73,7 +73,6 @@ contains
     class           (cosmologicalMassVarianceClass    ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterParticleClass          ), pointer       :: darkMatterParticle_    
     logical                                                            :: useFittingFunction
-    !# <inputParameterList label="allowedParameterNames" />
     
     !# <inputParameter>
     !#   <name>useFittingFunction</name>
@@ -90,6 +89,7 @@ contains
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
     ! Call the internal constructor
     barkana2001WDMConstructorParameters=barkana2001WDMConstructorInternal(criticalOverdensityCDM,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,useFittingFunction)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function barkana2001WDMConstructorParameters
 

@@ -47,10 +47,8 @@ contains
     implicit none
     type(unevolvedSubhaloMassFunctionGiocoli2008)                :: giocoli2008ConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
@@ -71,6 +69,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function giocoli2008ConstructorParameters
 

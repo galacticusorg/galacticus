@@ -44,10 +44,8 @@ contains
     type(outputAnalysisPropertyOperatorMultiply)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
     double precision                                            :: multiplier
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>multiplier</name>
     !#   <source>parameters</source>
@@ -57,6 +55,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisPropertyOperatorMultiply(multiplier)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function multiplyConstructorParameters
 

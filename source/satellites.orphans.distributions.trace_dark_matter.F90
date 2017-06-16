@@ -50,11 +50,10 @@ contains
     implicit none
     type(satelliteOrphanDistributionTraceDarkMatter)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="darkMatterHaloScale" name="self%darkMatterHaloScale_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function traceDarkMatterConstructorParameters
 

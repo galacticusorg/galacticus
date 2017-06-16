@@ -110,10 +110,8 @@ contains
     type            (inputParameters                          )                              :: unoperatorParameters
     double precision                                                                         :: propertyUnitsInSI                    , distributionUnitsInSI            , &
          &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     unoperatorParameters=parameters%subParameters('unoperatorParameters',requireValue=.false.)
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                               ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*Galacticus_Output_Time_Count()])
@@ -286,6 +284,7 @@ contains
          &                              covarianceBinomialMassHaloMinimum                                                                      , &
          &                              covarianceBinomialMassHaloMaximum                                                                        &                      
          &                             )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function volumeFunction1DConstructorParameters
 

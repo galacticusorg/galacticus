@@ -71,7 +71,6 @@ contains
     type            (inputParameters             ), intent(inout) :: parameters
     class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_    
     double precision                                              :: mass                           , degreesOfFreedomEffective
-    !# <inputParameterList label="allowedParameterNames" />
 
     !# <inputParameter>
     !#   <name>mass</name>
@@ -91,6 +90,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     wdmThermalConstructorParameters=darkMatterParticleWDMThermal(mass,degreesOfFreedomEffective,cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function wdmThermalConstructorParameters
 

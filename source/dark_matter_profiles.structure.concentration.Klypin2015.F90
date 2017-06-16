@@ -94,10 +94,8 @@ contains
     type(darkMatterProfileConcentrationKlypin2015)                :: klypin2015ConstructorParameters
     type(inputParameters                         ), intent(inout) :: parameters
     type(varying_string                          )                :: sample
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>sample</name>
     !#   <source>parameters</source>
@@ -108,6 +106,7 @@ contains
     !# </inputParameter>
     ! Construct the object.
     klypin2015ConstructorParameters=klypin2015ConstructorInternal(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function klypin2015ConstructorParameters
   

@@ -60,10 +60,8 @@ contains
     double precision                                                             :: reionizationRedshift          , reionizationTemperature           , &
          &                                                                          electronScatteringOpticalDepth, presentDayTemperature
     logical                                                                      :: haveReionizationRedshift      , haveElectronScatteringOpticalDepth
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     haveReionizationRedshift          =parameters%isPresent('reionizationRedshift'          )
     haveElectronScatteringOpticalDepth=parameters%isPresent('electronScatteringOpticalDepth')
     if (haveReionizationRedshift.and.haveElectronScatteringOpticalDepth) call Galacticus_Error_Report('instantReionizationIGMConstructorParameters','only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided')
@@ -115,6 +113,7 @@ contains
     else
        self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,preReionizationState,reionizationTemperature,presentDayTemperature,electronScatteringOpticalDepth=electronScatteringOpticalDepth)
     end if
+    !# <inputParametersValidate source="parameters"/>
     return
   end function instantReionizationIGMConstructorParameters
 

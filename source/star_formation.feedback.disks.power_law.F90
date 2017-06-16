@@ -44,9 +44,7 @@ contains
     type            (starFormationFeedbackDisksPowerLaw)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: velocityCharacteristic       , exponent
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>velocityCharacteristic</name>
     !#   <source>parameters</source>
@@ -64,6 +62,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=starFormationFeedbackDisksPowerLaw(velocityCharacteristic,exponent)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function powerLawConstructorParameters
 

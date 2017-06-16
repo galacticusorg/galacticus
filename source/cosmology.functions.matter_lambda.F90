@@ -131,6 +131,7 @@ contains
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     matterLambdaConstructorParameters=matterLambdaConstructorInternal(cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function matterLambdaConstructorParameters
 

@@ -46,12 +46,11 @@ contains
     type (outputAnalysisPropertyOperatorHIMass)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(outputAnalysisMolecularRatioClass   ), pointer       :: outputAnalysisMolecularRatio_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters" />
     self=outputAnalysisPropertyOperatorHIMass(outputAnalysisMolecularRatio_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function hiMassConstructorParameters
 

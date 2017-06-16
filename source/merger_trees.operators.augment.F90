@@ -127,7 +127,6 @@ contains
          &                                                                      attemptsMaximum             , massCutOffAttemptsMaximum, &
          &                                                                      massOvershootAttemptsMaximum
     logical                                                                  :: performChecks               , useOneNodeTrees
-    !# <inputParameterList label="allowedParameterNames" />
 
     !# <objectBuilder class="mergerTreeBuilder"        name="mergerTreeBuilder_"        source="parameters"/>
     !# <inputParameter>
@@ -240,6 +239,7 @@ contains
     else
        augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_              )
     end if
+    !# <inputParametersValidate source="parameters"/>
     return
   end function augmentConstructorParameters
 

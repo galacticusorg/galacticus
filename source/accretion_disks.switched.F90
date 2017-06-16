@@ -76,9 +76,7 @@ contains
     double precision                                        :: accretionRateTransitionWidth    , accretionRateThinDiskMinimum    , &
          &                                                     accretionRateThinDiskMaximum
     logical                                                 :: scaleADAFRadiativeEfficiency
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>accretionRateThinDiskMinimum</name>
     !#   <variable>accretionRateThinDiskMinimumText</variable>
@@ -130,6 +128,7 @@ contains
     end if
     ! Build the object.
     self=accretionDisksSwitched(accretionDisksADAF_,accretionDisksShakuraSunyaev_,accretionRateThinDiskMinimum,accretionRateThinDiskMaximum,accretionRateTransitionWidth,scaleADAFRadiativeEfficiency)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function switchedConstructorParameters
 

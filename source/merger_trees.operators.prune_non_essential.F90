@@ -51,9 +51,7 @@ contains
     implicit none
     type   (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorParameters
     type   (inputParameters                    ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>essentialNodeID</name>
     !#   <source>parameters</source>
@@ -70,6 +68,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function pruneNonEssentialConstructorParameters
 

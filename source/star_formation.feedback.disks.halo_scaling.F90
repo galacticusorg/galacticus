@@ -56,9 +56,7 @@ contains
          &                                                                    exponentVelocity
     class           (cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>fraction</name>
     !#   <source>parameters</source>
@@ -86,6 +84,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=starFormationFeedbackDisksHaloScaling(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function haloScalingConstructorParameters
 

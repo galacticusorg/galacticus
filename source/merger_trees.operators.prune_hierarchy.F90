@@ -54,9 +54,7 @@ contains
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorParameters
     type   (inputParameters                 ), intent(inout) :: parameters
     integer                                                  :: hierarchyDepth
-    !# <inputParameterList label="allowedParameterNames" />
         
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>hierarchyDepth</name>
     !#   <source>parameters</source>
@@ -66,6 +64,7 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     pruneHierarchyConstructorParameters=pruneHierarchyConstructorInternal(hierarchyDepth)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function pruneHierarchyConstructorParameters
 

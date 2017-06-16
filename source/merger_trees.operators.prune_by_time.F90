@@ -46,9 +46,7 @@ contains
     type (mergerTreeOperatorPruneByTime)                :: pruneByTimeConstructorParameters
     type (inputParameters              ), intent(inout) :: parameters
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
         
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>redshiftEarliest</name>
     !#   <source>parameters</source>
@@ -83,6 +81,7 @@ contains
          &    pruneByTimeConstructorParameters%timeEarliest   &
          &                                                  ) &
          &                                 )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function pruneByTimeConstructorParameters
 

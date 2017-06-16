@@ -61,6 +61,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     bbksConstructorParameters=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function bbksConstructorParameters
 

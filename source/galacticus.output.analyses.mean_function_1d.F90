@@ -82,10 +82,8 @@ contains
     type            (inputParameters                        )                              :: weightParameters
     double precision                                                                       :: propertyUnitsInSI                    , meanUnitsInSI                         , &
          &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                               ])
@@ -261,6 +259,7 @@ contains
          &                            covarianceBinomialMassHaloMinimum                                                                      , &
          &                            covarianceBinomialMassHaloMaximum                                                                        &                      
          &                           )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function meanFunction1DConstructorParameters
 

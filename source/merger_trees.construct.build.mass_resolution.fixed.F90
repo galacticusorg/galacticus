@@ -43,10 +43,8 @@ contains
     implicit none
     type(mergerTreeMassResolutionFixed)                :: fixedConstructorParameters    
     type(inputParameters              ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>massResolution</name>
     !#   <source>parameters</source>
@@ -56,6 +54,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fixedConstructorParameters
 

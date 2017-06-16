@@ -54,7 +54,6 @@ contains
     type (criticalOverdensityKitayamaSuto1996)                :: kitayamaSuto1996ConstructorParameters
     type (inputParameters                    ), intent(inout) :: parameters
     class(darkMatterParticleClass            ), pointer       :: darkMatterParticle_
-    !# <inputParameterList label="allowedParameterNames" />
     
     !# <objectBuilder class="linearGrowth"             name="kitayamaSuto1996ConstructorParameters%linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="kitayamaSuto1996ConstructorParameters%cosmologyFunctions_"       source="parameters"/>
@@ -67,6 +66,7 @@ contains
     class default
        call Galacticus_Error_Report('kitayamaSuto1996ConstructorParameters','critical overdensity expects a cold dark matter particle')
     end select
+    !# <inputParametersValidate source="parameters"/>
     return
   end function kitayamaSuto1996ConstructorParameters
 

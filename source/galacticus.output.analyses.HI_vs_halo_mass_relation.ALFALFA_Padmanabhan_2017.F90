@@ -47,10 +47,8 @@ contains
     class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
     class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
@@ -70,6 +68,7 @@ contains
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     ! Build the object.
     self=outputAnalysisHIVsHaloMassRelationPadmanabhan2017(systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 

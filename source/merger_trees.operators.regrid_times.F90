@@ -67,9 +67,7 @@ contains
     double precision                                                             :: expansionFactorStart            , expansionFactorEnd, &
          &                                                                          snapTolerance
     type            (varying_string               )                              :: snapshotSpacingText
-    !# <inputParameterList label="allowedParameterNames" />
         
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>dumpTrees</name>
     !#   <source>parameters</source>
@@ -140,6 +138,7 @@ contains
     end if
     ! Build the instance.
     regridTimesConstructorParameters=regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function regridTimesConstructorParameters
 

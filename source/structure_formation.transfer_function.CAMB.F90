@@ -95,6 +95,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     cambConstructorParameters=cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFileGlobally)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cambConstructorParameters
   

@@ -50,10 +50,8 @@ contains
     type            (nbodyHaloMassErrorPowerLaw)                :: nbodyHaloMassErrorPowerLawParameters
     type            (inputParameters           ), intent(inout) :: parameters
     double precision                                            :: normalization                       , fractionalErrorHighMass
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
@@ -88,6 +86,7 @@ contains
     !# </inputParameter>
     nbodyHaloMassErrorPowerLawParameters%normalizationSquared          =normalization          **2
     nbodyHaloMassErrorPowerLawParameters%fractionalErrorHighMassSquared=fractionalErrorHighMass**2
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyHaloMassErrorPowerLawParameters
 

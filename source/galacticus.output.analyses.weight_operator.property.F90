@@ -49,14 +49,13 @@ contains
     type (inputParameters                     ), intent(inout) :: parameters
     class(outputAnalysisPropertyExtractorClass), pointer       :: extractor_
     class(outputAnalysisPropertyOperatorClass ), pointer       :: operator_
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="outputAnalysisPropertyExtractor" name="extractor_" source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="operator_"  source="parameters"/>
     ! Construct the object.
     self=outputAnalysisWeightOperatorProperty(extractor_,operator_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function propertyConstructorParameters
 

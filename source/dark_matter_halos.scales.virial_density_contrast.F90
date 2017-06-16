@@ -77,12 +77,11 @@ contains
     type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: virialDensityContrastDefinitionParameters
     type (inputParameters                                   ), intent(inout) :: parameters
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     virialDensityContrast_                    => virialDensityContrast                  (                      )
     virialDensityContrastDefinitionParameters =  virialDensityContrastDefinitionInternal(virialDensityContrast_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function virialDensityContrastDefinitionParameters
 

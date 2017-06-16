@@ -58,10 +58,8 @@ contains
     type            (inputParameters                     ), intent(inout) :: parameters
     class           (gravitationalLensingClass           ), pointer       :: gravitationalLensing_
     double precision                                                      :: alpha                , beta
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>alpha</name>
     !#   <source>parameters</source>
@@ -81,6 +79,7 @@ contains
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Build the object.
     self=gravitationalLensingBaryonicModifier(gravitationalLensing_,alpha,beta)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function baryonicModifierConstructorParameters
 

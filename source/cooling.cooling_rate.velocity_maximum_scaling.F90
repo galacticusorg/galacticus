@@ -64,9 +64,7 @@ contains
          &                                                                exponentRedshift   , exponentVelocity              , &
          &                                                                velocityCutOff     , velocityCutOffExponentRedshift, &
          &                                                                widthCutOff        , exponentCutOff
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>timescale</name>
     !#   <source>parameters</source>
@@ -133,6 +131,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function velocityMaximumScalingConstructorParameters
 

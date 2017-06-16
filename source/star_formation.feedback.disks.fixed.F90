@@ -45,9 +45,7 @@ contains
     type            (starFormationFeedbackDisksFixed)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     double precision                                                 :: fraction
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>fraction</name>
     !#   <source>parameters</source>
@@ -57,6 +55,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=starFormationFeedbackDisksFixed(fraction)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fixedConstructorParameters
 

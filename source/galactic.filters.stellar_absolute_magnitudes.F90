@@ -50,10 +50,8 @@ contains
     type            (galacticFilterStellarAbsoluteMagnitudes)                              :: stellarAbsoluteMagnitudesConstructorParameters
     type            (inputParameters                        ), intent(inout)               :: parameters
     double precision                                         , allocatable  , dimension(:) :: absoluteMagnitudeThreshold
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     if (parameters%count('absoluteMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.)) &
          & call  Galacticus_Error_Report(                                                                                                  &
          &                                 'stellarAbsoluteMagnitudesConstructorParameters'                                              , &
@@ -68,6 +66,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     stellarAbsoluteMagnitudesConstructorParameters=galacticFilterStellarAbsoluteMagnitudes(absoluteMagnitudeThreshold)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function stellarAbsoluteMagnitudesConstructorParameters
 

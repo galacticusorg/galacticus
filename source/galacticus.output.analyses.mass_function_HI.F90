@@ -58,10 +58,8 @@ contains
     double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
     type            (inputParameters                        )                             :: dataAnalysisParameters
     type            (varying_string                         )                             :: label                              , comment
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(masses(parameters%count('masses')))
     !# <inputParameter>
@@ -117,6 +115,7 @@ contains
     !# <objectBuilder class="outputAnalysisMolecularRatio"       name="outputAnalysisMolecularRatio_"       source="parameters"            />
     surveyGeometry_ => surveyGeometry()
     self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionHIConstructorParameters
 

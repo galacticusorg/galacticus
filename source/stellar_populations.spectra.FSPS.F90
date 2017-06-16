@@ -45,9 +45,7 @@ contains
     type   (stellarPopulationSpectraFSPS)                :: fspsConstructorParameters
     type   (inputParameters             ), intent(inout) :: parameters
     logical                                              :: forceZeroMetallicity
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>forceZeroMetallicity</name>
     !#   <defaultValue>.false.</defaultValue>
@@ -58,6 +56,7 @@ contains
     !# </inputParameter>
     ! Simply use the internal constructor.
     fspsConstructorParameters=fspsConstructorInternal(forceZeroMetallicity)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fspsConstructorParameters
   

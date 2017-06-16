@@ -43,11 +43,10 @@ contains
     implicit none
     type(nbodyHaloMassErrorNull)                :: nbodyHaloMassErrorNullParameters
     type(inputParameters       ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     nbodyHaloMassErrorNullParameters=nbodyHaloMassErrorNull()
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyHaloMassErrorNullParameters
 

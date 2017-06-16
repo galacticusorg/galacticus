@@ -50,10 +50,8 @@ contains
     implicit none
     type(criticalOverdensityFixed)                :: fixedConstructorParameters
     type(inputParameters         ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>criticalOverdensity</name>
     !#   <source>parameters</source>
@@ -66,6 +64,7 @@ contains
     !# <objectBuilder class="linearGrowth"             name="fixedConstructorParameters%linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="fixedConstructorParameters%cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="fixedConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function fixedConstructorParameters
 

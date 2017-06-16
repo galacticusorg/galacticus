@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Subhalos in WDM -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Verbosity -->
+  <verbosityLevel value="2"/>
+  
+  <!-- Component selection -->
+  <treeNodeMethodBasic value="standard"/>
+  <treeNodeMethodHotHalo value="null"/>
+  <treeNodeMethodBlackHole value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
+  <treeNodeMethodDisk value="null"/>
+  <treeNodeMethodSatellite value="orbiting"/>
+  <treeNodeMethodSpheroid value="null"/>
+  <treeNodeMethodSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="69.7"/>
+    <OmegaMatter value="0.2812"/>
+    <OmegaDarkEnergy value="0.7188"/>
+    <OmegaBaryon value="0.04611"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod>
+
+  <!-- Dark matter particle -->
+  <darkMatterParticleMethod value="WDMThermal">
+    <mass                      value="2.0"/>
+    <degreesOfFreedomEffective value="1.5"/>
+  </darkMatterParticleMethod>
+  
+  <!--  Power spectrum options  -->
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.0"/>
+    <running value="0.0"/>
+  </powerSpectrumPrimordialMethod>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.817"/>
+    <monotonicInterpolation value="false"/>
+    <powerSpectrumWindowFunctionMethod value="sharpKSpace">
+      <normalization value="2.5"/>
+    </powerSpectrumWindowFunctionMethod>
+  </cosmologicalMassVarianceMethod>
+  <transferFunctionMethod value="bode2001">
+    <scaleCutOff value="0.08725"/> <!-- WARNING: This is expected to trigger a warning -->
+    <epsilon value="0.359"/>
+    <nu value="1.1"/>
+    <eta value="3.81"/>
+    <transferFunctionMethod value="eisensteinHu1999">
+      <neutrinoNumberEffective value="3.04"/>
+      <neutrinoMassSummed value="0.000"/>
+      <darkMatterParticleMethod value="CDM"/>
+    </transferFunctionMethod>
+  </transferFunctionMethod>
+
+  <!--  Structure growth -->
+  <linearGrowthMethod value="simple"/>
+
+  <!-- Critical overdensity for halo collapse -->
+  <criticalOverdensityMethod value="barkana2001WDM">
+    <criticalOverdensityMethod value="sphericalCollapseMatterLambda">
+      <darkMatterParticleMethod value="CDM"/>
+    </criticalOverdensityMethod>
+  </criticalOverdensityMethod>
+
+  <!-- Dark matter profile concentrations -->
+  <darkMatterProfileConcentrationMethod value="schneider2015">
+    <reference>
+      <cosmologicalMassVarianceMethod value="filteredPower">
+	<sigma_8 value="0.817"/>
+	<powerSpectrumWindowFunctionMethod value="sharpKSpace">
+	  <normalization value="2.5"/>
+	</powerSpectrumWindowFunctionMethod>
+	<powerSpectrumPrimordialTransferredMethod value="simple"/>
+	<transferFunctionMethod value="eisensteinHu1999">
+	  <neutrinoNumberEffective value="3.04"/>
+	  <neutrinoMassSummed value="0.000"/>
+	  <darkMatterParticleMethod value="CDM"/>
+	</transferFunctionMethod>
+	<powerSpectrumPrimordialMethod value="powerLaw">
+	  <index value="0.961"/>
+	  <wavenumberReference value="1.000"/>
+	  <running value="0.000"/>
+	</powerSpectrumPrimordialMethod>
+      </cosmologicalMassVarianceMethod>
+      <criticalOverdensityMethod value="sphericalCollapseMatterLambda">
+	<darkMatterParticleMethod value="CDM"/>
+      </criticalOverdensityMethod>
+      <cosmologyFunctionsMethod value="matterLambda"/>
+      <cosmologyParametersMethod value="simple">
+	<OmegaMatter value="0.2812"/>
+	<OmegaDarkEnergy value="0.7188"/>
+	<OmegaBaryon value="0.04611"/>
+	<HubbleConstant value="69.7"/>
+      </cosmologyParametersMethod>
+      <darkMatterProfileConcentrationMethod value="diemerKravtsov2014"/>
+    </reference>
+  </darkMatterProfileConcentrationMethod>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeBuilderMethod value="cole2000">
+    <accretionLimit   value="0.1"/>
+    <mergeProbability value="0.1"/>
+    <redshiftMaximum value="30"/>
+    <toleranceResolutionParent value="2.0e-2"/>
+  </mergerTreeBuilderMethod>
+  <treeBranchingMethod value="generalizedPress-Schechter"/>
+  <generalizedPressSchechterMinimumMass value="1.0e5"/>
+  <treeBranchingModifierMethod value="Parkinson-Cole-Helly2008"/>
+  <modifiedPressSchechterG0 value="0.57"/>
+  <modifiedPressSchechterGamma1 value="0.38"/>
+  <modifiedPressSchechterGamma2 value="-0.01"/>
+  <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
+  <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
+  <mergerTreeBuildHaloMassMaximum value="2.0e12"/>
+  <mergerTreeBuildTreesPerDecade value="20"/>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <massResolution value="1.0e10"/>
+  </mergerTreeMassResolutionMethod>
+  
+  <!-- Structure formation options -->
+  <virialDensityContrastMethod  value="sphericalCollapseMatterLambda"/>
+ 
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileMethod value="NFW"/>
+  
+  <!-- Halo accretion options -->
+  <accretionHaloMethod value="null"/>
+
+  <!-- Hot halo gas model options -->
+  <hotHaloMassDistributionMethod value="null"/>
+
+  <!-- Orbit model options -->
+  <satelliteOrbitingDestructionMass value="0.0"/>
+  <satelliteOrbitingDestructionMassIsFractional value="true"/>
+  <satelliteDynamicalFrictionMethod value="Chandrasekhar1943"/>
+  <satelliteTidalStrippingMethod value="Zentner2005"/>
+  <satelliteTidalHeatingMethod value="Gnedin1999"/>
+  <satelliteTidalStrippingZentner2005Rate value="1.0"/>
+
+  <!-- Satellite merger options -->
+  <satelliteMergingRemnantSizeMethod value="null"/>
+  
+  <!-- Numerical tolerances -->
+  <odeToleranceAbsolute   value="0.01"/>
+  <odeToleranceRelative   value="0.01"/>
+  <timestepHostAbsolute   value="1.00"/>
+  <timestepHostRelative   value="0.10"/>
+  <timestepSimpleAbsolute value="10.00"/>
+  <timestepSimpleRelative value="10.00"/>
+
+  <!-- Luminosities -->
+  <luminosityFilter value="SDSS_r"/>
+  <luminosityRedshift value="0.0"/>
+  <luminosityType value="rest"/>
+  
+  <!-- Output options -->
+  <mergerTreeOutputReferences value="false"/>
+  <outputTimestepHistory      value="false"/>
+  <outputVirialData           value="true" />
+  <outputRedshifts            value="0.0"/>
+
+  <!-- Output file -->
+  <galacticusOutputFileName value="subhalosWDM.hdf5"/>
+  <mergerTreeOutput>
+    <outputReferences value="false"/>
+    <outputMergerTrees value="true"/>
+    <outputAnalysisMethod value="volumeFunction1D">
+      <label value="dummy"/>
+      <comment value="dummy"/>
+      <propertyLabel value="dummy1"/>
+      <propertyComment value="dummy"/>
+      <propertyUnits value="dummy"/>
+      <propertyUnitsInSI value="1.0"/>
+      <distributionLabel value="dummy2"/>
+      <distributionComment value="dummy"/>
+      <distributionUnits value="dummy"/>
+      <distributionUnitsInSI value="1.0"/>
+      <binCenter value="1.0 2.0 3.0"/>
+      <bufferCount value="1"/>
+      <outputWeight value="1.0 1.0 1.0"/>
+      <covarianceModel value="binomial"/>
+      <unoperatorParameters>	
+      </unoperatorParameters>
+      <cosmologyParametersMethod value="simple"> <!-- VALID: This should be allowed as galacticFilterMethod below will composite cosmologyFunctions which in turn composites cosmologyParameters -->
+	<HubbleConstant value="69.7"/>
+	<OmegaMatter value="0.2812"/>
+	<OmegaDarkEnergy value="0.7188"/>
+	<OmegaBaryon value="0.04611"/>
+	<temperatureCMB value="2.72548"/>
+      </cosmologyParametersMethod>
+      <galacticFilterMethod value="stellarApparentMagnitudes">
+	<apparentMagnitudeThreshold value="20.0"/>
+      </galacticFilterMethod>
+    </outputAnalysisMethod>
+  </mergerTreeOutput>
+    
+</parameters>

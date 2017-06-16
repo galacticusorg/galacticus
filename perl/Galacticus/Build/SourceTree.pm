@@ -13,9 +13,10 @@ use Galacticus::Build::SourceTree::Parse::Directives;
 use Galacticus::Build::SourceTree::Parse::Visibilities;
 use Galacticus::Build::SourceTree::Parse::ModuleUses;
 use Galacticus::Build::SourceTree::Parse::Declarations;
+use Galacticus::Build::SourceTree::Parse::ModuleProcedures;
 use Galacticus::Build::SourceTree::Process::Enumeration;
 use Galacticus::Build::SourceTree::Process::InputParameter;
-use Galacticus::Build::SourceTree::Process::InputParameterList;
+use Galacticus::Build::SourceTree::Process::InputParametersValidate;
 use Galacticus::Build::SourceTree::Process::FunctionClass;
 use Galacticus::Build::SourceTree::Process::OptionalArgument;
 use Galacticus::Build::SourceTree::Process::Generics;
@@ -508,7 +509,7 @@ sub SetVisibility {
     while ( $child ) {
 	$visibilityNode = $child	
 	    if ( $child->{'type'} eq "visibility" );
-	$lastChild = $child;
+	$lastChild = $child;	
 	$child     = $child->{'sibling'};
     }
     # If no visibility exists, add one now.

@@ -106,10 +106,8 @@ contains
     double precision                                                         :: sigma_8                            , tolerance, &
          &                                                                      toleranceTopHat
     logical                                                                  :: monotonicInterpolation
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>sigma_8</name>
     !#   <source>parameters</source>
@@ -148,6 +146,7 @@ contains
     !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
     ! Construct the instance.
     filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function filteredPowerConstructorParameters
 

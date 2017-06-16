@@ -55,10 +55,8 @@ contains
     implicit none
     type(haloSpinDistributionLogNormal)                :: logNormalConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>median</name>
     !#   <source>parameters</source>
@@ -80,6 +78,7 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     logNormalConstructorParameters%median=log(logNormalConstructorParameters%median)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function logNormalConstructorParameters
 

@@ -51,10 +51,8 @@ contains
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder)                :: nbodyHaloMassErrorSOHaloFinderParameters
     type(inputParameters               ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
@@ -65,6 +63,7 @@ contains
     !# </inputParameter>
     nbodyHaloMassErrorSOHaloFinderParameters%darkMatterHaloScale_ => darkMatterHaloScale()
     nbodyHaloMassErrorSOHaloFinderParameters%darkMatterProfile_   => darkMatterProfile  ()
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyHaloMassErrorSOHaloFinderParameters
 

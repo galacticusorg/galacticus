@@ -49,10 +49,8 @@ contains
     implicit none
     type(mergerTreeOperatorPruneLightcone)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>bufferIsolatedHalos</name>
     !#   <source>parameters</source>
@@ -65,6 +63,7 @@ contains
     !# <objectBuilder class="geometryLightcone"           name="self%geometryLightcone_"           source="parameters"/>
     !# <objectBuilder class="satelliteOrphanDistribution" name="self%satelliteOrphanDistribution_" source="parameters"/>
     call pruneLightconeValidate(self)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function pruneLightconeConstructorParameters
 
