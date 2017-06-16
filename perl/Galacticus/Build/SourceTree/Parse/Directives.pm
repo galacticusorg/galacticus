@@ -34,7 +34,7 @@ sub Parse_Directives {
 		# Determine if line is a directive line.
 		my $isDirective = 0;
 		$isDirective    = 1
-		    if ( $line =~ m/^\s*\!\#\s+\<([^\s\>]+)/ || $inDirective == 1 );
+		    if ( $line =~ m/^\s*\!\#\s+\<([^\s\>\/]+)/ || $inDirective == 1 );
 		$directiveRoot = $1
 		    if ( $isDirective == 1 && $inDirective == 0 );		
 		# Catch the end of directives.
@@ -42,7 +42,7 @@ sub Parse_Directives {
 		$endDirective = 1
 		    if ( $isDirective == 1 && $line =~ m/\s*\!\#\s+\<\/$directiveRoot\>/ );
 		$endDirective = 1
-		    if ( $isDirective == 1 && $inDirective == 0 && $line =~ m/\s*\!\#\s+\<$directiveRoot\s.*\/\>/ );
+		    if ( $isDirective == 1 && $inDirective == 0 && ( $line =~ m/\s*\!\#\s+\<$directiveRoot\s.*\/\>/ || $line =~ m/\s*\!\#\s+\<$directiveRoot\/\>/ ) );
 		# Record whether we are currently in or out of a directive.
 		$inDirective = 1
 		    if ( $isDirective == 1 );
