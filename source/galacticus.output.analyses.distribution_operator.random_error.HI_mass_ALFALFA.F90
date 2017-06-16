@@ -51,10 +51,8 @@ contains
     class           (outputAnalysisMolecularRatioClass                 ), pointer       :: outputAnalysisMolecularRatio_
     double precision                                                                    :: a                            , b, &
          &                                                                                 c
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>a</name>
     !#   <source>parameters</source>
@@ -85,6 +83,7 @@ contains
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorALFLF(a,b,c,outputAnalysisMolecularRatio_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function randomErrorHIALFALFAConstructorParameters
 

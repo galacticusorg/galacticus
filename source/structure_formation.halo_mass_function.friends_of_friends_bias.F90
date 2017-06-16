@@ -61,10 +61,8 @@ contains
     implicit none
     type(haloMassFunctionFofBias)                :: fofBiasConstructorParameters
     type(inputParameters        ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
@@ -104,6 +102,7 @@ contains
     !# <objectBuilder class="haloMassFunction"    name="fofBiasConstructorParameters%massFunctionIntrinsic" source="parameters"/>
     fofBiasConstructorParameters%darkMatterHaloScale_ => darkMatterHaloScale()
     fofBiasConstructorParameters%darkMatterProfile_   => darkMatterProfile  ()
+    !# <inputParametersValidate source="parameters"/>
    return
   end function fofBiasConstructorParameters
 

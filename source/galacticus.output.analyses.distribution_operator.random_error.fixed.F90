@@ -43,10 +43,8 @@ contains
     type            (outputAnalysisDistributionOperatorRandomErrorFixed)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
     double precision                                                                    :: rootVariance_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>rootVariance</name>
     !#   <source>parameters</source>
@@ -57,6 +55,7 @@ contains
     !# </inputParameter>
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorFixed(rootVariance_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function randomErrorFixedConstructorParameters
 

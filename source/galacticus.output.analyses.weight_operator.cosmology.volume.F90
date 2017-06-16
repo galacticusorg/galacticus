@@ -51,16 +51,15 @@ contains
     class  (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
     class  (surveyGeometryClass                     ), pointer       :: surveyGeometry_
     type   (inputParameters                         )                :: dataAnalysisParameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
     !# <objectBuilder class="surveyGeometry"     name="surveyGeometry_"         source="dataAnalysisParameters"/>
     ! Construct the object.
     self=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function csmlgyVolumeConstructorParameters
 

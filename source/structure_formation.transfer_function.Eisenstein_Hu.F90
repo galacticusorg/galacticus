@@ -74,10 +74,8 @@ contains
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (darkMatterParticleClass         ), pointer       :: darkMatterParticle_
     double precision                                                  :: neutrinoNumberEffective             , neutrinoMassSummed
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>neutrinoNumberEffective</name>
     !#   <source>parameters</source>
@@ -99,6 +97,7 @@ contains
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     ! Call the internal constructor.
     eisensteinHu1999ConstructorParameters=eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function eisensteinHu1999ConstructorParameters
 

@@ -45,12 +45,11 @@ contains
     implicit none
     type(haloMassFunctionPressSchechter)                :: pressSchechterConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="cosmologyParameters"      name="pressSchechterConstructorParameters%cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="pressSchechterConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function pressSchechterConstructorParameters
 

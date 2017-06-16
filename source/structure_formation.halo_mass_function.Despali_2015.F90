@@ -59,15 +59,14 @@ contains
     implicit none
     type(haloMassFunctionDespali2015)                :: despali2015ConstructorParameters
     type(inputParameters            ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="cosmologyParameters"      name="despali2015ConstructorParameters%cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="despali2015ConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="despali2015ConstructorParameters%criticalOverdensity_"      source="parameters"/>
     despali2015ConstructorParameters%virialDensityContrast_   => virialDensityContrast                             ()
     despali2015ConstructorParameters%referenceDensityContrast =  virialDensityContrastSphericalCollapseMatterLambda()
+    !# <inputParametersValidate source="parameters"/>
    return
   end function despali2015ConstructorParameters
 

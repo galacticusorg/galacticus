@@ -58,10 +58,8 @@ contains
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (gravitationalLensingClass                    ), pointer       :: gravitationalLensing_
     double precision                                                               :: sizeSource
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>sizeSource</name>
     !#   <source>parameters</source>
@@ -73,6 +71,7 @@ contains
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Construct the object.
     self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,sizeSource)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function grvtnlLnsngConstructorParameters
 

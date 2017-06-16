@@ -50,10 +50,8 @@ contains
     double precision                                                                                   :: zeroPoint   , errorMinimum, &
          &                                                                                                errorMaximum
     double precision                                                     , allocatable  , dimension(:) :: coefficient
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     allocate(coefficient(parameters%count('coefficient')))
     !# <inputParameter>
     !#   <name>zeroPoint</name>
@@ -89,6 +87,7 @@ contains
     !# </inputParameter>
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorPlynml(errorMinimum,errorMaximum,zeroPoint,coefficient)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function randomErrorPolynomialConstructorParameters
 

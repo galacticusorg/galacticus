@@ -54,6 +54,7 @@ contains
 
     !# <objectBuilder class="powerSpectrumPrimordial" name="simpleConstructorParameters%powerSpectrumPrimordial_" source="parameters"/>
     !# <objectBuilder class="transferFunction"        name="simpleConstructorParameters%transferFunction_"        source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 

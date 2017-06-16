@@ -49,10 +49,8 @@ contains
     double precision                                                                     :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
          &                                                                                  randomErrorMinimum               , randomErrorMaximum                  , &
          &                                                                                  sizeSourceLensing
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient')) then
        allocate(    randomErrorPolynomialCoefficient(parameters%count(    'randomErrorPolynomialCoefficient')))
     else
@@ -139,6 +137,7 @@ contains
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Build the object.
     self=outputAnalysisMassFunctionStellarSDSS(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionStellarSDSSConstructorParameters
 

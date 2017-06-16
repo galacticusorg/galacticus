@@ -52,10 +52,8 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     double precision                                               :: redshiftMinimum    , redshiftMaximum
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
     !#   <name>redshiftMinimum</name>
@@ -75,6 +73,7 @@ contains
     !# </inputParameter>    
     ! Build the object.
     self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function liWhite2009SDSSConstructorParameters
 

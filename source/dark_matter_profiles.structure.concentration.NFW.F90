@@ -49,10 +49,8 @@ contains
     implicit none
     type(darkMatterProfileConcentrationNFW1996)                :: nfw1996ConstructorParameters
     type(inputParameters                      ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>f</name>
     !#   <source>parameters</source>
@@ -73,6 +71,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nfw1996ConstructorParameters
 

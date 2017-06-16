@@ -57,14 +57,10 @@ contains
     type (darkMatterProfileConcentrationSchneider2015)                :: schneider2015ConstructorParameters
     type(inputParameters                             ), intent(inout) :: parameters
     type(inputParameters                             )                :: referenceParameters
-    !# <inputParameterList label="allowedParameterNames"          source="parameters"          />
-    !# <inputParameterList label="allowedReferenceParameterNames" source="referenceParameters" />
 
     if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('schneider2015ConstructorParameters','parameters must contain a "reference" section')
     referenceParameters=parameters%subParameters('reference',requireValue=.false.)
     ! Check and read parameters.
-    call          parameters%checkParameters(allowedParameterNames         )    
-    call referenceParameters%checkParameters(allowedReferenceParameterNames)    
     !# <inputParameter>
     !#   <name>massFractionFormation</name>
     !#   <source>parameters</source>
@@ -81,6 +77,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance"       name="schneider2015ConstructorParameters%         cosmologicalMassVariance_" source=         "parameters"/>
     !# <objectBuilder class="cosmologyFunctions"             name="schneider2015ConstructorParameters%referenceCosmologyFunctions"        source="referenceParameters"/>
     !# <objectBuilder class="cosmologyFunctions"             name="schneider2015ConstructorParameters%         cosmologyFunctions_"       source=         "parameters"/>
+    !# <inputParametersValidate source="referenceParameters"/>
     return
   end function schneider2015ConstructorParameters
 

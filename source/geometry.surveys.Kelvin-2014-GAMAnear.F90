@@ -45,13 +45,12 @@ contains
     type (surveyGeometryKelvin2014GAMAnear)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build the object.
     self=surveyGeometryKelvin2014GAMAnear(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function kelvin2014GAMAnearConstructorParameters
 

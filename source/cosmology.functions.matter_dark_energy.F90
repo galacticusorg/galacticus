@@ -93,9 +93,7 @@ contains
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
     double precision                                                    :: darkEnergyEquationOfStateW0          , darkEnergyEquationOfStateW1
-    !# <inputParameterList label="allowedParameterNames" />
     
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>darkEnergyEquationOfStateW0</name>
     !#   <source>parameters</source>
@@ -120,6 +118,7 @@ contains
          &                                      darkEnergyEquationOfStateW0, &
          &                                      darkEnergyEquationOfStateW1  &
          &                                     )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function matterDarkEnergyConstructorParameters
 

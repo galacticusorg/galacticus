@@ -52,13 +52,12 @@ contains
     type (surveyGeometryHearin2014SDSS)                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build the object. 
     self=surveyGeometryHearin2014SDSS(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function hearin2014SDSSConstructorParameters
   

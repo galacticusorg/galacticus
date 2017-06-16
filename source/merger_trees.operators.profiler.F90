@@ -56,9 +56,7 @@ contains
     double precision                                            :: massMinimum      , massMaximum      , &
          &                                                         redshiftMinimum  , redshiftMaximum
     integer                                                     :: massBinsPerDecade, timeBinsPerDecade
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>massMinimum</name>
     !#   <source>parameters</source>
@@ -108,6 +106,7 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function profilerConstructorParameters
   

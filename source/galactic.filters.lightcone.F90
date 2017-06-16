@@ -48,11 +48,10 @@ contains
     implicit none
     type(galacticFilterLightcone)                :: lightconeConstructorParameters
     type(inputParameters        ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="geometryLightcone" name="lightconeConstructorParameters%geometryLightcone_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function lightconeConstructorParameters
 

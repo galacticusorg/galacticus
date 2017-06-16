@@ -53,10 +53,8 @@ contains
     implicit none
     type(galacticFilterStarFormationRate)                :: starFormationRateConstructorParameters
     type(inputParameters                ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>logM0</name>
     !#   <source>parameters</source>
@@ -84,6 +82,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function starFormationRateConstructorParameters
 

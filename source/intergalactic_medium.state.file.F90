@@ -81,6 +81,7 @@ contains
     !# </inputParameter>
     ! Construct the object.
     self=intergalacticMediumStateFile(fileName)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
 

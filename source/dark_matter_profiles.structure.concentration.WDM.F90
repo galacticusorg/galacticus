@@ -53,6 +53,7 @@ contains
     type(inputParameters                  ), intent(inout) :: parameters
 
     !# <objectBuilder class="darkMatterProfileConcentration" name="wdmConstructorParameters%cdmConcentration" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function wdmConstructorParameters
 

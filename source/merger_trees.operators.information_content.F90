@@ -59,9 +59,7 @@ contains
     implicit none
     type   (mergerTreeOperatorInformationContent)                :: informationContentConstructorParameters
     type   (inputParameters                     ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
         
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
@@ -72,6 +70,7 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     informationContentConstructorParameters%treeCount=0_c_size_t
+    !# <inputParametersValidate source="parameters"/>
     return
   end function informationContentConstructorParameters
 

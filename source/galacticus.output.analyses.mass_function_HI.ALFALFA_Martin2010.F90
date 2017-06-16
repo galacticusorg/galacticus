@@ -52,10 +52,8 @@ contains
     integer                                                                                      :: covarianceBinomialBinsPerDecade
     double precision                                                                             :: covarianceBinomialMassHaloMinimum             , covarianceBinomialMassHaloMaximum, &
          &                                                                                          sizeSourceLensing
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
@@ -113,6 +111,7 @@ contains
     !# <objectBuilder class="outputAnalysisMolecularRatio"       name="outputAnalysisMolecularRatio_"                  source="parameters"/>
     ! Build the object.
     self=outputAnalysisMassFunctionHIALFALFAMartin2010(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionHIALFALFAMartin2010ConstructorParameters
 

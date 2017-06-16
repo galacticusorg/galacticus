@@ -55,9 +55,7 @@ contains
     double precision                                                    :: time                                 , redshift
     logical                                                             :: alwaysIsolatedHalosOnly
     type            (varying_string                    )                :: fileName
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>redshift</name>
     !#   <source>parameters</source>
@@ -90,6 +88,7 @@ contains
          &                                                                 )
     ! Construct the instance.
     outputRootMassesConstructorParameters=outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function outputRootMassesConstructorParameters
 

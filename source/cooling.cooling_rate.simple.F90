@@ -44,9 +44,7 @@ contains
     type            (coolingRateSimple)                :: self
     type            (inputParameters  ), intent(inout) :: parameters
     double precision                                   :: timeScale
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>timeScale</name>
     !#   <source>parameters</source>
@@ -56,6 +54,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=coolingRateSimple(timeScale)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 

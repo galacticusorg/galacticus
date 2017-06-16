@@ -74,14 +74,7 @@ while ( my $fileName = readdir($testSuite) ) {
     # Skip non-model integration files.
     next
 	unless ( $fileName =~ m/^test\-model\-integration\-([a-zA-Z0-9]+)\.xml$/ );
-    my $modelName = $1;
-
-    
-    ## AJB HACK
-    next unless ( $fileName =~ m/default/ );
-
-
-    
+    my $modelName = $1;    
     # Iterate over realizations.
     my @pbsJobs;
     for(my $i=0;$i<($options{'calibrate'} eq "yes" ? $options{'calibrateCount'} : 1);++$i) {

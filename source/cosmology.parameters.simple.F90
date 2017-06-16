@@ -53,9 +53,7 @@ contains
     implicit none
     type(cosmologyParametersSimple)                :: simpleConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>OmegaMatter</name>
     !#   <source>parameters</source>
@@ -108,6 +106,7 @@ contains
     ! Validate the input.
     if (simpleConstructorParameters%HubbleConstantValue <= 0.0d0)                                                                                    &
          & call Galacticus_Warn("WARNING [cosmologyParametersSimple::simpleConstructorParameters]: H_0 ≤ 0 - are you sure this is what you wanted? "//{introspection:location})
+    !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 

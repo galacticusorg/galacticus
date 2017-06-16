@@ -73,10 +73,8 @@ contains
     implicit none
     type(haloMassFunctionShethTormen)                :: shethTormenConstructorParameters
     type(inputParameters            ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="cosmologyParameters"      name="shethTormenConstructorParameters%cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="shethTormenConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="shethTormenConstructorParameters%criticalOverdensity_"      source="parameters"/>
@@ -107,6 +105,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
    return
   end function shethTormenConstructorParameters
 

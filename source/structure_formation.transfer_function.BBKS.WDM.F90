@@ -56,13 +56,13 @@ contains
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_    
-    !# <inputParameterList label="allowedParameterNames" />
     
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     ! Call the internal constructor
     bbksWDMConstructorParameters =bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function bbksWDMConstructorParameters
 

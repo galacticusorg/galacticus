@@ -69,10 +69,8 @@ contains
     class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     class(linearGrowthClass            ), pointer       :: linearGrowth_
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
@@ -83,6 +81,7 @@ contains
          &                                                         linearGrowth_            , &
          &                                                         cosmologyFunctions_        &
          &                                                        )
+    !# <inputParametersValidate source="parameters"/>
     return
   end function tinker2008ConstructorParameters
 

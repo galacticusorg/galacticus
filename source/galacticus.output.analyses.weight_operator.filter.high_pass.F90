@@ -44,10 +44,8 @@ contains
     type(outputAnalysisWeightOperatorFilterHighPass)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
     double precision                                                :: filterThreshold
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>filterThreshold</name>
     !#   <source>parameters</source>
@@ -57,6 +55,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=outputAnalysisWeightOperatorFilterHighPass(filterThreshold)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function filterHighPassConstructorParameters
 

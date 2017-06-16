@@ -75,6 +75,7 @@ contains
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     staticUniverseConstructorParameters=staticUniverseConstructorInternal(cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function staticUniverseConstructorParameters
 

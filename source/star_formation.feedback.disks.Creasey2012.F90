@@ -46,9 +46,7 @@ contains
     type            (inputParameters                      ), intent(inout) :: parameters
     double precision                                                       :: mu        , nu, &
          &                                                                    beta0
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>mu</name>
     !#   <source>parameters</source>
@@ -77,6 +75,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function creasy2012ConstructorParameters
 

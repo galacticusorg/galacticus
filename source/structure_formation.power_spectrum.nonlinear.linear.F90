@@ -49,13 +49,12 @@ contains
     implicit none
     type(powerSpectrumNonlinearLinear)                :: linearConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
 
     !# <objectBuilder class="powerSpectrum" name="linearConstructorParameters%powerSpectrum_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"  name="linearConstructorParameters%linearGrowth_"  source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function linearConstructorParameters
 

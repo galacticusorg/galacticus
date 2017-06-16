@@ -60,6 +60,7 @@ contains
     class default
        call Galacticus_Error_Report('sphericalCollapseMatterDEConstructorParameters','critical overdensity expects a cold dark matter particle')
     end select
+    !# <inputParametersValidate source="parameters"/>
     return
   end function sphericalCollapseMatterDEConstructorParameters
 

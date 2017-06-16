@@ -74,6 +74,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     simpleConstructorParameters=simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 

@@ -53,9 +53,7 @@ contains
     type   (inputParameters         ), intent(inout) :: parameters
     type   (varying_string          )                   outputFileName             , exportFormatText
     integer                                          :: exportFormat
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>outputFileName</name>
     !#   <source>parameters</source>
@@ -77,6 +75,7 @@ contains
     exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
     ! Construct the object.
     exportConstructorParameters=exportConstructorInternal(char(outputFileName),exportFormat)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function exportConstructorParameters
 

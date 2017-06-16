@@ -44,11 +44,10 @@ contains
     implicit none
     type(galacticFilterNot)                :: notConstructorParameters
     type(inputParameters  ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="galacticFilter" name="notConstructorParameters%galacticFilter_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function notConstructorParameters
 

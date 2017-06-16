@@ -44,10 +44,8 @@ contains
     implicit none
     type(darkMatterProfileConcentrationCorrea2015)                :: correa2015ConstructorParameters
     type(inputParameters                         ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>A</name>
     !#   <source>parameters</source>
@@ -58,6 +56,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function correa2015ConstructorParameters
   

@@ -58,16 +58,15 @@ contains
     class(cosmologyFunctionsClass               ), pointer               :: cosmologyFunctions_
     class(linearGrowthClass                     ), pointer               :: linearGrowth_
     class(powerSpectrumClass                    ), pointer               :: powerSpectrum_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     ! Construct required objects.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
     !# <objectBuilder class="powerSpectrum"      name="powerSpectrum_"      source="parameters"/>
     ! Call the internal constructor.
     peacockDodds1996ConstructorParameters=peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function peacockDodds1996ConstructorParameters
 

@@ -47,11 +47,10 @@ contains
     implicit none
     type(powerSpectrumWindowFunctionTopHat)                :: topHatConstructorParameters
     type(inputParameters                  ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />    
     
     ! Check parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="cosmologyParameters" name="topHatConstructorParameters%cosmologyParameters_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function topHatConstructorParameters
 

@@ -53,9 +53,7 @@ contains
     implicit none
     type(powerSpectrumPrimordialPowerLaw)                :: powerLawConstructorParameters
     type(inputParameters                ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>index</name>
     !#   <source>parameters</source>
@@ -84,6 +82,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function powerLawConstructorParameters
 

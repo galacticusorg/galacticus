@@ -58,10 +58,8 @@ contains
     implicit none
     type(darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014ConstructorParameters
     type(inputParameters                                 ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>kappa</name>
     !#   <source>parameters</source>
@@ -139,6 +137,7 @@ contains
     diemerKravtsov2014ConstructorParameters%timePrevious             =-1.0d0
     diemerKravtsov2014ConstructorParameters%massPrevious             =-1.0d0
     diemerKravtsov2014ConstructorParameters%concentrationMeanPrevious=-1.0d0
+    !# <inputParametersValidate source="parameters"/>
     return
   end function diemerKravtsov2014ConstructorParameters
   

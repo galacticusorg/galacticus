@@ -140,10 +140,8 @@ contains
          &                                                                   lengthUnitsInSI            , unitConversionLength
     integer                                                               :: lengthHubbleExponent       , iOutput
     logical                                                               :: timeEvolvesAlongLightcone
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     if (parameters%isPresent('redshift')) then
        allocate(redshift   (parameters%count('redshift')))
        allocate(outputTimes(parameters%count('redshift')))
@@ -251,6 +249,7 @@ contains
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
     squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function squareConstructorParameters
 

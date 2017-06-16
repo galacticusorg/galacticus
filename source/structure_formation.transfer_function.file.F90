@@ -123,9 +123,7 @@ contains
     type(transferFunctionFile)                :: fileConstructorParameters
     type(inputParameters     ), intent(inout) :: parameters
     type(varying_string      )                :: fileName
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
@@ -134,6 +132,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     fileConstructorParameters=fileConstructorInternal(char(fileName))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
   

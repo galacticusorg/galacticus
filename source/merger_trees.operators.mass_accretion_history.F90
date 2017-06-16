@@ -51,9 +51,7 @@ contains
     type(mergerTreeOperatorMassAccretionHistory)                :: massAccretionHistoryConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
     type(varying_string                        )                :: outputGroupName
-    !# <inputParameterList label="allowedParameterNames" />
    
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>outputGroupName</name>
     !#   <source>parameters</source>
@@ -64,6 +62,7 @@ contains
     !#   <group>output</group>
     !# </inputParameter>
     massAccretionHistoryConstructorParameters=massAccretionHistoryConstructorInternal(char(outputGroupName))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function massAccretionHistoryConstructorParameters
 

@@ -52,10 +52,8 @@ contains
     class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     double precision                                                :: reionizationRedshift      , reionizationTemperature, &
          &                                                             preReionizationTemperature
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>reionizationRedshift</name>
     !#   <source>parameters</source>
@@ -88,6 +86,7 @@ contains
     ! Construct the object.
     self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_)
     !# <objectDestrctor name="cosmologyFunctions_"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function simpleIGMConstructorParameters
 

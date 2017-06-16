@@ -47,9 +47,7 @@ contains
     type            (accretionDisksEddingtonLimited)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     double precision                                                :: efficiencyRadiation, efficiencyJet
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>efficiencyRadiation</name>
     !#   <source>parameters</source>
@@ -67,6 +65,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     self=accretionDisksEddingtonLimited(efficiencyRadiation,efficiencyJet)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function eddingtonLimitedConstructorParameters
 

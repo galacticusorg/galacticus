@@ -67,10 +67,8 @@ contains
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
     class(powerSpectrumPrimordialClass   ), pointer       :: powerSpectrumPrimordial_
     class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     ! Construct required objects.
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -78,6 +76,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     ! Call the internal constructor.
     cosmicEmuConstructorParameters=cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cosmicEmuConstructorParameters
 

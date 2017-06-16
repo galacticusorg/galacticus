@@ -74,9 +74,7 @@ contains
     type(mergerTreeOperatorParticulate)                :: particulateConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
     type(varying_string               )                :: selection
-    !# <inputParameterList label="allowedParameterNames" />
     
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>outputFileName</name>
     !#   <source>parameters</source>
@@ -166,6 +164,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="particulateConstructorParameters%cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="particulateConstructorParameters%cosmologyFunctions_"  source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function particulateConstructorParameters
 

@@ -53,13 +53,12 @@ contains
     implicit none
     type(powerSpectrumStandard)                :: standardConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     ! Build objects.
     !# <objectBuilder class="cosmologicalMassVariance"           name="standardConstructorParameters%cosmologicalMassVariance_"           source="parameters"/>
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="standardConstructorParameters%powerSpectrumPrimordialTransferred_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
 

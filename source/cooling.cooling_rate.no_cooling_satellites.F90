@@ -46,11 +46,10 @@ contains
     type (coolingRateNoCoolingSatellites)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(coolingRateClass              ), pointer       :: coolingRate_
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     self=coolingRateNoCoolingSatellites(coolingRate_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function noCoolingSatellitesConstructorParameters
 

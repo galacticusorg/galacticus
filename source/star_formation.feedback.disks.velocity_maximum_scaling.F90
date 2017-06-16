@@ -56,9 +56,7 @@ contains
     double precision                                                        :: fraction            , exponentRedshift, &
          &                                                                     exponentVelocity
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>fraction</name>
     !#   <source>parameters</source>
@@ -85,6 +83,7 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=starFormationFeedbackDisksVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function vlctyMxSclngConstructorParameters
 

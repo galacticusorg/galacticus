@@ -43,10 +43,8 @@ contains
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsParameters
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: massParticle
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
@@ -56,6 +54,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     nbodyHaloMassErrorFriendsOfFriendsParameters=nbodyHaloMassErrorFriendsOfFriends(massParticle)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyHaloMassErrorFriendsOfFriendsParameters
 

@@ -60,7 +60,6 @@ contains
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_    
     double precision                                          :: epsilon                      , eta, &
          &                                                       nu
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("bode2001ConstructorParameters","an explicit 'transferFunctionMethod' must be given"//{introspection:location})
@@ -97,6 +96,7 @@ contains
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     ! Call the internal constructor
     bode2001ConstructorParameters=bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function bode2001ConstructorParameters
 

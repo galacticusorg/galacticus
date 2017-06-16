@@ -209,9 +209,7 @@ contains
     type(chemicalStateCIEFile)                :: cieFileConstructorParameters
     type(inputParameters     ), intent(inout) :: parameters
     type(varying_string      )                :: fileName
-    !# <inputParameterList label="allowedParameterNames" />
 
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <source>parameters</source>
@@ -221,6 +219,7 @@ contains
     !# </inputParameter>
     ! Construct the instance.    
     cieFileConstructorParameters=cieFileConstructorInternal(char(fileName))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cieFileConstructorParameters
   

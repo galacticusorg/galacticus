@@ -180,6 +180,165 @@ sub Process_FunctionClass {
 		argument    => [ "type(inputParameters), intent(inout) :: descriptor" ],
 		code        => $descriptorCode
 	    };
+	    # Add "allowedParameters" method.
+	    my $allowedParametersCode;
+	    my $parametersPresent = 0;
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
+		$label = lcfirst($label)
+		    unless ( $label =~ m/^[A-Z]{2,}/ );
+		# Search the tree for this class to find the interface to the parameters constructor.
+		my $node = $nonAbstractClass->{'tree'}->{'firstChild'};
+		$node = $node->{'sibling'}
+		    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $nonAbstractClass->{'name'} ) ) );
+		next
+		    unless ( $node );
+		# Find all constructor names.
+		$node = $node->{'firstChild'};		
+		my @constructors;
+		while ( $node ) {
+		    push(@constructors,@{$node->{'names'}})
+			if ( $node->{'type'} eq "moduleProcedure" );
+		    $node = $node->{'sibling'};
+		}
+		# Search for constructors.
+		$node = $nonAbstractClass->{'tree'}->{'firstChild'};
+		my $allowedParameters;
+		my $declarationMatches = 0;
+		while ( $node ) {
+		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*function\s+$node->{'name'}\s*\(\s*parameters\s*\)/ ) {
+			# Extract the name of the return variable in this function.
+			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
+			# Check if this is the parameters constructor.
+			my $constructorNode    = $node->{'firstChild'};
+			my $depth = 0;
+			while ( $constructorNode ) {
+			    # Process node.
+			    if ( $constructorNode->{'type'} eq "declaration" ) {
+				# Declaration node found - check if we have a parameters argument of the correct type.
+				foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
+				    $declarationMatches = 1
+					if ( 
+					           $declaration->{'intrinsic'}  eq "type"
+					    &&
+					    trimlc($declaration->{'type'     }) eq "inputparameters"
+					    &&
+					    grep {$_ eq "parameters"} @{$declaration->{'variables'}}
+					);	     
+				}
+			    }
+			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
+				my $source = exists($constructorNode->{'directive'}->{'source'}) ? $constructorNode->{'directive'}->{'source'} : "globalParameters";
+				if      ( exists($constructorNode->{'directive'}->{'name'    }) ) {
+				    # A regular parameter, defined by its name.
+				    push(@{$allowedParameters->{$source}->{'all'}},         $constructorNode->{'directive'}->{'name' });
+				} elsif ( exists($constructorNode->{'directive'}->{'regEx'   }) ) {
+				    # A regular expression parameter.
+				    push(@{$allowedParameters->{$source}->{'all'}},"regEx:".$constructorNode->{'directive'}->{'regEx'});
+				} elsif ( exists($constructorNode->{'directive'}->{'iterator'}) ) {
+				    # A parameter whose name iterates over a set of possible names.
+				    if ( $constructorNode->{'directive'}->{'iterator'} =~ m/\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)/ ) {
+					my $directiveName = $1;
+					my $attributeName = $2;
+					die('Process_FunctionClass(): locations not found for directives')
+					    unless ( exists($directiveLocations->{$directiveName}) );
+					foreach my $fileName ( &List::ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
+					    foreach ( &Galacticus::Build::Directives::Extract_Directives($fileName,$directiveName) ) {
+						(my $parameterName = $constructorNode->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
+						push(@{$allowedParameters->{$source}->{'all'}},$parameterName);
+					    }
+					}
+				    } else {
+					die('Process_FunctionClass(): nothing to iterate over');
+				    }
+				}
+			    }
+			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {		    
+				my $source = exists($constructorNode->{'directive'}->{'source'}) ? $constructorNode->{'directive'}->{'source'} : "globalParameters";
+				push(@{$allowedParameters->{$source}->{'all'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'}."Method");
+				# Check if the class contains a pointer of the expected type and name for this object.
+				my $typeNode = $nonAbstractClass->{'tree'}->{'firstChild'};
+				while ( $typeNode ) {
+				    if ( $typeNode->{'type'} eq "type" && lc($typeNode->{'name'}) eq lc($nonAbstractClass->{'name'}) ) {
+					$typeNode = $typeNode->{'firstChild'};
+					while ( $typeNode ) {
+					    if ( $typeNode->{'type'} eq "declaration" ) {
+						foreach my $declaration ( @{$typeNode->{'declarations'}} ) {
+						    if ( 
+							$declaration->{'intrinsic'} eq "class"
+							&&
+							trimlc($declaration->{'type'}) eq trimlc($constructorNode->{'directive'}->{'class'})."class"
+							) {
+							push(
+							     @{$allowedParameters->{$source}->{'objects'}},
+							     map {
+								  (
+								   lc(            $_) eq striplc($constructorNode->{'directive'}->{'name'})
+								   ||
+								   lc($result."%".$_) eq striplc($constructorNode->{'directive'}->{'name'})
+								  )
+								  ?
+								  $_
+								  :
+								  ()
+							    } @{$declaration->{'variables'}}
+							    );
+						    }
+						}
+					    }
+					    $typeNode = $typeNode->{'sibling'};  
+					}
+					last;
+				    }
+				    $typeNode = $typeNode->{'sibling'};
+				}
+			    }
+			    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
+			    last
+				if ( $depth < 0 );
+			}
+		    }
+		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		}		
+		if ( $declarationMatches && defined($allowedParameters) ) {
+		    $parametersPresent      = 1;
+		    $allowedParametersCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		    foreach my $source ( keys(%{$allowedParameters}) ) {
+			my $parameterCount = scalar(@{$allowedParameters->{$source}->{'all'}});
+			if ( $parameterCount > 0 ) {
+			    $allowedParametersCode .= "  if (sourceName == '".$source."') then\n";
+			    $allowedParametersCode .= "    if (allocated(allowedParameters)) then\n";
+			    $allowedParametersCode .= "      call move_alloc(allowedParameters,allowedParametersTmp)\n";
+			    $allowedParametersCode .= "      allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
+			    $allowedParametersCode .= "      allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+			    $allowedParametersCode .= "      deallocate(allowedParametersTmp)\n";
+			    $allowedParametersCode .= "    else\n";
+			    $allowedParametersCode .= "      allocate(allowedParameters(".$parameterCount."))\n";
+			    $allowedParametersCode .= "    end if\n";
+			    $allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".$parameterCount."+1:size(allowedParameters))=[".join(",",map {"var_str('".$_."')"} @{$allowedParameters->{$source}->{'all'}})."]\n";
+			    $allowedParametersCode .= "  end if\n";
+			}
+			# Call the allowedParameters() method of any stored obejcts.
+			foreach ( @{$allowedParameters->{$source}->{'objects'}} ) {
+			    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."')\n";
+			}
+		    }
+		}
+	    }
+	    if ( $parametersPresent ) {		
+		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\nselect type (self)\n".$allowedParametersCode."end select\n";
+	    } else {
+		$allowedParametersCode = "!GCC\$ attributes unused :: self, allowedParameters, sourceName\n";
+	    }
+	    $methods{'allowedParameters'} = 
+	    {
+		description => "Return a list of parameter names allowed for this object.",
+		type        => "void",
+		pass        => "yes",
+		modules     => "ISO_Varying_String",
+		argument    => [ "type(varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters", "character(len=*), intent(in   ) :: sourceName" ],
+		code        => $allowedParametersCode
+	    };
 	    # Determine if any methods request that C-bindings be produced.
 	    my %methodsCBound;
 	    foreach ( keys(%methods) ) {
@@ -657,8 +816,8 @@ sub Process_FunctionClass {
 		$postContains->[0]->{'content'} .= "      !% ".$method->{'description'}."\n";
 		if ( exists($method->{'code'}) ) {
 		    if ( exists($method->{'modules'}) ) {
-   		$postContains->[0]->{'content'} .= "      use ".$_."\n"
-   		    foreach ( split(/\s+/,$method->{'modules'}) );
+			$postContains->[0]->{'content'} .= "      use ".$_."\n"
+			    foreach ( split(/\s+/,$method->{'modules'}) );
 		    }
 		} else {
 		    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
@@ -1004,4 +1163,16 @@ sub LaTeX_Breakable {
     return $text;
 }
 
+sub trimlc {
+    (my $result = lc(shift())) =~ s/^\s+|\s+$//g;
+    return $result;
+}
+
+sub striplc {
+    (my $result = lc(shift())) =~ s/\s//g;
+    return $result;
+}
+
 1;
+
+#  LocalWords:  nonAbstractClass

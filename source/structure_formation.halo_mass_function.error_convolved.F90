@@ -59,10 +59,8 @@ contains
     implicit none
     type(haloMassFunctionErrorConvolved)                :: errorConvolvedConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters
-    !# <inputParameterList label="allowedParameterNames" />
     
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)    
     !# <inputParameter>
     !#   <name>errorFractionalMaximum</name>
     !#   <source>parameters</source>
@@ -74,6 +72,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="errorConvolvedConstructorParameters%cosmologyParameters_"  source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"  name="errorConvolvedConstructorParameters%nBodyHaloMassError_"   source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="errorConvolvedConstructorParameters%massFunctionIntrinsic" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
   end function errorConvolvedConstructorParameters
 

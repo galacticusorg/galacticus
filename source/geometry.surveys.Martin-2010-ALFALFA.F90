@@ -50,13 +50,12 @@ contains
     type (surveyGeometryMartin2010ALFALFA)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
-    !# <inputParameterList label="allowedParameterNames" />
 
     ! Check and read parameters.
-    call parameters%checkParameters(allowedParameterNames)
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     ! Build the object.
     self=surveyGeometryMartin2010ALFALFA(cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function martin2010ALFALFAConstructorParameters
     
