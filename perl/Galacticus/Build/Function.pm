@@ -209,14 +209,6 @@ sub Functions_Generate_Output {
 	}
 	);
 
-
-    # Determine if any methods request that C-bindings be produced.
-    my @methodsCBound;
-    foreach ( @methods ) {
-	push(@methodsCBound,$_)
-	    if ( exists($_->{'bindC'}) && $_->{'bindC'} eq "true" );
-    }
-
     # Create a list of non-abstract classes.
     my @nonAbstractClasses;
     foreach ( @{$buildData->{$directive}->{'classes'}}) {
@@ -225,6 +217,40 @@ sub Functions_Generate_Output {
 	    $_
 	    )
 	    unless ( $_->{'abstract'} eq "yes" );
+    }
+
+    # Add trivial "deepCopy" method.
+    my $deepCopyCode;
+    $deepCopyCode .= "select type (self)\n";
+    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+	# Check that the type of the destination matches, and perform a simply copy.
+	$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$deepCopyCode .= "select type (destination)\n";
+	$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+	$deepCopyCode .= "destination=self\n";
+	$deepCopyCode .= "class default\n";
+	$deepCopyCode .= "call Galacticus_Error_Report('".$directive."DeepCopy','destination and source types do not match')\n";
+	$deepCopyCode .= "end select\n";
+    }
+    $deepCopyCode .= "end select\n";
+    push(
+	@methods,
+	{
+	    name        => "deepCopy",
+	    description => "Perform a (trivial) deep copy operator.",
+	    type        => "void",
+	    pass        => "yes",
+	    modules     => "Galacticus_Error",
+	    argument    => [ "class(".$directive."Class), intent(  out) :: destination" ],
+	    code        => $deepCopyCode
+	}
+	);    
+
+    # Determine if any methods request that C-bindings be produced.
+    my @methodsCBound;
+    foreach ( @methods ) {
+	push(@methodsCBound,$_)
+	    if ( exists($_->{'bindC'}) && $_->{'bindC'} eq "true" );
     }
 
     # Add a header.
