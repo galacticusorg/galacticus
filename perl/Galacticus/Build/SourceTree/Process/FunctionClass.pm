@@ -101,7 +101,7 @@ sub Process_FunctionClass {
 	    }
 	    my @unsortedClasses = keys(%classes);
 	    my @sortedClasses   = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@unsortedClasses );
-	    my @classes = map($classes{$_},@sortedClasses);
+	    my @classes         = map($classes{$_},@sortedClasses);
 	    # Create a set of non-abstract classes.
 	    my @nonAbstractClasses;
 	    foreach ( @classes ) {
@@ -338,6 +338,137 @@ sub Process_FunctionClass {
 		modules     => "ISO_Varying_String",
 		argument    => [ "type(varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters", "character(len=*), intent(in   ) :: sourceName" ],
 		code        => $allowedParametersCode
+	    };
+	    # Add "deepCopy" method.
+	    my %deepCopyModules;
+	    my $deepCopyCode;
+	    $deepCopyCode .= "select type (self)\n";
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		# Search the tree for this class.
+		my $class = $nonAbstractClass;
+		my $assignments;
+		while ( $class ) {
+		    my $node = $class->{'tree'}->{'firstChild'};
+		    $node = $node->{'sibling'}
+		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+		    next
+			unless ( $node );
+		    # Search the node for declarations.
+		    $node = $node->{'firstChild'};
+		    while ( $node ) {
+			if ( $node->{'type'} eq "declaration" ) {
+			    foreach my $declaration ( @{$node->{'declarations'}} ) {
+				# Deep copy of function objects.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "class"
+				     &&
+				     $declaration->{'type'     } =~ m/Class\s*$/
+				     &&
+				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+				    ) {
+					foreach my $object ( @{$declaration->{'variables'}} ) {
+					    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					    $assignments .= "nullify(destination%".$name.")\n";
+					    $assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					}
+				}
+				# Deallocate FGSL interpolators.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*fgsl_interp\s*$/i
+				    ) {
+					$assignments .= "destination%".$_."=fgsl_interp()\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*fgsl_interp_accel\s*$/i
+				    ) {
+					$assignments .= "destination%".$_."=fgsl_interp_accel()\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
+			    }
+			}
+			$node = $node->{'sibling'};
+		    }
+		    # Move to the parent class.
+		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		}
+		# Add any objects declared in the base class.
+		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+		    my $declarationSource;
+		    if ( reftype($data) ) {
+			$declarationSource = $data->{'content'}
+			    if ( $data->{'scope'} eq "self" );
+		    } else {
+			$declarationSource = $data;
+		    }
+		    next
+			unless ( defined($declarationSource) );
+		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+		    if
+			(
+			 $declaration->{'intrinsic'} eq "class"
+			 &&
+			 $declaration->{'type'     } =~ m/Class\s*$/
+			 &&
+			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+			) {
+			    foreach my $object ( @{$declaration->{'variables'}} ) {
+				(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+				$assignments .= "nullify(destination%".$name.")\n";
+				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+			    }
+		    }
+		    # Deallocate FGSL interpolators.
+		    if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^\s*fgsl_interp\s*$/i
+			) {
+			    $assignments .= "destination%".$_."=fgsl_interp()\n"
+				foreach ( @{$declaration->{'variables'}} );
+		    }
+		    if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^\s*fgsl_interp_accel\s*$/i
+			) {
+			    $assignments .= "destination%".$_."=fgsl_interp_accel()\n"
+				foreach ( @{$declaration->{'variables'}} );
+		    }
+		}
+		# Check that the type of the destination matches, and perform the copy.
+		if ( defined($assignments) ) {
+		    $deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		    $deepCopyCode .= "select type (destination)\n";
+		    $deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		    $deepCopyCode .= "destination=self\n";
+		    $deepCopyCode .= $assignments;
+		    $deepCopyCode .= "class default\n";
+		    $deepCopyCode .= "call Galacticus_Error_Report('".$directive->{'name'}."DeepCopy','destination and source types do not match')\n";
+		    $deepCopyCode .= "end select\n";
+		    $deepCopyModules{'Galacticus_Error'} = 1;
+		}
+	    }
+	    $deepCopyCode .= "end select\n";
+	    $methods{'deepCopy'} = 
+	    {
+		description => "Perform a deep copy of the object.",
+		type        => "void",
+		pass        => "yes",
+		modules     => join(" ",keys(%deepCopyModules)),
+		argument    => [ "class(".$directive->{'name'}."Class), intent(  out) :: destination" ],
+		code        => $deepCopyCode
 	    };
 	    # Determine if any methods request that C-bindings be produced.
 	    my %methodsCBound;
@@ -816,8 +947,9 @@ sub Process_FunctionClass {
 		$postContains->[0]->{'content'} .= "      !% ".$method->{'description'}."\n";
 		if ( exists($method->{'code'}) ) {
 		    if ( exists($method->{'modules'}) ) {
-			$postContains->[0]->{'content'} .= "      use ".$_."\n"
-			    foreach ( split(/\s+/,$method->{'modules'}) );
+			foreach ( split(/\s+/,$method->{'modules'}) ) {			    
+			    $postContains->[0]->{'content'} .= "      use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
+			}
 		    }
 		} else {
 		    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
