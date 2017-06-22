@@ -15,7 +15,9 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  
+  !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
+  
   !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
   !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" defaultThreadPrivate="yes">
@@ -221,30 +223,60 @@ contains
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass)
     !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     !% region containing the given {\normalfont \ttfamily mass} on average.
+    use Numerical_Constants_Math
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass
+    double precision                                                       :: wavenumber
 
     call self%retabulate(mass)
-    filteredPowerRootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
-         &                                       /self%rootVarianceTable%interpolate        (mass) &
-         &                                       *                                           mass
+    if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
+       ! For the case of a constant window function amplitude the logarithmic gradient can be found analytically.
+       wavenumber                                  =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(           mass)
+       filteredPowerRootVarianceLogarithmicGradient=-self%powerSpectrumPrimordialTransferred_%power            (wavenumber     )    &
+            &                                       *self%sigmaNormalization                                                    **2 &
+            &                                       *self%powerSpectrumWindowFunction_       %value            (wavenumber,mass)**2 &
+            &                                       /self%rootVarianceTable                  %interpolate      (           mass)**2 &
+            &                                       *                                                           wavenumber      **3 &
+            &                                       /12.0d0                                                                         &
+            &                                       /Pi                                                                         **2
+    else
+       ! Compute the gradient by interpolation in the tabulated relation.
+       filteredPowerRootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
+            &                                       /self%rootVarianceTable%interpolate        (mass) &
+            &                                       *                                           mass
+    end if
     return
   end function filteredPowerRootVarianceLogarithmicGradient
   
   subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,rootVariance,rootVarianceLogarithmicGradient)
     !% Return the value and logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a
     !% spherical region containing the given {\normalfont \ttfamily mass} on average.
+    use Numerical_Constants_Math
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass
     double precision                                       , intent(  out) :: rootVariance, rootVarianceLogarithmicGradient
+    double precision                                                       :: wavenumber
 
     call self%retabulate(mass)
-    rootVariance                   =+self%rootVarianceTable%interpolate        (mass)
-    rootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
-         &                          /     rootVariance                                &
-         &                          *                                           mass
+    rootVariance=+self%rootVarianceTable%interpolate(mass)
+    if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
+       ! For the case of a constant window function amplitude the logarithmic gradient can be found analytically.
+       wavenumber                    =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(           mass)
+       rootVarianceLogarithmicGradient=-self%powerSpectrumPrimordialTransferred_%power            (wavenumber     )    &
+            &                          *self%sigmaNormalization                                                    **2 &
+            &                          *self%powerSpectrumWindowFunction_       %value            (wavenumber,mass)**2 &
+            &                          /rootVariance                                                               **2 &
+            &                          *                                                           wavenumber      **3 &
+            &                          /12.0d0                                                                         &
+            &                          /Pi                                                                         **2
+    else
+       ! Compute the gradient by interpolation in the tabulated relation.
+       rootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
+            &                          /     rootVariance                                &
+            &                          *                                           mass
+    end if
     return
   end subroutine filteredPowerRootVarianceAndLogarithmicGradient
 
