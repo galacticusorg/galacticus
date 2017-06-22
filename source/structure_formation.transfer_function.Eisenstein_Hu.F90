@@ -302,7 +302,7 @@ contains
     double precision                                                  :: shapeParameterEffective
 
     
-    ! If called again with the same wavenumber, rturn without recomputing result.
+    ! If called again with the same wavenumber, return without recomputing result.
     if (wavenumber == self%wavenumberPrevious) return
     self%wavenumberPrevious=wavenumber
     ! Compute rescaled shape parameter (eqn. 16)
