@@ -28,9 +28,10 @@
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: cutOffNormalization
    contains
-     final     ::                      sharpKSpaceDestructor
-     procedure :: value             => sharpKSpaceValue
-     procedure :: wavenumberMaximum => sharpKSpaceWavenumberMaximum
+     final     ::                               sharpKSpaceDestructor
+     procedure :: value                      => sharpKSpaceValue
+     procedure :: wavenumberMaximum          => sharpKSpaceWavenumberMaximum
+     procedure :: amplitudeIsMassIndependent => sharpKSpaceAmplitudeIsMassIndependent
   end type powerSpectrumWindowFunctionSharpKSpace
 
   interface powerSpectrumWindowFunctionSharpKSpace
@@ -149,3 +150,14 @@ contains
     sharpKSpaceWavenumberMaximum=self%cutOffNormalization/smoothingMass**(1.0d0/3.0d0)
     return
   end function sharpKSpaceWavenumberMaximum
+
+  logical function sharpKSpaceAmplitudeIsMassIndependent(self)
+    !% Indicate the the sharp $k$-space power spectrum window function has constant amplitude below the maximum wavenumber.
+    implicit none
+    class(powerSpectrumWindowFunctionSharpKSpace), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    sharpKSpaceAmplitudeIsMassIndependent=.true.
+    return
+  end function sharpKSpaceAmplitudeIsMassIndependent
+  

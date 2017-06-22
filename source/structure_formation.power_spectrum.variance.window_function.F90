@@ -44,6 +44,15 @@ module Power_Spectrum_Window_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: smoothingMass</argument>
   !#  </method>
+  !#  <method name="amplitudeIsMassIndependent" >
+  !#   <description>Should return true if, and only if, the amplitude of the window function below the maximum wavenumber is independent of the smoothing mass scale.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#     !GCC$ attributes unused :: self
+  !#     powerSpectrumWindowFunctionAmplitudeIsMassIndependent=.false.
+  !#   </code>
+  !#  </method>
   !# </functionClass>
   
 end module Power_Spectrum_Window_Functions
