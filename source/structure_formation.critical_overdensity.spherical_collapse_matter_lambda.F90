@@ -60,22 +60,22 @@
 
 contains
 
-  function sphericalCollapseMatterLambdaConstructorParameters(parameters)
+  function sphericalCollapseMatterLambdaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class
     !% which takes a parameter set as input.
     use Input_Parameters2
     use Dark_Matter_Particles
     use Galacticus_Error
     implicit none
-    type (criticalOverdensitySphericalCollapseMatterLambda)                :: sphericalCollapseMatterLambdaConstructorParameters
+    type (criticalOverdensitySphericalCollapseMatterLambda)                :: self
     type (inputParameters                                 ), intent(inout) :: parameters
     class(darkMatterParticleClass                         ), pointer       :: darkMatterParticle_
 
-    !# <objectBuilder class="linearGrowth"             name="sphericalCollapseMatterLambdaConstructorParameters%linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="sphericalCollapseMatterLambdaConstructorParameters%cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="sphericalCollapseMatterLambdaConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="self%linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"                                                          source="parameters"/>
-    sphericalCollapseMatterLambdaConstructorParameters%tableInitialized=.false.
+    self%tableInitialized=.false.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
@@ -86,21 +86,21 @@ contains
     return
   end function sphericalCollapseMatterLambdaConstructorParameters
 
-  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_)
+  function sphericalCollapseMatterLambdaConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class.
     use Dark_Matter_Particles
     use Galacticus_Error
     implicit none
-    type (criticalOverdensitySphericalCollapseMatterLambda)                        :: sphericalCollapseMatterLambdaConstructorInternal
+    type (criticalOverdensitySphericalCollapseMatterLambda)                        :: self
     class(cosmologyFunctionsClass                         ), target, intent(in   ) :: cosmologyFunctions_    
     class(linearGrowthClass                               ), target, intent(in   ) :: linearGrowth_    
     class(cosmologicalMassVarianceClass                   ), target, intent(in   ) :: cosmologicalMassVariance_
     class(darkMatterParticleClass                         )        , intent(in   ) :: darkMatterParticle_
 
-    sphericalCollapseMatterLambdaConstructorInternal%tableInitialized          =  .false.
-    sphericalCollapseMatterLambdaConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
-    sphericalCollapseMatterLambdaConstructorInternal%linearGrowth_             => linearGrowth_
-    sphericalCollapseMatterLambdaConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    self%tableInitialized          =  .false.
+    self%cosmologyFunctions_       => cosmologyFunctions_
+    self%linearGrowth_             => linearGrowth_
+    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
