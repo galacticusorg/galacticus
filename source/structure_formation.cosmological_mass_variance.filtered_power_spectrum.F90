@@ -52,10 +52,10 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass                   ), pointer :: cosmologyParameters_
-     class           (powerSpectrumPrimordialTransferredClass    ), pointer :: powerSpectrumPrimordialTransferred_
-     class           (powerSpectrumWindowFunctionClass           ), pointer :: powerSpectrumWindowFunction_
-     type            (powerSpectrumWindowFunctionTopHat          )          :: powerSpectrumWindowFunctionTopHat_
+     class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_
+     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_
+     class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_
+     type            (powerSpectrumWindowFunctionTopHat      )              :: powerSpectrumWindowFunctionTopHat_
      logical                                                                :: initialized
      double precision                                                       :: tolerance                          , toleranceTopHat   , &
           &                                                                    sigma8Value                        , sigmaNormalization, &
@@ -96,11 +96,11 @@
 
 contains
 
-  function filteredPowerConstructorParameters(parameters)
+  function filteredPowerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type            (cosmologicalMassVarianceFilteredPower  )                :: filteredPowerConstructorParameters
+    type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
@@ -147,15 +147,15 @@ contains
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
     ! Construct the instance.
-    filteredPowerConstructorParameters=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    self=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     implicit none
-    type            (cosmologicalMassVarianceFilteredPower  )                        :: filteredPowerConstructorInternal
+    type            (cosmologicalMassVarianceFilteredPower  )                        :: self
     double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat, &
          &                                                                              sigma8
     logical                                                  , intent(in   )         :: monotonicInterpolation
@@ -163,17 +163,17 @@ contains
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
 
-    filteredPowerConstructorInternal%sigma8Value                         =  sigma8
-    filteredPowerConstructorInternal%tolerance                           =  tolerance
-    filteredPowerConstructorInternal%toleranceTopHat                     =  toleranceTopHat
-    filteredPowerConstructorInternal%monotonicInterpolation              =  monotonicInterpolation
-    filteredPowerConstructorInternal%cosmologyParameters_                => cosmologyParameters_
-    filteredPowerConstructorInternal%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
-    filteredPowerConstructorInternal%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
-    filteredPowerConstructorInternal%powerSpectrumWindowFunctionTopHat_  =  powerSpectrumWindowFunctionTopHat  (cosmologyParameters_)
-    filteredPowerConstructorInternal%initialized                         =  .false.
-    filteredPowerConstructorInternal%massMinimum                         =  1.0d06
-    filteredPowerConstructorInternal%massMaximum                         =  1.0d15
+    self%sigma8Value                         =  sigma8
+    self%tolerance                           =  tolerance
+    self%toleranceTopHat                     =  toleranceTopHat
+    self%monotonicInterpolation              =  monotonicInterpolation
+    self%cosmologyParameters_                => cosmologyParameters_
+    self%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
+    self%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
+    self%powerSpectrumWindowFunctionTopHat_  =  powerSpectrumWindowFunctionTopHat  (cosmologyParameters_)
+    self%initialized                         =  .false.
+    self%massMinimum                         =  1.0d06
+    self%massMaximum                         =  1.0d15
     return
   end function filteredPowerConstructorInternal
 
@@ -328,7 +328,7 @@ contains
     logical                                                                            :: remakeTable
     type            (varying_string                         )                          :: message
     character       (len=12                                 )                          :: label
-    
+
     ! Check if we need to recompute our table.
     if (self%initialized) then
        if (present(mass)) then
