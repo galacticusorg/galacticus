@@ -62,34 +62,33 @@
 
 contains
 
-  function simpleConstructorParameters(parameters)
+  function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} linear growth class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type (linearGrowthSimple      )                :: simpleConstructorParameters
+    type (linearGrowthSimple      )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_    
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    simpleConstructorParameters=simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
+    self=simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
+  function simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simple} linear growth class.
     implicit none
-    type (linearGrowthSimple      )                        :: simpleConstructorInternal
+    type (linearGrowthSimple      )                        :: self
     class(cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
     class(cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_    
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
-    simpleConstructorInternal%cosmologyParameters_ => cosmologyParameters_
-    simpleConstructorInternal%cosmologyFunctions_  => cosmologyFunctions_
-    simpleConstructorInternal%tableInitialized     =  .false.
-    simpleConstructorInternal%tableTimeMinimum     =   1.0d0
-    simpleConstructorInternal%tableTimeMaximum     =  20.0d0
+    self%tableInitialized=.false.
+    self%tableTimeMinimum= 1.0d0
+    self%tableTimeMaximum=20.0d0
     return
   end function simpleConstructorInternal
 
@@ -248,7 +247,7 @@ contains
     double precision                                                   :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     !GCC$ attributes unused :: component, wavenumber
-
+    
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
