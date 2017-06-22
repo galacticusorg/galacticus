@@ -62,7 +62,7 @@
           &                                                                   interpolationAcceleratorLuminosityDistance
      logical                                                               :: resetInterpolationDistance                =.true.  , resetInterpolationDistanceInverse      =.true., &
           &                                                                   resetInterpolationLuminosityDistance      =.true.
-     !$ integer       (omp_lock_kind           )                            :: expansionFactorTableLock                           , distanceTableLock
+     !$ integer      (omp_lock_kind           )                            :: expansionFactorTableLock                           , distanceTableLock
    contains
      !@ <objectMethods>
      !@   <object>cosmologyFunctionsMatterLambda</object>
