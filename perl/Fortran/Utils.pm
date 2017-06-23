@@ -46,7 +46,7 @@ our %intrinsicDeclarations = (
     double        => { intrinsic => "double precision", type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)double\s+precision(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     complex       => { intrinsic => "complex"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     doubleComplex => { intrinsic => "double complex"  , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    logical       => { intrinsic => "logical"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    logical       => { intrinsic => "logical"         , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_\.,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     character     => { intrinsic => "character"       , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     type          => { intrinsic => "type"            , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)type(?-i)\s*(\(\s*[a-zA-Z0-9_]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     class         => { intrinsic => "class"           , type => 0, attributes => 1, variables => 2, regEx => qr/^\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
@@ -674,6 +674,7 @@ sub Unformat_Variables {
 	    return $variableDefinition;
 	}
     }
+    return undef();
 }
 
 sub Extract_Variables {
