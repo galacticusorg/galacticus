@@ -163,12 +163,12 @@ contains
             &                        rangeUpwardLimit   =massReferenceMaximum           &
             &                       )
     end if
+    massReferencePrevious=-1.0d0
     if (referenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
        ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
        massReference        =massReferenceMaximum
     else
-       massReferencePrevious=-1.0d0
        massReference        =self%finder%find(rootGuess=mass)
     end if
     ! Compute the concentration of a node of this mass in the reference model.
