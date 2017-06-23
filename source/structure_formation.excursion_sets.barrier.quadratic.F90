@@ -16,100 +16,105 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a quadratic barrier for excursion set calculations of dark matter halo formation.
+!% Contains a module which implements a quadratic excursion set barrier class.
 
-module Excursion_Sets_Barriers_Quadratic
-  !% Implements a quadratic barrier for excursion set calculations of dark matter halo formation.
-  private
-  public :: Excursion_Sets_Barriers_Quadratic_Initialize
+  !# <excursionSetBarrier name="excursionSetBarrierQuadratic">
+  !#  <description>A quadratic excursion set barrier class.</description>
+  !# </excursionSetBarrier>
+  type, extends(excursionSetBarrierClass) :: excursionSetBarrierQuadratic
+     !% A quadratic excursion set barrier class.
+     private
+     double precision :: coefficientConstant, coefficientLinear, &
+          &              coefficientQuadratic
+    contains
+     procedure :: barrier         => quadraticBarrier
+     procedure :: barrierGradient => quadraticBarrierGradient
+  end type excursionSetBarrierQuadratic
 
-  ! Parameters controlling the barrier.
-  double precision :: excursionSetBarrierConstantCoefficient , excursionSetBarrierLinearCoefficient, &
-       &              excursionSetBarrierQuadraticCoefficient
+  interface excursionSetBarrierQuadratic
+     !% Constructors for the quadratic excursion set barrier class.
+     module procedure quadraticConstructorParameters
+     module procedure quadraticConstructorInternal
+  end interface excursionSetBarrierQuadratic
 
 contains
 
-  !# <excursionSetBarrierMethod>
-  !#  <unitName>Excursion_Sets_Barriers_Quadratic_Initialize</unitName>
-  !# </excursionSetBarrierMethod>
-  subroutine Excursion_Sets_Barriers_Quadratic_Initialize(excursionSetBarrierMethod,Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get,barrierName)
-    !% Initialize the quadratic excursion set barrier module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function quadraticConstructorParameters(parameters) result(self)
+    !% Constructor for the quadratic excursion set class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
-    procedure(Excursion_Sets_Barrier_Quadratic), intent(inout), pointer :: Excursion_Sets_Barrier_Get
-    procedure(Excursion_Sets_Barrier_Gradient_Quadratic), intent(inout), pointer :: Excursion_Sets_Barrier_Gradient_Get
-    type     (varying_string  ), intent(inout)          :: barrierName
-    character(len=10          )                         :: label
-
-    if (excursionSetBarrierMethod == 'quadratic') then
-       Excursion_Sets_Barrier_Get          => Excursion_Sets_Barrier_Quadratic
-       Excursion_Sets_Barrier_Gradient_Get => Excursion_Sets_Barrier_Gradient_Quadratic
-       !@ <inputParameter>
-       !@   <name>excursionSetBarrierConstantCoefficient</name>
-       !@   <defaultValue>1.67</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>real</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The constant term in the excursion set barrier.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetBarrierConstantCoefficient',excursionSetBarrierConstantCoefficient,defaultValue=1.67d0)
-       !@ <inputParameter>
-       !@   <name>excursionSetBarrierLinearCoefficient</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>real</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The coefficient of the linear term in the excursion set barrier.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetBarrierLinearCoefficient',excursionSetBarrierLinearCoefficient,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>excursionSetBarrierQuadraticCoefficient</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>real</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The coefficient of the quadratic term in the excursion set barrier.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetBarrierQuadraticCoefficient',excursionSetBarrierQuadraticCoefficient,defaultValue=0.0d0)
-       ! Construct a name for this barrier.
-       write (label,'(e10.4)') excursionSetBarrierConstantCoefficient
-       barrierName=barrierName//"barrierQuadratic:constantCoefficient:"//label
-       write (label,'(e10.4)') excursionSetBarrierLinearCoefficient
-       barrierName=barrierName//":linearCoefficient"//label
-       write (label,'(e10.4)') excursionSetBarrierQuadraticCoefficient
-       barrierName=barrierName//":quadraticCoefficient"//label
-    end if
-    return
-  end subroutine Excursion_Sets_Barriers_Quadratic_Initialize
-
-  double precision function Excursion_Sets_Barrier_Quadratic(variance,time)
-    !% Return a quadratic barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    implicit none
-    double precision, intent(in   ) :: time, variance
-    !GCC$ attributes unused :: time
-
-    Excursion_Sets_Barrier_Quadratic=excursionSetBarrierConstantCoefficient+excursionSetBarrierLinearCoefficient*variance&
-         &+excursionSetBarrierQuadraticCoefficient*variance**2
-    return
-  end function Excursion_Sets_Barrier_Quadratic
-
-  double precision function Excursion_Sets_Barrier_Gradient_Quadratic(variance,time)
-    !% Return the gradient of a quadratic barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    implicit none
-    double precision, intent(in   ) :: time, variance
-    !GCC$ attributes unused :: time
+    type            (excursionSetBarrierQuadratic)                :: self
+    type            (inputParameters             ), intent(inout) :: parameters
+    double precision                                              :: coefficientConstant , coefficientLinear, &
+         &                                                           coefficientQuadratic
     
-    Excursion_Sets_Barrier_Gradient_Quadratic=excursionSetBarrierLinearCoefficient+2.0d0*excursionSetBarrierQuadraticCoefficient&
-         &*variance
-    return
-  end function Excursion_Sets_Barrier_Gradient_Quadratic
+    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>coefficientConstant</name>
+    !#   <source>parameters</source>
+    !#   <variable>coefficientConstant</variable>
+    !#   <defaultValue>1.67d0</defaultValue>
+    !#   <description>The constant coefficient in the quadratic excursion set barrier.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>coefficientLinear</name>
+    !#   <source>parameters</source>
+    !#   <variable>coefficientLinear</variable>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The linear coefficient in the quadratic excursion set barrier.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>coefficientQuadratic</name>
+    !#   <source>parameters</source>
+    !#   <variable>coefficientQuadratic</variable>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The quadratic coefficient in the quadratic excursion set barrier.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=excursionSetBarrierQuadratic(coefficientConstant,coefficientLinear,coefficientQuadratic)
+    !# <inputParametersValidate source="parameters"/>
+   return
+  end function quadraticConstructorParameters
 
-end module Excursion_Sets_Barriers_Quadratic
+  function quadraticConstructorInternal(coefficientConstant,coefficientLinear,coefficientQuadratic) result(self)
+    !% Internal constructor for the quadratic excursion set class.
+    implicit none
+    type            (excursionSetBarrierQuadratic)                :: self
+    double precision                              , intent(in   ) :: coefficientConstant , coefficientLinear, &
+         &                                                           coefficientQuadratic
+    !# <constructorAssign variables="coefficientConstant, coefficientLinear, coefficientQuadratic"/>
+    
+    return
+  end function quadraticConstructorInternal
+
+  double precision function quadraticBarrier(self,variance,time,rateCompute)
+    !% Return the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierQuadratic), intent(inout) :: self
+    double precision                              , intent(in   ) :: variance   , time
+    logical                                       , intent(in   ) :: rateCompute
+    !GCC$ attributes unused :: time, rateCompute
+
+    quadraticBarrier=+self%coefficientConstant              &
+         &           +self%coefficientLinear   *variance    &
+         &           +self%coefficientQuadratic*variance**2
+    return
+  end function quadraticBarrier
+
+  double precision function quadraticBarrierGradient(self,variance,time,rateCompute)
+    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierQuadratic), intent(inout) :: self
+    double precision                              , intent(in   ) :: variance   , time
+    logical                                       , intent(in   ) :: rateCompute
+    !GCC$ attributes unused :: variance, time, rateCompute
+
+    quadraticBarrierGradient=+      self%coefficientLinear             &
+         &                   +2.0d0*self%coefficientQuadratic*variance
+    return
+  end function quadraticBarrierGradient

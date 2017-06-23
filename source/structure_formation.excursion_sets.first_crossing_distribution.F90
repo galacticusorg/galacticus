@@ -16,107 +16,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of first crossing distributions for excursion set calculations.
+!% Contains a module which provides a class for first crossing distributions for excursion set calculations.
+
 
 module Excursion_Sets_First_Crossings
-  !% Implements calculations of first crossing distributions for excursion set calculations.
-  use ISO_Varying_String
+  !% Provides a class for first crossing distributions for excursion set calculations.
   private
-  public :: Excursion_Sets_First_Crossing_Probability,Excursion_Sets_First_Crossing_Rate,Excursion_Sets_Collapsed_Fraction&
-       &,Excursion_Sets_Non_Crossing_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                       :: firstCrossingModuleInitalized                =.false.
-
-  ! Name of method to use for distribution function.
-  type     (varying_string                           )          :: excursionSetFirstCrossingMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Excursion_Sets_First_Crossing_Probability), pointer :: Excursion_Sets_First_Crossing_Probability_Get=>null()
-  procedure(Excursion_Sets_First_Crossing_Rate       ), pointer :: Excursion_Sets_First_Crossing_Rate_Get       =>null()
-  procedure(Excursion_Sets_Non_Crossing_Rate         ), pointer :: Excursion_Sets_Non_Crossing_Rate_Get         =>null()
-
-contains
-
-  subroutine Excursion_Sets_First_Crossings_Initialize
-    !% Initialize the excursion sets first crossing distribution module.
-    use Input_Parameters
-    use Galacticus_Error
-    !# <include directive="excursionSetFirstCrossingMethod" type="moduleUse">
-    include 'structure_formation.excursion_sets.first_crossing_distribution.moduleUse.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.firstCrossingModuleInitalized) then
-       !$omp critical(Excursion_Sets_First_Crossing_Initialization)
-       if (.not.firstCrossingModuleInitalized) then
-          ! Get the barrier first crossing probability method parameter.
-          !@ <inputParameter>
-          !@   <name>excursionSetFirstCrossingMethod</name>
-          !@   <defaultValue>linearBarrier</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>
-          !@     The name of the method to be used for calculations of first crossing distributions for excursion sets.
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('excursionSetFirstCrossingMethod',excursionSetFirstCrossingMethod,defaultValue='linearBarrier')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="excursionSetFirstCrossingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>excursionSetFirstCrossingMethod,Excursion_Sets_First_Crossing_Probability_Get,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get</functionArgs>
-          include 'structure_formation.excursion_sets.first_crossing_distribution.inc'
-          !# </include>
-          if     (                                                                     &
-               &  .not.(                                                               &
-               &             associated(Excursion_Sets_First_Crossing_Probability_Get) &
-               &        .and.associated(Excursion_Sets_First_Crossing_Rate_Get       ) &
-               &        .and.associated(Excursion_Sets_Non_Crossing_Rate_Get         ) &
-               &       )                                                               &
-               & ) call Galacticus_Error_Report('Excursion_Sets_Barrier_Initialize','method '//char(excursionSetFirstCrossingMethod)//' is unrecognized')
-          firstCrossingModuleInitalized=.true.
-       end if
-       !$omp end critical(Excursion_Sets_First_Crossing_Initialization)
-    end if
-    return
-  end subroutine Excursion_Sets_First_Crossings_Initialize
-
-  double precision function Excursion_Sets_First_Crossing_Probability(variance,time)
-    !% Return the probability of first crossing for excursion sets at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.
-    implicit none
-    double precision, intent(in   ) :: time, variance
-
-    ! Initialize the module if necessary.
-    call Excursion_Sets_First_Crossings_Initialize
-
-    Excursion_Sets_First_Crossing_Probability=Excursion_Sets_First_Crossing_Probability_Get(variance,time)
-    return
-  end function Excursion_Sets_First_Crossing_Probability
-
-  double precision function Excursion_Sets_First_Crossing_Rate(variance,varianceProgenitor,time)
-    !% Return the rate of first crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time} to transition to a first crossing at the given {\normalfont \ttfamily varianceProgenitor}.
-    implicit none
-    double precision, intent(in   ) :: time, variance, varianceProgenitor
-
-    ! Initialize the module if necessary.
-    call Excursion_Sets_First_Crossings_Initialize
-
-    Excursion_Sets_First_Crossing_Rate=Excursion_Sets_First_Crossing_Rate_Get(variance,varianceProgenitor,time)
-    return
-  end function Excursion_Sets_First_Crossing_Rate
-
-  double precision function Excursion_Sets_Non_Crossing_Rate(variance,time)
-    !% Return the rate of non-crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.
-    implicit none
-    double precision, intent(in   ) :: time, variance
-
-    ! Initialize the module if necessary.
-    call Excursion_Sets_First_Crossings_Initialize
-
-    Excursion_Sets_Non_Crossing_Rate=Excursion_Sets_Non_Crossing_Rate_Get(variance,time)
-    return
-  end function Excursion_Sets_Non_Crossing_Rate
+  
+  !# <functionClass>
+  !#  <name>excursionSetFirstCrossing</name>
+  !#  <descriptiveName>Excursion Set First Crossing Statistics</descriptiveName>
+  !#  <description>Class providing first crossing statistics for the excursion set problem.</description>
+  !#  <default>linearBarrier</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="probability" >
+  !#   <description>Return the probability for a trajectory to make its first crossing of the barrier at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: variance, time</argument>
+  !#  </method>
+  !#  <method name="rate" >
+  !#   <description>Return the rate of first crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time} to transition to a first crossing at the given {\normalfont \ttfamily varianceProgenitor}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: variance, varianceProgenitor, time</argument>
+  !#  </method>
+  !#  <method name="rateNonCrossing" >
+  !#   <description>Return the rate of non-crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: variance, time</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Excursion_Sets_First_Crossings
-

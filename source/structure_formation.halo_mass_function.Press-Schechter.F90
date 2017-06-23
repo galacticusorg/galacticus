@@ -18,6 +18,7 @@
 
 !% Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
   use Cosmological_Mass_Variance
+  use Excursion_Sets_First_Crossings
 
   !# <haloMassFunction name="haloMassFunctionPressSchechter">
   !#  <description>The halo mass function is computed from the function given by \cite{press_formation_1974}.</description>
@@ -25,7 +26,8 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
      !% A halo mass function class using the model of \cite{press_formation_1974}.
      private
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
+     class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
     contains
      final     ::                 pressSchechterDestructor
      procedure :: differential => pressSchechterDifferential
@@ -47,8 +49,9 @@ contains
     type(inputParameters               ), intent(inout) :: parameters
     
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyParameters"      name="pressSchechterConstructorParameters%cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="pressSchechterConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"       name="pressSchechterConstructorParameters%cosmologyParameters_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"  name="pressSchechterConstructorParameters%cosmologicalMassVariance_"  source="parameters"/>
+    !# <objectBuilder class="excursionSetFirstCrossing" name="pressSchechterConstructorParameters%excursionSetFirstCrossing_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
    return
   end function pressSchechterConstructorParameters
@@ -70,27 +73,27 @@ contains
     implicit none
     type(haloMassFunctionPressSchechter), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    !# <objectDestructor name="self%cosmologyParameters_"       />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"  />
+    !# <objectDestructor name="self%excursionSetFirstCrossing_" />
     return
   end subroutine pressSchechterDestructor
 
   double precision function pressSchechterDifferential(self,time,mass)
     !% Return the differential halo mass function at the given time and mass.
-    use Excursion_Sets_First_Crossings
     implicit none
     class           (haloMassFunctionPressSchechter), intent(inout) :: self
     double precision                                , intent(in   ) :: time , mass    
     double precision                                                :: alpha, variance
 
-    alpha                     =abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
-    variance                  =    self%cosmologicalMassVariance_%rootVariance                   (mass) **2
-    pressSchechterDifferential=+2.0d0&
-         &                     *self%cosmologyParameters_%OmegaMatter    (             ) &
-         &                     *self%cosmologyParameters_%densityCritical(             ) &
-         &                     /mass**2                                                  &
-         &                     *alpha                                                    &
-         &                     *variance                                                 &
-         &                     *Excursion_Sets_First_Crossing_Probability(variance,time)
+    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass         ))
+    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass         ) **2
+    pressSchechterDifferential=+2.0d0                                                                                 &
+         &                     *   self%cosmologyParameters_      %OmegaMatter                    (             )     &
+         &                     *   self%cosmologyParameters_      %densityCritical                (             )     &
+         &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time)     &
+         &                     /mass**2                                                                               &
+         &                     *alpha                                                                                 &
+         &                     *variance
     return
   end function pressSchechterDifferential
