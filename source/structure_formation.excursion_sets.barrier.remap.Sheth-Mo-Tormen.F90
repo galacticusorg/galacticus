@@ -16,107 +16,181 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a \cite{sheth_ellipsoidal_2001} remapping of excursion set barriers.
+  !% Contains a module which implements an excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
 
-module Excursion_Sets_Barriers_Remap_SMT
-  !% Implements a \cite{sheth_ellipsoidal_2001} remapping of excursion set barriers.
-  private
-  public :: Excursion_Sets_Barriers_Remap_SMT_Initialize, Excursion_Sets_Barrier_Remap_SMT,&
-       & Excursion_Sets_Barrier_Gradient_Remap_SMT
+  !# <excursionSetBarrier name="excursionSetBarrierRemapShethMoTormen">
+  !#  <description>An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.</description>
+  !# </excursionSetBarrier>
+  type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapShethMoTormen
+     !% An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
+     private
+     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     double precision                                    :: a                   , b, &
+          &                                                 c
+     integer                                             :: applyTo
+   contains
+     final     ::                    remapShethMoTormenDestructor
+     procedure :: barrier         => remapShethMoTormenBarrier
+     procedure :: barrierGradient => remapShethMoTormenBarrierGradient
+  end type excursionSetBarrierRemapShethMoTormen
 
-  ! Parameters of the remapping function
-  double precision, parameter :: smtFitParameterA=0.707d0
-  double precision, parameter :: smtFitParameterB=0.500d0
-  double precision, parameter :: smtFitParameterC=0.600d0
-
-  ! Record of the position of this remapping in the list of those to be applied.
-  integer                     :: methodPosition  =-1     , methodRatesPosition=-1
+  interface excursionSetBarrierRemapShethMoTormen
+     !% Constructors for the remap scale excursion set barrier class.
+     module procedure remapShethMoTormenConstructorParameters
+     module procedure remapShethMoTormenConstructorInternal
+  end interface excursionSetBarrierRemapShethMoTormen
 
 contains
 
-  !# <excursionSetBarrierRemapInitialize>
-  !#  <unitName>Excursion_Sets_Barriers_Remap_SMT_Initialize</unitName>
-  !# </excursionSetBarrierRemapInitialize>
-  subroutine Excursion_Sets_Barriers_Remap_SMT_Initialize(excursionSetBarrierRemapMethods,barrierName,ratesCalculation,matchedCount)
-    !% Initialize the \cite{sheth_ellipsoidal_2001} excursion set barrier remapping module.
-    use ISO_Varying_String
+  function remapShethMoTormenConstructorParameters(parameters) result(self)
+    !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods
-    type   (varying_string)              , intent(inout) :: barrierName
-    logical                              , intent(in   ) :: ratesCalculation
-    integer                              , intent(inout) :: matchedCount
-    integer                                              :: i                              , position
+    type            (excursionSetBarrierRemapShethMoTormen)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
+    double precision                                                       :: a                   , b, &
+         &                                                                    c
+    type            (varying_string                       )                :: applyTo
 
-    if (any(excursionSetBarrierRemapMethods == 'Sheth-Mo-Tormen')) then
-       ! Locate the position of the scale method in the list.
-       position=-1
-       do i=1,size(excursionSetBarrierRemapMethods)
-          if (excursionSetBarrierRemapMethods(i) == 'Sheth-Mo-Tormen') then
-             position=i
-             exit
-          end if
-       end do
-       ! Record that our method is active.
-       if (ratesCalculation) then
-          methodRatesPosition=position
-       else
-          methodPosition     =position
-       end if
-       ! Increment the count of matched methods.
-       matchedCount=matchedCount+1
-       ! Construct a name for this barrier.
-       barrierName=barrierName//":barrierRemapShethMoTormen"
-    end if
+    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>a</name>
+    !#   <source>parameters</source>
+    !#   <variable>a</variable>
+    !#   <defaultValue>0.707d0</defaultValue>
+    !#   <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>b</name>
+    !#   <source>parameters</source>
+    !#   <variable>b</variable>
+    !#   <defaultValue>0.500d0</defaultValue>
+    !#   <description>The parameter $b$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>c</name>
+    !#   <source>parameters</source>
+    !#   <variable>c</variable>
+    !#   <defaultValue>0.600d0</defaultValue>
+    !#   <description>The parameter $c$ in the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse excursion set barrier remapping.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>applyTo</name>
+    !#   <source>parameters</source>
+    !#   <variable>applyTo</variable>
+    !#   <defaultValue>var_str('nonRates')</defaultValue>
+    !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
+    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(applyTo),includesPrefix=.false.),excursionSetBarrier_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Excursion_Sets_Barriers_Remap_SMT_Initialize
+  end function remapShethMoTormenConstructorParameters
 
-  !# <excursionSetBarrierRemap>
-  !#  <unitName>Excursion_Sets_Barrier_Remap_SMT</unitName>
-  !# </excursionSetBarrierRemap>
-  subroutine Excursion_Sets_Barrier_Remap_SMT(barrier,variance,time,ratesCalculation,iRemap)
-    !% Return the barrier for excursion set calculations remapped according to \cite{sheth_ellipsoidal_2001}.
+  function remapShethMoTormenConstructorInternal(a,b,c,applyTo,excursionSetBarrier_) result(self)
+    !% Internal constructor for the critical overdensity excursion set class.
+    use Galacticus_Error
     implicit none
-    double precision, intent(inout) :: barrier
-    double precision, intent(in   ) :: time            , variance
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-    !GCC$ attributes unused :: time
+    type            (excursionSetBarrierRemapShethMoTormen)                :: self
+    class           (excursionSetBarrierClass             ), target        :: excursionSetBarrier_
+    double precision                                       , intent(in   ) :: a                   , b, &
+         &                                                                    c
+    integer                                                , intent(in   ) :: applyTo
+    !# <constructorAssign variables="a, b, c, applyTo, *excursionSetBarrier_"/>
 
-    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=sqrt(smtFitParameterA)*barrier*(1.0d0+smtFitParameterB*(variance/smtFitParameterA/barrier**2)**smtFitParameterC)
+    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('remapShethMoTormenConstructorInternal','applyTo is invalid')
     return
-  end subroutine Excursion_Sets_Barrier_Remap_SMT
+  end function remapShethMoTormenConstructorInternal
 
-  !# <excursionSetBarrierRemapGradient>
-  !#  <unitName>Excursion_Sets_Barrier_Gradient_Remap_SMT</unitName>
-  !# </excursionSetBarrierRemapGradient>
-  subroutine Excursion_Sets_Barrier_Gradient_Remap_SMT(barrier,barrierGradient,variance,time,ratesCalculation,iRemap)
-    !% Return the gradient of the barrier for excursion set calculations remapped according to \cite{sheth_ellipsoidal_2001}.
+  subroutine remapShethMoTormenDestructor(self)
+    !% Destructor for the critical overdensity excursion set barrier class.
     implicit none
-    double precision, intent(inout) :: barrierGradient
-    double precision, intent(in   ) :: barrier         , time, variance
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-    !GCC$ attributes unused :: time
+    type(excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
+    
+    !# <objectDestructor name="self%excursionSetBarrier_"/>
+    return
+  end subroutine remapShethMoTormenDestructor
 
-    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) then
+  double precision function remapShethMoTormenBarrier(self,variance,time,rateCompute)
+    !% Return the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
+    double precision                               , intent(in   ) :: variance   , time
+    logical                                        , intent(in   ) :: rateCompute
+
+    remapShethMoTormenBarrier=self%excursionSetBarrier_%barrier(variance,time,rateCompute)
+    if     (                                                                    &
+         &    self%applyTo == excursionSetRemapBoth                             &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapRates    .and.      rateCompute) &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapNonRates .and. .not.rateCompute) &
+         & )                                                                    &
+         & remapShethMoTormenBarrier=+sqrt(self%a)                     &
+         &                           *remapShethMoTormenBarrier        &
+         &                           *(                                &
+         &                             +1.0d0                          &
+         &                             +self%b                         &
+         &                             *(                              &
+         &                               +variance                     &
+         &                               /self%a                       &
+         &                               /remapShethMoTormenBarrier**2 &
+         &                              )**self%c                      &
+         &                            )
+    return
+  end function remapShethMoTormenBarrier
+
+  double precision function remapShethMoTormenBarrierGradient(self,variance,time,rateCompute)
+    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
+    double precision                                       , intent(in   ) :: variance   , time
+    logical                                                , intent(in   ) :: rateCompute
+    double precision                                                       :: barrier    , barrierGradient
+
+    barrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute)
+    if     (                                                                    &
+         &    self%applyTo == excursionSetRemapBoth                             &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapRates    .and.      rateCompute) &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapNonRates .and. .not.rateCompute) &
+         & )                                                                    &
+         & then
        if (variance <= 0.0d0) then
-          barrierGradient=0.0d0
+          remapShethMoTormenBarrierGradient=0.0d0
        else
-          barrierGradient=                                                                                                       &
-               &           sqrt(smtFitParameterA)*barrierGradient*(                                                             &
-               &                                                      1.0d0                                                      &
-               &                                                     +smtFitParameterB                                           &
-               &                                                     * (variance/smtFitParameterA/barrier**2)**smtFitParameterC) &
-               &           +sqrt(smtFitParameterA)*barrier        *(                                                            &
-               &                                                      smtFitParameterB                                           &
-               &                                                     *smtFitParameterC                                           &
-               &                                                     *((variance/smtFitParameterA/barrier**2)**smtFitParameterC) &
-               &                                                     *(1.0d0-2.0d0*variance*barrierGradient/barrier)             &
-               &                                                     /variance                                                   &
-               &                                                    )
+          barrier                          =self%excursionSetBarrier_%barrier(variance,time,rateCompute)
+          remapShethMoTormenBarrierGradient=+sqrt(self%a)*barrierGradient*(                                      &
+               &                                                           +1.0d0                                &
+               &                                                           +self%b                               &
+               &                                                           *(variance/self%a/barrier**2)**self%c &
+               &                                                          )                                      &
+               &                            +sqrt(self%a)*barrier        *(                                      &
+               &                                                           +self%b                               &
+               &                                                           *self%c                               &
+               &                                                           *(variance/self%a/barrier**2)**self%c &
+               &                                                           *(                                    &
+               &                                                             +1.0d0                              &
+               &                                                             -2.0d0                              &
+               &                                                             *variance                           &
+               &                                                             *barrierGradient                    &
+               &                                                             /barrier                            &
+               &                                                            )                                    &
+               &                                                           /variance                             &
+               &                                                          )
        end if
+    else
+       remapShethMoTormenBarrierGradient=+barrierGradient
     end if
     return
-  end subroutine Excursion_Sets_Barrier_Gradient_Remap_SMT
-
-end module Excursion_Sets_Barriers_Remap_SMT
+  end function remapShethMoTormenBarrierGradient

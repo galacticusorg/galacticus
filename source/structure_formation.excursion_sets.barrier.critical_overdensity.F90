@@ -16,92 +16,115 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a barrier for excursion set calculations of dark matter halo formation which equals the
-!% critical overdensity for collapse.
+!% Contains a module which implements a critical overdensity excursion set barrier class.
 
-module Excursion_Sets_Barriers_Critical_Overdensity
-  !% Implements a barrier for excursion set calculations of dark matter halo formation which equals the critical overdensity for
-  !% collapse.
-  private
-  public :: Excursion_Sets_Barriers_Critical_Overdensity_Initialize
+  use Cosmological_Mass_Variance
+  use Critical_Overdensities
+
+  !# <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
+  !#  <description>A critical overdensity excursion set barrier class.</description>
+  !# </excursionSetBarrier>
+  type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
+     !% A critical overdensity excursion set barrier class.
+     private
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+   contains
+     final     ::                    criticalOverdensityDestructor
+     procedure :: barrier         => criticalOverdensityBarrier
+     procedure :: barrierGradient => criticalOverdensityBarrierGradient
+  end type excursionSetBarrierCriticalOverdensity
+
+  interface excursionSetBarrierCriticalOverdensity
+     !% Constructors for the critical overdensity excursion set barrier class.
+     module procedure criticalOverdensityConstructorParameters
+     module procedure criticalOverdensityConstructorInternal
+  end interface excursionSetBarrierCriticalOverdensity
 
 contains
 
-  !# <excursionSetBarrierMethod>
-  !#  <unitName>Excursion_Sets_Barriers_Critical_Overdensity_Initialize</unitName>
-  !# </excursionSetBarrierMethod>
-  subroutine Excursion_Sets_Barriers_Critical_Overdensity_Initialize(excursionSetBarrierMethod,Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get,barrierName)
-    !% Initialize the critical overdensity excursion set barrier module.
-    use ISO_Varying_String
+  function criticalOverdensityConstructorParameters(parameters) result(self)
+    !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
-    procedure(Excursion_Sets_Barrier_Critical_Overdensity), intent(inout), pointer :: Excursion_Sets_Barrier_Get
-    procedure(Excursion_Sets_Barrier_Gradient_Critical_Overdensity), intent(inout), pointer :: Excursion_Sets_Barrier_Gradient_Get
-    type     (varying_string  ), intent(inout)          :: barrierName
+    type (excursionSetBarrierCriticalOverdensity)                :: self
+    type (inputParameters                       ), intent(inout) :: parameters
+    class(criticalOverdensityClass              ), pointer       :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
 
-    if (excursionSetBarrierMethod == 'criticalOverdensity') then
-       Excursion_Sets_Barrier_Get          => Excursion_Sets_Barrier_Critical_Overdensity
-       Excursion_Sets_Barrier_Gradient_Get => Excursion_Sets_Barrier_Gradient_Critical_Overdensity
-       ! Construct a name for this barrier.
-       barrierName=barrierName//":barrierCriticalOverdensity"
-    end if
+    ! Check and read parameters.
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=excursionSetBarrierCriticalOverdensity(criticalOverdensity_,cosmologicalMassVariance_)
+    !# <inputParametersValidate source="parameters"/>
+   return
+  end function criticalOverdensityConstructorParameters
+
+  function criticalOverdensityConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
+    !% Internal constructor for the critical overdensity excursion set class.
+    implicit none
+    type (excursionSetBarrierCriticalOverdensity)         :: self
+    class(criticalOverdensityClass              ), target :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass         ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
+    
     return
-  end subroutine Excursion_Sets_Barriers_Critical_Overdensity_Initialize
+  end function criticalOverdensityConstructorInternal
 
-  double precision function Excursion_Sets_Barrier_Critical_Overdensity(variance,time)
-    !% Return a critical overdensity barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    use Cosmological_Mass_Variance
-    use Critical_Overdensities
+  subroutine criticalOverdensityDestructor(self)
+    !% Destructor for the critical overdensity excursion set barrier class.
     implicit none
-    double precision                               , intent(in   ) :: time                , variance
-    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: mass
+    type(excursionSetBarrierCriticalOverdensity), intent(inout) :: self
 
-    ! Get default objects.
-    criticalOverdensity_      => criticalOverdensity     ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    return
+  end subroutine criticalOverdensityDestructor
+  
+  double precision function criticalOverdensityBarrier(self,variance,time,rateCompute)
+    !% Return the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierCriticalOverdensity), intent(inout) :: self
+    double precision                                        , intent(in   ) :: variance   , time
+    logical                                                 , intent(in   ) :: rateCompute
+    double precision                                                         :: mass
+    !GCC$ attributes unused :: rateCompute
+
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
-       Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time,mass=huge(0.0d0))
+       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=huge(   0.0d0))
     else
-       ! Get the halo mass corresponding to this variance.
-       mass=cosmologicalMassVariance_%mass(sqrt(variance))
+       ! Get the mass corresponding to this variance.
+       mass                      =self%cosmologicalMassVariance_%mass(                sqrt(variance))
        ! Return the critical overdensity at this time at the computed mass scale.
-       Excursion_Sets_Barrier_Critical_Overdensity=criticalOverdensity_%value(time=time,mass=mass       )
+       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=     mass     )
     end if
-    return
-  end function Excursion_Sets_Barrier_Critical_Overdensity
+   return
+  end function criticalOverdensityBarrier
 
-  double precision function Excursion_Sets_Barrier_Gradient_Critical_Overdensity(variance,time)
-    !% Return the gradient of a critical overdensity barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    use Cosmological_Mass_Variance
-    use Critical_Overdensities
+  double precision function criticalOverdensityBarrierGradient(self,variance,time,rateCompute)
+    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     implicit none
-    double precision                               , intent(in   ) :: time                , variance
-    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: alpha               , mass
+    class           (excursionSetBarrierCriticalOverdensity), intent(inout) :: self
+    double precision                                        , intent(in   ) :: variance   , time
+    logical                                                 , intent(in   ) :: rateCompute
+    double precision                                                        :: alpha      , mass
+    !GCC$ attributes unused :: rateCompute
 
     if (variance <= 0.0d0) then
        ! Return zero critical overdensity gradient at this time for infinite mass.
-       Excursion_Sets_Barrier_Gradient_Critical_Overdensity=0.0d0
+       criticalOverdensityBarrierGradient=0.0d0
     else
-       ! Get default objects.
-       criticalOverdensity_      => criticalOverdensity     ()
-       cosmologicalMassVariance_ => cosmologicalMassVariance()
        ! Get the halo mass corresponding to this variance.
-       mass=cosmologicalMassVariance_%mass(sqrt(variance))
-       ! Get the logarithmic slope of sigma(M).
-       alpha=cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass)
+       mass =self%cosmologicalMassVariance_%mass                           (sqrt(variance))
+       ! Get the logarithmic slope of σ(M).
+       alpha=self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(     mass     )
        ! Return the critical overdensity at this time at the computed mass scale.
-       Excursion_Sets_Barrier_Gradient_Critical_Overdensity=+0.5d0                                                  &
-            &                                               *mass                                                   &
-            &                                               /variance                                               &
-            &                                               /alpha                                                  &
-            &                                               *criticalOverdensity_%gradientMass(time=time,mass=mass)
+       criticalOverdensityBarrierGradient=+0.5d0                                                       &
+            &                             *mass                                                        &
+            &                             /variance                                                    &
+            &                             /alpha                                                       &
+            &                             *self%criticalOverdensity_%gradientMass(time=time,mass=mass)
     end if
     return
-  end function Excursion_Sets_Barrier_Gradient_Critical_Overdensity
-
-end module Excursion_Sets_Barriers_Critical_Overdensity
+  end function criticalOverdensityBarrierGradient

@@ -16,84 +16,91 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a linear barrier for excursion set calculations of dark matter halo formation.
+!% Contains a module which implements a linear excursion set barrier class.
 
-module Excursion_Sets_Barriers_Linear
-  !% Implements a linear barrier for excursion set calculations of dark matter halo formation.
-  private
-  public :: Excursion_Sets_Barriers_Linear_Initialize
+  !# <excursionSetBarrier name="excursionSetBarrierLinear">
+  !#  <description>A linear excursion set barrier class.</description>
+  !# </excursionSetBarrier>
+  type, extends(excursionSetBarrierClass) :: excursionSetBarrierLinear
+     !% A linear excursion set barrier class.
+     private
+     double precision :: coefficientConstant, coefficientLinear
+    contains
+     procedure :: barrier         => linearBarrier
+     procedure :: barrierGradient => linearBarrierGradient
+  end type excursionSetBarrierLinear
 
-  ! Parameters controlling the barrier.
-  double precision :: excursionSetBarrierConstantCoefficient, excursionSetBarrierLinearCoefficient
+  interface excursionSetBarrierLinear
+     !% Constructors for the linear excursion set barrier class.
+     module procedure linearConstructorParameters
+     module procedure linearConstructorInternal
+  end interface excursionSetBarrierLinear
 
 contains
 
-  !# <excursionSetBarrierMethod>
-  !#  <unitName>Excursion_Sets_Barriers_Linear_Initialize</unitName>
-  !# </excursionSetBarrierMethod>
-  subroutine Excursion_Sets_Barriers_Linear_Initialize(excursionSetBarrierMethod,Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get,barrierName)
-    !% Initialize the linear excursion set barrier module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function linearConstructorParameters(parameters) result(self)
+    !% Constructor for the linear excursion set class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
-    procedure(Excursion_Sets_Barrier_Linear), intent(inout), pointer :: Excursion_Sets_Barrier_Get
-    procedure(Excursion_Sets_Barrier_Gradient_Linear), intent(inout), pointer :: Excursion_Sets_Barrier_Gradient_Get
-    type     (varying_string  ), intent(inout)          :: barrierName
-    character(len=10          )                         :: label
-
-    if (excursionSetBarrierMethod == 'linear') then
-       Excursion_Sets_Barrier_Get          => Excursion_Sets_Barrier_Linear
-       Excursion_Sets_Barrier_Gradient_Get => Excursion_Sets_Barrier_Gradient_Linear
-       !@ <inputParameter>
-       !@   <name>excursionSetBarrierConstantCoefficient</name>
-       !@   <defaultValue>1.67</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>real</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The constant term in the excursion set barrier.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetBarrierConstantCoefficient',excursionSetBarrierConstantCoefficient,defaultValue=1.67d0)
-       !@ <inputParameter>
-       !@   <name>excursionSetBarrierLinearCoefficient</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>real</type>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>
-       !@     The coefficient of the linear term in the excursion set barrier.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('excursionSetBarrierLinearCoefficient',excursionSetBarrierLinearCoefficient,defaultValue=0.0d0)
-       ! Construct a name for this barrier.
-       write (label,'(e10.4)') excursionSetBarrierConstantCoefficient
-       barrierName=barrierName//":barrierLinear:constantCoefficient:"//label
-       write (label,'(e10.4)') excursionSetBarrierLinearCoefficient
-       barrierName=barrierName//":linearCoefficient"//label
-    end if
-    return
-  end subroutine Excursion_Sets_Barriers_Linear_Initialize
-
-  double precision function Excursion_Sets_Barrier_Linear(variance,time)
-    !% Return a linear barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    implicit none
-    double precision, intent(in   ) :: time, variance
-    !GCC$ attributes unused :: time
-
-    Excursion_Sets_Barrier_Linear=excursionSetBarrierConstantCoefficient+excursionSetBarrierLinearCoefficient*variance
-    return
-  end function Excursion_Sets_Barrier_Linear
-
-  double precision function Excursion_Sets_Barrier_Gradient_Linear(variance,time)
-    !% Return the gradient of a linear barrier for excursion set calculations at the given {\normalfont \ttfamily variance}.
-    implicit none
-    double precision, intent(in   ) :: time, variance
-    !GCC$ attributes unused :: variance, time
+    type            (excursionSetBarrierLinear)                :: self
+    type            (inputParameters          ), intent(inout) :: parameters
+    double precision                                           :: coefficientConstant, coefficientLinear
     
-    Excursion_Sets_Barrier_Gradient_Linear=excursionSetBarrierLinearCoefficient
-    return
-  end function Excursion_Sets_Barrier_Gradient_Linear
+    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>coefficientConstant</name>
+    !#   <source>parameters</source>
+    !#   <variable>coefficientConstant</variable>
+    !#   <defaultValue>1.67d0</defaultValue>
+    !#   <description>The constant coefficient in the linear excursion set barrier.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>coefficientLinear</name>
+    !#   <source>parameters</source>
+    !#   <variable>coefficientLinear</variable>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The linear coefficient in the linear excursion set barrier.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=excursionSetBarrierLinear(coefficientConstant,coefficientLinear)
+    !# <inputParametersValidate source="parameters"/>
+   return
+  end function linearConstructorParameters
 
-end module Excursion_Sets_Barriers_Linear
+  function linearConstructorInternal(coefficientConstant,coefficientLinear) result(self)
+    !% Internal constructor for the linear excursion set class.
+    implicit none
+    type            (excursionSetBarrierLinear)                :: self
+    double precision                           , intent(in   ) :: coefficientConstant, coefficientLinear
+    !# <constructorAssign variables="coefficientConstant, coefficientLinear"/>
+    
+    return
+  end function linearConstructorInternal
+
+  double precision function linearBarrier(self,variance,time,rateCompute)
+    !% Return the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierLinear), intent(inout) :: self
+    double precision                           , intent(in   ) :: variance, time
+    logical                                    , intent(in   ) :: rateCompute
+    !GCC$ attributes unused :: time, rateCompute
+
+    linearBarrier=+self%coefficientConstant          &
+         &        +self%coefficientLinear  *variance
+    return
+  end function linearBarrier
+
+  double precision function linearBarrierGradient(self,variance,time,rateCompute)
+    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierLinear), intent(inout) :: self
+    double precision                           , intent(in   ) :: variance   , time
+    logical                                    , intent(in   ) :: rateCompute
+    !GCC$ attributes unused :: variance, time, rateCompute
+
+    linearBarrierGradient=+self%coefficientLinear
+    return
+  end function linearBarrierGradient

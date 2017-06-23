@@ -125,22 +125,24 @@ contains
     use Excursion_Sets_First_Crossings
     use Cosmology_Functions
     implicit none
-    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-    double precision                                         :: presentTime              , testResult, &
-         &                                                      varianceMaximum
+    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
+    class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
+    double precision                                          :: presentTime               , testResult, &
+         &                                                       varianceMaximum
     
     if (.not.excursionSetsTested) then
        !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
        if (.not.excursionSetsTested) then
           ! Get required objects.
-          cosmologyFunctions_       => cosmologyFunctions      ()
-          cosmologicalMassVariance_ => cosmologicalMassVariance()
+          cosmologyFunctions_        => cosmologyFunctions       ()
+          cosmologicalMassVariance_  => cosmologicalMassVariance ()
+          excursionSetFirstCrossing_ => excursionSetFirstCrossing()
           presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
           sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
           varianceMaximum=sigmaMaximum**2
-          testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
-          testResult     =Excursion_Sets_First_Crossing_Rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
+          testResult     =excursionSetFirstCrossing_%probability(                      varianceMaximum,presentTime)
+          testResult     =excursionSetFirstCrossing_%rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
           excursionSetsTested=.true.
        end if
        !$omp end critical (Excursion_Sets_Maximum_Sigma_Test)
@@ -307,23 +309,25 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical                                 , haloMass       , &
-         &                                                            massResolution
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                               , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
+    double precision                                , intent(in   ) :: deltaCritical                                 , haloMass       , &
+         &                                                             massResolution
+    class           (cosmologicalMassVarianceClass ), pointer       :: cosmologicalMassVariance_
+    class           (excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
+    double precision                                , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                               , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
-    double precision                                               :: massMaximum                                   , massMinimum    , &
-         &                                                            resolutionSigmaOverParentSigma
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
-    integer                                                        :: errorStatus
-    type            (varying_string               )                :: message
+    double precision                                , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
+    double precision                                                :: massMaximum                                   , massMinimum    , &
+         &                                                             resolutionSigmaOverParentSigma
+    type            (fgsl_function                 )                :: integrandFunction
+    type            (fgsl_integration_workspace    )                :: integrationWorkspace
+    integer                                                         :: errorStatus
+    type            (varying_string                )                :: message
 
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get required objects.
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
-    ! Get sigma and delta_critical for the parent halo.
+    cosmologicalMassVariance_  => cosmologicalMassVariance ()
+    excursionSetFirstCrossing_ => excursionSetFirstCrossing()
+   ! Get sigma and delta_critical for the parent halo.
     parentHaloMass           =                                       haloMass
     parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta              =deltaCritical
@@ -332,7 +336,7 @@ contains
     ! If requested, compute the rate of smooth accretion.
     if (generalizedPressSchechterSmoothAccretion) then
        Generalized_Press_Schechter_Subresolution_Fraction=abs(parentDTimeDDeltaCritical)*Merger_Tree_Branching_Modifier(parentDelta&
-            &,sigmaMaximum,parentSigma)*Excursion_Sets_Non_Crossing_Rate(parentSigmaSquared,parentTime)
+            &,sigmaMaximum,parentSigma)*excursionSetFirstCrossing_%rateNonCrossing(parentSigmaSquared,parentTime)
     else
        Generalized_Press_Schechter_Subresolution_Fraction=0.0d0
     end if
@@ -427,13 +431,15 @@ contains
     use Merger_Tree_Branching_Modifiers
     use Excursion_Sets_First_Crossings
     implicit none
-    double precision, intent(in   ) :: childAlpha       , childSigma
-    double precision                :: childSigmaSquared
+    double precision                                , intent(in   ) :: childAlpha                , childSigma
+    class           (excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
+    double precision                                                :: childSigmaSquared
 
+    excursionSetFirstCrossing_ => excursionSetFirstCrossing()
     childSigmaSquared=childSigma**2
-    Merging_Rate=-2.0d0*Excursion_Sets_First_Crossing_Rate(parentSigmaSquared,childSigmaSquared,parentTime)*childSigmaSquared&
+    Merging_Rate=-2.0d0*excursionSetFirstCrossing_%rate(parentSigmaSquared,childSigmaSquared,parentTime)*childSigmaSquared&
          &*abs(childAlpha)*parentDTimeDDeltaCritical*Merger_Tree_Branching_Modifier(parentDelta,childSigma,parentSigma)
-   return
+    return
   end function Merging_Rate
 
   subroutine Compute_Common_Factors

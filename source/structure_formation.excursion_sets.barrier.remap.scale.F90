@@ -16,105 +16,125 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a scale remapping of excursion set barriers.
+!% Contains a module which implements an excursion set barrier class which remaps another class by multiplying by a constant.
 
-module Excursion_Sets_Barriers_Remap_Scale
-  !% Implements a scaling remapping of excursion set barriers.
-  private
-  public :: Excursion_Sets_Barriers_Remap_Scale_Initialize, Excursion_Sets_Barrier_Remap_Scale,&
-       & Excursion_Sets_Barrier_Gradient_Remap_Scale
+  !# <excursionSetBarrier name="excursionSetBarrierRemapScale">
+  !#  <description>An excursion set barrier class which remaps another class by multiplying by a constant.</description>
+  !# </excursionSetBarrier>
+  type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapScale
+     !% An excursion set barrier class which remaps another class by multiplying by a constant.
+     private
+     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     double precision                                    :: factor
+     integer                                             :: applyTo
+   contains
+     final     ::                    remapScaleDestructor
+     procedure :: barrier         => remapScaleBarrier
+     procedure :: barrierGradient => remapScaleBarrierGradient
+  end type excursionSetBarrierRemapScale
 
-  ! Record of the position of this remapping in the list of those to be applied.
-  integer          :: methodPosition                       =-1     , methodRatesPosition=-1
-
-  ! Factor by which the barrier should be scaled.
-  double precision :: excursionSetBarrierRemapScalingFactor
-  logical          :: parametersInitialized                =.false.
+  interface excursionSetBarrierRemapScale
+     !% Constructors for the remap scale excursion set barrier class.
+     module procedure remapScaleConstructorParameters
+     module procedure remapScaleConstructorInternal
+  end interface excursionSetBarrierRemapScale
 
 contains
 
-  !# <excursionSetBarrierRemapInitialize>
-  !#  <unitName>Excursion_Sets_Barriers_Remap_Scale_Initialize</unitName>
-  !# </excursionSetBarrierRemapInitialize>
-  subroutine Excursion_Sets_Barriers_Remap_Scale_Initialize(excursionSetBarrierRemapMethods,barrierName,ratesCalculation,matchedCount)
-    !% Initialize the scale excursion set barrier remapping module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function remapScaleConstructorParameters(parameters) result(self)
+    !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods
-    type   (varying_string)              , intent(inout) :: barrierName
-    logical                              , intent(in   ) :: ratesCalculation
-    integer                              , intent(inout) :: matchedCount
-    integer                                              :: i                              , position
+    type            (excursionSetBarrierRemapScale)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (excursionSetBarrierClass     ), pointer       :: excursionSetBarrier_
+    double precision                                               :: factor
+    type            (varying_string               )                :: applyTo
 
-    if (any(excursionSetBarrierRemapMethods == 'scale')) then
-       ! Locate the position of the scale method in the list.
-       position=-1
-       do i=1,size(excursionSetBarrierRemapMethods)
-          if (excursionSetBarrierRemapMethods(i) == 'scale') then
-             position=i
-             exit
-          end if
-       end do
-       ! Record that our method is active.
-       if (ratesCalculation) then
-          methodRatesPosition=position
-       else
-          methodPosition     =position
-       end if
-       ! Increment the count of matched methods.
-       matchedCount=matchedCount+1
-       ! Construct a name for this barrier.
-       barrierName=barrierName//":barrierRemapScale"
-       ! Get the scaling factor.
-       if (.not.parametersInitialized) then
-          !@ <inputParameter>
-          !@   <name>excursionSetBarrierRemapScalingFactor</name>
-          !@   <defaultValue>$1$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>
-          !@     The factor by which the excursion set barrier should be rescaled if the {\normalfont \ttfamily scale} remapping method is active.
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('excursionSetBarrierRemapScalingFactor',excursionSetBarrierRemapScalingFactor,defaultValue=1.0d0)
-          parametersInitialized=.true.
-       end if
-    end if
+    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>factor</name>
+    !#   <source>parameters</source>
+    !#   <variable>factor</variable>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The factor by which to rescale the excursion set barrier.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>applyTo</name>
+    !#   <source>parameters</source>
+    !#   <variable>applyTo</variable>
+    !#   <defaultValue>var_str('nonRates')</defaultValue>
+    !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
+    self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(applyTo),includesPrefix=.false.),excursionSetBarrier_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Excursion_Sets_Barriers_Remap_Scale_Initialize
+  end function remapScaleConstructorParameters
 
-  !# <excursionSetBarrierRemap>
-  !#  <unitName>Excursion_Sets_Barrier_Remap_Scale</unitName>
-  !# </excursionSetBarrierRemap>
-  subroutine Excursion_Sets_Barrier_Remap_Scale(barrier,variance,time,ratesCalculation,iRemap)
-    !% Return the barrier for excursion set calculations unmodified.
+  function remapScaleConstructorInternal(factor,applyTo,excursionSetBarrier_) result(self)
+    !% Internal constructor for the critical overdensity excursion set class.
+    use Galacticus_Error
     implicit none
-    double precision, intent(inout) :: barrier
-    double precision, intent(in   ) :: time            , variance
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-    !GCC$ attributes unused :: time, variance
+    type            (excursionSetBarrierRemapScale)                :: self
+    class           (excursionSetBarrierClass     ), target        :: excursionSetBarrier_
+    double precision                               , intent(in   ) :: factor
+    integer                                        , intent(in   ) :: applyTo
+    !# <constructorAssign variables="factor, applyTo, *excursionSetBarrier_"/>
+
+    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('remapScaleConstructorInternal','applyTo is invalid')
+    return
+  end function remapScaleConstructorInternal
+
+  subroutine remapScaleDestructor(self)
+    !% Destructor for the critical overdensity excursion set barrier class.
+    implicit none
+    type(excursionSetBarrierRemapScale), intent(inout) :: self
     
-    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=barrier*excursionSetBarrierRemapScalingFactor
+    !# <objectDestructor name="self%excursionSetBarrier_"/>
     return
-  end subroutine Excursion_Sets_Barrier_Remap_Scale
+  end subroutine remapScaleDestructor
 
-  !# <excursionSetBarrierRemapGradient>
-  !#  <unitName>Excursion_Sets_Barrier_Gradient_Remap_Scale</unitName>
-  !# </excursionSetBarrierRemapGradient>
-  subroutine Excursion_Sets_Barrier_Gradient_Remap_Scale(barrier,barrierGradient,variance,time,ratesCalculation,iRemap)
-    !% Return the gradient of the barrier for excursion set calculations unmodified.
+  double precision function remapScaleBarrier(self,variance,time,rateCompute)
+    !% Return the excursion set barrier at the given variance and time.
     implicit none
-    double precision, intent(inout) :: barrierGradient
-    double precision, intent(in   ) :: barrier         , time, variance
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-    !GCC$ attributes unused :: barrier, variance, time
-    
-    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrierGradient=barrierGradient*excursionSetBarrierRemapScalingFactor
-    return
-  end subroutine Excursion_Sets_Barrier_Gradient_Remap_Scale
+    class           (excursionSetBarrierRemapScale), intent(inout) :: self
+    double precision                               , intent(in   ) :: variance   , time
+    logical                                        , intent(in   ) :: rateCompute
 
-end module Excursion_Sets_Barriers_Remap_Scale
+    remapScaleBarrier=self%excursionSetBarrier_%barrier(variance,time,rateCompute)
+    if     (                                                                    &
+         &    self%applyTo == excursionSetRemapBoth                             &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapRates    .and.      rateCompute) &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapNonRates .and. .not.rateCompute) &
+         & )                                                                    &
+         & remapScaleBarrier=+remapScaleBarrier                                 &
+         &                   *self%factor
+    return
+  end function remapScaleBarrier
+
+  double precision function remapScaleBarrierGradient(self,variance,time,rateCompute)
+    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    implicit none
+    class           (excursionSetBarrierRemapScale), intent(inout) :: self
+    double precision                               , intent(in   ) :: variance   , time
+    logical                                        , intent(in   ) :: rateCompute
+
+    remapScaleBarrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute)
+    if     (                                                                    &
+         &    self%applyTo == excursionSetRemapBoth                             &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapRates    .and.      rateCompute) &
+         &  .or.                                                                &
+         &   (self%applyTo == excursionSetRemapNonRates .and. .not.rateCompute) &
+         & )                                                                    &
+         & remapScaleBarrierGradient=+remapScaleBarrierGradient                 &
+         &                           *self%factor
+    return
+  end function remapScaleBarrierGradient
