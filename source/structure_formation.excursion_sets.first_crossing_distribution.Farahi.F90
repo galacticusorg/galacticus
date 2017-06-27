@@ -158,6 +158,8 @@ contains
   function farahiConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
     use Input_Parameters2
+    use Galacticus_Input_Paths
+    use Galacticus_Display
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
@@ -182,6 +184,12 @@ contains
     self%timeRatePrevious                  =-huge(0.0d0)
     self%varianceRatePrevious              =-huge(0.0d0)
     self%useFile                           =(self%fileName /= 'none')
+    ! Build an automatic file name based on the descriptor for this object.
+    if (self%fileName == "auto") then
+       self%fileName=Galacticus_Input_Path()//'data/largeScaleStructure/excursionSets/firstCrossDistributionFarahi_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+       call Galacticus_Display_Message('excursion set data will be read from/written to "'//char(self%fileName)//'"',verbosityWorking)
+    end if
+    ! Initialize file lock.    
     if (.not.farahiFileLockInitialized) then
        !$omp critical(farahiFileLockInitialize)
        if (.not.farahiFileLockInitialized) then
@@ -288,7 +296,7 @@ contains
                &                                      *(                                                                                                                                   &
                &                                        +1.0_kind_quad                                                                                                                     &
                &                                        -erfApproximate(                                                                                                                   &
-               &                                                        +excursionSetBarrier_%barrier(              self%varianceTable(1),self%timeTable(iTime),rateCompute=.false.)  &
+               &                                                        +excursionSetBarrier_%barrier(                   self%varianceTable(1),self%timeTable(iTime),rateCompute=.false.)  &
                &                                                        /                             sqrt(2.0_kind_quad*self%varianceTable(1)                                          )  &
                &                                                       )                                                                                                                   &
                &                                       )                                                                                                                                   &
@@ -322,7 +330,7 @@ contains
                   &                                                 *(                                                                                                                                   &
                   &                                                   +1.0_kind_quad                                                                                                                     &
                   &                                                   -erfApproximate(                                                                                                                   &
-                  &                                                                   +excursionSetBarrier_%barrier(              self%varianceTable(i),self%timeTable(iTime),rateCompute=.false.)  &
+                  &                                                                   +excursionSetBarrier_%barrier(                   self%varianceTable(i),self%timeTable(iTime),rateCompute=.false.)  &
                   &                                                                   /                             sqrt(2.0_kind_quad*self%varianceTable(i)                                          )  &
                   &                                                                  )                                                                                                                   &
                   &                                                  )                                                                                                                                   &
