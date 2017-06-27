@@ -25,39 +25,6 @@ sub Process_SourceDigests {
 	if ( $node->{'type'} eq "sourceDigest" && ! $node->{'directive'}->{'processed'} ) {
 	    # Mark the directive as processed.
 	    $node->{'directive'}->{'processed'} =  1;
-	    # Initialize an MD5 hash.
-	    my $hasher = Digest::MD5->new();
-	    # Process all source files upon which this file depends.
-	    (my $dependencyFileName = $ENV{'BUILDPATH'}."/".$tree->{'name'}) =~ s/\.F90$/.d/;
-	    if ( -e $dependencyFileName ) {
-		open(my $dependencyFile,$dependencyFileName);
-		while ( my $objectFileName = <$dependencyFile> ) {
-		    chomp($objectFileName);
-		    (my $sourceFileNamePrefix = $objectFileName) =~ s/(.*\/.*)\.o$/source\/$1/;
-		    foreach my $suffix ( "F90", "c", "h", "Inc", "cpp" ) {
-			my $sourceFileName = $sourceFileNamePrefix.".".$suffix;
-			if ( -e $sourceFileName ) {
-			    if ( $suffix eq "F90" || $suffix eq "Inc" ) {
-				# Parse the file ignoring whitespace and comments.
-				$hasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
-				# Search for use on any files from the data directory by this source file.
-				&Hash_Data_Files(
-				    $hasher,
-				    map 
-				    {$_->{'submatches'}->[0]} 
-				    &Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
-				    );
-			    } else {
-				# Parse the raw file.
-				open(my $sourceFile,$sourceFileName);
-				$hasher->addfile($sourceFile);
-				close($sourceFile);
-			    }
-			}
-		    }
-		}
-		close($dependencyFile);
-	    }
 	    # Generate declaration for the digest variable.
 	    my @digestDeclaration = 
 		(
@@ -65,7 +32,7 @@ sub Process_SourceDigests {
 		     intrinsic  => "character",
 		     type       => "len=22",
 		     attributes => [ "parameter" ],
-		     variables  => [ $node->{'directive'}->{'name'}."=\"".$hasher->b64digest()."\"" ] 
+		     variables  => [ $node->{'directive'}->{'name'}."=\"".&Find_Hash($tree->{'name'})."\"" ] 
 		 }
 		);
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@digestDeclaration);
@@ -73,6 +40,48 @@ sub Process_SourceDigests {
 	# Step to the next node in the tree.
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
+}
+
+sub Find_Hash {
+    # Get names of files to process.
+    my @fileNames = @_;
+    # Initialize an MD5 hash.
+    my $hasher = Digest::MD5->new();
+    # Iterate over files.
+    foreach my $fileName ( @fileNames ) {
+	# Process all source files upon which this file depends.
+	(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/.d/;
+	if ( -e $dependencyFileName ) {
+	    open(my $dependencyFile,$dependencyFileName);
+	    while ( my $objectFileName = <$dependencyFile> ) {
+		chomp($objectFileName);
+		(my $sourceFileNamePrefix = $objectFileName) =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/source\/$1/;
+		foreach my $suffix ( "F90", "c", "h", "Inc", "cpp" ) {
+		    my $sourceFileName = $sourceFileNamePrefix.".".$suffix;
+		    if ( -e $sourceFileName ) {
+			if ( $suffix eq "F90" || $suffix eq "Inc" ) {
+			    # Parse the file ignoring whitespace and comments.
+			    $hasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+			    # Search for use on any files from the data directory by this source file.
+			    &Hash_Data_Files(
+				$hasher,
+				map 
+				{$_->{'submatches'}->[0]} 
+				&Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
+				);
+			} else {
+			    # Parse the raw file.
+			    open(my $sourceFile,$sourceFileName);
+			    $hasher->addfile($sourceFile);
+			    close($sourceFile);
+			}
+		    }
+		}
+	    }
+	    close($dependencyFile);
+	}
+    }
+    return $hasher->b64digest();
 }
 
 sub Hash_Data_Files {
