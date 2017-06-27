@@ -27,6 +27,7 @@
      class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_
      double precision                                    :: factor
      integer                                             :: applyTo
+     type            (varying_string          )          :: applyToText
    contains
      final     ::                    remapScaleDestructor
      procedure :: barrier         => remapScaleBarrier
@@ -49,7 +50,6 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (excursionSetBarrierClass     ), pointer       :: excursionSetBarrier_
     double precision                                               :: factor
-    type            (varying_string               )                :: applyTo
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -64,14 +64,14 @@ contains
     !# <inputParameter>
     !#   <name>applyTo</name>
     !#   <source>parameters</source>
-    !#   <variable>applyTo</variable>
+    !#   <variable>self%applyToText</variable>
     !#   <defaultValue>var_str('nonRates')</defaultValue>
     !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
-    self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(applyTo),includesPrefix=.false.),excursionSetBarrier_)
+    self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function remapScaleConstructorParameters
@@ -87,6 +87,7 @@ contains
     !# <constructorAssign variables="factor, applyTo, *excursionSetBarrier_"/>
 
     if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('remapScaleConstructorInternal','applyTo is invalid')
+    self%applyToText=enumerationExcursionSetRemapDecode(applyTo,includePrefix=.false.)
     return
   end function remapScaleConstructorInternal
 

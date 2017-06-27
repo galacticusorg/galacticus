@@ -33,7 +33,6 @@
      class(powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_
    contains
      final     ::                               standardDestructor
-     procedure :: descriptor                 => standardDescriptor
      procedure :: power                      => standardPower
      procedure :: powerLogarithmicDerivative => standardPowerLogarithmicDerivative
      procedure :: powerDimensionless         => standardPowerDimensionless
@@ -124,19 +123,3 @@ contains
          &                        )**3
     return
   end function standardPowerDimensionless
-
-  subroutine standardDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(powerSpectrumStandard), intent(inout) :: self
-    type (inputParameters      ), intent(inout) :: descriptor
-    type (inputParameters      )                :: subParameters
-
-    call descriptor%addParameter("powerSpectrumMethod","standard")
-    subParameters=descriptor%subparameters("powerSpectrumMethod")
-    call self%cosmologicalMassVariance_          %descriptor(subParameters)
-    call self%powerSpectrumPrimordialTransferred_%descriptor(subParameters)
-    return
-  end subroutine standardDescriptor

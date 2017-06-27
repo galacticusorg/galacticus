@@ -50,7 +50,6 @@
      procedure :: coolingFunction                    => atomicCIECloudyCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => atomicCIECloudyCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => atomicCIECloudyCoolingFunctionDensityLogSlope
-     procedure :: descriptor                         => atomicCIECloudyDescriptor
   end type coolingFunctionAtomicCIECloudy
 
   interface coolingFunctionAtomicCIECloudy
@@ -230,16 +229,3 @@ contains
     atomicCIECloudyCoolingFunctionDensityLogSlope=self%coolingFunctionCIEFile%coolingFunctionDensityLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function atomicCIECloudyCoolingFunctionDensityLogSlope
-
-  subroutine atomicCIECloudyDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(coolingFunctionAtomicCIECloudy), intent(inout) :: self
-    type (inputParameters               ), intent(inout) :: descriptor
-    !GCC$ attributes unused :: self
-    
-    call descriptor%addParameter("coolingFunctionMethod","atomicCIECloudy")
-    return
-  end subroutine atomicCIECloudyDescriptor

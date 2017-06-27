@@ -22,6 +22,7 @@
   use Tables
   use Linear_Growth
   use Cosmology_Functions
+  use Dark_Matter_Particles
 
   !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda" defaultThreadPrivate="yes">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
@@ -29,10 +30,11 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                          :: tableInitialized
-     double precision                                 :: tableTimeMinimum   , tableTimeMaximum
-     class           (table1D          ), allocatable :: overdensityCritical
-     class           (linearGrowthClass), pointer     :: linearGrowth_
+     logical                                                :: tableInitialized
+     double precision                                       :: tableTimeMinimum   , tableTimeMaximum
+     class           (table1D                ), allocatable :: overdensityCritical
+     class           (linearGrowthClass      ), pointer     :: linearGrowth_
+     class           (darkMatterParticleClass), pointer     :: darkMatterParticle_
    contains
      !@ <objectMethods>
      !@   <object>criticalOverdensitySphericalCollapseMatterLambda</object>
@@ -64,19 +66,17 @@ contains
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class
     !% which takes a parameter set as input.
     use Input_Parameters2
-    use Dark_Matter_Particles
     use Galacticus_Error
     implicit none
     type (criticalOverdensitySphericalCollapseMatterLambda)                :: self
     type (inputParameters                                 ), intent(inout) :: parameters
-    class(darkMatterParticleClass                         ), pointer       :: darkMatterParticle_
 
     !# <objectBuilder class="linearGrowth"             name="self%linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"                                                          source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"       name="self%darkMatterParticle_"       source="parameters"/>
     self%tableInitialized=.false.
-    select type (darkMatterParticle_)
+    select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
@@ -95,12 +95,13 @@ contains
     class(cosmologyFunctionsClass                         ), target, intent(in   ) :: cosmologyFunctions_    
     class(linearGrowthClass                               ), target, intent(in   ) :: linearGrowth_    
     class(cosmologicalMassVarianceClass                   ), target, intent(in   ) :: cosmologicalMassVariance_
-    class(darkMatterParticleClass                         )        , intent(in   ) :: darkMatterParticle_
+    class(darkMatterParticleClass                         ), target, intent(in   ) :: darkMatterParticle_
 
     self%tableInitialized          =  .false.
     self%cosmologyFunctions_       => cosmologyFunctions_
     self%linearGrowth_             => linearGrowth_
     self%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    self%darkMatterParticle_       => darkMatterParticle_
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -118,6 +119,7 @@ contains
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%linearGrowth_"      />
+    !# <objectDestructor name="self%darkMatterParticle_"/>
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)

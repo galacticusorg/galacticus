@@ -88,6 +88,7 @@
   type, extends(transferFunctionClass) :: transferFunctionFile
      !% A transfer function class which interpolates a transfer function given in a file.
      private
+     type(varying_string) :: fileName
      type(table1DGeneric) :: transfer
    contains
      !@ <objectMethods>
@@ -150,6 +151,7 @@ contains
     type     (transferFunctionFile)                :: fileConstructorInternal
     character(len=*               ), intent(in   ) :: fileName
 
+    fileConstructorInternal%fileName=fileName
     call fileConstructorInternal%readFile(fileName)
     return
   end function fileConstructorInternal

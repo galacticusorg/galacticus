@@ -47,14 +47,13 @@ contains
     implicit none
     type (criticalOverdensitySphericalCollapseMatterDE)                :: sphericalCollapseMatterDEConstructorParameters
     type (inputParameters                             ), intent(inout) :: parameters
-    class(darkMatterParticleClass                     ), pointer       :: darkMatterParticle_
 
     !# <objectBuilder class="linearGrowth"             name="sphericalCollapseMatterDEConstructorParameters%linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="sphericalCollapseMatterDEConstructorParameters%cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="sphericalCollapseMatterDEConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"                                                      source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"       name="sphericalCollapseMatterDEConstructorParameters%darkMatterParticle_"       source="parameters"/>
     sphericalCollapseMatterDEConstructorParameters%tableInitialized=.false.
-    select type (darkMatterParticle_)
+    select type (darkMatterParticle_ => sphericalCollapseMatterDEConstructorParameters%darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
@@ -73,12 +72,13 @@ contains
     class(cosmologyFunctionsClass                     ), target, intent(in   ) :: cosmologyFunctions_    
     class(linearGrowthClass                           ), target, intent(in   ) :: linearGrowth_    
     class(cosmologicalMassVarianceClass               ), target, intent(in   ) :: cosmologicalMassVariance_
-    class(darkMatterParticleClass                     )        , intent(in   ) :: darkMatterParticle_
+    class(darkMatterParticleClass                     ), target, intent(in   ) :: darkMatterParticle_
 
     sphericalCollapseMatterDEConstructorInternal%tableInitialized          =  .false.
     sphericalCollapseMatterDEConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
     sphericalCollapseMatterDEConstructorInternal%linearGrowth_             => linearGrowth_
     sphericalCollapseMatterDEConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    sphericalCollapseMatterDEConstructorInternal%darkMatterParticle_       => darkMatterParticle_
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -96,6 +96,7 @@ contains
     
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%linearGrowth_"      />
+    !# <objectDestructor name="self%darkMatterParticle_"/>
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)

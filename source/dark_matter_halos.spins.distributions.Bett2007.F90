@@ -37,7 +37,6 @@
      final     ::                 bett2007Destructor
      procedure :: sample       => bett2007Sample
      procedure :: distribution => bett2007Distribution
-     procedure :: descriptor   => bett2007Descriptor
   end type haloSpinDistributionBett2007
   
   interface haloSpinDistributionBett2007
@@ -188,22 +187,3 @@ contains
          &                  /spin%spin()
     return
   end function bett2007Distribution
-
-  subroutine bett2007Descriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (haloSpinDistributionBett2007), intent(inout) :: self
-    type     (inputParameters             ), intent(inout) :: descriptor
-    type     (inputParameters             )                :: subParameters
-    character(len=10                      )                :: parameterLabel
-
-    call descriptor%addParameter("haloSpinDistributionMethod","bett2007")
-    subParameters=descriptor%subparameters("haloSpinDistributionMethod")
-    write (parameterLabel,'(f10.6)') self%lambda0
-    call subParameters%addParameter("lambda0",trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%alpha
-    call subParameters%addParameter("alpha"  ,trim(adjustl(parameterLabel)))
-    return
-  end subroutine bett2007Descriptor

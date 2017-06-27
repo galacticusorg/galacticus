@@ -85,14 +85,14 @@
 
 contains
 
-  function matterDarkEnergyConstructorParameters(parameters)
+  function matterDarkEnergyConstructorParameters(parameters) result(self)
     !% Default constructor for the matter plus dark energy cosmological functions class.
     use Input_Parameters2
     implicit none
-    type            (cosmologyFunctionsMatterDarkEnergy)                :: matterDarkEnergyConstructorParameters
+    type            (cosmologyFunctionsMatterDarkEnergy)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
-    double precision                                                    :: darkEnergyEquationOfStateW0          , darkEnergyEquationOfStateW1
+    double precision                                                    :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
     
     !# <inputParameter>
     !#   <name>darkEnergyEquationOfStateW0</name>
@@ -112,31 +112,30 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     ! Use it to construct a matter plus dark energy cosmological functions class.
-    matterDarkEnergyConstructorParameters                                    &
-         & =matterDarkEnergyConstructorInternal(                             &
-         &                                      cosmologyParameters_       , &
-         &                                      darkEnergyEquationOfStateW0, &
-         &                                      darkEnergyEquationOfStateW1  &
-         &                                     )
+    self=cosmologyFunctionsMatterDarkEnergy(                             &
+         &                                  cosmologyParameters_       , &
+         &                                  darkEnergyEquationOfStateW0, &
+         &                                  darkEnergyEquationOfStateW1  &
+         &                                 )
     !# <inputParametersValidate source="parameters"/>
     return
   end function matterDarkEnergyConstructorParameters
 
-  function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1)
+  function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1) result(self)
     !% Constructor for the matter plus dark energy cosmological functions class.
     use Cosmology_Parameters
     implicit none
-    type            (cosmologyFunctionsMatterDarkEnergy)                        :: matterDarkEnergyConstructorInternal
+    type            (cosmologyFunctionsMatterDarkEnergy)                        :: self
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
     double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0        , darkEnergyEquationOfStateW1
 
     ! Store a pointer to the cosmological parameters object.
-    matterDarkEnergyConstructorInternal%cosmology => cosmologyParameters_
+    self%cosmologyParameters_ => cosmologyParameters_
     ! Store equation of state.
-    matterDarkEnergyConstructorInternal%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
-    matterDarkEnergyConstructorInternal%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
+    self%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
+    self%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
-    call matterDarkEnergyConstructorInternal%expansionFactorTabulate()
+    call self%expansionFactorTabulate()
    return
   end function matterDarkEnergyConstructorInternal
 
@@ -214,12 +213,12 @@ contains
           call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','either a time or expansion factor must be specified')
        end if
     end if
-    matterDarkEnergyOmegaDarkEnergyEpochal                                                                           &
-         & =                        self%cosmology%OmegaDarkEnergy       (                                         ) &
-         &  *expansionFactorActual**self          %exponentDarkEnergy    (expansionFactor    =expansionFactorActual) &
-         &  *(                                                                                                       &
-         &                          self%cosmology%HubbleConstant        (hubbleUnitsStandard                      ) &
-         &    /                     self%          HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
+    matterDarkEnergyOmegaDarkEnergyEpochal                                                                                      &
+         & =                        self%cosmologyParameters_%OmegaDarkEnergy       (                                         ) &
+         &  *expansionFactorActual**self                     %exponentDarkEnergy    (expansionFactor    =expansionFactorActual) &
+         &  *(                                                                                                                  &
+         &                          self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                      ) &
+         &    /                     self                     %HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
          &   )**2
     return
   end function matterDarkEnergyOmegaDarkEnergyEpochal
@@ -232,19 +231,19 @@ contains
     type            (rootFinder                        ), save          :: finder
     !$omp threadprivate(finder)
     double precision                                    , intent(in   ) :: dominateFactor
-    double precision                                                    :: aDominantCurvature              , aDominantDarkEnergy              , &
-         &                                                                 aMatterEquality                 , darkEnergyExponentCurrent        , &
-         &                                                                 rangeExpandDownward             , rangeExpandUpward
+    double precision                                                    :: aDominantCurvature , aDominantDarkEnergy      , &
+         &                                                                 aMatterEquality    , darkEnergyExponentCurrent, &
+         &                                                                 rangeExpandDownward, rangeExpandUpward
 
     ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
     matterDarkEnergyDominationEpochMatter=1.0d0
     ! Case where dark energy is present.
-    if (self%cosmology%OmegaDarkEnergy() /= 0.0d0) then
+    if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0) then
        if (.not.finder%isInitialized()) then
           darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
           if (darkEnergyExponentCurrent > -3.0d0) then
              ! Dark energy density is decaying less rapidly than matter.
-             if (self%cosmology%OmegaMatter() < dominateFactor*self%cosmology%OmegaDarkEnergy()) then
+             if (self%cosmologyParameters_%OmegaMatter() < dominateFactor*self%cosmologyParameters_%OmegaDarkEnergy()) then
                 ! Matter density is less than dominated dark energy density. Search backward for epoch of domination.
                 rangeExpandUpward  =1.0d0
                 rangeExpandDownward=0.5d0
@@ -255,7 +254,7 @@ contains
              end if
           else
              ! Dark energy density is decaying more rapidly than matter.
-             if (self%cosmology%OmegaMatter() < dominateFactor*self%cosmology%OmegaDarkEnergy()) then
+             if (self%cosmologyParameters_%OmegaMatter() < dominateFactor*self%cosmologyParameters_%OmegaDarkEnergy()) then
                 ! Matter density is less than dominated dark energy density. Search forward for epoch of domination.
                 rangeExpandUpward  =2.0d0
                 rangeExpandDownward=1.0d0
@@ -284,7 +283,7 @@ contains
        ! Choose earliest expansion factor.
        matterDarkEnergyDominationEpochMatter=min(matterDarkEnergyDominationEpochMatter,aDominantDarkEnergy)
     end if
-    if (self%cosmology%OmegaCurvature() /= 0.0d0) then
+    if (self%cosmologyParameters_%OmegaCurvature() /= 0.0d0) then
        ! Find the expansion factor of matter-curvature equality.
        aMatterEquality=self%equalityEpochMatterCurvature(requestTypeExpansionFactor)
        ! Find the earlier expansion factor at which matter dominates by the specified amount (ratio of matter
@@ -322,15 +321,15 @@ contains
     ! Compute the Hubble parameter at the specified expansion factor.
     sqrtArgument=                                                                                            &
          &       max(                                                                                        &
-         &            self%cosmology%OmegaMatter    ()                                                       &
+         &            self%cosmologyParameters_%OmegaMatter    ()                                            &
          &           /expansionFactorActual**3                                                               &
-         &           +self%cosmology%OmegaDarkEnergy()                                                       &
+         &           +self%cosmologyParameters_%OmegaDarkEnergy()                                            &
          &           *expansionFactorActual**self%exponentDarkEnergy(expansionFactor=expansionFactorActual)  &
-         &           +self%cosmology%OmegaCurvature ()                                                       &
+         &           +self%cosmologyParameters_%OmegaCurvature ()                                            &
          &           /expansionFactorActual**2                                                             , &
          &           0.0d0                                                                                   &
          &          )
-    matterDarkEnergyHubbleParameterEpochal=self%cosmology%HubbleConstant(hubbleUnitsStandard)*sqrt(sqrtArgument)
+    matterDarkEnergyHubbleParameterEpochal=self%cosmologyParameters_%HubbleConstant(hubbleUnitsStandard)*sqrt(sqrtArgument)
     ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
     if (self%collapsingUniverse) then
        if    (present(time           )) then
@@ -373,17 +372,17 @@ contains
          & *self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
          & *self%expansionRate         (                expansionFactorActual                                ) &
          & /(                                                                                                  &
-         &   +self%cosmology%OmegaMatter    ()                                                                 &
+         &   +self%cosmologyParameters_%OmegaMatter    ()                                                      &
          &   /expansionFactorActual**3                                                                         &
-         &   +self%cosmology%OmegaDarkEnergy()                                                                 &
+         &   +self%cosmologyParameters_%OmegaDarkEnergy()                                                      &
          &   *expansionFactorActual**self%exponentDarkEnergy(expansionFactor=expansionFactorActual)            &
-         &   +self%cosmology%OmegaCurvature ()                                                                 &
+         &   +self%cosmologyParameters_%OmegaCurvature ()                                                      &
          &   /expansionFactorActual**2                                                                         &
          &  )                                                                                                  &
          & *(                                                                                                  &
-         &   -3.0d0*self%cosmology%OmegaMatter()                                                               &
+         &   -3.0d0*self%cosmologyParameters_%OmegaMatter()                                                    &
          &   /expansionFactorActual**3                                                                         &
-         &   +self%cosmology%OmegaDarkEnergy  ()                                                               &
+         &   +self%cosmologyParameters_%OmegaDarkEnergy  ()                                                    &
          &   *expansionFactorActual**self%exponentDarkEnergy(expansionFactor=expansionFactorActual)            &
          &   *(                                                                                                &
          &     +self%exponentDarkEnergy(expansionFactor=expansionFactorActual)                                 &
@@ -391,7 +390,7 @@ contains
          &     *log(expansionFactorActual)                                                                     &
          &     *self%exponentDarkEnergyDerivative(expansionFactor=expansionFactorActual)                       &
          &    )                                                                                                &
-         &   -2.0d0*self%cosmology%OmegaCurvature()                                                            &
+         &   -2.0d0*self%cosmologyParameters_%OmegaCurvature()                                                 &
          &   /expansionFactorActual**2                                                                         &
          & )
     return
@@ -420,7 +419,7 @@ contains
        darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
        if (darkEnergyExponentCurrent > -3.0d0) then
           ! Dark energy density is decaying less rapidly than matter.
-          if (self%cosmology%OmegaMatter() < self%cosmology%OmegaDarkEnergy()) then
+          if (self%cosmologyParameters_%OmegaMatter() < self%cosmologyParameters_%OmegaDarkEnergy()) then
              ! Matter density is less than dark energy density. Search backward for epoch of domination.
              rangeExpandUpward  =1.0d0
              rangeExpandDownward=0.5d0
@@ -431,7 +430,7 @@ contains
           end if
        else
           ! Dark energy density is decaying more rapidly than matter.
-          if (self%cosmology%OmegaMatter() < self%cosmology%OmegaDarkEnergy()) then
+          if (self%cosmologyParameters_%OmegaMatter() < self%cosmologyParameters_%OmegaDarkEnergy()) then
              ! Matter density is less than dark energy density. Search forward for epoch of domination.
              rangeExpandUpward  =2.0d0
              rangeExpandDownward=1.0d0
@@ -471,10 +470,10 @@ contains
     double precision, intent(in   ) :: expansionFactor
 
     matterDarkEnergyDomination=                                                                                                 &
-         &                      matterDarkEnergySelfGlobal%cosmology%OmegaMatter    ()                                          &
+         &                      matterDarkEnergySelfGlobal%cosmologyParameters_%OmegaMatter    ()                               &
          &                     /expansionFactor**3                                                                              &
          &                     -matterDarkEnergyDominateFactorCurrent                                                           &
-         &                     *matterDarkEnergySelfGlobal%cosmology%OmegaDarkEnergy()                                          &
+         &                     *matterDarkEnergySelfGlobal%cosmologyParameters_%OmegaDarkEnergy()                               &
          &                     *expansionFactor**matterDarkEnergySelfGlobal%exponentDarkEnergy(expansionFactor=expansionFactor)
     return
   end function matterDarkEnergyDomination
@@ -503,14 +502,14 @@ contains
     double precision                                    , allocatable, dimension(:)            :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
     integer                                                                                    :: iTime                                   , prefixPointCount
     double precision                                                                           :: OmegaDominant                           , deltaTime                      , &
-         &                                                                                        densityPower                            , timeDominant                    , &
+         &                                                                                        densityPower                            , timeDominant                   , &
          &                                                                                        expansionFactorDominant                 , timeActual
     logical                                                                                    :: solutionFound                           , timeExceeded
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterDarkEnergyDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
-    timeDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+    timeDominant=-2.0d0/densityPower/self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
     ! Find minimum and maximum times to tabulate.
     if (present(time)) then
        timeActual=time
@@ -566,14 +565,14 @@ contains
     end if
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    if (self%ageTableExpansionFactor(1) < 0.0d0)             &
-         &    self%ageTableExpansionFactor(               1) &
-         & =(                                                &
-         &   -0.5d0                                          &
-         &   *densityPower                                   &
-         &   *self%ageTableTime            (              1) &
-         &   *self%cosmology%HubbleConstant(hubbleUnitsTime) &
-         &   *sqrt(OmegaDominant)                            &
+    if (self%ageTableExpansionFactor(1) < 0.0d0)                        &
+         &    self%ageTableExpansionFactor           (               1) &
+         & =(                                                           &
+         &   -0.5d0                                                     &
+         &   *densityPower                                              &
+         &   *self%ageTableTime                       (              1) &
+         &   *self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+         &   *sqrt(OmegaDominant)                                       &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
     self%iTableTurnaround  =  self%ageTableNumberPoints

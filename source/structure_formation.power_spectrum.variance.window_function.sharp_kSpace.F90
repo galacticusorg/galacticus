@@ -27,6 +27,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: cutOffNormalization
+     type            (varying_string          )          :: normalization
    contains
      final     ::                               sharpKSpaceDestructor
      procedure :: value                      => sharpKSpaceValue
@@ -49,15 +50,15 @@ contains
     type            (powerSpectrumWindowFunctionSharpKSpace)                :: sharpKSpaceConstructorParameters
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
-    type            (varying_string                        )                :: normalizationText
+    type            (varying_string                        )                :: normalization
     character       (len=32                                )                :: normalizationChar
-    double precision                                                        :: normalization
+    double precision                                                        :: normalizationValue
     
     ! Check parameters.
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
-    !#   <variable>normalizationText</variable>
+    !#   <variable>normalization</variable>
     !#   <defaultValue>var_str('natural')</defaultValue>
     !#   <description>
     !#     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
@@ -69,13 +70,13 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    if (normalizationText == 'natural') then
-       normalization=0.0d0
+    if (normalization == 'natural') then
+       normalizationValue=0.0d0
     else
-       normalizationChar=normalizationText
-       read (normalizationChar,*) normalization
+       normalizationChar=char(normalization)
+       read (normalizationChar,*) normalizationValue
     end if
-    sharpKSpaceConstructorParameters=sharpKSpaceConstructorInternal(cosmologyParameters_,normalization)
+    sharpKSpaceConstructorParameters=sharpKSpaceConstructorInternal(cosmologyParameters_,normalizationValue)
     !# <inputParametersValidate source="parameters"/>
     return
   end function sharpKSpaceConstructorParameters
@@ -87,6 +88,7 @@ contains
     type            (powerSpectrumWindowFunctionSharpKSpace)                        :: sharpKSpaceConstructorInternal
     class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_    
     double precision                                                                :: normalization
+    character       (len=18                                )                        :: normalizationText
     
     sharpKSpaceConstructorInternal%cosmologyParameters_ => cosmologyParameters_
     ! Compute normalization.
@@ -99,6 +101,7 @@ contains
             &   *sharpKSpaceConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
             &   *sharpKSpaceConstructorInternal%cosmologyParameters_%densityCritical()    &
             &  )**(1.0d0/3.0d0)
+       sharpKSpaceConstructorInternal%normalization='natural'
     else
        ! Use provided normalization.
        sharpKSpaceConstructorInternal%cutOffNormalization=                                &
@@ -110,6 +113,8 @@ contains
             &   *sharpKSpaceConstructorInternal%cosmologyParameters_%densityCritical()    &
             &   /3.0d0                                                                    &
             &  )**(1.0d0/3.0d0)
+       write (normalizationText,'(e17.10)') normalization
+       sharpKSpaceConstructorInternal%normalization=trim(normalizationText)
     end if
     return
   end function sharpKSpaceConstructorInternal

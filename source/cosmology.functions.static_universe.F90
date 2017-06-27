@@ -29,10 +29,9 @@
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsStaticUniverse
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      private
-     class(cosmologyParametersClass), pointer :: cosmology => null()
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
      final     ::                                  staticUniverseDestructor
-     procedure :: descriptor                    => staticUniverseDescriptor
      procedure :: epochValidate                 => staticUniverseEpochValidate
      procedure :: cosmicTime                    => staticUniverseCosmicTime
      procedure :: expansionFactor               => staticUniverseExpansionFactor
@@ -65,28 +64,28 @@
 
 contains
 
-  function staticUniverseConstructorParameters(parameters)
+  function staticUniverseConstructorParameters(parameters) result(self)
     !% Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
     use Input_Parameters2
     implicit none
-    type (cosmologyFunctionsStaticUniverse)                :: staticUniverseConstructorParameters
-    type (inputParameters               ), intent(inout) :: parameters
-    class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+    type (cosmologyFunctionsStaticUniverse)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    staticUniverseConstructorParameters=staticUniverseConstructorInternal(cosmologyParameters_)
+    self=cosmologyFunctionsStaticUniverse(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function staticUniverseConstructorParameters
 
-  function staticUniverseConstructorInternal(cosmologyParameters_)
+  function staticUniverseConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the matter plus cosmological constant cosmological functions class.
     implicit none
-    type (cosmologyFunctionsStaticUniverse)               , target :: staticUniverseConstructorInternal
+    type (cosmologyFunctionsStaticUniverse)               , target :: self
     class(cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
    
     ! Store a pointer to the cosmological parameters object.
-    staticUniverseConstructorInternal%cosmology => cosmologyParameters_  
+    self%cosmologyParameters_ => cosmologyParameters_  
     return
   end function staticUniverseConstructorInternal
 
@@ -95,7 +94,7 @@ contains
     implicit none
     type(cosmologyFunctionsStaticUniverse), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmology"/>
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine staticUniverseDestructor
 
@@ -264,7 +263,7 @@ contains
     logical                                           , intent(in   ), optional :: collapsingPhase
     !GCC$ attributes unused :: self, time, expansionFactor, collapsingPhase
 
-    staticUniverseTemperatureCMBEpochal=self%cosmology%temperatureCMB()
+    staticUniverseTemperatureCMBEpochal=self%cosmologyParameters_%temperatureCMB()
     return
   end function staticUniverseTemperatureCMBEpochal
 
@@ -428,18 +427,3 @@ contains
     staticUniverseExponentDarkEnergy=0.0d0
     return
   end function staticUniverseExponentDarkEnergy
-
-  subroutine staticUniverseDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(cosmologyFunctionsStaticUniverse), intent(inout) :: self
-    type (inputParameters                 ), intent(inout) :: descriptor
-    type (inputParameters                 )                :: subParameters
-
-    call descriptor%addParameter("cosmologyFunctionsMethod","staticUniverse")
-    subParameters=descriptor%subparameters("cosmologyFunctionsMethod")
-    call self%cosmology%descriptor(subParameters)    
-    return
-  end subroutine staticUniverseDescriptor

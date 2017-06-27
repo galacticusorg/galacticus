@@ -33,7 +33,6 @@
      final     ::                          simpleDestructor
      procedure :: power                 => simplePower
      procedure :: logarithmicDerivative => simpleLogarithmicDerivative
-     procedure :: descriptor            => simpleDescriptor
   end type powerSpectrumPrimordialTransferredSimple
 
   interface powerSpectrumPrimordialTransferredSimple
@@ -104,19 +103,3 @@ contains
          &                      +self%powerSpectrumPrimordial_%logarithmicDerivative(wavenumber)
     return
   end function simpleLogarithmicDerivative
-
-  subroutine simpleDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
-    type (inputParameters                         ), intent(inout) :: descriptor
-    type (inputParameters                         )                :: subParameters
-
-    call descriptor%addParameter("powerSpectrumPrimordialTransferredMethod","simple")
-    subParameters=descriptor%subparameters("powerSpectrumPrimordialTransferredMethod")
-    call self%transferFunction_       %descriptor(subParameters)
-    call self%powerSpectrumPrimordial_%descriptor(subParameters)
-    return
-  end subroutine simpleDescriptor

@@ -49,7 +49,6 @@
      procedure :: electronDensityTemperatureLogSlope => atomicCIECloudyElectronDensityTemperatureLogSlope
      procedure :: electronDensityDensityLogSlope     => atomicCIECloudyElectronDensityDensityLogSlope
      procedure :: chemicalDensities                  => atomicCIECloudyChemicalDensities
-     procedure :: descriptor                         => atomicCIECloudyDescriptor
   end type chemicalStateAtomicCIECloudy
 
   interface chemicalStateAtomicCIECloudy
@@ -246,16 +245,3 @@ contains
     call self%chemicalStateCIEFile%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,gasAbundances,radiation)
     return
   end subroutine atomicCIECloudyChemicalDensities
-
-  subroutine atomicCIECloudyDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(chemicalStateAtomicCIECloudy), intent(inout) :: self
-    type (inputParameters             ), intent(inout) :: descriptor
-    !GCC$ attributes unused :: self
-    
-    call descriptor%addParameter("chemicalStateMethod","atomicCIECloudy")
-    return
-  end subroutine atomicCIECloudyDescriptor

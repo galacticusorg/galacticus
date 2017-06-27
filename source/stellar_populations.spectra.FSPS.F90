@@ -152,14 +152,23 @@ contains
     return
   end subroutine fspsIMFInitialize
 
-  subroutine fspsDescriptor(self,descriptor)
+  subroutine fspsDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
     use Input_Parameters2
     implicit none
-    class(stellarPopulationSpectraFSPS), intent(inout) :: self
-    type (inputParameters             ), intent(inout) :: descriptor
-    !GCC$ attributes unused :: self
-    
-    call descriptor%addParameter("stellarPopulationSpectraMethod","fsps")
+    class    (stellarPopulationSpectraFSPS), intent(inout)           :: self
+    type     (inputParameters             ), intent(inout)           :: descriptor
+    logical                                , intent(in   ), optional :: includeMethod
+    type     (inputParameters             )                          :: subParameters
+    character(len=10                      )                          :: parameterLabel
+
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter("stellarPopulationSpectraMethod","fsps")
+    subParameters=descriptor%subparameters("stellarPopulationSpectraMethod")
+    if (self%forceZeroMetallicity) then
+       parameterLabel="true"
+    else
+       parameterLabel="false"
+    end if
+    call subParameters%addParameter("forceZeroMetallicity",trim(adjustl(parameterLabel)))
     return
   end subroutine fspsDescriptor

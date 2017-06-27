@@ -41,7 +41,6 @@
      procedure :: value        => barkana2001WDMValue
      procedure :: gradientTime => barkana2001WDMGradientTime
      procedure :: gradientMass => barkana2001WDMGradientMass
-     procedure :: descriptor   => barkana2001WDMDescriptor
   end type criticalOverdensityBarkana2001WDM
 
   interface criticalOverdensityBarkana2001WDM
@@ -387,22 +386,3 @@ contains
          &                     *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)
     return
   end function barkana2001WDMGradientMass
-
-  subroutine barkana2001WDMDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (criticalOverdensityBarkana2001WDM), intent(inout) :: self
-    type     (inputParameters                  ), intent(inout) :: descriptor
-    type     (inputParameters                  )                :: subParameters
-    character(len=10                           )                :: parameterLabel
-
-    call descriptor%addParameter("criticalOverdensityMethod","barkana2001WDM")
-    subParameters=descriptor%subparameters("criticalOverdensityMethod")
-    write (parameterLabel,'(l1)   ') self%useFittingFunction
-    call subParameters%addParameter("useFittingFunction",trim(adjustl(parameterLabel)))
-    call self%darkMatterParticle_   %descriptor(subParameters)
-    call self%criticalOverdensityCDM%descriptor(subParameters)
-    return
-  end subroutine barkana2001WDMDescriptor

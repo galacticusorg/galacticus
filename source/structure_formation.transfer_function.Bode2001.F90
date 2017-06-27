@@ -37,7 +37,6 @@
      procedure :: value                 => bode2001Value
      procedure :: logarithmicDerivative => bode2001LogarithmicDerivative
      procedure :: halfModeMass          => bode2001HalfModeMass
-     procedure :: descriptor            => bode2001Descriptor
   end type transferFunctionBode2001
 
   interface transferFunctionBode2001
@@ -236,27 +235,3 @@ contains
          &               )**3
     return
   end function bode2001HalfModeMass
-
-  subroutine bode2001Descriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (transferFunctionBode2001), intent(inout) :: self
-    type     (inputParameters         ), intent(inout) :: descriptor
-    type     (inputParameters         )                :: subParameters
-    character(len=10                  )                :: parameterLabel
-
-    call descriptor%addParameter("transferFunctionMethod","bode2001")
-    subParameters=descriptor%subparameters("transferFunctionMethod")
-    write (parameterLabel,'(f10.6)') self%epsilon
-    call subParameters%addParameter("epsilon"    ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%eta
-    call subParameters%addParameter("eta"        ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%nu
-    call subParameters%addParameter("nu"         ,trim(adjustl(parameterLabel)))
-    call self%transferFunctionCDM %descriptor(subParameters)
-    call self%cosmologyParameters_%descriptor(subParameters)
-    call self%darkMatterParticle_ %descriptor(subParameters)
-    return
-  end subroutine bode2001Descriptor

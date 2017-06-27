@@ -170,7 +170,6 @@
      procedure :: coolingFunction                    => cieFileCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => cieFileCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => cieFileCoolingFunctionDensityLogSlope
-     procedure :: descriptor                         => cieFileDescriptor
   end type coolingFunctionCIEFile
 
   interface coolingFunctionCIEFile
@@ -640,18 +639,3 @@ contains
     if (self%logarithmicTable) cieFileInterpolate=exp(cieFileInterpolate)
     return
   end function cieFileInterpolate
-
-  subroutine cieFileDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(coolingFunctionCIEFile), intent(inout) :: self
-    type (inputParameters       ), intent(inout) :: descriptor
-    type (inputParameters       )                :: subParameters
-
-    call descriptor%addParameter("coolingFunctionMethod","cieFile")
-    subParameters=descriptor%subparameters("coolingFunctionMethod")
-    call subParameters%addParameter("fileName",char(self%fileName))
-    return
-  end subroutine cieFileDescriptor

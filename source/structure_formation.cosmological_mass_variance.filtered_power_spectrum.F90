@@ -75,7 +75,6 @@
      final     ::                                       filteredPowerDestructor
      procedure :: stateStore                         => filteredPowerStateStore
      procedure :: stateRestore                       => filteredPowerStateRestore
-     procedure :: descriptor                         => filteredPowerDescriptor
      procedure :: sigma8                             => filteredPowerSigma8
      procedure :: powerNormalization                 => filteredPowerPowerNormalization
      procedure :: rootVariance                       => filteredPowerRootVariance
@@ -105,7 +104,7 @@ contains
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
-    double precision                                                         :: sigma_8                            , tolerance, &
+    double precision                                                         :: sigma8Value                        , tolerance, &
          &                                                                      toleranceTopHat
     logical                                                                  :: monotonicInterpolation
 
@@ -113,6 +112,7 @@ contains
     !# <inputParameter>
     !#   <name>sigma_8</name>
     !#   <source>parameters</source>
+    !#   <variable>sigma8Value</variable>
     !#   <defaultValue>0.817d0</defaultValue>
     !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
     !#   <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
@@ -147,7 +147,7 @@ contains
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
     ! Construct the instance.
-    self=filteredPowerConstructorInternal(sigma_8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function filteredPowerConstructorParameters
@@ -530,27 +530,3 @@ contains
     call self%retabulate()
     return
   end subroutine filteredPowerStateRestore
-
-  subroutine filteredPowerDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    type     (inputParameters                      ), intent(inout) :: descriptor
-    type     (inputParameters                      )                :: subParameters
-    character(len=10                               )                :: parameterLabel
-
-    call descriptor%addParameter("cosmologicalMassVarianceMethod","filteredPower")
-    subParameters=descriptor%subparameters("cosmologicalMassVarianceMethod")
-    write (parameterLabel,'(f10.6)') self%sigma8Value
-    call subParameters%addParameter("sigma_8"        ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%toleranceTopHat
-    call subParameters%addParameter("toleranceTopHat",trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%tolerance
-    call subParameters%addParameter("tolerance"      ,trim(adjustl(parameterLabel)))
-    call self%cosmologyParameters_               %descriptor(subParameters)
-    call self%powerSpectrumPrimordialTransferred_%descriptor(subParameters)
-    call self%powerSpectrumWindowFunction_       %descriptor(subParameters)
-    return
-  end subroutine filteredPowerDescriptor
