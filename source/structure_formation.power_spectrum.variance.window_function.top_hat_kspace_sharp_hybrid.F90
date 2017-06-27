@@ -27,7 +27,8 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: cutOffNormalization           , radiiRatio
-   contains
+     type            (varying_string          )          :: normalization
+  contains
      final     ::                      topHatSharpKHybridDestructor
      procedure :: value             => topHatSharpKHybridValue
      procedure :: wavenumberMaximum => topHatSharpKHybridWavenumberMaximum
@@ -48,15 +49,15 @@ contains
     type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                :: topHatSharpKHybridConstructorParameters
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (cosmologyParametersClass                     ), pointer       :: cosmologyParameters_
-    type            (varying_string                               )                :: normalizationText
+    type            (varying_string                               )                :: normalization
     character       (len=32                                       )                :: normalizationChar
-    double precision                                                               :: normalization                          , radiiRatio
+    double precision                                                               :: normalizationValue                     , radiiRatio
     
     ! Check parameters.
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
-    !#   <variable>normalizationText</variable>
+    !#   <variable>normalization</variable>
     !#   <defaultValue>var_str('natural')</defaultValue>
     !#   <description>
     !#     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
@@ -79,13 +80,13 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    if (normalizationText == 'natural') then
-       normalization=0.0d0
+    if (normalization == 'natural') then
+       normalizationValue=0.0d0
     else
-       normalizationChar=normalizationText
-       read (normalizationChar,*) normalization
+       normalizationChar=char(normalization)
+       read (normalizationChar,*) normalizationValue
     end if
-    topHatSharpKHybridConstructorParameters=topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalization,radiiRatio)
+    topHatSharpKHybridConstructorParameters=topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalizationValue,radiiRatio)
     !# <inputParametersValidate source="parameters"/>
     return
   end function topHatSharpKHybridConstructorParameters
@@ -97,7 +98,8 @@ contains
     type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                        :: topHatSharpKHybridConstructorInternal
     class           (cosmologyParametersClass                     ), target, intent(in   ) :: cosmologyParameters_    
     double precision                                                                       :: normalization                        , radiiRatio
-    
+    character       (len=18                                       )                        :: normalizationText
+        
     topHatSharpKHybridConstructorInternal%cosmologyParameters_ => cosmologyParameters_
     topHatSharpKHybridConstructorInternal%radiiRatio           =  radiiRatio
     ! Compute normalization.
@@ -110,6 +112,7 @@ contains
             &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
             &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%densityCritical()    &
             &  )**(1.0d0/3.0d0)
+       topHatSharpKHybridConstructorInternal%normalization='natural'
     else
        ! Use provided normalization.
        topHatSharpKHybridConstructorInternal%cutOffNormalization=                                &
@@ -121,6 +124,8 @@ contains
             &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%densityCritical()    &
             &   /3.0d0                                                                           &
             &  )**(1.0d0/3.0d0)
+       write (normalizationText,'(e17.10)') normalization
+       topHatSharpKHybridConstructorInternal%normalization=trim(normalizationText)
     end if
     return
   end function topHatSharpKHybridConstructorInternal

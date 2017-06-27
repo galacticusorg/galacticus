@@ -218,17 +218,18 @@ contains
     return
   end function summationCoolingFunctionTemperatureLogSlope
 
-  subroutine summationDescriptor(self,descriptor)
+  subroutine summationDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
     use Input_Parameters2
     use FoX_DOM
     implicit none
-    class(coolingFunctionSummation), intent(inout) :: self
-    type (inputParameters         ), intent(inout) :: descriptor
-    type (coolantList             ), pointer       :: coolant
-    type (inputParameters         )                :: subParameters
+    class  (coolingFunctionSummation), intent(inout)           :: self
+    type   (inputParameters         ), intent(inout)           :: descriptor
+    logical                          , intent(in   ), optional :: includeMethod
+    type   (coolantList             ), pointer                 :: coolant
+    type   (inputParameters         )                          :: subParameters
 
-    call descriptor%addParameter("coolingFunctionMethod","summation")
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter("coolingFunctionMethod","summation")
     subParameters=descriptor%subparameters("coolingFunctionMethod")
     coolant       => self%coolants
     do while (associated(coolant))

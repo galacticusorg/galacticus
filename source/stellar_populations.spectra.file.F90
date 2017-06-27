@@ -481,19 +481,20 @@ contains
     return
   end subroutine fileTabulation
 
-  subroutine fileDescriptor(self,descriptor)
+  subroutine fileDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
     use Input_Parameters2
     use FoX_DOM
     use Star_Formation_IMF
     implicit none
-    class    (stellarPopulationSpectraFile), intent(inout) :: self
-    type     (inputParameters             ), intent(inout) :: descriptor
-    type     (inputParameters             )                :: subParameters
-    character(len=10                      )                :: parameterLabel
-    integer                                                :: i
+    class    (stellarPopulationSpectraFile), intent(inout)           :: self
+    type     (inputParameters             ), intent(inout)           :: descriptor
+    logical                                , intent(in   ), optional :: includeMethod
+    type     (inputParameters             )                          :: subParameters
+    character(len=10                      )                          :: parameterLabel
+    integer                                                          :: i
     
-    call descriptor%addParameter("stellarPopulationSpectraMethod","file")
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter("stellarPopulationSpectraMethod","file")
     subParameters=descriptor%subparameters("stellarPopulationSpectraMethod")
     if (self%forceZeroMetallicity) then
        parameterLabel="true"

@@ -28,6 +28,7 @@
      double precision                                    :: a                   , b, &
           &                                                 c
      integer                                             :: applyTo
+     type            (varying_string          )          :: applyToText
    contains
      final     ::                    remapShethMoTormenDestructor
      procedure :: barrier         => remapShethMoTormenBarrier
@@ -51,8 +52,7 @@ contains
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-    type            (varying_string                       )                :: applyTo
-
+    
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>a</name>
@@ -84,14 +84,14 @@ contains
     !# <inputParameter>
     !#   <name>applyTo</name>
     !#   <source>parameters</source>
-    !#   <variable>applyTo</variable>
+    !#   <variable>self%applyToText</variable>
     !#   <defaultValue>var_str('nonRates')</defaultValue>
     !#   <description>Specifies whether rescaling is to be applied to the barrier when used for rate calculation, for other calculations, or both.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
-    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(applyTo),includesPrefix=.false.),excursionSetBarrier_)
+    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function remapShethMoTormenConstructorParameters
@@ -108,6 +108,7 @@ contains
     !# <constructorAssign variables="a, b, c, applyTo, *excursionSetBarrier_"/>
 
     if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('remapShethMoTormenConstructorInternal','applyTo is invalid')
+    self%applyToText=enumerationExcursionSetRemapDecode(applyTo,includePrefix=.false.)
     return
   end function remapShethMoTormenConstructorInternal
 

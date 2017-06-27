@@ -36,7 +36,6 @@
      procedure :: value                 => bbksWDMValue
      procedure :: logarithmicDerivative => bbksWDMLogarithmicDerivative
      procedure :: halfModeMass          => bbksWDMHalfModeMass
-     procedure :: descriptor            => bbksWDMDescriptor
   end type transferFunctionBBKSWDM
 
   interface transferFunctionBBKSWDM
@@ -188,20 +187,3 @@ contains
          &              )**3
     return
   end function bbksWDMHalfModeMass
-
-  subroutine bbksWDMDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (transferFunctionBBKSWDM), intent(inout) :: self
-    type     (inputParameters        ), intent(inout) :: descriptor
-    type     (inputParameters        )                :: subParameters
-
-    call descriptor%addParameter("transferFunctionMethod","BBKSWDM")
-    subParameters=descriptor%subparameters("transferFunctionMethod")
-    call self%transferFunctionCDM %descriptor(subParameters)
-    call self%cosmologyParameters_%descriptor(subParameters)
-    call self%darkMatterParticle_ %descriptor(subParameters)
-   return
-  end subroutine bbksWDMDescriptor

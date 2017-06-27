@@ -188,7 +188,6 @@
      procedure :: electronDensityTemperatureLogSlope => cieFileElectronDensityTemperatureLogSlope
      procedure :: electronDensityDensityLogSlope     => cieFileElectronDensityDensityLogSlope
      procedure :: chemicalDensities                  => cieFileChemicalDensities
-     procedure :: descriptor                         => cieFileDescriptor
   end type chemicalStateCIEFile
 
   interface chemicalStateCIEFile
@@ -769,18 +768,3 @@ contains
     end if
     return
   end subroutine cieFileReadFile
-
-  subroutine cieFileDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(chemicalStateCIEFile), intent(inout) :: self
-    type (inputParameters     ), intent(inout) :: descriptor
-    type (inputParameters     )                :: subParameters
-
-    call descriptor%addParameter("chemicalStateMethod","cieFile")
-    subParameters=descriptor%subparameters("chemicalStateMethod")
-    call subParameters%addParameter("fileName",char(self%fileName))
-    return
-  end subroutine cieFileDescriptor

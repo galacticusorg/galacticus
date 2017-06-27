@@ -70,11 +70,12 @@ contains
     type            (darkMatterParticleWDMThermal)                :: wdmThermalConstructorParameters
     type            (inputParameters             ), intent(inout) :: parameters
     class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_    
-    double precision                                              :: mass                           , degreesOfFreedomEffective
+    double precision                                              :: massValue                      , degreesOfFreedomEffectiveValue
 
     !# <inputParameter>
     !#   <name>mass</name>
     !#   <source>parameters</source>
+    !#   <variable>massValue</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>The mass (in keV) of the theral warm dark matter particle.</description>
     !#   <type>real</type>
@@ -83,13 +84,14 @@ contains
     !# <inputParameter>
     !#   <name>degreesOfFreedomEffective</name>
     !#   <source>parameters</source>
+    !#   <variable>degreesOfFreedomEffectiveValue</variable>
     !#   <defaultValue>1.5d0</defaultValue>
     !#   <description>The effective number of degrees of freedom for the thermal warm dark matter particle.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    wdmThermalConstructorParameters=darkMatterParticleWDMThermal(mass,degreesOfFreedomEffective,cosmologyParameters_)
+    wdmThermalConstructorParameters=darkMatterParticleWDMThermal(massValue,degreesOfFreedomEffectiveValue,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function wdmThermalConstructorParameters

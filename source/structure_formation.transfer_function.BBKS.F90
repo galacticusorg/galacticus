@@ -13,13 +13,14 @@
 !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !!    GNU General Public License for more details.
 !!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
   !% Contains a module which implements the transfer function fitting function of
   !% \cite{bardeen_statistics_1986}.
-
+  
   use Cosmology_Parameters
+  use Dark_Matter_Particles
 
   !# <transferFunction name="transferFunctionBBKS">
   !#  <description>Provides the \cite{bardeen_statistics_1986} fitting function for the transfer function.</description>
@@ -28,13 +29,13 @@
      !% A bbks transfer function class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
      double precision                                    :: Gamma
    contains
      final     ::                          bbksDestructor
      procedure :: value                 => bbksValue
      procedure :: logarithmicDerivative => bbksLogarithmicDerivative
      procedure :: halfModeMass          => bbksHalfModeMass
-     procedure :: descriptor            => bbksDescriptor
   end type transferFunctionBBKS
 
   interface transferFunctionBBKS
@@ -51,7 +52,6 @@ contains
   function bbksConstructorParameters(parameters)
     !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
     use Input_Parameters2
-    use Dark_Matter_Particles
     implicit none
     type (transferFunctionBBKS    )                :: bbksConstructorParameters
     type (inputParameters         ), intent(inout) :: parameters
@@ -69,23 +69,20 @@ contains
     !% Internal constructor for the ``BBKS'' transfer function class.
     use Galacticus_Error    
     implicit none
-    type (transferFunctionBBKS    )                                  :: bbksConstructorInternal
-    class(darkMatterParticleClass ), intent(in   )                   :: darkMatterParticle_
-    class(cosmologyParametersClass), intent(in   ), target, optional :: cosmologyParameters_
+    type (transferFunctionBBKS    )                        :: bbksConstructorInternal
+    class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
+    class(cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
 
     ! Require that the dark matter be cold dark matter.
+    bbksConstructorInternal%darkMatterParticle_ => darkMatterParticle_
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
        call Galacticus_Error_Report('bbksConstructorInternal','transfer function expects a cold dark matter particle')
     end select
-    ! Determine the cosmological parameters to use.
-    if (present(cosmologyParameters_)) then
-       bbksConstructorInternal%cosmologyParameters_ => cosmologyParameters_
-    else
-       bbksConstructorInternal%cosmologyParameters_ => cosmologyParameters()
-    end if
+    ! Store cosmological parameters.
+    bbksConstructorInternal%cosmologyParameters_ => cosmologyParameters_
     ! Compute the Gamma parameter.
     bbksConstructorInternal%Gamma=+             bbksConstructorInternal%cosmologyParameters_%OmegaMatter   (                  ) &
          &                        *             bbksConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
@@ -113,6 +110,7 @@ contains
     type(transferFunctionBBKS), intent(inout) :: self
     
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%darkMatterParticle_" />
     return
   end subroutine bbksDestructor
 
@@ -217,18 +215,3 @@ contains
     call Galacticus_Error_Report('bbksHalfModeMass','not supported by this implementation')
     return
   end function bbksHalfModeMass
-
-  subroutine bbksDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(transferFunctionBBKS), intent(inout) :: self
-    type (inputParameters     ), intent(inout) :: descriptor
-    type (inputParameters     )                :: subParameters
-
-    call descriptor%addParameter("transferFunctionMethod","BBKS")
-    subParameters=descriptor%subparameters("transferFunctionMethod")
-    call self%cosmologyParameters_%descriptor(subParameters)
-    return
-  end subroutine bbksDescriptor

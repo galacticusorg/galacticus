@@ -36,7 +36,6 @@
      procedure :: stateSnapshot => logNormalStateSnapshot
      procedure :: stateStore    => logNormalStateStore
      procedure :: stateRestore  => logNormalStateRestore
-     procedure :: descriptor    => logNormalDescriptor
   end type haloSpinDistributionLogNormal
   
   interface haloSpinDistributionLogNormal
@@ -192,22 +191,3 @@ contains
     if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequence,fgslStateFile)
     return
   end subroutine logNormalStateRestore
-
-  subroutine logNormalDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (haloSpinDistributionLogNormal), intent(inout) :: self
-    type     (inputParameters              ), intent(inout) :: descriptor
-    type     (inputParameters              )                :: subParameters
-    character(len=10                       )                :: parameterLabel
-
-    call descriptor%addParameter("haloSpinDistributionMethod","logNormal")
-    subParameters=descriptor%subparameters("haloSpinDistributionMethod")
-    write (parameterLabel,'(f10.6)') exp(self%median)
-    call subParameters%addParameter("median",trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)')     self%sigma
-    call subParameters%addParameter("sigma" ,trim(adjustl(parameterLabel)))
-    return
-  end subroutine logNormalDescriptor

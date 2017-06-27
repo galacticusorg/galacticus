@@ -38,7 +38,6 @@
   contains
     final     ::                  schneider2015Destructor
     procedure :: concentration => schneider2015Concentration
-    procedure :: descriptor    => schneider2015Descriptor
   end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015
@@ -77,6 +76,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance"       name="schneider2015ConstructorParameters%         cosmologicalMassVariance_" source=         "parameters"/>
     !# <objectBuilder class="cosmologyFunctions"             name="schneider2015ConstructorParameters%referenceCosmologyFunctions"        source="referenceParameters"/>
     !# <objectBuilder class="cosmologyFunctions"             name="schneider2015ConstructorParameters%         cosmologyFunctions_"       source=         "parameters"/>
+    !# <inputParametersValidate source="parameters"         />
     !# <inputParametersValidate source="referenceParameters"/>
     return
   end function schneider2015ConstructorParameters
@@ -206,29 +206,3 @@ contains
     end function referenceCollapseMassRoot
     
   end function schneider2015Concentration
-
-  subroutine schneider2015Descriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
-    type     (inputParameters                            ), intent(inout) :: descriptor
-    type     (inputParameters                            )                :: subParameters , referenceParameters
-    character(len=10                                     )                :: parameterLabel
-
-    call descriptor   %addParameter("darkMatterProfileConcentrationMethod","schneider2015")
-    subParameters      =descriptor   %subparameters("darkMatterProfileConcentrationMethod")
-    call subParameters%addParameter("reference"                           ,"null"         )
-    referenceParameters=subParameters%subparameters('reference'                           )
-    write (parameterLabel,'(f10.6)') self%massFractionFormation
-    call subParameters%addParameter("massFractionFormation",trim(adjustl(parameterLabel)))
-    call self%criticalOverdensity_             %descriptor(subParameters)
-    call self%cosmologicalMassVariance_        %descriptor(subParameters)
-    call self%cosmologyFunctions_              %descriptor(subParameters)
-    call self%referenceConcentration           %descriptor(referenceParameters)
-    call self%referenceCosmologyFunctions      %descriptor(referenceParameters)
-    call self%referenceCriticalOverdensity     %descriptor(referenceParameters)
-    call self%referenceCosmologicalMassVariance%descriptor(referenceParameters)
-    return
-  end subroutine schneider2015Descriptor

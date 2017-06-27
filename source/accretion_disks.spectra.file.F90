@@ -45,7 +45,6 @@
      final     ::               fileDestructor
      procedure :: spectrum   => fileSpectrum
      procedure :: loadFile   => fileLoadFile
-     procedure :: descriptor => fileDescriptor
   end type accretionDiskSpectraFile
 
   interface accretionDiskSpectraFile
@@ -206,17 +205,3 @@ contains
     return
   end function fileSpectrum
   
-  subroutine fileDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(accretionDiskSpectraFile), intent(inout) :: self
-    type (inputParameters         ), intent(inout) :: descriptor
-    type (inputParameters         )                :: subParameters
-
-    call descriptor%addParameter("accretionDiskSpectraMethod","file")
-    subParameters=descriptor%subparameters("accretionDiskSpectraMethod")
-    call subParameters%addParameter("fileName",char(self%fileName))
-    return
-  end subroutine fileDescriptor

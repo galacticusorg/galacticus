@@ -38,7 +38,6 @@
   contains
      final     ::               peacockDodds1996Destructor
      procedure :: value      => peacockDodds1996Value
-     procedure :: descriptor => peacockDodds1996Descriptor
   end type powerSpectrumNonlinearPeacockDodds1996
 
   interface powerSpectrumNonlinearPeacockDodds1996
@@ -199,20 +198,3 @@ contains
     peacockDodds1996Value=(2.0d0*Pi)**3*fNL/4.0d0/Pi/wavenumber**3
     return
   end function peacockDodds1996Value
-
-  subroutine peacockDodds1996Descriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(powerSpectrumNonlinearPeacockDodds1996), intent(inout) :: self
-    type (inputParameters                       ), intent(inout) :: descriptor
-    type (inputParameters                       )                :: subParameters
-
-    call descriptor%addParameter("powerSpectrumNonlinearMethod","peacockDodds1996")
-    subParameters=descriptor%subparameters("powerSpectrumNonlinearMethod")
-    call self%cosmologyFunctions_%descriptor(subParameters)
-    call self%linearGrowth_      %descriptor(subParameters)
-    call self%powerSpectrum_     %descriptor(subParameters)
-    return
-  end subroutine peacockDodds1996Descriptor

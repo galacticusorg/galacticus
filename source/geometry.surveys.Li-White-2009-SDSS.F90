@@ -33,7 +33,6 @@
      procedure :: distanceMaximum   => liWhite2009SDSSDistanceMaximum
      procedure :: solidAngle        => liWhite2009SDSSSolidAngle
      procedure :: randomsInitialize => liWhite2009SDSSRandomsInitialize
-     procedure :: descriptor        => liWhite2009SDSSDescriptor
   end type surveyGeometryLiWhite2009SDSS
 
   interface surveyGeometryLiWhite2009SDSS
@@ -251,23 +250,3 @@ contains
     call Galacticus_Display_Message(message)
     return
   end subroutine liWhite2009SDSSRandomsInitialize
-
-  subroutine liWhite2009SDSSDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (surveyGeometryLiWhite2009SDSS), intent(inout) :: self
-    type     (inputParameters              ), intent(inout) :: descriptor
-    type     (inputParameters              )                :: subParameters
-    character(len=10                       )                :: parameterLabel
-
-    call descriptor%addParameter("surveyGeometryMethod","liWhite2009SDSS")
-    subParameters=descriptor%subparameters("surveyGeometryMethod")
-    write (parameterLabel,'(f10.6)') self%redshiftMinimum
-    call subParameters%addParameter("redshiftMinimum",trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%redshiftMaximum
-    call subParameters%addParameter("redshiftMaximum",trim(adjustl(parameterLabel)))
-    call self%cosmologyFunctions_%descriptor(subParameters)    
-    return
-  end subroutine liWhite2009SDSSDescriptor

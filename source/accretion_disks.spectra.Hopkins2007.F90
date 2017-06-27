@@ -25,7 +25,6 @@
      !% An accretion disk spectra class which uses the algorithm of \cite{hopkins_observational_2007}.
      private
    contains
-     procedure :: descriptor => hopkins2007Descriptor
   end type accretionDiskSpectraHopkins2007
   
   interface accretionDiskSpectraHopkins2007
@@ -67,15 +66,3 @@ contains
     hopkins2007ConstructorInternal%resetWavelength=.true.
     return
   end function hopkins2007ConstructorInternal
-
-  subroutine hopkins2007Descriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    implicit none
-    class(accretionDiskSpectraHopkins2007), intent(inout) :: self
-    type (inputParameters                ), intent(inout) :: descriptor
-    !GCC$ attributes unused :: self
-    
-    call descriptor%addParameter("accretionDiskSpectraMethod","hopkins2007")
-    return
-  end subroutine hopkins2007Descriptor

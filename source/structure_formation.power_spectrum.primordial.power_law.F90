@@ -36,7 +36,6 @@
      final     ::                          powerLawDestructor
      procedure :: power                 => powerLawPower
      procedure :: logarithmicDerivative => powerLawLogarithmicDerivative
-     procedure :: descriptor            => powerLawDescriptor
   end type powerSpectrumPrimordialPowerLaw
 
   interface powerSpectrumPrimordialPowerLaw
@@ -144,24 +143,3 @@ contains
          &                            )
     return
   end function powerLawLogarithmicDerivative
-
-  subroutine powerLawDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (powerSpectrumPrimordialPowerLaw), intent(inout) :: self
-    type     (inputParameters                ), intent(inout) :: descriptor
-    type     (inputParameters                )                :: subParameters
-    character(len=10                         )                :: parameterLabel
-
-    call descriptor%addParameter("powerSpectrumPrimordialMethod","powerLaw")
-    subParameters=descriptor%subparameters("powerSpectrumPrimordialMethod")
-    write (parameterLabel,'(f10.6)') self%index
-    call subParameters%addParameter("index"              ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%running
-    call subParameters%addParameter("running"            ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%wavenumberReference
-    call subParameters%addParameter("wavenumberReference",trim(adjustl(parameterLabel)))
-    return
-  end subroutine powerLawDescriptor

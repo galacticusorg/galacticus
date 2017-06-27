@@ -37,7 +37,7 @@
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmology                                 => null()
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_                      => null()
      logical                                                               :: collapsingUniverse                        =.false.
      integer                                                               :: iTableTurnaround
      double precision                                                      :: expansionFactorMaximum                             , expansionFactorPrevious                =-1.0d0, &
@@ -82,7 +82,6 @@
      final     ::                                  matterLambdaDestructor
      procedure :: stateStore                    => matterLambdaStateStore
      procedure :: stateRestore                  => matterLambdaStateRestore
-     procedure :: descriptor                    => matterLambdaDescriptor
      procedure :: epochValidate                 => matterLambdaEpochValidate
      procedure :: cosmicTime                    => matterLambdaCosmicTime
      procedure :: expansionFactor               => matterLambdaExpansionFactor
@@ -121,28 +120,28 @@
 
 contains
 
-  function matterLambdaConstructorParameters(parameters)
+  function matterLambdaConstructorParameters(parameters) result(self)
     !% Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
     use Input_Parameters2
     implicit none
-    type (cosmologyFunctionsMatterLambda)                :: matterLambdaConstructorParameters
+    type (cosmologyFunctionsMatterLambda)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    matterLambdaConstructorParameters=matterLambdaConstructorInternal(cosmologyParameters_)
+    self=cosmologyFunctionsMatterLambda(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function matterLambdaConstructorParameters
 
-  function matterLambdaConstructorInternal(cosmologyParameters_)
+  function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the matter plus cosmological constant cosmological functions class.
     use Numerical_Comparison
     use Cosmology_Parameters
     use ISO_Varying_String
     use ODE_Solver
     implicit none
-    type            (cosmologyFunctionsMatterLambda)               , target :: matterLambdaConstructorInternal
+    type            (cosmologyFunctionsMatterLambda)               , target :: self
     class           (cosmologyParametersClass      ), intent(in   ), target :: cosmologyParameters_
     double precision                                , parameter             :: odeToleranceAbsolute           =1.0d-9, odeToleranceRelative   =1.0d-9
     double precision                                , parameter             :: omegaTolerance                 =1.0d-9
@@ -159,120 +158,120 @@ contains
     logical                                                                 :: odeReset                       =.true.
 
     ! Store a pointer to the cosmological parameters object.
-    matterLambdaConstructorInternal%cosmology => cosmologyParameters_
+    self%cosmologyParameters_ => cosmologyParameters_
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
-    matterLambdaConstructorInternal%collapsingUniverse    =.false.
-    matterLambdaConstructorInternal%expansionFactorMaximum=0.0d0
-    matterLambdaConstructorInternal%timeTurnaround        =0.0d0
-    matterLambdaConstructorInternal%timeMaximum           =0.0d0
-    if    (Values_Agree(matterLambdaConstructorInternal%cosmology%OmegaCurvature (),0.0d0,absTol=omegaTolerance)) then
-       if (Values_Agree(matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy(),0.0d0,absTol=omegaTolerance)) then
+    self%collapsingUniverse    =.false.
+    self%expansionFactorMaximum=0.0d0
+    self%timeTurnaround        =0.0d0
+    self%timeMaximum           =0.0d0
+    if    (Values_Agree(self%cosmologyParameters_%OmegaCurvature (),0.0d0,absTol=omegaTolerance)) then
+       if (Values_Agree(self%cosmologyParameters_%OmegaDarkEnergy(),0.0d0,absTol=omegaTolerance)) then
           ! Einstein-de Sitter case. Always expands to infinity.
-          matterLambdaConstructorInternal%collapsingUniverse=.false.
+          self%collapsingUniverse=.false.
        else
           ! Flat Universe with cosmological constant.
-          if (matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy() > 0.0d0) then
+          if (self%cosmologyParameters_%OmegaDarkEnergy() > 0.0d0) then
              ! Never collapses.
-             matterLambdaConstructorInternal%collapsingUniverse=.false.
+             self%collapsingUniverse=.false.
           else
-             matterLambdaConstructorInternal%collapsingUniverse=.true.
-             matterLambdaConstructorInternal%expansionFactorMaximum                    &
-                  & =-(                                                        &
-                  &     matterLambdaConstructorInternal%cosmology%OmegaMatter    ()    &
-                  &    *matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy()**2 &
-                  &   )**(1.0d0/3.0d0)                                         &
-                  &   / matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy()
+             self%collapsingUniverse=.true.
+             self%expansionFactorMaximum                               &
+                  & =-(                                                &
+                  &     self%cosmologyParameters_%OmegaMatter    ()    &
+                  &    *self%cosmologyParameters_%OmegaDarkEnergy()**2 &
+                  &   )**(1.0d0/3.0d0)                                 &
+                  &   / self%cosmologyParameters_%OmegaDarkEnergy()
           end if
        end if
     else
-       if (Values_Agree(matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy(),0.0d0,absTol=omegaTolerance)) then
+       if (Values_Agree(self%cosmologyParameters_%OmegaDarkEnergy(),0.0d0,absTol=omegaTolerance)) then
           ! Simple case for a matter-only universe.
-          matterLambdaConstructorInternal%collapsingUniverse=matterLambdaConstructorInternal%cosmology%OmegaMatter() > 1.0d0
-          if     ( matterLambdaConstructorInternal%collapsingUniverse           ) &
-               &   matterLambdaConstructorInternal%expansionFactorMaximum         &
-               & = matterLambdaConstructorInternal%cosmology%OmegaMatter()        &
-               & /(matterLambdaConstructorInternal%cosmology%OmegaMatter()-1.0d0)
+          self%collapsingUniverse=self%cosmologyParameters_%OmegaMatter() > 1.0d0
+          if     ( self%collapsingUniverse           )            &
+               &   self%expansionFactorMaximum                    &
+               & = self%cosmologyParameters_%OmegaMatter()        &
+               & /(self%cosmologyParameters_%OmegaMatter()-1.0d0)
        else
           ! Case of matter plus dark energy.
-          cubicTerm1        =1.0d0/matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy()
-          cubicTerm5        =      matterLambdaConstructorInternal%cosmology%OmegaMatter    ()**2
-          cubicTerm9        =      matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy()**2
-          cubicTerm21Squared                                                                                                                                 &
-               & =-(                                                                                                                                         &
-               &    -12.0d0                                                                                                                                  &
-               &    +36.0d0           *matterLambdaConstructorInternal%cosmology%OmegaMatter()                                                                       &
-               &    +36.0d0                                                                             *matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy() &
-               &    -36.0d0*cubicTerm5                                                                                                                       &
-               &    -72.0d0           *matterLambdaConstructorInternal%cosmology%OmegaMatter()*matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy()                   &
-               &    -36.0d0*cubicTerm9                                                                                                                       &
-               &    +12.0d0*cubicTerm5*matterLambdaConstructorInternal%cosmology%OmegaMatter()                                                                       &
-               &    -45.0d0*cubicTerm5                                                                  *matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy() &
-               &    +36.0d0*cubicTerm9*matterLambdaConstructorInternal%cosmology%OmegaMatter()                                                                       &
-               &    +12.0d0*cubicTerm9                                                                  *matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy() &
+          cubicTerm1        =1.0d0/self%cosmologyParameters_%OmegaDarkEnergy()
+          cubicTerm5        =      self%cosmologyParameters_%OmegaMatter    ()**2
+          cubicTerm9        =      self%cosmologyParameters_%OmegaDarkEnergy()**2
+          cubicTerm21Squared                                                                                               &
+               & =-(                                                                                                       &
+               &    -12.0d0                                                                                                &
+               &    +36.0d0           *self%cosmologyParameters_%OmegaMatter()                                             &
+               &    +36.0d0                                                   *self%cosmologyParameters_%OmegaDarkEnergy() &
+               &    -36.0d0*cubicTerm5                                                                                     &
+               &    -72.0d0           *self%cosmologyParameters_%OmegaMatter()*self%cosmologyParameters_%OmegaDarkEnergy() &
+               &    -36.0d0*cubicTerm9                                                                                     &
+               &    +12.0d0*cubicTerm5*self%cosmologyParameters_%OmegaMatter()                                             &
+               &    -45.0d0*cubicTerm5                                        *self%cosmologyParameters_%OmegaDarkEnergy() &
+               &    +36.0d0*cubicTerm9*self%cosmologyParameters_%OmegaMatter()                                             &
+               &    +12.0d0*cubicTerm9                                        *self%cosmologyParameters_%OmegaDarkEnergy() &
                &   )&
                &  *cubicTerm1
           if (cubicTerm21Squared > 0.0d0) then
              cubicTerm21     =sqrt(cubicTerm21Squared)
-             cubicTerm25Cubed=(                                                         &
-                  &            -108.0d0*matterLambdaConstructorInternal%cosmology%OmegaMatter() &
-                  &            + 12.0d0*cubicTerm21                                     &
-                  &           )                                                         &
+             cubicTerm25Cubed=(                                                 &
+                  &            -108.0d0*self%cosmologyParameters_%OmegaMatter() &
+                  &            + 12.0d0*cubicTerm21                             &
+                  &           )                                                 &
                   &           *cubicTerm9
              if (cubicTerm25Cubed >= 0.0d0) then
                 cubicTerm25=     cubicTerm25Cubed **(1.0d0/3.0d0)
              else
                 cubicTerm25=-abs(cubicTerm25Cubed)**(1.0d0/3.0d0)
              end if
-             aMaximum                                                        &
-                  &  = cubicTerm1                                            &
-                  &   *cubicTerm25                                           &
-                  &   /6.0d0                                                 &
-                  &   +2.0d0                                                 &
-                  &   *(                                                     &
-                  &     -1.0d0                                               &
-                  &     +matterLambdaConstructorInternal%cosmology%OmegaMatter    () &
-                  &     +matterLambdaConstructorInternal%cosmology%OmegaDarkEnergy() &
-                  &   )                                                      &
+             aMaximum                                                &
+                  &  = cubicTerm1                                    &
+                  &   *cubicTerm25                                   &
+                  &   /6.0d0                                         &
+                  &   +2.0d0                                         &
+                  &   *(                                             &
+                  &     -1.0d0                                       &
+                  &     +self%cosmologyParameters_%OmegaMatter    () &
+                  &     +self%cosmologyParameters_%OmegaDarkEnergy() &
+                  &   )                                              &
                   &   /cubicTerm25
-             matterLambdaConstructorInternal%collapsingUniverse=aMaximum > 0.0d0
-             if (matterLambdaConstructorInternal%collapsingUniverse) &
-                  & matterLambdaConstructorInternal%expansionFactorMaximum=aMaximum
+             self%collapsingUniverse=aMaximum > 0.0d0
+             if (self%collapsingUniverse) &
+                  & self%expansionFactorMaximum=aMaximum
           end if
        end if
     end if
     ! If we have a collapsing Universe, find time of turnaround, and maximum time.
-    if (matterLambdaConstructorInternal%collapsingUniverse) then
+    if (self%collapsingUniverse) then
        ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
-       call matterLambdaConstructorInternal%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
+       call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
        ! Find the corresponding time.
-       timeMaximumimum(1)=1.0d0/matterLambdaConstructorInternal%cosmology%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+       timeMaximumimum(1)=1.0d0/self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
        ! Solve Friedmann equation to get time at turnaround.
-       matterLambdaSelfGlobal => matterLambdaConstructorInternal
+       matterLambdaSelfGlobal => self
        odeReset=.true.
-       call ODE_Solve(                                                               &
-            &         odeStepper                                                   , &
-            &         odeController                                                , &
-            &         odeEvolver                                                   , &
-            &         odeSystem                                                    , &
-            &         expansionFactorDominant                                      , &
-            &         matterLambdaConstructorInternal%expansionFactorMaximum*(1.0d0-1.0d-4), &
-            &         1                                                            , &
-            &         timeMaximumimum                                              , &
-            &         matterLambdaCollapseODEs                                     , &
-            &         odeToleranceAbsolute                                         , &
-            &         odeToleranceRelative                                         , &
-            &         reset=odeReset                                                 &
+       call ODE_Solve(                                            &
+            &         odeStepper                                , &
+            &         odeController                             , &
+            &         odeEvolver                                , &
+            &         odeSystem                                 , &
+            &         expansionFactorDominant                   , &
+            &         self%expansionFactorMaximum*(1.0d0-1.0d-4), &
+            &         1                                         , &
+            &         timeMaximumimum                           , &
+            &         matterLambdaCollapseODEs                  , &
+            &         odeToleranceAbsolute                      , &
+            &         odeToleranceRelative                      , &
+            &         reset=odeReset                              &
             &        )
        call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
        odeReset=.true.
        ! Extract turnaround time from ODE variables and set maximum time to twice turnaround time.
-       matterLambdaConstructorInternal%timeTurnaround=timeMaximumimum(1)
-       matterLambdaConstructorInternal%timeMaximum       =2.0d0*matterLambdaConstructorInternal%timeTurnaround
+       self%timeTurnaround=timeMaximumimum(1)
+       self%timeMaximum   =2.0d0*self%timeTurnaround
     end if
     ! Initialize locks.
-    !$ call OMP_Init_Lock(matterLambdaConstructorInternal%expansionFactorTableLock)
-    !$ call OMP_Init_Lock(matterLambdaConstructorInternal%distanceTableLock       )
+    !$ call OMP_Init_Lock(self%expansionFactorTableLock)
+    !$ call OMP_Init_Lock(self%distanceTableLock       )
     return
   end function matterLambdaConstructorInternal
 
@@ -282,7 +281,7 @@ contains
     implicit none
     type(cosmologyFunctionsMatterLambda), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmology"/>
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     if     ( allocated (self%ageTableExpansionFactor               )) deallocate(self%ageTableExpansionFactor               )
     if     ( allocated (self%ageTableTime                          )) deallocate(self%ageTableTime                          )
     if     ( allocated (self%distanceTableComovingDistance         )) deallocate(self%distanceTableComovingDistance         )
@@ -489,10 +488,10 @@ contains
     double precision                                , intent(in   ) :: expansionFactor
 
     ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
-    matterLambdaExpansionRate                                                           &
-         & = self          %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
-         &  *self%cosmology%HubbleConstant        (hubbleUnitsTime                    ) &
-         &  /self%cosmology%HubbleConstant        (hubbleUnitsStandard                )
+    matterLambdaExpansionRate                                                                      &
+         & = self                     %hubbleParameterEpochal(expansionFactor    =expansionFactor) &
+         &  *self%cosmologyParameters_%HubbleConstant        (hubbleUnitsTime                    ) &
+         &  /self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                )
     return
   end function matterLambdaExpansionRate
 
@@ -514,15 +513,15 @@ contains
          &                  expansionFactorOut=expansionFactorActual  &
          &                 )
     ! Compute the Hubble parameter at the specified expansion factor.
-    sqrtArgument                      =max(                                   &
-         &                                  self%cosmology%OmegaMatter    ()  &
-         &                                 /expansionFactorActual**3          &
-         &                                 +self%cosmology%OmegaDarkEnergy()  &
-         &                                 +self%cosmology%OmegaCurvature ()  &
-         &                                 /expansionFactorActual**2        , &
-         &                                 0.0d0                              &
+    sqrtArgument                      =max(                                              &
+         &                                  self%cosmologyParameters_%OmegaMatter    ()  &
+         &                                 /expansionFactorActual**3                     &
+         &                                 +self%cosmologyParameters_%OmegaDarkEnergy()  &
+         &                                 +self%cosmologyParameters_%OmegaCurvature ()  &
+         &                                 /expansionFactorActual**2                   , &
+         &                                 0.0d0                                         &
          &                                )
-    matterLambdaHubbleParameterEpochal= self%cosmology%HubbleConstant(hubbleUnitsStandard)&
+    matterLambdaHubbleParameterEpochal= self%cosmologyParameters_%HubbleConstant(hubbleUnitsStandard) &
          &                             *sqrt(sqrtArgument)
     ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
     if (self%collapsingUniverse) then
@@ -559,13 +558,13 @@ contains
          & *        self%hubbleParameterEpochal(expansionFactor=expansionFactorActual,collapsingPhase=collapsingPhase) &
          & *        self%expansionRate         (                expansionFactorActual                                ) &
          & *(                                                                                                          &
-         &   -3.0d0*self%cosmology%OmegaMatter    ()/expansionFactorActual**3                                          &
-         &   -2.0d0*self%cosmology%OmegaCurvature ()/expansionFactorActual**2                                          &
+         &   -3.0d0*self%cosmologyParameters_%OmegaMatter    ()/expansionFactorActual**3                               &
+         &   -2.0d0*self%cosmologyParameters_%OmegaCurvature ()/expansionFactorActual**2                               &
          &  )                                                                                                          &
          & /(                                                                                                          &
-         &   +      self%cosmology%OmegaMatter    ()/expansionFactorActual**3                                          &
-         &   +      self%cosmology%OmegaDarkEnergy()                                                                   &
-         &   +      self%cosmology%OmegaCurvature ()/expansionFactorActual**2                                          &
+         &   +      self%cosmologyParameters_%OmegaMatter    ()/expansionFactorActual**3                               &
+         &   +      self%cosmologyParameters_%OmegaDarkEnergy()                                                        &
+         &   +      self%cosmologyParameters_%OmegaCurvature ()/expansionFactorActual**2                               &
          &  )
     return
   end function matterLambdaHubbleParameterRateOfChange
@@ -586,12 +585,12 @@ contains
          &                  collapsingIn      =collapsingPhase      , &
          &                  expansionFactorOut=expansionFactorActual  &
          &                 )
-    matterLambdaOmegaMatterEpochal                                                              &
-         & =   self%cosmology%OmegaMatter           (                                         ) &
-         &  *(                                                                                  &
-         &     self%cosmology%HubbleConstant        (hubbleUnitsStandard                      ) &
-         &    /self          %HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
-         &   )**2                                                                               &
+    matterLambdaOmegaMatterEpochal                                                                         &
+         & =   self%cosmologyParameters_%OmegaMatter           (                                         ) &
+         &  *(                                                                                             &
+         &     self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                      ) &
+         &    /self                     %HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
+         &   )**2                                                                                          &
          &  /expansionFactorActual**3
     return
   end function matterLambdaOmegaMatterEpochal
@@ -622,7 +621,7 @@ contains
           call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','either a time or expansion factor must be specified')
        end if
     end if
-    matterLambdaMatterDensityEpochal=self%cosmology%omegaMatter()*self%cosmology%densityCritical()/expansionFactorActual**3
+    matterLambdaMatterDensityEpochal=self%cosmologyParameters_%omegaMatter()*self%cosmologyParameters_%densityCritical()/expansionFactorActual**3
     return
   end function matterLambdaMatterDensityEpochal
 
@@ -668,11 +667,11 @@ contains
          &                  collapsingIn      =collapsingPhase      , &
          &                  expansionFactorOut=expansionFactorActual  &
          &                 )
-    matterLambdaOmegaDarkEnergyEpochal                                                          &
-         & =   self%cosmology%OmegaDarkEnergy       (                                         ) &
-         &  *(                                                                                  &
-         &     self%cosmology%HubbleConstant        (hubbleUnitsStandard                      ) &
-         &    /self%          HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
+    matterLambdaOmegaDarkEnergyEpochal                                                                     &
+         & =   self%cosmologyParameters_%OmegaDarkEnergy       (                                         ) &
+         &  *(                                                                                             &
+         &     self%cosmologyParameters_%HubbleConstant        (hubbleUnitsStandard                      ) &
+         &    /self%                     HubbleParameterEpochal(expansionFactor    =expansionFactorActual) &
          &   )**2
     return
   end function matterLambdaOmegaDarkEnergyEpochal
@@ -693,7 +692,7 @@ contains
          &                  collapsingIn      =collapsingPhase      , &
          &                  expansionFactorOut=expansionFactorActual  &
          &                 )
-    matterLambdaTemperatureCMBEpochal=self%cosmology%temperatureCMB()/expansionFactorActual
+    matterLambdaTemperatureCMBEpochal=self%cosmologyParameters_%temperatureCMB()/expansionFactorActual
     return
   end function matterLambdaTemperatureCMBEpochal
 
@@ -710,7 +709,7 @@ contains
     ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
     expansionFactorDominant=self%dominationEpochMatter(dominateFactor)
     ! Return the density parameter in the dominant species if required.
-    if (present(OmegaDominant)) OmegaDominant=self%cosmology%OmegaMatter()
+    if (present(OmegaDominant)) OmegaDominant=self%cosmologyParameters_%OmegaMatter()
     return
   end subroutine matterLambdaDensityScalingEarlyTime
 
@@ -725,7 +724,7 @@ contains
 
     ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
     matterLambdaDominationEpochMatter=1.0d0
-    if (self%cosmology%OmegaDarkEnergy()/=0.0d0) then
+    if (self%cosmologyParameters_%OmegaDarkEnergy()/=0.0d0) then
        ! Find the expansion factor of matter-dark energy equality.
        aMatterEquality=self%equalityEpochMatterDarkEnergy(requestTypeExpansionFactor)
        ! Find the earlier expansion factor at which matter dominates by the specified amount (ratio of matter
@@ -734,7 +733,7 @@ contains
        ! Choose earliest expansion factor.
        matterLambdaDominationEpochMatter=min(matterLambdaDominationEpochMatter,expansionFactorDominantDarkEnergy)
     end if
-    if (self%cosmology%OmegaCurvature() /= 0.0d0) then
+    if (self%cosmologyParameters_%OmegaCurvature() /= 0.0d0) then
        ! Find the expansion factor of matter-curvature equality.
        aMatterEquality=self%equalityEpochMatterCurvature(requestTypeExpansionFactor)
        ! Find the earlier expansion factor at which matter dominates by the specified amount (ratio of matter
@@ -762,8 +761,8 @@ contains
     end if
     matterLambdaEqualityEpochMatterDarkEnergy       &
          & =(                                       &
-         &        self%cosmology%OmegaMatter    ()  &
-         &   /abs(self%cosmology%OmegaDarkEnergy()) &
+         &        self%cosmologyParameters_%OmegaMatter    ()  &
+         &   /abs(self%cosmologyParameters_%OmegaDarkEnergy()) &
          &  )**(1.0d0/3.0d0)
     if (requestTypeActual == requestTypeTime)                          &
          &                   matterLambdaEqualityEpochMatterDarkEnergy &
@@ -785,7 +784,7 @@ contains
     else
        requestTypeActual=requestTypeExpansionFactor
     end if
-    matterLambdaEqualityEpochMatterCurvature=self%cosmology%OmegaMatter()/abs(self%cosmology%OmegaCurvature())
+    matterLambdaEqualityEpochMatterCurvature=self%cosmologyParameters_%OmegaMatter()/abs(self%cosmologyParameters_%OmegaCurvature())
     if (requestTypeActual == requestTypeTime)                         &
          &                  matterLambdaEqualityEpochMatterCurvature  &
          & =self%cosmicTime(matterLambdaEqualityEpochMatterCurvature)
@@ -818,7 +817,7 @@ contains
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
-    tDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+    tDominant=-2.0d0/densityPower/self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
     ! Find minimum and maximum times to tabulate.
     if (present(time)) then
        timeActual=time
@@ -876,14 +875,14 @@ contains
     self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    if (self%ageTableExpansionFactor(1) < 0.0d0)             &
-         &    self%ageTableExpansionFactor(               1) &
-         & =(                                                &
-         &   -0.5d0                                          &
-         &   *densityPower                                   &
-         &   *self%ageTableTime            (              1) &
-         &   *self%cosmology%HubbleConstant(hubbleUnitsTime) &
-         &   *sqrt(OmegaDominant)                            &
+    if (self%ageTableExpansionFactor(1) < 0.0d0)                        &
+         &    self%ageTableExpansionFactor           (               1) &
+         & =(                                                           &
+         &   -0.5d0                                                     &
+         &   *densityPower                                              &
+         &   *self%ageTableTime                       (              1) &
+         &   *self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+         &   *sqrt(OmegaDominant)                                       &
          &  )**(-2.0d0/densityPower)
     ! Solve ODE to get corresponding expansion factors.
     self%iTableTurnaround  =  self%ageTableNumberPoints
@@ -1255,18 +1254,3 @@ contains
     self%resetInterpolationDistanceInverse=.true.
     return
   end subroutine matterLambdaStateRestore
-
-  subroutine matterLambdaDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class(cosmologyFunctionsMatterLambda), intent(inout) :: self
-    type (inputParameters               ), intent(inout) :: descriptor
-    type (inputParameters               )                :: subParameters
-
-    call descriptor%addParameter("cosmologyFunctionsMethod","matterLambda")
-    subParameters=descriptor%subparameters("cosmologyFunctionsMethod")
-    call self%cosmology%descriptor(subParameters)    
-    return
-  end subroutine matterLambdaDescriptor

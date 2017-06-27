@@ -22,6 +22,7 @@
   !% \cite{eisenstein_power_1999}.
 
   use Cosmology_Parameters
+  use Dark_Matter_Particles
 
   !# <transferFunction name="transferFunctionEisensteinHu1999">
   !#  <description>Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.</description>
@@ -30,6 +31,7 @@
      !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
      double precision                                    :: temperatureCMB27      , distanceSoundWave      , &
           &                                                 neutrinoMassFraction  , neutrinoNumberEffective, &
           &                                                 neutrinoFactor        , betaDarkMatter         , &
@@ -52,7 +54,6 @@
      procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative
      procedure :: computeFactors        => eisensteinHu1999ComputeFactors
      procedure :: halfModeMass          => eisensteinHu1999HalfModeMass
-     procedure :: descriptor            => eisensteinHu1999Descriptor
   end type transferFunctionEisensteinHu1999
 
   interface transferFunctionEisensteinHu1999
@@ -67,7 +68,6 @@ contains
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
     use Input_Parameters2
-    use Dark_Matter_Particles
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: eisensteinHu1999ConstructorParameters
     type            (inputParameters                 ), intent(inout) :: parameters
@@ -106,30 +106,27 @@ contains
     use Galacticus_Error
     use Dark_Matter_Particles
     implicit none
-    type            (transferFunctionEisensteinHu1999)                                  :: eisensteinHu1999ConstructorInternal
-    double precision                                  , intent(in   )                   :: neutrinoNumberEffective           , neutrinoMassSummed
-    class           (darkMatterParticleClass         ), intent(in   )                   :: darkMatterParticle_
-    class           (cosmologyParametersClass        ), intent(in   ), target, optional :: cosmologyParameters_
-    double precision                                                                    :: redshiftEquality                   , redshiftComptonDrag   , &
-         &                                                                                 b1                                 , b2                    , &
-         &                                                                                 massFractionBaryonic               , massFractionDarkMatter, &
-         &                                                                                 expansionFactorRatio               , massFractionMatter    , &
-         &                                                                                 massFractionBaryonsNeutrinos       , suppressionDarkMatter , &
-         &                                                                                 suppressionMatter
+    type            (transferFunctionEisensteinHu1999)                        :: eisensteinHu1999ConstructorInternal
+    double precision                                  , intent(in   )         :: neutrinoNumberEffective           , neutrinoMassSummed
+    class           (darkMatterParticleClass         ), intent(in   ), target :: darkMatterParticle_
+    class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
+    double precision                                                          :: redshiftEquality                   , redshiftComptonDrag   , &
+         &                                                                       b1                                 , b2                    , &
+         &                                                                       massFractionBaryonic               , massFractionDarkMatter, &
+         &                                                                       expansionFactorRatio               , massFractionMatter    , &
+         &                                                                       massFractionBaryonsNeutrinos       , suppressionDarkMatter , &
+         &                                                                       suppressionMatter
 
     ! Require that the dark matter be cold dark matter.
+    eisensteinHu1999ConstructorInternal%darkMatterParticle_   => darkMatterParticle_
     select type (darkMatterParticle_)
-    class is (darkMatterParticleCDM)
-       ! Cold dark matter particle - this is as expected.
-    class default
+       class is (darkMatterParticleCDM)
+          ! Cold dark matter particle - this is as expected.
+       class default
        call Galacticus_Error_Report('eisensteinHu1999ConstructorInternal','transfer function expects a cold dark matter particle')
     end select
-    ! Determine the cosmological parameters to use.
-    if (present(cosmologyParameters_)) then
-       eisensteinHu1999ConstructorInternal%cosmologyParameters_ => cosmologyParameters_
-    else
-       eisensteinHu1999ConstructorInternal%cosmologyParameters_ => cosmologyParameters()
-    end if
+    ! Set cosmological parameters.
+    eisensteinHu1999ConstructorInternal%cosmologyParameters_   => cosmologyParameters_
     ! Present day CMB temperature [in units of 2.7K].
     eisensteinHu1999ConstructorInternal%temperatureCMB27       =+eisensteinHu1999ConstructorInternal%cosmologyParameters_%temperatureCMB(                  )    &
          &                                                       /2.7d0
@@ -290,6 +287,7 @@ contains
     type(transferFunctionEisensteinHu1999), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%darkMatterParticle_" />
     return
   end subroutine eisensteinHu1999Destructor
 
@@ -458,23 +456,3 @@ contains
     call Galacticus_Error_Report('eisensteinHu1999HalfModeMass','not supported by this implementation')
     return
   end function eisensteinHu1999HalfModeMass
-
-  subroutine eisensteinHu1999Descriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
-    use FoX_DOM
-    implicit none
-    class    (transferFunctionEisensteinHu1999), intent(inout) :: self
-    type     (inputParameters                 ), intent(inout) :: descriptor
-    type     (inputParameters                 )                :: subParameters
-    character(len=10                          )                :: parameterLabel
-
-    call descriptor%addParameter("transferFunctionMethod","eisensteinHu1999")
-    subParameters=descriptor%subparameters("transferFunctionMethod")
-    write (parameterLabel,'(f10.6)') self%neutrinoMassSummed
-    call subParameters%addParameter("neutrinoMassSummed"     ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%neutrinoNumberEffective
-    call subParameters%addParameter("neutrinoNumberEffective",trim(adjustl(parameterLabel)))
-    call self%cosmologyParameters_%descriptor(subParameters)
-    return
-  end subroutine eisensteinHu1999Descriptor
