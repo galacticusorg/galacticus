@@ -13,6 +13,7 @@ use LaTeX::Encode;
 use Scalar::Util qw(reftype);
 use List::ExtraUtils;
 use Fortran::Utils;
+use Text::Template 'fill_in_string';
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
@@ -162,23 +163,351 @@ sub Process_FunctionClass {
 	    };
 	    # Add "descriptor" method.
 	    my $descriptorCode;
+	    my %descriptorModules = ( "Input_Parameters2" => 1 );
+	    my %addSubParameters;
+	    my $addLabel         = 0;
+	    my $descriptorUsed   = 0;
 	    $descriptorCode .= "select type (self)\n";
-	    foreach ( @nonAbstractClasses ) {
-		(my $label = $_->{'name'}) =~ s/^$directive->{'name'}//;
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
 		$label = lcfirst($label)
 		    unless ( $label =~ m/^[A-Z]{2,}/ );
-		$descriptorCode .= "type is (".$_->{'name'}.")\n";
-		$descriptorCode .= " call descriptor%addParameter('".$directive->{'name'}."Method','".$label."')\n";	
-	    }
+		my $hasCustomDescriptor = 0;
+		my $extensionOf;
+		# Build lists of all potential parameter and object names for this class, including any from parent classes.
+		my $potentialNames;
+		my $class = $nonAbstractClass;
+		while ( $class ) {
+		    my $node = $class->{'tree'}->{'firstChild'};
+		    $node = $node->{'sibling'}
+		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
+		    next
+			unless ( $node );
+		    # Find the parent class.
+		    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+			$extensionOf = $1;
+		    }
+		    # Search the node for declarations.
+		    $node = $node->{'firstChild'};
+		    while ( $node ) {
+			if ( $node->{'type'} eq "declaration" ) {
+			    foreach my $declaration ( @{$node->{'declarations'}} ) {
+				# Identify object pointers.
+				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "class"
+				     &&
+				     $declaration->{'type'     } =~ m/Class\s*$/
+				     &&
+				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+				    );
+				push(@{$potentialNames->{'parameters'}},$declaration)
+				    if
+				    (
+				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision" ))
+				     ||
+				     (
+				             $declaration->{'intrinsic'}  eq "type"
+				      &&
+				      trimlc($declaration->{'type'     }) eq "varying_string"				      
+				     )
+				    );
+				$hasCustomDescriptor = 1
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "procedure"
+				     &&
+				     $declaration->{'variables'}->[0] =~ m/^descriptor=>/
+				    );
+			    }
+			}
+			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		    }
+		    # Move to the parent class.
+		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		}		
+		# Add any names declared in the base class.
+		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
+		    my $declarationSource;
+		    if ( reftype($data) ) {
+			$declarationSource = $data->{'content'}
+			    if ( $data->{'scope'} eq "self" );
+		    } else {
+			$declarationSource = $data;
+		    }
+		    next
+			unless ( defined($declarationSource) );
+		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+		    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): unable to parse variable declaration")
+			unless ( defined($declaration) );
+		    push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
+			if
+			(
+			 $declaration->{'intrinsic'} eq "class"
+			 &&
+			 $declaration->{'type'     } =~ m/Class\s*$/
+			 &&
+			 grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+			);
+		    push(@{$potentialNames->{'parameters'}},$declaration)
+			if
+			(
+			 (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision" ))
+			 ||
+			 (
+			         $declaration->{'intrinsic'}  eq "type"
+			  &&
+			  trimlc($declaration->{'type'     }) eq "varying_string"				      
+			 )
+			);
+		}
+		# Search the tree for this class to find the interface to the parameters constructor.
+		my $node = $nonAbstractClass->{'tree'}->{'firstChild'};
+		$node = $node->{'sibling'}
+		    while ( $node && ( $node->{'type'} ne "interface" || ( ! exists($node->{'name'}) || $node->{'name'} ne $nonAbstractClass->{'name'} ) ) );
+		next
+		    unless ( $node );
+		# Find all constructor names.
+		$node = $node->{'firstChild'};		
+		my @constructors;
+		while ( $node ) {
+		    push(@constructors,@{$node->{'names'}})
+			if ( $node->{'type'} eq "moduleProcedure" );
+		    $node = $node->{'sibling'};
+		}
+		# Search for constructors.
+		$node = $nonAbstractClass->{'tree'}->{'firstChild'};
+		my $descriptorParameters;
+		my %subParameters;
+		my $declarationMatches    = 0;
+		my $supported             = 1;
+		my $parentConstructorUsed = 0;
+		my @failureMessage;
+		while ( $node ) {
+		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*function\s+$node->{'name'}\s*\(\s*parameters\s*\)/ ) {
+			# Extract the name of the return variable in this function.
+			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
+			# Check if this is the parameters constructor.
+			my $constructorNode    = $node->{'firstChild'};
+			my $depth = 0;
+			while ( $constructorNode ) {
+			    # Process node.
+			    if ( $constructorNode->{'type'} eq "declaration" ) {
+				# Declaration node found - check if we have a parameters argument of the correct type.
+				foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
+				    $declarationMatches = 1
+					if ( 
+					    $declaration->{'intrinsic'}  eq "type"
+					    &&
+					    trimlc($declaration->{'type'     }) eq "inputparameters"
+					    &&
+					    grep {$_ eq "parameters"} @{$declaration->{'variables'}}
+					);	     
+				}
+			    }
+			    if ( $constructorNode->{'type'} eq "code" ) {
+				# Locate any use of sub-parameters and of the parent class constructor.
+				open(my $code,"<",\$constructorNode->{'content'});
+				do {
+				    # Get a line.
+				    &Fortran::Utils::Get_Fortran_Line($code,my $rawLine, my $processedLine, my $bufferedComments); 
+				    # Identify subparameter usages.
+				    if ( $processedLine =~ m/^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)\s*\%\s*subParameters\s*\(/ ) {
+					$subParameters{$1} =
+					{
+					    parent => $2,
+					    source => $processedLine
+					};
+				    }
+				    # Identify use of parent constructor.
+				    $parentConstructorUsed = 1
+					if ( $processedLine =~ m/^\s*$result\s*\%\s*$extensionOf\s*=/ );
+				} until ( eof($code) );
+				close($code);
+			    }
+			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
+				if ( exists($constructorNode->{'directive'}->{'source'}) ) {
+				    if      ( exists($constructorNode->{'directive'}->{'name'    }) ) {
+					# A regular parameter, defined by its name.
+					my $name;
+					if ( exists($constructorNode->{'directive'}->{'variable'}) ) {
+					    ($name = $constructorNode->{'directive'}->{'variable'}) =~ s/.*\%(.*)/$1/;
+					} else {
+					    $name = $constructorNode->{'directive'}->{'name'};
+					}
+					if ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'parameters'}}) ) {
+					    push(@{$descriptorParameters->{'parameters'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+					} else {
+					    $supported = -1;
+					    push(@failureMessage,"could not find a matching internal variable for parameter [".$name."]");
+					}
+				    } elsif ( exists($constructorNode->{'directive'}->{'regEx'   }) ) {
+					# A regular expression parameter. Currently not supported.
+					$supported = -2;
+					push(@failureMessage,"regular expression parameter [".$constructorNode->{'directive'}->{'regEx'}."] not supported");
+				    } elsif ( exists($constructorNode->{'directive'}->{'iterator'}) ) {
+					# A parameter whose name iterates over a set of possible names. Currently not supported.
+					$supported = -3;
+					push(@failureMessage,"iterator parameter [".$constructorNode->{'directive'}->{'iterator'}."] not supported");
+				    }
+				} else {
+				    $supported = -4;
+				    push(@failureMessage,"unsourced parameters not supported");
+				}
+			    }
+			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {		    
+				if ( exists($constructorNode->{'directive'}->{'source'}) ) {				    
+				    (my $name = $constructorNode->{'directive'}->{'name'}) =~ s/([a-zA-Z0-9_]+\s*\%\s*)?([a-zA-Z0-9_]+).*/$2/;
+				    $name =~ s/\s//g;
+				    if ( grep {$_ eq lc($name)} @{$potentialNames->{'objects'}} ) { 
+					push(@{$descriptorParameters->{'objects'}},{name => $name, source => $constructorNode->{'directive'}->{'source'}});
+				    } else {
+					$supported = -5;
+					push(@failureMessage,"could not find a matching internal object for object [".$name."]");
+				    }
+				} else {
+				    $supported = -6;
+				    push(@failureMessage,"unsourced objects not supported");
+				}
+			    }
+			    $constructorNode = &Galacticus::Build::SourceTree::Walk_Tree($constructorNode,\$depth);
+			    last
+				if ( $depth < 0 );
+			}
+		    }
+		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		}
+		# Validate sub-parameters.
+		foreach my $subParameterName ( keys(%subParameters) ) {
+		    unless ( exists($subParameters{$subParameters{$subParameterName}->{'parent'}}) || $subParameters{$subParameterName}->{'parent'} eq "parameters" ) {
+			$supported = -7;
+			push(@failureMessage,"subparameter hierarchy failure");
+		    }
+		}
+		# Build the code.
+		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		if ( $hasCustomDescriptor ) {
+		    # The class has its own descriptor function, so we should never arrive at this point in the code.
+		    $descriptorCode .= " call Galacticus_Error_Report('".$directive->{'name'}."Descriptor','custom descriptor exists - this should not happen')\n";
+		    $descriptorModules{'Galacticus_Error'} = 1;
+		} else{
+		    # Build an auto-descriptor function.
+		    if ( $declarationMatches && $supported == 1 ) {
+			$descriptorUsed = 1;
+			$descriptorCode .= " if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('".$directive->{'name'}."Method','".$label."')\n";
+			if ( defined($descriptorParameters) ) {			    
+			    # Get subparameters.
+			    $addSubParameters{'parameters'} = 1;
+			    $descriptorCode   .= "parameters=descriptor%subparameters('".$directive->{'name'}."Method')\n";
+			    foreach my $subParameterName (keys(%subParameters) ) {
+				$addSubParameters{$subParameterName} = 1;
+				$descriptorCode .= $subParameters{$subParameterName}->{'source'};
+			    }
+			    # Handle parameters set via inputParameter directives.
+			    if ( defined($descriptorParameters->{'parameters'}) ) {
+				foreach my $parameter ( @{$descriptorParameters->{'parameters'}} ) {
+				    foreach my $declaration ( @{$potentialNames->{'parameters'}} ) {
+					if ( grep {$_ eq lc($parameter->{'name'})} @{$declaration->{'variables'}} ) {
+					    if      ( $declaration->{'intrinsic'} eq "type" ) {
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',char(self%".$parameter->{'name'}."))\n";
+					    } elsif ( $declaration->{'intrinsic'} eq "logical" ) {
+						$descriptorCode .= "if (self%".$parameter->{'name'}.") then\n";
+						$descriptorCode .= "  call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."','true' )\n";
+						$descriptorCode .= "else\n";
+						$descriptorCode .= "  call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."','false')\n";
+						$descriptorCode .= "end if\n";
+					    } else {
+						$addLabel = 1;
+						my $format;
+						$format = "e17.10"
+						    if ( $declaration->{'intrinsic'} eq "double precision" );
+						$format = "i17"
+						    if ( $declaration->{'intrinsic'} eq "integer"          );
+						$descriptorCode .= "write (parameterLabel,'(".$format.")') self%".$parameter->{'name'}."\n";
+						$descriptorCode .= "call ".$parameter->{'source'}."%addParameter('".$parameter->{'inputName'}."',trim(adjustl(parameterLabel)))\n";
+					    }
+					}
+				    }
+				}
+			    }
+			    # Handle objects built via objectBuilder directives.
+			    if ( defined($descriptorParameters->{'objects'}) ) {
+				foreach ( @{$descriptorParameters->{'objects'}} ) {
+				    $descriptorCode .= "call self%".$_->{'name'}."%descriptor(".$_->{'source'}.")\n";
+				}
+			    }
+			}
+			# If the parent constructor was used, call its descriptor method.
+			if ( $parentConstructorUsed ) {
+			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeMethod=.false.)\n";
+			}
+		    } elsif ( ! $declarationMatches     ) {		    
+			$descriptorCode .= " call Galacticus_Error_Report('".$directive->{'name'}."Descriptor','auto-descriptor not supported for this class: parameter-based constructor not found')\n";
+			$descriptorModules{'Galacticus_Error'} = 1;
+		    } elsif (   $supported         != 1 ) {
+			$descriptorCode .= " call Galacticus_Error_Report('".$directive->{'name'}."Descriptor','auto-descriptor not supported for this class because:'//char(10)// &\n";
+			$descriptorCode .= " & ".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage).")\n";
+			$descriptorModules{'Galacticus_Error'} = 1;
+		    }
+		}
+	    }	    
 	    $descriptorCode .= "end select\n";
+	    $descriptorCode  = " !GCC\$ attributes unused :: descriptor, includeMethod\n".$descriptorCode
+		unless ( $descriptorUsed );
+ 	    $descriptorCode  = "type(inputParameters) :: ".join(",",keys(%addSubParameters))."\n".$descriptorCode
+		if ( %addSubParameters );
+ 	    $descriptorCode  = "character(len=18) :: parameterLabel\n".$descriptorCode
+		if ( $addLabel );
 	    $methods{'descriptor'} = 
 	    {
 		description => "Return an input parameter list descriptor which could be used to recreate this object.",
 		type        => "void",
 		pass        => "yes",
-		modules     => "Input_Parameters2",
-		argument    => [ "type(inputParameters), intent(inout) :: descriptor" ],
+		modules     => join(" ",keys(%descriptorModules)),
+		argument    => [ "type(inputParameters), intent(inout) :: descriptor", "logical, intent(in   ), optional :: includeMethod" ],
 		code        => $descriptorCode
+	    };
+	    # Add a "hashedDescriptor" method.
+	    $code::directiveName = $directive->{'name'};
+	    my $hashedDescriptorCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+type(inputParameters) :: descriptor
+type(varying_string ) :: descriptorString
+descriptor=inputParameters()
+call self%descriptor(descriptor)
+descriptorString=descriptor%serializeToString()
+if (present(includeSourceDigest).and.includeSourceDigest) then
+select type (self)
+CODE
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		$code::type = $nonAbstractClass->{'name'};
+		(my $classFile = $tree->{'source'}) =~ s/^.*\/([^\/]+)$/$1/;
+		my @sourceFiles = ( $classFile );
+		my $class = $nonAbstractClass;
+		while ( $class ) {
+		    (my $sourceFile = $class->{'file'}) =~ s/^.*\/([^\/]+)$/$1/;
+		    push(@sourceFiles,$sourceFile);
+		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
+		}
+		$code::digest = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash(@sourceFiles);
+		$hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+type is ({$type})
+descriptorString=descriptorString//":sourceDigest\{{$digest}\}"
+CODE
+	    }
+	    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end select
+end if
+{$directiveName}HashedDescriptor=Hash_MD5(descriptorString)
+CODE
+	    $methods{'hashedDescriptor'} = 
+	    {
+		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
+		type        => "type(varying_string)",
+		pass        => "yes",
+		modules     => "ISO_Varying_String Input_Parameters2 Hashes_Cryptographic",
+		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
+		code        => $hashedDescriptorCode
 	    };
 	    # Add "allowedParameters" method.
 	    my $allowedParametersCode;
@@ -448,17 +777,16 @@ sub Process_FunctionClass {
 		    }
 		}
 		# Check that the type of the destination matches, and perform the copy.
-		if ( defined($assignments) ) {
-		    $deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		    $deepCopyCode .= "select type (destination)\n";
-		    $deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		    $deepCopyCode .= "destination=self\n";
-		    $deepCopyCode .= $assignments;
-		    $deepCopyCode .= "class default\n";
-		    $deepCopyCode .= "call Galacticus_Error_Report('".$directive->{'name'}."DeepCopy','destination and source types do not match')\n";
-		    $deepCopyCode .= "end select\n";
-		    $deepCopyModules{'Galacticus_Error'} = 1;
-		}
+		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopyCode .= "select type (destination)\n";
+		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
+		$deepCopyCode .= "destination=self\n";
+		$deepCopyCode .= $assignments
+		    if ( defined($assignments) );
+		$deepCopyCode .= "class default\n";
+		$deepCopyCode .= "call Galacticus_Error_Report('".$directive->{'name'}."DeepCopy','destination and source types do not match')\n";
+		$deepCopyCode .= "end select\n";
+		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
 	    $deepCopyCode .= "end select\n";
 	    $methods{'deepCopy'} = 
