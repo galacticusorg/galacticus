@@ -55,7 +55,7 @@ contains
        if (.not.Seed_Is_Set) then
           !@ <inputParameter>
           !@   <name>poissonRandomSeed</name>
-          !@   <defaultValue>348</defaultValue>
+          !@   <defaultValue>843</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     A seed for the Poisson random number generator.
