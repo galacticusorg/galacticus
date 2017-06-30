@@ -69,7 +69,11 @@ sub Process_FunctionClass {
 		    }
 		    if ( $classNode->{'type'} eq "type" ) {
 			# Parse class openers to find dependencies.
-			if ( $classNode->{'opener'} =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$directive->{'name'}([a-z0-9_]+)\s*$/i ) {
+			if (
+			    $classNode->{'opener'} =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$directive->{'name'}([a-z0-9_]+)\s*$/i 
+			    &&
+			    defined($2)
+			    ) {
 			    my $extends = $2;
 			    my $type    = $directive->{'name'}.$4;
 			    $class->{'type'   } = $type;
