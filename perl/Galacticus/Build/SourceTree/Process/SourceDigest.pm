@@ -15,6 +15,9 @@ use Galacticus::Path;
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'sourceDigests'} = \&Process_SourceDigests;
 
+# Database of previously computed digests.
+our %digests;
+
 sub Process_SourceDigests {
     # Get the tree.
     my $tree = shift();
@@ -59,22 +62,27 @@ sub Find_Hash {
 		foreach my $suffix ( "F90", "c", "h", "Inc", "cpp" ) {
 		    my $sourceFileName = $sourceFileNamePrefix.".".$suffix;
 		    if ( -e $sourceFileName ) {
-			if ( $suffix eq "F90" || $suffix eq "Inc" ) {
-			    # Parse the file ignoring whitespace and comments.
-			    $hasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
-			    # Search for use on any files from the data directory by this source file.
-			    &Hash_Data_Files(
-				$hasher,
-				map 
-				{$_->{'submatches'}->[0]} 
-				&Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
-				);
-			} else {
-			    # Parse the raw file.
-			    open(my $sourceFile,$sourceFileName);
-			    $hasher->addfile($sourceFile);
-			    close($sourceFile);
+			unless ( exists($digests{$sourceFileName}) ) {
+			    my $fileHasher = Digest::MD5->new();
+			    if ( $suffix eq "F90" || $suffix eq "Inc" ) {
+				# Parse the file ignoring whitespace and comments.
+				$fileHasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1));
+				# Search for use on any files from the data directory by this source file.
+				&Hash_Data_Files(
+				    $fileHasher,
+				    map 
+				    {$_->{'submatches'}->[0]} 
+				    &Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
+				    );
+			    } else {
+				# Parse the raw file.
+				open(my $sourceFile,$sourceFileName);
+				$fileHasher->addfile($sourceFile);
+				close($sourceFile);
+			    }
+			    $digests{$sourceFileName} = $fileHasher->b64digest();
 			}
+			$hasher->add($digests{$sourceFileName});
 		    }
 		}
 	    }
