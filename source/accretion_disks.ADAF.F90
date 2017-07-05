@@ -33,7 +33,7 @@
           &                                            pressureThermalFractional              , efficiencyJetMaximum                 , &
           &                                            viscosityAlpha
      type            (table1DLogarithmicLinear    ) :: tabulations
-     integer         (omp_lock_kind               ) :: tabulationsLock
+     !$ integer      (omp_lock_kind               ) :: tabulationsLock
      type            (accretionDisksShakuraSunyaev) :: thinDisk
      ! Stored solutions.
      !! Height.
@@ -476,7 +476,7 @@ contains
             &                         table=adafTableRateSpinUp                                                  &
             &                        )
     end do
-    call OMP_Init_Lock(self%tabulationsLock)
+    !$ call OMP_Init_Lock(self%tabulationsLock)
     ! Initialize the thin disk component used for radiative efficiency calculations.
     self%thinDisk=accretionDisksShakuraSunyaev()
     return
@@ -487,7 +487,7 @@ contains
     implicit none
     type(accretionDisksADAF), intent(inout) :: self
 
-    call OMP_Destroy_Lock(self%tabulationsLock)
+    !$ call OMP_Destroy_Lock(self%tabulationsLock)
     return
   end subroutine adafDestructor
   
@@ -526,10 +526,10 @@ contains
     ! Get the "inverse spin parameter".
     spinInverseBlackHole=+1.0d0-spinBlackHole
     ! Compute the jet power.
-    call OMP_Set_Lock(self%tabulationsLock)
+    !$ call OMP_Set_Lock(self%tabulationsLock)
     adafPowerJet        =+accretionRateMass                                                    &
          &               *self%tabulations%interpolate(spinInverseBlackHole,adafTablePowerJet)
-    call OMP_Unset_Lock(self%tabulationsLock)
+    !$ call OMP_Unset_Lock(self%tabulationsLock)
     return
   end function adafPowerJet
 
@@ -548,9 +548,9 @@ contains
     ! Get the "inverse spin parameter".
     spinInverseBlackHole       =+1.0d0-spinBlackHole
     ! Compute the ratio of spin and mass rates of change.
-    call OMP_Set_Lock(self%tabulationsLock)
+    !$ call OMP_Set_Lock(self%tabulationsLock)
     spinToMassRateOfChangeRatio=self%tabulations%interpolate(spinInverseBlackHole,adafTableRateSpinUp)
-    call OMP_Unset_Lock(self%tabulationsLock)
+    !$ call OMP_Unset_Lock(self%tabulationsLock)
     ! Scale to the mass rate of change.
     adafRateSpinUp             =+spinToMassRateOfChangeRatio &
          &                      *accretionRateMass           &

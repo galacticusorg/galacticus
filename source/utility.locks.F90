@@ -20,14 +20,14 @@
 
 module Locks
   !% Provides advanced locks.
-  use OMP_Lib
+  !$ use OMP_Lib
   implicit none
   private
   public :: ompReadWriteLock
 
   type :: ompReadWriteLock
      !% OpenMP lock type which supports read/write locking.
-     integer(omp_lock_kind), allocatable, dimension(:) :: locks
+     !$ integer(omp_lock_kind), allocatable, dimension(:) :: locks
    contains
      !@ <objectMethods>
      !@   <object>ompReadWriteLock</object>
@@ -77,11 +77,11 @@ contains
     integer                   :: i
 
     ! Allocate a lock for each thread in the current scope.
-    allocate(self%locks(0:omp_get_num_threads()-1))
+    !$ allocate(self%locks(0:omp_get_num_threads()-1))
     ! Initialize each lock.
-    do i=0,ubound(self%locks,dim=1)
-       call OMP_Init_Lock(self%locks(i))
-    end do
+    !$ do i=0,ubound(self%locks,dim=1)
+    !$    call OMP_Init_Lock(self%locks(i))
+    !$ end do
     return
   end function ompReadWriteLockConstructor
 
@@ -92,13 +92,13 @@ contains
     integer                                  :: i
 
     ! Check if initialized.
-    if (.not.allocated(self%locks)) return
+    !$ if (.not.allocated(self%locks)) return
     ! Destroy each lock.
-    do i=0,ubound(self%locks,dim=1)
-       call OMP_Destroy_Lock(self%locks(i))
-    end do
+    !$ do i=0,ubound(self%locks,dim=1)
+    !$    call OMP_Destroy_Lock(self%locks(i))
+    !$ end do
     ! Deallocate the locks.
-    deallocate(self%locks)
+    !$ deallocate(self%locks)
     return
   end subroutine ompReadWriteLockDestructor
 
@@ -107,7 +107,7 @@ contains
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
 
-    call OMP_Set_Lock(self%locks(omp_get_thread_num()))
+    !$ call OMP_Set_Lock(self%locks(omp_get_thread_num()))
     return
    end subroutine ompReadWriteLockSetRead
 
@@ -116,7 +116,7 @@ contains
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
 
-    call OMP_Unset_Lock(self%locks(omp_get_thread_num()))
+    !$ call OMP_Unset_Lock(self%locks(omp_get_thread_num()))
     return
   end subroutine ompReadWriteLockUnsetRead
   
@@ -129,12 +129,12 @@ contains
     !# <optionalArgument name="haveReadLock" defaultsTo=".true." />
 
     ! If we have a read lock, release it to avoid deadlocks.
-    if (haveReadLock_) call self%unsetRead()
+    !$ if (haveReadLock_) call self%unsetRead()
     ! We must obtain all locks in sequence to avoid the possibility of deadlocking against another thread attempting to obtain a
     ! write lock.
-    do i=0,ubound(self%locks,dim=1)
-       call OMP_Set_Lock(self%locks(i))
-    end do
+    !$ do i=0,ubound(self%locks,dim=1)
+    !$    call OMP_Set_Lock(self%locks(i))
+    !$ end do
     return
   end subroutine ompReadWriteLockSetWrite
 
@@ -146,11 +146,11 @@ contains
     integer                                            :: i
     !# <optionalArgument name="haveReadLock" defaultsTo=".true." />
 
-    do i=0,ubound(self%locks,dim=1)
-       call OMP_Unset_Lock(self%locks(i))
-    end do
+    !$ do i=0,ubound(self%locks,dim=1)
+    !$    call OMP_Unset_Lock(self%locks(i))
+    !$ end do
     ! Reobtain a read lock if we had one previously.
-    if (haveReadLock_) call self%setRead()
+    !$ if (haveReadLock_) call self%setRead()
     return
   end subroutine ompReadWriteLockUnsetWrite
 
