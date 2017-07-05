@@ -628,7 +628,7 @@ contains
     return
   end subroutine Root_Finder_Range_Expand
 
-  function Root_Finder_Wrapper_Function(x,parameterPointer) bind(c)
+  recursive function Root_Finder_Wrapper_Function(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
     implicit none
     real(kind=c_double), value :: x
@@ -650,7 +650,7 @@ contains
     return
   end function Root_Finder_Wrapper_Function
 
-  function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
+  recursive function Root_Finder_Wrapper_Function_Derivative(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
     implicit none
     real(kind=c_double)        :: Root_Finder_Wrapper_Function_Derivative
@@ -662,7 +662,7 @@ contains
     return
   end function Root_Finder_Wrapper_Function_Derivative
 
-  subroutine Root_Finder_Wrapper_Function_Both(x,parameterPointer,f,df) bind(c)
+  recursive subroutine Root_Finder_Wrapper_Function_Both(x,parameterPointer,f,df) bind(c)
     !% Wrapper function callable by {\normalfont \ttfamily FGSL} used in root finding.
     implicit none
     real(kind=c_double), value         :: x
