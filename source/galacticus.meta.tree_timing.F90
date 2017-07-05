@@ -89,7 +89,7 @@ contains
     if (metaCollectTimingData) then
        ! Record the CPU time prior to construction.
        !$ if (omp_in_parallel()) then
-       timePreConstruction=OMP_Get_WTime()
+       !$ timePreConstruction=OMP_Get_WTime()
        !$ else
        call CPU_Time(time)
        timePreConstruction=dble(time)
@@ -118,7 +118,7 @@ contains
     if (metaCollectTimingData) then
        ! Record the CPU time.
        !$ if (omp_in_parallel()) then
-       timePreEvolution=OMP_Get_WTime()
+       !$ timePreEvolution=OMP_Get_WTime()
        !$ else
        call CPU_Time(time)
        timePreEvolution=dble(time)
@@ -150,7 +150,7 @@ contains
     if (metaCollectTimingData) then
        ! Record the final CPU time.
        !$ if (omp_in_parallel()) then
-       timePostEvolution=OMP_Get_WTime()
+       !$ timePostEvolution=OMP_Get_WTime()
        !$ else
        call CPU_Time(time)
        timePostEvolution=dble(time)

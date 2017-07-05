@@ -633,7 +633,11 @@ contains
     !$ else
           instance=                               0 
     !$ end if
-    if (.not.allocated(self%objects)) allocate(self%objects(0:OMP_Get_Max_Threads()))
+    if (.not.allocated(self%objects)) then
+       allocate(self%objects(0:1))
+       !$ deallocate(self%objects)
+       !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
+    end if
     self%objects(instance)%object => object
     !$omp end critical (inputParameterObjects)
     return
