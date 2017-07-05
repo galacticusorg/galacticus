@@ -185,14 +185,11 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
     implicit none
-    double precision                        , intent(in   ) :: radius
-    class           (nodeComponentSatellite), pointer       :: satelliteComponent
-    double precision                                        :: enclosedMass
+    double precision, intent(in   ) :: radius
+    double precision                :: enclosedMass
 
     ! Get the satellite component.
-    satelliteComponent => activeNode%satellite()
     enclosedMass       =  Galactic_Structure_Enclosed_Mass(activeNode,radius)
     Tidal_Radius_Solver=+tidalPullGlobal                    &
          &              -gravitationalConstantGalacticus    &
