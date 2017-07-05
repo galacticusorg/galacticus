@@ -110,7 +110,7 @@ module Merger_Tree_Read
   !$omp threadprivate(descendentLocations,nodeLocations,descendentIndicesSorted,nodeIndicesSorted)
 
   ! Split forest data.
-  integer         (omp_lock_kind                      )                                                :: splitForestLock
+  !$ integer      (omp_lock_kind                      )                                                :: splitForestLock
   integer                                                                                              :: splitForestActiveForest
   integer         (c_size_t                           )                                                :: splitForestNextTree                              , splitForestUniqueID
   integer         (c_size_t                           ), allocatable, dimension(:)                     :: splitForestTreeSize                              , splitForestTreeStart, &
@@ -744,7 +744,7 @@ contains
             &                              " [mergerTreeReadPresetSpins3D]=false"                                      &
             &                             )
        ! Create an OpenMP lock that will allow threads to coordinate access to split forest data.
-       call OMP_Init_Lock(splitForestLock)
+       !$ call OMP_Init_Lock(splitForestLock)
     end if
     return
   end subroutine Merger_Tree_Read_Initialize
@@ -798,7 +798,7 @@ contains
     integer                                                                                              :: nextTreeToReadActual
 
     ! Obtain a lock on split forest data if necessary.
-    if (mergerTreeReadForestSizeMaximum > 0) call OMP_Set_Lock(splitForestLock)
+    !$ if (mergerTreeReadForestSizeMaximum > 0) call OMP_Set_Lock(splitForestLock)
     ! Enter loop which suspends threads when a new tree file is needed.
     newTreeFileRequired=.true.
     treeFile : do while (newTreeFileRequired)
@@ -1269,7 +1269,7 @@ contains
           end if
           ! Release the lock on split forest data if necessary as we're finished using it. This allows other threads to begin
           ! using the split forest data.
-          if (mergerTreeReadForestSizeMaximum > 0) call OMP_Unset_Lock(splitForestLock)
+          !$ if (mergerTreeReadForestSizeMaximum > 0) call OMP_Unset_Lock(splitForestLock)
 
           ! Search for any nodes which were flagged as merging with another node and assign appropriate pointers.
           call Assign_Mergers(nodes,nodeList)
@@ -1329,7 +1329,7 @@ contains
        deallocate(nodes)
     else
        ! Release lock on split forest data if necessary.
-       if (mergerTreeReadForestSizeMaximum > 0) call OMP_Unset_Lock(splitForestLock)
+       !$ if (mergerTreeReadForestSizeMaximum > 0) call OMP_Unset_Lock(splitForestLock)
     end if
     return
   end subroutine Merger_Tree_Read_Do
@@ -3386,17 +3386,17 @@ contains
     
     call CPU_Time(timeNow)
     if (allocated(timingTimes)) then
-       call Move_Alloc   (timingTimes ,      timingTimesTmp    )
-       call Move_Alloc   (timingLabels,      timingLabelsTmp   )
-       call allocateArray  (timingTimes ,shape(timingTimesTmp )+1)
-       call allocateArray  (timingLabels,shape(timingLabelsTmp)+1)
+       call Move_Alloc(timingTimes ,timingTimesTmp )
+       call Move_Alloc(timingLabels,timingLabelsTmp)
+       allocate(timingTimes (size(timingTimesTmp )+1))
+       allocate(timingLabels(size(timingLabelsTmp)+1))
        timingTimes (1:size(timingTimesTmp ))=timingTimesTmp
        timingLabels(1:size(timingLabelsTmp))=timingLabelsTmp
-       call deallocateArray(                   timingTimesTmp    )
-       call deallocateArray(                   timingLabelsTmp   )
+       deallocate(timingTimesTmp )
+       deallocate(timingLabelsTmp)
     else
-       call allocateArray(timingTimes ,[1])
-       call allocateArray(timingLabels,[1])
+      allocate(timingTimes (1))
+      allocate(timingLabels(1))
     end if
     timingTimes (size(timingTimes ))=timeNow
     timingLabels(size(timingLabels))=trim(label)
@@ -3418,7 +3418,7 @@ contains
        do i=2,size(timingTimes)
           write (timeTaken,'(f10.2)') timingTimes(i)-timingTimes(i-1)
           message=repeat(" ",lengthMaximum-len(timingLabels(i)))//timingLabels(i)//": "//trim(adjustl(timeTaken))//" s"
-          call Galacticus_Display(message)
+          call Galacticus_Display_Message(message)
        end do
     end if
     call Galacticus_Display_Unindent("done")
