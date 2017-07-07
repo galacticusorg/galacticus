@@ -24,17 +24,23 @@
 module Tidal_Stripping_Rate_Zentner2005
   !% Implements the \cite{king_structure_1962} calculation of satellite mass loss due to tidal stripping.
   use Galacticus_Nodes
+  use Kind_Numbers
   implicit none
   private
   public :: Satellite_Tidal_Stripping_Rate_Zentner2005_Initialize
  
   ! Module scope variables used in root finding.
-  double precision                     :: tidalPullGlobal
-  type            (treeNode),  pointer :: activeNode
+  double precision                           :: tidalPullGlobal
+  type            (treeNode      ),  pointer :: activeNode
   !$omp threadprivate(tidalPullGlobal,activeNode)
 
   ! Dimensionless mass loss rate.
-  double precision                     :: satelliteTidalStrippingZentner2005Rate
+  double precision                           :: satelliteTidalStrippingZentner2005Rate
+
+  ! Previously computed tidal radii.
+  integer         (kind=kind_int8)           :: lastUniqueID                           =-1
+  double precision                           :: tidalRadiusPrevious                    =-1.0d0
+  !$omp threadprivate(lastUniqueID,tidalRadiusPrevious)
 
 contains
 
@@ -90,7 +96,8 @@ contains
     double precision                        , parameter             :: radiusZero             =0.0d0
     double precision                        , parameter             :: tidalRadiusTinyFraction=1.0d-6
     type            (rootFinder            ), save                  :: finder
-    !$omp threadprivate(finder)
+    double precision                        , save                  :: expandMultiplier       =2.0d0
+    !$omp threadprivate(finder,expandMultiplier)
     double precision                                                :: satelliteMass                 , parentDensity           , &
          &                                                             parentEnclosedMass            , angularFrequency        , &
          &                                                             orbitalPeriod                 , radius                  , &
@@ -139,43 +146,58 @@ contains
          &  .and.                                                                &
          &   Galactic_Structure_Enclosed_Mass(thisNode,radiusZero) >= 0.0d0      &
          & ) then
+       ! Check if node differs from previous one for which we performed calculations.
+       if (thisNode%uniqueID() /= lastUniqueID) call Satellite_Tidal_Stripping_Rate_Zentner2005_Reset(thisNode)
        ! Initial estimate of the tidal radius.
        tidalPullGlobal=  angularFrequency**2-tidalTensor
-       tidalRadius    =                                  &
-            &          (                                 &
-            &           +gravitationalConstantGalacticus &
-            &           *satelliteMass                   &
-            &           /tidalPullGlobal                 &
-            &           *(kilo*gigaYear/megaParsec)**2   &
-            &          )**(1.0d0/3.0d0)
-       ! Find the tidal radius in the dark matter profile.
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(Tidal_Radius_Solver)
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       if (tidalRadiusPrevious <= 0.0d0) then
+          tidalRadiusPrevious=                                  &
+               &              (                                 &
+               &               +gravitationalConstantGalacticus &
+               &               *satelliteMass                   &
+               &               /tidalPullGlobal                 &
+               &               *(kilo*gigaYear/megaParsec)**2   &
+               &              )**(1.0d0/3.0d0)
+          expandMultiplier=2.0d0
+       end if
+       ! Check if tidal radius will lie outside of current boundary.
+       if (Galactic_Structure_Enclosed_Mass(thisNode,tidalRadiusPrevious) >= satelliteMass) then
+          ! Tidal radius lies outside current boundary, so no additional stripping will occur.
+          Satellite_Tidal_Stripping_Rate_Zentner2005=0.0d0
+       else
+          ! Find the tidal radius in the dark matter profile.
+          if (.not.finder%isInitialized()) then
+             call finder%rootFunction(Tidal_Radius_Solver)
+             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          end if
           call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandUpward            =1.0d0*expandMultiplier       , &
+               &                   rangeExpandDownward          =1.0d0/expandMultiplier       , &
                &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
                &                   rangeExpandType              =rangeExpandMultiplicative      &
                &                  )
+          activeNode => thisNode
+          ! Check for extremes.
+          if (Tidal_Radius_Solver(tidalRadiusTinyFraction*tidalRadiusPrevious) >  0.0d0) then
+             ! Complete stripping.
+             tidalRadius       =0.0d0
+             outerSatelliteMass=satelliteMass
+          else
+             ! Find the tidal radius, using the previous result as an initial guess.
+             tidalRadius       =finder%find(rootGuess=tidalRadiusPrevious)
+             outerSatelliteMass=max(                                                                      &
+                  &                 satelliteMass-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius), &
+                  &                 0.0d0                                                                 &
+                  &                )
+             tidalRadiusPrevious=tidalRadius             
+             expandMultiplier   =1.2d0
+          end if
+          Satellite_Tidal_Stripping_Rate_Zentner2005=-satelliteTidalStrippingZentner2005Rate*outerSatelliteMass/orbitalPeriod
        end if
-       activeNode => thisNode
-       ! Check for complete stripping.
-       if (Tidal_Radius_Solver(tidalRadiusTinyFraction*tidalRadius) > 0.0d0) then
-          tidalRadius=0.0d0
-       else
-          tidalRadius=finder%find(rootGuess=tidalRadius)
-       end if
-       outerSatelliteMass=max(                                                                      &
-            &                 satelliteMass-Galactic_Structure_Enclosed_Mass(thisNode,tidalRadius), &
-            &                 0.0d0                                                                 &
-            &                )
     else
-       outerSatelliteMass=0.0d0
-    end if
-    ! Compute the rate of mass loss.
-    Satellite_Tidal_Stripping_Rate_Zentner2005=-satelliteTidalStrippingZentner2005Rate*outerSatelliteMass/orbitalPeriod
+       Satellite_Tidal_Stripping_Rate_Zentner2005=0.0d0
+    end if      
     return
   end function Satellite_Tidal_Stripping_Rate_Zentner2005
   
@@ -202,5 +224,15 @@ contains
          &               )                              **2
     return
   end function Tidal_Radius_Solver
+
+  subroutine Satellite_Tidal_Stripping_Rate_Zentner2005_Reset(node)
+    !% Reset the stored tidal radii.
+    implicit none
+    type(treeNode), intent(inout) :: node
+
+    tidalRadiusPrevious=-1.0d0
+    lastUniqueID       =node%uniqueID()
+    return
+  end subroutine Satellite_Tidal_Stripping_Rate_Zentner2005_Reset
 
 end module Tidal_Stripping_Rate_Zentner2005
