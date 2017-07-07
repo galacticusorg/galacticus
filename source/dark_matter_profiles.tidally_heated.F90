@@ -22,11 +22,16 @@
   !#  <description>Tidally heated dark matter halo profiles.</description>
   !# </darkMatterProfile>
 
+  use Kind_Numbers
+
   type, extends(darkMatterProfileClass) :: darkMatterProfileTidallyHeated
      !% A dark matter halo profile class implementing tidally heated dark matter halos.
      private
-     class(darkMatterProfileClass), pointer :: unheatedProfile
-     logical                                :: unimplementedFatal
+     class           (darkMatterProfileClass), pointer :: unheatedProfile
+     logical                                           :: unimplementedFatal
+     integer         (kind=kind_int8        )          :: lastUniqueID
+     double precision                                  :: radiusLimiting       , radiusFinalPrevious, &
+          &                                               radiusInitialPrevious
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileTidallyHeated</object>
@@ -36,12 +41,19 @@
      !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ radiusFinal\argin</arguments>
      !@     <description>Return the initial radius corresponding to the given final radius in a tidally-heated dark matter halo density profile.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusLimit</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout</arguments>
+     !@     <description>Return the initial radius at which the final radius diverges to infinity.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final                                             tidallyHeatedDestructor
      procedure :: calculationReset                  => tidallyHeatedCalculationReset
      procedure :: stateStore                        => tidallyHeatedStateStore
      procedure :: stateRestore                      => tidallyHeatedStateRestore
      procedure :: radiusInitial                     => tidallyHeatedRadiusInitial
+     procedure :: radiusLimit                       => tidallyHeatedRadiusLimit
      procedure :: density                           => tidallyHeatedDensity
      procedure :: densityLogSlope                   => tidallyHeatedDensityLogSlope
      procedure :: radiusEnclosingDensity            => tidallyHeatedRadiusEnclosingDensity
@@ -56,7 +68,7 @@
      procedure :: energyGrowthRate                  => tidallyHeatedEnergyGrowthRate
      procedure :: kSpace                            => tidallyHeatedKSpace
      procedure :: freefallRadius                    => tidallyHeatedFreefallRadius
-     procedure :: freefallRadiusIncreaseRate        => tidallyHeatedFreefallRadiusIncreaseRate
+     procedure :: freefallRadiusIncreaseRate        => tidallyHeatedFreefallRadiusIncreaseRate     
   end type darkMatterProfileTidallyHeated
 
   interface darkMatterProfileTidallyHeated
@@ -145,8 +157,11 @@ contains
        !$omp end critical(tidallyHeatedInitialization)
     end if
     ! Construct the default object.
-    tidallyHeatedDefaultConstructor%unheatedProfile   => darkMatterProfile(char(darkMatterProfileTidallyHeatedUnheatedProfile))
-    tidallyHeatedDefaultConstructor%unimplementedFatal=  darkMatterProfileTidallyHeatedUnimplementedIsFatal
+    tidallyHeatedDefaultConstructor%unheatedProfile    => darkMatterProfile(char(darkMatterProfileTidallyHeatedUnheatedProfile))
+    tidallyHeatedDefaultConstructor%unimplementedFatal =  darkMatterProfileTidallyHeatedUnimplementedIsFatal
+    tidallyHeatedDefaultConstructor%lastUniqueID       =-1
+    tidallyHeatedDefaultConstructor%radiusLimiting     =-huge(0.0d0)
+    tidallyHeatedDefaultConstructor%radiusFinalPrevious=-huge(0.0d0)
     return
   end function tidallyHeatedDefaultConstructor
 
@@ -157,7 +172,11 @@ contains
     class(darkMatterProfileClass        ), intent(in   ), target :: unheatedProfile
 
     ! Construct the object.
-    tidallyHeatedGenericConstructor%unheatedProfile => unheatedProfile
+    tidallyHeatedGenericConstructor%unheatedProfile    => unheatedProfile
+    tidallyHeatedGenericConstructor%unimplementedFatal =  .true.
+    tidallyHeatedGenericConstructor%lastUniqueID       =  -1
+    tidallyHeatedGenericConstructor%radiusLimiting     =  -huge(0.0d0)
+    tidallyHeatedGenericConstructor%radiusFinalPrevious=  -huge(0.0d0)
     return
   end function tidallyHeatedGenericConstructor
 
@@ -176,7 +195,12 @@ contains
     class(darkMatterProfileTidallyHeated), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
 
+    ! Reset the unheated profile.
     call self%unheatedProfile%calculationReset(node)
+    ! Reset calculations for this profile.
+    self%lastUniqueID       =node%uniqueID()
+    self%radiusLimiting     =-huge(0.0d0)
+    self%radiusFinalPrevious=-huge(0.0d0)
     return
   end subroutine tidallyHeatedCalculationReset
 
@@ -379,29 +403,35 @@ contains
     type            (treeNode                      ), intent(inout), target  :: node
     double precision                                , intent(in   )          :: radiusFinal
     class           (nodeComponentSatellite        )               , pointer :: satellite
-    double precision                                , parameter              :: toleranceAbsolute     =0.0d0, toleranceRelative=1.0d-6
+    double precision                                , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder                    ), save                   :: finder
     !$omp threadprivate(finder)
-    
+
+    ! Reset calculations if necessary.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Get the degree of tidal heating.
-    tidallyHeatedSelf             =>           self
-    tidallyHeatedNode             =>           node
-    satellite                     =>           node     %satellite             ()
-    tidallyHeatedHeatingNormalized=  max(0.0d0,satellite%tidalHeatingNormalized())
-    tidallyHeatedRadiusFinal      =  radiusFinal
-    ! Initialize the root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(tidallyHeatedRadiusInitialRoot     )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =1.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
+    if (radiusFinal /= self%radiusFinalPrevious) then
+       self%radiusFinalPrevious      =  radiusFinal
+       tidallyHeatedSelf             =>           self
+       tidallyHeatedNode             =>           node
+       satellite                     =>           node     %satellite             ()
+       tidallyHeatedHeatingNormalized=  max(0.0d0,satellite%tidalHeatingNormalized())
+       tidallyHeatedRadiusFinal      =  radiusFinal
+       ! Initialize the root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(tidallyHeatedRadiusInitialRoot     )
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandUpward            =1.01d0                       , &
+               &                   rangeExpandDownward          =0.50d0                       , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       end if
+       self%radiusInitialPrevious=finder%find(rootGuess=min(radiusFinal,self%radiusLimit(node)))
     end if
-    tidallyHeatedRadiusInitial=finder%find(rootGuess=radiusFinal)
+    tidallyHeatedRadiusInitial=self%radiusInitialPrevious
     return
   end function tidallyHeatedRadiusInitial
   
@@ -424,7 +454,69 @@ contains
          &                          )
     return
   end function tidallyHeatedRadiusInitialRoot
+
+  double precision function tidallyHeatedRadiusLimit(self,node)
+    !% Find the initial radius at which the final radius diverges to infinity in the tidally-heated dark matter profile.
+    use Root_Finder
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class           (darkMatterProfileTidallyHeated), intent(inout), target  :: self
+    type            (treeNode                      ), intent(inout), target  :: node
+    class           (nodeComponentSatellite        )               , pointer :: satellite
+    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
+    double precision                                , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder                    ), save                   :: finder
+    !$omp threadprivate(finder)
     
+    ! Get the degree of tidal heating.
+    tidallyHeatedSelf             => self
+    tidallyHeatedNode             => node
+    satellite                     => node     %satellite             ()
+    tidallyHeatedHeatingNormalized=  satellite%tidalHeatingNormalized()
+    if (tidallyHeatedHeatingNormalized <= 0.0d0) then
+       tidallyHeatedRadiusLimit=huge(0.0d0)
+    else
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (self%radiusLimiting <= 0.0d0) then
+          ! Initialize the root finder.
+          if (.not.finder%isInitialized()) then
+             call finder%rootFunction(tidallyHeatedRadiusLimitRoot     )
+             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+             call finder%rangeExpand (                                                             &
+                  &                   rangeExpandUpward            =2.0d0                        , &
+                  &                   rangeExpandDownward          =0.5d0                        , &
+                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+                  &                   rangeExpandType              =rangeExpandMultiplicative      &
+                  &                  )
+          end if
+          darkMatterHaloScale_ => darkMatterHaloScale()
+          self%radiusLimiting=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(node))
+       end if
+       tidallyHeatedRadiusLimit=self%radiusLimiting
+    end if
+    return
+  end function tidallyHeatedRadiusLimit
+  
+  double precision function tidallyHeatedRadiusLimitRoot(radiusInitial)
+    !% Root function used in finding limiting radii in tidally-heated dark matter halo profiles.
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in   ) :: radiusInitial
+    double precision                :: massEnclosed
+    
+    massEnclosed                =tidallyHeatedSelf%unheatedProfile%enclosedMass(tidallyHeatedNode,radiusInitial)
+    tidallyHeatedRadiusLimitRoot=+tidallyHeatedHeatingNormalized     &
+         &                       *radiusInitial                  **2 &
+         &                       +0.5d0                              &
+         &                       *gravitationalConstantGalacticus    &
+         &                       *massEnclosed                       &
+         &                       *(                                  &
+         &                         -1.0d0/radiusInitial              &
+         &                        )
+    return
+  end function tidallyHeatedRadiusLimitRoot
+  
   double precision function tidallyHeatedPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
