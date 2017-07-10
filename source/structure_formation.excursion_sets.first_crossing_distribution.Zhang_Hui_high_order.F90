@@ -35,6 +35,7 @@
      !@   <objectMethod>
      !@     <method>initialize</method>
      !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@     <description>Initialize the high order \cite{zhang_random_2006} class.</description>
      !@   </objectMethod>
      !@ </objectMethods>
