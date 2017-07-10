@@ -77,7 +77,7 @@
      !@     <description>Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>varianeRange</method>
+     !@     <method>varianceRange</method>
      !@     <type>\doubleone</type>
      !@     <arguments>\doublezero\ rangeMinimum\argin, \doublezero\ rangeMaximum\argin, \intzero\ rangeNumber, \doublezero\ ratioAtMaximum</arguments>
      !@     <description>Build a range of variances at which to tabulate the excursion set solutions.</description>
@@ -85,11 +85,13 @@
      !@   <objectMethod>
      !@     <method>fileRead</method>
      !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@     <description>Read excursion set solutions from file.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>fileWrite</method>
      !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@     <description>Write excursion set solutions to file.</description>
      !@   </objectMethod>
      !@ </objectMethods>
