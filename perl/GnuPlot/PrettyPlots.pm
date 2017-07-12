@@ -380,12 +380,15 @@ sub Prepare_Dataset {
     foreach my $phase ( keys(%phaseRules) ) {
 	# Initialize phase prefix if necessary.
 	${$plot}->{$phase}->{'prefix'} = "plot" unless ( exists(${$plot}->{$phase}->{'prefix'}) );
+	# Set plotting axes.
+	my $xAxis = exists($options{'xaxis'}) ? $options{'xaxis'} : 1;
+	my $yAxis = exists($options{'yaxis'}) ? $options{'yaxis'} : 1;
 	# Branch depending on style of dataset, points, boxes or lines.
 	if ( $style eq "line" ) {
 	    # Check if we are asked to plot just a single level.
 	    if ( exists($phaseRules{$phase}->{'level'}) ) {
 		# Plot just a single level, no real data.
-		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines"
+		${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with lines axes x".$xAxis."y".$yAxis
 	        .$lineType  {$phaseRules{$phase}->{'level'}}
 		.$lineColor {$phaseRules{$phase}->{'level'}}
 		.$lineWeight{$phaseRules{$phase}->{'level'}}
@@ -401,7 +404,7 @@ sub Prepare_Dataset {
 		    if ( exists($options{'transparency'}) && $currentLineColor =~ m/rgbcolor "\#(.*)"/ ) {
 			$currentLineColor = " lc rgbcolor \"#".sprintf("%2X",int(255*$options{'transparency'})).$1."\"";
 		    }
-		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines".$lineType{$level}.$currentLineColor.$lineWeight{$level}." notitle\n";
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with lines".$lineType{$level}.$currentLineColor.$lineWeight{$level}." notitle axes x".$xAxis."y".$yAxis."\n";
 		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)."\n";
 		    }
@@ -682,7 +685,7 @@ sub Plot_Datasets {
 	print $gnuPlot ${$plot}->{$phase}->{'command'}."\n";
 	print $gnuPlot ${$plot}->{$phase}->{'data'   };
 	# Switch off borders and tics after the first plot.	
-	print $gnuPlot "unset label; unset border; unset xtics; unset ytics; unset x2tics; unset y2tics; set xlabel ''; set ylabel ''\n" if ( $phase eq "keyLower" );
+	print $gnuPlot "unset label; unset border; unset xtics; unset ytics; unset x2tics; unset y2tics; set xlabel ''; set ylabel ''; set x2label ''; set y2label ''\n" if ( $phase eq "keyLower" );
     }
     print $gnuPlot ${$plot}->{'data'}->{'data'};
     print $gnuPlot "unset multiplot\n"
