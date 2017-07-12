@@ -167,7 +167,7 @@ contains
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
     ! Get required objects.
-    cosmologyParameters_   => cosmologyParameters  ()
+    cosmologyParameters_          => cosmologyParameters         ()
     cosmologyFunctions_           => cosmologyFunctions          ()
     virialDensityContrast_        => virialDensityContrast       ()
     darkMatterProfile_            => darkMatterProfile           ()
@@ -175,7 +175,9 @@ contains
     linearGrowth_                 => linearGrowth                ()
     haloMassFunction_             => haloMassFunction            ()
     unevolvedSubhaloMassFunction_ => unevolvedSubhaloMassFunction()
-    
+    darkMatterHaloScale_          => darkMatterHaloScale         ()
+    cosmologicalMassVariance_     => cosmologicalMassVariance    ()
+
     ! Find the mass range and increment size.
     !@ <inputParameter>
     !@   <name>haloMassFunctionsMassMinimum</name>
@@ -242,11 +244,6 @@ contains
     call allocateArray(haloMassFunction_virialRadius     ,[haloMassFunctionsCount,outputCount])
     call allocateArray(haloMassFunction_scaleRadius      ,[haloMassFunctionsCount,outputCount])
     call allocateArray(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
-
-    ! Get required objects.
-    darkMatterHaloScale_      => darkMatterHaloScale     ()
-    virialDensityContrast_    => virialDensityContrast   ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
 
     ! Create a node object.
     node => treeNode()
