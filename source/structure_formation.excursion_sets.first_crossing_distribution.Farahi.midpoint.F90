@@ -21,10 +21,10 @@
 !% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
-  !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017.</description>
+  !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
   !# </excursionSetFirstCrossing>
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
-     !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017.
+     !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
      private
    contains
   end type excursionSetFirstCrossingFarahiMidpoint
