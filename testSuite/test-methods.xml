@@ -912,6 +912,13 @@
     <treeNodeMethodDynamicsStatistics value="bars"/>
   </parameters>
 
+  <!-- Parallel processing of individual trees -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <treeEvolveSingleForest value="true"/>
+  </parameters>
+
   <!-- Merger tree augmenting -->
   <parameters>
     <accretionHaloMethod value="null" />

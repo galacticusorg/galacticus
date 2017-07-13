@@ -334,6 +334,12 @@ where {\normalfont \ttfamily chiSquared} and {\normalfont \ttfamily degreesOfFre
 
 If {\normalfont \ttfamily \textless doAnalysis \textgreater}$=${\normalfont \ttfamily yes} and {\normalfont \ttfamily \textless analysisFile\textgreater} is set to something other than an XML file it is assumed that this is an analysis script that should be run directly. The script will be executed with the output directory for the \glc\ model as the first and only argument.
 
+\subsection{Processing Individual Merger Trees In Parallel}
+
+By default, \glc\ utilizes the available parallel threads to process multiple merger trees simulataneously, with one tree processed by each thread. When the total number of trees to be processed is large, and there are not a small number of outlier trees with masses very much larger than the other trees, this approach generally results in good parallel efficiency.
+
+However, in cases where a small number of trees are much more massive than any other (or are just slow to process for some other reason) it may be more efficient to have multiple parallel threads process each tree. To achieve this, set {\normalfont \ttfamily [treeEvolveSingleForest]}$=${\normalfont \ttfamily true}. In this case, trees are processed sequentially, with multiple threads assigned to each tree. To do this, a tree is broken up into a set of time slices, or ``sections''. The number of sections between each successive output (or between the earliest node in the tree and the first output) is specified by the {\normalfont \ttfamily [treeEvolveSingleForestSections]} parameter. Individual branches of the tree within each section are assigned to parallel threads. \emph{Note that this results in valid evolution only if the evolution of disjoint tree branches are independent of each other.}
+
 \subsection{Running Models in ``Embarrassingly Parallel'' Mode}
 
 While \glc\ is parallelized via OpenMP it is also possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
