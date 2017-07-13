@@ -44,6 +44,13 @@ module Galacticus_Tasks_Evolve_Tree
   ! Parameters controlling tree suspension.
   logical                          :: treeEvolveSuspendToRAM
   type            (varying_string) :: treeEvolveSuspendPath
+
+  ! Object used to build lists of tree branches which get processed independently.
+  type :: branchList
+     type(treeNode  ), pointer :: nodeParent
+     type(mergerTree), pointer :: branch
+     type(branchList), pointer :: next
+  end type branchList
   
 contains
 
@@ -68,6 +75,7 @@ contains
     use System_Load
     use Semaphores
     use Node_Events_Inter_Tree
+    use Sort
     !$ use omp_lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
@@ -83,37 +91,54 @@ contains
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
     !# </include>
     implicit none
-    type            (mergerTree             ), pointer     , save :: thisTree
-    logical                                                , save :: finished                        , skipTree               , &
-         &                                                           treeIsNew
-    integer         (c_size_t               )              , save :: iOutput
-    double precision                                       , save :: evolveToTime                    , treeTimeEarliest       , &
-         &                                                           universalEvolveToTime           , treeTimeLatest         , &
-         &                                                           outputTimeNext
-    type            (varying_string         )              , save :: message
-    character       (len=20                 )              , save :: label
+    type            (mergerTree             ), pointer                  , save :: thisTree
+    logical                                                             , save :: finished                                  , skipTree                    , &
+         &                                                                        treeIsNew
+    integer         (c_size_t               )                           , save :: iOutput
+    double precision                                                    , save :: evolveToTime                              , treeTimeEarliest            , &
+         &                                                                        universalEvolveToTime                     , treeTimeLatest              , &
+         &                                                                        outputTimeNext
+    type            (varying_string         )                           , save :: message
+    character       (len=20                 )                           , save :: label
     !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime,outputTimeNext)
-    integer                                                       :: iTree                           , treeCount
-    integer                                                , save :: activeTasks                     , totalTasks
-    double precision                         , dimension(3), save :: loadAverage
-    logical                                                , save :: overloaded                                               , &
-         &                                                           treeIsFinished                  , evolutionIsEventLimited, &
-         &                                                           success                         , removeTree             , &
-         &                                                           suspendTree                     , treesDidEvolve         , &
-         &                                                           treeDidEvolve                   , deadlockReport
-    type            (mergerTree             ), pointer     , save :: currentTree                     , previousTree           , &
-         &                                                           nextTree
+    integer                                                                    :: iTree                                     , treeCount
+    integer                                                             , save :: activeTasks                               , totalTasks
+    double precision                                      , dimension(3), save :: loadAverage
+    logical                                                             , save :: overloaded                                , deadlockReport              , &
+         &                                                                        treeIsFinished                            , evolutionIsEventLimited     , &
+         &                                                                        success                                   , removeTree                  , &
+         &                                                                        suspendTree                               , treesDidEvolve              , &
+         &                                                                        treeDidEvolve
+    type            (mergerTree             ), pointer                  , save :: currentTree                               , previousTree                , &
+         &                                                                        nextTree
     !$omp threadprivate(currentTree,previousTree)
-    type            (treeNode               ), pointer     , save :: satelliteNode
-    class           (nodeComponentBasic     ), pointer     , save :: baseNodeBasic
+    type            (treeNode               ), pointer                  , save :: satelliteNode
+    class           (nodeComponentBasic     ), pointer                  , save :: baseNodeBasic
     !$omp threadprivate(satelliteNode,baseNodeBasic)
-    class           (mergerTreeOperatorClass), pointer     , save :: mergerTreeOperator_ => null()
+    class           (mergerTreeOperatorClass), pointer                  , save :: mergerTreeOperator_              => null()
     !$omp threadprivate(mergerTreeOperator_)
-    type            (semaphore              ), pointer            :: galacticusMutex     => null()
-    character       (len=32                 )                     :: treeEvolveLoadAverageMaximumText,treeEvolveThreadsMaximumText
+    type            (semaphore              ), pointer                         :: galacticusMutex                  => null()
+    character       (len=32                 )                                  :: treeEvolveLoadAverageMaximumText          , treeEvolveThreadsMaximumText
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree)
-    type            (universeEvent          ), pointer     , save :: thisEvent
+    type            (universeEvent          ), pointer                  , save :: thisEvent
     !$omp threadprivate(thisEvent)
+    ! Variables used in processing individual forests in parallel.
+    double precision                                                    , save :: timeBranchSplit
+    type            (treeNode               ), pointer                  , save :: node
+    class           (nodeComponentBasic     ), pointer                  , save :: basic                                      , basicParent
+    type            (branchList             ), pointer                  , save :: branchList_                                , branchNew                  , &
+         &                                                                        branchNext
+    logical                                                             , save :: branchAccept
+    integer         (c_size_t               )                           , save :: iBranch                                    , i                          , &
+         &                                                                        countBranch
+    integer         (c_size_t               ), allocatable, dimension(:), save :: rankBranch
+    double precision                         , allocatable, dimension(:), save :: massBranch
+    integer                                                             , save :: forestSection
+    double precision                                                    , save :: timeSectionForestBegin
+    logical                                                                    :: treeEvolveSingleForest
+    integer         (c_size_t               )                                  :: iBranchAcceptedLast
+    integer                                                                    :: treeEvolveSingleForestSections
+    !$omp threadprivate(node,basic,basicParent,timeBranchSplit,branchList_,branchNew,branchNext,i,iBranch,branchAccept,rankBranch,countBranch,massBranch,timeSectionForestBegin,forestSection)
 
     ! Initialize the task if necessary.
     if (.not.treeEvolveInitialized) then
@@ -122,6 +147,28 @@ contains
        if (.not.treeEvolveInitialized) then
 
           ! Get parameters controlling which trees will be processed.
+          !@ <inputParameter>
+          !@   <name>treeEvolveSingleForest</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveSingleForest',treeEvolveSingleForest,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>treeEvolveSingleForestSections</name>
+          !@   <defaultValue>100</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The number of timesteps into which forests should be split when processing single forests in parallel.
+          !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('treeEvolveSingleForestSections',treeEvolveSingleForestSections,defaultValue=100)
           !@ <inputParameter>
           !@   <name>treeEvolveWorkerCount</name>
           !@   <defaultValue>1</defaultValue>
@@ -272,7 +319,7 @@ contains
     treesDidEvolve=.false.
     
     ! Begin parallel processing of trees until all work is done.
-    !$omp parallel copyin(finished)
+    !$omp parallel copyin(finished) if (.not.treeEvolveSingleForest)
     do while (.not.finished)       
        ! Get required objects.
        if (.not.associated(mergerTreeOperator_)) mergerTreeOperator_ => mergerTreeOperator()
@@ -372,6 +419,98 @@ contains
                    thisEvent => thisEvent%next
                 end do
                 !$omp end critical(universeTransform)
+                
+                ! If single trees are to be broken between multiple threads and processed in parallel, then do that here. Begin by
+                ! finding evolvable branches at some earlier time.
+                if (treeEvolveSingleForest) then
+                   timeSectionForestBegin=thisTree%earliestTimeEvolving()
+                   do forestSection=1,treeEvolveSingleForestSections
+                      timeBranchSplit =  timeSectionForestBegin+(evolveToTime-timeSectionForestBegin)*dble(forestSection)/dble(treeEvolveSingleForestSections)
+                      countBranch     =  0
+                      currentTree     => thisTree
+                      do while (associated(currentTree))
+                         node => currentTree%baseNode
+                         do while (associated(node))
+                            if (associated(node%parent)) then
+                               basic       => node       %basic()
+                               basicParent => node%parent%basic()
+                               if (basicParent%time() >= timeBranchSplit .and. basic%time() < timeBranchSplit) then
+                                  countBranch=countBranch+1
+                                  allocate(branchNew      )
+                                  allocate(branchNew%branch)
+                                  branchNew%branch            =  currentTree
+                                  branchNew%branch%baseNode   => node
+                                  branchNew       %nodeParent => node       %parent
+                                  if (associated(branchList_)) then
+                                     branchNew%next => branchList_
+                                  else
+                                     branchNew%next => null()
+                                  end if
+                                  branchList_ => branchNew
+                               end if
+                            end if
+                            node => node%walkTree()
+                         end do
+                         currentTree => currentTree%nextTree
+                      end do
+                      ! If no more branches were found to process, exit.
+                      if (countBranch == 0) exit
+                      ! Rank trees by mass.
+                      allocate(massBranch(countBranch))
+                      allocate(rankBranch(countBranch))
+                      branchNew    => branchList_
+                      countBranch =  0
+                      do while (associated(branchNew))
+                         countBranch             =  countBranch                        +1
+                         basic                   => branchNew  %branch%baseNode%basic()
+                         massBranch(countBranch) =  basic                      %mass ()
+                         branchNew               => branchNew                  %next
+                      end do
+                      rankBranch=Sort_Index_Do(massBranch)
+                      ! Process trees.
+                      iBranchAcceptedLast=0
+                      !$omp parallel copyin(branchList_,countBranch,rankBranch)
+                      iBranch=0
+                      do while (iBranch < countBranch)
+                         iBranch     =iBranch+1
+                         branchAccept=.false.
+                         !$omp critical (branchList_Share)
+                         if (iBranch > iBranchAcceptedLast) then
+                            branchAccept       =.true.
+                            iBranchAcceptedLast=iBranch
+                         end if
+                         !$omp end critical (branchList_Share)
+                         if (branchAccept) then
+                            branchNew => branchList_
+                            do i=1,rankBranch(countBranch+1-iBranch)-1
+                               branchNew => branchNew%next
+                            end do
+                            branchNew%branch%baseNode%parent =>                           null ()
+                            basic                            => branchNew%branch%baseNode%basic()
+                            call Merger_Tree_Evolve_To(branchNew%branch,basic%time(),treeDidEvolve,suspendTree,deadlockReport)
+                            !$omp critical (universeStatus)
+                            if (treeDidEvolve) treesDidEvolve         =.true.
+                            if (suspendTree  ) evolutionIsEventLimited=.true.
+                            !$omp end critical (universeStatus)                      
+                         end if
+                      end do
+                      !$omp end parallel
+                      ! Clean up.
+                      branchNew => branchList_
+                      do while (associated(branchNew))
+                         branchNew%branch%baseNode%parent => branchNew%nodeParent
+                         branchNew%branch%baseNode        => null()
+                         call branchNew%branch%destroy()
+                         branchNext => branchNew%next
+                         deallocate(branchNew)
+                         branchNew => branchNext
+                      end do
+                      nullify   (branchList_)
+                      deallocate(massBranch )
+                      deallocate(rankBranch )
+                   end do
+                end if
+
                 ! Evolve the tree to the computed time.
                 call Merger_Tree_Evolve_To(thisTree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport)
                 !$omp critical (universeStatus)
@@ -607,7 +746,7 @@ contains
     use ISO_Varying_String
     implicit none
     type   (mergerTree    ), pointer, intent(inout) :: tree
-    type   (mergerTree    ), pointer                :: treeCurrent     , treeNext
+    type   (mergerTree    ), pointer                :: treeCurrent     , branchNext
     integer(kind_int8     )                         :: baseNodeUniqueID
     type   (varying_string)                         :: fileName
     
@@ -622,9 +761,9 @@ contains
        ! Destroy the tree(s).
        treeCurrent => tree
        do while (associated(treeCurrent))
-          treeNext => treeCurrent%nextTree
+          branchNext => treeCurrent%nextTree
           call treeCurrent%destroy()
-          treeCurrent => treeNext
+          treeCurrent => branchNext
        end do
        ! Set the tree index to the base node unique ID so that we can resume from the correct file.
        tree%index=baseNodeUniqueID
