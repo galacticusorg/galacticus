@@ -1,0 +1,140 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either versteeion 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements an N-body data operator which determines the mean position and velocity of particles.
+  
+  use, intrinsic :: ISO_C_Binding
+
+  !# <nbodyOperator name="nbodyOperatorMeanPosition">
+  !#  <description>An N-body data operator which determines the mean position and velocity of particles.</description>
+  !# </nbodyOperator>
+  type, extends(nbodyOperatorClass) :: nbodyOperatorMeanPosition
+     !% An N-body data operator which determines the mean position and velocity of particles.
+     private
+     logical           :: selfBoundParticlesOnly
+     integer(c_size_t) :: bootstrapSampleCount 
+   contains
+     procedure :: operate => meanPositionOperate
+  end type nbodyOperatorMeanPosition
+
+  interface nbodyOperatorMeanPosition
+     !% Constructors for the ``meanPosition'' N-body operator class.
+     module procedure meanPositionConstructorParameters
+     module procedure meanPositionConstructorInternal
+  end interface nbodyOperatorMeanPosition
+
+contains
+
+  function meanPositionConstructorParameters(parameters) result (self)
+    !% Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type   (nbodyOperatorMeanPosition)                :: self
+    type   (inputParameters          ), intent(inout) :: parameters
+    logical                                           :: selfBoundParticlesOnly
+    integer(c_size_t                 )                :: bootstrapSampleCount
+
+    !# <inputParameter>
+    !#   <name>selfBoundParticlesOnly</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, the mean position and velocity are computed only for self-bound particles</description>
+    !#   <type>logical</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>bootstrapSampleCount</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>30_c_size_t</defaultValue>
+    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+   self=nbodyOperatorMeanPosition(selfBoundParticlesOnly,bootstrapSampleCount)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function meanPositionConstructorParameters
+
+  function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount) result (self)
+    !% Internal constructor for the ``meanPosition'' N-body operator class.
+    use Input_Parameters2
+    implicit none
+    type   (nbodyOperatorMeanPosition)                :: self
+    logical                           , intent(in   ) :: selfBoundParticlesOnly
+    integer(c_size_t                 ), intent(in   ) :: bootstrapSampleCount
+    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount"/>
+
+    return
+  end function meanPositionConstructorInternal
+
+  subroutine meanPositionOperate(self,simulation)
+    !% Determine the mean position and velocity of N-body particles.
+    use Memory_Management
+    use Galacticus_Error
+    use FGSL
+    use Poisson_Random
+    implicit none
+    class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
+    type           (nBodyData                ), intent(inout)                 :: simulation
+    integer                                   , allocatable  , dimension(:,:) :: selfBoundStatus
+    double precision                          , parameter                     :: sampleRate          =1.0d0
+    double precision                          , allocatable  , dimension(:,:) :: positionMean               , velocityMean
+    double precision                                                          :: weight
+    integer         (c_size_t                )                                :: i                          , j
+    type            (fgsl_rng                )                                :: pseudoSequenceObject
+    logical                                                                   :: pseudoSequenceReset =.true.
+
+    ! Determine the particle mask to use.
+    if (self%selfBoundParticlesOnly) then
+       if (simulation%analysis%hasDataset('selfBoundStatus')) then
+          call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
+          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('meanPositionOperate','number of selfBoundStatus samples must equal number of requested bootstrap samples')
+       else
+          call Galacticus_Error_Report('meanPositionOperate','self-bound status not available - apply a self-bound operator first')
+       end if
+    else
+       call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
+       do i=1,self%bootstrapSampleCount
+          do j=1,size(simulation%position,dim=2)
+             selfBoundStatus(j,i)=Poisson_Random_Get(pseudoSequenceObject,sampleRate,pseudoSequenceReset)
+          end do
+       end do
+    end if
+    ! Compute mean position and velocity.
+    call allocateArray(positionMean,[3_c_size_t,self%bootstrapSampleCount])
+    call allocateArray(velocityMean,[3_c_size_t,self%bootstrapSampleCount])
+    do i=1,self%bootstrapSampleCount
+       !$omp parallel workshare
+       weight=dble(sum(selfBoundStatus(:,i)))
+       forall(j=1:3)
+          positionMean(j,i)=+sum(simulation%position(j,:)*dble(selfBoundStatus(:,i))) &
+               &            /weight
+          velocityMean(j,i)=+sum(simulation%velocity(j,:)*dble(selfBoundStatus(:,i))) &
+               &            /weight
+       end forall
+       !$omp end parallel workshare
+    end do
+    ! Store results to file.
+    call simulation%analysis%writeDataset(positionMean,'positionMean')
+    call simulation%analysis%writeDataset(velocityMean,'velocityMean')
+    ! Deallocate workspace.
+    call deallocateArray(selfBoundStatus)
+    call deallocateArray(positionMean   )
+    call deallocateArray(velocityMean   )
+    return
+  end subroutine meanPositionOperate
+
