@@ -40,7 +40,7 @@ module Galacticus_Display
 
   ! Progress bar state.
   logical                                      :: barVisible                =.false.
-  integer                                      :: barPercentage
+  integer                                      :: barPercentage             =0
 
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
@@ -322,7 +322,8 @@ contains
 
     !$omp critical(Galacticus_Message_Lock)
     call Galacticus_Display_Counter_Clear_Lockless(verbosity)
-    barVisible=.false.
+    barVisible   =.false.
+    barPercentage=0
     !$omp end critical(Galacticus_Message_Lock)
     return
   end subroutine Galacticus_Display_Counter_Clear
