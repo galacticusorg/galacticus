@@ -319,7 +319,9 @@ contains
     class    (mpiObject     ), intent(in   ) :: self
 #ifdef USEMPI
     character(len=4         )                :: label
+#endif
 
+#ifdef USEMPI
     if (self%isActive()) then
        write (label,'(i4.4)') self%rankValue
        mpiGetRankLabel=label
@@ -371,7 +373,9 @@ contains
     integer           , intent(in   ), optional :: rank
 #ifdef USEMPI
     integer                                     :: rankActual
+#endif
     
+#ifdef USEMPI
     rankActual=self%rank()
     if (present(rank)) rankActual=rank
     mpiGetNodeAffinity=self%nodeAffinities(rankActual)
@@ -407,7 +411,9 @@ contains
 #ifdef USEMPI
     integer           , dimension(MPI_Status_Size)           :: messageStatus
     integer                                                  :: fromActual   , tagActual, iError
-   
+#endif
+
+#ifdef USEMPI
     fromActual=MPI_Any_Source
     tagActual =MPI_Any_Tag
     if (present(from)) fromActual=from
@@ -438,7 +444,9 @@ contains
     integer                                                                              :: i               , iError       , &
          &                                                                                  iRequest        , receivedFrom , &
          &                                                                                  j
-    
+#endif
+
+#ifdef USEMPI
     ! Record our own rank as the requester.
     requester=self%rank()
     ! Send requests.
@@ -516,7 +524,9 @@ contains
     integer                                                                                                      :: i               , iError       , &
          &                                                                                                          iRequest        , j            , &
          &                                                                                                          receivedFrom
-
+#endif
+    
+#ifdef USEMPI
     ! Record our own rank as the requester.
     requester=self%rank()
     ! Send requests.
@@ -594,7 +604,9 @@ contains
     integer                                                                     :: i               , iError       , &
          &                                                                         iRequest        , j            , &
          &                                                                         receivedFrom
+#endif
     
+#ifdef USEMPI
     ! Record our own rank as the requester.
     requester=self%rank()
     ! Send requests.
@@ -667,7 +679,9 @@ contains
 #ifdef USEMPI
     integer                          , dimension(size(array))            :: maskedArray
     integer                                                              :: iError        , activeCount
-
+#endif
+    
+#ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
     activeCount=self%count()
@@ -693,7 +707,9 @@ contains
     logical           , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
     integer                          , dimension(1)           :: array
+#endif
 
+#ifdef USEMPI
     array=self%sum([scalar],mask)
     mpiSumScalarInt=array(1)
 #else
@@ -714,7 +730,9 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(size(array))            :: maskedArray
     integer                                                                       :: iError           , activeCount
-
+#endif
+    
+#ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
     activeCount=self%count()
@@ -740,7 +758,9 @@ contains
     logical                    , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
-
+#endif
+    
+#ifdef USEMPI
     array=self%sum([scalar],mask)
     mpiSumScalarDouble=array(1)
 #else
@@ -761,7 +781,9 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError         , activeCount
-
+#endif
+    
+#ifdef USEMPI
     ! Sum the array over all processes.
     maskedArray=array
     activeCount=self%count()
@@ -795,7 +817,9 @@ contains
     integer                                   , dimension(size(array),self%countValue)           :: allArray
     integer                                   , dimension(1:2                        )           :: indexMedian
     integer                                                                                      :: i             , activeCount
-
+#endif
+    
+#ifdef USEMPI
     ! Get count of active process.
     if (present(mask)) then
        activeCount=self%countValue-count(mask)
@@ -839,7 +863,9 @@ contains
     logical                    , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
-
+#endif
+    
+#ifdef USEMPI
     array=self%average([scalar],mask)
     mpiAverageScalar=array(1)
 #else
@@ -860,7 +886,9 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError
+#endif
 
+#ifdef USEMPI
     ! Find the maximum over all processes.
     maskedArray=array
     if (present(mask)) then
@@ -884,7 +912,9 @@ contains
     logical                    , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
-
+#endif
+    
+#ifdef USEMPI
     array=self%maxval([scalar],mask)
     mpiMaxvalScalar=array(1)
 #else
@@ -905,7 +935,9 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
-
+#endif
+    
+#ifdef USEMPI
     ! Find the maximum over all processes.
     arrayIn(1,:)=array
     if (present(mask)) then
@@ -933,8 +965,10 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(size(array) )           :: maskedArray
     integer                                                                       :: iError
-
-    ! Find the minimum over all processes.
+#endif
+    
+#ifdef USEMPI
+   ! Find the minimum over all processes.
     maskedArray=array
     if (present(mask)) then
        if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
@@ -957,7 +991,9 @@ contains
     logical                    , intent(in   ), dimension(:), optional :: mask
 #ifdef USEMPI
     double precision                          , dimension(1)           :: array
-
+#endif
+    
+#ifdef USEMPI
     array=self%minval([scalar],mask)
     mpiMinvalScalar=array(1)
 #else
@@ -978,7 +1014,9 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
     integer                                                                         :: iError
-
+#endif
+    
+#ifdef USEMPI
     ! Find the minimum over all processes.
     arrayIn(1,:)=array
     if (present(mask)) then
@@ -1004,7 +1042,9 @@ contains
     double precision           , dimension(  self%countValue) :: mpiGatherScalar
 #ifdef USEMPI
     double precision           , dimension(1,self%countValue) :: array
-
+#endif
+    
+#ifdef USEMPI
     array=self%requestData(self%allRanks,[scalar])
     mpiGatherScalar=array(1,:)
 #else
