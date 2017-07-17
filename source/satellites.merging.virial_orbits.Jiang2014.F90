@@ -20,6 +20,7 @@
 
   use FGSL
   use Statistics_Distributions
+  use Tables
 
   !# <virialOrbit name="virialOrbitJiang2014">
   !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
@@ -44,19 +45,20 @@
   end interface virialOrbitJiang2014
 
   ! Module scope variables used in root finding.
-  double precision                                                :: jiang2014XTotal                       , jiang2014XRadial              , &
-       &                                                             jiang204ProbabilityRadialNormalization, jiang2014VelocityTotalInternal
-  integer                                                         :: jiang2014I                            , jiang2014J
-  type            (distributionVoight)                            :: jiang2014VoightDistribution
-  double precision                    , parameter, dimension(3,3) :: jiang2014B                 =reshape(                                    &
-       &                                                                                                 [                                   &
-       &                                                                                                  +0.049d0, +0.548d0, +1.229d0,      &
-       &                                                                                                  +1.044d0, +1.535d0, +3.396d0,      &
-       &                                                                                                  +2.878d0, +3.946d0, +2.982d0       &
-       &                                                                                                 ]                                 , &
-       &                                                                                                 [3,3]                               &
-       &                                                                                                )
-  !$omp threadprivate(jiang2014XTotal,jiang2014XRadial,jiang204ProbabilityRadialNormalization,jiang2014VelocityTotalInternal,jiang2014I,jiang2014J,jiang2014VoightDistribution)
+  double precision                                                 :: jiang2014XTotal                       , jiang2014XRadial              , &
+       &                                                              jiang204ProbabilityRadialNormalization, jiang2014VelocityTotalInternal
+  integer                                                          :: jiang2014I                            , jiang2014J
+  double precision                     , parameter, dimension(3,3) :: jiang2014B                  =reshape(                                    &
+       &                                                                                                  [                                   &
+       &                                                                                                   +0.049d0, +0.548d0, +1.229d0,      &
+       &                                                                                                   +1.044d0, +1.535d0, +3.396d0,      &
+       &                                                                                                   +2.878d0, +3.946d0, +2.982d0       &
+       &                                                                                                  ]                                 , &
+       &                                                                                                  [3,3]                               &
+       &                                                                                                 )
+  type            (table1DLinearLinear)           , dimension(3,3) :: jiang2014VoightDistributions
+  logical                                                          :: jiang2014Initialized        =.false.
+  !$omp threadprivate(jiang2014XTotal,jiang2014XRadial,jiang204ProbabilityRadialNormalization,jiang2014VelocityTotalInternal,jiang2014I,jiang2014J)
   
 contains
 
@@ -113,14 +115,16 @@ contains
          &                                                                                      )
     double precision                            , parameter                     :: toleranceAbsolute=0.0d+0
     double precision                            , parameter                     :: toleranceRelative=1.0d-3
+    integer                                     , parameter                     :: tableCount       =1000
     type            (rootFinder                )                                :: totalFinder                    , radialFinder
     double precision                                                            :: velocityHost                   , radiusHost                    , &
          &                                                                         massHost                       , massSatellite                 , &
          &                                                                         energyInternal                 , radiusHostSelf                , &
          &                                                                         velocityRadialInternal         , velocityTangentialInternal
     logical                                                                     :: foundOrbit
-    integer                                                                     :: attempts
-
+    integer                                                                     :: attempts                       , i
+    type            (distributionVoight        )                                :: voightDistribution
+  
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get basic components.
@@ -132,6 +136,32 @@ contains
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHostSelf,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                            )
     deallocate(virialDensityContrast_)
+    ! Tabulate Voight distribution functions for speed.
+    if (.not.jiang2014Initialized) then
+       !$omp critical (jiang2014Initialize)
+       if (.not.jiang2014Initialized) then
+          ! Build the distribution function for total velocity.
+          do jiang2014I=1,3
+             do jiang2014J=1,3
+                ! Build the distribution.
+                voightDistribution=distributionVoight(                                         &
+                     &                                gamma     (jiang2014I,jiang2014J)      , &
+                     &                                mu        (jiang2014I,jiang2014J)      , &
+                     &                                sigma     (jiang2014I,jiang2014J)      , &
+                     &                                limitLower                       =0.0d0, &
+                     &                                limitUpper                       =2.0d0  &
+                     &                               )
+                ! Tabulate the cumulative distribution.
+                call jiang2014VoightDistributions(jiang2014I,jiang2014J)%create(0.0d0,2.0d0,tableCount)
+                do i=1,tableCount
+                   call jiang2014VoightDistributions(jiang2014I,jiang2014J)%populate(voightDistribution%cumulative(jiang2014VoightDistributions(jiang2014I,jiang2014J)%x(i)),i)
+                end do
+             end do
+          end do
+          jiang2014Initialized=.true.
+       end if
+       !$omp end critical (jiang2014Initialize)
+    end if
     ! Select parameters appropriate for this host-satellite pair.
     if      (massHost < 10.0d0**12.5d0) then
        jiang2014I=1
@@ -147,14 +177,6 @@ contains
     else
        jiang2014J=3
     end if
-    ! Build the distribution function for total velocity.
-    jiang2014VoightDistribution   =distributionVoight(                                         &
-         &                                            gamma     (jiang2014I,jiang2014J)      , &
-         &                                            mu        (jiang2014I,jiang2014J)      , &
-         &                                            sigma     (jiang2014I,jiang2014J)      , &
-         &                                            limitLower                       =0.0d0, &
-         &                                            limitUpper                       =2.0d0  &
-         &                                           )
     ! Configure finder objects.
     if (.not.totalFinder %isInitialized()) then
        call totalFinder %rootFunction(jiang2014TotalVelocityCDF          )
@@ -192,6 +214,14 @@ contains
        ! Solve for the total velocity.
        jiang2014XTotal               =Pseudo_Random_Get(self%pseudoSequenceObject,self%resetSequence)
        jiang2014VelocityTotalInternal=totalFinder %find(rootGuess=1.0d0)
+       ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
+       ! bound that later rounding errors will not make it appear unbound.
+       foundOrbit=.true.
+       if (.not.acceptUnboundOrbits) then
+          energyInternal=-1.0d0+0.5d0*jiang2014VelocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
+          foundOrbit=(energyInternal < -boundTolerance)
+       end if
+       if (.not.foundOrbit) cycle
        ! Solve for the radial velocity.
        jiang2014XRadial                      =+0.0d0
        jiang204ProbabilityRadialNormalization=+1.0d0
@@ -204,14 +234,6 @@ contains
        velocityRadialInternal                =radialFinder%find(rootGuess=sqrt(2.0d0)*jiang2014VelocityTotalInternal)
        ! Compute tangential velocity.       
        velocityTangentialInternal=sqrt(max(0.0d0,jiang2014VelocityTotalInternal**2-velocityRadialInternal**2))
-       ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently
-       ! bound that later rounding errors will not make it appear unbound.
-       foundOrbit=.true.
-       if (.not.acceptUnboundOrbits) then
-          energyInternal=-1.0d0+0.5d0*jiang2014VelocityTotalInternal**2*jiang2014Orbit%specificReducedMass()
-          foundOrbit=(energyInternal < -boundTolerance)
-       end if
-       if (.not.foundOrbit) cycle
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call jiang2014Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
@@ -232,8 +254,8 @@ contains
     !% Cumulative distribution function for the total velocity.
     implicit none
     double precision, intent(in   ) :: velocityTotal
-    
-    jiang2014TotalVelocityCDF=jiang2014VoightDistribution%cumulative(velocityTotal)-jiang2014XTotal
+
+    jiang2014TotalVelocityCDF=jiang2014VoightDistributions(jiang2014I,jiang2014J)%interpolate(velocityTotal)-jiang2014XTotal
     return
   end function jiang2014TotalVelocityCDF
   
