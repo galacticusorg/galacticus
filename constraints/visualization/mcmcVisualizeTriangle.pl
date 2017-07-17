@@ -167,7 +167,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
         if ( exists($properties[$i]->{'zLabel'}) );
     if ( @ranges ) {
 	foreach my $range ( @ranges ) {
-	    $command .= " --range ".$range;
+	    $command .= " --range \"".$range."\"";
 	}
     }
     # Create PBS job.
@@ -204,7 +204,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	    }
 	    if ( @ranges ) {
 		foreach my $range ( @ranges ) {
-		    $command .= " --range ".$range;
+		    $command .= " --range \"".$range."\"";
 		}
 	    }
 	    # Create PBS job.
