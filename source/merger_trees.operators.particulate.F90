@@ -936,7 +936,7 @@ contains
             &                                                      integrandFunction             , &
             &                                                      integrationWorkspace          , &
             &                                   toleranceAbsolute=+0.0d0                         , &
-            &                                   toleranceRelative=+1.0d-9                          &
+            &                                   toleranceRelative=+1.0d-8                          &
             &                                  )
        call Integrate_Done(integrandFunction,integrationWorkspace)
     end if
