@@ -22,7 +22,7 @@
   !#  <description>A filter which passes only isolated halos.</description>
   !# </galacticFilter>
   type, extends(galacticFilterClass) :: galacticFilterHaloIsolated
-     !% A galactic high-pass filter class for basic mass.
+     !% A galactic filter class which passes only isolated halos.
      private
    contains
      procedure :: passes => haloIsolatedPasses
@@ -48,7 +48,7 @@ contains
   end function haloIsolatedConstructorParameters
 
   logical function haloIsolatedPasses(self,node)
-    !% Implement a  basic mass high-pass galactic filter.
+    !% Implement a galactic filter which passes only isolated halos.
     implicit none
     class(galacticFilterHaloIsolated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
