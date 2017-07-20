@@ -117,10 +117,8 @@ contains
   subroutine Node_Component_Spin_Preset_Scale_Set(node)
     !% Set scales for properties in the preset implementation of the spin component.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: node
-    double precision                   , parameter              :: timeScale        =1.0d-3
-    double precision                   , parameter              :: scaleMassRelative=1.0d-6
-    class           (nodeComponentSpin)               , pointer :: spin
+    type (treeNode         ), intent(inout), pointer :: node
+    class(nodeComponentSpin)               , pointer :: spin
 
     ! Get the spin component.
     spin => node%spin()
