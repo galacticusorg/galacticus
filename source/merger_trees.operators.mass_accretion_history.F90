@@ -20,16 +20,27 @@
   !% histories.
 
   use IO_HDF5
+  use Cosmology_Functions
   
-  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
-  !#  <description>
-  !#   A merger tree operator which outputs mass accretion histories.
+  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" defaultThreadPrivate="yes">
+  !#  <description>  
+  !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
+  !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
+  !#   {\normalfont \ttfamily mergerTree\textlessthan\ N\textgreaterthan} where {\normalfont \ttfamily \textlessthan\
+  !#   N\textgreaterthan} is the tree index. Within each such merger tree group datasets giving the node index (``{\normalfont
+  !#   \ttfamily nodeIndex}''), time (``{\normalfont \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''),
+  !#   expansion factor (``{\normalfont \ttfamily nodeExpansionFactor}'') are written. Optionally, datasets giving the spin
+  !#   parameter (``{\normalfont \ttfamily nodeSpin}'') and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are
+  !#   included if {\normalfont \ttfamily [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to
+  !#   {\normalfont \ttfamily true}.  
   !# </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMassAccretionHistory
      !% A merger tree operator class which outputs mass accretion histories.
      private
-     type(hdf5Object) :: outputGroup
+     type   (hdf5Object             )          :: outputGroup
+     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     logical                                   :: includeSpin        , includeSpinVector
    contains
      final     ::             massAccretionHistoryDestructor
      procedure :: operate  => massAccretionHistoryOperate
@@ -44,13 +55,15 @@
 
 contains
 
-  function massAccretionHistoryConstructorParameters(parameters)
+  function massAccretionHistoryConstructorParameters(parameters) result(self)
     !% Constructor for the mass accretion history merger tree operator class which takes a
     !% parameter set as input.
     implicit none
-    type(mergerTreeOperatorMassAccretionHistory)                :: massAccretionHistoryConstructorParameters
-    type(inputParameters                       ), intent(inout) :: parameters
-    type(varying_string                        )                :: outputGroupName
+    type (mergerTreeOperatorMassAccretionHistory)                :: self
+    type (inputParameters                       ), intent(inout) :: parameters
+    type (varying_string                        )                :: outputGroupName
+    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    logical                                                      :: includeSpin        , includeSpinVector
    
     !# <inputParameter>
     !#   <name>outputGroupName</name>
@@ -61,56 +74,101 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <group>output</group>
     !# </inputParameter>
-    massAccretionHistoryConstructorParameters=massAccretionHistoryConstructorInternal(char(outputGroupName))
+    !# <inputParameter>
+    !#   <name>includeSpin</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, include the spin of the halo in the output.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !#   <group>output</group>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>includeSpinVector</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, include the spin vector of the halo in the output.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !#   <group>output</group>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function massAccretionHistoryConstructorParameters
 
-  function massAccretionHistoryConstructorInternal(outputGroupName)
+  function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_) result(self)
     !% Internal constructor for the mass accretion history merger tree operator class.
     use Galacticus_HDF5
+    use Galacticus_Error
     implicit none
-    type     (mergerTreeOperatorMassAccretionHistory)                :: massAccretionHistoryConstructorInternal
-    character(len=*                                 ), intent(in   ) :: outputGroupName
+    type     (mergerTreeOperatorMassAccretionHistory)                        :: self
+    character(len=*                                 ), intent(in   )         :: outputGroupName
+    logical                                          , intent(in   )         :: includeSpin        , includeSpinVector
+    class    (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="includeSpin, includeSpinVector, *cosmologyFunctions_"/>
     
     ! Create the output group.
     !$omp critical (HDF5_Access)
-    massAccretionHistoryConstructorInternal%outputGroup=galacticusOutputFile%openGroup(outputGroupName,'Mass accretion histories of main branches in merger trees.')
+    self%outputGroup=galacticusOutputFile%openGroup(outputGroupName,'Mass accretion histories of main branches in merger trees.')
     !$omp end critical (HDF5_Access)
+    if (self%includeSpin      .and..not.defaultSpinComponent%spinIsGettable      ())                            &
+         & call Galacticus_Error_Report                                                                         &
+         &  (                                                                                                   &
+         &   'massAccretionHistoryConstructorInternal'                                                        , &
+         &   'the spin property of the spin component must be gettable.'                                     // &
+         &   Galacticus_Component_List(                                                                         &
+         &                             'spin'                                                                 , &
+         &                              defaultSpinComponent%spinAttributeMatch      (requireGettable=.true.)   &
+         &                            )                                                                         &
+         &  )             
+    if (self%includeSpinVector.and..not.defaultSpinComponent%spinVectorIsGettable())                            &
+         & call Galacticus_Error_Report                                                                         &
+         &  (                                                                                                   &
+         &   'massAccretionHistoryConstructorInternal'                                                        , &
+         &   'the spinVector property of the spin component must be gettable.'                               // &
+         &   Galacticus_Component_List(                                                                         &
+         &                             'spin'                                                                 , &
+         &                              defaultSpinComponent%spinVectorAttributeMatch(requireGettable=.true.)   &
+         &                            )                                                                         &
+         &  )
     return
   end function massAccretionHistoryConstructorInternal
 
-  elemental subroutine massAccretionHistoryDestructor(self)
+  subroutine massAccretionHistoryDestructor(self)
     !% Destructor for the mass accretion history merger tree operator function class.
     implicit none
     type(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
-    !GCC$ attributes unused :: self
     
-    ! Nothing to do.
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine massAccretionHistoryDestructor
 
   subroutine massAccretionHistoryOperate(self,tree)
     !% Output the mass accretion history for a merger tree.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
-    use Input_Parameters
-    use Memory_Management
-    use ISO_Varying_String
-    use String_Handling
-    use Numerical_Constants_Astronomical
-    use Galacticus_Error
+    use               Galacticus_Nodes
+    use               Input_Parameters
+    use               Memory_Management
+    use               ISO_Varying_String
+    use               String_Handling
+    use               Numerical_Constants_Astronomical
+    use               Galacticus_Error
     implicit none
-    class           (mergerTreeOperatorMassAccretionHistory), intent(inout)               :: self
-    type            (mergerTree                            ), intent(inout), target       :: tree
-    type            (treeNode                              )               , pointer      :: node
-    integer         (kind=kind_int8                        ), allocatable  , dimension(:) :: accretionHistoryNodeIndex
-    double precision                                        , allocatable  , dimension(:) :: accretionHistoryNodeMass , accretionHistoryNodeTime
-    class           (nodeComponentBasic                    )               , pointer      :: basic
-    type            (mergerTree                            )               , pointer      :: treeCurrent
-    integer         (c_size_t                              )                              :: accretionHistoryCount
-    type            (varying_string                        )                              :: groupName
-    type            (hdf5Object                            )                              :: accretionDataset         , treeGroup
+    class           (mergerTreeOperatorMassAccretionHistory), intent(inout)                 :: self
+    type            (mergerTree                            ), intent(inout), target         :: tree
+    type            (treeNode                              )               , pointer        :: node
+    integer         (kind=kind_int8                        ), allocatable  , dimension(:  ) :: nodeIndex
+    double precision                                        , allocatable  , dimension(:  ) :: nodeMass             , nodeTime, &
+         &                                                                                     nodeExpansionFactor  , nodeSpin
+    double precision                                        , allocatable  , dimension(:,:) :: nodeSpinVector
+    class           (nodeComponentBasic                    )               , pointer        :: basic
+    class           (nodeComponentSpin                     )               , pointer        :: spin
+    type            (mergerTree                            )               , pointer        :: treeCurrent
+    integer         (c_size_t                              )                                :: accretionHistoryCount
+    type            (varying_string                        )                                :: groupName
+    type            (hdf5Object                            )                                :: accretionDataset     , treeGroup
 
     ! Iterate over trees.
     treeCurrent => tree
@@ -123,39 +181,52 @@ contains
           node                  => node                 %firstChild
        end do
        ! Allocate storage space.
-       call allocateArray(accretionHistoryNodeIndex,[int(accretionHistoryCount)])
-       call allocateArray(accretionHistoryNodeTime ,[int(accretionHistoryCount)])
-       call allocateArray(accretionHistoryNodeMass ,[int(accretionHistoryCount)])
+       call                             allocateArray(nodeIndex          ,[int(accretionHistoryCount)  ])
+       call                             allocateArray(nodeTime           ,[int(accretionHistoryCount)  ])
+       call                             allocateArray(nodeExpansionFactor,[int(accretionHistoryCount)  ])
+       call                             allocateArray(nodeMass           ,[int(accretionHistoryCount)  ])
+       if (self%includeSpin      ) call allocateArray(nodeSpin           ,[int(accretionHistoryCount)  ])
+       if (self%includeSpinVector) call allocateArray(nodeSpinVector     ,[int(accretionHistoryCount),3])
        ! Extract accretion history.
        accretionHistoryCount =  0
        node                  => treeCurrent%baseNode
        do while (associated(node))
-          accretionHistoryCount                            =  accretionHistoryCount+1
-          basic                                            => node%basic      ()
-          accretionHistoryNodeIndex(accretionHistoryCount) =  node %index     ()
-          accretionHistoryNodeTime (accretionHistoryCount) =  basic%time      ()
-          accretionHistoryNodeMass (accretionHistoryCount) =  basic%mass      ()
-          node                                             => node %firstChild
+          accretionHistoryCount                                               =  accretionHistoryCount+1
+          basic                                                               =>                                          node%basic      (                 )
+          spin                                                                =>                                          node%spin       (autoCreate=.true.)
+          nodeIndex                                 (accretionHistoryCount  ) =                                           node %index     (                 )
+          nodeTime                                  (accretionHistoryCount  ) =                                           basic%time      (                 )
+          nodeMass                                  (accretionHistoryCount  ) =                                           basic%mass      (                 )
+          nodeExpansionFactor                       (accretionHistoryCount  ) =  self%cosmologyFunctions_%expansionFactor(basic%time      (                 ))
+          if (self%includeSpin      ) nodeSpin      (accretionHistoryCount  ) =                                           spin %spin      (                 )
+          if (self%includeSpinVector) nodeSpinVector(accretionHistoryCount,:) =                                           spin %spinVector(                 )
+          node                                                                =>                                          node %firstChild
        end do
        ! Output to HDF5 file.
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
        !$omp critical (HDF5_Access)
        if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('Merger_Tree_Mass_Accretion_History_Output','duplicate tree index detected - mass accretion history can not be output'//char(10)//'  HELP: This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
-       treeGroup=self%outputGroup%openGroup(char(groupName)                      ,'Mass accretion history for main branch of merger tree.'                                 )
-       call treeGroup       %writeDataset  (accretionHistoryNodeIndex,'nodeIndex','Index of the node.'                                                                     )
-       call treeGroup       %writeDataset  (accretionHistoryNodeTime ,'nodeTime' ,'Time at node [Gyr].'                                   ,datasetReturned=accretionDataset)
-       call accretionDataset%writeAttribute(gigaYear                 ,'unitsInSI'                                                                                          )
-       call accretionDataset%close         (                                                                                                                               )
-       call treeGroup       %writeDataset  (accretionHistoryNodeMass ,'nodeMass' ,'Mass of the node [M⊙].'                                ,datasetReturned=accretionDataset)
-       call accretionDataset%writeAttribute(massSolar,"unitsInSI")
-       call accretionDataset%close         (                                                                                                                               )
-       call treeGroup       %close         (                                                                                                                               )
+       treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
+       call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
+       call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)
+       call                             accretionDataset%writeAttribute(gigaYear                                 ,'unitsInSI'                                                     )
+       call                             accretionDataset%close         (                                                                                                          )
+       call                             treeGroup       %writeDataset  (nodeMass           ,'nodeMass'           ,'Mass of the node [M⊙].'       ,datasetReturned=accretionDataset)
+       call                             accretionDataset%writeAttribute(massSolar                                ,"unitsInSI"                                                     )
+       call                             accretionDataset%close         (                                                                                                          )
+       call                             treeGroup       %writeDataset  (nodeExpansionFactor,'nodeExpansionFactor','Expansion factor of the node.'                                 )
+       if (self%includeSpin      ) call treeGroup       %writeDataset  (nodeSpin           ,'nodeSpin','Spin parameter of the node.'                                              )
+       if (self%includeSpinVector) call treeGroup       %writeDataset  (nodeSpinVector     ,'nodeSpinVector','Spin parameter vector of the node.'                                 )
+       call treeGroup       %close         (                                                                                                                                      )
        !$omp end critical (HDF5_Access)
        ! Deallocate storage space.
-       call deallocateArray(accretionHistoryNodeIndex)
-       call deallocateArray(accretionHistoryNodeTime )
-       call deallocateArray(accretionHistoryNodeMass )
+       call                             deallocateArray(nodeIndex          )
+       call                             deallocateArray(nodeTime           )
+       call                             deallocateArray(nodeMass           )
+       call                             deallocateArray(nodeExpansionFactor)
+       if (self%includeSpin      ) call deallocateArray(nodeSpin           )
+       if (self%includeSpinVector) call deallocateArray(nodeSpinVector     )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do    
