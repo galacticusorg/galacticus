@@ -184,26 +184,31 @@ contains
     return
   end subroutine Node_Component_Satellite_Standard_Rate_Compute
 
-  function Node_Component_Satellite_Standard_Virial_Orbit(self)
+  function Node_Component_Satellite_Standard_Virial_Orbit(self) result(orbit)
     !% Return the orbit of the satellite at the virial radius.
     use Virial_Orbits
     implicit none
-    type (keplerOrbit                   )                :: Node_Component_Satellite_Standard_Virial_Orbit
+    type (keplerOrbit                   )                :: orbit
     class(nodeComponentSatelliteStandard), intent(inout) :: self
-    type (treeNode                      ), pointer       :: hostNode                                      , selfNode
+    type (treeNode                      ), pointer       :: hostNode    , selfNode
     class(virialOrbitClass              ), pointer       :: virialOrbit_
 
     selfNode => self%host()
     if (selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
-       if (satelliteOrbitStoreOrbitalParameters) then
-          Node_Component_Satellite_Standard_Virial_Orbit=self%virialOrbitValue()
+       if (satelliteOrbitStoreOrbitalParameters) then          
+          orbit=self%virialOrbitValue()
+          if (.not.orbit%isDefined()) then
+             ! Orbit has not been defined - define it now.
+             call Node_Component_Satellite_Standard_Create(selfNode)
+             orbit=self%virialOrbitValue()
+          end if
        else
-          hostNode     => selfNode%parent
-          virialOrbit_ => virialOrbit()
-          Node_Component_Satellite_Standard_Virial_Orbit=virialOrbit_%orbit(selfNode,hostNode,acceptUnboundOrbits)
+          hostNode     => selfNode    %parent
+          virialOrbit_ => virialOrbit        (                                     )
+          orbit        =  virialOrbit_%orbit (selfNode,hostNode,acceptUnboundOrbits)
        end if
     else
-       call Node_Component_Satellite_Standard_Virial_Orbit%reset()
+       call orbit%reset()
     end if
     return
   end function Node_Component_Satellite_Standard_Virial_Orbit
