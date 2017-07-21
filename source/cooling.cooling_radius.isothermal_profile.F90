@@ -97,10 +97,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    double precision                                          :: coolingRadius                   , coolingTimeAvailable, &
-         &                                                       coolingTimeAvailableIncreaseRate, virialRadius
+    type            (treeNode                 ), intent(inout) :: thisNode
+    class           (darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
+    class           (coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
+    double precision                                           :: coolingRadius        , virialRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
@@ -121,15 +121,12 @@ contains
        if (coolingRadius >= virialRadius) then
           coolingRadiusGrowthRateStored=0.0d0
        else
-          ! Get the time available for cooling in thisNode.
-          coolingTimeAvailable=Cooling_Time_Available(thisNode)
-
-          ! Get the rate of increase of the time available for cooling.
-          coolingTimeAvailableIncreaseRate=Cooling_Time_Available_Increase_Rate(thisNode)
-
           ! Compute the growth rate of the cooling radius.
-          coolingRadiusGrowthRateStored=0.5d0*coolingRadius*coolingTimeAvailableIncreaseRate/coolingTimeAvailable
-
+          coolingTimeAvailable_ => coolingTimeAvailable()
+          coolingRadiusGrowthRateStored=+0.5d0                                                     &
+               &                        *coolingRadius                                             &
+               &                        *coolingTimeAvailable_%timeAvailableIncreaseRate(thisNode) &
+               &                        /coolingTimeAvailable_%timeAvailable            (thisNode)
        end if
     end if
     ! Return the stored value.
@@ -151,7 +148,8 @@ contains
     class           (hotHaloMassDistributionClass  ), pointer               :: defaultHotHaloMassDistribution
     class           (darkMatterHaloScaleClass      ), pointer               :: darkMatterHaloScale_
     class           (hotHaloTemperatureProfileClass), pointer               :: hotHaloTemperatureProfile_
-    double precision                                                        :: coolingTime                   , coolingTimeAvailable   , &
+    class           (coolingTimeAvailableClass     ), pointer               :: coolingTimeAvailable_
+    double precision                                                        :: coolingTime                   , timeAvailable   , &
          &                                                                     density                       , massToDensityConversion, &
          &                                                                     temperature                   , virialRadius
 
@@ -164,7 +162,8 @@ contains
        coolingRadiusComputed=.true.
 
        ! Get the time available for cooling in thisNode.
-       coolingTimeAvailable=Cooling_Time_Available(thisNode)
+       coolingTimeAvailable_ => coolingTimeAvailable               (        )
+       timeAvailable         =  coolingTimeAvailable_%timeAvailable(thisNode)
 
        ! Get the hot halo component.
        thisHotHaloComponent       => thisNode%hotHalo         ()
@@ -200,12 +199,12 @@ contains
        ! Compute the cooling time at the virial radius.
        coolingTime=Cooling_Time(temperature,density,hotAbundances,chemicalDensities,radiation)
 
-       if (coolingTime < coolingTimeAvailable) then
+       if (coolingTime < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           coolingRadiusStored=virialRadius
        else
           ! Cooling radius is between zero and virial radii.
-          coolingRadiusStored=virialRadius*sqrt(coolingTimeAvailable/coolingTime)
+          coolingRadiusStored=virialRadius*sqrt(timeAvailable/coolingTime)
        end if
     end if
     Cooling_Radius_Isothermal=coolingRadiusStored

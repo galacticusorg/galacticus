@@ -19,89 +19,26 @@
 !% Contains a module that implements calculations of the time available for cooling.
 
 module Cooling_Times_Available
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of the time available for cooling.
   use Galacticus_Nodes
-  !# <include directive="coolingTimeAvailableMethod" type="moduleUse">
-  include 'cooling.time_available.modules.inc'
-  !# </include>
-  implicit none
-  private
-  public :: Cooling_Time_Available, Cooling_Time_Available_Increase_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                  :: coolingTimeAvailableInitialized         =.false.
-
-  ! Name of cooling time available method used.
-  type     (varying_string                      )          :: coolingTimeAvailableMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Time_Available              ), pointer :: Cooling_Time_Available_Get              =>null()
-  procedure(Cooling_Time_Available_Increase_Rate), pointer :: Cooling_Time_Available_Increase_Rate_Get=>null()
-
-contains
-
-  subroutine Cooling_Time_Available_Initialize
-    !% Initializes the cooling time available module.
-    use Galacticus_Error
-    use Input_Parameters
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.coolingTimeAvailableInitialized) then
-       !$omp critical(Cooling_Time_Available_Initialization)
-       if (.not.coolingTimeAvailableInitialized) then
-          ! Get the cooling time available method parameter.
-          !@ <inputParameter>
-          !@   <name>coolingTimeAvailableMethod</name>
-          !@   <defaultValue>White-Frenk1991</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used when computing the time available for cooling.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('coolingTimeAvailableMethod',coolingTimeAvailableMethod,defaultValue='White-Frenk1991')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="coolingTimeAvailableMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>coolingTimeAvailableMethod,Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get</functionArgs>
-          include 'cooling.time_available.inc'
-          !# </include>
-          if (.not.(associated(Cooling_Time_Available_Get).and.associated(Cooling_Time_Available_Increase_Rate_Get))) call&
-               & Galacticus_Error_Report('Cooling_Time_Available','method ' //char(coolingTimeAvailableMethod)//' is unrecognized')
-          coolingTimeAvailableInitialized=.true.
-       end if
-       !$omp end critical(Cooling_Time_Available_Initialization)
-    end if
-    return
-  end subroutine Cooling_Time_Available_Initialize
-
-  double precision function Cooling_Time_Available(thisNode)
-    !% Return the time available for cooling in {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize if necessary.
-    call Cooling_Time_Available_Initialize
-
-    ! Get the cooling time using the selected method.
-    Cooling_Time_Available=Cooling_Time_Available_Get(thisNode)
-
-    return
-  end function Cooling_Time_Available
-
-  double precision function Cooling_Time_Available_Increase_Rate(thisNode)
-    !% Return the rate at which the time available for cooling increases in {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize if necessary.
-    call Cooling_Time_Available_Initialize
-
-    ! Get the cooling time using the selected method.
-    Cooling_Time_Available_Increase_Rate=Cooling_Time_Available_Increase_Rate_Get(thisNode)
-
-    return
-  end function Cooling_Time_Available_Increase_Rate
+  
+  !# <functionClass>
+  !#  <name>coolingTimeAvailable</name>
+  !#  <descriptiveName>Time available for cooling</descriptiveName>
+  !#  <description>Class providing models of the time available for cooling in the hot atmosphere surrounding a galaxy.</description>
+  !#  <default>whiteFrenk1991</default>
+  !#  <method name="timeAvailable" >
+  !#   <description>Return the time available for cooling in {\normalfont \ttfamily node} in units of Gyr.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !#  <method name="timeAvailableIncreaseRate" >
+  !#   <description>Return the rate at which the time available for cooling increases in {\normalfont \ttfamily node} (dimensionless).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Cooling_Times_Available
