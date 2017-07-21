@@ -63,7 +63,6 @@ module Node_Component_Spin_Vitvitska
   !#     <rank>0</rank>
   !#   </property>
   !#  </properties>
-  !#  <functions>objects.nodes.components.spin.Vitvitska.bound_functions.inc</functions>
   !# </component>
 
   ! Module initialization state.
