@@ -35,8 +35,8 @@ module Cooling_Radii_Simple
 
 
   ! Module global variable that stores the time available for cooling.
-  double precision                                        :: coolingTimeAvailable
-  !$omp threadprivate(coolingTimeAvailable)
+  double precision                                        :: timeAvailable
+  !$omp threadprivate(timeAvailable)
   ! Module global pointer to the active node.
   type            (treeNode                    ), pointer :: activeNode
   !$omp threadprivate(activeNode)
@@ -138,13 +138,13 @@ contains
     use Cooling_Times
     use Cooling_Times_Available
     implicit none
-    type            (treeNode            ), intent(inout) :: thisNode
-    class           (nodeComponentHotHalo), pointer       :: thisHotHaloComponent
-    double precision                                      :: coolingRadius                   , coolingTimeAvailable      , &
-         &                                                   coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
-         &                                                   coolingTimeTemperatureLogSlope  , density                   , &
-         &                                                   densityLogSlope                 , outerRadius               , &
-         &                                                   temperature                     , temperatureLogSlope
+    type            (treeNode                 ), intent(inout) :: thisNode
+    class           (nodeComponentHotHalo     ), pointer       :: thisHotHaloComponent
+    class           (coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
+    double precision                                           :: coolingRadius                 , coolingTimeDensityLogSlope, &
+         &                                                        coolingTimeTemperatureLogSlope, density                   , &
+         &                                                        densityLogSlope               , outerRadius               , &
+         &                                                        temperature                   , temperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -167,32 +167,32 @@ contains
        if (coolingRadius >= outerRadius) then
           coolingRadiusGrowthRateStored=0.0d0
        else
+          ! Get required objects.
+          coolingTimeAvailable_ => coolingTimeAvailable()
           ! Get the hot halo temperature profile.
           hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
           ! Get the hot halo mass distribution.
           defaultHotHaloMassDistribution => hotHaloMassDistribution()
-          ! Get the time available for cooling in thisNode.
-          coolingTimeAvailable=Cooling_Time_Available(thisNode)
-          ! Get the rate of increase of the time available for cooling.
-          coolingTimeAvailableIncreaseRate=Cooling_Time_Available_Increase_Rate(thisNode)
-          ! Logarithmic slope of density profile.
+           ! Logarithmic slope of density profile.
           densityLogSlope=defaultHotHaloMassDistribution%densityLogSlope    (thisNode,coolingRadius)
           ! Logarithmic slope of density profile.
           temperatureLogSlope=hotHaloTemperatureProfile_%temperatureLogSlope(thisNode,coolingRadius)
           ! Get cooling density, temperature and metallicity.
           density    =defaultHotHaloMassDistribution%density    (thisNode,coolingRadius)
           temperature=hotHaloTemperatureProfile_    %temperature(thisNode,coolingRadius)
-
           ! Logarithmic slope of the cooling time-density relation.
           coolingTimeDensityLogSlope=Cooling_Time_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
-
           ! Logarithmic slope of the cooling time-temperature relation.
           coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
-
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
-             coolingRadiusGrowthRateStored=(coolingRadius/coolingTimeAvailable)*coolingTimeAvailableIncreaseRate&
-                  &/(densityLogSlope*coolingTimeDensityLogSlope+temperatureLogSlope*coolingTimeTemperatureLogSlope)
+             coolingRadiusGrowthRateStored=+coolingRadius                                             &
+                  &                        /coolingTimeAvailable_%timeAvailable            (thisNode) &
+                  &                        *coolingTimeAvailable_%timeAvailableIncreaseRate(thisNode) &
+                  &                        /(                                                         &
+                  &                          +densityLogSlope    *coolingTimeDensityLogSlope          &
+                  &                          +temperatureLogSlope*coolingTimeTemperatureLogSlope      &
+                  &                        )
           else
              coolingRadiusGrowthRateStored=0.0d0
           end if
@@ -208,13 +208,14 @@ contains
     use Cooling_Times_Available
     use Root_Finder
     implicit none
-    type            (treeNode            ), intent(inout), target :: thisNode
-    class           (nodeComponentHotHalo), pointer               :: thisHotHaloComponent
-    double precision                      , parameter             :: zeroRadius          =0.0d0
-    double precision                      , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder          ), save                  :: finder
+    type            (treeNode                 ), intent(inout), target :: thisNode
+    class           (nodeComponentHotHalo     ), pointer               :: thisHotHaloComponent
+    double precision                           , parameter             :: zeroRadius           =0.0d0
+    class           (coolingTimeAvailableClass), pointer               :: coolingTimeAvailable_
+    double precision                           , parameter             :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder               ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                              :: outerRadius
+    double precision                                                   :: outerRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -225,11 +226,12 @@ contains
        coolingRadiusComputed=.true.
 
        ! Get the time available for cooling in thisNode.
-       coolingTimeAvailable=Cooling_Time_Available(thisNode)
+       coolingTimeAvailable_ => coolingTimeAvailable               (        )
+       timeAvailable         =  coolingTimeAvailable_%timeAvailable(thisNode)
 
        ! Make the node available to the root finding routine.
        activeNode => thisNode
-       
+
        ! Initialize quantities needed by the solver.
        call Cooling_Radius_Solver_Initialize(thisNode)
 
@@ -279,7 +281,7 @@ contains
     ! Compute the cooling time at the specified radius.
     coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
     ! Return the difference between cooling time and time available.
-    Cooling_Radius_Root=coolingTime-coolingTimeAvailable
+    Cooling_Radius_Root=coolingTime-timeAvailable
     return
   end function Cooling_Radius_Root
 

@@ -95,8 +95,9 @@
     <velocityCutOff value="10000"/>
   </coolingRateMethod>
   <coolingTimeMethod value="simple"/>
-  <coolingTimeAvailableAgeFactor value="0"/>
-  <coolingTimeAvailableMethod value="White-Frenk1991"/>
+  <coolingTimeAvailableMethod value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailableMethod>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <starveSatellites value="false"/>
 

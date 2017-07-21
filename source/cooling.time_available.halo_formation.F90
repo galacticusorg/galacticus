@@ -16,76 +16,77 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{cole_hierarchical_2000} method for computing the time available for cooling in hot
-!% halos.
+  !% Implementation of the \cite{cole_hierarchical_2000} time available for cooling class.
 
-module Cooling_Times_Available_Halo_Formation
-  !% Implements the \cite{cole_hierarchical_2000} method for computing the time available for cooling in hot halos.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Cooling_Time_Available_Halo_Formation_Initialize
+  !# <coolingTimeAvailable name="coolingTimeAvailableFormationTime">
+  !#  <description>A time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}, that is, the time available is the time since the halo ``formed''.</description>
+  !# </coolingTimeAvailable>
+  type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableFormationTime
+     !% Implementation of a time available for cooling class which implements the algorithm of \cite{cole_hierarchical_2000}.
+     private
+   contains
+     procedure :: timeAvailable             => formationTimeTimeAvailable
+     procedure :: timeAvailableIncreaseRate => formationTimeTimeAvailableIncreaseRate
+  end type coolingTimeAvailableFormationTime
+
+  interface coolingTimeAvailableFormationTime
+     !% Constructors for the \cite{cole_hierarchical_2000} time available for cooling class.
+     module procedure formationTimeConstructorParameters
+  end interface coolingTimeAvailableFormationTime
 
 contains
 
-  !# <coolingTimeAvailableMethod>
-  !#  <unitName>Cooling_Time_Available_Halo_Formation_Initialize</unitName>
-  !# </coolingTimeAvailableMethod>
-  subroutine Cooling_Time_Available_Halo_Formation_Initialize(coolingTimeAvailableMethod,Cooling_Time_Available_Get&
-       &,Cooling_Time_Available_Increase_Rate_Get)
-    !% Initialize the \cite{cole_hierarchical_2000} cooling time available module.
-    use ISO_Varying_String
+  function formationTimeConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
     use Galacticus_Error
+    use Input_Parameters2
     implicit none
-    type     (varying_string                                     ), intent(in   )          :: coolingTimeAvailableMethod
-    procedure(Cooling_Time_Available_Halo_Formation              ), intent(inout), pointer :: Cooling_Time_Available_Get
-    procedure(Cooling_Time_Available_Increase_Rate_Halo_Formation), intent(inout), pointer :: Cooling_Time_Available_Increase_Rate_Get
-
-    if (coolingTimeAvailableMethod == 'haloFormation') then
-       ! Set pointers to our implementation.
-       Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation
-       Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_Halo_Formation
-       ! Check that there is a gettable formation time property.
-       if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
-            & call Galacticus_Error_Report                                                                                        &
-            &      (                                                                                                              &
-            &       'Cooling_Time_Available_Halo_Formation_Initialize'                                                         ,  &
-            &       "'haloFormation' method for time available for cooling requires a formationTime component that supports "//   &
-            &       "getting of the formationTime property."                                                                 //   &
-            &       Galacticus_Component_List(                                                                                    &
-            &                                 'formationTime'                                                                  ,  &
-            &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
-            &                                )                                                                                    &
-            &      )
-    end if
-    return
-  end subroutine Cooling_Time_Available_Halo_Formation_Initialize
-
-  double precision function Cooling_Time_Available_Halo_Formation(node)
-    !% Compute the time available for cooling using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
-    !% assumed to be the time since the halo formation event.
-    implicit none
-    type (treeNode                  ), intent(inout) :: node
-    class(nodeComponentBasic        ), pointer       :: basic
-    class(nodeComponentFormationTime), pointer       :: formationTime
-
-    basic         => node%basic        ()
-    formationTime => node%formationTime()
-
-    Cooling_Time_Available_Halo_Formation=basic%time()-formationTime%formationTime()
-    return
-  end function Cooling_Time_Available_Halo_Formation
-
-  double precision function Cooling_Time_Available_Increase_Rate_Halo_Formation(node)
-    !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
-    !% of 1.
-    implicit none
-    type(treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    type(coolingTimeAvailableFormationTime)                :: self
+    type(inputParameters                  ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
-    ! Simply return unit rate.
-    Cooling_Time_Available_Increase_Rate_Halo_Formation=1.0d0
+    ! Check that there is a gettable formation time property.
+    if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
+         & call Galacticus_Error_Report                                                                                        &
+         &      (                                                                                                              &
+         &       'formationTimeConstructorInternal'                                                                         ,  &
+         &       "'haloFormation' method for time available for cooling requires a formationTime component that supports "//   &
+         &       "getting of the formationTime property."                                                                 //   &
+         &       Galacticus_Component_List(                                                                                    &
+         &                                 'formationTime'                                                                  ,  &
+         &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
+         &                                )                                                                                    &
+         &      )
+    self=coolingTimeAvailableFormationTime()
     return
-  end function Cooling_Time_Available_Increase_Rate_Halo_Formation
+  end function formationTimeConstructorParameters
 
-end module Cooling_Times_Available_Halo_Formation
+  double precision function formationTimeTimeAvailable(self,node)
+    !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
+    implicit none
+    class(coolingTimeAvailableFormationTime), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
+    class(nodeComponentBasic               ), pointer       :: basic
+    class(nodeComponentFormationTime       ), pointer       :: formationTime
+    !GCC$ attributes unused :: self
+
+    basic                      =>  node         %basic        ()
+    formationTime              =>  node         %formationTime()
+    formationTimeTimeAvailable =  +basic        %time         () &
+         &                        -formationTime%formationTime()
+    return
+  end function formationTimeTimeAvailable
+  
+  double precision function formationTimeTimeAvailableIncreaseRate(self,node)
+    !% Compute the rate of increase of the time available for cooling using the \cite{cole_hierarchical_2000} method. We return a rate
+    !% of 1, even though technically it can depend on halo properties.
+    implicit none
+    class(coolingTimeAvailableFormationTime), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+
+    ! Simply return unit rate.
+    formationTimeTimeAvailableIncreaseRate=1.0d0
+    return
+  end function formationTimeTimeAvailableIncreaseRate
+

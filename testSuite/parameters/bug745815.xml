@@ -33,8 +33,9 @@
   <coolingRateMethod value="whiteFrenk1991">
     <velocityCutOff value="10000"/>
   </coolingRateMethod>
-  <coolingTimeAvailableAgeFactor value="0"/>
-  <coolingTimeAvailableMethod value="White-Frenk1991"/>
+  <coolingTimeAvailableMethod value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailableMethod>
   <coolingTimeMethod value="simple"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <cosmologyFunctionsMethod value="matterLambda"/>

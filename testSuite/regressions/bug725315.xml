@@ -24,7 +24,9 @@
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <darkMatterProfileMethod value="NFW"/>
-  <coolingTimeAvailableAgeFactor value="0"/>
+  <coolingTimeAvailableMethod value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailableMethod>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.961"/>
@@ -57,7 +59,6 @@
   <darkMatterProfileMinimumConcentration value="4"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <adiabaticContractionGnedinA value="0.8"/>
-  <coolingTimeAvailableMethod value="White-Frenk1991"/>
   <odeToleranceRelative value="0.01"/>
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <stabilityThresholdGaseous value="0.9"/>

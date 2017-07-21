@@ -16,94 +16,116 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{white_galaxy_1991} method for computing the time available for cooling in hot
-!% halos.
+  !% Implementation of the \cite{white_galaxy_1991} time available for cooling class.
 
-module Cooling_Time_Available_White_Frenk
-  !% Implements the \cite{white_galaxy_1991} method for computing the time available for cooling in hot halos.
-  implicit none
-  private
-  public :: Cooling_Time_Available_WF_Initialize
+  use Dark_Matter_Halo_Scales
+  
+  !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991" defaultThreadPrivate="yes">
+  !#  <description>A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}.</description>
+  !# </coolingTimeAvailable>
+  type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableWhiteFrenk1991
+     !% Implementation of a time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}.
+     private
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: ageFactor
+   contains
+     final     ::                              whiteFrenk1991Destructor
+     procedure :: timeAvailable             => whiteFrenk1991TimeAvailable
+     procedure :: timeAvailableIncreaseRate => whiteFrenk1991TimeAvailableIncreaseRate
+  end type coolingTimeAvailableWhiteFrenk1991
 
-  ! Parameter which interpolates between age of Universe and dynamical time for the time available for cooling.
-  double precision :: coolingTimeAvailableAgeFactor
+  interface coolingTimeAvailableWhiteFrenk1991
+     !% Constructors for the \cite{white_galaxy_1991} time available for cooling class.
+     module procedure whiteFrenk1991ConstructorParameters
+     module procedure whiteFrenk1991ConstructorInternal
+  end interface coolingTimeAvailableWhiteFrenk1991
 
 contains
 
-  !# <coolingTimeAvailableMethod>
-  !#  <unitName>Cooling_Time_Available_WF_Initialize</unitName>
-  !# </coolingTimeAvailableMethod>
-  subroutine Cooling_Time_Available_WF_Initialize(coolingTimeAvailableMethod,Cooling_Time_Available_Get&
-       &,Cooling_Time_Available_Increase_Rate_Get)
-    !% Initialize the \cite{white_galaxy_1991} cooling time available module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function whiteFrenk1991ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{white_galaxy_1991} time available for cooling class which builds the object from a parameter set.
+    use Input_Parameters2
+    implicit none
+    type            (coolingTimeAvailableWhiteFrenk1991)                :: self
+    type            (inputParameters                   ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
+    double precision                                                    :: ageFactor
+    
+    !# <inputParameter>
+    !#  <name>ageFactor</name>
+    !#  <source>parameters</source>
+    !#  <defaultValue>0.0d0</defaultValue>
+    !#  <description>Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the \cite{white_galaxy_1991} method.</description>
+    !#  <type>real</type>
+    !#  <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=coolingTimeAvailableWhiteFrenk1991(ageFactor,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function whiteFrenk1991ConstructorParameters
+
+  function whiteFrenk1991ConstructorInternal(ageFactor,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
     use Galacticus_Error
     implicit none
-    type     (varying_string                         ), intent(in   )          :: coolingTimeAvailableMethod
-    procedure(Cooling_Time_Available_WF              ), intent(inout), pointer :: Cooling_Time_Available_Get
-    procedure(Cooling_Time_Available_Increase_Rate_WF), intent(inout), pointer :: Cooling_Time_Available_Increase_Rate_Get
-
-    if (coolingTimeAvailableMethod == 'White-Frenk1991') then
-       Cooling_Time_Available_Get               => Cooling_Time_Available_WF
-       Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_WF
-       !@ <inputParameter>
-       !@   <name>coolingTimeAvailableAgeFactor</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Interpolates (geometrically) between the age of the Universe and the halo dynamical time for the time available for cooling in the {\normalfont \ttfamily White-Frenk1991} method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingTimeAvailableAgeFactor',coolingTimeAvailableAgeFactor,defaultValue=0.0d0)
-       if (coolingTimeAvailableAgeFactor < 0.0d0 .or. coolingTimeAvailableAgeFactor > 1.0d0) call Galacticus_Error_Report('Cooling_Time_Available_WF_Initialize','0 <= coolingTimeAvailableAgeFactor <= 1 is required')
-
-    end if
+    type            (coolingTimeAvailableWhiteFrenk1991)                        :: self
+    double precision                                    , intent(in   )         :: ageFactor
+    class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="ageFactor, *darkMatterHaloScale_"/>
+    
+    if     (                   &
+         &   ageFactor < 0.0d0 &
+         &  .or.               &
+         &   ageFactor > 1.0d0 &
+         & ) call Galacticus_Error_Report('whiteFrenk1991ConstructorInternal','0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required')
     return
-  end subroutine Cooling_Time_Available_WF_Initialize
+  end function whiteFrenk1991ConstructorInternal
 
-  double precision function Cooling_Time_Available_WF(node)
-    !% Compute the time available for cooling using the \cite{white_galaxy_1991} method. This is assumed to be equal to the
-    !% dynamical timescale of the halo.
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
+  subroutine whiteFrenk1991Destructor(self)
+    !% Destructor for the \cite{white_galaxy_1991} cooling rate class.
     implicit none
-    type (treeNode                ), intent(inout) :: node
-    class(nodeComponentBasic      ), pointer       :: basic
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    type(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
 
-    ! Get the basic component.
-    basic => node%basic()
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    return
+  end subroutine whiteFrenk1991Destructor
+
+  double precision function whiteFrenk1991TimeAvailable(self,node)
+    !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{white_galaxy_1991} model.
+    implicit none
+    class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    class(nodeComponentBasic                ), pointer       :: basic
+    
     ! Return the appropriate time.
-    if (coolingTimeAvailableAgeFactor == 1.0d0) then
+    if (self%ageFactor == 1.0d0) then
        ! Time available equals the age of the Universe, which is just the time for this node.
-       Cooling_Time_Available_WF=basic%time()
-    else if (coolingTimeAvailableAgeFactor == 0.0d0) then
+       basic                       => node %basic()
+       whiteFrenk1991TimeAvailable =  basic%time ()
+    else if (self%ageFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       Cooling_Time_Available_WF=darkMatterHaloScale_%dynamicalTimescale(node)
+       whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%dynamicalTimescale(node)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       Cooling_Time_Available_WF=exp(log(basic%time())*coolingTimeAvailableAgeFactor&
-            &+log(darkMatterHaloScale_%dynamicalTimescale(node))*(1.0d0-coolingTimeAvailableAgeFactor))
+       basic                       =>  node%basic()
+       whiteFrenk1991TimeAvailable =  +exp(                                                                                 &
+            &                              +log(basic                     %time              (    ))*       self%ageFactor  &
+            &                              +log(self %darkMatterHaloScale_%dynamicalTimescale(node))*(1.0d0-self%ageFactor) &
+            &                             )
     end if
     return
-  end function Cooling_Time_Available_WF
-
-  double precision function Cooling_Time_Available_Increase_Rate_WF(node)
+  end function whiteFrenk1991TimeAvailable
+  
+  double precision function whiteFrenk1991TimeAvailableIncreaseRate(self,node)
     !% Compute the rate of increase of the time available for cooling using the \cite{white_galaxy_1991} method. We return a rate
     !% of 1, even though technically it can depend on halo properties.
-    use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: node
-    
-    ! Simply return unit rate.
-    Cooling_Time_Available_Increase_Rate_WF=1.0d0
-    return
-  end function Cooling_Time_Available_Increase_Rate_WF
+    class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
 
-end module Cooling_Time_Available_White_Frenk
+    ! Simply return unit rate.
+    whiteFrenk1991TimeAvailableIncreaseRate=1.0d0
+    return
+  end function whiteFrenk1991TimeAvailableIncreaseRate

@@ -22,7 +22,6 @@
     <HubbleConstant value="73"/>
     <OmegaMatter value="0.25"/>
   </cosmologyParametersMethod><haloMassFunctionSamplingStellarMassFunctionErrorConstant value="1.0e-8"/>
-  <coolingTimeAvailableAgeFactor value="0"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="1.000"/>
     <wavenumberReference value="1.000"/>
@@ -51,7 +50,9 @@
   <mergerTreeBuildHaloMassMaximum value="2.0e14"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>
-  <coolingTimeAvailableMethod value="White-Frenk1991"/>
+  <coolingTimeAvailableMethod value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailableMethod>
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <odeToleranceRelative value="0.01"/>
   <intergalacticMediumStateMethod value="file"/>

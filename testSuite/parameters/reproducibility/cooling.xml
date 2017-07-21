@@ -64,8 +64,9 @@
     <velocityCutOff value="1.0e6"/>
   </coolingRateMethod>
   <coolingTimeMethod value="simple"/>
-  <coolingTimeAvailableAgeFactor value="0"/>
-  <coolingTimeAvailableMethod value="White-Frenk1991"/>
+   <coolingTimeAvailableMethod value="whiteFrenk1991">
+    <ageFactor value="0"/>
+  </coolingTimeAvailableMethod>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
 
   <!-- Numerical tolerances -->
