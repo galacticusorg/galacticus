@@ -105,7 +105,7 @@ while ( my $fileName = readdir($testSuite) ) {
     		);
     	    push(@pbsJobs,\%job);
     	} else {
-## AJB HACK    	    system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml");
+    	    system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml");
     	}
     	print "   <-- ...done\n";
     	print "<-- ...done\n";
