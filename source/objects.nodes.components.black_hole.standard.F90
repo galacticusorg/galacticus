@@ -1351,14 +1351,17 @@ contains
     use Cooling_Radii
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: node
+    type            (treeNode                ), intent(inout), pointer :: node
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
-    double precision                                   :: coolingRadiusFractional                       , x
-    
+    class           (coolingRadiusClass      )               , pointer :: coolingRadius_
+    double precision                          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
+    double precision                          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    double precision                                                   :: coolingRadiusFractional                       , x
+
     darkMatterHaloScale_ => darkMatterHaloScale()
-    coolingRadiusFractional=Cooling_Radius(node)/darkMatterHaloScale_%virialRadius(node)
+    coolingRadius_       => coolingRadius      ()
+    coolingRadiusFractional=+coolingRadius_      %      radius(node) &
+         &                  /darkMatterHaloScale_%virialRadius(node)
     if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
        Hot_Mode_Fraction=1.0d0
     else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then

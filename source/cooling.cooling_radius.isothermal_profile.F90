@@ -15,200 +15,228 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-!% Contains a module which implements a calculation of cooling radius appropriate for an
-!% isothermal halo, assuming collisional ionization equilibrium such that cooling time
-!% scales as inverse density.
-
-module Cooling_Radii_Isothermal
-  !% Implements calculation of cooling radius appropriate for an isothermal halo, assuming
-  !% collisional ionization equilibrium such that cooling time scales as inverse density.
-  use Galacticus_Nodes
+  
+  !% Implementation of a cooling radius class for isothermal halos, assuming collisional ionization equilibrium such that cooling
+  !% time scales as inverse density.
+  
   use Kind_Numbers
-  use Radiation_Structure
-  use Abundances_Structure
-  use Chemical_Abundances_Structure
-  implicit none
-  private
-  public :: Cooling_Radius_Isothermal_Initialize, Cooling_Radius_Isothermal_Reset
+  use Dark_Matter_Halo_Scales
+  use Cooling_Times_Available
 
-  ! Internal record of the number of abundance and chemical properties.
-  integer                              :: abundancesCount                      , chemicalsCount
+  !# <coolingRadius name="coolingRadiusIsothermal" defaultThreadPrivate="yes">
+  !#  <description>A cooling radius class for isothermal halos, assuming collisional ionization equilibrium such that cooling
+  !# time scales as inverse density.</description>
+  !# </coolingRadius>
+  type, extends(coolingRadiusClass) :: coolingRadiusIsothermal
+     !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
+     !% for cooling equals the cooling time.
+     private
+     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
+     class           (coolingTimeAvailableClass     ), pointer :: coolingTimeAvailable_
+     integer         (kind=kind_int8                )          :: lastUniqueID                  =-1
+     integer                                                   :: abundancesCount                  , chemicalsCount
+     ! Stored values of cooling radius.
+     logical                                                   :: radiusComputed                   , radiusGrowthRateComputed
+     double precision                                          :: radiusGrowthRateStored           , radiusStored
+   contains
+     final     ::                     isothermalDestructor
+     procedure :: radius           => isothermalRadius
+     procedure :: radiusGrowthRate => isothermalRadiusGrowthRate
+     procedure :: calculationReset => isothermalCalculationReset
+  end type coolingRadiusIsothermal
 
-  ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8    ) :: lastUniqueID                 =-1
-  !$omp threadprivate(lastUniqueID)
-  ! Record of whether or not cooling radius has already been computed for this node.
-  logical                              :: coolingRadiusComputed        =.false., coolingRadiusGrowthRateComputed=.false.
-  !$omp threadprivate(coolingRadiusComputed,coolingRadiusGrowthRateComputed)
-  ! Stored values of cooling radius.
-  double precision                     :: coolingRadiusGrowthRateStored        , coolingRadiusStored
-  !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
-  ! Abundances and chemical objects used in cooling calculations.
-  type            (abundances        ) :: hotAbundances
-  !$omp threadprivate(hotAbundances)
-  type            (chemicalAbundances) :: chemicalDensities                    , chemicalMasses
-  !$omp threadprivate(chemicalMasses,chemicalDensities)
-  ! Radiation structure used in cooling calculations.
-  type            (radiationStructure) :: radiation
-  !$omp threadprivate(radiation)
+  interface coolingRadiusIsothermal
+     !% Constructors for the isothermal cooling radius class.
+     module procedure isothermalConstructorParameters
+     module procedure isothermalConstructorInternal
+  end interface coolingRadiusIsothermal
+
 contains
 
-  !# <coolingRadiusMethod>
-  !#  <unitName>Cooling_Radius_Isothermal_Initialize</unitName>
-  !# </coolingRadiusMethod>
-  subroutine Cooling_Radius_Isothermal_Initialize(coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get)
-    !% Initializes the ``isothermal'' cooling radius module.
-    use ISO_Varying_String
+  function isothermalConstructorParameters(parameters) result(self)
+    !% Constructor for the isothermal cooling radius class which builds the object from a parameter set.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                       ), intent(in   )          :: coolingRadiusMethod
-    procedure(Cooling_Radius_Isothermal            ), intent(inout), pointer :: Cooling_Radius_Get
-    procedure(Cooling_Radius_Growth_Rate_Isothermal), intent(inout), pointer :: Cooling_Radius_Growth_Rate_Get
+    type (coolingRadiusIsothermal  )                :: self
+    type (inputParameters          ), intent(inout) :: parameters
+    class(coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
+    class(darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
 
-    if (coolingRadiusMethod == 'isothermal') then
-       Cooling_Radius_Get             => Cooling_Radius_Isothermal
-       Cooling_Radius_Growth_Rate_Get => Cooling_Radius_Growth_Rate_Isothermal
-       ! Get a count of the number of abundances and chemicals properties.
-       abundancesCount=Abundances_Property_Count()
-       chemicalsCount =Chemicals_Property_Count ()
-    end if
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
+    self=coolingRadiusIsothermal(darkMatterHaloScale_,coolingTimeAvailable_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Cooling_Radius_Isothermal_Initialize
+  end function isothermalConstructorParameters
 
-  !# <calculationResetTask>
-  !# <unitName>Cooling_Radius_Isothermal_Reset</unitName>
-  !# </calculationResetTask>
-  subroutine Cooling_Radius_Isothermal_Reset(thisNode)
+  function isothermalConstructorInternal(darkMatterHaloScale_,coolingTimeAvailable_) result(self)
+    !% Internal constructor for the isothermal cooling radius class.
+    use ISO_Varying_String
+    use Galacticus_Error
+    use Array_Utilities
+    use String_Handling
+    use Abundances_Structure
+    use Chemical_Abundances_Structure
+    implicit none
+    type (coolingRadiusIsothermal  )                        :: self
+    class(darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
+    class(coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
+    !# <constructorAssign variables="*darkMatterHaloScale_, *coolingTimeAvailable_"/>
+    
+    ! Initial state of stored solutions.
+    self%radiusComputed          =.false.
+    self%radiusGrowthRateComputed=.false.
+    ! Get a count of the number of abundances and chemicals properties.
+    self%abundancesCount=Abundances_Property_Count()
+    self%chemicalsCount =Chemicals_Property_Count ()
+    ! Check that required components are gettable.
+    if     (                                                                                                                       &
+         &  .not.(                                                                                                                 &
+         &         defaultHotHaloComponent%       massIsGettable() .and.                                                           &
+         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                           &
+         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                           &
+         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                                 &
+         &       )                                                                                                                 &
+         & ) call Galacticus_Error_Report                                                                                          &
+         & (                                                                                                                       &
+         &  'isothermalConstructorInternal'                                                                                      , &
+         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                                &
+         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                                &
+         &  Galacticus_Component_List(                                                                                             &
+         &                            'hotHalo'                                                                                  , &
+         &                             defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )  &
+         &                            .intersection.                                                                               &
+         &                             defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )  &
+         &                            .intersection.                                                                               &
+         &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )  &
+         &                            .intersection.                                                                               &
+         &                             defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)  &
+         &                           )                                                                                             &
+         & )
+    return
+  end function isothermalConstructorInternal
+  
+  subroutine isothermalDestructor(self)
+    !% Destructor for the isothermal cooling radius class.
+    implicit none
+    type(coolingRadiusIsothermal), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%coolingTimeAvailable_"/>
+    return
+  end subroutine isothermalDestructor
+
+  subroutine isothermalCalculationReset(self,node)
     !% Reset the cooling radius calculation.
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    class(coolingRadiusIsothermal), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
 
-    coolingRadiusComputed          =.false.
-    coolingRadiusGrowthRateComputed=.false.
-    lastUniqueID                   =thisNode%uniqueID()
-
-    ! Ensure the radiation structure is defined to be null.
-    if (.not.radiation%isDefined()) call radiation%define([radiationTypeNull])
+    self%radiusComputed          =.false.
+    self%radiusGrowthRateComputed=.false.
+    self%lastUniqueID            =node%uniqueID()
     return
-  end subroutine Cooling_Radius_Isothermal_Reset
+  end subroutine isothermalCalculationReset
 
-  double precision function Cooling_Radius_Growth_Rate_Isothermal(thisNode)
-    !% Return the growth rate of the cooling radius in the ``isothermal'' model in Mpc/Gyr.
+  double precision function isothermalRadiusGrowthRate(self,node)
+    !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     use Dark_Matter_Halo_Scales
-    use Cooling_Times_Available
     implicit none
-    type            (treeNode                 ), intent(inout) :: thisNode
-    class           (darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
-    class           (coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
-    double precision                                           :: coolingRadius        , virialRadius
+    class           (coolingRadiusIsothermal), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                                         :: radiusCooling, radiusVirial
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
 
     ! Check if cooling radius growth rate is already computed.
-    if (.not.coolingRadiusGrowthRateComputed) then
-       ! Flag that cooling radius is now computed.
-       coolingRadiusGrowthRateComputed=.true.
-
-       ! Get the cooling radius.
-       coolingRadius=Cooling_Radius_Isothermal(thisNode)
-
+    if (.not.self%radiusGrowthRateComputed) then
+      ! Get the cooling radius.
+       radiusCooling=self                     %      radius(node)
        ! Get the virial radius.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       virialRadius=darkMatterHaloScale_%virialRadius(thisNode)
-
+       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
        ! Check if cooling radius has reached virial radius.
-       if (coolingRadius >= virialRadius) then
-          coolingRadiusGrowthRateStored=0.0d0
+       if (radiusCooling >= radiusVirial) then
+          self%radiusGrowthRateStored=0.0d0
        else
           ! Compute the growth rate of the cooling radius.
-          coolingTimeAvailable_ => coolingTimeAvailable()
-          coolingRadiusGrowthRateStored=+0.5d0                                                     &
-               &                        *coolingRadius                                             &
-               &                        *coolingTimeAvailable_%timeAvailableIncreaseRate(thisNode) &
-               &                        /coolingTimeAvailable_%timeAvailable            (thisNode)
+          self%radiusGrowthRateStored=+0.5d0                                                      &
+               &                      *radiusCooling                                              &
+               &                      *self%coolingTimeAvailable_%timeAvailableIncreaseRate(node) &
+               &                      /self%coolingTimeAvailable_%timeAvailable            (node)
        end if
+       ! Flag that cooling radius is now computed.
+       self%radiusGrowthRateComputed=.true.
     end if
     ! Return the stored value.
-    Cooling_Radius_Growth_Rate_Isothermal=coolingRadiusGrowthRateStored
+    isothermalRadiusGrowthRate=self%radiusGrowthRateStored
     return
-  end function Cooling_Radius_Growth_Rate_Isothermal
+  end function isothermalRadiusGrowthRate
 
-  double precision function Cooling_Radius_Isothermal(thisNode)
+  double precision function isothermalRadius(self,node)
     !% Return the cooling radius in the isothermal model.
-    use Dark_Matter_Halo_Scales
-    use Cooling_Times_Available
+    use Radiation_Structure
+    use Abundances_Structure
+    use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     use Cooling_Times
     use Hot_Halo_Mass_Distributions
-    use Hot_Halo_Temperature_Profiles
+    use Hot_Halo_Temperature_Profiles    
     implicit none
-    type            (treeNode                      ), intent(inout), target :: thisNode
-    class           (nodeComponentHotHalo          ), pointer               :: thisHotHaloComponent
-    class           (hotHaloMassDistributionClass  ), pointer               :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass      ), pointer               :: darkMatterHaloScale_
-    class           (hotHaloTemperatureProfileClass), pointer               :: hotHaloTemperatureProfile_
-    class           (coolingTimeAvailableClass     ), pointer               :: coolingTimeAvailable_
-    double precision                                                        :: coolingTime                   , timeAvailable   , &
-         &                                                                     density                       , massToDensityConversion, &
-         &                                                                     temperature                   , virialRadius
+    class           (coolingRadiusIsothermal       ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), target  :: node
+    class           (nodeComponentHotHalo          )               , pointer :: hotHalo
+    class           (hotHaloMassDistributionClass  )               , pointer :: hotHaloMassDistribution_
+    class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
+    double precision                                                         :: coolingTime               , timeAvailable          , &
+         &                                                                      density                   , massToDensityConversion, &
+         &                                                                      temperature               , radiusVirial
+    type            (abundances                    )                         :: hotAbundances
+    type            (chemicalAbundances            )                         :: chemicalDensities         , chemicalMasses
+    type            (radiationStructure            )                         :: radiation
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
-
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if cooling radius is already computed.
-    if (.not.coolingRadiusComputed) then
-       ! Flag that cooling radius is now computed.
-       coolingRadiusComputed=.true.
-
-       ! Get the time available for cooling in thisNode.
-       coolingTimeAvailable_ => coolingTimeAvailable               (        )
-       timeAvailable         =  coolingTimeAvailable_%timeAvailable(thisNode)
-
-       ! Get the hot halo component.
-       thisHotHaloComponent       => thisNode%hotHalo         ()
-       darkMatterHaloScale_       => darkMatterHaloScale      ()
+    if (.not.self%radiusComputed) then
+       ! Get required objects.
        hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
-
+       hotHaloMassDistribution_   => hotHaloMassDistribution  ()
+       ! Get the time available for cooling in node.
+       timeAvailable                   =  self%coolingTimeAvailable_%timeAvailable(node)
        ! Get the abundances for this node.
-       hotAbundances=thisHotHaloComponent%abundances()
-       call hotAbundances%massToMassFraction(thisHotHaloComponent%mass())
-
+       hotHalo                         => node    %hotHalo  ()
+       hotAbundances                   =  hotHalo%abundances()
+       call hotAbundances%massToMassFraction(hotHalo%mass())
        ! Get the chemicals for this node.
-       if (chemicalsCount > 0) then
-          chemicalMasses=thisHotHaloComponent%chemicals()
+       if (self%chemicalsCount > 0) then
+          chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(thisNode))
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
        end if
-
        ! Set the radiation field.
-       call radiation%set(thisNode)
-
+       call radiation%set(node)
        ! Get the virial radius.
-       virialRadius=darkMatterHaloScale_%virialRadius(thisNode)
-
+       radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
        ! Compute density, temperature and abundances.
-       defaultHotHaloMassDistribution => hotHaloMassDistribution                   (                     )
-       density                        =  defaultHotHaloMassDistribution%density    (thisNode,virialRadius)
-       temperature                    =  hotHaloTemperatureProfile_    %temperature(thisNode,virialRadius)
-
+       density     =hotHaloMassDistribution_  %density    (node,radiusVirial)
+       temperature =hotHaloTemperatureProfile_%temperature(node,radiusVirial)
        ! Compute the cooling time at the virial radius.
        coolingTime=Cooling_Time(temperature,density,hotAbundances,chemicalDensities,radiation)
-
        if (coolingTime < timeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
-          coolingRadiusStored=virialRadius
+          self%radiusStored=radiusVirial
        else
           ! Cooling radius is between zero and virial radii.
-          coolingRadiusStored=virialRadius*sqrt(timeAvailable/coolingTime)
+          self%radiusStored=radiusVirial*sqrt(timeAvailable/coolingTime)
        end if
+       ! Flag that cooling radius is now computed.
+       self%radiusComputed=.true.
     end if
-    Cooling_Radius_Isothermal=coolingRadiusStored
+    isothermalRadius=self%radiusStored
     return
-  end function Cooling_Radius_Isothermal
-
-end module Cooling_Radii_Isothermal
+  end function isothermalRadius

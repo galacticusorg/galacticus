@@ -225,20 +225,21 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                                          )           , intent(inout), pointer :: thisNode
-    logical                                                                        , intent(in   )          :: odeConverged
-    logical                                                                        , intent(inout)          :: interrupt
-    procedure       (interruptTask                      )           , intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentBlackHole                            )                          , pointer :: thisBlackHoleComponent
-    class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent
-    class           (nodeComponentHotHalo                              )                          , pointer :: thisHotHaloComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    logical                                   , intent(in   )          :: odeConverged
+    logical                                   , intent(inout)          :: interrupt
+    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentBlackHole  )               , pointer :: thisBlackHoleComponent
+    class           (nodeComponentSpheroid   )               , pointer :: thisSpheroidComponent
+    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                    , parameter                         :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision                                                    , parameter                         :: coolingRadiusFractionalTransitionMaximum=1.0d0
-    double precision                                                                                        :: coolingRadiusFractional                       , couplingEfficiency   , &
-         &                                                                                                     energyInputRate                               , heatingRate          , &
-         &                                                                                                     massAccretionRate                             , restMassAccretionRate, &
-         &                                                                                                     x
+    class           (coolingRadiusClass      )               , pointer :: coolingRadius_
+    double precision                          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
+    double precision                          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
+    double precision                                                   :: coolingRadiusFractional                       , couplingEfficiency   , &
+         &                                                                energyInputRate                               , heatingRate          , &
+         &                                                                massAccretionRate                             , restMassAccretionRate, &
+         &                                                                x
     !GCC$ attributes unused :: odeConverged
     
     if (defaultBlackHoleComponent%simpleIsActive()) then
@@ -276,7 +277,9 @@ contains
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
              darkMatterHaloScale_ => darkMatterHaloScale()
-             coolingRadiusFractional=Cooling_Radius(thisNode)/darkMatterHaloScale_%virialRadius(thisNode)
+             coolingRadius_       => coolingRadius      ()
+             coolingRadiusFractional=+coolingRadius_      %      radius(thisNode) &
+                  &                  /darkMatterHaloScale_%virialRadius(thisNode)
              if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
                 couplingEfficiency=1.0d0
              else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then

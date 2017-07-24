@@ -54,24 +54,28 @@ contains
     implicit none
     type            (treeNode                ), intent(inout) :: thisNode
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    double precision                                          :: coolingRadius         , freefallRadius, &
+    class           (coolingRadiusClass      ), pointer       :: coolingRadius_
+    double precision                                          :: radiusCooling         , freefallRadius, &
          &                                                       virialRadius
     logical                                                   :: infallIsCoolingLimited
 
-    ! Get the virial radius.
+    ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
+    coolingRadius_       => coolingRadius      ()
+
+    ! Get the virial radius.
     virialRadius  =darkMatterHaloScale_%virialRadius(thisNode)
 
     ! Get the cooling radius.
-    coolingRadius =Cooling_Radius                (thisNode)
+    radiusCooling =coolingRadius_      %radius      (thisNode)
 
     ! Get the freefall radius.
-    freefallRadius=Freefall_Radius               (thisNode)
+    freefallRadius=Freefall_Radius                  (thisNode)
 
     ! Compute the infall radius as the smaller of the cooling and freefall radii.
-    infallIsCoolingLimited=(coolingRadius < freefallRadius)
+    infallIsCoolingLimited=(radiusCooling < freefallRadius)
     if (infallIsCoolingLimited) then
-       Infall_Radius_Cooling_Freefall=coolingRadius
+       Infall_Radius_Cooling_Freefall=radiusCooling
     else
        Infall_Radius_Cooling_Freefall=freefallRadius
     end if
@@ -87,24 +91,28 @@ contains
     implicit none
     type            (treeNode                ), intent(inout) :: thisNode
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    double precision                                          :: coolingRadius         , freefallRadius, &
+    class           (coolingRadiusClass      ), pointer       :: coolingRadius_
+    double precision                                          :: radiusCooling         , freefallRadius, &
          &                                                       virialRadius
     logical                                                   :: infallIsCoolingLimited
 
-    ! Get the virial radius.
+    ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
+    coolingRadius_       => coolingRadius      ()
+    
+    ! Get the virial radius.
     virialRadius  =darkMatterHaloScale_%virialRadius(thisNode)
-
+    
     ! Get the cooling radius.
-    coolingRadius =Cooling_Radius                (thisNode)
+    radiusCooling =coolingRadius_      %radius      (thisNode)
 
     ! Get the freefall radius.
-    freefallRadius=Freefall_Radius               (thisNode)
+    freefallRadius=Freefall_Radius                  (thisNode)
 
     ! Compute the infall radius as the smaller of the cooling and freefall radii.
-    infallIsCoolingLimited=(coolingRadius < freefallRadius)
+    infallIsCoolingLimited=(radiusCooling < freefallRadius)
     if (infallIsCoolingLimited) then
-       Infall_Radius_Growth_Rate_Cooling_Freefall=Cooling_Radius_Growth_Rate (thisNode)
+       Infall_Radius_Growth_Rate_Cooling_Freefall=coolingRadius_%radius      (thisNode)
     else
        Infall_Radius_Growth_Rate_Cooling_Freefall=Freefall_Radius_Growth_Rate(thisNode)
     end if
