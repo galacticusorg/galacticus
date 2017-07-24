@@ -26,13 +26,12 @@
   !#  <description>  
   !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
   !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
-  !#   {\normalfont \ttfamily mergerTree\textlessthan\ N\textgreaterthan} where {\normalfont \ttfamily \textlessthan\
-  !#   N\textgreaterthan} is the tree index. Within each such merger tree group datasets giving the node index (``{\normalfont
-  !#   \ttfamily nodeIndex}''), time (``{\normalfont \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''),
-  !#   expansion factor (``{\normalfont \ttfamily nodeExpansionFactor}'') are written. Optionally, datasets giving the spin
-  !#   parameter (``{\normalfont \ttfamily nodeSpin}'') and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are
-  !#   included if {\normalfont \ttfamily [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to
-  !#   {\normalfont \ttfamily true}.  
+  !#   {\normalfont \ttfamily mergerTree\textless\ N\textgreater} where {\normalfont \ttfamily \textless\ N\textgreater} is the
+  !#   tree index. Within each such merger tree group datasets giving the node index (``{\normalfont \ttfamily nodeIndex}''), time
+  !#   (``{\normalfont \ttfamily nodeTime}''), basic mass (``{\normalfont \ttfamily nodeMass}''), expansion factor (``{\normalfont
+  !#   \ttfamily nodeExpansionFactor}'') are written. Optionally, datasets giving the spin parameter (``{\normalfont \ttfamily
+  !#   nodeSpin}'') and its vector components (``{\normalfont \ttfamily nodeSpinVector}'') are included if {\normalfont \ttfamily
+  !#   [includeSpin]} and {\normalfont \ttfamily [includeSpinVector]} respectively are set to {\normalfont \ttfamily true}.
   !# </description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMassAccretionHistory
