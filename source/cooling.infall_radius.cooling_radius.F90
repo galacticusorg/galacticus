@@ -49,9 +49,11 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type (treeNode          ), intent(inout) :: thisNode
+    class(coolingRadiusClass), pointer       :: coolingRadius_
 
-    Infall_Radius_Cooling_Radius=Cooling_Radius(thisNode)
+    coolingRadius_ => coolingRadius()
+    Infall_Radius_Cooling_Radius=coolingRadius_%radius(thisNode)
     return
   end function Infall_Radius_Cooling_Radius
 
@@ -60,9 +62,11 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    Infall_Radius_Growth_Rate_Cooling_Radius=Cooling_Radius_Growth_Rate(thisNode)
+    type (treeNode          ), intent(inout) :: thisNode
+    class(coolingRadiusClass), pointer       :: coolingRadius_
+    
+    coolingRadius_ => coolingRadius()
+    Infall_Radius_Growth_Rate_Cooling_Radius=coolingRadius_%radiusGrowthRate(thisNode)
     return
   end function Infall_Radius_Growth_Rate_Cooling_Radius
 
