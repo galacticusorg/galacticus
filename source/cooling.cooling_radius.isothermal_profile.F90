@@ -24,8 +24,12 @@
   use Cooling_Times_Available
 
   !# <coolingRadius name="coolingRadiusIsothermal" defaultThreadPrivate="yes">
-  !#  <description>A cooling radius class for isothermal halos, assuming collisional ionization equilibrium such that cooling
-  !# time scales as inverse density.</description>
+  !#  <description>
+  !#   A cooling radius class for isothermal halos. Computes the cooling radius by assuming that the hot gas density profile is an
+  !#   isothermal profile ($\rho(r) \propto r^{-2}$), and that the cooling rate scales as density squared, $\dot{E}\propto
+  !#   \rho^2$, such that the cooling time scales as inverse density, $t_{\mathrm cool} \propto \rho^{-1}$. Consequently, the
+  !#   cooling radius grows as the square root of the time available for cooling.
+  !#  </description>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusIsothermal
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available

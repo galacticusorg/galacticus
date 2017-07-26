@@ -24,7 +24,12 @@
   use Hot_Halo_Temperature_Profiles
 
   !# <coolingRadius name="coolingRadiusSimple" defaultThreadPrivate="yes">
-  !#  <description>A cooling radius class in which the cooling radius is defined as the radius at which the cooling time equals the time available for cooling.</description>
+  !#  <description>
+  !#   A cooling radius class Computes the cooling radius by seeking the radius at which the time available for cooling equals the
+  !#   cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence
+  !#   of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the
+  !#   cooling time is a monotonic function of radius.
+  !#  </description>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusSimple
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
