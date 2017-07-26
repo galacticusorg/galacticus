@@ -923,12 +923,12 @@ contains
     if (argumentSqrt <= 0.0d0) then
        particulateSmoothingIntegrandZ=0.0d0
     else
-       radiusMaximum=sqrt(argumentSqrt)
+       radiusMaximum    =sqrt(argumentSqrt)
+       particulateHeight=     height
        select case (particulateSofteningKernel)
        case (particulateKernelGadget )
           radiusMaximum=min(radiusMaximum,sqrt(+(2.8d0*particulateLengthSoftening)**2-particulateHeight**2))
        end select
-       particulateHeight             =height
        particulateSmoothingIntegrandZ=Integrate(                                                   &
             &                                                     +0.0d0                         , &
             &                                                     +radiusMaximum                 , &
