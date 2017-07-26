@@ -763,49 +763,6 @@ Currently defined tree timing methods are:
  \item [{\normalfont \ttfamily Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
 \end{description}
 
-\subsubsection{Cooling Radius}
-
-Additional methods for cooling radius calculations can be added using the {\normalfont \ttfamily coolingRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
-\begin{verbatim}
- !# <coolingRadiusMethod>
- !#  <unitName>Cooling_Radius_Simple_Initialize</unitName>
- !# </coolingRadiusMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Cooling\_Radius\_Simple\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: coolingRadiusMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
-    
-    if (coolingRadiusMethod == 'myMethod') then
-       Cooling_Radius_Get => My_Method_Get_Procedure
-       Cooling_Radius_Growth_Rate_Get => My_Method_Growth_Rate_Get_Procedure
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily coolingRadiusMethod} input parameter. The procedure pointer {\normalfont \ttfamily Cooling\_Radius\_Get} must be set to point to a function which returns the cooling function as described below while {\normalfont \ttfamily Cooling\_Radius\_Growth\_Rate\_Get} should be set to point to a function which returns the rate at which the cooling radius is growing. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The cooling radius function must have the form:
-\begin{verbatim}
- double precision function Cooling_Radius_Get(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Cooling_Radius_Get
-\end{verbatim}
-The function must return the cooling radius (in units of Mpc) for {\normalfont \ttfamily thisNode}. The cooling radius growth rate function should have the same template but return the rate at which the cooling radius grows in units of Mpc/Gyr.
-
-Currently defined cooling radius methods are:
-\begin{description}
- \item [\hyperlink{cooling.cooling_radius.simple.F90:cooling_radii_simple:cooling_radius_simple}{{\normalfont \ttfamily simple}}] Computes the cooling radius by seeking the radius at which the time available for cooling equals the cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the cooling time is a monotonic function of radius.
- \item [\hyperlink{cooling.cooling_radius.isothermal_profile.F90:cooling_radii_isothermal:cooling_radius_isothermal}{{\normalfont \ttfamily isothermal}}] Computes the cooling radius by assuming that the hot gas density profile is an isothermal profile ($\rho(r) \propto r^{-2}$), and that the cooling rate scales as density squared, $\dot{E}\propto \rho^2$, such that the cooling time scales as inverse density, $t_{\mathrm cool} \propto \rho^{-1}$. Consequently, the cooling radius grows as the square root of the time available for cooling.
-\end{description}
-
 \subsubsection{Cooling: Freefall Radius}
 
 Additional methods for freefall radius in cooling calculations can be added using the {\normalfont \ttfamily freefallRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
@@ -931,50 +888,6 @@ Currently defined specific angular momentum of cooling gas methods are:
 \begin{description}
  \item [\hyperlink{cooling.specific_angular_momentum.constant_rotation.F90:cooling_specific_angular_momenta_constant_rotation:cooling_specific_angular_momentum_constant_rotation}{{\normalfont \ttfamily constantRotation}}] Computes the specific angular momentum of the cooling gas based on the cooling radius, mean specific angular momentum and the assumption of a constant mean rotation speed in the cooling gas as a function of radius.
  \item [\hyperlink{cooling.specific_angular_momentum.mean.F90:cooling_specific_angular_momenta_mean:cooling_specific_angular_momentum_mean}{{\normalfont \ttfamily mean}}] Assumes that the specific angular momentum of the cooling gas always equals the mean specific angular momentum of the hot halo.
-\end{description}
-
-\subsubsection{Cooling Time Available}
-
-Additional methods for the time available for cooling can be added using the {\normalfont \ttfamily coolingTimeAvailableMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily White-Frenk} method is described by a directive:
-\begin{verbatim}
- !# <coolingTimeAvailableMethod>
- !#  <unitName>Cooling_Time_Available_WF_Initialize</unitName>
- !# </coolingTimeAvailableMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Cooling\_Time\_Available\_WF\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(coolingTimeAvailableMethod,Cooling_Time_Available_Get&
-       &,Cooling_Time_Available_Increase_Rate_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: coolingTimeAvailableMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
-    
-    if (coolingTimeAvailableMethod == 'myMethod') then
-      Cooling_Time_Available_Get               => My_Method_Get
-      Cooling_Time_Available_Increase_Rate_Get => My_Method_Increase_Rate_Get
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily coolingTimeAvailableMethod} input parameter. The procedure pointers {\normalfont \ttfamily Cooling\_Time\_Available\_Get} and {\normalfont \ttfamily Cooling\_Time\_Available\_Increase\_Rate\_Get} must be set to point to functions which return the time available for cooling and the rate of increase of this time respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The cooling time available functions must have the form:
-\begin{verbatim}
- double precision function Cooling_Time_Available_Get(thisNode)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Cooling_Time_Available_Get
-\end{verbatim}
-The first function must return the time available for cooling (in units of Gyr) for {\normalfont \ttfamily thisNode}, while the second must return the rate of increase of this time. 
-
-Currently defined cooling time available methods are:
-\begin{description}
- \item [\hyperlink{cooling.time_available.White-Frenk.F90:cooling_time_available_white_frenk:cooling_time_available_wf}{{\normalfont \ttfamily White-Frenk}}] The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\normalfont \ttfamily [coolingTimeAvailableAgeFactor]};
- \item [\hyperlink{cooling.time_available.halo_formation.F90:cooling_times_available_halo_formation:cooling_time_available_halo_formation}{{\normalfont \ttfamily haloFormation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
 \subsubsection{Cooling Time Available For Freefall}
