@@ -259,12 +259,11 @@ sub SubmitJobs {
 	my $jobID;
 	open(pHndl,"qstat -f|");
 	while ( my $line = <pHndl> ) {
-	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {$jobID = $1};
+	    if ( $line =~ m/^(Job\sId|Job):\s+(\S+)/ ) {$jobID = $2};
 	    if ( $line =~ m/job_state\s*=\s*[RQHE]/ && $jobID ) {
 		$runningPBSJobs{$jobID} = 1;
 		undef($jobID);
 	    }
-
 	}
 	close(pHndl);
 	foreach my $jobID ( keys(%pbsJobs) ) {
@@ -272,30 +271,30 @@ sub SubmitJobs {
 		print "PBS job ".$jobID." has finished.\n";
 		# Call any "on completion" function.
 		if ( exists($pbsJobs{$jobID}->{'onCompletion'}) ) {
-		    my $exitStatus;
-		    my $traceJob = &File::Which::which("tracejob");
-		    my $sacct    = &File::Which::which("sacct"   );
-		    if ( defined($traceJob) ) {
-			open(my $trace,$traceJob." -q -n 100 ".$jobID." |");
-			while ( my $line = <$trace> ) {
-			    if ( $line =~ m/Exit_status=(\d+)/ ) {
-				$exitStatus = $1;
-			    }
-			}
-			close($trace);
-		    } elsif ( defined($sacct) ) {
-			open(my $trace,$sacct." -b -j ".$jobID." |");
-			while ( my $line = <$trace> ) {
-			    my @columns = split(" ",$line);
-			    if ( $columns[0] eq $jobID ) {
-				if ( $columns[2] =~ m/(\d+):\d+/ ) {
+		    my $exitStatus = 0;
+		    if ( exists($pbsJobs{$jobID}->{'tracejob'}) && $pbsJobs{$jobID}->{'tracejob'} eq "yes" ) {
+			my $traceJob = &File::Which::which("tracejob");
+			my $sacct    = &File::Which::which("sacct"   );
+			if ( defined($traceJob) ) {
+			    open(my $trace,$traceJob." -n 100 ".$jobID." |");
+			    while ( my $line = <$trace> ) {
+				if ( $line =~ m/Exit_status=(\d+)/ ) {
 				    $exitStatus = $1;
 				}
 			    }
+			    close($trace);
+			} elsif ( defined($sacct) ) {
+			    open(my $trace,$sacct." -b -j ".$jobID." |");
+			    while ( my $line = <$trace> ) {
+				my @columns = split(" ",$line);
+				if ( $columns[0] eq $jobID ) {
+				    if ( $columns[2] =~ m/(\d+):\d+/ ) {
+					$exitStatus = $1;
+				    }
+				}
+			    }
+			    close($trace);
 			}
-			close($trace);
-		    } else {
-			$exitStatus = 0;		    
 		    }
 		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@pbsStack);
 		}
@@ -315,21 +314,28 @@ sub SubmitJobs {
 		    last;
 		}
 		# Create the batch script.
-		my $ppn   = exists($newJob->{'ppn'  }) ? $newJob->{'ppn'  } : 1;
-		my $nodes = exists($newJob->{'nodes'}) ? $newJob->{'nodes'} : 1;
+		my $resourceModel = exists($newJob->{'resourceModel'}) ? $newJob->{'resourceModel'} : "nodes";
+		my $ppn           = exists($newJob->{'ppn'          }) ? $newJob->{'ppn'          } : 1      ;
+		my $nodes         = exists($newJob->{'nodes'        }) ? $newJob->{'nodes'        } : 1      ;
 		open(my $scriptFile,">".$newJob->{'launchFile'});
 		print $scriptFile "#!/bin/bash\n";
 		print $scriptFile "#PBS -N ".$newJob->{'label'}."\n";
 		print $scriptFile "#PBS -l walltime=".$newJob->{'walltime'}."\n"
-		    if ( exists($newJob->{'wallTime'}) );
-		print $scriptFile "#PBS -l mem=".$newJob->{'mem'}."\n"
-		    if ( exists($newJob->{'mem'}) );
+		    if ( exists($newJob->{'walltime'}) );
 		if ( exists($arguments{'queue'}) ) {
 		    print $scriptFile "#PBS -q ".$arguments{'queue'}."\n";
 		} elsif ( exists($pbsConfig->{'queue'}) ) {
 		    print $scriptFile "#PBS -q ".$pbsConfig->{'queue'}."\n";
 		}
-		print $scriptFile "#PBS -l nodes=".$nodes.":ppn=".$ppn."\n";
+		if ( $resourceModel eq "nodes" ) {
+		    print $scriptFile "#PBS -l nodes=".$nodes.":ppn=".$ppn.(exists($newJob->{'model'}) && defined($newJob->{'model'}) ? ":model=".$newJob->{'model'} : "")."\n";
+		    print $scriptFile "#PBS -l mem=".$newJob->{'mem'}."\n"
+			if ( exists($newJob->{'mem'}) );
+		} elsif ( $resourceModel eq "select" ) {
+		    print $scriptFile "#PBS -l select=".$nodes.":ncpus=".$ppn.(exists($newJob->{'model'}) && defined($newJob->{'model'}) ? ":model=".$newJob->{'model'} : "")."\n";
+		} else {
+		    die("Galacticus::Launch::PBS::SubmitJobs: unknown resource model");
+		}
 		print $scriptFile "#PBS -j oe\n";
 		print $scriptFile "#PBS -o ".$newJob->{'logFile'}."\n";
 		print $scriptFile "#PBS -V\n";
