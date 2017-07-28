@@ -38,7 +38,8 @@
      logical                                             :: satelliteOffset     , nonCosmological               , &
           &                                                 positionOffset      , addHubbleFlow                 , &
           &                                                 haloIdToParticleType, sampleParticleNumber
-     integer                                             :: selection           , kernelSoftening
+     integer                                             :: selection           , kernelSoftening               , &
+          &                                                 chunkSize
      integer         (kind_int8               )          :: idMultiplier
    contains
      final     ::            particulateDestructor
@@ -225,13 +226,22 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>chunkSize</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>-1</defaultValue>
+    !#   <variable>particulateConstructorParameters%chunkSize</variable>
+    !#   <description>HDF5 dataset chunk size.</description>
+    !#   <type>integer</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="particulateConstructorParameters%cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="particulateConstructorParameters%cosmologyFunctions_"  source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,lengthSoftening,cosmologyParameters_,cosmologyFunctions_)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_)
     !% Internal constructor for the particulate merger tree operator class.
     use Galacticus_Error
     implicit none
@@ -243,7 +253,7 @@ contains
     logical                                        , intent(in   )         :: satelliteOffset               , nonCosmological               , &
          &                                                                    positionOffset                , addHubbleFlow                 , &
          &                                                                    haloIdToParticleType          , sampleParticleNumber
-    integer                                        , intent(in   )         :: selection
+    integer                                        , intent(in   )         :: selection                     , chunkSize
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
 
@@ -263,6 +273,7 @@ contains
     particulateConstructorInternal%lengthSoftening                =  lengthSoftening
     particulateConstructorInternal%haloIdToParticleType           =  haloIdToParticleType
     particulateConstructorInternal%sampleParticleNumber           =  sampleParticleNumber
+    particulateConstructorInternal%chunkSize                      =  chunkSize
     particulateConstructorInternal%cosmologyParameters_           => cosmologyParameters_  
     particulateConstructorInternal%cosmologyFunctions_            => cosmologyFunctions_
    return
@@ -622,10 +633,10 @@ contains
              else
                 particleIDs=particleIDs+particleCounts(typeIndex)
              end if
-             particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos')
-             call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=.true.,appendDimension=2)
-             call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=.true.,appendDimension=2)
-             call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=.true.                  )
+             particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
+             call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
+             call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
+             call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
              call particleGroup%close()
              call deallocateArray(particlePosition)
              call deallocateArray(particleVelocity)
