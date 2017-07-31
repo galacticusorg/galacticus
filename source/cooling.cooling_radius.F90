@@ -27,6 +27,7 @@ module Cooling_Radii
   !#  <descriptiveName>Cooling radii.</descriptiveName>
   !#  <description>Class providing models of the cooling radius for gas in the hot atmosphere surrounding a galaxy.</description>
   !#  <default>simple</default>
+  !#  <calculationReset>yes</calculationReset>
   !#  <method name="radius" >
   !#   <description>Returns the cooling radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
   !#   <type>double precision</type>
