@@ -41,12 +41,13 @@
      class           (darkMatterHaloScaleClass ), pointer                     :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileClass   ), pointer                     :: darkMatterProfile_    => null()
      double precision                                                         :: massParticle                      , time
+     logical                                                                  :: fixedPoint
      integer                                                                  :: particleCountMinimum
      integer                                                                  :: spinCount                         , massCount
      double precision                                                         :: spinMinimum                       , spinMaximum, &
           &                                                                      massMinimum                       , massMaximum, &
           &                                                                      massDelta                         , spinDelta  , &
-          &                                                                      energyEstimateParticleCountMaximum
+          &                                                                      energyEstimateParticleCountMaximum, spinFixed
      double precision                           , allocatable, dimension(:  ) :: massWeight
      double precision                           , allocatable, dimension(:,:) :: distributionTable
    contains
@@ -65,11 +66,12 @@
      !@     <description>Tabulate the spin distribution as a fuction of spin and halo mass. Ensure that the table spans the {\normalfont \ttfamily massRequired} and {\normalfont \ttfamily spinRequireed} if provided.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                         nbodyErrorsDestructor
-     procedure :: sample               => nbodyErrorsSample
-     procedure :: distribution         => nbodyErrorsDistribution
-     procedure :: distributionAveraged => nbodyErrorsDistributionAveraged
-     procedure :: tabulate             => nbodyErrorsTabulate
+     final     ::                           nbodyErrorsDestructor
+     procedure :: sample                 => nbodyErrorsSample
+     procedure :: distribution           => nbodyErrorsDistribution
+     procedure :: distributionFixedPoint => nbodyErrorsDistributionFixedPoint
+     procedure :: distributionAveraged   => nbodyErrorsDistributionAveraged
+     procedure :: tabulate               => nbodyErrorsTabulate
   end type haloSpinDistributionNbodyErrors
 
   interface haloSpinDistributionNbodyErrors
@@ -193,27 +195,29 @@ contains
     nbodyErrorsConstructorInternal%energyEstimateParticleCountMaximum  =  energyEstimateParticleCountMaximum
     nbodyErrorsConstructorInternal%time                                =  time
     ! Set default ranges of spin and mass for tabulation.
+    nbodyErrorsConstructorInternal%fixedPoint =.false.
     nbodyErrorsConstructorInternal%spinMinimum=nbodyErrorsSpinMinimum
     nbodyErrorsConstructorInternal%spinMaximum=nbodyErrorsSpinMaximum
     nbodyErrorsConstructorInternal%massMinimum=nbodyErrorsMassMinimum
     nbodyErrorsConstructorInternal%massMaximum=nbodyErrorsMassMaximum
-    ! Tabulate the distribution function.
-    call nbodyErrorsConstructorInternal%tabulate()
     return
   end function nbodyErrorsConstructorInternal
 
-  subroutine nbodyErrorsTabulate(self,massRequired,spinRequired)
+  subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasured)
     !% Tabulate the halo spin distribution.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
     use               Memory_Management
     use               Galacticus_Nodes
+    use               Galacticus_Error
     use               Numerical_Constants_Math
     use               Galacticus_Calculations_Resets
     use               Dark_Matter_Profile_Scales
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
-    double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired
+    double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
+         &                                                                        massFixed                           , spinFixed                  , &
+         &                                                                        spinFixedMeasured
     type            (treeNode                       ), pointer                 :: node
     class           (nodeComponentBasic             ), pointer                 :: nodeBasic
     class           (nodeComponentSpin              ), pointer                 :: nodeSpin
@@ -223,7 +227,7 @@ contains
          &                                                                        integrandFunctionMassSpin           , integrandFunctionProduct
     type            (fgsl_integration_workspace     )                          :: integrationWorkspaceMass            , integrationWorkspaceSpin   , &
          &                                                                        integrationWorkspaceMassSpin        , integrationWorkspaceProduct
-    logical                                                                    :: retabulate
+    logical                                                                    :: retabulate                          , fixedPoint
     integer                                                                    :: iSpin                               , iMass
     double precision                                                           :: spinMeasured                        , massMeasured               , &
          &                                                                        densityRatioInternalToSurface       , massError                  , &
@@ -236,21 +240,60 @@ contains
          &                                                                        energyEstimateErrorCorrection       , massAverage                , &
          &                                                                        massSpinAverage
     
+    ! Validate optional parameter combinations.
+    if     (          (present(massRequired).or. present(spinRequired))                                                                      &
+         &  .and.                                                                                                                            &
+         &       .not.(present(massRequired).and.present(spinRequired))                                                                      &
+         & ) call Galacticus_Error_Report('nbodyErrorsTabulate','both massRequired and spinRequired must be provided if either is provided')
+    if     (          (present(massFixed   ).or. present(spinFixed   ))                                                                      &
+         &  .and.                                                                                                                            &
+         &       .not.(present(massFixed   ).and.present(spinFixed   ))                                                                      &
+         & ) call Galacticus_Error_Report('nbodyErrorsTabulate','both massFixed and spinFixed  must be provided if either is provided')
+    if     (                                                                                                                                 &
+         &             present(massRequired).and.present(massFixed   )                                                                       &
+         & ) call Galacticus_Error_Report('nbodyErrorsTabulate','either required or fixed points must be specified - not both')
+    fixedPoint=present(massFixed)
     ! Determine if the tabulation needs to be rebuilt.
     if (allocated(self%distributionTable)) then
-       retabulate=.false.
-       if (present(massRequired)) then
-          retabulate=massRequired < self%massMinimum .or. massRequired > self%massMaximum
-          if (retabulate) then
-             self%massMinimum=min(self%massMinimum,0.5d0*massRequired)
-             self%massMaximum=max(self%massMaximum,2.0d0*massRequired)
+       if (fixedPoint) then
+          retabulate=.not.self%fixedPoint
+          if (self%massMinimum /= massFixed) then
+             retabulate      =.true.
+             self%massMinimum=massFixed
           end if
-       end if
-       if (present(spinRequired)) then
-          retabulate=spinRequired < self%spinMinimum .or. spinRequired > self%spinMaximum
+          if (self%spinFixed /= spinFixed) then
+             retabulate      =.true.
+             self%spinFixed  =spinFixed
+          end if
           if (retabulate) then
-             self%spinMinimum=min(self%spinMinimum,0.5d0*spinRequired)
-             self%spinMaximum=max(self%spinMaximum,2.0d0*spinRequired)
+             self%spinMinimum=min(self%spinMinimum,0.5d0*spinFixed)
+             self%spinMaximum=max(self%spinMaximum,2.0d0*spinFixed)
+          end if
+          if (present(spinFixedMeasured)) then
+             if (spinFixedMeasured < self%spinMinimum) then
+                retabulate      =.true.
+                self%spinMinimum=0.5d0*spinFixedMeasured
+             end if
+             if (spinFixedMeasured > self%spinMaximum) then
+                retabulate      =.true.
+                self%spinMaximum=2.0d0*spinFixedMeasured
+             end if
+          end if
+       else
+          retabulate=self%fixedPoint
+          if (present(massRequired)) then
+             retabulate=massRequired < self%massMinimum .or. massRequired > self%massMaximum
+             if (retabulate) then
+                self%massMinimum=min(self%massMinimum,0.5d0*massRequired)
+                self%massMaximum=max(self%massMaximum,2.0d0*massRequired)
+             end if
+          end if
+          if (present(spinRequired)) then
+             retabulate=spinRequired < self%spinMinimum .or. spinRequired > self%spinMaximum
+             if (retabulate) then
+                self%spinMinimum=min(self%spinMinimum,0.5d0*spinRequired)
+                self%spinMaximum=max(self%spinMaximum,2.0d0*spinRequired)
+             end if
           end if
        end if
        if (retabulate)  call deallocateArray(self%distributionTable)
@@ -258,11 +301,18 @@ contains
        retabulate=.true.
     end if
     if (.not.retabulate) return
+    self%fixedPoint=fixedPoint
     ! Allocate array for the distribution.
-    self%massCount=int(log10(self%massMaximum/self%massMinimum)*dble(nbodyErrorsMassPointsPerDecade))+1
-    self%spinCount=int(log10(self%spinMaximum/self%spinMinimum)*dble(nbodyErrorsSpinPointsPerDecade))+1
-    self%massDelta=    log10(self%massMaximum/self%massMinimum)/dble(self%massCount-1)
-    self%spinDelta=    log10(self%spinMaximum/self%spinMinimum)/dble(self%spinCount-1)
+    if (self%fixedPoint) then
+       ! For a fixed point distribution we tabulate at a single mass.
+       self%massCount=    1
+       self%massDelta=    0.0d0
+    else
+       self%massCount=int(log10(self%massMaximum/self%massMinimum)*dble(nbodyErrorsMassPointsPerDecade))+1
+       self%massDelta=    log10(self%massMaximum/self%massMinimum)/dble(self%massCount-1)
+    end if
+    self   %spinCount=int(log10(self%spinMaximum/self%spinMinimum)*dble(nbodyErrorsSpinPointsPerDecade))+1
+    self   %spinDelta=    log10(self%spinMaximum/self%spinMinimum)/dble(self%spinCount-1)
     call allocateArray(self%distributionTable,[self%massCount,self%spinCount])
     ! Build a work node.
     node                  => treeNode                  (                 )
@@ -310,33 +360,42 @@ contains
             &          +massIntegrationRange           &
             &          *massError
        ! Integrate the normalizing factor over halo mass.
-       massAverage=Integrate(                                  &
-               &             massMinimum                     , &
-               &             massMaximum                     , &
-               &             massIntegral                    , &
-               &             integrandFunctionMass           , &
-               &             integrationWorkspaceMass        , &
-               &             toleranceAbsolute       =1.0d-30, &
-               &             toleranceRelative       =1.0d-03  &
-               &            )
-       call Integrate_Done(integrandFunctionMass,integrationWorkspaceMass)
+       if (self%fixedPoint) then
+          massAverage=1.0d0
+       else
+          massAverage=Integrate(                                  &
+               &                massMinimum                     , &
+               &                massMaximum                     , &
+               &                massIntegral                    , &
+               &                integrandFunctionMass           , &
+               &                integrationWorkspaceMass        , &
+               &                toleranceAbsolute       =1.0d-30, &
+               &                toleranceRelative       =1.0d-03  &
+               &               )
+          call Integrate_Done(integrandFunctionMass,integrationWorkspaceMass)
+       end if
        do iSpin=1,self%spinCount
           ! Evaluate the spin at this grid point - this corresponds to the measured spin in the N-body simulation.
           spinMeasured=10.0d0**(dble(iSpin-1)*self%spinDelta+log10(self%spinMinimum))      
-          ! Integrate over the intrinsic spin distribution to find the measured distribution at this measureed mass and
-          ! spin.
-          massSpinAverage=Integrate(                                      &
-               &                    massMinimum                         , &
-               &                    massMaximum                         , &
-               &                    massSpinIntegral                    , &
-               &                    integrandFunctionMassSpin           , &
-               &                    integrationWorkspaceMassSpin        , &
-               &                    toleranceAbsolute           =1.0d-30, &
-               &                    toleranceRelative           =1.0d-03  &
-               &                   )
-          self%distributionTable(iMass,iSpin)=+massSpinAverage &
-               &                              /massAverage
-          call Integrate_Done(integrandFunctionMassSpin,integrationWorkspaceMassSpin)
+          ! Compute the distribution at the current value of mass and spin.
+          if (self%fixedPoint) then
+             self%distributionTable(iMass,iSpin)=massSpinIntegral(massMeasured)
+          else
+             ! Integrate over the intrinsic spin distribution to find the measured distribution at this measured mass and
+             ! spin.
+             massSpinAverage=Integrate(                                      &
+                  &                    massMinimum                         , &
+                  &                    massMaximum                         , &
+                  &                    massSpinIntegral                    , &
+                  &                    integrandFunctionMassSpin           , &
+                  &                    integrationWorkspaceMassSpin        , &
+                  &                    toleranceAbsolute           =1.0d-30, &
+                  &                    toleranceRelative           =1.0d-03  &
+                  &                   )
+             self%distributionTable(iMass,iSpin)=+massSpinAverage &
+                  &                              /massAverage
+             call Integrate_Done(integrandFunctionMassSpin,integrationWorkspaceMassSpin)
+          end if
        end do
     end do
     ! Clean up our work node.
@@ -391,8 +450,12 @@ contains
            &                                             labelSpin
       type            (inputParameters)               :: descriptor
       
-      ! Evaluate the halo mass part of the integrand.
-      massSpinIntegral             =massIntegral(massIntrinsic)
+      ! Evaluate the halo mass part of the integrand, unless evaluating the distribution at a fixed point.
+      if (self%fixedPoint) then
+         massSpinIntegral          =1.0d0
+      else
+         massSpinIntegral          =massIntegral(massIntrinsic)
+      end if
       ! Compute the particle number.
       particleNumber               =massIntrinsic /self%massParticle
       ! Evaluate the root-variance of the spin-independent error term which arises from the random walk in angular momentum
@@ -413,74 +476,79 @@ contains
            &                        /Pi                    &
            &                        /radiusHalo        **3 &
            &                        /densityOuterRadius
-      ! Evaluate an esimtate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
-      ! integration.
-      call nodeSpin%spinSet(spinMeasured)
-      call Galacticus_Calculations_Reset(node)
-      scaleAbsolute=self%distributionIntrinsic%distribution(node)
-      ! Evaluate the integral over the spin distribution. We integrate from ±ασ around the measured spin, with σ being the larger
-      ! of the expected spin-independent and spin-dependent errors, and α a parameter typically set to 10.
-      errorMaximum  =max(                                    &
-           &             errorSpinIndependent              , &
-           &             errorsSpinDependent (spinMeasured)  &
-           &            )
-      logSpinMinimum=log(                       &
-           &             max(                   &
-           &                 +self%spinMinimum, &
-           &                 +spinMeasured      &
-           &                 -rangeIntegration  &
-           &                 *errorMaximum      &
-           &                )                   &
-           &            )
-      logSpinMaximum=log(                       &
-           &             min(                   &
-           &                 +self%spinMaximum, &
-           &                 +spinMeasured      &
-           &                 +rangeIntegration  &
-           &                 *errorMaximum      &
-           &                )                   &
-           &            )
-      errorStatus=errorStatusFail
-      tolerance  =1.0d-4
-      do while (tolerance < 1.0d0 .and. errorStatus /= errorStatusSuccess)
-         tolerance       =+10.0d0                                                  &
-              &           *tolerance
-         massSpinIntegral=+massSpinIntegral                                        &
-              &           *Integrate(                                              &
-              &                      logSpinMinimum                              , &
-              &                      logSpinMaximum                              , &
-              &                      spinIntegral                                , &
-              &                      integrandFunctionSpin                       , &
-              &                      integrationWorkspaceSpin                    , &
-              &                      toleranceAbsolute       =1.0d-9*spinMeasured, &
-              &                      toleranceRelative       =tolerance          , &
-              &                      errorStatus             =errorStatus          &
-              &                    )                                               & 
-              &           /2.0d0                                                   & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
-              &           /Pi                                                      & !    outside of integrand since constant. Each contributes √(2π).
-              &           *2.0d0                                                   & ! <= Factor 2 appears due to change of variables from λ² to λ in the non-central χ² distribution.
-              &           /errorSpinIndependent1D**2                                 ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
-         call Integrate_Done(integrandFunctionSpin,integrationWorkspaceSpin)
-         if (errorStatus /= errorStatusSuccess) then
-            write (label    ,'(e8.1)') tolerance
-            write (labelMass,'(i4)'  ) iMass
-            write (labelSpin,'(i4)'  ) iSpin
-            descriptor=inputParameters()
-            call self%distributionIntrinsic%descriptor(descriptor)
-            call Galacticus_Warn(                                                                                            &
-                 &               'WARNING: failed to reach required tolerance ['                                          // &
-                 &               trim(label    )                                                                          // &
-                 &               '] in massSpinIntegral [iMass,iSpin='                                                    // &
-                 &               trim(labelMass)                                                                          // &
-                 &               ','                                                                                      // &
-                 &               trim(labelSpin)                                                                          // &
-                 &               '] - report on intrinsic spin distribution follows - reattempting with reduced tolerance'// &
-                 &               char(10)                                                                                 // &
-                 &               descriptor%serializeToString()                                                              &
+      ! Evaluate the distribution.
+      if (self%fixedPoint) then
+         massSpinIntegral=spinErrorIntegral(spinFixed)
+      else
+         ! Evaluate an esimtate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
+         ! integration.
+         call nodeSpin%spinSet(spinMeasured)
+         call Galacticus_Calculations_Reset(node)
+         scaleAbsolute=self%distributionIntrinsic%distribution(node)
+         ! Evaluate the integral over the spin distribution. We integrate from ±ασ around the measured spin, with σ being the larger
+         ! of the expected spin-independent and spin-dependent errors, and α a parameter typically set to 10.
+         errorMaximum  =max(                                    &
+              &             errorSpinIndependent              , &
+              &             errorsSpinDependent (spinMeasured)  &
+              &            )
+         logSpinMinimum=log(                       &
+              &             max(                   &
+              &                 +self%spinMinimum, &
+              &                 +spinMeasured      &
+              &                 -rangeIntegration  &
+              &                 *errorMaximum      &
+              &                )                   &
+              &            )
+         logSpinMaximum=log(                       &
+              &             min(                   &
+              &                 +self%spinMaximum, &
+              &                 +spinMeasured      &
+              &                 +rangeIntegration  &
+              &                 *errorMaximum      &
+              &                )                   &
+              &            )
+         errorStatus=errorStatusFail
+         tolerance  =1.0d-4
+         do while (tolerance < 1.0d0 .and. errorStatus /= errorStatusSuccess)
+            tolerance       =+10.0d0                                                  &
+                 &           *tolerance
+            massSpinIntegral=+massSpinIntegral                                        &
+                 &           *Integrate(                                              &
+                 &                      logSpinMinimum                              , &
+                 &                      logSpinMaximum                              , &
+                 &                      spinIntegral                                , &
+                 &                      integrandFunctionSpin                       , &
+                 &                      integrationWorkspaceSpin                    , &
+                 &                      toleranceAbsolute       =1.0d-9*spinMeasured, &
+                 &                      toleranceRelative       =tolerance          , &
+                 &                      errorStatus             =errorStatus          &
+                 &                    )                                               & 
+                 &           /2.0d0                                                   & ! <= Partial combined normalization term for the lognormal and non-central chi-square distributions - brought
+                 &           /Pi                                                      & !    outside of integrand since constant. Each contributes √(2π).
+                 &           *2.0d0                                                   & ! <= Factor 2 appears due to change of variables from λ² to λ in the non-central χ² distribution.
+                 &           /errorSpinIndependent1D**2                                 ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
+            call Integrate_Done(integrandFunctionSpin,integrationWorkspaceSpin)
+            if (errorStatus /= errorStatusSuccess) then
+               write (label    ,'(e8.1)') tolerance
+               write (labelMass,'(i4)'  ) iMass
+               write (labelSpin,'(i4)'  ) iSpin
+               descriptor=inputParameters()
+               call self%distributionIntrinsic%descriptor(descriptor)
+               call Galacticus_Warn(                                                                                            &
+                    &               'WARNING: failed to reach required tolerance ['                                          // &
+                    &               trim(label    )                                                                          // &
+                    &               '] in massSpinIntegral [iMass,iSpin='                                                    // &
+                    &               trim(labelMass)                                                                          // &
+                    &               ','                                                                                      // &
+                    &               trim(labelSpin)                                                                          // &
+                    &               '] - report on intrinsic spin distribution follows - reattempting with reduced tolerance'// &
+                    &               char(10)                                                                                 // &
+                    &               descriptor%serializeToString()                                                              &
                  &              )
-            if (tolerance >= 1.0d0) call Galacticus_Error_Report('massSpinIntegral','integral failed to reach any tolerance')
-         end if
-      end do
+               if (tolerance >= 1.0d0) call Galacticus_Error_Report('massSpinIntegral','integral failed to reach any tolerance')
+            end if
+         end do
+      end if
       return
     end function massSpinIntegral
 
@@ -488,22 +556,35 @@ contains
       !% Integral over the intrinsic spin distribution, and spin error distribution.
       implicit none
       double precision, intent(in   ) :: logSpinIntrinsic
-      double precision, parameter     :: logNormalMean                      =1.0000d0  ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
-                                                                                       ! measurement, so the mean is unity.
-      double precision, parameter     :: rangeIntegration                   =1.0000d1  ! Integration range (in ~σ - the width of each distribution).
-      double precision                :: spinIntrinsic                               , logSpinMinimum                             , &
-           &                             logSpinMaximum                              , nonCentralChiSquaredMode                   , &
-           &                             nonCentralChiSquaredModeLogarithmic         , nonCentralChiSquaredRootVarianceLogarithmic
-      
+      double precision                :: spinIntrinsic
+
       ! Compute intrinsic spin.
       spinIntrinsic=exp(logSpinIntrinsic)
       ! Set the intrinsic spin.
       call nodeSpin%spinSet(spinIntrinsic)
       call Galacticus_Calculations_Reset(node)
+      ! Compute the integrand.      
+      spinIntegral=+self%distributionIntrinsic%distribution(node         ) & ! Weight by the intrinsic spin distribution.
+           &       *spinIntrinsic                                          & ! Multiply by spin since our integration variable is log(spin).
+           &       *spinErrorIntegral                      (spinIntrinsic)   ! Multiply by the integral over the product distribution of spin-dependent and spin-independent errors.
+      return
+    end function spinIntegral
+
+    double precision function spinErrorIntegral(spinIntrinsic)
+      !% Integral over the spin error distribution.
+      implicit none
+      double precision, intent(in   ) :: spinIntrinsic
+      double precision, parameter     :: logNormalMean                              =1.0000d0  ! Mean of the log-normal distribution of mass/energy errors. We assume an unbiased
+                                                                                               ! measurement, so the mean is unity.
+      double precision, parameter     :: rangeIntegration                           =1.0000d1  ! Integration range (in ~σ - the width of each distribution).
+      double precision                :: logSpinMinimum                                      , logSpinMaximum                     , &
+           &                             nonCentralChiSquaredMode                            , nonCentralChiSquaredModeLogarithmic, &
+           &                             nonCentralChiSquaredRootVarianceLogarithmic
+      
       ! Evaluate the root-variance of the spin-dependent error term which arises from errors in the measurement of mass and
       ! energy.
       errorSpinDependent=errorsSpinDependent(spinIntrinsic)
-      ! Evaluate non-centraility parameter of the non-central χ-square distribution used to model the spin-independent
+      ! Evaluate non-centrality parameter of the non-central χ-square distribution used to model the spin-independent
       ! (i.e. random walk in angular momentum space) part of the measured spin distribution.
       nonCentrality=(                        &
            &         +spinIntrinsic          &
@@ -543,22 +624,20 @@ contains
            &             nonCentralChiSquaredModeLogarithmic-logNormalLogMean+rangeIntegration*logNormalWidth                               &
            &            )
       ! Evaluate the integrand.
-      spinIntegral=+self%distributionIntrinsic%distribution(node)             & ! Weight by the intrinsic spin distribution.
-           &       *spinIntrinsic                                             & ! Multiply by spin since our integration variable is log(spin).
-           &       *Integrate(                                                & ! Multiply by the integral which gives us the product distribution
-           &                  logSpinMinimum                                , & ! of log-normal and non-central χ-square distributions.
-           &                  logSpinMaximum                                , &
-           &                  productDistributionIntegral                   , &
-           &                  integrandFunctionProduct                      , &
-           &                  integrationWorkspaceProduct                   , &
-           &                  toleranceAbsolute       =+1.0d-9*spinIntrinsic, &
-           &                  toleranceRelative       =+1.0d-3               &
-           &                 )                                                & 
-           &       /logNormalWidth                                            & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
-           &       /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
+      spinErrorIntegral=+Integrate(                                                & ! Multiply by the integral which gives us the product distribution
+           &                       logSpinMinimum                                , & ! of log-normal and non-central χ-square distributions.
+           &                       logSpinMaximum                                , &
+           &                       productDistributionIntegral                   , &
+           &                       integrandFunctionProduct                      , &
+           &                       integrationWorkspaceProduct                   , &
+           &                       toleranceAbsolute       =+1.0d-9*spinIntrinsic, &
+           &                       toleranceRelative       =+1.0d-3                &
+           &                      )                                                & 
+           &            /logNormalWidth                                            & ! <= Partial normalization term for the lognormal distribution - brought outside of integrand since constant.
+           &            /sqrt(nonCentrality)                                         ! <= Partial normalization term for the non-central chi-square distribution - brought outside of integrand since constant.
       call Integrate_Done(integrandFunctionProduct,integrationWorkspaceProduct)
       return
-    end function spinIntegral
+    end function spinErrorIntegral
 
     double precision function productDistributionIntegral(logSpinUnscaled)
       !% Product distribution integrand.
@@ -684,8 +763,8 @@ contains
     !% Sample from the halo spin distribution.
     use Galacticus_Error
     implicit none
-    class(haloSpinDistributionNbodyErrors), intent(inout)          :: self
-    type (treeNode                       ), intent(inout), pointer :: node
+    class(haloSpinDistributionNbodyErrors), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
 
     nbodyErrorsSample=0.0d0
@@ -697,14 +776,14 @@ contains
     !% Compute the spin distribution.
     use Galacticus_Nodes
     implicit none
-    class           (haloSpinDistributionNbodyErrors), intent(inout)          :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    class           (nodeComponentBasic             )               , pointer :: nodeBasic
-    class           (nodeComponentSpin              )               , pointer :: nodeSpin
-    double precision                                                          :: mass     , spin , &
-         &                                                                       hMass    , hSpin
-    integer                                                                      iMass    , iSpin, &
-         &                                                                       jMass    , jSpin
+    class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    class           (nodeComponentBasic             ), pointer       :: nodeBasic
+    class           (nodeComponentSpin              ), pointer       :: nodeSpin
+    double precision                                                 :: mass     , spin , &
+         &                                                              hMass    , hSpin
+    integer                                                             iMass    , iSpin, &
+         &                                                              jMass    , jSpin
 
     ! Extract the mass and spin of the halo.
     nodeBasic => node     %basic()
@@ -712,7 +791,7 @@ contains
     mass      =  nodeBasic%mass ()
     spin      =  nodeSpin %spin ()
     ! Ensure the table has sufficient extent.
-    call self%tabulate(mass,spin)
+    call self%tabulate(massRequired=mass,spinRequired=spin)
     ! Find the interpolating factors.
     hMass=log10(mass/self%massMinimum)/self%massDelta
     hSpin=log10(spin/self%spinMinimum)/self%spinDelta
@@ -730,19 +809,50 @@ contains
     return
   end function nbodyErrorsDistribution
 
+  double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured)
+    !% Compute the spin distribution for a fixed point in intrinsic mass and spin.
+    use Galacticus_Nodes
+    implicit none
+    class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: spinMeasured
+    class           (nodeComponentBasic             ), pointer       :: nodeBasic
+    class           (nodeComponentSpin              ), pointer       :: nodeSpin
+    double precision                                                 :: spin        , hSpin, &
+         &                                                              mass
+    integer                                                             iSpin       , jSpin
+
+    ! Extract the mass and spin of the halo.
+    nodeBasic => node     %basic()
+    nodeSpin  => node     %spin ()
+    mass      =  nodeBasic%mass ()
+    spin      =  nodeSpin %spin ()
+    ! Ensure the table has sufficient extent.
+    call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasured=spinMeasured)
+    ! Find the interpolating factors.
+    hSpin=log10(spinMeasured/self%spinMinimum)/self%spinDelta
+    iSpin=int(hSpin)+1
+    hSpin=hSpin-dble(iSpin-1)
+    jSpin=min(iSpin+1,self%spinCount)
+    ! Perform the interpolation.
+    nbodyErrorsDistributionFixedPoint=+self%distributionTable(1,iSpin)*(1.0d0-hSpin) &
+         &                            +self%distributionTable(1,jSpin)*       hSpin
+    return
+  end function nbodyErrorsDistributionFixedPoint
+
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
     !% Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
     use Galacticus_Nodes
     use Galacticus_Calculations_Resets
     implicit none
-    class           (haloSpinDistributionNbodyErrors), intent(inout)          :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    double precision                                 , intent(in   )          :: massLimit
-    class           (nodeComponentBasic             )               , pointer :: nodeBasic
-    double precision                                                          :: mass     , massOriginal, &
-         &                                                                       massLow  , massHigh    , &
-         &                                                                       weight   , weightTotal
-    integer                                                                   :: iMass
+    class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: massLimit
+    class           (nodeComponentBasic             ), pointer       :: nodeBasic
+    double precision                                                 :: mass     , massOriginal, &
+         &                                                              massLow  , massHigh    , &
+         &                                                              weight   , weightTotal
+    integer                                                          :: iMass
     
     ! Sum the spin distribution over all tabulated points in mass, weighting by the number of halos in that mass range.
     nodeBasic                       => node     %basic()

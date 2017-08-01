@@ -151,8 +151,8 @@ contains
     use Pseudo_Random
     use Galacticus_Error
     implicit none
-    class(haloSpinDistributionBett2007), intent(inout)          :: self
-    type (treeNode                    ), intent(inout), pointer :: node
+    class(haloSpinDistributionBett2007), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
 
     if (self%isInvertible) then
        bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%sample())
@@ -167,9 +167,9 @@ contains
     !% Compute the spin parameter distribution for the given {\normalfont \ttfamily node} assuming the fitting function of
     !% \cite{bett_spin_2007}.
     implicit none
-    class(haloSpinDistributionBett2007), intent(inout)          :: self
-    type (treeNode                    ), intent(inout), pointer :: node
-    class(nodeComponentSpin           )               , pointer :: spin
+    class(haloSpinDistributionBett2007), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    class(nodeComponentSpin           ), pointer       :: spin
 
     spin                 => node%spin()
     bett2007Distribution =  +self%normalization         &

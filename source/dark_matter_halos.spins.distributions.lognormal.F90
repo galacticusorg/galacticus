@@ -110,8 +110,8 @@ contains
     !% \ttfamily node}.
     use Gaussian_Random
     implicit none
-    class(haloSpinDistributionLogNormal), intent(inout)          :: self
-    type (treeNode                     ), intent(inout), pointer :: node
+    class(haloSpinDistributionLogNormal), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
     !GCC$ attributes unused :: node
 
     logNormalSample=exp(                                               &
@@ -130,9 +130,9 @@ contains
     !% assuming a log-normal distribution.
     use Numerical_Constants_Math
     implicit none
-    class(haloSpinDistributionLogNormal), intent(inout)          :: self
-    type (treeNode                     ), intent(inout), pointer :: node
-    class(nodeComponentSpin            )               , pointer :: spin
+    class(haloSpinDistributionLogNormal), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+    class(nodeComponentSpin            ), pointer       :: spin
 
     spin                  => node%spin()
     logNormalDistribution =  +exp(                    &

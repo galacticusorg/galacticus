@@ -91,8 +91,8 @@ contains
     !% Sample from a $\delta$-function spin parameter distribution for the given {\normalfont
     !% \ttfamily node}.
     implicit none
-    class(haloSpinDistributionDeltaFunction), intent(inout)          :: self
-    type (treeNode                         ), intent(inout), pointer :: node
+    class(haloSpinDistributionDeltaFunction), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: node
     
     deltaFunctionSample=self%spin
@@ -103,8 +103,8 @@ contains
     !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}.
     use Galacticus_Error
     implicit none
-    class(haloSpinDistributionDeltaFunction), intent(inout)          :: self
-    type (treeNode                         ), intent(inout), pointer :: node
+    class(haloSpinDistributionDeltaFunction), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
     
     deltaFunctionDistribution=0.0d0
