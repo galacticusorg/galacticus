@@ -56,14 +56,14 @@ program Test_Dark_Matter_Profiles
   ! Initialize node components.
   call Node_Components_Initialize(                                 )
   ! Create a node.
-  node                      => treeNode                                    (                 )
+  node                      => treeNode                                    (                                )
   ! Create components.
-  basic                     => node                    %basic              (autoCreate=.true.)
-  dmProfile                 => node                    %darkMatterProfile  (autoCreate=.true.)
+  basic                     => node                    %basic              (autoCreate=.true.               )
+  dmProfile                 => node                    %darkMatterProfile  (autoCreate=.true.               )
   ! Get required objects.
-  cosmologyFunctions_       => cosmologyFunctions                          (                 )
-  darkMatterHaloScale_      => darkMatterHaloScale                         (                 )
-  darkMatterProfileBurkert_ =  darkMatterProfileBurkert                    (                 )
+  cosmologyFunctions_       => cosmologyFunctions                          (                                )
+  darkMatterHaloScale_      => darkMatterHaloScale                         (                                )
+  darkMatterProfileBurkert_ =  darkMatterProfileBurkert                    (            darkMatterHaloScale_)
   ! Set properties.
   call basic%timeSet     (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%massSet     (massVirial                           )

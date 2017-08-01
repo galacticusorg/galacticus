@@ -344,6 +344,10 @@ my @executablesToRun = (
     {
 	name     => "tests.accretion_disks.exe",                                          # Tests of accretion disks.
 	valgrind => 0
+    },
+    {
+	name     => "tests.dark_matter_profiles.exe",                                     # Tests of dark matter profiles.
+	valgrind => 0
     }
     );
 
