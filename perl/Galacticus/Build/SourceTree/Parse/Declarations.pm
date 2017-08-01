@@ -43,6 +43,7 @@ sub Parse_Declarations {
 			my $type;
 			($type         = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\((.*)\)/$1/
 			    if ( $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}] );
+			my $openMP = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'openmp'}] ? 1 : 0;
 			my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
 			$attributesText =~ s/^\s*,\s*//
 			    if  ( $attributesText );
@@ -51,6 +52,7 @@ sub Parse_Declarations {
 			$declaration = {
 			    intrinsic  => $intrinsic  ,
 			    type       => $type       ,
+			    openMP     => $openMP     ,
 			    attributes => \@attributes,
 			    variables  => \@variables 
 			};
@@ -131,7 +133,10 @@ sub BuildDeclarations {
     my $node =   shift() ;
     $node->{'firstChild'}->{'content'} = "";
     foreach ( @{$node->{'declarations'}} ) {
-	my $declarationCode  = "  ".$_->{'intrinsic'};
+	my $declarationCode  = "  ";
+	$declarationCode    .= "!\$ "
+	    if ( exists($_->{'openMP'}) && $_->{'openMP'} );
+	$declarationCode    .= $_->{'intrinsic'};
 	$declarationCode    .= "(".$_->{'type'}.")"
 	    if ( exists($_->{'type'}) && $_->{'type'} );
 	$declarationCode    .= ", ".join(", ",@{$_->{'attributes'}})
@@ -253,7 +258,7 @@ sub GetDeclaration {
     }
     die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration: no declarations present'       )
 	unless ( $declarationsFound );
-    die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration: variable declaration not found')
+    die('Galacticus::Build::SourceTree::Process::Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration: variable declaration for "'.$variableName.'" not found in node "'.$node->{'opener'}.'"')
 	unless ( $declarationFound  );
     return $declarationFound;
 }
