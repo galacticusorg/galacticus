@@ -35,13 +35,13 @@ module Halo_Spin_Distributions
   !#   <description>Samples a spin parameter from the distribution for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="distribution" >
   !#   <description>Return the spin distribution function, $p(\lambda)$, for the given {\normalfont \ttfamily node}. It is assumed that {\normalfont \ttfamily node} provides the value of the spin at which the distribution function should be evaluated.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
 
