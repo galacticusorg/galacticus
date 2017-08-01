@@ -378,22 +378,25 @@ contains
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
     !% Implement a volumeFunction1D output analysis.
     implicit none
-    class           (outputAnalysisVolumeFunction1D), intent(inout)                                                               :: self
-    type            (treeNode                      ), intent(inout)                                                               :: node
-    integer         (c_size_t                      ), intent(in   )                                                               :: iOutput
-    double precision                                , dimension(-self%bufferCount+1:self%binCount+self%bufferCount              ) :: distribution
-    double precision                                , dimension(                    self%binCount                 ,self%binCount) :: covariance
-    class           (nodeComponentBasic            ), pointer                                                                     :: basic
-    double precision                                                                                                              :: propertyValue         , weightValue, &
-         &                                                                                                                           propertyValueIntrinsic
-    integer                                                                                                                       :: propertyType
-    integer         (c_size_t                      )                                                                              :: j                     , k          , &
-         &                                                                                                                           indexHaloMass
+    class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
+    type            (treeNode                      ), intent(inout)                 :: node
+    integer         (c_size_t                      ), intent(in   )                 :: iOutput
+    double precision                                , allocatable  , dimension(:  ) :: distribution
+    double precision                                , allocatable  , dimension(:,:) :: covariance
+    class           (nodeComponentBasic            ), pointer                       :: basic
+    double precision                                                                :: propertyValue         , weightValue, &
+         &                                                                             propertyValueIntrinsic
+    integer                                                                         :: propertyType
+    integer         (c_size_t                      )                                :: j                     , k          , &
+         &                                                                             indexHaloMass
     
     ! If weights for this output are all zero, we can skip analysis.
     if (all(self%outputWeight(:,iOutput) == 0.0d0)) return
     ! Filter this node.
     if (.not.self%galacticFilter_%passes(node)) return
+    ! Allocate work arrays.
+    allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount              ))
+    allocate(covariance  (                    self%binCount                 ,self%binCount))
     ! Extract the property from the node.
     propertyType          =self%outputAnalysisPropertyExtractor_%type   (    )
     propertyValue         =self%outputAnalysisPropertyExtractor_%extract(node)
@@ -444,6 +447,9 @@ contains
             & +             covariance
        !$ call OMP_Unset_Lock(self%accumulateLock)
     end if
+    ! Deallocate workspace.
+    deallocate(distribution)
+    deallocate(covariance  )
     return
   end subroutine volumeFunction1DAnalyze
 
