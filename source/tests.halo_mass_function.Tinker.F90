@@ -70,8 +70,8 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Ensure that critical density and critical overdensity for collapse are consistent with values used in our input file to
   ! Tinker's code.
-  call Assert('critical density consistency'                 ,cosmologyParameters_%densityCritical(    )/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2     ,2.7751950000000000d11,relTol=1.0d-6)
-  call Assert('critical overdensity for collapse consistency',criticalOverdensity_   %value          (time),1.6755779626281502d00,relTol=1.0d-6)
+  call Assert('critical density consistency'                 ,cosmologyParameters_%densityCritical(    )/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2,2.7751950000000000d11,relTol=1.0d-6)
+  call Assert('critical overdensity for collapse consistency',criticalOverdensity_%value          (time)                                                           ,1.6755779626281502d00,relTol=1.0d-6)
 
   ! Compute mass function for each reference mass.
   open(newUnit=fUnit,file='testSuite/data/haloMassFunction/tinker.txt',status='old',form='formatted')
