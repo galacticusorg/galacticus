@@ -17,27 +17,28 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.
-
+  
   use FGSL
   use Tables
-  
+  use Cosmology_Functions
+
   !# <virialDensityContrast name="virialDensityContrastPercolation">
   !#  <description>Dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.</description>
   !# </virialDensityContrast>
-
   type, extends(virialDensityContrastClass) :: virialDensityContrastPercolation
      !% A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}.
      private
-     double precision                            :: linkingLength
-     logical                                     :: solving
-     double precision                  , pointer :: densityContrastCurrent
+     double precision                                   :: linkingLength
+     logical                                            :: solving
+     double precision                         , pointer :: densityContrastCurrent
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
      ! Tabulation of density contrast vs. time and mass.
-     double precision                            :: densityContrastTableTimeMinimum, densityContrastTableTimeMaximum                    
-     double precision                            :: densityContrastTableMassMinimum, densityContrastTableMassMaximum                     
-     integer                                     :: densityContrastTableMassCount  , densityContrastTableTimeCount
-     logical                                     :: densityContrastTableInitialized                      
-     type            (table2DLogLogLin)          :: densityContrastTable
-     !$ integer      (omp_lock_kind   )          :: densityContrastTableLock
+     double precision                                   :: densityContrastTableTimeMinimum, densityContrastTableTimeMaximum                    
+     double precision                                   :: densityContrastTableMassMinimum, densityContrastTableMassMaximum                     
+     integer                                            :: densityContrastTableMassCount  , densityContrastTableTimeCount
+     logical                                            :: densityContrastTableInitialized                      
+     type            (table2DLogLogLin       )          :: densityContrastTable
+     !$ integer      (omp_lock_kind          )          :: densityContrastTableLock
    contains
      !@ <objectMethods>
      !@   <object>virialDensityContrastPercolation</object>
@@ -63,73 +64,61 @@
   
   interface virialDensityContrastPercolation
      !% Constructors for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
-     module procedure percolationDefaultConstructor
-     module procedure percolationConstructor
+     module procedure percolationConstructorParameters
+     module procedure percolationConstructorInternal
   end interface virialDensityContrastPercolation
 
-  ! Initialization state.
-  logical                     :: percolationInitialized                            =.false.
-
-  ! Default value of the linking length parameter.
-  double precision            :: virialDensityContrastPercolationLinkingLength
-
   ! Granularity parameters for tabulations.
-  integer         , parameter :: percolationDensityContrastTableTimePointsPerDecade=5
-  integer         , parameter :: percolationDensityContrastTableMassPointsPerDecade=5
+  integer, parameter :: percolationDensityContrastTableTimePointsPerDecade=5
+  integer, parameter :: percolationDensityContrastTableMassPointsPerDecade=5
 
 contains
 
-  function percolationDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
-    use Input_Parameters
+  function percolationConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class that takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type (virialDensityContrastPercolation), target  :: percolationDefaultConstructor
-    
-    if (.not.percolationInitialized) then
-       !$omp critical(virialDensityContrastPercolationInitialize)
-       if (.not.percolationInitialized) then
-          ! Get the linking length to use.
-          !@ <inputParameter>
-          !@   <name>virialDensityContrastPercolationLinkingLength</name>
-          !@   <defaultValue>0.2</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The friends-of-friends linking length to use in computing virial density contrasts with the percolation analysis of \cite{more_overdensity_2011}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("virialDensityContrastPercolationLinkingLength",virialDensityContrastPercolationLinkingLength,defaultValue=0.2d0)          
-          ! Record initialization.
-          percolationInitialized=.true.
-       end if
-       !$omp end critical(virialDensityContrastPercolationInitialize)
-    end if
-    percolationDefaultConstructor=percolationConstructor(virialDensityContrastPercolationLinkingLength)
+    type            (virialDensityContrastPercolation)                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    double precision                                                  :: linkingLength
+
+    !# <inputParameter>
+    !#  <name>linkingLength</name>
+    !#  <source>parameters</source>
+    !#  <defaultValue>0.2d0</defaultValue>
+    !#  <description>The friends-of-friends linking length to use in computing virial density contrasts with the percolation analysis of \cite{more_overdensity_2011}.</description>
+    !#  <type>real</type>
+    !#  <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=virialDensityContrastPercolation(linkingLength,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function percolationDefaultConstructor
+  end function percolationConstructorParameters
 
-  function percolationConstructor(linkingLength)
-    !% Generic constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
+  function percolationConstructorInternal(linkingLength,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
-    type            (virialDensityContrastPercolation), target        :: percolationConstructor
-    double precision                                  , intent(in   ) :: linkingLength
+    type            (virialDensityContrastPercolation), target                :: self
+    double precision                                  , intent(in   )         :: linkingLength
+    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="linkingLength, *cosmologyFunctions_"/>
 
-    allocate(percolationConstructor%densityContrastCurrent)
-    percolationConstructor%densityContrastCurrent=-1.0d0
-    percolationConstructor%solving               =.false.
-    percolationConstructor%linkingLength         =linkingLength
+    allocate(self%densityContrastCurrent)
+    self%densityContrastCurrent=-1.0d0
+    self%solving               =.false.
     ! Initialize tabulations.
-    percolationConstructor%densityContrastTableTimeMinimum= 1.0d-03
-    percolationConstructor%densityContrastTableTimeMaximum=20.0d+00
-    percolationConstructor%densityContrastTableMassMinimum= 4.0d+05
-    percolationConstructor%densityContrastTableMassMaximum= 1.0d+16
-    percolationConstructor%densityContrastTableInitialized=.false.
-    !$ call OMP_Init_Lock(percolationConstructor%densityContrastTableLock)
+    self%densityContrastTableTimeMinimum= 1.0d-03
+    self%densityContrastTableTimeMaximum=20.0d+00
+    self%densityContrastTableMassMinimum= 4.0d+05
+    self%densityContrastTableMassMaximum= 1.0d+16
+    self%densityContrastTableInitialized=.false.
+    !$ call OMP_Init_Lock(self%densityContrastTableLock)
     return
-  end function percolationConstructor
-
+  end function percolationConstructorInternal
+  
   subroutine percolationDestructor(self)
     !% Destructor for the {\normalfont \ttfamily percolation} virial density contrast class.
     use Numerical_Interpolation
@@ -138,6 +127,7 @@ contains
 
     call self%densityContrastTable%destroy()
     !$ call OMP_Destroy_Lock(self%densityContrastTableLock)
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine percolationDestructor
 
@@ -187,7 +177,7 @@ contains
        ! Check if the global table can be used.
        if (makeTable) then
           ! Check if we can use the global tabulation.
-          !$omp critical(virialDensityContrastPercolationGlobal)
+          !$omp critical(virialDensityContrastPercolationGlobal)          
           globalIsSufficient=self%isDefault().and.percolation_%densityContrastTable%isInitialized()
           if (globalIsSufficient)                                                                       &
                & globalIsSufficient=                                                                    &
@@ -290,22 +280,19 @@ contains
   double precision function percolationDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
     use, intrinsic :: ISO_C_Binding
-    use Cosmology_Functions
-    use Numerical_Interpolation
+    use               Numerical_Interpolation
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)            :: self
     double precision                                  , intent(in   )            :: mass
-    double precision                                  , intent(in   ) , optional :: time               , expansionFactor
+    double precision                                  , intent(in   ) , optional :: time      , expansionFactor
     logical                                           , intent(in   ) , optional :: collapsing
-    class           (cosmologyFunctionsClass         ), pointer                  :: cosmologyFunctions_
     double precision                                                             :: timeActual
 
     if (self%solving) then
        percolationDensityContrast=self%densityContrastCurrent
     else
        ! Get the time to use.
-       cosmologyFunctions_ => cosmologyFunctions           (                               )
-       timeActual          =  cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
+       timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
        ! Get a lock on the table.
        !$ call OMP_Set_Lock(self%densityContrastTableLock)
        ! Ensure tabulation is built.
@@ -321,19 +308,16 @@ contains
   double precision function percolationDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
     use, intrinsic :: ISO_C_Binding
-    use Cosmology_Functions
-    use Numerical_Interpolation
+    use               Numerical_Interpolation
     implicit none
     class           (virialDensityContrastPercolation), intent(inout)           :: self
     double precision                                  , intent(in   )           :: mass
-    double precision                                  , intent(in   ), optional :: time               , expansionFactor
+    double precision                                  , intent(in   ), optional :: time      , expansionFactor
     logical                                           , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass         ), pointer                 :: cosmologyFunctions_
     double precision                                                            :: timeActual
 
     ! Get the time to use.
-    cosmologyFunctions_ => cosmologyFunctions           (                               )
-    timeActual          =  cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
+    timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)
     ! Get a lock on the table.
     !$ call OMP_Set_Lock(self%densityContrastTableLock)
     ! Ensure tabulation is built.

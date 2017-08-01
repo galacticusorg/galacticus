@@ -18,14 +18,13 @@
 
   !% An implementation of ``Einasto'' dark matter halo profiles.
 
-  !# <darkMatterProfile name="darkMatterProfileEinasto">
-  !#  <description>``Einasto'' dark matter halo profiles</description>
-  !# </darkMatterProfile>
-
   use Dark_Matter_Halo_Scales
   use Tables
   use Kind_Numbers
 
+  !# <darkMatterProfile name="darkMatterProfileEinasto">
+  !#  <description>``Einasto'' dark matter halo profiles</description>
+  !# </darkMatterProfile>
   type, extends(darkMatterProfileClass) :: darkMatterProfileEinasto
      !% A dark matter halo profile class implementing ``Einasto'' dark matter halos.
      private
@@ -86,7 +85,7 @@
      logical                                                            :: fourierProfileTableAlphaInterpolationReset           , fourierProfileTableConcentrationInterpolationReset      , &
           &                                                                fourierProfileTableWavenumberInterpolationReset      
      ! Pointer to object setting halo scales.
-     class(darkMatterHaloScaleClass    ), pointer                       :: scale
+     class           (darkMatterHaloScaleClass), pointer                :: darkMatterHaloScale_
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileEinasto</object>
@@ -177,8 +176,8 @@
 
   interface darkMatterProfileEinasto
      !% Constructors for the {\normalfont \ttfamily einasto} dark matter halo profile class.
-     module procedure einastoDefaultConstructor
-     module procedure einastoConstructor
+     module procedure einastoConstructorParameters
+     module procedure einastoConstructorInternal
   end interface darkMatterProfileEinasto
 
   ! Granularity parameters for tabulations.
@@ -194,60 +193,63 @@
 
 contains
 
-  function einastoDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
-    use Input_Parameters
+  function einastoConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileEinasto), target :: einastoDefaultConstructor
+    type(darkMatterProfileEinasto )                :: self
+    type (inputParameters         ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
-    einastoDefaultConstructor=einastoConstructor(darkMatterHaloScale())
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=darkMatterProfileEinasto(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function einastoDefaultConstructor
+  end function einastoConstructorParameters
 
-  function einastoConstructor(scale)
-    !% Generic constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+  function einastoConstructorInternal(darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type (darkMatterProfileEinasto), target                    :: einastoConstructor
-    class(darkMatterHaloScaleClass), target                    :: scale
-    type (varying_string          ), allocatable, dimension(:) :: matchingComponentsShape, matchingComponentsScale, &
-         &                                                        matchingComponents
-    
+    type (darkMatterProfileEinasto)                              :: self
+    class(darkMatterHaloScaleClass), intent(in   ), target       :: darkMatterHaloScale_
+    type (varying_string          ), allocatable  , dimension(:) :: matchingComponentsShape, matchingComponentsScale, &
+         &                                                          matchingComponents
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+
     ! Initialize table states.
-    einastoConstructor%angularMomentumTableRadiusMinimum                 = 1.0d-3
-    einastoConstructor%angularMomentumTableRadiusMaximum                 =20.0d+0
-    einastoConstructor%angularMomentumTableAlphaMinimum                  = 0.1d+0
-    einastoConstructor%angularMomentumTableAlphaMaximum                  = 0.3d+0
-    einastoConstructor%angularMomentumTableInitialized                   =.false.
-    einastoConstructor%angularMomentumTableAlphaInterpolationReset       =.true.
-    einastoConstructor%angularMomentumTableRadiusInterpolationReset      =.true.
-    einastoConstructor%freefallRadiusTableRadiusMinimum                  = 1.0d-3
-    einastoConstructor%freefallRadiusTableRadiusMaximum                  =20.0d+0
-    einastoConstructor%freefallRadiusTableAlphaMinimum                   = 0.1d+0
-    einastoConstructor%freefallRadiusTableAlphaMaximum                   = 0.3d+0
-    einastoConstructor%freefallRadiusTableInitialized                    =.false.
-    einastoConstructor%freefallRadiusTableAlphaInterpolationReset        =.true.
-    einastoConstructor%freefallRadiusTableRadiusInterpolationReset       =.true.
-    einastoConstructor%energyTableConcentrationMinimum                   = 2.0d0
-    einastoConstructor%energyTableConcentrationMaximum                   =20.0d0
-    einastoConstructor%energyTableAlphaMinimum                           = 0.1d0
-    einastoConstructor%energyTableAlphaMaximum                           = 0.3d0
-    einastoConstructor%energyTableInitialized                            =.false.
-    einastoConstructor%energyTableAlphaInterpolationReset                =.true.
-    einastoConstructor%energyTableConcentrationInterpolationReset        =.true.
-    einastoConstructor%fourierProfileTableConcentrationMinimum           = 2.0d0
-    einastoConstructor%fourierProfileTableConcentrationMaximum           =20.0d0
-    einastoConstructor%fourierProfileTableWavenumberMinimum              = 1.0d-3
-    einastoConstructor%fourierProfileTableWavenumberMaximum              = 1.0d+3
-    einastoConstructor%fourierProfileTableAlphaMinimum                   = 0.1d+0
-    einastoConstructor%fourierProfileTableAlphaMaximum                   = 0.3d+0
-    einastoConstructor%fourierProfileTableInitialized                    =.false.
-    einastoConstructor%fourierProfileTableAlphaInterpolationReset        =.true.
-    einastoConstructor%fourierProfileTableConcentrationInterpolationReset=.true.
-    einastoConstructor%fourierProfileTableWavenumberInterpolationReset   =.true.
-    ! Store a pointer to the provided scale object.
-    einastoConstructor%scale => scale
+    self%angularMomentumTableRadiusMinimum                 = 1.0d-3
+    self%angularMomentumTableRadiusMaximum                 =20.0d+0
+    self%angularMomentumTableAlphaMinimum                  = 0.1d+0
+    self%angularMomentumTableAlphaMaximum                  = 0.3d+0
+    self%angularMomentumTableInitialized                   =.false.
+    self%angularMomentumTableAlphaInterpolationReset       =.true.
+    self%angularMomentumTableRadiusInterpolationReset      =.true.
+    self%freefallRadiusTableRadiusMinimum                  = 1.0d-3
+    self%freefallRadiusTableRadiusMaximum                  =20.0d+0
+    self%freefallRadiusTableAlphaMinimum                   = 0.1d+0
+    self%freefallRadiusTableAlphaMaximum                   = 0.3d+0
+    self%freefallRadiusTableInitialized                    =.false.
+    self%freefallRadiusTableAlphaInterpolationReset        =.true.
+    self%freefallRadiusTableRadiusInterpolationReset       =.true.
+    self%energyTableConcentrationMinimum                   = 2.0d0
+    self%energyTableConcentrationMaximum                   =20.0d0
+    self%energyTableAlphaMinimum                           = 0.1d0
+    self%energyTableAlphaMaximum                           = 0.3d0
+    self%energyTableInitialized                            =.false.
+    self%energyTableAlphaInterpolationReset                =.true.
+    self%energyTableConcentrationInterpolationReset        =.true.
+    self%fourierProfileTableConcentrationMinimum           = 2.0d0
+    self%fourierProfileTableConcentrationMaximum           =20.0d0
+    self%fourierProfileTableWavenumberMinimum              = 1.0d-3
+    self%fourierProfileTableWavenumberMaximum              = 1.0d+3
+    self%fourierProfileTableAlphaMinimum                   = 0.1d+0
+    self%fourierProfileTableAlphaMaximum                   = 0.3d+0
+    self%fourierProfileTableInitialized                    =.false.
+    self%fourierProfileTableAlphaInterpolationReset        =.true.
+    self%fourierProfileTableConcentrationInterpolationReset=.true.
+    self%fourierProfileTableWavenumberInterpolationReset   =.true.
     ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
     ! a treeNode to process, it should have been initialized by now.
     if     (                                                                                                                 &
@@ -264,7 +266,7 @@ contains
             &                   matchingComponentsScale
        call Galacticus_Error_Report                                                                                     &
             &        (                                                                                                  &
-            &         'einastoConstructor'                                                                            , &
+            &         'einastoConstructorInternal'                                                                    , &
             &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//  &
             &         '"scale" and "shape" properties.'                                                             //  &
             &         Galacticus_Component_List(                                                                        &
@@ -274,7 +276,7 @@ contains
             &        )
     end if
     return
-  end function einastoConstructor
+  end function einastoConstructorInternal
   
   subroutine einastoDestructor(self)
     !% Destructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
@@ -323,17 +325,17 @@ contains
          &                interpolationAccelerator=self%freefallRadiusTableRadiusInterpolationAccelerator       , &
          &                reset                   =self%freefallRadiusTableRadiusInterpolationReset               &
          &               )
-    if (self%scale%isFinalizable()) deallocate(self%scale)
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine einastoDestructor
-  
+
   subroutine einastoCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileEinasto), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
 
-    call self%scale%calculationReset(node)
+    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine einastoCalculationReset
 
@@ -356,7 +358,7 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     einastoDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
          &*basic%mass()/scaleRadius**3
     return
@@ -407,7 +409,7 @@ contains
          &                                                                      alpha              , densityNormalization
 
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%scale%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     ! Get components.
@@ -415,7 +417,7 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *   ((2.0d0/alpha)                    **(3.0d0/alpha)                                ) &
          &               *exp(-2.0d0/alpha                                                                    ) &
@@ -471,7 +473,7 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     einastoEnclosedMass=self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
          &*basic%mass()
     return
@@ -585,7 +587,7 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     einastoPotential=+self%potentialScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &           *gravitationalConstantGalacticus                                                  &
          &           *basic%mass()                                                        &
@@ -762,7 +764,7 @@ contains
     ! Get scale radius, shape and concentration.
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
 
     ! Compute the rotation normalization.
     einastoRotationNormalization=                                                                               &
@@ -799,7 +801,7 @@ contains
     ! Get scale radius, shape parameter and concentration.
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
@@ -820,7 +822,7 @@ contains
 
     ! Scale to dimensionful units.
     einastoEnergy=einastoEnergy*basic%mass() &
-         &*self%scale%virialVelocity(node)**2
+         &*self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function einastoEnergy
 
@@ -848,7 +850,7 @@ contains
     ! Get scale radius, shape parameter and concentration.
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
@@ -874,9 +876,9 @@ contains
     ! Compute the energy growth rate.
     einastoEnergyGrowthRate=self%energy(node)&
          &*(basic%accretionRate()/basic%mass()+2.0d0 &
-         &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
-         &*virialRadiusOverScaleRadius/energy)*(self%scale%virialRadiusGrowthRate(node)&
-         &/self%scale%virialRadius(node)-darkMatterProfile%scaleGrowthRate()&
+         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node)+(energyGradient&
+         &*virialRadiusOverScaleRadius/energy)*(self%darkMatterHaloScale_%virialRadiusGrowthRate(node)&
+         &/self%darkMatterHaloScale_%virialRadius(node)-darkMatterProfile%scaleGrowthRate()&
          &/darkMatterProfile%scale()))
 
     return
@@ -1115,7 +1117,7 @@ contains
     ! Get scale radius, shape parameter and concentration.
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     wavenumberScaleFree        =wavenumber*scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.

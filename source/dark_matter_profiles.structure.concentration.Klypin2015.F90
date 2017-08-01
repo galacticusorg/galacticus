@@ -15,19 +15,23 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-  !% An implementation of dark matter halo profile concentrations using the \cite{klypin_multidark_2014} algorithm.
-
-  use Tables
   
+  !% An implementation of dark matter halo profile concentrations using the \cite{klypin_multidark_2014} algorithm.
+  
+  use Tables
+  use Cosmology_Parameters
+  use Cosmology_Functions
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
      private
-     integer                 :: virialDensityContrast, fittingFunction
-     type   (table1DGeneric) :: fitParameters
+     class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class  (cosmologyParametersClass), pointer :: cosmologyParameters_
+     integer                                    :: virialDensityContrast, fittingFunction
+     type   (table1DGeneric          )          :: fitParameters
    contains
      final     ::                                klypin2015Destructor
      procedure :: concentration               => klypin2015Concentration
@@ -87,13 +91,15 @@
 
 contains
   
-  function klypin2015ConstructorParameters(parameters)
+  function klypin2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
-    type(darkMatterProfileConcentrationKlypin2015)                :: klypin2015ConstructorParameters
-    type(inputParameters                         ), intent(inout) :: parameters
-    type(varying_string                          )                :: sample
+    type (darkMatterProfileConcentrationKlypin2015)                :: self
+    type (inputParameters                         ), intent(inout) :: parameters
+    class(cosmologyParametersClass                ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    type (varying_string                          )                :: sample
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -104,495 +110,499 @@ contains
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Construct the object.
-    klypin2015ConstructorParameters=klypin2015ConstructorInternal(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.))
+    self=darkMatterProfileConcentrationKlypin2015(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function klypin2015ConstructorParameters
   
-  function klypin2015ConstructorInternal(sample)
+  function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
     use Table_Labels
     implicit none
-    type   (darkMatterProfileConcentrationKlypin2015)                :: klypin2015ConstructorInternal
-    integer                                          , intent(in   ) :: sample
-    
+    type   (darkMatterProfileConcentrationKlypin2015)                        :: self
+    integer                                          , intent(in   )         :: sample
+    class  (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+
     select case (sample)
     case (klypin2015SamplePlanck200CritRelaxedMass)
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[7.750d0,6.700d0,6.250d0,5.020d0,4.190d0,3.300d0,3.000d0,2.720d0,2.400d0,2.100d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.000d-1,0.950d-1,0.920d-1,0.880d-1,0.850d-1,0.830d-1,0.800d-1,0.800d-1,0.800d-1,0.800d-1], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[4.500d5,2.000d4,8.000d3,7.800d2,1.600d2,2.700d1,1.400d1,6.800d0,1.600d0,0.300d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanck200CritAllMass    )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[7.400d0,6.250d0,5.650d0,4.300d0,3.530d0,2.700d0,2.420d0,2.200d0,1.920d0,1.650d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.120d0,0.117d0,0.115d0,0.110d0,0.095d0,0.085d0,0.080d0,0.080d0,0.080d0,0.080d0], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[5.500d5,1.000d5,2.000d4,9.000d2,3.000d2,4.200d1,1.700d1,8.500d0,2.000d0,0.300d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanck200CritRelaxedVmax)
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[8.000d0,6.820d0,6.400d0,5.200d0,4.350d0,3.500d0,3.120d0,2.850d0,2.550d0,2.160d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.000d-1,0.950d-1,0.920d-1,0.880d-1,0.850d-1,0.800d-1,0.800d-1,0.800d-1,0.800d-1,0.800d-1], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[2.000d5,9.000d3,4.500d3,6.000d2,1.500d2,2.700d1,1.100d1,5.500d0,1.500d0,0.220d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanck200CritAllVmax    )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[7.750d0,6.500d0,5.950d0,4.550d0,3.680d0,2.750d0,2.500d0,2.250d0,2.050d0,1.760d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.115d0,0.115d0,0.115d0,0.110d0,0.105d0,1.000d-1,0.950d-1,0.900d-1,0.800d-1,0.800d-1], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[5.500d5,1.800d4,6.000d3,6.000d2,1.500d2,2.000d1,1.000d1,5.000d0,1.500d0,0.250d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanckVirialRelaxedMass )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.020d1,7.850d0,7.160d0,5.450d0,4.550d0,3.550d0,3.240d0,2.920d0,2.600d0,2.300d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.100d0,0.095d0,0.092d0,0.088d0,0.085d0,0.080d0,0.080d0,0.080d0,0.080d0,0.080d0], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.000d5,1.200d4,5.500d3,7.000d2,1.800d2,3.000d1,1.500d1,7.000d0,1.900d0,0.360d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanckVirialAllMass     )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[9.750d0,7.250d0,6.500d0,4.750d0,3.800d0,3.000d0,2.650d0,2.420d0,2.100d0,1.860d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.110d0,0.107d0,0.105d0,0.100d0,0.095d0,0.085d0,0.080d0,0.080d0,0.080d0,0.080d0], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[5.000d5,2.200d4,1.000d4,1.000d3,2.100d2,4.300d1,1.800d1,9.000d0,1.900d0,0.420d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanckVirialRelaxedVmax )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.070d1,8.100d0,7.330d0,5.650d0,4.650d0,3.700d0,2.350d0,2.980d0,2.700d0,2.350d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.110d0,0.100d0,0.100d0,0.088d0,0.085d0,0.080d0,0.080d0,0.080d0,0.080d0,0.080d0], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[2.400d4,5.000d3,2.200d3,5.200d2,1.200d2,2.500d1,1.200d1,5.000d0,1.400d0,0.260d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanckVirialAllVmax     )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.350d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0,5.400d0], &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.030d1,7.600d0,6.830d0,4.960d0,3.960d0,3.000d0,2.730d0,2.450d0,2.240d0,2.030d0], &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.115d0,0.115d0,0.115d0,0.110d0,0.105d0,0.100d0,0.095d0,0.090d0,0.080d0,0.080d0], &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[4.800d4,5.000d3,2.700d3,3.900d2,1.100d2,1.800d1,1.000d1,5.000d0,1.400d0,0.360d0], &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SampleWMAP7200CritRelaxedMass  )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[6.900d0,5.700d0,4.550d0,3.750d0,2.900d0,2.600d0,2.400d0,2.200d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.090d0,0.088d0,0.086d0,0.085d0,0.085d0,0.085d0,0.085d0,0.085d0]                , &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[5.500d5,6.000d3,5.000d2,1.000d2,2.000d1,1.000d1,6.000d0,3.000d0]                , &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SampleWMAP7200CritAllMass      )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[6.600d0,5.250d0,3.850d0,3.000d0,2.100d0,1.800d0,1.600d0,1.400d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.110d0,0.105d0,0.103d0,0.097d0,0.095d0,0.095d0,0.095d0,0.095d0]                , &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[2.000d6,6.000d4,8.000d2,1.100d2,1.300d1,6.000d0,3.000d0,1.000d0]                , &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SampleWMAP7200CritRelaxedVmax  )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[7.200d0,5.900d0,4.700d0,3.850d0,3.000d0,2.700d0,2.500d0,2.300d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.090d0,0.088d0,0.086d0,0.085d0,0.085d0,0.085d0,0.085d0,0.085d0]                , &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[2.000d5,4.000d3,4.000d2,8.000d1,1.300d1,7.000d0,3.500d0,2.000d0]                , &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SampleWMAP7VirialRelaxedMass   )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[9.500d0,6.750d0,5.000d0,4.050d0,3.100d0,2.800d0,2.450d0,2.200d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.090d0,0.088d0,0.086d0,0.085d0,0.085d0,0.085d0,0.085d0,0.085d0]                , &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[3.000d5,5.000d3,4.500d2,9.000d1,1.500d1,8.000d0,3.500d0,1.500d0]                , &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SampleWMAP7VirialAllMass       )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[9.000d0,6.000d0,4.300d0,3.300d0,2.300d0,2.100d0,1.850d0,1.700d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.100d0,0.100d0,0.100d0,0.100d0,0.095d0,0.095d0,0.095d0,0.095d0]                , &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[2.000d6,7.000d3,5.500d2,9.000d1,1.100d1,6.000d0,2.500d0,1.000d0]                , &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SampleWMAP7VirialRelaxedVmax    )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn24
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn24
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.500d0,1.000d0,1.440d0,2.150d0,2.500d0,2.900d0,4.100d0]                , &
             &            tableCount       =3                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[9.750d0,7.020d0,5.230d0,4.250d0,3.200d0,2.900d0,2.500d0,2.350d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.085d0,0.085d0,0.085d0,0.085d0,0.085d0,0.085d0,0.085d0,0.085d0]                , &
             &            table            =2                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[1.300d5,4.000d3,4.000d2,8.000d1,1.100d1,6.000d0,2.500d0,1.200d0]                , &
             &            table            =3                                                                                  &
             &           )
     case (klypin2015SamplePlanck200CritAllMassUni    )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn25
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn25
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,2.890d0,5.410d0]                , &
             &            tableCount       =2                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.400d0,0.650d0,0.820d0,1.080d0,1.230d0,1.600d0,1.680d0,1.700d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.278d0,0.375d0,0.411d0,0.436d0,0.426d0,0.375d0,0.360d0,0.351d0]                , &
             &            table            =2                                                                                  &
             &           )
     case (klypin2015SamplePlanck200CritRelaxedMassUni)
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastFixed
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn25
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastFixed
+       self%fittingFunction      =klypin2015FittingFunctionEqn25
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,2.890d0,5.410d0]                , &
             &            tableCount       =2                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.950d0,1.060d0,1.150d0,1.280d0,1.390d0,1.660d0,1.700d0,1.720d0]                , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.522d0,0.550d0,0.562d0,0.562d0,0.541d0,0.480d0,0.464d0,0.450d0]                , &
             &            table            =2                                                                                  &
             &           )
     case (klypin2015SamplePlanckVirialAllMassUni     )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn25
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn25
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,5.500d0]                        , &
             &            tableCount       =2                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.750d0,0.900d0,0.970d0,1.120d0,1.280d0,1.520d0,1.620d0]                        , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.567d0,0.541d0,0.529d0,0.496d0,0.474d0,0.421d0,0.393d0]                        , &
             &            table            =2                                                                                  &
             &           )
     case (klypin2015SamplePlanckVirialRelaxedMassUni )
-       klypin2015ConstructorInternal%virialDensityContrast=klypin2015DensityContrastVirial
-       klypin2015ConstructorInternal%fittingFunction      =klypin2015FittingFunctionEqn25
-       call klypin2015ConstructorInternal                                                                                     &
+       self%virialDensityContrast=klypin2015DensityContrastVirial
+       self%fittingFunction      =klypin2015FittingFunctionEqn25
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %create  (                                                                                                     &
             &            x                =[0.000d0,0.380d0,0.500d0,1.000d0,1.440d0,2.500d0,5.500d0]                        , &
             &            tableCount       =2                                                                                , &
             &            extrapolationType=[extrapolationTypeFix,extrapolationTypeFix]                                        &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.990d0,1.100d0,1.160d0,1.290d0,1.410d0,1.650d0,1.720d0]                        , &
             &            table            =1                                                                                  &
             &           )
-       call klypin2015ConstructorInternal                                                                                     &
+       call self                                                                                                              &
             & %fitParameters                                                                                                  &
             &  %populate(                                                                                                     &
             &            y                =[0.716d0,0.673d0,0.660d0,0.615d0,0.585d0,0.518d0,0.476d0]                        , &
@@ -626,10 +636,10 @@ contains
     class           (cosmologyFunctionsClass                 )               , pointer :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass           )               , pointer :: cosmologicalMassVariance_
     double precision                                          , parameter              :: massReference            =1.0d12
-    double precision                                                                   :: massLittleH         , concentration0, &
-         &                                                                                mass0               , gamma         , &
-         &                                                                                redshift            , a0            , &
-         &                                                                                b0                  , sigma
+    double precision                                                                   :: massLittleH                     , concentration0, &
+         &                                                                                mass0                           , gamma         , &
+         &                                                                                redshift                        , a0            , &
+         &                                                                                b0                              , sigma
 
     ! Get required objects.
     cosmologyParameters_ => cosmologyParameters()
@@ -702,13 +712,13 @@ contains
        allocate(virialDensityContrastFixed :: klypin2015DensityContrastDefinition)
        select type (klypin2015DensityContrastDefinition)
        type is (virialDensityContrastFixed)
-          klypin2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+          klypin2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
        end select
     case (klypin2015DensityContrastVirial)
        allocate(virialDensityContrastSphericalCollapseMatterLambda :: klypin2015DensityContrastDefinition)
        select type (klypin2015DensityContrastDefinition)
        type is (virialDensityContrastSphericalCollapseMatterLambda)
-          klypin2015DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
+          klypin2015DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(self%cosmologyFunctions_)
        end select
     end select
     return

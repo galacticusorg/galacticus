@@ -202,25 +202,25 @@ contains
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
     allocate(propertyOperators_%next%next%next                     )
-    allocate(propertyOperators_%next%next%next%next                 )
+    allocate(propertyOperators_%next%next%next%next                )
     propertyOperators_                    %operator_       => outputAnalysisWeightPropertyOperatorLog10_
     propertyOperators_%next               %operator_       => outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     propertyOperators_%next%next          %operator_       => outputAnalysisWeightPropertyOperatorAntiLog10_
     propertyOperators_%next%next%next     %operator_       => outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     propertyOperators_%next%next%next%next%operator_       => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    outputAnalysisWeightPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                )
+    outputAnalysisWeightPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                (propertyOperators_                                               )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    outputAnalysisPropertyUnoperator_                      =  outputAnalysisPropertyOperatorAntiLog10               (                                                                  )
+    outputAnalysisPropertyUnoperator_                      =  outputAnalysisPropertyOperatorAntiLog10               (                                                                 )
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar            (                                                                  )
+    outputAnalysisWeightPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar            (                                                                 )
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrast_                                )
-    virialDensityContrast_                                 =  virialDensityContrastFixed                            (200.0d0                 ,virialDensityContrastFixedDensityTypeMean)
+    virialDensityContrast_                                 =  virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean,cosmologyFunctions_)
     allocate(outputAnalysisPropertyExtractor_                      )
-    outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                            )
+    outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                           )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                    &
          &                                                         var_str('stellarHaloMassRelationLeauthaud2012z')//redshiftInterval, &

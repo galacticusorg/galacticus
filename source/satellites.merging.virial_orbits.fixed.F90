@@ -217,35 +217,41 @@ contains
   function fixedDensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of fixed virial orbits.
     use Galacticus_Error
+    use Cosmology_Functions
+    use Cosmology_Parameters
     implicit none
-    class  (virialDensityContrastClass), pointer       :: fixedDensityContrastDefinition
-    class  (virialOrbitFixed          ), intent(inout) :: self
-     
+    class(virialDensityContrastClass), pointer       :: fixedDensityContrastDefinition
+    class(virialOrbitFixed          ), intent(inout) :: self
+    class(cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass  ), pointer       :: cosmologyParameters_
+
     if (.not.self%densityContrastInitialized) then
+       cosmologyParameters_ => cosmologyParameters()
+       cosmologyFunctions_  => cosmologyFunctions ()
        select case (self%virialDensityContrast)
        case (fixedDensityContrastSphericalCollapseMatterLambda)
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%densityContrast)
           select type (d => self%densityContrast)
           type is (virialDensityContrastSphericalCollapseMatterLambda)
-             d=virialDensityContrastSphericalCollapseMatterLambda()
+             d=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
           end select
        case (fixedDensityContrastFixedCritical)
           allocate(virialDensityContrastFixed :: self%densityContrast)
           select type (d => self%densityContrast)
           type is (virialDensityContrastFixed)
-             d=virialDensityContrastFixed(self%virialDensityContrastValue,virialDensityContrastFixedDensityTypeCritical)
+             d=virialDensityContrastFixed(self%virialDensityContrastValue,fixedDensityTypeCritical,cosmologyFunctions_)
           end select
        case (fixedDensityContrastFixedMean)
           allocate(virialDensityContrastFixed :: self%densityContrast)
           select type (d => self%densityContrast)
           type is (virialDensityContrastFixed)
-             d=virialDensityContrastFixed(self%virialDensityContrastValue,virialDensityContrastFixedDensityTypeMean    )
+             d=virialDensityContrastFixed(self%virialDensityContrastValue,fixedDensityTypeMean    ,cosmologyFunctions_)
           end select
        case (fixedDensityContrastBryanNorman1998)
           allocate(virialDensityContrastBryanNorman1998 :: self%densityContrast)
           select type (d => self%densityContrast)
           type is (virialDensityContrastBryanNorman1998)
-             d=virialDensityContrastBryanNorman1998()
+             d=virialDensityContrastBryanNorman1998(cosmologyParameters_,cosmologyFunctions_)
           end select
        end select
        call self%densityContrast%makeIndestructible()

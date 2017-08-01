@@ -18,14 +18,13 @@
 
   !% An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
 
-  !# <darkMatterProfile name="darkMatterProfileNFW">
-  !#  <description>\cite{navarro_universal_1997} dark matter halo profiles</description>
-  !# </darkMatterProfile>
-
   use Dark_Matter_Halo_Scales
   use Tables
   use Kind_Numbers
 
+  !# <darkMatterProfile name="darkMatterProfileNFW">
+  !#  <description>\cite{navarro_universal_1997} dark matter halo profiles</description>
+  !# </darkMatterProfile>
   type, extends(darkMatterProfileClass) :: darkMatterProfileNFW
      !% A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
      private
@@ -62,7 +61,7 @@
           &                                                     enclosingRadiusPrevious                , densityScalePrevious               , &
           &                                                     circularVelocityPrevious               , circularVelocityRadiusPrevious
      ! Pointer to object setting halo scales.
-     class(darkMatterHaloScaleClass           ), pointer     :: scale
+     class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileNFW</object>
@@ -173,8 +172,8 @@
 
   interface darkMatterProfileNFW
      !% Constructors for the {\normalfont \ttfamily nfw} dark matter halo profile class.
-     module procedure nfwDefaultConstructor
-     module procedure nfwConstructor
+     module procedure nfwConstructorParameters
+     module procedure nfwConstructorInternal
   end interface darkMatterProfileNFW
 
   ! Number of points per decade of concentration in NFW tabulations.
@@ -187,43 +186,47 @@
 
 contains
 
-  function nfwDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
-    use Input_Parameters
+  function nfwConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileNFW), target :: nfwDefaultConstructor
+    type (darkMatterProfileNFW    )                :: self
+    type (inputParameters         ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
-    nfwDefaultConstructor=nfwConstructor(darkMatterHaloScale())
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=darkMatterProfileNFW(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function nfwDefaultConstructor
+  end function nfwConstructorParameters
 
-  function nfwConstructor(scale)
+  function nfwConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
     use Galacticus_Error
     implicit none
-    type (darkMatterProfileNFW    ), target :: nfwConstructor
-    class(darkMatterHaloScaleClass), target :: scale
- 
-    nfwConstructor%concentrationPrevious              =  -1.0d+0
-    nfwConstructor%concentrationMinimum               =   1.0d+0
-    nfwConstructor%concentrationMaximum               =  20.0d+0
-    nfwConstructor%freefallRadiusMinimum              =   1.0d-3 
-    nfwConstructor%freefallRadiusMaximum              =   1.0d+2  
-    nfwConstructor%radiusMinimum                      =   1.0d-3
-    nfwConstructor%radiusMaximum                      =   1.0d+2
-    nfwConstructor%enclosedDensityRadiusMinimum       =   1.0d-3
-    nfwConstructor%enclosedDensityRadiusMaximum       =   1.0d+2
-    nfwConstructor%nfwEnclosedDensityTableInitialized =  .false.
-    nfwConstructor%nfwFreefallTableInitialized        =  .false.
-    nfwConstructor%nfwInverseTableInitialized         =  .false.
-    nfwConstructor%nfwTableInitialized                =  .false.
-    nfwConstructor%lastUniqueID                       =  -1
-    nfwConstructor%scale                              => scale
+    type (darkMatterProfileNFW    )                        :: self
+    class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    
+    self%concentrationPrevious             =-1.0d+0
+    self%concentrationMinimum              = 1.0d+0
+    self%concentrationMaximum              =20.0d+0
+    self%freefallRadiusMinimum             = 1.0d-3 
+    self%freefallRadiusMaximum             = 1.0d+2  
+    self%radiusMinimum                     = 1.0d-3
+    self%radiusMaximum                     = 1.0d+2
+    self%enclosedDensityRadiusMinimum      = 1.0d-3
+    self%enclosedDensityRadiusMaximum      = 1.0d+2
+    self%nfwEnclosedDensityTableInitialized=.false.
+    self%nfwFreefallTableInitialized       =.false.
+    self%nfwInverseTableInitialized        =.false.
+    self%nfwTableInitialized               =.false.
+    self%lastUniqueID                      =-1
     ! Ensure that the dark matter profile component supports a "scale" property.
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                         &
          & call Galacticus_Error_Report                                                                                   &
          &      (                                                                                                         &
-         &       'nfwConstructor'                                                                                       , &
+         &       'nfwConstructorInternal'                                                                               , &
          &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
          &       Galacticus_Component_List(                                                                               &
          &                                 'darkMatterProfile'                                                          , &
@@ -231,10 +234,10 @@ contains
          &                                )                                                                               &
          &      )
     ! Initialize the tabulations.
-    call nfwConstructor%tabulate              ()
-    call nfwConstructor%inverseAngularMomentum()
+    call self%tabulate              ()
+    call self%inverseAngularMomentum()
     return
-  end function nfwConstructor
+  end function nfwConstructorInternal
   
   subroutine nfwDestructor(self)
     !% Destructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
@@ -259,7 +262,7 @@ contains
     if (self%nfwTableInitialized        ) then
        call self%nfwConcentrationTable            %destroy()
     end if
-    if (self%scale%isFinalizable()) deallocate(self%scale)
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine nfwDestructor
   
@@ -275,7 +278,7 @@ contains
     self%densityScalePrevious                   =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
     self%lastUniqueID                           =node%uniqueID()
-    call self%scale%calculationReset(node)
+    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine nfwCalculationReset
 
@@ -379,8 +382,8 @@ contains
     basic             => node%basic            (                 )
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =darkMatterProfile%scale()
-    radiusOverScaleRadius          =radius                           /scaleRadius
-    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    radiusOverScaleRadius          =radius                       /scaleRadius
+    virialRadiusOverScaleRadius    =self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     nfwDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)&
          &*basic%mass()/scaleRadius**3
     return
@@ -426,13 +429,13 @@ contains
          &                                                                      radiusMinimumActual           , radiusMaximumActual
 
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%scale%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     basic             => node%basic            (                 )
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =darkMatterProfile%scale()
-    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius    =self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     nfwRadialMoment                =+basic%mass()                                                &
          &                          *scaleRadius**(moment-3.0d0)                                 &
          &                          /(                                                           &
@@ -498,7 +501,7 @@ contains
     darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                 =  darkMatterProfile%scale()
     radiusOverScaleRadius       =  radius                       /scaleRadius
-    virialRadiusOverScaleRadius =  self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     nfwEnclosedMass             =  self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
          &*basic%mass()
     return
@@ -521,8 +524,8 @@ contains
 
     if (present(status)) status=structureErrorCodeSuccess
     darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
-    radiusOverScaleRadius       =  radius                       /darkMatterProfile%scale()
-    virialRadiusOverScaleRadius =  self%scale%virialRadius(node)/darkMatterProfile%scale()
+    radiusOverScaleRadius       =  radius                                      /darkMatterProfile%scale()
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        ! Use a series solution for very small radii.
        radiusTerm=1.0d0-0.5d0*radiusOverScaleRadius
@@ -537,7 +540,7 @@ contains
          &         -          virialRadiusOverScaleRadius  &
          &         /   (1.0d0+virialRadiusOverScaleRadius) &
          &        )                                        &
-         &       *self%scale%virialVelocity(node)**2
+         &       *self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function nfwPotential
 
@@ -585,7 +588,7 @@ contains
        darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)
        scaleRadius       =  darkMatterProfile%scale            (                 )
        ! Ensure mass profile normalization factor has been computed.
-       call nfwMassNormalizationFactor(self,self%scale%virialRadius(node)/scaleRadius)
+       call nfwMassNormalizationFactor(self,self%darkMatterHaloScale_%virialRadius(node)/scaleRadius)
        ! Evaluate the circular velocity at the peak of the rotation curve.
        self%maximumVelocityPrevious=+circularVelocityMaximumScaleFree                                       &
             &                       *sqrt(                                                                  &
@@ -660,14 +663,14 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the rotation normalization by interpolation.
     nfwRotationNormalization=self%nfwConcentrationTable%interpolate(concentration,table&
-         &=nfwConcentrationRotationNormalizationIndex)/self%scale%virialRadius(node)
+         &=nfwConcentrationRotationNormalizationIndex)/self%darkMatterHaloScale_%virialRadius(node)
     return
   end function nfwRotationNormalization
 
@@ -686,14 +689,14 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
     nfwEnergy=self%nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
-         &*basic%mass()*self%scale%virialVelocity(node)**2
+         &*basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function nfwEnergy
 
@@ -713,7 +716,7 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
@@ -724,8 +727,8 @@ contains
 
     nfwEnergyGrowthRate=self%energy(node)&
          &*(basic%accretionRate()/basic%mass()+2.0d0 &
-         &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
-         &*concentration/energy)*(self%scale%virialRadiusGrowthRate(node)/self%scale%virialRadius(node)&
+         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node)+(energyGradient&
+         &*concentration/energy)*(self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)&
          &-darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()))
 
     return
@@ -831,7 +834,7 @@ contains
        if (self%densityScalePrevious < 0.0d0) then
           ! Extract profile parameters.
           basic                       => node             %basic            (                 )
-          virialRadiusOverScaleRadius =  self%scale%virialRadius(node)/scaleRadius
+          virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
           ! Compute density normalization scale.
           self%densityScalePrevious=+scaleRadius                                                         **3 &
                &                    /basic      %mass                 (                                 )    &
@@ -1022,7 +1025,7 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Compute the concentration parameter.
-    concentration=self%scale%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
@@ -1063,10 +1066,10 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
-    concentration=self%scale%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the virial velocity.
-    velocityScale=self%scale%virialVelocity(node)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(node)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
@@ -1110,10 +1113,10 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
-    concentration=self%scale%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the virial velocity.
-    velocityScale=self%scale%virialVelocity(node)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(node)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&

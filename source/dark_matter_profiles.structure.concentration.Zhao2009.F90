@@ -19,6 +19,9 @@
   !% An implementation of dark matter halo profile concentrations using the
   !% \cite{zhao_accurate_2009} algorithm.
 
+  use Cosmology_Functions
+  use Cosmology_Parameters
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
   !# </darkMatterProfileConcentration>
@@ -26,7 +29,10 @@
      !% A dark matter halo profile concentration class implementing the algorithm of
      !% \cite{zhao_accurate_2009}.
      private
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
+     final     ::                                zhao2009Destructor
      procedure :: concentration               => zhao2009Concentration
      procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => zhao2009DarkMatterProfileDefinition
@@ -36,22 +42,49 @@
      !% Constructors for the {\normalfont \ttfamily zhao2009} dark matter halo profile
      !% concentration class.
      module procedure zhao2009ConstructorParameters
+     module procedure zhao2009ConstructorInternal
   end interface darkMatterProfileConcentrationZhao2009
 
 contains
 
-  function zhao2009ConstructorParameters(parameters)
+  function zhao2009ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
     !% concentration class which takes an input parameter list.
     use Input_Parameters2
     implicit none
-    type(darkMatterProfileConcentrationZhao2009)                :: zhao2009ConstructorParameters
-    type(inputParameters                       ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type (darkMatterProfileConcentrationZhao2009)                :: self
+    type (inputParameters                       ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass              ), pointer       :: cosmologyParameters_     
 
-    zhao2009ConstructorParameters=darkMatterProfileConcentrationZhao2009()
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    self=darkMatterProfileConcentrationZhao2009(cosmologyFunctions_,cosmologyParameters_)
     return
+    !# <inputParametersValidate source="parameters"/>
   end function zhao2009ConstructorParameters
+
+  function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
+    !% concentration class.
+    implicit none
+    type (darkMatterProfileConcentrationZhao2009)                        :: self
+    class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class(cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
+
+    return
+  end function zhao2009ConstructorInternal
+
+  subroutine zhao2009Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%cosmologyParameters_" />
+    return
+  end subroutine zhao2009Destructor
 
   double precision function zhao2009Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
@@ -87,7 +120,7 @@ contains
     allocate(virialDensityContrastBryanNorman1998 :: zhao2009DensityContrastDefinition)
     select type (zhao2009DensityContrastDefinition)
     type is (virialDensityContrastBryanNorman1998)
-      zhao2009DensityContrastDefinition=virialDensityContrastBryanNorman1998()
+      zhao2009DensityContrastDefinition=virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)
     end select
     return
   end function zhao2009DensityContrastDefinition

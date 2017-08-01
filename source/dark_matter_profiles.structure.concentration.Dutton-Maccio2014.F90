@@ -18,17 +18,21 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{dutton_cold_2014} algorithm.
 
+  use Cosmology_Functions
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{dutton_cold_2014}.</description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
      private
-     double precision :: a1                   , a2                  , &
-          &              a3                   , a4                  , &
-          &              b1                   , b2
-     integer          :: densityContrastMethod, densityProfileMethod
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     double precision                                    :: a1                   , a2                  , &
+          &                                                 a3                   , a4                  , &
+          &                                                 b1                   , b2
+     integer                                             :: densityContrastMethod, densityProfileMethod
    contains
+     final     ::                                duttonMaccio2014Destructor
      procedure :: concentration               => duttonMaccio2014Concentration
      procedure :: densityContrastDefinition   => duttonMaccio2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => duttonMaccio2014DarkMatterProfileDefinition
@@ -61,17 +65,19 @@
   
 contains
 
-  function duttonMaccio2014ConstructorParameters(parameters)
+  function duttonMaccio2014ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     implicit none
-    type            (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorParameters
+    type            (darkMatterProfileConcentrationDuttonMaccio2014)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     type            (varying_string                                )                :: fitType
     double precision                                                                :: a1                                   , a2, &
          &                                                                             a3                                   , a4, &
          &                                                                             b1                                   , b2
 
     ! Check and read parameters.
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
     !#   <name>fitType</name>
     !#   <source>parameters</source>
@@ -123,103 +129,108 @@ contains
        !#   <type>real</type>
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
-       duttonMaccio2014ConstructorParameters=duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2)
+       self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyFunctions_)
     else
-       duttonMaccio2014ConstructorParameters=duttonMaccio2014ConstructorInternalType   (char(fitType))
+       self=darkMatterProfileConcentrationDuttonMaccio2014(char(fitType),cosmologyFunctions_)
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function duttonMaccio2014ConstructorParameters
 
-  function duttonMaccio2014ConstructorInternalType(fitType)
+  function duttonMaccio2014ConstructorInternalType(fitType,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
-    type     (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorInternalType
-    character(len=*                                         ), intent(in   ) :: fitType
+    type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
+    character(len=*                                         ), intent(in   )         :: fitType
+    class    (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
     select case (fitType)
     case ('nfwVirial'     )
-       duttonMaccio2014ConstructorInternalType%a1                   =+0.537d0
-       duttonMaccio2014ConstructorInternalType%a2                   =+1.025d0
-       duttonMaccio2014ConstructorInternalType%a3                   =-0.718d0
-       duttonMaccio2014ConstructorInternalType%a4                   =+1.080d0
-       duttonMaccio2014ConstructorInternalType%b1                   =-0.097d0
-       duttonMaccio2014ConstructorInternalType%b2                   =+0.024d0
-       duttonMaccio2014ConstructorInternalType%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
-       duttonMaccio2014ConstructorInternalType%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
+       self%a1                   =+0.537d0
+       self%a2                   =+1.025d0
+       self%a3                   =-0.718d0
+       self%a4                   =+1.080d0
+       self%b1                   =-0.097d0
+       self%b2                   =+0.024d0
+       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodVirial
+       self%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
     case ('nfwMean200'    )
-       duttonMaccio2014ConstructorInternalType%a1                   =+0.520d0
-       duttonMaccio2014ConstructorInternalType%a2                   =+0.905d0
-       duttonMaccio2014ConstructorInternalType%a3                   =-0.617d0
-       duttonMaccio2014ConstructorInternalType%a4                   =+1.210d0
-       duttonMaccio2014ConstructorInternalType%b1                   =-0.101d0
-       duttonMaccio2014ConstructorInternalType%b2                   =+0.026d0
-       duttonMaccio2014ConstructorInternalType%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
-       duttonMaccio2014ConstructorInternalType%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
+       self%a1                   =+0.520d0
+       self%a2                   =+0.905d0
+       self%a3                   =-0.617d0
+       self%a4                   =+1.210d0
+       self%b1                   =-0.101d0
+       self%b2                   =+0.026d0
+       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
+       self%densityProfileMethod =duttonMaccio2014DensityProfileMethodNFW
     case ('einastoMean200')
-       duttonMaccio2014ConstructorInternalType%a1                   =+0.459d0
-       duttonMaccio2014ConstructorInternalType%a2                   =+0.977d0
-       duttonMaccio2014ConstructorInternalType%a3                   =-0.490d0
-       duttonMaccio2014ConstructorInternalType%a4                   =+1.303d0
-       duttonMaccio2014ConstructorInternalType%b1                   =-0.130d0
-       duttonMaccio2014ConstructorInternalType%b2                   =+0.029d0
-       duttonMaccio2014ConstructorInternalType%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
-       duttonMaccio2014ConstructorInternalType%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
+       self%a1                   =+0.459d0
+       self%a2                   =+0.977d0
+       self%a3                   =-0.490d0
+       self%a4                   =+1.303d0
+       self%b1                   =-0.130d0
+       self%b2                   =+0.029d0
+       self%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
+       self%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
     case default
        call Galacticus_Error_Report('duttonMaccio2014ConstructorInternalType','unrecognized fit type [available types are: nfwVirial, nfwMean200, einastoMean200]')
     end select
     return
   end function duttonMaccio2014ConstructorInternalType
   
-  function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2)
+  function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
     !% parameters.
     use Galacticus_Error
     implicit none
-    type           (darkMatterProfileConcentrationDuttonMaccio2014)                :: duttonMaccio2014ConstructorInternalDefined
-    double precision                                               , intent(in   ) :: a1, a2, a3, a4, b1, b2
+    type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
+    double precision                                                , intent(in   )         :: a1                 , a2, &
+         &                                                                                     a3                 , a4, &
+         &                                                                                     b1                 , b2
+    class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="a1,a2,a3,a4,b1,b2,*cosmologyFunctions_"/>
 
-    duttonMaccio2014ConstructorInternalDefined%a1=a1
-    duttonMaccio2014ConstructorInternalDefined%a2=a2
-    duttonMaccio2014ConstructorInternalDefined%a3=a3
-    duttonMaccio2014ConstructorInternalDefined%a4=a4
-    duttonMaccio2014ConstructorInternalDefined%b1=b1
-    duttonMaccio2014ConstructorInternalDefined%b2=b2
     return
   end function duttonMaccio2014ConstructorInternalDefined
 
+  subroutine duttonMaccio2014Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily DuttonMaccio2014} dark matter profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine duttonMaccio2014Destructor
+  
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
-    use Cosmology_Functions
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout)          :: self
     type            (treeNode                                      ), intent(inout), pointer :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
-    class           (cosmologyFunctionsClass                       )               , pointer :: cosmologyFunctions_
     double precision                                                , parameter              :: littleHubbleConstantDuttonMaccio2014= 0.671d0
     double precision                                                , parameter              :: massNormalization                   =12.000d0
     double precision                                                                         :: redshift                                     , logarithmHaloMass, &
          &                                                                                      parameterA                                   , parameterB
 
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
     ! Get the basic component.
     basic               => node%basic()
     ! Compute the concentration.
-    logarithmHaloMass            =+log10(                                                       &
-         &                                littleHubbleConstantDuttonMaccio2014                  &
-         &                               *basic%mass()                                          &
-         &                              )                                                       &
+    logarithmHaloMass            =+log10(                                      &
+         &                                littleHubbleConstantDuttonMaccio2014 &
+         &                               *basic%mass()                         &
+         &                              )                                      &
          &                        -massNormalization
-    redshift                     =max(                                                                &
-         &                            0.0d0                                                         , &
-         &                            cosmologyFunctions_ %redshiftFromExpansionFactor(               &
-         &                             cosmologyFunctions_%expansionFactor             (              &
-         &                                                                              basic%time()  &
-         &                                                                             )              &
-         &                                                                            )               &
+    redshift                     =max(                                                                     &
+         &                            0.0d0                                                              , &
+         &                            self%cosmologyFunctions_ %redshiftFromExpansionFactor(               &
+         &                             self%cosmologyFunctions_%expansionFactor             (              &
+         &                                                                                   basic%time()  &
+         &                                                                                  )              &
+         &                                                                                 )               &
          &                           )
     parameterA                   =self%a1+(self%a2-self%a1)*exp(self%a3*redshift**self%a4)
     parameterB                   =self%b1+self%b2*redshift
@@ -238,13 +249,13 @@ contains
        allocate(virialDensityContrastFixed                         :: duttonMaccio2014DensityContrastDefinition)
        select type (duttonMaccio2014DensityContrastDefinition)
        type is (virialDensityContrastFixed)
-          duttonMaccio2014DensityContrastDefinition=virialDensityContrastFixed                        (200.0d0,virialDensityContrastFixedDensityTypeMean)
+          duttonMaccio2014DensityContrastDefinition=virialDensityContrastFixed                        (200.0d0,fixedDensityTypeMean,self%cosmologyFunctions_)
        end select
     case (duttonMaccio2014DensityContrastMethodVirial)
        allocate(virialDensityContrastSphericalCollapseMatterLambda :: duttonMaccio2014DensityContrastDefinition)
        select type (duttonMaccio2014DensityContrastDefinition)
        type is (virialDensityContrastSphericalCollapseMatterLambda)
-          duttonMaccio2014DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(                                                 )
+          duttonMaccio2014DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(                             self%cosmologyFunctions_)
        end select
     end select
     return

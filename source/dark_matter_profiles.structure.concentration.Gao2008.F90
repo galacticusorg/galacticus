@@ -13,10 +13,12 @@
 !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 !!    GNU General Public License for more details.
 !!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
   !% An implementation of dark matter halo profile concentrations using the \cite{gao_redshift_2008} algorithm.
+  
+  use Cosmology_Functions
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>
@@ -24,7 +26,9 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationGao2008
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
      private
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
+     final     ::                                gao2008Destructor
      procedure :: concentration               => gao2008Concentration
      procedure :: densityContrastDefinition   => gao2008DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => gao2008DarkMatterProfileDefinition
@@ -33,44 +37,61 @@
   interface darkMatterProfileConcentrationGao2008
      !% Constructors for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
      module procedure gao2008ConstructorParameters
+     module procedure gao2008ConstructorInternal
   end interface darkMatterProfileConcentrationGao2008
 
 contains
 
-  function gao2008ConstructorParameters(parameters)
+  function gao2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class which takes a parameter
     !% list as input.
     use Input_Parameters2
     implicit none
-    type(darkMatterProfileConcentrationGao2008)                :: gao2008ConstructorParameters
-    type(inputParameters                      ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
-    
-    gao2008ConstructorParameters=darkMatterProfileConcentrationGao2008()
+    type (darkMatterProfileConcentrationGao2008)                :: self
+    type (inputParameters                      ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
+     
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=darkMatterProfileConcentrationGao2008(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function gao2008ConstructorParameters
 
+  function gao2008ConstructorInternal(cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
+    implicit none
+    type (darkMatterProfileConcentrationGao2008)                        :: self
+    class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
+
+    return
+  end function gao2008ConstructorInternal
+
+  subroutine gao2008Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationGao2008), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine gao2008Destructor
+  
   double precision function gao2008Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
     !% algorithm.
-    use Cosmology_Functions
     implicit none
     class           (darkMatterProfileConcentrationGao2008), intent(inout)          :: self
     type            (treeNode                             ), intent(inout), pointer :: node
     class           (nodeComponentBasic                   )               , pointer :: basic
-    class           (cosmologyFunctionsClass              )               , pointer :: cosmologyFunctions_
     double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0
     double precision                                                                :: logarithmExpansionFactor          , logarithmHaloMass, &
          &                                                                             parameterA                        , parameterB
-    !GCC$ attributes unused :: self
-    
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
+
     ! Get the basic component.
     basic               => node%basic()
     ! Compute the concentration.
-    logarithmHaloMass       =log10(littleHubbleConstantGao2008        *basic%mass())
-    logarithmExpansionFactor=log10(cosmologyFunctions_%expansionFactor(basic%time()))
+    logarithmHaloMass       =log10(littleHubbleConstantGao2008             *basic%mass())
+    logarithmExpansionFactor=log10(self%cosmologyFunctions_%expansionFactor(basic%time()))
     parameterA              =-0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
     parameterB              = 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
     gao2008Concentration    =10.0d0**(parameterA*logarithmHaloMass+parameterB)
@@ -88,7 +109,7 @@ contains
     allocate(virialDensityContrastFixed :: gao2008DensityContrastDefinition)
     select type (gao2008DensityContrastDefinition)
     type is (virialDensityContrastFixed)
-      gao2008DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+      gao2008DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
     end select
     return
   end function gao2008DensityContrastDefinition

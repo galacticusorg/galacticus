@@ -219,59 +219,62 @@ contains
           tidalHeatingNormalized   =  satelliteComponent%tidalHeatingNormalized   ()
           positionTensor           =  Vector_Outer_Product            (         position                          ,symmetrize=.true.)
           radius                   =  Vector_Magnitude                (         position                                            )
-          parentDensity            =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
-          parentEnclosedMass       =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
-          ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
-          tidalTensor              =                                                                            &
-               & -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
-               & +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
-               & -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
-          ! Compute the orbital period.
-          angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
-               &              /radius**2                                           &
-               &              *kilo                                                &
-               &              *gigaYear                                            &
-               &              /megaParsec
-          radialFrequency   =  abs             (   Dot_Product(position,velocity)) &
-               &              /radius**2                                           &
-               &              *kilo                                                &
-               &              *gigaYear                                            &
-               &              /megaParsec
-          ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
-          ! radial or purely circular orbits.
-          orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
-          ! Calculate position, velocity, mass loss, integrated tidal tensor, and heating rates. In the direct (i.e. non-dynamical
-          ! friction) acceleration we include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert
-          ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
-          ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
+          ! Set rate of change of position.
           call satelliteComponent%positionRate                 (                                                     &
                &                                                +(kilo*gigaYear/megaParsec)                          &
                &                                                *satelliteComponent%velocity()                       &
                &                                               )
-          call satelliteComponent%velocityRate                 (                                                     &
-               &                                                -(kilo*gigaYear/megaParsec)                          &
-               &                                                *gravitationalConstantGalacticus                     &
-               &                                                *parentEnclosedMass                                  &
-               &                                                *position                                            &
-               &                                                /radius**3                                           &
-               &                                                *(                                                   &
-               &                                                  +1.0d0                                             &
-               &                                                  +satelliteComponent%boundMass()                    &
-               &                                                  /parentEnclosedMass                                &
-               &                                                )                                                    &
-               &                                                +Satellite_Dynamical_Friction_Acceleration(thisNode) &
-               &                                               )
-          call satelliteComponent%boundMassRate                (                                                     &
-               &                                                +Satellite_Tidal_Stripping_Rate           (thisNode) &
-               &                                               )
-          call satelliteComponent%tidalTensorPathIntegratedRate(                                                     &
-               &                                                +tidalTensor                                         &
-               &                                                -tidalTensorPathIntegrated                           &
-               &                                                /orbitalPeriod                                       &
-               &                                               )
-          call satelliteComponent%tidalHeatingNormalizedRate   (                                                     &
-               &                                                +Satellite_Tidal_Heating_Rate             (thisNode) &
-               &                                               )         
+          ! Other rates are only non-zero if the satellite is at non-zero radius.
+          if (radius > 0.0d0) then
+             ! Calcluate tidal tensor and rate of change of integrated tidal tensor.
+             parentDensity         =  Galactic_Structure_Density      (hostNode,position,coordinateSystemCartesian                  )
+             parentEnclosedMass    =  Galactic_Structure_Enclosed_Mass(hostNode,radius                                              )
+             tidalTensor           = -(gravitationalConstantGalacticus*parentEnclosedMass         /radius**3)*tensorIdentityR2D3Sym &
+                  &                  +(gravitationalConstantGalacticus*parentEnclosedMass*3.0d0   /radius**5)*positionTensor        &
+                  &                  -(gravitationalConstantGalacticus*parentDensity     *4.0d0*Pi/radius**2)*positionTensor
+             ! Compute the orbital period.
+             angularFrequency  =  Vector_Magnitude(Vector_Product(position,velocity)) &
+                  &              /radius**2                                           &
+                  &              *kilo                                                &
+                  &              *gigaYear                                            &
+                  &              /megaParsec
+             radialFrequency   =  abs             (   Dot_Product(position,velocity)) &
+                  &              /radius**2                                           &
+                  &              *kilo                                                &
+                  &              *gigaYear                                            &
+                  &              /megaParsec
+             ! Find the orbital period. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
+             ! radial or purely circular orbits.
+             orbitalPeriod     = 2.0d0*Pi/max(angularFrequency,radialFrequency)
+             ! Calculate position, velocity, mass loss, integrated tidal tensor, and heating rates. In the direct (i.e. non-dynamical
+             ! friction) acceleration we include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert
+             ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
+             ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
+             call satelliteComponent%velocityRate                 (                                                     &
+                  &                                                -(kilo*gigaYear/megaParsec)                          &
+                  &                                                *gravitationalConstantGalacticus                     &
+                  &                                                *parentEnclosedMass                                  &
+                  &                                                *position                                            &
+                  &                                                /radius**3                                           &
+                  &                                                *(                                                   &
+                  &                                                  +1.0d0                                             &
+                  &                                                  +satelliteComponent%boundMass()                    &
+                  &                                                  /parentEnclosedMass                                &
+                  &                                                )                                                    &
+                  &                                                +Satellite_Dynamical_Friction_Acceleration(thisNode) &
+                  &                                               )
+             call satelliteComponent%boundMassRate                (                                                     &
+                  &                                                +Satellite_Tidal_Stripping_Rate           (thisNode) &
+                  &                                               )
+             call satelliteComponent%tidalTensorPathIntegratedRate(                                                     &
+                  &                                                +tidalTensor                                         &
+                  &                                                -tidalTensorPathIntegrated                           &
+                  &                                                /orbitalPeriod                                       &
+                  &                                               )
+             call satelliteComponent%tidalHeatingNormalizedRate   (                                                     &
+                  &                                                +Satellite_Tidal_Heating_Rate             (thisNode) &
+                  &                                               )
+          end if
           ! Get half-mass radii of central and satellite galaxies.
           if (Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
              halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
@@ -295,14 +298,18 @@ contains
           else
              massDestruction=satelliteOrbitingDestructionMass
           end if
-          if     (                                      &
-               &   odeConverged                         &
-               &  .and.                                 &
-               &   (                                    &
-               &     radius        <  orbitalRadiusTest &
-               &    .or.                                &
-               &     satelliteMass <  massDestruction   &
-               &   )                                    &
+          if     (                                        &
+               &   odeConverged                           &
+               &  .and.                                   &
+               &   (                                      &
+               &     (                                    &
+               &       radius        > 0.0d0              &
+               &      .and.                               &
+               &       radius        <  orbitalRadiusTest &
+               &     )                                    &
+               &    .or.                                  &
+               &       satelliteMass <  massDestruction   &
+               &   )                                      &
                & ) then
              ! Merging criterion met - trigger an interrupt.
              interrupt=.true.

@@ -208,7 +208,7 @@ contains
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
     allocate(virialDensityContrast_                                )
-    virialDensityContrast_                                 =  virialDensityContrastPercolation                      (0.2d0                                                             )
+    virialDensityContrast_                                 =  virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_                 )
     allocate(outputAnalysisPropertyExtractor_                      )
     outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                            )
     ! Build the object.

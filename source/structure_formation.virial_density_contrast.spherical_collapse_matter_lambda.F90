@@ -18,17 +18,19 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
 
+  use Tables
+  use Cosmology_Functions
+
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterLambda">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.</description>
   !# </virialDensityContrast>
-  use Tables
-
   type, extends(virialDensityContrastClass) :: virialDensityContrastSphericalCollapseMatterLambda
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                :: tableInitialized=.false.
-     double precision                       :: tableTimeMinimum        , tableTimeMaximum
-     class           (table1D), allocatable :: deltaVirial
+     logical                                                :: tableInitialized    =  .false.
+     double precision                                       :: tableTimeMinimum              , tableTimeMaximum
+     class           (table1D                ), allocatable :: deltaVirial
+     class           (cosmologyFunctionsClass), pointer     :: cosmologyFunctions_ => null()
    contains
      !@ <objectMethods>
      !@   <object>virialDensityContrastSphericalCollapseMatterLambda</object>
@@ -50,20 +52,36 @@
 
   interface virialDensityContrastSphericalCollapseMatterLambda
      !% Constructors for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
-     module procedure sphericalCollapseMatterLambdaDefaultConstructor
+     module procedure sphericalCollapseMatterLambdaConstructorParameters
+     module procedure sphericalCollapseMatterLambdaConstructorInternal
   end interface virialDensityContrastSphericalCollapseMatterLambda
 
 contains
 
-  function sphericalCollapseMatterLambdaDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
-    use Input_Parameters
+  function sphericalCollapseMatterLambdaConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class that takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterLambda), target  :: sphericalCollapseMatterLambdaDefaultConstructor
+    type (virialDensityContrastSphericalCollapseMatterLambda)                :: self
+    type (inputParameters                                   ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
     
-    sphericalCollapseMatterLambdaDefaultConstructor%tableInitialized=.false.
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function sphericalCollapseMatterLambdaDefaultConstructor
+  end function sphericalCollapseMatterLambdaConstructorParameters
+
+  function sphericalCollapseMatterLambdaConstructorInternal(cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
+    implicit none
+    type (virialDensityContrastSphericalCollapseMatterLambda)                       :: self
+    class(cosmologyFunctionsClass                          ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
+
+    self%tableInitialized=.false.
+    return
+  end function sphericalCollapseMatterLambdaConstructorInternal
 
   subroutine sphericalCollapseMatterLambdaDestructor(self)
     !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
@@ -74,6 +92,7 @@ contains
        call self%deltaVirial%destroy()
        deallocate(self%deltaVirial)
     end if
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine sphericalCollapseMatterLambdaDestructor
 
@@ -103,13 +122,11 @@ contains
   double precision function sphericalCollapseMatterLambdaDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass
-    double precision                                                    , intent(in   ), optional :: time               , expansionFactor
+    double precision                                                    , intent(in   ), optional :: time            , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
     logical                                                                                       :: collapsingActual
     double precision                                                                              :: timeActual
     !GCC$ attributes unused :: mass
@@ -128,9 +145,7 @@ contains
           else
              collapsingActual=.false.
           end if
-          ! Get the default cosmology functions object.
-          cosmologyFunctions_ => cosmologyFunctions()
-          timeActual=cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
+          timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
           call Galacticus_Error_Report('sphericalCollapseMatterLambdaDensityContrast','at least one argument must be given')
        end if
@@ -145,13 +160,11 @@ contains
   double precision function sphericalCollapseMatterLambdaDensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterLambda), intent(inout)           :: self
     double precision                                                    , intent(in   )           :: mass
-    double precision                                                    , intent(in   ), optional :: time      , expansionFactor
+    double precision                                                    , intent(in   ), optional :: time            , expansionFactor
     logical                                                             , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
     logical                                                                                       :: collapsingActual
     double precision                                                                              :: timeActual
     !GCC$ attributes unused :: mass
@@ -170,9 +183,7 @@ contains
           else
              collapsingActual=.false.
           end if
-          ! Get the default cosmology functions object.
-          cosmologyFunctions_ => cosmologyFunctions()
-          timeActual=cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
+          timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
           call Galacticus_Error_Report('sphericalCollapseMatterLambdaDensityContrastRateOfChange','at least one argument must be given')
        end if

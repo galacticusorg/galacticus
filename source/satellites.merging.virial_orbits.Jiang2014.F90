@@ -124,7 +124,7 @@ contains
     logical                                                                     :: foundOrbit
     integer                                                                     :: attempts                       , i
     type            (distributionVoight        )                                :: voightDistribution
-  
+
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get basic components.
@@ -284,14 +284,18 @@ contains
 
   function jiang2014DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of \cite{jiang_orbital_2014} virial orbits.
+    use Cosmology_Functions
     implicit none
     class(virialDensityContrastClass), pointer       :: jiang2014DensityContrastDefinition
     class(virialOrbitJiang2014      ), intent(inout) :: self
+    class(cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
     !GCC$ attributes unused :: self
+
+    cosmologyFunctions_ => cosmologyFunctions()
     allocate(virialDensityContrastFixed :: jiang2014DensityContrastDefinition)
     select type (jiang2014DensityContrastDefinition)
     type is (virialDensityContrastFixed)
-      jiang2014DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+      jiang2014DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,cosmologyFunctions_)
     end select
     return
   end function jiang2014DensityContrastDefinition

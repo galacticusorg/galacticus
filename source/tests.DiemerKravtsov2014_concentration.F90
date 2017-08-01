@@ -32,11 +32,17 @@ program Test_DiemerKravtsov2014_Concentration
   use Galacticus_Error
   use File_Utilities
   use Galacticus_Input_Paths
+  use Critical_Overdensities
+  use Cosmological_Mass_Variance
+  use Power_Spectra
   implicit none
   type            (treeNode                                        ), pointer :: node
   class           (nodeComponentBasic                              ), pointer :: basic
   class           (cosmologyFunctionsClass                         ), pointer :: cosmologyFunctions_
   class           (cosmologyParametersClass                        ), pointer :: cosmologyParameters_
+  class           (criticalOverdensityClass                        ), pointer :: criticalOverdensity_     
+  class           (cosmologicalMassVarianceClass                   ), pointer :: cosmologicalMassVariance_
+  class           (powerSpectrumClass                              ), pointer :: powerSpectrum_
   type            (darkMatterProfileConcentrationDiemerKravtsov2014)          :: darkMatterProfileConcentration_
   type            (varying_string                                  )          :: parameterFile
   double precision                                                            :: ourConcentration               , differenceFractional, &
@@ -72,15 +78,23 @@ program Test_DiemerKravtsov2014_Concentration
   ! Get required objects.
   cosmologyFunctions_             => cosmologyFunctions                              (                 )
   cosmologyParameters_            => cosmologyParameters                             (                 )  
-  darkMatterProfileConcentration_ =  darkMatterProfileConcentrationDiemerKravtsov2014(        &
-       &                                                                              0.69d0, &
-       &                                                                              6.58d0, &
-       &                                                                              1.37d0, &
-       &                                                                              6.82d0, &
-       &                                                                              1.42d0, &
-       &                                                                              1.12d0, &
-       &                                                                              1.69d0, &
-       &                                                                              0.0d0   &
+  criticalOverdensity_            => criticalOverdensity                             (                 )  
+  cosmologicalMassVariance_       => cosmologicalMassVariance                        (                 )  
+  powerSpectrum_                  => powerSpectrum                                   (                 )  
+  darkMatterProfileConcentration_ =  darkMatterProfileConcentrationDiemerKravtsov2014(                           &
+       &                                                                              0.69d0                   , &
+       &                                                                              6.58d0                   , &
+       &                                                                              1.37d0                   , &
+       &                                                                              6.82d0                   , &
+       &                                                                              1.42d0                   , &
+       &                                                                              1.12d0                   , &
+       &                                                                              1.69d0                   , &
+       &                                                                              0.00d0                   , &
+       &                                                                              cosmologyFunctions_      , &
+       &                                                                              cosmologyParameters_     , &
+       &                                                                              criticalOverdensity_     , &
+       &                                                                              cosmologicalMassVariance_, &
+       &                                                                              powerSpectrum_             &
        &                                                                             )
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0

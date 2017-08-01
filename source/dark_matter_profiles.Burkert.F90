@@ -18,14 +18,14 @@
 
   !% An implementation of \cite{burkert_structure_1995} dark matter halo profiles.
 
-  !# <darkMatterProfile name="darkMatterProfileBurkert">
-  !#  <description>\cite{burkert_structure_1995} dark matter halo profiles</description>
-  !# </darkMatterProfile>
 
   use Dark_Matter_Halo_Scales
   use Tables
   use Kind_Numbers
 
+  !# <darkMatterProfile name="darkMatterProfileBurkert">
+  !#  <description>\cite{burkert_structure_1995} dark matter halo profiles</description>
+  !# </darkMatterProfile>
   type, extends(darkMatterProfileClass) :: darkMatterProfileBurkert
      !% A dark matter halo profile class implementing \cite{burkert_structure_1995} dark matter halos.
      private
@@ -56,7 +56,7 @@
           &                                                     concentrationPrevious                  , burkertNormalizationFactorPrevious   , &
           &                                                     maximumVelocityPrevious
      ! Pointer to object setting halo scales.
-     class(darkMatterHaloScaleClass           ), pointer     :: scale
+     class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileBurkert</object>
@@ -145,8 +145,8 @@
 
   interface darkMatterProfileBurkert
      !% Constructors for the {\normalfont \ttfamily burkert} dark matter halo profile class.
-     module procedure burkertDefaultConstructor
-     module procedure burkertConstructor
+     module procedure burkertConstructorParameters
+     module procedure burkertConstructorInternal
   end interface darkMatterProfileBurkert
 
   ! Number of points per decade of concentration in Burkert tabulations.
@@ -158,40 +158,44 @@
 
 contains
 
-  function burkertDefaultConstructor()
+  function burkertConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileBurkert), target :: burkertDefaultConstructor
+    type (darkMatterProfileBurkert)                :: self
+    type (inputParameters         ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
-    burkertDefaultConstructor=burkertConstructor(darkMatterHaloScale())
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=darkMatterProfileBurkert(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function burkertDefaultConstructor
+  end function burkertConstructorParameters
 
-  function burkertConstructor(scale)
+  function burkertConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
     use Galacticus_Error
     implicit none
-    type (darkMatterProfileBurkert), target :: burkertConstructor
-    class(darkMatterHaloScaleClass), target :: scale
+    type (darkMatterProfileBurkert)                        :: self
+    class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
  
-    burkertConstructor%concentrationPrevious       =  -1.0d+0
-    burkertConstructor%concentrationMinimum        =   1.0d+0
-    burkertConstructor%concentrationMaximum        =  20.0d+0
-    burkertConstructor%freefallRadiusMinimum       =   1.0d-3 
-    burkertConstructor%radiusMinimum               =   1.0d-3
-    burkertConstructor%freefallRadiusMaximum       =   1.0d+2  
-    burkertConstructor%radiusMaximum               =   1.0d+2
-    burkertConstructor%burkertFreefallTableInitialized =  .false.
-    burkertConstructor%burkertInverseTableInitialized  =  .false.
-    burkertConstructor%burkertTableInitialized         =  .false.
-    burkertConstructor%lastUniqueID                =  -1
-    burkertConstructor%scale                       => scale
+    self%concentrationPrevious       =  -1.0d+0
+    self%concentrationMinimum        =   1.0d+0
+    self%concentrationMaximum        =  20.0d+0
+    self%freefallRadiusMinimum       =   1.0d-3 
+    self%radiusMinimum               =   1.0d-3
+    self%freefallRadiusMaximum       =   1.0d+2  
+    self%radiusMaximum               =   1.0d+2
+    self%burkertFreefallTableInitialized =  .false.
+    self%burkertInverseTableInitialized  =  .false.
+    self%burkertTableInitialized         =  .false.
+    self%lastUniqueID                =  -1
     ! Ensure that the dark matter profile component supports a "scale" property.
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                             &
          & call Galacticus_Error_Report                                                                                       &
          &      (                                                                                                             &
-         &       'burkertConstructor'                                                                                       , &
+         &       'selfInternal'                                                                               , &
          &       'Burkert dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
          &       Galacticus_Component_List(                                                                                   &
          &                                 'darkMatterProfile'                                                              , &
@@ -199,10 +203,10 @@ contains
          &                                )                                                                                   &
          &      )
     ! Initialize the tabulations.
-    call burkertConstructor%tabulate              ()
-    call burkertConstructor%inverseAngularMomentum()
+    call self%tabulate              ()
+    call self%inverseAngularMomentum()
     return
-  end function burkertConstructor
+  end function burkertConstructorInternal
   
   subroutine burkertDestructor(self)
     !% Destructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
@@ -222,7 +226,7 @@ contains
     if (self%burkertTableInitialized        ) then
        call self%burkertConcentrationTable            %destroy()
     end if
-    if (self%scale%isFinalizable()) deallocate(self%scale)
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine burkertDestructor
   
@@ -235,7 +239,7 @@ contains
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
     self%lastUniqueID                           =node%uniqueID()
-    call self%scale%calculationReset(node)
+    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine burkertCalculationReset
 
@@ -340,7 +344,7 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =darkMatterProfile%scale()
     radiusOverScaleRadius          =radius                       /scaleRadius
-    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius    =self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     burkertDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*basic%mass()/scaleRadius**3
     return
   end function burkertDensity
@@ -362,7 +366,7 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                    =darkMatterProfile%scale()
     radiusOverScaleRadius          =radius                       /scaleRadius
-    virialRadiusOverScaleRadius    =self%scale%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius    =self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     burkertEnclosedMass            =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*basic%mass()
     return
   end function burkertEnclosedMass
@@ -385,7 +389,7 @@ contains
     if (present(status)) status=structureErrorCodeSuccess
     darkMatterProfile   => node%darkMatterProfile(autoCreate=.true.)
     radiusOverScaleRadius            =radius                       /darkMatterProfile%scale()
-    virialRadiusOverScaleRadius      =self%scale%virialRadius(node)/darkMatterProfile%scale()
+    virialRadiusOverScaleRadius      =self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        burkertPotential=                                                                          &
             & +(                                                                                  &
@@ -400,7 +404,7 @@ contains
             &     +                                    log (1.0d0+virialRadiusOverScaleRadius**2) &
             &  )                                                                                  &
             & *virialRadiusOverScaleRadius                                                        &
-            & *self%scale%virialVelocity(node)**2
+            & *self%darkMatterHaloScale_%virialVelocity(node)**2
     else
        burkertPotential=                                                                          &
             & +(                                                                                  &
@@ -419,7 +423,7 @@ contains
             &     +                                    log (1.0d0+virialRadiusOverScaleRadius**2) &
             &  )                                                                                  &
             & *virialRadiusOverScaleRadius                                                        &
-            & *self%scale%virialVelocity(node)**2
+            & *self%darkMatterHaloScale_%virialVelocity(node)**2
     end if
     return
   end function burkertPotential
@@ -526,14 +530,14 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the rotation normalization by interpolation.
     burkertRotationNormalization=self%burkertConcentrationTable%interpolate(concentration,table&
-         &=burkertConcetrationRotationNormalizationIndex)/self%scale%virialRadius(node)
+         &=burkertConcetrationRotationNormalizationIndex)/self%darkMatterHaloScale_%virialRadius(node)
     return
   end function burkertRotationNormalization
 
@@ -552,14 +556,14 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
     burkertEnergy=self%burkertConcentrationTable%interpolate(concentration,table=burkertConcentrationEnergyIndex)&
-         &*basic%mass()*self%scale%virialVelocity(node)**2
+         &*basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function burkertEnergy
 
@@ -579,7 +583,7 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%scale%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
@@ -590,8 +594,8 @@ contains
 
     burkertEnergyGrowthRate=self%energy(node)&
          &*(basic%accretionRate()/basic%mass()+2.0d0 &
-         &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node)+(energyGradient&
-         &*concentration/energy)*(self%scale%virialRadiusGrowthRate(node)/self%scale%virialRadius(node)&
+         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node)+(energyGradient&
+         &*concentration/energy)*(self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)&
          &-darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()))
 
     return
@@ -794,7 +798,7 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Compute the concentration parameter.
-    concentration=self%scale%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
@@ -853,10 +857,10 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
-    concentration=self%scale%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the virial velocity.
-    velocityScale=self%scale%virialVelocity(node)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(node)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
@@ -900,10 +904,10 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Get the concentration.
-    concentration=self%scale%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the virial velocity.
-    velocityScale=self%scale%virialVelocity(node)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(node)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&

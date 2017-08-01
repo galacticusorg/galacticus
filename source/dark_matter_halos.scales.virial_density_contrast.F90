@@ -70,38 +70,37 @@
 
 contains
 
-  function virialDensityContrastDefinitionParameters(parameters)
+  function virialDensityContrastDefinitionParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: virialDensityContrastDefinitionParameters
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: self
     type (inputParameters                                   ), intent(inout) :: parameters
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
 
-    ! Check and read parameters.
-    virialDensityContrast_                    => virialDensityContrast                  (                      )
-    virialDensityContrastDefinitionParameters =  virialDensityContrastDefinitionInternal(virialDensityContrast_)
+    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    self=darkMatterHaloScaleVirialDensityContrastDefinition(virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function virialDensityContrastDefinitionParameters
 
-  function virialDensityContrastDefinitionInternal(virialDensityContrast_)
+  function virialDensityContrastDefinitionInternal(virialDensityContrast_) result(self)
     !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , target :: virialDensityContrastDefinitionInternal
+    type (darkMatterHaloScaleVirialDensityContrastDefinition)                        :: self
     class(virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrast_
+    !# <constructorAssign variables="*virialDensityContrast_"/>
 
-    virialDensityContrastDefinitionInternal%virialDensityContrast_     => virialDensityContrast_
-    virialDensityContrastDefinitionInternal%lastUniqueID               =  -1_kind_int8
-    virialDensityContrastDefinitionInternal%dynamicalTimescaleComputed =  .false.
-    virialDensityContrastDefinitionInternal%virialRadiusComputed       =  .false.
-    virialDensityContrastDefinitionInternal%virialTemperatureComputed  =  .false.
-    virialDensityContrastDefinitionInternal%virialVelocityComputed     =  .false.
-    virialDensityContrastDefinitionInternal%meanDensityTimeMaximum     =  -1.0d0
-    virialDensityContrastDefinitionInternal%meanDensityTimeMinimum     =  -1.0d0
-    virialDensityContrastDefinitionInternal%resetMeanDensityTable      =  .false.
-    virialDensityContrastDefinitionInternal%timePrevious               =  -1.0d0
-    virialDensityContrastDefinitionInternal%massPrevious               =  -1.0d0
+    self%lastUniqueID              =-1_kind_int8
+    self%dynamicalTimescaleComputed=.false.
+    self%virialRadiusComputed      =.false.
+    self%virialTemperatureComputed =.false.
+    self%virialVelocityComputed    =.false.
+    self%meanDensityTimeMaximum    =-1.0d0
+    self%meanDensityTimeMinimum    =-1.0d0
+    self%resetMeanDensityTable     =.false.
+    self%timePrevious              =-1.0d0
+    self%massPrevious              =-1.0d0
     return
   end function virialDensityContrastDefinitionInternal
 

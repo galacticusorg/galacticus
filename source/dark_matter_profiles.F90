@@ -20,16 +20,12 @@
 
 module Dark_Matter_Profiles
   !% Provides an object that implements dark matter halo profiles.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Galacticus_Nodes
-  use               FGSL
-  !# <include directive="darkMatterProfile" type="functionModules" >
-  include 'darkMatterProfile.functionModules.inc'
-  !# </include>
+  use Galacticus_Nodes
+  use FGSL
   private
 
-  !# <include directive="darkMatterProfile" type="function" >
+  !# <functionClass>
+  !#  <name>darkMatterProfile</name>
   !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
   !#  <description>Object providing dark matter halo profiles.</description>
   !#  <default>NFW</default>
@@ -139,7 +135,6 @@ module Dark_Matter_Profiles
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: time</argument>
   !#  </method>
-  include 'darkMatterProfile.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Dark_Matter_Profiles

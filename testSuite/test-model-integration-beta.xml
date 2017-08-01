@@ -36,8 +36,9 @@
   <!-- Structure formation -->
   <linearGrowthMethod value="simple"/>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
-  <virialDensityContrastMethod value="percolation"/>
-  <virialDensityContrastPercolationLinkingLength value="0.2"/>
+  <virialDensityContrastMethod value="percolation">
+    <linkingLength value="0.2"/>
+  </virialDensityContrastMethod>
   <haloMassFunctionMethod value="simpleSystematic">
     <alpha value="-0.0771698265886211"/>
     <beta value="0.0687959490593511"/>

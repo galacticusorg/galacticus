@@ -752,8 +752,8 @@
     <cosmologyFunctionsMethod value="matterDarkEnergy">
       <darkEnergyEquationOfStateW0 value="-0.8"/>
       <darkEnergyEquationOfStateW1 value="0.0"/>
-      </cosmologyFunctionsMethod>
-      <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
+    </cosmologyFunctionsMethod>
+    <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
     <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
   </parameters>
@@ -878,7 +878,7 @@
     <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
     <darkMatterProfileMethod value="tidallyHeated">
-      <darkMatterProfileTidallyHeatedUnheatedProfile value="NFW"/>
+      <darkMatterProfileMethod value="NFW"/>
     </darkMatterProfileMethod>
     <darkMatterProfileConcentrationMethod value="gao2008"/>
     <darkMatterProfileMinimumConcentration value="4"/>
