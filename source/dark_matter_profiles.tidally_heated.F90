@@ -23,15 +23,17 @@
   !# </darkMatterProfile>
 
   use Kind_Numbers
+  use Dark_Matter_Halo_Scales
 
   type, extends(darkMatterProfileClass) :: darkMatterProfileTidallyHeated
      !% A dark matter halo profile class implementing tidally heated dark matter halos.
      private
-     class           (darkMatterProfileClass), pointer :: unheatedProfile
-     logical                                           :: unimplementedFatal
-     integer         (kind=kind_int8        )          :: lastUniqueID
-     double precision                                  :: radiusLimiting       , radiusFinalPrevious, &
-          &                                               radiusInitialPrevious
+     class           (darkMatterProfileClass  ), pointer :: unheatedProfile
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     logical                                             :: unimplementedIsFatal
+     integer         (kind=kind_int8          )          :: lastUniqueID
+     double precision                                    :: radiusLimiting       , radiusFinalPrevious, &
+          &                                                 radiusInitialPrevious
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileTidallyHeated</object>
@@ -73,16 +75,10 @@
 
   interface darkMatterProfileTidallyHeated
      !% Constructors for the {\normalfont \ttfamily tidallyHeated} dark matter halo profile class.
-     module procedure tidallyHeatedDefaultConstructor
+     module procedure tidallyHeatedConstructorParameters
+     module procedure tidallyHeatedConstructorInternal
   end interface darkMatterProfileTidallyHeated
 
-  ! Record of whether method is initialized.
-  logical                                                   :: tidallyHeatedInitialized                            =.false.
-
-  ! Default settings for this method.
-  type            (varying_string                )          :: darkMatterProfileTidallyHeatedUnheatedProfile  
-  logical                                                   :: darkMatterProfileTidallyHeatedUnimplementedIsFatal
-  
   ! Warnings issued.
   logical                                                   :: tidallyHeatedRadiusEnclosingDensityWarned           =.false.
   logical                                                   :: tidallyHeatedDensityLogSlopeWarned                  =.false.
@@ -104,88 +100,66 @@
 
 contains
 
-  function tidallyHeatedDefaultConstructor()
+  function tidallyHeatedConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily tidallyHeated} dark matter halo profile class.
-    use Galacticus_Error
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileTidallyHeated), target :: tidallyHeatedDefaultConstructor    
+    type   (darkMatterProfileTidallyHeated)                :: self    
+    type   (inputParameters               ), intent(inout) :: parameters
+    class  (darkMatterProfileClass        ), pointer       :: darkMatterProfile_
+    class  (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    logical                                                :: unimplementedIsFatal
 
-    ! Initialize if necessary.
-    if (.not.tidallyHeatedInitialized) then
-       !$omp critical(tidallyHeatedInitialization)
-       if (.not.tidallyHeatedInitialized) then
-          ! Read parameter controlling the unheated profile
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileTidallyHeatedUnheatedProfile</name>
-          !@   <defaultValue>NFW</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The unheated {\normalfont \ttfamily darkMatterProfile} method to which tidal heating should be applied.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileTidallyHeatedUnheatedProfile',darkMatterProfileTidallyHeatedUnheatedProfile,defaultValue="NFW")
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileTidallyHeatedUnimplementedIsFatal</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     If {\normalfont \ttfamily true}, unimplemented features of the tidally-heated dark matter profile cause fatal errors. Otherwise, a warning is issued and the solution for an unheated profile is returned.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileTidallyHeatedUnimplementedIsFatal',darkMatterProfileTidallyHeatedUnimplementedIsFatal,defaultValue=.true.)
-          ! Check that tidal heating is available.
-          if (.not.defaultSatelliteComponent%tidalHeatingNormalizedIsGettable())                                                   &
-            & call Galacticus_Error_Report                                                                                         &
-            & (                                                                                                                    &
-            &  'tidallyHeatedDefaultConstructor'                                                                                 , &
-            &  'This method requires that the "tidalHeatingNormalized" property of the satellite are gettable.'                 // &
-            &  Galacticus_Component_List(                                                                                          &
-            &                            'satellite'                                                                            ,  &
-            &                             defaultSatelliteComponent%tidalHeatingNormalizedAttributeMatch(requireGettable=.true.)   &
-            &                           )                                                                                          &
-            & )
-          ! Record that this method is now initialized
-          tidallyHeatedInitialized=.true.
-       end if
-       !$omp end critical(tidallyHeatedInitialization)
-    end if
-    ! Construct the default object.
-    tidallyHeatedDefaultConstructor%unheatedProfile    => darkMatterProfile(char(darkMatterProfileTidallyHeatedUnheatedProfile))
-    tidallyHeatedDefaultConstructor%unimplementedFatal =  darkMatterProfileTidallyHeatedUnimplementedIsFatal
-    tidallyHeatedDefaultConstructor%lastUniqueID       =-1
-    tidallyHeatedDefaultConstructor%radiusLimiting     =-huge(0.0d0)
-    tidallyHeatedDefaultConstructor%radiusFinalPrevious=-huge(0.0d0)
+    !# <inputParameter>
+    !#   <name>unimplementedIsFatal</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If {\normalfont \ttfamily true}, unimplemented features of the tidally-heated dark matter profile cause fatal errors. Otherwise, a warning is issued and the solution for an unheated profile is returned.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=darkMatterProfileTidallyHeated(unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+
     return
-  end function tidallyHeatedDefaultConstructor
+  end function tidallyHeatedConstructorParameters
 
-  function tidallyHeatedGenericConstructor(unheatedProfile)
+  function tidallyHeatedConstructorInternal(unimplementedIsFatal,unheatedProfile,darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily tidallyHeated} dark matter profile class.
+    use Galacticus_Error
     implicit none
-    type (darkMatterProfileTidallyHeated)                        :: tidallyHeatedGenericConstructor
-    class(darkMatterProfileClass        ), intent(in   ), target :: unheatedProfile
+    type   (darkMatterProfileTidallyHeated)                        :: self
+    class  (darkMatterProfileClass        ), intent(in   ), target :: unheatedProfile
+    class  (darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
+    logical                                , intent(in   )         :: unimplementedIsFatal
+    !# <constructorAssign variables="unimplementedIsFatal,*unheatedProfile,*darkMatterHaloScale_"/>
 
     ! Construct the object.
-    tidallyHeatedGenericConstructor%unheatedProfile    => unheatedProfile
-    tidallyHeatedGenericConstructor%unimplementedFatal =  .true.
-    tidallyHeatedGenericConstructor%lastUniqueID       =  -1
-    tidallyHeatedGenericConstructor%radiusLimiting     =  -huge(0.0d0)
-    tidallyHeatedGenericConstructor%radiusFinalPrevious=  -huge(0.0d0)
-    return
-  end function tidallyHeatedGenericConstructor
+    self%lastUniqueID       =-1_kind_int8
+    self%radiusLimiting     =-huge(0.0d0)
+    self%radiusFinalPrevious=-huge(0.0d0)
+    ! Check that tidal heating is available.
+    if (.not.defaultSatelliteComponent%tidalHeatingNormalizedIsGettable())                                                      &
+         & call Galacticus_Error_Report                                                                                         &
+         & (                                                                                                                    &
+         &  'tidallyHeatedConstructorInternal'                                                                                , &
+         &  'This method requires that the "tidalHeatingNormalized" property of the satellite are gettable.'                 // &
+         &  Galacticus_Component_List(                                                                                          &
+         &                            'satellite'                                                                            ,  &
+         &                             defaultSatelliteComponent%tidalHeatingNormalizedAttributeMatch(requireGettable=.true.)   &
+         &                           )                                                                                          &
+         & )
+     return
+   end function tidallyHeatedConstructorInternal
 
   subroutine tidallyHeatedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily tidallyHeated} dark matter halo profile class.
     implicit none
     type(darkMatterProfileTidallyHeated), intent(inout) :: self
 
-    if (self%unheatedProfile%isFinalizable()) deallocate(self%unheatedProfile)
+    !# <objectDestructor name="self%unheatedProfile"      />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine tidallyHeatedDestructor
   
@@ -283,7 +257,7 @@ contains
        tidallyHeatedDensityLogSlope=self%unheatedProfile%densityLogSlope(node,radius)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           call Galacticus_Error_Report('tidallyHeatedDensityLogSlope','density logarithmic slope in tidally heated dark matter profiles is not supported')
        else
           ! Issue a warning and then fall through to the unheated profile.
@@ -318,7 +292,7 @@ contains
        tidallyHeatedRadiusEnclosingDensity=self%unheatedProfile%radiusEnclosingDensity(node,density)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedRadiusEnclosingDensity=0.0d0
           call Galacticus_Error_Report('tidallyHeatedRadiusEnclosingDensity','radius enclosing density in tidally heated dark matter profiles is not supported')
        else
@@ -355,7 +329,7 @@ contains
        tidallyHeatedRadialMoment=self%unheatedProfile%radialMoment(node,moment,radiusMinimum,radiusMaximum)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedRadialMoment=0.0d0
           call Galacticus_Error_Report('tidallyHeatedRadialMoment','radial moment in tidally heated dark matter profiles is not supported')
        else
@@ -437,21 +411,28 @@ contains
   
   double precision function tidallyHeatedRadiusInitialRoot(radiusInitial)
     !% Root function used in finding initial radii in tidally-heated dark matter halo profiles.
+    use Dark_Matter_Profiles_Heating
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in   ) :: radiusInitial
-    double precision                :: massEnclosed
+    double precision                               , intent(in   ) :: radiusInitial
+    double precision                                               :: massEnclosed
+    class           (darkMatterProfileHeatingClass), pointer       :: darkMatterProfileHeating_
     
-    massEnclosed                  =tidallyHeatedSelf%unheatedProfile%enclosedMass(tidallyHeatedNode,radiusInitial)
-    tidallyHeatedRadiusInitialRoot=+tidallyHeatedHeatingNormalized     &
-         &                         *radiusInitial                  **2 &
-         &                         +0.5d0                              &
-         &                         *gravitationalConstantGalacticus    &
-         &                         *massEnclosed                       &
-         &                         *(                                  &
-         &                           +1.0d0/tidallyHeatedRadiusFinal   &
-         &                           -1.0d0/radiusInitial              &
-         &                          )
+    darkMatterProfileHeating_      =>  darkMatterProfileHeating                             (                               )
+    massEnclosed                   =  +tidallyHeatedSelf       %unheatedProfile%enclosedMass(tidallyHeatedNode,radiusInitial)
+    tidallyHeatedRadiusInitialRoot =  +tidallyHeatedHeatingNormalized     &
+         &                            *radiusInitial                  **2 &
+         &                            +0.5d0                              &
+         &                            *gravitationalConstantGalacticus    &
+         &                            *massEnclosed                       &
+         &                            *(                                  &
+         &                              +1.0d0/tidallyHeatedRadiusFinal   &
+         &                              -1.0d0/radiusInitial              &
+         &                             )
+
+write (0,*) "TEST ",tidallyHeatedHeatingNormalized*radiusInitial**2,darkMatterProfileHeating_%specificEnergy(tidallyHeatedNode,radiusInitial)
+
+    
     return
   end function tidallyHeatedRadiusInitialRoot
 
@@ -463,7 +444,6 @@ contains
     class           (darkMatterProfileTidallyHeated), intent(inout), target  :: self
     type            (treeNode                      ), intent(inout), target  :: node
     class           (nodeComponentSatellite        )               , pointer :: satellite
-    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder                    ), save                   :: finder
     !$omp threadprivate(finder)
@@ -490,8 +470,7 @@ contains
                   &                   rangeExpandType              =rangeExpandMultiplicative      &
                   &                  )
           end if
-          darkMatterHaloScale_ => darkMatterHaloScale()
-          self%radiusLimiting=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(node))
+          self%radiusLimiting=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
        end if
        tidallyHeatedRadiusLimit=self%radiusLimiting
     end if
@@ -531,7 +510,6 @@ contains
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status    
     class           (nodeComponentSatellite        )               , pointer  :: satellite
-    class           (darkMatterHaloScaleClass      )               , pointer  :: darkMatterHaloScale_
     double precision                                , parameter               :: radiusMaximumFactor =1.0d2
     type            (fgsl_function                 )                          :: integrandFunction
     type            (fgsl_integration_workspace    )                          :: integrationWorkspace
@@ -546,9 +524,8 @@ contains
        ! The only option here is to do a numerical integration.
        call tidallyHeatedSetGlobalSelf(self)
        tidallyHeatedNode    => node
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       radiusMaximum        =  +radiusMaximumFactor                                              &
-            &                  *self%radiusInitial(node,darkMatterHaloScale_%virialRadius(node))
+       radiusMaximum        =  +radiusMaximumFactor                                                   &
+            &                  *self%radiusInitial(node,self%darkMatterHaloScale_%virialRadius(node))
        tidallyHeatedPotential=Integrate(                                        &
             &                           radius                                , &
             &                           radiusMaximum                         , &
@@ -611,7 +588,7 @@ contains
        tidallyHeatedCircularVelocityMaximum=self%unheatedProfile%circularVelocityMaximum(node)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedCircularVelocityMaximum=0.0d0
           call Galacticus_Error_Report('tidallyHeatedCircularVelocityMaximum','circular velocity maximum in tidally heated dark matter profiles is not supported')
        else
@@ -699,7 +676,7 @@ contains
        tidallyHeatedRotationNormalization=self%unheatedProfile%rotationNormalization(node)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedRotationNormalization=0.0d0
           call Galacticus_Error_Report('tidallyHeatedRotationNormalization','rotation normalization in tidally heated dark matter profiles is not supported')
        else
@@ -733,7 +710,7 @@ contains
        tidallyHeatedEnergy=self%unheatedProfile%energy(node)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedEnergy=0.0d0
           call Galacticus_Error_Report('tidallyHeatedEnergy','energy in tidally heated dark matter profiles is not supported')
        else
@@ -767,7 +744,7 @@ contains
        tidallyHeatedEnergyGrowthRate=self%unheatedProfile%energyGrowthRate(node)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedEnergyGrowthRate=0.0d0
           call Galacticus_Error_Report('tidallyHeatedEnergyGrowthRate','energy growth rate in tidally heated dark matter profiles is not supported')
        else
@@ -803,7 +780,7 @@ contains
        tidallyHeatedKSpace=self%unheatedProfile%kSpace(node,waveNumber)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedKSpace=0.0d0
           call Galacticus_Error_Report('tidallyHeatedKSpace','Fourier profile in tidally heated dark matter profiles is not supported')
        else
@@ -839,7 +816,7 @@ contains
        tidallyHeatedFreefallRadius=self%unheatedProfile%freefallRadius(node,time)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedFreefallRadius=0.0d0
           call Galacticus_Error_Report('tidallyHeatedFreefallRadius','freefall radius in tidally heated dark matter profiles is not supported')
        else
@@ -875,7 +852,7 @@ contains
        tidallyHeatedFreefallRadiusIncreaseRate=self%unheatedProfile%freefallRadiusIncreaseRate(node,time)
     else
        ! Check if unimplemented features are fatal.
-       if (self%unimplementedFatal) then
+       if (self%unimplementedIsFatal) then
           tidallyHeatedFreefallRadiusIncreaseRate=0.0d0
           call Galacticus_Error_Report('tidallyHeatedFreefallRadiusIncreaseRate','freefall radius increase rate in tidally heated dark matter profiles is not supported')
        else

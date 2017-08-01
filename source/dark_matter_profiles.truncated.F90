@@ -18,16 +18,18 @@
 
   !% An implementation of truncated dark matter halo profiles.
 
+  use Dark_Matter_Halo_Scales
+
   !# <darkMatterProfile name="darkMatterProfileTruncated">
   !#  <description>truncated dark matter halo profiles.</description>
   !# </darkMatterProfile>
-
   type, extends(darkMatterProfileClass) :: darkMatterProfileTruncated
      !% A dark matter halo profile class implementing truncated dark matter halos.
      private
-     class           (darkMatterProfileClass), pointer :: untruncatedProfile
-     double precision                                  :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
-     logical                                           :: unimplementedFatal
+     class           (darkMatterProfileClass  ), pointer :: untruncatedProfile
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
+     logical                                             :: unimplementedIsFatal
    contains
      final                                             truncatedDestructor
      procedure :: density                           => truncatedDensity
@@ -49,110 +51,72 @@
 
   interface darkMatterProfileTruncated
      !% Constructors for the {\normalfont \ttfamily truncated} dark matter halo profile class.
-     module procedure truncatedDefaultConstructor
-     module procedure truncatedGenericConstructor
+     module procedure truncatedConstructorParameters
+     module procedure truncatedConstructorInternal
   end interface darkMatterProfileTruncated
-
-  ! Default settings for this method.
-  logical                          :: truncatedInitialized                            =.false.
-  type            (varying_string) :: darkMatterProfileTruncatedUntruncatedProfile  
-  logical                          :: darkMatterProfileTruncatedUnimplementedIsFatal
-  double precision                 :: darkMatterProfileTruncateRadiusFractionalMinimum        , darkMatterProfileTruncateRadiusFractionalMaximum
 
 contains
 
-  function truncatedDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+  function truncatedConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily truncated} dark matter halo profile class which takes a parameter set as input.
     use Galacticus_Error
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileTruncated), target :: truncatedDefaultConstructor    
+    type            (darkMatterProfileTruncated)                :: self
+    type            (inputParameters           ), intent(inout) :: parameters
+    class           (darkMatterProfileClass    ), pointer       :: darkMatterProfile_
+    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    logical                                                     :: unimplementedIsFatal
+    double precision                                            :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
 
-    ! Initialize if necessary.
-    if (.not.truncatedInitialized) then
-       !$omp critical(truncatedInitialization)
-       if (.not.truncatedInitialized) then
-          ! Read parameter controlling the untruncated profile
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileTruncatedUntruncatedProfile</name>
-          !@   <defaultValue>NFW</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The untruncated {\normalfont \ttfamily darkMatterProfile} method to which truncation should be applied.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileTruncatedUntruncatedProfile',darkMatterProfileTruncatedUntruncatedProfile,defaultValue="NFW")
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileTruncatedUnimplementedIsFatal</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     If {\normalfont \ttfamily true}, unimplemented features of the truncated dark matter profile cause fatal errors. Otherwise, the solution for an untruncated profile is returned.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileTruncatedUnimplementedIsFatal',darkMatterProfileTruncatedUnimplementedIsFatal,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileTruncateRadiusFractionalMinimum</name>
-          !@   <defaultValue>2.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The minimum radius (in units of the virial radius) to begin truncating the density profile.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileTruncateRadiusFractionalMinimum',darkMatterProfileTruncateRadiusFractionalMinimum,defaultValue=2.0d0)
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileTruncateRadiusFractionalMaximum</name>
-          !@   <defaultValue>4.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum radius (in units of the virial radius) to finish truncating the density profile.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileTruncateRadiusFractionalMaximum',darkMatterProfileTruncateRadiusFractionalMaximum,defaultValue=4.0d0)
-          ! Record that this method is now initialized
-          truncatedInitialized=.true.
-       end if
-       !$omp end critical(truncatedInitialization)
-    end if    
-    ! Construct the default object.
-    truncatedDefaultConstructor%untruncatedProfile              => darkMatterProfile(char(darkMatterProfileTruncatedUntruncatedProfile    ))
-    truncatedDefaultConstructor%radiusFractionalTruncateMinimum =                         darkMatterProfileTruncateRadiusFractionalMinimum
-    truncatedDefaultConstructor%radiusFractionalTruncateMaximum =                         darkMatterProfileTruncateRadiusFractionalMaximum
-    truncatedDefaultConstructor%unimplementedFatal              =                         darkMatterProfileTruncatedUnimplementedIsFatal
+    !# <inputParameter>
+    !#   <name>unimplementedIsFatal</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If {\normalfont \ttfamily true}, unimplemented features of the truncated dark matter profile cause fatal errors. Otherwise, the solution for an untruncated profile is returned.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>radiusFractionalTruncateMinimum</name>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
+    !#   <type>float</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>radiusFractionalTruncateMaximum</name>
+    !#   <defaultValue>4.0d0</defaultValue>
+    !#   <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
+    !#   <type>float</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=darkMatterProfileTruncated(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function truncatedDefaultConstructor
+  end function truncatedConstructorParameters
 
-  function truncatedGenericConstructor(untruncatedProfile,radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedFatal)
-    !% Generic constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
+  function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,untruncatedProfile,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
     implicit none
-    type            (darkMatterProfileTruncated)                        :: truncatedGenericConstructor
+    type            (darkMatterProfileTruncated)                        :: self
     class           (darkMatterProfileClass    ), intent(in   ), target :: untruncatedProfile
+    class           (darkMatterHaloScaleClass  ), intent(in   ), target :: darkMatterHaloScale_
     double precision                            , intent(in   )         :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
-    logical                                     , intent(in   )         :: unimplementedFatal
+    logical                                     , intent(in   )         :: unimplementedIsFatal
+    !# <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,*untruncatedProfile,*darkMatterHaloScale_"/>
 
-    ! Construct the object.
-    truncatedGenericConstructor%untruncatedProfile              => untruncatedProfile
-    truncatedGenericConstructor%radiusFractionalTruncateMinimum =  radiusFractionalTruncateMinimum
-    truncatedGenericConstructor%radiusFractionalTruncateMaximum =  radiusFractionalTruncateMaximum
-    truncatedGenericConstructor%unimplementedFatal              =  unimplementedFatal
     return
-  end function truncatedGenericConstructor
+  end function truncatedConstructorInternal
 
   subroutine truncatedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
     implicit none
     type(darkMatterProfileTruncated), intent(inout) :: self
 
-    if (self%untruncatedProfile%isFinalizable()) deallocate(self%untruncatedProfile)
+    !# <objectDestructor name="self%untruncatedProfile"   />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine truncatedDestructor
   
@@ -164,11 +128,9 @@ contains
     class           (darkMatterProfileTruncated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: radius
-    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
-    double precision                                            :: radiusVirial        , x
+    double precision                                            :: radiusVirial, x
 
-    darkMatterHaloScale_ => darkMatterHaloScale              (    )
-    radiusVirial         =  darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     if      (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
        truncatedDensity=+self%untruncatedProfile%density(node,radius)
     else if (radius >= radiusVirial*self%radiusFractionalTruncateMaximum) then
@@ -195,7 +157,7 @@ contains
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: radius
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedDensityLogSlope=0.0d0
        call Galacticus_Error_Report('truncatedDensityLogSlope','density logarithmic slope in truncated dark matter profiles is not supported')
     else
@@ -213,7 +175,7 @@ contains
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: density
     
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedRadiusEnclosingDensity=0.0d0
        call Galacticus_Error_Report('truncatedRadiusEnclosingDensity','radius enclosing density in truncated dark matter profiles is not supported')
     else
@@ -232,7 +194,7 @@ contains
     double precision                            , intent(in   )           :: moment
     double precision                            , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedRadialMoment=0.0d0
        call Galacticus_Error_Report('truncatedRadialMoment','radial moment in truncated dark matter profiles is not supported')
     else
@@ -251,14 +213,12 @@ contains
     class           (darkMatterProfileTruncated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: radius
-    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
     double precision                                            :: radiusVirial        , radiusMinimum, &
          &                                                         radiusMaximum
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
-    darkMatterHaloScale_ => darkMatterHaloScale              (    )
-    radiusVirial         =  darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     if (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
        truncatedEnclosedMass=+self%untruncatedProfile%enclosedMass(node,radius)
     else
@@ -302,7 +262,7 @@ contains
     double precision                            , intent(in   )           :: radius
     integer                                     , intent(  out), optional :: status    
  
-     if (self%unimplementedFatal) then
+     if (self%unimplementedIsFatal) then
        truncatedPotential=0.0d0
        call Galacticus_Error_Report('truncatedPotential','potential in truncated dark matter profiles is not supported')
     else
@@ -320,7 +280,7 @@ contains
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: radius
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedCircularVelocity=0.0d0
        call Galacticus_Error_Report('truncatedCircularVelocity','circular velocity in truncated dark matter profiles is not supported')
     else
@@ -336,7 +296,7 @@ contains
     class(darkMatterProfileTruncated), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedCircularVelocityMaximum=0.0d0
        call Galacticus_Error_Report('truncatedCircularVelocityMaximum','circular velocity maximum in truncated dark matter profiles is not supported')
     else
@@ -354,7 +314,7 @@ contains
     type            (treeNode                  ), intent(inout), pointer :: node
     double precision                            , intent(in   )          :: specificAngularMomentum
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedRadiusFromSpecificAngularMomentum=0.0d0
        call Galacticus_Error_Report('truncatedRadiusFromSpecificAngularMomentum','radius from specific angular momentum in truncated dark matter profiles is not supported')
     else
@@ -370,7 +330,7 @@ contains
     class(darkMatterProfileTruncated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedRotationNormalization=0.0d0
        call Galacticus_Error_Report('truncatedRotationNormalization','rotation normalization in truncated dark matter profiles is not supported')
     else
@@ -386,7 +346,7 @@ contains
     class(darkMatterProfileTruncated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedEnergy=0.0d0
        call Galacticus_Error_Report('truncatedEnergy','energy in truncated dark matter profiles is not supported')
     else
@@ -402,7 +362,7 @@ contains
     class(darkMatterProfileTruncated), intent(inout)          :: self
     type (treeNode                  ), intent(inout), pointer :: node
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedEnergyGrowthRate=0.0d0
        call Galacticus_Error_Report('truncatedEnergyGrowthRate','energy growth rate in truncated dark matter profiles is not supported')
     else
@@ -420,7 +380,7 @@ contains
     type            (treeNode                  ), intent(inout), pointer :: node
     double precision                            , intent(in   )          :: waveNumber
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedKSpace=0.0d0
        call Galacticus_Error_Report('truncatedKSpace','k-space in truncated dark matter profiles is not supported')
     else
@@ -439,7 +399,7 @@ contains
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: time
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedFreefallRadius=0.0d0
        call Galacticus_Error_Report('truncatedFreefallRadius','freefall radius in truncated dark matter profiles is not supported')
     else
@@ -458,7 +418,7 @@ contains
     type            (treeNode                  ), intent(inout) :: node
     double precision                            , intent(in   ) :: time
 
-    if (self%unimplementedFatal) then
+    if (self%unimplementedIsFatal) then
        truncatedFreefallRadiusIncreaseRate=0.0d0
        call Galacticus_Error_Report('truncatedFreefallRadiusIncreaseRate','freefall radius increase rate in truncated dark matter profiles is not supported')
     else

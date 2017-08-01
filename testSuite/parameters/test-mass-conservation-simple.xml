@@ -324,8 +324,9 @@
     <vipersStellarMassFunctionZ0.90MassRandomMinimum value="0.0658484891151068" />
     <vipersStellarMassFunctionZ0.90MassSystematic0 value="-0.0527574548240362" />
     <vipersStellarMassFunctionZ0.90MassSystematic1 value="0.0481514048108267" />
-    <virialDensityContrastMethod value="percolation" />
-    <virialDensityContrastPercolationLinkingLength value="0.2" />
+    <virialDensityContrastMethod value="percolation">
+      <linkingLength value="0.2"/>
+    </virialDensityContrastMethod>
     <virialOrbitMethod value="fixed" />
     <virialOrbitsFixedRadialVelocity value="-0.856" />
     <virialOrbitsFixedTangentialVelocity value="+0.842" />

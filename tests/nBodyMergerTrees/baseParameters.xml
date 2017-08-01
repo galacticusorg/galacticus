@@ -39,7 +39,7 @@
   <coolingTimeMethod value="simple"/>
   <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <cosmologyFunctionsMethod value="matter + lambda"/>
-  <criticalOverdensityMethod value="spherical top hat"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <darkMatterProfileConcentrationMethod value="Gao 2008"/>
   <darkMatterProfileMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
@@ -129,7 +129,7 @@
   <spheroidMassDistribution value="hernquist"/>
   <treeNodeMethodSpin value="random"/>
   <verbosityLevel value="1"/>
-  <virialDensityContrastMethod value="spherical top hat"/>
+  <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <virialOrbitMethod value="benson2005"/>
   <mergerTreeBuilderMethod value="cole2000">
     <mergeProbability value="0.1"/>

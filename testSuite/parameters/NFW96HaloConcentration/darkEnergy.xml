@@ -20,7 +20,8 @@
   <darkMatterProfileConcentrationMethod value="NFW1996">
     <C value="3000.0"/>
   </darkMatterProfileConcentrationMethod>
-  <virialDensityContrastMethod value="fixed"/>
-  <virialDensityConstrastFixed value="200.0"/>
-  <virialDensityConstrastFixedType value="criticalDensity"/>
+  <virialDensityContrastMethod value="fixed">
+    <densityContrastValue value="200"/>
+    <densityType value="critical"/>
+  </virialDensityContrastMethod>
 </parameters>

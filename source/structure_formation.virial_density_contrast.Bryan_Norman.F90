@@ -18,15 +18,20 @@
 
   !% An implementation of \cite{bryan_statistical_1998} dark matter halo virial density contrasts.
 
+  use Cosmology_Parameters
+  use Cosmology_Functions
+
   !# <virialDensityContrast name="virialDensityContrastBryanNorman1998">
   !#  <description>\cite{bryan_statistical_1998} dark matter halo virial density contrasts.</description>
   !# </virialDensityContrast>
-
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
      private
-     integer   :: fitType
+     class (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     integer                                   :: fitType
    contains
+     final     ::                                bryanNorman1998Destructor
      procedure :: densityContrast             => bryanNorman1998DensityContrast
      procedure :: densityContrastRateOfChange => bryanNorman1998DensityContrastRateOfChange
      procedure :: turnAroundOverVirialRadii   => bryanNorman1998TurnAroundOverVirialRadii
@@ -34,36 +39,67 @@
 
   interface virialDensityContrastBryanNorman1998
      !% Constructors for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
-     module procedure bryanNorman1998DefaultConstructor
+     module procedure bryanNorman1998ConstructorParameters
+     module procedure bryanNorman1998ConstructorInternal
   end interface virialDensityContrastBryanNorman1998
 
-  ! Labels for different fitting function types.
-  integer, parameter :: bryanNorman1998FitTypeFlatUniverse=1, bryanNorman1998FitTypeZeroLambda=0
+  ! Enumeration for different fitting function types.
+  !# <enumeration>
+  !#  <name>bryanNorman1998Fit</name>
+  !#  <description>Specifies fit type for \cite{bryan_statistical_1998} virial density contrast.</description>
+  !#  <entry label="flatUniverse" />
+  !#  <entry label="zeroLambda"   />
+  !# </enumeration>
 
 contains
 
-  function bryanNorman1998DefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
-    use Cosmology_Parameters
+  function bryanNorman1998ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type (virialDensityContrastBryanNorman1998)                :: self
+    type (inputParameters                     ), intent(inout) :: parameters
+    class(cosmologyParametersClass            ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
+    
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    self=virialDensityContrastBryanNorman1998(cosmologyParameters_,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function bryanNorman1998ConstructorParameters
+  
+  function bryanNorman1998ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
     use Galacticus_Error
     use Numerical_Comparison
     implicit none
-    type (virialDensityContrastBryanNorman1998), target  :: bryanNorman1998DefaultConstructor
-    class(cosmologyParametersClass            ), pointer :: cosmologyParameters_
+    type (virialDensityContrastBryanNorman1998)                        :: self
+    class(cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass             ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
     ! Check that fitting formulae are applicable to this cosmology.
-    if (cosmologyParameters_%OmegaDarkEnergy() == 0.0d0) then
-       bryanNorman1998DefaultConstructor%fitType=bryanNorman1998FitTypeZeroLambda
-    else if (.not.Values_Differ(cosmologyParameters_%OmegaMatter()+cosmologyParameters_%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) then
-       bryanNorman1998DefaultConstructor%fitType=bryanNorman1998FitTypeFlatUniverse
+    if (self%cosmologyParameters_%OmegaDarkEnergy() == 0.0d0) then
+       self%fitType=bryanNorman1998FitZeroLambda
+    else if (.not.Values_Differ(self%cosmologyParameters_%OmegaMatter()+self%cosmologyParameters_%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) then
+       self%fitType=bryanNorman1998FitFlatUniverse
     else
-       call Galacticus_Error_Report('bryanNorman1998DefaultConstructor','no fitting formula available for this cosmology')
+       call Galacticus_Error_Report('bryanNorman1998ConstructorInternal','no fitting formula available for this cosmology')
     end if
     return
-  end function bryanNorman1998DefaultConstructor
+  end function bryanNorman1998ConstructorInternal
 
+  subroutine bryanNorman1998Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
+    implicit none
+    type(virialDensityContrastBryanNorman1998), intent(inout) :: self
+ 
+    !# <objectDestructor name="self%cosmologyParameters_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    return
+  end subroutine bryanNorman1998Destructor
+  
   double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
     use Galacticus_Error
@@ -72,19 +108,17 @@ contains
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
     double precision                                      , intent(in   )           :: mass
-    double precision                                      , intent(in   ), optional :: time               , expansionFactor
+    double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
     double precision                                                                :: x
     !GCC$ attributes unused :: mass
     
-    cosmologyFunctions_ => cosmologyFunctions()
-    x=cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
+    x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
-    case (bryanNorman1998FitTypeZeroLambda)
-       bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
-    case (bryanNorman1998FitTypeFlatUniverse)
-       bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
+    case (bryanNorman1998FitZeroLambda)
+       bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
+    case (bryanNorman1998FitFlatUniverse)
+       bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
     case default
        bryanNorman1998DensityContrast=0.0d0
        call Galacticus_Error_Report('bryanNorman1998DensityContrast','invalid fit type')
@@ -102,31 +136,29 @@ contains
     double precision                                      , intent(in   )           :: mass
     double precision                                      , intent(in   ), optional :: time      , expansionFactor
     logical                                               , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass             ), pointer                 :: cosmologyFunctions_
     double precision                                                                :: x
     !GCC$ attributes unused :: mass
 
-    cosmologyFunctions_ => cosmologyFunctions()
-    x=cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
+    x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
-    case (bryanNorman1998FitTypeZeroLambda)
-       bryanNorman1998DensityContrastRateOfChange=                                           &
-            & (                                                                              &
-            &  +(            +60.0d0  -64.0d0*x   )                                          &
-            &  -(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)                                          &
-            &  /cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
-            & )                                                                              &
-            & * cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
-            & / cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
-    case (bryanNorman1998FitTypeFlatUniverse)
-       bryanNorman1998DensityContrastRateOfChange=                                           &
-            & (                                                                              &
-            &  +(            +82.0d0  -78.0d0*x   )                                          &
-            &  -(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)                                          &
-            &  /cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
-            & )                                                                              &
-            & * cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
-            & / cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+    case (bryanNorman1998FitZeroLambda)
+       bryanNorman1998DensityContrastRateOfChange=                                                &
+            & (                                                                                   &
+            &  +(            +60.0d0  -64.0d0*x   )                                               &
+            &  -(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)                                               &
+            &  /self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
+            & )                                                                                   &
+            & * self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
+            & / self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+    case (bryanNorman1998FitFlatUniverse)
+       bryanNorman1998DensityContrastRateOfChange=                                                &
+            & (                                                                                   &
+            &  +(            +82.0d0  -78.0d0*x   )                                               &
+            &  -(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)                                               &
+            &  /self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
+            & )                                                                                   &
+            & * self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
+            & / self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
     case default
        bryanNorman1998DensityContrastRateOfChange=0.0d0
        call Galacticus_Error_Report('bryanNorman1998DensityContrast','invalid fit type')

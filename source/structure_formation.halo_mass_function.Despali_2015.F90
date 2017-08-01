@@ -17,8 +17,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
+
   use Cosmological_Mass_Variance
   use Critical_Overdensities
+  use Virial_Density_Contrast
+  use Cosmology_Functions
 
   !# <haloMassFunction name="haloMassFunctionDespali2015">
   !#  <description>The halo mass function is computed from the function given by \cite{despali_universality_2015}.</description>
@@ -26,6 +29,7 @@
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
      private
+     class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_      => null()
      class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_   => null()
      type (virialDensityContrastSphericalCollapseMatterLambda)          :: referenceDensityContrast
     contains
@@ -53,37 +57,38 @@
 
 contains
 
-  function despali2015ConstructorParameters(parameters)
+  function despali2015ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily despali2015} halo mass function class which takes a parameter set as input.
     use Input_Parameters2
     implicit none
-    type(haloMassFunctionDespali2015)                :: despali2015ConstructorParameters
-    type(inputParameters            ), intent(inout) :: parameters
-    
+    type (haloMassFunctionDespali2015  )                :: self
+    type (inputParameters              ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
+    class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    class(criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyParameters"      name="despali2015ConstructorParameters%cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="despali2015ConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="despali2015ConstructorParameters%criticalOverdensity_"      source="parameters"/>
-    despali2015ConstructorParameters%virialDensityContrast_   => virialDensityContrast                             ()
-    despali2015ConstructorParameters%referenceDensityContrast =  virialDensityContrastSphericalCollapseMatterLambda()
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    self=haloMassFunctionDespali2015(cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
-   return
+    return
   end function despali2015ConstructorParameters
 
-  function despali2015ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_)
+  function despali2015ConstructorInternal(cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily despali2015} halo mass function class.
     implicit none
-    type (haloMassFunctionDespali2015  )                        :: despali2015ConstructorInternal
-    class(cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_    
+    type (haloMassFunctionDespali2015  )                        :: self
+    class(cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_    
     class(cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
     class(criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
     class(virialDensityContrastClass   ), target, intent(in   ) :: virialDensityContrast_
+    !# <constructorAssign variables="*cosmologyFunctions_,*cosmologicalMassVariance_,*criticalOverdensity_,*virialDensityContrast_"/>
 
-    despali2015ConstructorInternal%cosmologyParameters_      => cosmologyParameters_
-    despali2015ConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
-    despali2015ConstructorInternal%criticalOverdensity_      => criticalOverdensity_
-    despali2015ConstructorInternal%virialDensityContrast_    => virialDensityContrast_
-    despali2015ConstructorInternal%referenceDensityContrast  =  virialDensityContrastSphericalCollapseMatterLambda()
+    self%referenceDensityContrast=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
     return
   end function despali2015ConstructorInternal
 
@@ -92,6 +97,7 @@ contains
     implicit none
     type(haloMassFunctionDespali2015), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine despali2015Destructor

@@ -64,8 +64,9 @@
       <haloMassFunctionMethod value="tinker2008"/>
     </haloMassFunctionMethod>
     <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
-    <virialDensityContrastMethod value="percolation"/>
-    <virialDensityContrastPercolationLinkingLength value="0.2"/>
+    <virialDensityContrastMethod value="percolation">
+      <linkingLength value="0.2"/>
+    </virialDensityContrastMethod>
 
     <!-- Merger tree building options -->
     <mergerTreeConstructMethod value="build"/>

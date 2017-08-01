@@ -137,31 +137,37 @@ contains
     use Dark_Matter_Profile_Mass_Definitions
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profile_Scales
+    use Cosmology_Functions
+    use Cosmology_Parameters
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode
+    class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
     double precision                                                    :: radiusVirial
 
     ! Initialize virial density contrast objects.
     if (.not.virialDensityContrastInitialized) then
+       cosmologyParameters_ => cosmologyParameters()
+       cosmologyFunctions_  => cosmologyFunctions ()
        select case (nodeComponentBasicExtendedSphericalCollapseType)
        case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastSphericalCollapseMatterLambda)
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda()
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(                     cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
           allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastSphericalCollapseMatterDE    )
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    ()
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    (                     cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998)
           allocate(virialDensityContrastBryanNorman1998               :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastBryanNorman1998              )
-             virialDensityContrast_=virialDensityContrastBryanNorman1998              ()
+             virialDensityContrast_=virialDensityContrastBryanNorman1998              (cosmologyParameters_,cosmologyFunctions_)
           end select
        end select
        virialDensityContrastInitialized=.true.

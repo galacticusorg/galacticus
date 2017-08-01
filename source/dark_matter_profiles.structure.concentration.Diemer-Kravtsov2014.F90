@@ -19,6 +19,12 @@
   !% An implementation of dark matter halo profile concentrations using the
   !% \cite{diemer_universal_2014} algorithm.
 
+  use Cosmology_Functions
+  use Cosmological_Mass_Variance
+  use Cosmology_Parameters
+  use Critical_Overdensities
+  use Power_Spectra
+  
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_universal_2014}.</description>
   !# </darkMatterProfileConcentration>
@@ -26,15 +32,21 @@
      !% A dark matter halo profile concentration class implementing the algorithm of
      !% \cite{diemer_universal_2014}.
      private
-     double precision           :: kappa                     , scatter              , &
-          &                        phi0                      , phi1                 , &
-          &                        eta0                      , eta1                 , &
-          &                        alpha                     , beta                 , &
-          &                        timePrevious              , massPrevious         , &
-          &                        concentrationMeanPrevious
-     type            (fgsl_rng) :: clonedPseudoSequenceObject, pseudoSequenceObject
-     logical                    :: resetSequence             , resetSequenceSnapshot
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (powerSpectrumClass           ), pointer :: powerSpectrum_            => null()
+     double precision                                         :: kappa                     , scatter              , &
+          &                                                      phi0                      , phi1                 , &
+          &                                                      eta0                      , eta1                 , &
+          &                                                      alpha                     , beta                 , &
+          &                                                      timePrevious              , massPrevious         , &
+          &                                                      concentrationMeanPrevious
+     type            (fgsl_rng                              ) :: clonedPseudoSequenceObject, pseudoSequenceObject
+     logical                                                  :: resetSequence             , resetSequenceSnapshot
    contains
+     final     ::                                diemerKravtsov2014Destructor
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
@@ -52,18 +64,24 @@
 
 contains
 
-  function diemerKravtsov2014ConstructorParameters(parameters)
+  function diemerKravtsov2014ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo
     !% profile concentration class.
     implicit none
-    type(darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014ConstructorParameters
-    type(inputParameters                                 ), intent(inout) :: parameters
+    type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: self
+    type            (inputParameters                                 ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                         ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass                        ), pointer       :: cosmologyParameters_     
+    class           (criticalOverdensityClass                        ), pointer       :: criticalOverdensity_     
+    class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
+    class           (powerSpectrumClass                              ), pointer       :: powerSpectrum_
+    double precision                                                                  :: kappa, phi0, phi1, eta0, eta1, alpha, beta, scatter
 
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>kappa</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%kappa</variable>
+    !#   <variable>kappa</variable>
     !#   <defaultValue>0.69d0</defaultValue>
     !#   <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
@@ -72,7 +90,7 @@ contains
     !# <inputParameter>
     !#   <name>phi0</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%phi0</variable>
+    !#   <variable>phi0</variable>
     !#   <defaultValue>6.58d0</defaultValue>
     !#   <description>The parameter $\phi_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
@@ -81,7 +99,7 @@ contains
     !# <inputParameter>
     !#   <name>phi1</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%phi1</variable>
+    !#   <variable>phi1</variable>
     !#   <defaultValue>1.37d0</defaultValue>
     !#   <description>The parameter $\phi_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
@@ -90,7 +108,7 @@ contains
     !# <inputParameter>
     !#   <name>eta0</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%eta0</variable>
+    !#   <variable>eta0</variable>
     !#   <defaultValue>6.82d0</defaultValue>
     !#   <description>The parameter $\eta_0$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
@@ -99,7 +117,7 @@ contains
     !# <inputParameter>
     !#   <name>eta1</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%eta1</variable>
+    !#   <variable>eta1</variable>
     !#   <defaultValue>1.42d0</defaultValue>
     !#   <description>The parameter $\eta_1$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
@@ -108,7 +126,7 @@ contains
     !# <inputParameter>
     !#   <name>alpha</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%alpha</variable>
+    !#   <variable>alpha</variable>
     !#   <defaultValue>1.12d0</defaultValue>
     !#   <attachedTo>module</attachedTo>
     !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
@@ -118,7 +136,7 @@ contains
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%beta</variable>
+    !#   <variable>beta</variable>
     !#   <defaultValue>1.69d0</defaultValue>
     !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
@@ -127,42 +145,55 @@ contains
     !# <inputParameter>
     !#   <name>scatter</name>
     !#   <source>parameters</source>
-    !#   <variable>diemerKravtsov2014ConstructorParameters%scatter</variable>
+    !#   <variable>scatter</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_universal_2014}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    diemerKravtsov2014ConstructorParameters%resetSequence            =.true.
-    diemerKravtsov2014ConstructorParameters%timePrevious             =-1.0d0
-    diemerKravtsov2014ConstructorParameters%massPrevious             =-1.0d0
-    diemerKravtsov2014ConstructorParameters%concentrationMeanPrevious=-1.0d0
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="powerSpectrum"            name="powerSpectrum_"            source="parameters"/>
+     self=darkMatterProfileConcentrationDiemerKravtsov2014(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function diemerKravtsov2014ConstructorParameters
   
-  function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter)
+  function diemerKravtsov2014ConstructorInternal(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_) result(self)
     !% Constructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile
     !% concentration class.
     use Galacticus_Error
     implicit none
-    type            (darkMatterProfileConcentrationDiemerKravtsov2014)                :: diemerKravtsov2014ConstructorInternal
-    double precision                                                  , intent(in   ) :: kappa, phi0, phi1, eta0, eta1, alpha, beta, scatter
+    type            (darkMatterProfileConcentrationDiemerKravtsov2014)                        :: self
+    double precision                                                  , intent(in   )         :: kappa                    , phi0, phi1, eta0, eta1, alpha, beta, scatter
+    class           (cosmologyFunctionsClass                         ), intent(in   ), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass                        ), intent(in   ), target :: cosmologyParameters_     
+    class           (criticalOverdensityClass                        ), intent(in   ), target :: criticalOverdensity_     
+    class           (cosmologicalMassVarianceClass                   ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (powerSpectrumClass                              ), intent(in   ), target :: powerSpectrum_
+    !# <constructorAssign variables="kappa, phi0, phi1, eta0, eta1, alpha, beta, scatter, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *powerSpectrum_"/>
 
-    diemerKravtsov2014ConstructorInternal%kappa                     =kappa
-    diemerKravtsov2014ConstructorInternal%phi0                      =phi0
-    diemerKravtsov2014ConstructorInternal%phi1                      =phi1
-    diemerKravtsov2014ConstructorInternal%eta0                      =eta0
-    diemerKravtsov2014ConstructorInternal%eta1                      =eta1
-    diemerKravtsov2014ConstructorInternal%alpha                     =alpha
-    diemerKravtsov2014ConstructorInternal%beta                      =beta
-    diemerKravtsov2014ConstructorInternal%scatter                   =scatter
-    diemerKravtsov2014ConstructorInternal%resetSequence             =.true.
-    diemerKravtsov2014ConstructorInternal%timePrevious             =-1.0d0
-    diemerKravtsov2014ConstructorInternal%massPrevious             =-1.0d0
-    diemerKravtsov2014ConstructorInternal%concentrationMeanPrevious=-1.0d0
+    self%resetSequence            =.true.
+    self%timePrevious             =-1.0d0
+    self%massPrevious             =-1.0d0
+    self%concentrationMeanPrevious=-1.0d0
     return
   end function diemerKravtsov2014ConstructorInternal
+
+  subroutine diemerKravtsov2014Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily diemerKravtsov2014} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%cosmologyParameters_"      />
+    !# <objectDestructor name="self%criticalOverdensity_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    !# <objectDestructor name="self%powerSpectrum_"            />
+    return
+  end subroutine diemerKravtsov2014Destructor
 
   double precision function diemerKravtsov2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
@@ -190,22 +221,14 @@ contains
     !% Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{diemer_universal_2014} algorithm.
     use Numerical_Constants_Math
-    use Cosmological_Mass_Variance
-    use Critical_Overdensities
-    use Cosmology_Parameters
-    use Power_Spectra
     use Math_Exponentiation
     implicit none
     class           (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
     type            (treeNode                                        ), intent(inout), pointer :: node
     class           (nodeComponentBasic                              )               , pointer :: basic
-    class           (cosmologyParametersClass                        )               , pointer :: cosmologyParameters_
-    class           (criticalOverdensityClass                        )               , pointer :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass                   )               , pointer :: cosmologicalMassVariance_
-    class           (powerSpectrumClass                              )               , pointer :: powerSpectrum_
-    double precision                                                                           :: radiusHaloLagrangian     , peakHeight        , &
-         &                                                                                        wavenumber               , powerSpectrumSlope, &
-         &                                                                                        concentrationMinimum     , peakHeightMinimum
+    double precision                                                                           :: radiusHaloLagrangian, peakHeight        , &
+         &                                                                                        wavenumber          , powerSpectrumSlope, &
+         &                                                                                        concentrationMinimum, peakHeightMinimum
     
     basic => node%basic()
     if     (                                   &
@@ -213,39 +236,35 @@ contains
          &  .or.                               &
          &   basic%time() /= self%timePrevious &
          & ) then
-       cosmologyParameters_           => cosmologyParameters      ()
-       criticalOverdensity_           => criticalOverdensity      ()
-       cosmologicalMassVariance_      => cosmologicalMassVariance ()
-       powerSpectrum_                 => powerSpectrum            ()
-       radiusHaloLagrangian           = +cubeRoot(                                                                   &
-            &                                     +3.0d0                                                             &
-            &                                     *basic%mass()                                                      &
-            &                                     /4.0d0                                                             &
-            &                                     /Pi                                                                &
-            &                                     /cosmologyParameters_%densityCritical()                            &
-            &                                     /cosmologyParameters_%OmegaMatter    ()                            &
-            &                                    )
-       peakHeight                     = +criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-            &                           /cosmologicalMassVariance_%rootVariance(                       basic%mass())
-       wavenumber                     = +self%kappa                                                                  &
-            &                           *2.0d0                                                                       &
-            &                           *Pi                                                                          &
-            &                           /radiusHaloLagrangian
-       powerSpectrumSlope             = +powerSpectrum_%powerLogarithmicDerivative(wavenumber)
-       concentrationMinimum           = +self%phi0                                                                   &
-            &                           +self%phi1                                                                   &
-            &                           *powerSpectrumSlope
-       peakHeightMinimum              = +self%eta0                                                                   &
-            &                           +self%eta1                                                                   &
-            &                           *powerSpectrumSlope
-       self%concentrationMeanPrevious = +0.5d0                                                                       &
-            &                           *concentrationMinimum                                                        &
-            &                           *(                                                                           &
-            &                             +(peakHeight/peakHeightMinimum)**(-self%alpha)                             &
-            &                             +(peakHeight/peakHeightMinimum)**(+self%beta )                             &
-            &                            )
-       self%massPrevious              =  basic%mass()
-       self%timePrevious              =  basic%time()
+        radiusHaloLagrangian         =+cubeRoot(                                                                        &
+            &                                  +3.0d0                                                                   &
+            &                                  *basic%mass()                                                            &
+            &                                  /4.0d0                                                                   &
+            &                                  /Pi                                                                      &
+            &                                  /self%cosmologyParameters_%densityCritical()                             &
+            &                                  /self%cosmologyParameters_%OmegaMatter    ()                             &
+            &                                 )
+       peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
+            &                         /self%cosmologicalMassVariance_%rootVariance(                       basic%mass())
+       wavenumber                    =+self%kappa                                                                       &
+            &                         *2.0d0                                                                            &
+            &                         *Pi                                                                               &
+            &                         /radiusHaloLagrangian
+       powerSpectrumSlope            =+self%powerSpectrum_%powerLogarithmicDerivative(wavenumber)
+       concentrationMinimum          =+self%phi0                                                                        &
+            &                         +self%phi1                                                                        &
+            &                         *powerSpectrumSlope
+       peakHeightMinimum             =+self%eta0                                                                        &
+            &                         +self%eta1                                                                        &
+            &                         *powerSpectrumSlope
+       self%concentrationMeanPrevious=+0.5d0                                                                            &
+            &                         *concentrationMinimum                                                             &
+            &                         *(                                                                                &
+            &                           +(peakHeight/peakHeightMinimum)**(-self%alpha)                                  &
+            &                           +(peakHeight/peakHeightMinimum)**(+self%beta )                                  &
+            &                          )
+       self%massPrevious             = basic%mass()
+       self%timePrevious             = basic%time()
     end if
     diemerKravtsov2014ConcentrationMean=self%concentrationMeanPrevious
     return
@@ -266,7 +285,7 @@ contains
        allocate(virialDensityContrastFixed :: densityContrastDefinition)
        select type (densityContrastDefinition)
        type is (virialDensityContrastFixed)
-          densityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+          densityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
           call densityContrastDefinition%makeIndestructible()
        end select
        densityContrastDefinitionInitialized=.true.

@@ -18,11 +18,11 @@
 
   !% An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus dark energy universe.
 
+  use Tables
+
   !# <virialDensityContrast name="virialDensityContrastSphericalCollapseMatterDE">
   !#  <description>Dark matter halo virial density contrasts based on the spherical collapse in a matter plus dark eneryg universe.</description>
   !# </virialDensityContrast>
-  use Tables
-
   type, extends(virialDensityContrastSphericalCollapseMatterLambda) :: virialDensityContrastSphericalCollapseMatterDE
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark eneryg universe.
      private
@@ -30,27 +30,56 @@
      double precision                       :: turnaroundTimeMinimum, turnaroundTimeMaximum
      class           (table1D), allocatable :: turnaround
    contains
+     final     ::                              sphericalCollapseMatterDEDestructor
      procedure :: retabulate                => sphericalCollapseMatterDERetabulate
      procedure :: turnAroundOverVirialRadii => sphericalCollapseMatterDETurnAroundOverVirialRadii
   end type virialDensityContrastSphericalCollapseMatterDE
 
   interface virialDensityContrastSphericalCollapseMatterDE
      !% Constructors for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
-     module procedure sphericalCollapseMatterDEDefaultConstructor
+     module procedure sphericalCollapseMatterDEConstructorParameters
+     module procedure sphericalCollapseMatterDEConstructorInternal
   end interface virialDensityContrastSphericalCollapseMatterDE
 
 contains
 
-  function sphericalCollapseMatterDEDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
-    use Input_Parameters
+  function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class that takes a parameter set as input.
+    use Input_Parameters2
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterDE), target  :: sphericalCollapseMatterDEDefaultConstructor
+    type (virialDensityContrastSphericalCollapseMatterDE)                :: self
+    type (inputParameters                               ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     
-    sphericalCollapseMatterDEDefaultConstructor%tableInitialized     =.false.
-    sphericalCollapseMatterDEDefaultConstructor%turnaroundInitialized=.false.
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
+    self=virialDensityContrastSphericalCollapseMatterDE(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function sphericalCollapseMatterDEDefaultConstructor
+  end function sphericalCollapseMatterDEConstructorParameters
+
+  function sphericalCollapseMatterDEConstructorInternal(cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
+    implicit none
+    type (virialDensityContrastSphericalCollapseMatterDE)                        :: self
+    class(cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
+
+    self%tableInitialized     =.false.
+    self%turnaroundInitialized=.false.
+    return
+  end function sphericalCollapseMatterDEConstructorInternal
+
+  subroutine sphericalCollapseMatterDEDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
+    implicit none
+    type (virialDensityContrastSphericalCollapseMatterDE), intent(inout) :: self
+
+    if (self%turnaroundInitialized) then
+       call self%turnaround%destroy()
+       deallocate(self%turnaround)
+    end if
+    return
+  end subroutine sphericalCollapseMatterDEDestructor
 
   subroutine sphericalCollapseMatterDERetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
@@ -79,14 +108,12 @@ contains
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     use Galacticus_Error
-    use Cosmology_Functions
     use Spherical_Collapse_Matter_Dark_Energy
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout)           :: self
-    double precision                                                , intent(in   ), optional :: time               , expansionFactor
+    double precision                                                , intent(in   ), optional :: time       , expansionFactor
     logical                                                         , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass                       ), pointer                 :: cosmologyFunctions_
-    logical                                                                                   :: remakeTable        , collapsingActual
+    logical                                                                                   :: remakeTable, collapsingActual
     double precision                                                                          :: timeActual
 
     ! Determine which type of input we have.
@@ -103,9 +130,7 @@ contains
           else
              collapsingActual=.false.
           end if
-          ! Get the default cosmology functions object.
-          cosmologyFunctions_ => cosmologyFunctions()
-          timeActual=cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
+          timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
           call Galacticus_Error_Report('sphericalCollapseMatterDEDETurnAroundOverVirialRadii','at least one argument must be given')
        end if

@@ -18,58 +18,96 @@
 
   !% An implementation of \cite{kitayama_semianalytic_1996} dark matter halo virial density contrasts.
 
+  use Cosmology_Functions
+
   !# <virialDensityContrast name="virialDensityContrastKitayamaSuto1996">
   !#  <description>\cite{kitayama_semianalytic_1996} dark matter halo virial density contrasts.</description>
   !# </virialDensityContrast>
-
   type, extends(virialDensityContrastClass) :: virialDensityContrastKitayamaSuto1996
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
    contains
+     final     ::                                kitayamaSuto1996Destructor
      procedure :: densityContrast             => kitayamaSuto1996DensityContrast
      procedure :: densityContrastRateOfChange => kitayamaSuto1996DensityContrastRateOfChange
   end type virialDensityContrastKitayamaSuto1996
 
-contains
+  interface virialDensityContrastKitayamaSuto1996
+     !% Constructors for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
+     module procedure kitayamaSuto1996ConstructorParameters
+     module procedure kitayamaSuto1996ConstructorInternal
+  end interface virialDensityContrastKitayamaSuto1996
 
+contains
+  
+  function kitayamaSuto1996ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class which takes a parameter set as input.
+    use Input_Parameters2
+    implicit none
+    type (virialDensityContrastKitayamaSuto1996)                :: self
+    type (inputParameters                      ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
+
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=virialDensityContrastKitayamaSuto1996(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function kitayamaSuto1996ConstructorParameters
+  
+  function kitayamaSuto1996ConstructorInternal(cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily kitayamaSuto1996} dark matter halo virial density contrast class.
+    use Galacticus_Error
+    use Numerical_Comparison
+    implicit none
+    type (virialDensityContrastKitayamaSuto1996)                        :: self
+    class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
+
+    return
+  end function kitayamaSuto1996ConstructorInternal
+
+  subroutine kitayamaSuto1996Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
+    implicit none
+    type(virialDensityContrastKitayamaSuto1996), intent(inout) :: self
+ 
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine kitayamaSuto1996Destructor
+  
   double precision function kitayamaSuto1996DensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
-    use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastKitayamaSuto1996), intent(inout)           :: self
     double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time               , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass              ), pointer                 :: cosmologyFunctions_
     double precision                                                                 :: omegaf
     !GCC$ attributes unused :: self, mass
     
-    cosmologyFunctions_ => cosmologyFunctions()
-    omegaf=max(0.0d0,1.0d0/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
+    omegaf=max(0.0d0,1.0d0/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
     kitayamaSuto1996DensityContrast=18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0)
     return
   end function kitayamaSuto1996DensityContrast
 
   double precision function kitayamaSuto1996DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{kitayama_semianalytic_1996}.
-    use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
     class           (virialDensityContrastKitayamaSuto1996), intent(inout)           :: self
     double precision                                       , intent(in   )           :: mass
     double precision                                       , intent(in   ), optional :: time      , expansionFactor
     logical                                                , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass              ), pointer                 :: cosmologyFunctions_
     double precision                                                                 :: omegaf
     !GCC$ attributes unused :: self, mass
 
-    cosmologyFunctions_ => cosmologyFunctions()
-    omegaf=max(0.0d0,1.0d0/cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
-    kitayamaSuto1996DensityContrastRateOfChange=                                            &
-         & -18.0d0*Pi**2                                                                    &
-         & *(0.9052d0*0.4093d0*omegaf**(0.9052d0-1.0d0))                                    &
-         & *cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing)    &
-         & /cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)**2
+    omegaf=max(0.0d0,1.0d0/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0)
+    kitayamaSuto1996DensityContrastRateOfChange=                                                 &
+         & -18.0d0*Pi**2                                                                         &
+         & *(0.9052d0*0.4093d0*omegaf**(0.9052d0-1.0d0))                                         &
+         & *self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing)    &
+         & /self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)**2
    return
   end function kitayamaSuto1996DensityContrastRateOfChange

@@ -17,6 +17,11 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of dark matter halo profile concentrations using the \cite{prada_halo_2011} algorithm.
+
+  use Cosmology_Functions
+  use Cosmological_Mass_Variance
+  use Cosmology_Parameters
+  use Linear_Growth
   
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
@@ -24,8 +29,13 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationPrada2011
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{prada_halo_2011}.
      private
-     double precision :: A, B, C, D, C0, C1, X0, X1, inverseSigma0, inverseSigma1, alpha, beta
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
+     class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     double precision                                         :: A, B, C, D, C0, C1, X0, X1, inverseSigma0, inverseSigma1, alpha, beta
    contains
+     final     ::                                prada2011Destructor
      procedure :: concentration               => prada2011Concentration
      procedure :: densityContrastDefinition   => prada2011DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => prada2011DarkMatterProfileDefinition
@@ -39,18 +49,28 @@
   
 contains
   
-  function prada2011ConstructorParameters(parameters)
+  function prada2011ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileConcentrationPrada2011)                :: prada2011ConstructorParameters
-    type(inputParameters                        ), intent(inout) :: parameters
+    type            (darkMatterProfileConcentrationPrada2011)                :: self
+    type            (inputParameters                        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_    
+    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
+    class           (linearGrowthClass                      ), pointer       :: linearGrowth_
+    class           (cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
+    double precision                                                         :: A                        , B            , &
+         &                                                                      C                        , D            , &
+         &                                                                      C0                       , C1           , &
+         &                                                                      X0                       , inverseSigma0, &
+         &                                                                      inverseSigma1            , alpha        , &
+         &                                                                      beta                     , X1
 
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>A</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%A</variable>
+    !#   <variable>A</variable>
     !#   <defaultValue>2.881d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $A$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -60,7 +80,7 @@ contains
     !# <inputParameter>
     !#   <name>B</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%B</variable>
+    !#   <variable>B</variable>
     !#   <defaultValue>1.257d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $b$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -70,7 +90,7 @@ contains
     !# <inputParameter>
     !#   <name>C</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%C</variable>
+    !#   <variable>C</variable>
     !#   <defaultValue>1.022d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $c$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -80,7 +100,7 @@ contains
     !# <inputParameter>
     !#   <name>D</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%D</variable>
+    !#   <variable>D</variable>
     !#   <defaultValue>0.060d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $d$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -90,7 +110,7 @@ contains
     !# <inputParameter>
     !#   <name>C0</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%C0</variable>
+    !#   <variable>C0</variable>
     !#   <defaultValue>3.681d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $c_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -100,7 +120,7 @@ contains
     !# <inputParameter>
     !#   <name>C1</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%C1</variable>
+    !#   <variable>C1</variable>
     !#   <defaultValue>5.033d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $c_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -110,7 +130,7 @@ contains
     !# <inputParameter>
     !#   <name>X0</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%X0</variable>
+    !#   <variable>X0</variable>
     !#   <defaultValue>0.424d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $x_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -120,7 +140,7 @@ contains
     !# <inputParameter>
     !#   <name>X1</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%X1</variable>
+    !#   <variable>X1</variable>
     !#   <defaultValue>0.526d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $x_1$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -130,7 +150,7 @@ contains
     !# <inputParameter>
     !#   <name>inverseSigma0</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%inverseSigma0</variable>
+    !#   <variable>inverseSigma0</variable>
     !#   <defaultValue>1.047d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\sigma^{-1}_0$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -140,7 +160,7 @@ contains
     !# <inputParameter>
     !#   <name>inverseSigma1</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%inverseSigma1</variable>
+    !#   <variable>inverseSigma1</variable>
     !#   <defaultValue>1.646d0</defaultValue>
     !#   <attachedTo>module</attachedTo>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
@@ -151,7 +171,7 @@ contains
     !# <inputParameter>
     !#   <name>alpha</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%alpha</variable>
+    !#   <variable>alpha</variable>
     !#   <defaultValue>6.948d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\alpha$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
@@ -161,71 +181,68 @@ contains
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
-    !#   <variable>prada2011ConstructorParameters%beta</variable>
+    !#   <variable>beta</variable>
     !#   <defaultValue>7.386d0</defaultValue>
     !#   <defaultSource>\cite{prada_halo_2011}</defaultSource>
     !#   <description>The parameter $\beta$ appearing in the halo concentration algorithm of \cite{prada_halo_2011}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=darkMatterProfileConcentrationPrada2011(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function prada2011ConstructorParameters
-  
-  function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta)
+
+  function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     implicit none
-    type            (darkMatterProfileConcentrationPrada2011)                :: prada2011ConstructorInternal
-    double precision                                         , intent(in   ) :: A                           , B            , &
-         &                                                                      C                           , D            , &
-         &                                                                      C0                          , C1           , &
-         &                                                                      X0                          , inverseSigma0, &
-         &                                                                      inverseSigma1               , alpha        , &
-         &                                                                      beta                        , X1
-    
-    prada2011ConstructorInternal%A            =A
-    prada2011ConstructorInternal%B            =B
-    prada2011ConstructorInternal%C            =C
-    prada2011ConstructorInternal%D            =D
-    prada2011ConstructorInternal%C0           =C0
-    prada2011ConstructorInternal%C1           =C1
-    prada2011ConstructorInternal%X0           =X0
-    prada2011ConstructorInternal%X1           =X1
-    prada2011ConstructorInternal%inverseSigma0=inverseSigma0
-    prada2011ConstructorInternal%inverseSigma1=inverseSigma1
-    prada2011ConstructorInternal%alpha        =alpha
-    prada2011ConstructorInternal%beta         =beta
+    type            (darkMatterProfileConcentrationPrada2011)                        :: self
+    double precision                                                 , intent(in   ) :: A                        , B            , &
+         &                                                                              C                        , D            , &
+         &                                                                              C0                       , C1           , &
+         &                                                                              X0                       , inverseSigma0, &
+         &                                                                              inverseSigma1            , alpha        , &
+         &                                                                              beta                     , X1
+    class           (cosmologyFunctionsClass                ), target, intent(in   ) :: cosmologyFunctions_    
+    class           (cosmologyParametersClass               ), target, intent(in   ) :: cosmologyParameters_
+    class           (linearGrowthClass                      ), target, intent(in   ) :: linearGrowth_
+    class           (cosmologicalMassVarianceClass          ), target, intent(in   ) :: cosmologicalMassVariance_
+   !# <constructorAssign variables="A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,*cosmologyFunctions_,*cosmologyParameters_,*linearGrowth_,*cosmologicalMassVariance_"/>
+
     return
   end function prada2011ConstructorInternal
-  
+
+  subroutine prada2011Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    return
+  end subroutine prada2011Destructor
+
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
-    use Cosmological_Mass_Variance
-    use Cosmology_Functions
-    use Cosmology_Parameters
-    use Linear_Growth
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout)          :: self
     type            (treeNode                               ), intent(inout), pointer :: node
     class           (nodeComponentBasic                     )               , pointer :: basic
-    class           (cosmologyParametersClass               )               , pointer :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                )               , pointer :: cosmologyFunctions_
-    class           (linearGrowthClass                      )               , pointer :: linearGrowth_
-    class           (cosmologicalMassVarianceClass          )               , pointer :: cosmologicalMassVariance_
-    double precision                                                                  :: massNode            , sigmaPrime, &
-         &                                                                               timeNode            , x
-    
-    ! Get required objects.
-    cosmologyFunctions_       => cosmologyFunctions      ()
-    cosmologyParameters_      => cosmologyParameters     ()
-    linearGrowth_             => linearGrowth            ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    double precision                                                                  :: massNode, sigmaPrime, &
+         &                                                                               timeNode, x
+
     ! Compute concentration.
     basic                 => node %basic()
     massNode              =  basic%mass ()
     timeNode              =  basic%time ()
-    x                     =  (cosmologyParameters_%OmegaDarkEnergy()/cosmologyParameters_%OmegaMatter())**(1.0d0/3.0d0)*cosmologyFunctions_%expansionFactor(timeNode)
-    sigmaPrime            =  prada2011B1(self,x)*cosmologicalMassVariance_%rootVariance(massNode)*linearGrowth_%value(timeNode)
+    x                     =  (self%cosmologyParameters_%OmegaDarkEnergy()/self%cosmologyParameters_%OmegaMatter())**(1.0d0/3.0d0)*self%cosmologyFunctions_%expansionFactor(timeNode)
+    sigmaPrime            =  prada2011B1(self,x)*self%cosmologicalMassVariance_%rootVariance(massNode)*self%linearGrowth_%value(timeNode)
     prada2011Concentration=  prada2011B0(self,x)*prada2011C(self,sigmaPrime)
     return
   end function prada2011Concentration
@@ -287,7 +304,7 @@ contains
     allocate(virialDensityContrastFixed :: prada2011DensityContrastDefinition)
     select type (prada2011DensityContrastDefinition)
     type is (virialDensityContrastFixed)
-      prada2011DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+      prada2011DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
     end select
     return
   end function prada2011DensityContrastDefinition

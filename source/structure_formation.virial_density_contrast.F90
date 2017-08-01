@@ -23,13 +23,10 @@ module Virial_Density_Contrast
   use ISO_Varying_String
   use Galacticus_Nodes
   use FGSL
-  !$ use OMP_Lib
-  !# <include directive="virialDensityContrast" type="functionModules" >
-  include 'virialDensityContrast.functionModules.inc'
-  !# </include>
   private
 
-  !# <include directive="virialDensityContrast" type="function" >
+  !# <functionClass>
+  !#  <name>virialDensityContrast</name>
   !#  <descriptiveName>Virial Density Contrasts</descriptiveName>
   !#  <description>Class providing dark matter halo virial density contrasts.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
@@ -73,7 +70,6 @@ module Virial_Density_Contrast
   !#    virialDensityContrastIsMassDependent=.false.
   !#   </code>
   !#  </method>
-  include 'virialDensityContrast.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Virial_Density_Contrast

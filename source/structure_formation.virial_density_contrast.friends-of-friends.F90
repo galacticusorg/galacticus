@@ -21,7 +21,6 @@
   !# <virialDensityContrast name="virialDensityContrastFriendsOfFriends">
   !#  <description>Dark matter halo virial density contrasts based on the friends-of-friends algorithm linking length.</description>
   !# </virialDensityContrast>
-
   type, extends(virialDensityContrastClass) :: virialDensityContrastFriendsOfFriends
      !% A dark matter halo virial density contrast class based on the friends-of-friends algorithm linking length.
      private
@@ -33,70 +32,51 @@
 
   interface virialDensityContrastFriendsOfFriends
      !% Constructors for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
-     module procedure friendsOfFriendsDefaultConstructor
-     module procedure friendsOfFriendsConstructor
+     module procedure friendsOfFriendsConstructorParameters
+     module procedure friendsOfFriendsConstructorInternal
   end interface virialDensityContrastFriendsOfFriends
 
-  ! Initialization state.
-  logical          :: fofInitialized=.false.
-
-  ! Default value of the linking length and density ratio parameters.
-  double precision :: virialDensityContrastFoFLinkingLength, virialDensityContrastFoFDensityRatio
-
 contains
-
-  function friendsOfFriendsDefaultConstructor()
+  
+  function friendsOfFriendsConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type (virialDensityContrastFriendsOfFriends), target  :: friendsOfFriendsDefaultConstructor
-    
-    if (.not.fofInitialized) then
-       !$omp critical(virialDensityContrastFriendsOfFriendsInitialize)
-       if (.not.fofInitialized) then
-          ! Get the linking length to use.
-          !@ <inputParameter>
-          !@   <name>virialDensityContrastFoFLinkingLength</name>
-          !@   <defaultValue>0.2</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The friends-of-friends linking length algorithm to use in computing virial density contrast.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("virialDensityContrastFoFLinkingLength",virialDensityContrastFoFLinkingLength,defaultValue=0.2d0)
-          !@ <inputParameter>
-          !@   <name>virialDensityContrastFoFDensityRatio</name>
-          !@   <defaultValue>4.688 (value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse).</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("virialDensityContrastFoFDensityRatio",virialDensityContrastFoFDensityRatio,defaultValue=4.688d0)
-          ! Record initialization.
-          fofInitialized=.true.
-       end if
-       !$omp end critical(virialDensityContrastFriendsOfFriendsInitialize)
-    end if
-    friendsOfFriendsDefaultConstructor=friendsOfFriendsConstructor(virialDensityContrastFoFLinkingLength,virialDensityContrastFoFDensityRatio)
-    return
-  end function friendsOfFriendsDefaultConstructor
+    type            (virialDensityContrastFriendsOfFriends)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    double precision                                                       :: linkingLength, densityRatio
 
-  function friendsOfFriendsConstructor(linkingLength,densityRatio)
+    !# <inputParameter>
+    !#  <name>linkingLength</name>
+    !#  <source>parameters</source>
+    !#  <defaultValue>0.2d0</defaultValue>
+    !#  <description>The friends-of-friends linking length algorithm to use in computing virial density contrast.</description>
+    !#  <type>real</type>
+    !#  <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#  <name>densityRatio</name>
+    !#  <source>parameters</source>
+    !#  <defaultValue>4.688d0</defaultValue>
+    !#  <defaultSource>Value appropriate for an \gls{nfw} profile with concentration $c=6.88$ which is the concentration found by \cite{prada_halo_2011} for halos with $\sigma=1.686$ which is the approximate critical overdensity for collapse.</defaultSource>
+    !#  <description>The ratio of mean virial density to density at the virial radius to assume when setting virial density contrasts in the friends-of-friends model.</description>
+    !#  <type>real</type>
+    !#  <cardinality>1</cardinality>
+    !# </inputParameter>
+    self=virialDensityContrastFriendsOfFriends(linkingLength,densityRatio)
+    return
+  end function friendsOfFriendsConstructorParameters
+
+  function friendsOfFriendsConstructorInternal(linkingLength,densityRatio) result(self)
     !% Generic constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
     use Input_Parameters
     implicit none
-    type            (virialDensityContrastFriendsOfFriends), target        :: friendsOfFriendsConstructor
-    double precision                                       , intent(in   ) :: linkingLength              , densityRatio
-
-    friendsOfFriendsConstructor%linkingLength=linkingLength
-    friendsOfFriendsConstructor%densityRatio =densityRatio
+    type            (virialDensityContrastFriendsOfFriends), target        :: self
+    double precision                                       , intent(in   ) :: linkingLength, densityRatio
+    !# <constructorAssign variables="linkingLength, densityRatio"/>
+    
     return
-  end function friendsOfFriendsConstructor
+  end function friendsOfFriendsConstructorInternal
 
   double precision function friendsOfFriendsDensityContrast(self,mass,time,expansionFactor,collapsing)
     !% Return the virial density contrast at the given epoch, based on the friends-of-friends algorithm linking length.

@@ -18,14 +18,18 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{correa_accretion_2015} algorithm.
 
+  use Cosmology_Functions
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationCorrea2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{correa_accretion_2015}.
      private
-     double precision :: A
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     double precision                                    :: A
    contains
+     final     ::                                correa2015Destructor
      procedure :: concentration               => correa2015Concentration
      procedure :: densityContrastDefinition   => correa2015DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => correa2015DarkMatterProfileDefinition
@@ -39,36 +43,49 @@
 
 contains
 
-  function correa2015ConstructorParameters(parameters)
+  function correa2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
     implicit none
-    type(darkMatterProfileConcentrationCorrea2015)                :: correa2015ConstructorParameters
-    type(inputParameters                         ), intent(inout) :: parameters
-
-    ! Check and read parameters.
+    type            (darkMatterProfileConcentrationCorrea2015)                :: self
+    type            (inputParameters                         ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    double precision                                                          :: A
+    
     !# <inputParameter>
     !#   <name>A</name>
     !#   <source>parameters</source>
-    !#   <variable>correa2015ConstructorParameters%A</variable>
+    !#   <variable>A</variable>
     !#   <defaultValue>887.0d0</defaultValue>
     !#   <defaultSource>\cite{correa_accretion_2015}</defaultSource>
     !#   <description>The parameter $A$ appearin in eqn.~(17) of \cite{correa_accretion_2015}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=darkMatterProfileConcentrationCorrea2015(A,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function correa2015ConstructorParameters
   
-  function correa2015ConstructorInternal(A)
+  function correa2015ConstructorInternal(A,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
     implicit none
-    type            (darkMatterProfileConcentrationCorrea2015)                :: correa2015ConstructorInternal
-    double precision                                          , intent(in   ) :: A
+    type            (darkMatterProfileConcentrationCorrea2015)                        :: self
+    double precision                                          , intent(in   )         :: A
+    class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="A, *cosmologyFunctions_"/>
 
-    correa2015ConstructorInternal%A=A
     return
   end function correa2015ConstructorInternal
+  
+  subroutine correa2015Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily DuttonMaccio2014} dark matter profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine correa2015Destructor
   
   double precision function correa2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
@@ -184,7 +201,7 @@ contains
     allocate(virialDensityContrastFixed :: correa2015DensityContrastDefinition)
     select type (correa2015DensityContrastDefinition)
     type is (virialDensityContrastFixed)
-       correa2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,virialDensityContrastFixedDensityTypeCritical)
+       correa2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
     end select    
     return
   end function correa2015DensityContrastDefinition

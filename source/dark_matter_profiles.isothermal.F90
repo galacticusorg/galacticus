@@ -18,16 +18,15 @@
 
   !% An implementation of isothermal dark matter halo profiles.
 
+  use Dark_Matter_Halo_Scales
+
   !# <darkMatterProfile name="darkMatterProfileIsothermal">
   !#  <description>Isothermal dark matter halo profiles</description>
   !# </darkMatterProfile>
-
-  use Dark_Matter_Halo_Scales
-
   type, extends(darkMatterProfileClass) :: darkMatterProfileIsothermal
      !% A dark matter halo profile class implementing isothermal dark matter halos.
      private
-     class(darkMatterHaloScaleClass), pointer :: scale
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
    contains
      final                                             isothermalDestructor
      procedure :: calculationReset                  => isothermalCalculationReset
@@ -50,39 +49,43 @@
 
   interface darkMatterProfileIsothermal
      !% Constructors for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
-     module procedure isothermalDefaultConstructor
-     module procedure isothermalConstructor
+     module procedure isothermalConstructorParameters
+     module procedure isothermalConstructorInternal
   end interface darkMatterProfileIsothermal
-
+  
 contains
 
-  function isothermalDefaultConstructor()
+  function isothermalConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
-    use Input_Parameters
+    use Input_Parameters2
     implicit none
-    type(darkMatterProfileIsothermal), target :: isothermalDefaultConstructor
+    type(darkMatterProfileIsothermal)                :: self
+    type (inputParameters           ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
 
-    isothermalDefaultConstructor%scale => darkMatterHaloScale()
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=darkMatterProfileIsothermal(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function isothermalDefaultConstructor
+  end function isothermalConstructorParameters
 
-  function isothermalConstructor(scale)
+  function isothermalConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     use Input_Parameters
     implicit none
-    type (darkMatterProfileIsothermal), target :: isothermalConstructor
-    class(darkMatterHaloScaleClass   ), target :: scale
-
-    isothermalConstructor%scale => scale
+    type (darkMatterProfileIsothermal)                        :: self
+    class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+ 
     return
-  end function isothermalConstructor
+  end function isothermalConstructorInternal
   
   subroutine isothermalDestructor(self)
     !% Destructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     implicit none
     type(darkMatterProfileIsothermal), intent(inout) :: self
 
-    if (self%scale%isFinalizable()) deallocate(self%scale)
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine isothermalDestructor
   
@@ -92,7 +95,7 @@ contains
     class(darkMatterProfileIsothermal), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
 
-    call self%scale%calculationReset(node)
+    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine isothermalCalculationReset
 
@@ -109,7 +112,7 @@ contains
     class           (nodeComponentBasic         ), pointer       :: basic
 
     basic             => node %basic()
-    isothermalDensity =  basic%mass ()/4.0d0/Pi/self%scale%virialRadius(node)/radius**2
+    isothermalDensity =  basic%mass ()/4.0d0/Pi/self%darkMatterHaloScale_%virialRadius(node)/radius**2
     return
   end function isothermalDensity
 
@@ -143,7 +146,7 @@ contains
     double precision                                                       :: radiusMinimumActual, radiusMaximumActual
     
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%scale%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     basic   => node%basic         ()
@@ -151,7 +154,7 @@ contains
        isothermalRadialMoment=+basic%mass()                          &
             &                 /4.0d0                                 &
             &                 /Pi                                    &
-            &                 /self%scale%virialRadius(node)         &
+            &                 /self%darkMatterHaloScale_%virialRadius(node)         &
             &                 /                       (moment-1.0d0) &
             &                 *(                                     &
             &                   +radiusMaximumActual**(moment-1.0d0) &
@@ -161,7 +164,7 @@ contains
        isothermalRadialMoment=+basic%mass()                          &
             &                 /4.0d0                                 &
             &                 /Pi                                    &
-            &                 /self%scale%virialRadius(node)         &
+            &                 /self%darkMatterHaloScale_%virialRadius(node)         &
             &                 *log(                                  &
             &                      +radiusMaximumActual              &
             &                      /radiusMinimumActual              &
@@ -182,7 +185,7 @@ contains
     class           (nodeComponentBasic         ), pointer       :: basic
 
     basic   => node%basic     ()
-    isothermalEnclosedMass=basic%mass()*(radius/self%scale%virialRadius(node))
+    isothermalEnclosedMass=basic%mass()*(radius/self%darkMatterHaloScale_%virialRadius(node))
     return
   end function isothermalEnclosedMass
 
@@ -201,12 +204,12 @@ contains
     double precision                             , parameter               :: radiusFractionalMinimum=1.0d-30
     double precision                                                       :: radiusFractional
 
-    radiusFractional      =  radius/self%scale%virialRadius(node)
+    radiusFractional      =  radius/self%darkMatterHaloScale_%virialRadius(node)
     if (radiusFractional <= 0.0d0) then
        isothermalPotential=0.0d0
        if (present(status)) status=structureErrorCodeInfinite
     else
-       isothermalPotential=log(radiusFractional)*self%scale%virialVelocity(node)**2
+       isothermalPotential=log(radiusFractional)*self%darkMatterHaloScale_%virialVelocity(node)**2
        if (present(status)) status=structureErrorCodeSuccess
     end if
     return
@@ -223,7 +226,7 @@ contains
     double precision                             , intent(in   ) :: radius
     !GCC$ attributes unused :: radius
     
-    isothermalCircularVelocity=self%scale%virialVelocity(node)
+    isothermalCircularVelocity=self%darkMatterHaloScale_%virialVelocity(node)
     return
   end function isothermalCircularVelocity
 
@@ -252,7 +255,7 @@ contains
     type            (treeNode                   ), intent(inout), pointer :: node
     double precision                             , intent(in   )          :: specificAngularMomentum
 
-    isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%scale%virialVelocity(node)
+    isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%darkMatterHaloScale_%virialVelocity(node)
     return
   end function isothermalRadiusFromSpecificAngularMomentum
 
@@ -264,7 +267,7 @@ contains
     class(darkMatterProfileIsothermal), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node
 
-    isothermalRotationNormalization=2.0d0/self%scale%virialRadius(node)
+    isothermalRotationNormalization=2.0d0/self%darkMatterHaloScale_%virialRadius(node)
     return
   end function isothermalRotationNormalization
 
@@ -278,7 +281,7 @@ contains
     class(nodeComponentBasic         ), pointer       :: basic
 
     basic    => node%basic     ()
-    isothermalEnergy=-0.5d0*basic%mass()*self%scale%virialVelocity(node)**2
+    isothermalEnergy=-0.5d0*basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function isothermalEnergy
 
@@ -294,7 +297,7 @@ contains
     basic   => node%basic     ()
     isothermalEnergyGrowthRate=self%energy(node)&
          &*(basic%accretionRate()/basic%mass()+2.0d0&
-         &*self%scale%virialVelocityGrowthRate(node)/self%scale%virialVelocity(node))
+         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node))
     return
   end function isothermalEnergyGrowthRate
 
@@ -311,7 +314,7 @@ contains
     double precision                                                      :: radiusScale, waveNumberScaleFree
 
     ! Get the scale radius (for which we use the virial radius).
-    radiusScale          =  self%scale%virialRadius(node)
+    radiusScale          =  self%darkMatterHaloScale_%virialRadius(node)
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
@@ -336,7 +339,7 @@ contains
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: time
 
-    isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node)*time&
+    isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
     return
   end function isothermalFreefallRadius
@@ -356,7 +359,7 @@ contains
     double precision                             , intent(in   ) :: time
     !GCC$ attributes unused :: time
     
-    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%scale%virialVelocity(node) &
+    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &
          & /Mpc_per_km_per_s_To_Gyr
     return
   end function isothermalFreefallRadiusIncreaseRate

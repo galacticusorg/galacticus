@@ -142,19 +142,22 @@ contains
 
   function benson2005DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of \cite{benson_orbital_2005} virial orbits.
+    use Cosmology_Functions
     implicit none
     class  (virialDensityContrastClass), pointer                     :: benson2005DensityContrastDefinition
     class  (virialOrbitBenson2005     ), intent(inout)               :: self
     class  (virialDensityContrastClass), allocatable  , target, save :: densityContrastDefinition
+    class  (cosmologyFunctionsClass   ), pointer                     :: cosmologyFunctions_
     logical                                                   , save :: densityContrastDefinitionInitialized=.false.
     !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
     !GCC$ attributes unused :: self
     
     if (.not.densityContrastDefinitionInitialized) then
+       cosmologyFunctions_ => cosmologyFunctions()
        allocate(virialDensityContrastSphericalCollapseMatterLambda :: densityContrastDefinition)
        select type (densityContrastDefinition)
        type is (virialDensityContrastSphericalCollapseMatterLambda)
-          densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda()
+          densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
           call densityContrastDefinition%makeIndestructible()
        end select
        densityContrastDefinitionInitialized=.true.
