@@ -37,7 +37,8 @@ sub Process_Constructors {
 	    # Generate source code for the assignment.
 	    $node->{'directive'}->{'processed'} = 1;
 	    my $assignmentSource = "  ! Auto-generated constructor assignment\n";
-	    foreach ( grep {$_ ne ""} split(/\s*,\s*/,$node->{'directive'}->{'variables'}) ) {
+	    (my $variables = $node->{'directive'}->{'variables'}) =~ s/^\s*(.*?)\s*$/$1/;
+	    foreach ( grep {$_ ne ""} split(/\s*,\s*/,$variables) ) {
 		my $assigner     = "=";
 		my $argumentName = $_;
 		if ( $_ =~ m/^\*(.*)/ ) {
