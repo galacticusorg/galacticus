@@ -296,7 +296,7 @@ sub SubmitJobs {
 			    close($trace);
 			}
 		    }
-		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@pbsStack);
+		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@pbsStack,$pbsJobs{$jobID});
 		}
 		# Remove the job ID from the list of active PBS jobs.
 		delete($pbsJobs{$jobID});		
