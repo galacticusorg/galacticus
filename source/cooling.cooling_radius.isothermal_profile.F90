@@ -187,7 +187,7 @@ contains
     use Hot_Halo_Mass_Distributions
     use Hot_Halo_Temperature_Profiles    
     implicit none
-    class           (coolingRadiusIsothermal       ), intent(inout)          :: self
+    class           (coolingRadiusIsothermal       ), intent(inout), target  :: self
     type            (treeNode                      ), intent(inout), target  :: node
     class           (nodeComponentHotHalo          )               , pointer :: hotHalo
     class           (hotHaloMassDistributionClass  )               , pointer :: hotHaloMassDistribution_

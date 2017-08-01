@@ -22,6 +22,9 @@
   use Cooling_Times_Available
   use Hot_Halo_Mass_Distributions
   use Hot_Halo_Temperature_Profiles
+  use Radiation_Structure
+  use Abundances_Structure
+  use Chemical_Abundances_Structure
 
   !# <coolingRadius name="coolingRadiusSimple" defaultThreadPrivate="yes">
   !#  <description>
@@ -55,6 +58,15 @@
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface coolingRadiusSimple
+
+  ! Module scope variables used in root finding.
+  class           (coolingRadiusSimple), pointer :: simpleSelf_
+  type            (treeNode           ), pointer :: simpleNode_
+  double precision                               :: simpleCoolingTimeAvailable_
+  type            (abundances         )          :: simpleGasAbundances_
+  type            (radiationStructure )          :: simpleRadiation_
+  type            (chemicalAbundances )          :: simpleChemicalDensities_
+  !$omp threadprivate(simpleSelf_,simpleNode_,simpleCoolingTimeAvailable_,simpleGasAbundances_,simpleRadiation_,simpleChemicalDensities_)
 
 contains
 
@@ -211,24 +223,18 @@ contains
 
   double precision function simpleRadius(self,node)
     !% Return the cooling radius in the simple model.
-    use Radiation_Structure
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Chemical_Reaction_Rates_Utilities
+   use Chemical_Reaction_Rates_Utilities
     use Root_Finder
     implicit none
-    class           (coolingRadiusSimple ), intent(inout)         :: self
+    class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node
     class           (nodeComponentHotHalo), pointer               :: hotHalo
-    double precision                      , parameter             :: zeroRadius                =0.0d0
-    double precision                      , parameter             :: toleranceAbsolute         =0.0d0, toleranceRelative      =1.0d-6
+    double precision                      , parameter             :: zeroRadius       =0.0d0
+    double precision                      , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative      =1.0d-6
     type            (rootFinder          ), save                  :: finder
     !$omp threadprivate(finder)
-    type            (abundances          )                        :: gasAbundances
-    type            (chemicalAbundances  )                        :: chemicalDensities               , chemicalMasses
-    type            (radiationStructure  )                        :: radiation
-    double precision                                              :: outerRadius                     , massToDensityConversion       , &
-         &                                                           coolingTimeAvailable
+    type            (chemicalAbundances  )                        :: chemicalMasses
+    double precision                                              :: outerRadius            , massToDensityConversion
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -237,20 +243,20 @@ contains
        ! Flag that cooling radius is now computed.
        self%radiusComputed=.true.
        ! Get the time available for cooling in node.
-       coolingTimeAvailable=self%coolingTimeAvailable_%timeAvailable(node)
+       simpleCoolingTimeAvailable_=self%coolingTimeAvailable_%timeAvailable(node)
        ! Get node components.
        hotHalo => node%hotHalo()
        ! Get required objects.
        self%hotHaloMassDistribution_   => hotHaloMassDistribution  ()
        self%hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
        ! Get the abundances for this node.
-       gasAbundances=hotHalo%abundances()
-       call gasAbundances%massToMassFraction(hotHalo%mass())
+       simpleGasAbundances_=hotHalo%abundances()
+       call simpleGasAbundances_%massToMassFraction(hotHalo%mass())
        ! Get the chemicals for this node.
        if (self%chemicalsCount > 0) then
           chemicalMasses=hotHalo%chemicals()
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalDensities)
+          call chemicalMasses%massToNumber(simpleChemicalDensities_)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
           if (hotHalo%outerRadius() > 0.0d0) then
              massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
@@ -258,11 +264,14 @@ contains
              massToDensityConversion=0.0d0
           end if
           ! Convert to number density.
-          chemicalDensities=chemicalDensities*massToDensityConversion
+          simpleChemicalDensities_=simpleChemicalDensities_*massToDensityConversion
        end if
        ! Set the radiation field.
-       call radiation%define([radiationTypeCMB])
-       call radiation%set(node)
+       call simpleRadiation_%define([radiationTypeCMB])
+       call simpleRadiation_%set(node)
+       ! Set module-scope pointers.
+       simpleSelf_ => self
+       simpleNode_ => node
        ! Check if cooling time at halo center is reached.
        if (coolingRadiusRoot(zeroRadius) > 0.0d0) then
           ! Cooling time at halo center exceeds the time available, return zero radius.
@@ -283,30 +292,27 @@ contains
           call finder%rootFunction(coolingRadiusRoot                  )
           call finder%tolerance   (toleranceAbsolute,toleranceRelative)
        end if
-       self%radiusStored=finder%find(rootRange=[zeroRadius,outerRadius])
-       simpleRadius     =self%radiusStored
+       self%radiusStored =  finder%find(rootRange=[zeroRadius,outerRadius])
+       simpleRadius      =  self%radiusStored
     else
-       simpleRadius     =self%radiusStored
+       simpleRadius      =  self%radiusStored
     end if
     return
-
-  contains
-
-    double precision function coolingRadiusRoot(radius)
-      !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
-      use Cooling_Times
-      implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: coolingTime, density, temperature
-
-      ! Compute density, temperature and abundances.
-      density    =self%hotHaloMassDistribution_  %density    (node,radius)
-      temperature=self%hotHaloTemperatureProfile_%temperature(node,radius)
-      ! Compute the cooling time at the specified radius.
-      coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
-      ! Return the difference between cooling time and time available.
-      coolingRadiusRoot=coolingTime-coolingTimeAvailable
-      return
-    end function coolingRadiusRoot
-
   end function simpleRadius
+
+  double precision function coolingRadiusRoot(radius)
+    !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
+    use Cooling_Times
+    implicit none
+    double precision, intent(in   ) :: radius
+    double precision                :: coolingTime, density, temperature
+
+    ! Compute density, temperature and abundances.
+    density    =simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
+    temperature=simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
+    ! Compute the cooling time at the specified radius.
+    coolingTime=Cooling_Time(temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleRadiation_)
+    ! Return the difference between cooling time and time available.
+    coolingRadiusRoot=coolingTime-simpleCoolingTimeAvailable_
+    return
+  end function coolingRadiusRoot

@@ -21,6 +21,8 @@
 module Cooling_Radii
   !% Provides a class that implements calculations of the cooling radius.
   use Galacticus_Nodes
+  implicit none
+  private
   
   !# <functionClass>
   !#  <name>coolingRadius</name>
@@ -32,6 +34,7 @@ module Cooling_Radii
   !#   <description>Returns the cooling radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="radiusGrowthRate" >
