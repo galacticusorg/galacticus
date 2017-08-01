@@ -157,13 +157,29 @@ sub Process_FunctionClass {
 		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','node') )
 		};
 	    }
+	    # Add "isDefault" method.
+	    $methods{'isDefault'} = 
+	    {
+		description => "Return true if this is the default object of this class.",
+		type        => "logical",
+		pass        => "yes",
+		code        => $directive->{'name'}."isDefault=.not.self%isDefaultOfClass\n"
+	    };
 	    # Add "isFinalizable" method.
 	    $methods{'isFinalizable'} = 
 	    {
 		description => "Return true if this object can be finalized.",
 		type        => "logical",
 		pass        => "yes",
-		code        => $directive->{'name'}."isFinalizable=.not.self%isDefault\n"
+		code        => $directive->{'name'}."isFinalizable=.not.self%isIndestructible\n"
+	    };
+	    # Add "makeIndestructible" method.
+	    $methods{'makeIndestructible'} = 
+	    {
+		description => "Make this object non-finalizable.",
+		type        => "void",
+		pass        => "yes",
+		code        => "self%isIndestructible=.true.\n"
 	    };
 	    # Add "descriptor" method.
 	    my $descriptorCode;
@@ -726,6 +742,21 @@ CODE
 					$assignments .= "destination%".$_."=fgsl_interp_accel()\n"
 					    foreach ( @{$declaration->{'variables'}} );
 				}
+				# Reinitialize OpenMP locks.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "integer"
+				     &&
+				     exists ($declaration->{'type'})
+				     &&
+				     defined($declaration->{'type'})
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
+				    ) {
+					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
+
 			    }
 			}
 			$node = $node->{'sibling'};
@@ -842,7 +873,7 @@ CODE
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
 	    $preContains->[0]->{'content'} .= "   type :: ".$directive->{'name'}."Class\n";
 	    $preContains->[0]->{'content'} .= "    private\n";
-	    $preContains->[0]->{'content'} .= "    logical :: isDefault=.false.\n";
+	    $preContains->[0]->{'content'} .= "    logical :: isIndestructible=.false., isDefaultOfClass=.false.\n";
 	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		if ( reftype($_) ) {
 		    $_->{'scope'} = "self"
@@ -1150,7 +1181,8 @@ CODE
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('".$directive->{'name'}."Initialize',message)\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
-	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefault=.true.\n";
+	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isIndestructible=.true.\n";
+	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefaultOfClass=.true.\n";
 	    $postContains->[0]->{'content'} .= "      !\$omp end critical (".$directive->{'name'}."Initialization)\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end subroutine ".$directive->{'name'}."Initialize\n\n";
