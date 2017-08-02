@@ -16,22 +16,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class implementing satellite orbital parameters at virial radius crossing.
+!% Contains a module which provides a class implementing satellite orbital parameters at virial radius crossing.
 
 module Virial_Orbits
-  !% Implements a class implementing satellite orbital parameters at virial radius crossing.
-  use ISO_Varying_String
+  !% Provides a class implementing satellite orbital parameters at virial radius crossing.
   use Galacticus_Nodes
   use Virial_Density_Contrast
   use Kepler_Orbits
-  use FGSL
-  use Statistics_Distributions
-  !# <include directive="virialOrbit" type="functionModules" >
-  include 'virialOrbit.functionModules.inc'
-  !# </include>
   private
 
-  !# <include directive="virialOrbit" type="function" >
+  !# <functionClass>
+  !#  <name>virialOrbit</name>
   !#  <descriptiveName>Virial Orbits</descriptiveName>
   !#  <description>Class providing orbital parameters of satellite halos at the time of merging.</description>
   !#  <default>benson2005</default>
@@ -41,7 +36,8 @@ module Virial_Orbits
   !#   <description>Returns an orbit object.</description>
   !#   <type>type(keplerOrbit)</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type(treeNode), intent(inout) :: node               , host</argument>
   !#   <argument>logical       , intent(in   ) :: acceptUnboundOrbits</argument>
   !#  </method>
   !#  <method name="densityContrastDefinition" >
@@ -49,7 +45,6 @@ module Virial_Orbits
   !#   <type>class(virialDensityContrastClass)</type>
   !#   <pass>yes</pass>
   !#  </method>
-   include 'virialOrbit.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Virial_Orbits

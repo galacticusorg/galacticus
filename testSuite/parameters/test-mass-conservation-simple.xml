@@ -327,10 +327,14 @@
     <virialDensityContrastMethod value="percolation">
       <linkingLength value="0.2"/>
     </virialDensityContrastMethod>
-    <virialOrbitMethod value="fixed" />
-    <virialOrbitsFixedRadialVelocity value="-0.856" />
-    <virialOrbitsFixedTangentialVelocity value="+0.842" />
-    <virialOrbitsVirialDensityContrast value="fixedCritical200" />
+    <virialOrbitMethod value="fixed" >
+      <velocityRadial     value="-0.856" />
+      <velocityTangential value="+0.842" />
+      <virialDensityContrastMethod>
+	<densityContrastValue value="200.0"   />
+	<densityType          value="critical"/>
+      </virialDensityContrastMethod>
+    </virialOrbitMethod>
     <zfourgeStellarMassFunctionZ0.350MassRandom0 value="0.222933598333518" />
     <zfourgeStellarMassFunctionZ0.350MassRandom1 value="-0.0501119194234809" />
     <zfourgeStellarMassFunctionZ0.350MassRandomMinimum value="0.0696196791279507" />
