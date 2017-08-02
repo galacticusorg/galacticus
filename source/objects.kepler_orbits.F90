@@ -304,11 +304,24 @@ module Kepler_Orbits
      procedure :: semiMajorAxis        =>Kepler_Orbits_Semi_Major_Axis
   end type keplerOrbit
 
+  interface keplerOrbit
+     !% Constructors for Kepler orbits.
+     module procedure keplerOrbitConstructorNull
+  end interface keplerOrbit
+  
   ! A null orbit.
   type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
   
 contains
 
+  function keplerOrbitConstructorNull() result(self)
+    !% Null constructor for Kepler orbit objects.
+    type(keplerOrbit) :: self
+
+    self=zeroKeplerOrbit
+    return
+  end function keplerOrbitConstructorNull
+  
   subroutine Kepler_Orbits_Destroy(thisOrbit)
     !% Destroy an orbit.
     implicit none
