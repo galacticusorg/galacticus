@@ -110,13 +110,13 @@ for(my $i=0;$i<nelem($parameterMean);++$i) {
 	     type => "linear"
 	 },
 	 prior => {
-	     distribution => {
+	     distribution => [{
 		 type     => "normal",
 		 mean     => +0.0,
 		 variance => +1.0,
 		 minimum  => -5.0,
 		 maximum  => +5.0
-	     }
+	     }]
 	 }	 
         );
     push(@{$parametersOutput->{'parameter'}},\%parameterOutput);
