@@ -93,7 +93,7 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 	 label  => $label     ,
 	 define => $definition
 	);
-    push(@{$parametersOutput->{'parameters'}->{'parameter'}},\%parameterOutput);
+    push(@{$parametersOutput->{'parameter'}},\%parameterOutput);
 }
 # Append meta-parameters.
 for(my $i=0;$i<nelem($parameterMean);++$i) {
@@ -119,7 +119,7 @@ for(my $i=0;$i<nelem($parameterMean);++$i) {
 	     }
 	 }	 
         );
-    push(@{$parametersOutput->{'parameters'}->{'parameter'}},\%parameterOutput);
+    push(@{$parametersOutput->{'parameter'}},\%parameterOutput);
 }
 
 # Output the parameter definition file.
