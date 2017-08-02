@@ -82,7 +82,6 @@
   <allTreesExistAtFinalTime value="false"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
   <mergerTreeReadPresetSpins value="false"/>
-  <virialOrbitMethod value="fixed"/>
   <mergerTreeReadPresetPositions value="true"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -139,12 +138,14 @@
   <conditionalMassFunctionBehrooziLog10Mstar0 value="10.5980300058"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorPhi0 value="2.0e-4"/>
   <outputRedshifts value="0.0700"/>
-  <virialOrbitsFixedTangentialVelocity value="0.75"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth value="0.097"/>
   <coolingRadiusMethod value="isothermal"/>
   <timestepHostAbsolute value="1.0"/>
-  <virialOrbitsFixedRadialVelocity value="0.90"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
   <mergerTreeConstructMethod value="read"/>
   <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
+  <virialOrbitMethod value="fixed">
+    <velocityTangential value="+0.75"/>
+    <velocityRadial     value="-0.90"/>
+  </virialOrbitMethod>
 </parameters>

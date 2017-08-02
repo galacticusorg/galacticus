@@ -248,7 +248,6 @@
 
     <!-- Galaxy merger options -->
     <virialOrbitMethod value="benson2005"/>
-    <virialOrbitsVirialDensityContrast value="sphericalCollapseMatterLambda"/>
     <satelliteMergingTimescalesMethod value="jiang2008"/>
     <mergingTimescaleMultiplier value="0.75"/>
     <satelliteMergingMassMovementsMethod value="simple"/>

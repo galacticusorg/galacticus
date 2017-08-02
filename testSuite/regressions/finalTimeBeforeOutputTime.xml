@@ -123,7 +123,6 @@
   <outputRedshifts value="0.0700"/>
   <conditionalMassFunctionBehrooziBetaSatellite value="1.46136840213"/>
   <mergerTreeReadFileName value="testSuite/data/mergerTrees/finalTimeBeforeOutputTime.hdf5"/>
-  <virialOrbitsFixedTangentialVelocity value="0.75"/>
   <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth value="0.097"/>
   <starveSatellites value="true"/>
@@ -135,8 +134,10 @@
   <mergerTreeReadPresetSpins value="false"/>
   <timestepHostAbsolute value="1.0"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
-  <virialOrbitsFixedRadialVelocity value="0.90"/>
-  <virialOrbitMethod value="fixed"/>
+  <virialOrbitMethod value="fixed">
+    <velocityTangential value="+0.75"/>
+    <velocityRadial     value="-0.90"/>
+  </virialOrbitMethod>
   <mergerTreeReadPresetPositions value="false"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <mergerTreeConstructMethod value="read"/>

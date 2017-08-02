@@ -128,10 +128,14 @@
   <randomSpinResetMassFactor value="2.0"/>
   
   <!-- Satellite orbits -->
-  <virialOrbitMethod value="fixed"/>
-  <virialOrbitsFixedRadialVelocity value="-0.856"/>
-  <virialOrbitsFixedTangentialVelocity value="+0.842"/>
-  <virialOrbitsVirialDensityContrast value="fixedCritical200"/>
+  <virialOrbitMethod value="fixed">
+    <velocityTangential value="+0.842"/>
+    <velocityRadial     value="-0.856"/>
+    <virialDensityContrastMethod>
+      <densityContrastValue value="200.0"   />
+      <densityType          value="critical"/>
+    </virialDensityContrastMethod>
+  </virialOrbitMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="1.2044009774202384"/>
   

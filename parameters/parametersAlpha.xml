@@ -118,9 +118,10 @@
   <diskOutflowTimescaleMinimum value="0.0032937916041941"/>
 
   <!-- Galaxy merger options -->
-  <virialOrbitMethod value="fixed"/>
-  <virialOrbitsFixedTangentialVelocity value="0.75"/>
-  <virialOrbitsFixedRadialVelocity value="0.90"/>
+  <virialOrbitMethod value="fixed">
+    <velocityTangential value="+0.75"/>
+    <velocityRadial     value="-0.90"/>
+  </virialOrbitMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="0.114092219110171"/>
   <satelliteMergingMassMovementsMethod value="verySimple"/>
