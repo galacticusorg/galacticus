@@ -72,6 +72,7 @@ contains
     !# <inputParameter>
     !#   <name>unimplementedIsFatal</name>
     !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
     !#   <description>If {\normalfont \ttfamily true}, unimplemented features of the truncated dark matter profile cause fatal errors. Otherwise, the solution for an untruncated profile is returned.</description>
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
@@ -79,6 +80,7 @@ contains
     !# <inputParameter>
     !#   <name>radiusFractionalTruncateMinimum</name>
     !#   <defaultValue>2.0d0</defaultValue>
+    !#   <source>parameters</source>
     !#   <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
@@ -86,6 +88,7 @@ contains
     !# <inputParameter>
     !#   <name>radiusFractionalTruncateMaximum</name>
     !#   <defaultValue>4.0d0</defaultValue>
+    !#   <source>parameters</source>
     !#   <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
