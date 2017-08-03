@@ -14,10 +14,10 @@ use PDL::NiceSlice;
 use Data::Dumper;
 use Clone qw(clone);
 use List::Util;
-use Storable;
 use List::ExtraUtils;
 use Galacticus::Launch::PBS;
 use Scalar::Util 'reftype';
+use Storable qw(dclone);
 
 sub Parse_Config {
     # Get the config file name.
@@ -53,14 +53,32 @@ sub Parse_Config {
 
 sub Output {
     # Output a set of parameters to file.
-    my $parameters = shift;
-    my $fileName   = shift;
+    my $parameters = shift();
+    my $fileName   = shift();
+    # Test for parameters with no value element - ensure that they are forced to be arrays. This is done in a kludgey way by
+    # inserting an empty "value" element. A better approach would be to avoid using XML::Simple, and instead use a better XML
+    # parser which gives control over whether structure is serialized as elements or attributes.
+    my $parametersCopy = dclone($parameters);
+    my @nodes = map {$parametersCopy->{$_}} keys(%{$parametersCopy});
+    while ( scalar(@nodes) > 0 ) {
+    	my $node = pop(@nodes);
+    	if ( UNIVERSAL::isa($node,"ARRAY") ) {
+    	    unshift(@nodes,map {\$_} @{$node});
+    	} elsif ( UNIVERSAL::isa($node,"HASH") ) {
+    	    unless ( grep {$_ eq "value"} keys(%{$node}) ) {
+		$node->{'value'} = "";
+	    }
+    		foreach ( keys(%{$node}) ) {
+    		    unshift(@nodes,\${$node}{$_});
+    	    }
+    	}
+    }
     # Create an XML output object.
-    my $xmlOutput  = new XML::Simple (RootName=>"parameters");
+    my $xmlOutput = new XML::Simple (RootName=>"parameters");
     # Output the parameters to file.
-    open(pHndl,">".$fileName);
-    print pHndl $xmlOutput->XMLout($parameters);
-    close pHndl;
+    open(my $outputFile,">".$fileName);
+    print $outputFile $xmlOutput->XMLout($parametersCopy);
+    close $outputFile;
 }
 
 sub Compilation {
@@ -249,7 +267,7 @@ sub Convert_Parameters_To_Galacticus {
     for(my $i=0;$i<scalar(@parameters);++$i) {
 	++$parameterCount if ( exists($parameters[$i]->{'prior'}) );
     }
-    die("Convert_Parameters_To_Galacticus: number of supplied values does not match number of parameters")
+    die("Convert_Parameters_To_Galacticus: number of supplied values [".scalar(@values)."] does not match number of parameters [".$parameterCount."]")
 	unless
 	( 
 	   scalar(@values) ==   $parameterCount
