@@ -27,7 +27,7 @@
      !% An N-body data operator which determines the subset of particles that are self-bound.
      private
      integer         (c_size_t) :: bootstrapSampleCount
-     double precision           :: tolerance
+     double precision           :: tolerance           , bootstrapSampleRate
    contains
      procedure :: operate => selfBoundOperate
   end type nbodyOperatorSelfBound
@@ -47,7 +47,7 @@ contains
     type            (nbodyOperatorSelfBound)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
     integer         (c_size_t              )                :: bootstrapSampleCount
-    double precision                                        :: tolerance
+    double precision                                        :: tolerance           , bootstrapSampleRate
     
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
@@ -65,18 +65,26 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount)
+    !# <inputParameter>
+    !#   <name>bootstrapSampleRate</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The sampling rate for particles.</description>
+    !#   <type>float</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate)
     return
   end function selfBoundConstructorParameters
 
-  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount) result (self)
+  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate) result (self)
     !% Internal constructor for the ``selfBound'' N-body operator class
     use Input_Parameters2
     implicit none
     type            (nbodyOperatorSelfBound)                :: self
-    double precision                        , intent(in   ) :: tolerance
+    double precision                        , intent(in   ) :: tolerance           , bootstrapSampleRate
     integer         (c_size_t              ), intent(in   ) :: bootstrapSampleCount
-    !# <constructorAssign variables="tolerance, bootstrapSampleCount"/>
+    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate"/>
 
     return
   end function selfBoundConstructorInternal
@@ -88,11 +96,13 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Error
     use Poisson_Random
+    use ISO_Varying_String
+    use Galacticus_Display
+    use String_Handling
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation
     integer                                 , parameter                              :: countIterationMaximum=30
-    double precision                        , parameter                              :: sampleRate           = 1.0d0
     logical                                 , allocatable  , dimension(:  )          :: isBound                      , compute                , &
          &                                                                              isBoundNew                   , isBoundCompute
     integer                                 , allocatable  , dimension(:,:), target  :: boundStatus
@@ -111,6 +121,7 @@ contains
     integer                                                                          :: addSubtract                  , countIteration
     type            (fgsl_rng              )                                         :: pseudoSequenceObject
     logical                                                                          :: pseudoSequenceReset   =.true.
+    type            (varying_string        )                                         :: message
 
     ! Allocate workspaces.
     particleCount=size(simulation%position,dim=2)
@@ -129,9 +140,12 @@ contains
     call allocateArray(indexVelocityMostBound ,[              self%bootstrapSampleCount])
     ! Iterate over bootstrap samplings.
     do iSample=1,self%bootstrapSampleCount
+       message='Performing self-bound analysis on bootstrap sample '
+       message=message//iSample//' of '//self%bootstrapSampleCount
+       call Galacticus_Display_Message(message)
        ! Determine weights for particles.
        do i=1,particleCount
-          sampleWeight(i)=dble(Poisson_Random_Get(pseudoSequenceObject,sampleRate,pseudoSequenceReset))
+          sampleWeight(i)=dble(Poisson_Random_Get(pseudoSequenceObject,self%bootstrapSampleRate,pseudoSequenceReset))
        end do
        ! Initialize count of bound particles.
        countBoundPrevious =     particleCount
@@ -212,12 +226,13 @@ contains
           !$omp workshare
           ! Apply constant multipliers to potential energy.
           where(isBoundCompute)
-             energyPotentialChange=+energyPotentialChange                       &
-                  &                *gravitationalConstantGalacticus             &
-                  &                *simulation%massParticle                     &
-                  &                /simulation%lengthSoftening                  &
-                  &                * dble(particleCount)                        &
-                  &                /(dble(particleCount-1_c_size_t)-sampleRate)
+             energyPotentialChange=+energyPotentialChange                                     &
+                  &                *gravitationalConstantGalacticus                           &
+                  &                *simulation%massParticle                                   &
+                  &                /self%bootstrapSampleRate                                  &
+                  &                /simulation%lengthSoftening                                &
+                  &                * dble(particleCount)                                      &
+                  &                /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
           end where
           !$omp end workshare
           ! Accumulate changes to potentials.
