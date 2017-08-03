@@ -1,0 +1,10 @@
+<!-- A constraint compilation to constrain to match the N-body spin distribution function --> 
+<constraintCompilation>
+
+  <!-- Millennium Simulation spin distribution function -->
+  <constraint>
+    <definition>constraints/constraints/spinDistributionFunctionBett2007.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>
