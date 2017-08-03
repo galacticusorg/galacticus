@@ -866,7 +866,7 @@ CODE
 		];
 
 	    # Add variable tracking module initialization status.
-	    $preContains->[0]->{'content'} .= "   logical, private :: moduleInitialized=.false.\n\n";
+	    $preContains->[0]->{'content'} .= "   logical, private :: ".$directive->{'name'}."Initialized=.false.\n\n";
 
 	    # Generate the base class.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
@@ -1131,7 +1131,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "      type(inputParameters) :: subParameters\n";
 	    $postContains->[0]->{'content'} .= "      type(varying_string ) :: message\n\n";
 	    $postContains->[0]->{'content'} .= "      !\$omp critical (".$directive->{'name'}."Initialization)\n";
-	    $postContains->[0]->{'content'} .= "      if (.not.moduleInitialized) then\n";
+	    $postContains->[0]->{'content'} .= "      if (.not.".$directive->{'name'}."Initialized) then\n";
 	    $postContains->[0]->{'content'} .= "         !@ <inputParameter>\n";
 	    $postContains->[0]->{'content'} .= "         !@   <name>".$directive->{'name'}."Method</name>\n";
 	    $postContains->[0]->{'content'} .= "         !@   <defaultValue>".$directive->{'default'}."</defaultValue>\n";
@@ -1143,7 +1143,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "         !@   <cardinality>1</cardinality>\n";
 	    $postContains->[0]->{'content'} .= "         !@ </inputParameter>\n";
 	    $postContains->[0]->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."Method',".$directive->{'name'}."Method,defaultValue=var_str('".$directive->{'default'}."'))\n";
-	    $postContains->[0]->{'content'} .= "         moduleInitialized=.true.\n";
+	    $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."Initialized=.true.\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."Method',requirePresent=.false.)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(".$directive->{'name'}."Method))\n";
