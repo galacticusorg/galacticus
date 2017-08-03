@@ -10,6 +10,7 @@ use PDL::MatrixOps;
 use Galacticus::Constraints::Parameters;
 use Galacticus::Options;
 use Data::Dumper;
+use List::ExtraUtils;
 
 # Fit a multivariate normal distribution to MCMC chain samples and
 # output a suitable XML definition file to define priors for the
@@ -52,8 +53,20 @@ my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 # Read a sample matrix of all chain states.
 my $sampleMatrix = &Galacticus::Constraints::Parameters::Sample_Matrix($config,\%options);
 
+# Determine which, if any, parameters are being excluded.
+my $j = -1;
+my $activeParameters = pdl [];
+foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+    next 
+	unless ( exists($parameter->{'prior'}) );
+    ++$j;
+    $activeParameters = $activeParameters->append($j)
+	unless ( exists($options{'exclude'}) && grep {$parameter->{'name'} eq $_} &List::ExtraUtils::as_array($options{'exclude'}) );
+}
+my $sampleMatrixExcluded = $sampleMatrix->($activeParameters,:);
+
 # Compute the mean parameters.
-my $parameterMean = $sampleMatrix->xchg(0,1)->average();
+my $parameterMean = $sampleMatrixExcluded->xchg(0,1)->average();
 
 # Compute the covariance of parameters.
 my $parameterCovariance = pdl zeroes(nelem($parameterMean),nelem($parameterMean));
@@ -61,10 +74,10 @@ for(my $i=0;$i<nelem($parameterMean);++$i) {
     for(my $j=$i;$j<nelem($parameterMean);++$j) {
 	my $covariance = 
 	    sum(
-		+($sampleMatrix->(($i),:)-$parameterMean->(($i)))
-		*($sampleMatrix->(($j),:)-$parameterMean->(($j)))
+		+($sampleMatrixExcluded->(($i),:)-$parameterMean->(($i)))
+		*($sampleMatrixExcluded->(($j),:)-$parameterMean->(($j)))
 	    )
-	    /$sampleMatrix->dim(1);
+	    /$sampleMatrixExcluded->dim(1);
 	$parameterCovariance->(($i),($j)) .= $covariance;
 	$parameterCovariance->(($j),($i)) .= $covariance;
     }
@@ -78,8 +91,10 @@ my $parametersOutput;
 foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
     next 
 	unless ( exists($parameter->{'prior'}) );
-    ++$i;
-    my $definition      = $parameterMean->(($i))->string();
+    next
+ 	if ( exists($options{'exclude'}) && grep {$parameter->{'name'} eq $_} &List::ExtraUtils::as_array($options{'exclude'}) );
+    ++$i;    
+    my $definition = $parameterMean->(($i))->string();
     for(my $j=0;$j<nelem($parameterMean);++$j) {
 	my $coefficient = $cholesky->(($i),($j));
 	$definition .= "+\%[".$options{'metaName'}.$j."]*".$coefficient
