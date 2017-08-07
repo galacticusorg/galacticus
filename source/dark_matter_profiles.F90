@@ -137,4 +137,36 @@ module Dark_Matter_Profiles
   !#  </method>
   !# </functionClass>
 
+  !# <functionClass>
+  !#  <name>darkMatterProfileHeating</name>
+  !#  <descriptiveName>Dark Matter Profile Heating</descriptiveName>
+  !#  <description>Class providing models of heating of dark matter profiles.</description>
+  !#  <default>null</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="specificEnergy" >
+  !#   <description>The specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>class           (darkMatterProfileClass), intent(inout) :: darkMatterProfile_</argument>
+  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#  </method>
+  !#  <method name="specificEnergyGradient" >
+  !#   <description>The gradient of the specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>class           (darkMatterProfileClass), intent(inout) :: darkMatterProfile_</argument>
+  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#  </method>
+  !#  <method name="specificEnergyIsEverywhereZero" >
+  !#   <description>Returns true if the specific energy is zero everywhere in the given {\normalfont \ttfamily node}.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>class(darkMatterProfileClass), intent(inout) :: darkMatterProfile_</argument>
+  !#  </method>
+  !# </functionClass>
+
 end module Dark_Matter_Profiles
