@@ -1,0 +1,713 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% An implementation of heated dark matter halo profiles.
+
+  !# <darkMatterProfile name="darkMatterProfileHeated">
+  !#  <description>Heated dark matter halo profiles.</description>
+  !# </darkMatterProfile>
+
+  use Kind_Numbers
+  use Dark_Matter_Halo_Scales
+
+  type, extends(darkMatterProfileClass) :: darkMatterProfileHeated
+     !% A dark matter halo profile class implementing heated dark matter halos.
+     private
+     class           (darkMatterProfileClass       ), pointer :: unheatedProfile
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_
+     logical                                                  :: unimplementedIsFatal
+     integer         (kind=kind_int8               )          :: lastUniqueID
+     double precision                                         :: radiusFinalPrevious      , radiusInitialPrevious
+   contains
+     !@ <objectMethods>
+     !@   <object>darkMatterProfileHeated</object>
+     !@   <objectMethod>
+     !@     <method>radiusInitial</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ radiusFinal\argin</arguments>
+     !@     <description>Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final                                             heatedDestructor
+     procedure :: calculationReset                  => heatedCalculationReset
+     procedure :: stateStore                        => heatedStateStore
+     procedure :: stateRestore                      => heatedStateRestore
+     procedure :: radiusInitial                     => heatedRadiusInitial
+     procedure :: density                           => heatedDensity
+     procedure :: densityLogSlope                   => heatedDensityLogSlope
+     procedure :: radiusEnclosingDensity            => heatedRadiusEnclosingDensity
+     procedure :: radialMoment                      => heatedRadialMoment
+     procedure :: enclosedMass                      => heatedEnclosedMass
+     procedure :: potential                         => heatedPotential
+     procedure :: circularVelocity                  => heatedCircularVelocity
+     procedure :: circularVelocityMaximum           => heatedCircularVelocityMaximum
+     procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
+     procedure :: rotationNormalization             => heatedRotationNormalization
+     procedure :: energy                            => heatedEnergy
+     procedure :: energyGrowthRate                  => heatedEnergyGrowthRate
+     procedure :: kSpace                            => heatedKSpace
+     procedure :: freefallRadius                    => heatedFreefallRadius
+     procedure :: freefallRadiusIncreaseRate        => heatedFreefallRadiusIncreaseRate     
+  end type darkMatterProfileHeated
+
+  interface darkMatterProfileHeated
+     !% Constructors for the {\normalfont \ttfamily heated} dark matter halo profile class.
+     module procedure heatedConstructorParameters
+     module procedure heatedConstructorInternal
+  end interface darkMatterProfileHeated
+
+  ! Warnings issued.
+  logical                                            :: heatedRadiusEnclosingDensityWarned           =.false.
+  logical                                            :: heatedDensityLogSlopeWarned                  =.false.
+  logical                                            :: heatedRadialMomentWarned                     =.false.
+  logical                                            :: heatedCircularVelocityMaximumWarned          =.false.
+  logical                                            :: heatedRotationNormalizationWarned            =.false.
+  logical                                            :: heatedEnergyWarned                           =.false.
+  logical                                            :: heatedEnergyGrowthRateWarned                 =.false.
+  logical                                            :: heatedKSpaceWarned                           =.false.
+  logical                                            :: heatedFreefallRadiusWarned                   =.false.
+  logical                                            :: heatedFreefallRadiusIncreaseRateWarned       =.false.
+
+  ! Global variables used in root solving.
+  double precision                                   :: heatedSpecificAngularMomentum, heatedRadiusFinal
+  type            (treeNode               ), pointer :: heatedNode
+  type            (darkMatterProfileHeated), pointer :: heatedSelf
+  !$omp threadprivate(heatedRadiusFinal,heatedNode,heatedSelf,heatedSpecificAngularMomentum)
+
+contains
+
+  function heatedConstructorParameters(parameters) result(self)
+    !% Default constructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    use Input_Parameters2
+    implicit none
+    type   (darkMatterProfileHeated       )                :: self    
+    type   (inputParameters               ), intent(inout) :: parameters
+    class  (darkMatterProfileClass        ), pointer       :: darkMatterProfile_
+    class  (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class  (darkMatterProfileHeatingClass ), pointer       :: darkMatterProfileHeating_
+    logical                                                :: unimplementedIsFatal
+
+    !# <inputParameter>
+    !#   <name>unimplementedIsFatal</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>If {\normalfont \ttfamily true}, unimplemented features of the heated dark matter profile cause fatal errors. Otherwise, a warning is issued and the solution for an unheated profile is returned.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
+    self=darkMatterProfileHeated(unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileHeating_)
+    !# <inputParametersValidate source="parameters"/>
+
+    return
+  end function heatedConstructorParameters
+
+  function heatedConstructorInternal(unimplementedIsFatal,unheatedProfile,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+    !% Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
+    implicit none
+    type   (darkMatterProfileHeated       )                        :: self
+    class  (darkMatterProfileClass        ), intent(in   ), target :: unheatedProfile
+    class  (darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
+    class  (darkMatterProfileHeatingClass ), intent(in   ), target :: darkMatterProfileHeating_
+    logical                                , intent(in   )         :: unimplementedIsFatal
+    !# <constructorAssign variables="unimplementedIsFatal,*unheatedProfile,*darkMatterHaloScale_,*darkMatterProfileHeating_"/>
+
+    ! Construct the object.
+    self%lastUniqueID       =-1_kind_int8
+    self%radiusFinalPrevious=-huge(0.0d0)
+    return
+  end function heatedConstructorInternal
+
+  subroutine heatedDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    implicit none
+    type(darkMatterProfileHeated), intent(inout) :: self
+
+    !# <objectDestructor name="self%unheatedProfile"           />
+    !# <objectDestructor name="self%darkMatterHaloScale_"      />
+    !# <objectDestructor name="self%darkMatterProfileHeating_" />
+    return
+  end subroutine heatedDestructor
+  
+  subroutine heatedCalculationReset(self,node)
+    !% Reset the dark matter profile calculation.
+    implicit none
+    class(darkMatterProfileHeated), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+
+    ! Reset the unheated profile.
+    call self%unheatedProfile%calculationReset(node)
+    ! Reset calculations for this profile.
+    self%lastUniqueID       =node%uniqueID()
+    self%radiusFinalPrevious=-huge(0.0d0)
+    return
+  end subroutine heatedCalculationReset
+
+  subroutine heatedSetGlobalSelf(self)
+    !% Set a module-scope pointer to ``{\normalfont \ttfamily self}''.
+    implicit none
+    class(darkMatterProfileHeated), intent(inout), target :: self
+
+    heatedSelf => self
+    return
+  end subroutine heatedSetGlobalSelf
+  
+  double precision function heatedDensity(self,node,radius)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Galacticus_Display
+    use Numerical_Constants_Math
+    use Numerical_Constants_Physical
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: radius
+    double precision                                         :: radiusInitial , massEnclosed, &
+         &                                                      densityInitial, jacobian
+
+    radiusInitial      =self                %radiusInitial(node,radius       )
+    massEnclosed       =self%unheatedProfile%enclosedMass (node,radiusInitial)
+    densityInitial     =self%unheatedProfile%density      (node,radiusInitial)
+    jacobian           =+1.0d0                                                                                                 &
+         &              /(                                                                                                     &
+         &                +(                                                                                                   &
+         &                  +radius                                                                                            &
+         &                  /radiusInitial                                                                                     &
+         &                 )                                                                                               **2 &
+         &                +2.0d0                                                                                               &
+         &                *radius                                                                                          **2 &
+         &                /gravitationalConstantGalacticus                                                                     &
+         &                /massEnclosed                                                                                        &
+         &                *(                                                                                                   &
+         &                  +self%darkMatterProfileHeating_%specificEnergyGradient(node,self%unheatedProfile,radiusInitial)    &
+         &                  -4.0d0                                                                                             &
+         &                  *Pi                                                                                                &
+         &                  *radiusInitial                                                                                 **2 &
+         &                  *densityInitial                                                                                    &
+         &                  *self%darkMatterProfileHeating_%specificEnergy        (node,self%unheatedProfile,radiusInitial)    &
+         &                  /massEnclosed                                                                                      &
+         &                 )                                                                                                   &
+         &               )
+    heatedDensity=+densityInitial                                                                                       &
+         &               *(                                                                                                    &
+         &                 +radiusInitial                                                                                      &
+         &                 /radius                                                                                             &
+         &                )                                                                                                **2 &
+         &               *jacobian       
+    return
+  end function heatedDensity
+
+  double precision function heatedDensityLogSlope(self,node,radius)
+    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: radius
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       call Galacticus_Error_Report('heatedDensityLogSlope','density logarithmic slope in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedDensityLogSlopeWarned) then
+          !$omp critical(heatedDarkMatterProfileDensityLogSlopeWarn)
+          if (.not.heatedDensityLogSlopeWarned) then
+             call Galacticus_Display_Message('WARNING: density logarithmic slope in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedDensityLogSlopeWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileDensityLogSlopeWarn)
+       end if
+    end if
+    heatedDensityLogSlope=self%unheatedProfile%densityLogSlope(node,radius)
+    return
+  end function heatedDensityLogSlope
+
+  double precision function heatedRadiusEnclosingDensity(self,node,density)
+    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    use Galacticus_Error
+    use Galacticus_Display
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: density
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedRadiusEnclosingDensity=0.0d0
+       call Galacticus_Error_Report('heatedRadiusEnclosingDensity','radius enclosing density in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedRadiusEnclosingDensityWarned) then
+          !$omp critical(heatedDarkMatterProfileRadiusEnclosingDensityWarn)
+          if (.not.heatedRadiusEnclosingDensityWarned) then
+             call Galacticus_Display_Message('WARNING: radius enclosing density in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedRadiusEnclosingDensityWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileRadiusEnclosingDensityWarn)
+       end if
+       heatedRadiusEnclosingDensity=self%unheatedProfile%radiusEnclosingDensity(node,density)
+    end if
+    return
+  end function heatedRadiusEnclosingDensity
+
+  double precision function heatedRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
+    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Galacticus_Error
+    use Galacticus_Display
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout)           :: self
+    type            (treeNode               ), intent(inout)           :: node
+    double precision                         , intent(in   )           :: moment
+    double precision                         , intent(in   ), optional :: radiusMinimum, radiusMaximum
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedRadialMoment=0.0d0
+       call Galacticus_Error_Report('heatedRadialMoment','radial moment in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedRadialMomentWarned) then
+          !$omp critical(heatedDarkMatterProfileRadialMomentWarn)
+          if (.not.heatedRadialMomentWarned) then
+             call Galacticus_Display_Message('WARNING: radial moment in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedRadialMomentWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileRadialMomentWarn)
+       end if
+       heatedRadialMoment=self%unheatedProfile%radialMoment(node,moment,radiusMinimum,radiusMaximum)
+    end if
+    return 
+  end function heatedRadialMoment
+
+  double precision function heatedEnclosedMass(self,node,radius)
+    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    !% units of Mpc).
+    use Galacticus_Display
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: radius
+
+    heatedEnclosedMass=self%unheatedProfile%enclosedMass(node,self%radiusInitial(node,radius))
+    return
+  end function heatedEnclosedMass
+
+  double precision function heatedRadiusInitial(self,node,radiusFinal)
+    !% Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
+    !% the heated dark matter profile.
+    use Root_Finder
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout), target  :: self
+    type            (treeNode               ), intent(inout), target  :: node
+    double precision                         , intent(in   )          :: radiusFinal
+    double precision                         , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder             ), save                   :: finder
+    !$omp threadprivate(finder)
+
+    ! Reset calculations if necessary.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Find the initial radius in the unheated profile.
+    if (radiusFinal /= self%radiusFinalPrevious) then
+       self%radiusFinalPrevious =  radiusFinal
+       heatedSelf        => self
+       heatedNode        => node
+       heatedRadiusFinal =  radiusFinal
+       ! Initialize the root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(heatedRadiusInitialRoot     )
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandUpward            =1.01d0                       , &
+               &                   rangeExpandDownward          =0.50d0                       , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       end if
+       self%radiusInitialPrevious=finder%find(rootGuess=radiusFinal)
+    end if
+    heatedRadiusInitial=self%radiusInitialPrevious
+    return
+  end function heatedRadiusInitial
+  
+  double precision function heatedRadiusInitialRoot(radiusInitial)
+    !% Root function used in finding initial radii in heated dark matter halo profiles.
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in   ) :: radiusInitial
+    double precision                :: massEnclosed
+    
+    massEnclosed                  =+heatedSelf%unheatedProfile          %enclosedMass  (heatedNode,                                  radiusInitial)
+    heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%unheatedProfile,radiusInitial) &
+         &                         +0.5d0                                                                                                                         &
+         &                         *gravitationalConstantGalacticus                                                                                               &
+         &                         *massEnclosed                                                                                                                  &
+         &                         *(                                                                                                                             &
+         &                           +1.0d0/heatedRadiusFinal                                                                                              &
+         &                           -1.0d0/radiusInitial                                                                                                         &
+         &                          )
+    return
+  end function heatedRadiusInitialRoot
+
+  double precision function heatedPotential(self,node,radius,status)
+    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    !% \ttfamily radius} (given in units of Mpc).
+    use FGSL
+    use Numerical_Integration
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Physical
+    use Galactic_Structure_Options
+    implicit none
+    class           (darkMatterProfileHeated   ), intent(inout)           :: self
+    type            (treeNode                  ), intent(inout), pointer  :: node
+    double precision                            , intent(in   )           :: radius
+    integer                                     , intent(  out), optional :: status    
+    double precision                            , parameter               :: radiusMaximumFactor =1.0d2
+    type            (fgsl_function             )                          :: integrandFunction
+    type            (fgsl_integration_workspace)                          :: integrationWorkspace
+    double precision                                                      :: radiusMaximum
+
+    if (present(status)) status=structureErrorCodeSuccess   
+    ! The only option here is to do a numerical integration.
+    call heatedSetGlobalSelf(self)
+    heatedNode    => node
+    radiusMaximum        =  +radiusMaximumFactor                                                   &
+         &                  *self%radiusInitial(node,self%darkMatterHaloScale_%virialRadius(node))
+    heatedPotential=Integrate(                                        &
+         &                           radius                                , &
+         &                           radiusMaximum                         , &
+         &                           heatedPotentialIntegrand       , &
+         &                           integrandFunction                     , &
+         &                           integrationWorkspace                  , &
+         &                           toleranceAbsolute              =0.0d+0, &
+         &                           toleranceRelative              =1.0d-3  &
+         &                          )
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+    return
+  end function heatedPotential
+
+  double precision function heatedPotentialIntegrand(radius)
+    !% Integrand for gravitational potential in a heated dark matter profile.
+    use Numerical_Constants_Physical
+    implicit none
+    double precision, intent(in   ) :: radius
+    
+    heatedPotentialIntegrand=-gravitationalConstantGalacticus                             &
+         &                          *heatedSelf%enclosedMass(heatedNode,radius)    &
+         &                          /                                                 radius **2
+    return
+  end function heatedPotentialIntegrand
+    
+  double precision function heatedCircularVelocity(self,node,radius)
+    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Numerical_Constants_Physical
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: radius
+
+    if (radius > 0.0d0) then
+       heatedCircularVelocity=sqrt(                                 &
+            &                             +gravitationalConstantGalacticus &
+            &                             *self%enclosedMass(node,radius)  &
+            &                             /                       radius   &
+            &                            )
+    else
+       heatedCircularVelocity=0.0d0
+    end if
+    return
+  end function heatedCircularVelocity
+
+  double precision function heatedCircularVelocityMaximum(self,node)
+    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class(darkMatterProfileHeated), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedCircularVelocityMaximum=0.0d0
+       call Galacticus_Error_Report('heatedCircularVelocityMaximum','circular velocity maximum in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedCircularVelocityMaximumWarned) then
+          !$omp critical(heatedDarkMatterProfileCircularVelocityMaximumWarn)
+          if (.not.heatedCircularVelocityMaximumWarned) then
+             call Galacticus_Display_Message('WARNING: circular velocity maximum in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedCircularVelocityMaximumWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileCircularVelocityMaximumWarn)
+       end if
+       heatedCircularVelocityMaximum=self%unheatedProfile%circularVelocityMaximum(node)
+    end if
+    return
+  end function heatedCircularVelocityMaximum
+
+  double precision function heatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
+    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    !% in units of km s$^{-1}$ Mpc).
+    use Root_Finder
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout)          :: self
+    type            (treeNode               ), intent(inout), pointer :: node
+    double precision                         , intent(in   )          :: specificAngularMomentum
+    double precision                         , parameter              :: toleranceAbsolute     =0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder             ), save                   :: finder
+    !$omp threadprivate(finder)
+
+    ! Handle the trivial case.
+    if (specificAngularMomentum <= 0.0d0) then
+       heatedRadiusFromSpecificAngularMomentum=0.0d0
+    else
+       ! Compute radius in unheated profile.
+       heatedRadiusFromSpecificAngularMomentum=self%unheatedProfile%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
+       ! Find radius in the heated profile.
+       ! Set global pointers.
+       call heatedSetGlobalSelf(self)
+       heatedNode                   => node
+       heatedSpecificAngularMomentum=  specificAngularMomentum
+       ! Initialize the root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(heatedRadiusFromSpecificAngularMomentumRoot)
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandUpward            =2.0d0                        , &
+               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       end if
+       heatedRadiusFromSpecificAngularMomentum=finder%find(rootGuess=heatedRadiusFromSpecificAngularMomentum)      
+    end if
+    return
+  end function heatedRadiusFromSpecificAngularMomentum
+
+  double precision function heatedRadiusFromSpecificAngularMomentumRoot(radius)
+    !% Root function used in finding radii corresponding to given specific angular momenta in
+    !% heated dark matter profiles.
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    heatedRadiusFromSpecificAngularMomentumRoot=heatedSelf%circularVelocity(heatedNode,radius)*radius-heatedSpecificAngularMomentum
+    return
+  end function heatedRadiusFromSpecificAngularMomentumRoot
+  
+  double precision function heatedRotationNormalization(self,node)
+    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class(darkMatterProfileHeated), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedRotationNormalization=0.0d0
+       call Galacticus_Error_Report('heatedRotationNormalization','rotation normalization in heated dark matter profiles is not supported')
+    else       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedRotationNormalizationWarned) then
+          !$omp critical(heatedDarkMatterProfileRotationNormalizationWarn)
+          if (.not.heatedRotationNormalizationWarned) then
+             call Galacticus_Display_Message('WARNING: rotation normalization in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedRotationNormalizationWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileRotationNormalizationWarn)
+       end if
+       heatedRotationNormalization=self%unheatedProfile%rotationNormalization(node)
+    end if
+    return
+  end function heatedRotationNormalization
+
+  double precision function heatedEnergy(self,node)
+    !% Return the energy of a heated halo density profile.
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class(darkMatterProfileHeated), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedEnergy=0.0d0
+       call Galacticus_Error_Report('heatedEnergy','energy in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedEnergyWarned) then
+          !$omp critical(heatedDarkMatterProfileEnergyWarn)
+          if (.not.heatedEnergyWarned) then
+             call Galacticus_Display_Message('WARNING: energy in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedEnergyWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileEnergyWarn)
+       end if
+       heatedEnergy=self%unheatedProfile%energy(node)
+    end if
+    return
+  end function heatedEnergy
+
+  double precision function heatedEnergyGrowthRate(self,node)
+    !% Return the rate of change of the energy of a heated halo density profile.
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class(darkMatterProfileHeated), intent(inout)          :: self
+    type (treeNode               ), intent(inout), pointer :: node
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedEnergyGrowthRate=0.0d0
+       call Galacticus_Error_Report('heatedEnergyGrowthRate','energy growth rate in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedEnergyGrowthRateWarned) then
+          !$omp critical(heatedDarkMatterProfileEnergyGrowthRateWarn)
+          if (.not.heatedEnergyGrowthRateWarned) then
+             call Galacticus_Display_Message('WARNING: energyGrowthRate in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedEnergyGrowthRateWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileEnergyGrowthRateWarn)
+       end if
+       heatedEnergyGrowthRate=self%unheatedProfile%energyGrowthRate(node)
+    end if
+    return
+  end function heatedEnergyGrowthRate
+
+  double precision function heatedKSpace(self,node,waveNumber)
+    !% Returns the Fourier transform of the heated density profile at the specified {\normalfont \ttfamily waveNumber}
+    !% (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout)          :: self
+    type            (treeNode               ), intent(inout), pointer :: node
+    double precision                         , intent(in   )          :: waveNumber
+    
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedKSpace=0.0d0
+       call Galacticus_Error_Report('heatedKSpace','Fourier profile in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedKSpaceWarned) then
+          !$omp critical(heatedDarkMatterProfileKSpaceWarn)
+          if (.not.heatedKSpaceWarned) then
+             call Galacticus_Display_Message('WARNING: Fourier profile in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedKSpaceWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileKSpaceWarn)
+       end if
+       heatedKSpace=self%unheatedProfile%kSpace(node,waveNumber)
+    end if
+    return
+  end function heatedKSpace
+
+  double precision function heatedFreefallRadius(self,node,time)
+    !% Returns the freefall radius in the heated density profile at the specified {\normalfont \ttfamily time} (given in
+    !% Gyr).
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: time
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedFreefallRadius=0.0d0
+       call Galacticus_Error_Report('heatedFreefallRadius','freefall radius in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedFreefallRadiusWarned) then
+          !$omp critical(heatedDarkMatterProfileFreefallRadiusWarn)
+          if (.not.heatedFreefallRadiusWarned) then
+             call Galacticus_Display_Message('WARNING: freefallRadius in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedFreefallRadiusWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileFreefallRadiusWarn)
+       end if
+       heatedFreefallRadius=self%unheatedProfile%freefallRadius(node,time)
+    end if
+    return
+  end function heatedFreefallRadius
+
+  double precision function heatedFreefallRadiusIncreaseRate(self,node,time)
+    !% Returns the rate of increase of the freefall radius in the heated density profile at the specified {\normalfont
+    !% \ttfamily time} (given in Gyr).
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: time
+
+    ! Check if unimplemented features are fatal.
+    if (self%unimplementedIsFatal) then
+       heatedFreefallRadiusIncreaseRate=0.0d0
+       call Galacticus_Error_Report('heatedFreefallRadiusIncreaseRate','freefall radius increase rate in heated dark matter profiles is not supported')
+    else
+       ! Issue a warning and then fall through to the unheated profile.
+       if (.not.heatedFreefallRadiusIncreaseRateWarned) then
+          !$omp critical(heatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
+          if (.not.heatedFreefallRadiusIncreaseRateWarned) then
+             call Galacticus_Display_Message('WARNING: freefall radius increase rate in heated dark matter profiles is not supported - using unheated profile',verbosity=verbosityWarn)
+             heatedFreefallRadiusIncreaseRateWarned=.true.
+          end if
+          !$omp end critical(heatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
+       end if
+       heatedFreefallRadiusIncreaseRate=self%unheatedProfile%freefallRadiusIncreaseRate(node,time)
+    end if
+    return
+  end function heatedFreefallRadiusIncreaseRate
+
+  subroutine heatedStateStore(self,stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    use Galacticus_Display
+    implicit none
+    class  (darkMatterProfileHeated), intent(inout) :: self
+    integer                         , intent(in   ) :: stateFile
+    type   (fgsl_file              ), intent(in   ) :: fgslStateFile
+
+    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> heated',verbosity=verbosityInfo)
+    call self%unheatedProfile%stateStore(stateFile,fgslStateFile)
+    return
+  end subroutine heatedStateStore
+
+  subroutine heatedStateRestore(self,stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
+    implicit none
+    class  (darkMatterProfileHeated), intent(inout) :: self
+    integer                         , intent(in   ) :: stateFile
+    type   (fgsl_file              ), intent(in   ) :: fgslStateFile
+
+    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> heated',verbosity=verbosityInfo)
+    call self%unheatedProfile%stateRestore(stateFile,fgslStateFile)
+    return
+  end subroutine heatedStateRestore
