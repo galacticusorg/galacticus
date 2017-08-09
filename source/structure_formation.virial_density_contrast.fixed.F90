@@ -77,11 +77,11 @@ contains
     !#  <name>densityType</name>
     !#  <source>parameters</source>
     !#  <defaultValue>var_str('critical')</defaultValue>
-    !#  <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical density} and {\normalfont \ttfamily mean density} are allowed.</description>
+    !#  <description>The reference density to use in the fixed value virial density contrast model. Either of {\normalfont \ttfamily critical} and {\normalfont \ttfamily mean} are allowed.</description>
     !#  <type>string</type>
     !#  <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
