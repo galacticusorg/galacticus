@@ -1,0 +1,203 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
+
+  use Cosmology_Functions
+  use Cosmological_Mass_Variance
+  use Critical_Overdensities
+
+  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
+  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
+  !# </darkMatterProfileConcentration>
+  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
+     !% A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.
+     private
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     double precision                                         :: F                                  , K
+   contains
+     final     ::                                bullock2001Destructor
+     procedure :: concentration               => bullock2001Concentration
+     procedure :: densityContrastDefinition   => bullock2001DensityContrastDefinition
+     procedure :: darkMatterProfileDefinition => bullock2001DarkMatterProfileDefinition
+  end type darkMatterProfileConcentrationBullock2001
+  
+  interface darkMatterProfileConcentrationBullock2001
+     !% Constructors for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+     module procedure bullock2001ConstructorParameters
+     module procedure bullock2001ConstructorInternal
+  end interface darkMatterProfileConcentrationBullock2001
+
+contains
+
+  function bullock2001ConstructorParameters(parameters) result(self)
+    !% Default constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
+    !% concentration class.
+    use Input_Parameters
+    implicit none
+    type            (darkMatterProfileConcentrationBullock2001)                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    class           (criticalOverdensityClass                 ), pointer       :: criticalOverdensity_     
+    class           (cosmologicalMassVarianceClass            ), pointer       :: cosmologicalMassVariance_
+    double precision                                                           :: F                        , K
+
+    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>F</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
+    !#   <description>The parameter $F$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>K</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>4.0d0</defaultValue>
+    !#   <defaultSource>\cite{bullock_profiles_2001}</defaultSource>
+    !#   <description>The parameter $K$ appearing in the halo concentration algorithm of \cite{bullock_profiles_2001}.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=darkMatterProfileConcentrationBullock2001(F,K,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function bullock2001ConstructorParameters
+
+  function bullock2001ConstructorInternal(F,K,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+    !% Constructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile
+    !% concentration class.
+    implicit none
+    type            (darkMatterProfileConcentrationBullock2001)                        :: self
+    double precision                                           , intent(in   )         :: F                         , K
+    class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
+    class           (criticalOverdensityClass                 ), intent(in   ), target :: criticalOverdensity_     
+    class           (cosmologicalMassVarianceClass            ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="F,K,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_"/>
+
+    return
+  end function bullock2001ConstructorInternal
+
+  subroutine bullock2001Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily bullock2001} dark matter halo profile concentration class.
+    implicit none
+    type(darkMatterProfileConcentrationBullock2001), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%criticalOverdensity_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    return
+  end subroutine bullock2001Destructor
+
+  double precision function bullock2001Concentration(self,node)
+    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    !% using the \cite{bullock_profiles_2001} algorithm.
+    use Virial_Density_Contrast
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (darkMatterProfileConcentrationBullock2001), intent(inout)          :: self
+    type            (treeNode                                 ), intent(inout), pointer :: node
+    class           (virialDensityContrastClass               ), pointer                :: virialDensityContrast_
+    class           (nodeComponentBasic                       )               , pointer :: basic
+    double precision                                                                    :: massHalo              , massHaloFormation       , &
+         &                                                                                 sigmaFormation        , timeFormation           , &
+         &                                                                                 expansionFactor       , expansionFactorFormation, &
+         &                                                                                 densityContrast
+
+    ! Compute the characteristic mass at formation time.
+    basic                  =>  node                               %basic                    (                                   )
+    virialDensityContrast_ =>  self                               %densityContrastDefinition(                                   )
+    densityContrast        =   virialDensityContrast_             %densityContrast          (basic%mass(),basic          %time())
+    massHalo               =   Dark_Matter_Profile_Mass_Definition                          (node        ,densityContrast       )
+    massHaloFormation      =  +self%F*massHalo
+    ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
+    sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation              )
+    ! Get the time at which this equals the critical overdensity for collapse.
+    timeFormation           =+self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHalo)
+    ! Get the corresponding expansion factors.
+    expansionFactorFormation=+self%cosmologyFunctions_      %expansionFactor(                    timeFormation                  )
+    expansionFactor         =+self%cosmologyFunctions_      %expansionFactor(                    basic%time()                   )
+    ! Compute the concentration.
+    bullock2001Concentration=+self%K                   &
+         &                   *expansionFactor          &
+         &                   /expansionFactorFormation
+    return
+  end function bullock2001Concentration
+
+  function bullock2001DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the
+    !% \cite{bullock_profiles_2001} algorithm.
+    use Virial_Density_Contrast
+    implicit none
+    class  (virialDensityContrastClass               ), pointer                     :: bullock2001DensityContrastDefinition
+    class  (darkMatterProfileConcentrationBullock2001), intent(inout)               :: self
+    class  (virialDensityContrastClass               ), allocatable  , target, save :: densityContrastDefinition
+    logical                                                                  , save :: densityContrastDefinitionInitialized=.false.
+    !$omp threadprivate(densityContrastDefinition,densityContrastDefinitionInitialized)
+    !GCC$ attributes unused :: self
+    
+    if (.not.densityContrastDefinitionInitialized) then
+       allocate(virialDensityContrastSphericalCollapseMatterLambda :: densityContrastDefinition)
+       select type (densityContrastDefinition)
+       type is (virialDensityContrastSphericalCollapseMatterLambda)
+          densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(self%cosmologyFunctions_)
+          call densityContrastDefinition%makeIndestructible()
+       end select
+       densityContrastDefinitionInitialized=.true.
+    end if
+    bullock2001DensityContrastDefinition => densityContrastDefinition
+    return
+  end function bullock2001DensityContrastDefinition
+
+  function bullock2001DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{bullock_profiles_2001} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class  (darkMatterProfileClass                            ), pointer                     :: bullock2001DarkMatterProfileDefinition
+    class  (darkMatterProfileConcentrationBullock2001         ), intent(inout)               :: self
+    class  (darkMatterHaloScaleVirialDensityContrastDefinition), pointer                     :: darkMatterHaloScaleDefinition
+    class  (darkMatterProfileClass                            ), allocatable  , target, save :: darkMatterProfileDefinition
+    logical                                                                           , save :: darkMatterProfileDefinitionInitialized=.false.
+    !$omp threadprivate(darkMatterProfileDefinition,darkMatterProfileDefinitionInitialized)
+
+    if (.not.darkMatterProfileDefinitionInitialized) then
+       allocate(darkMatterProfileNFW                               :: darkMatterProfileDefinition  )
+       allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
+       select type (darkMatterProfileDefinition)
+       type is (darkMatterProfileNFW)
+          select type (darkMatterHaloScaleDefinition)
+          type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
+             darkMatterProfileDefinition  =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+             call darkMatterProfileDefinition%makeIndestructible()
+          end select
+       end select
+       darkMatterProfileDefinitionInitialized=.true.
+    end if
+    bullock2001DarkMatterProfileDefinition => darkMatterProfileDefinition
+    return
+  end function bullock2001DarkMatterProfileDefinition
+
