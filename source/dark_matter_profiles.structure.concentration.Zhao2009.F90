@@ -91,7 +91,7 @@ contains
     !% using the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    class           (darkMatterProfileConcentrationZhao2009), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationZhao2009), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout), pointer :: node
     class           (nodeComponentBasic                    )               , pointer :: basic
     double precision                                        , parameter              :: concentrationMinimum =4.00d0

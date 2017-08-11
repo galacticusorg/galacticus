@@ -231,7 +231,7 @@ contains
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
     implicit none
-    class           (darkMatterProfileConcentrationPrada2011), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationPrada2011), intent(inout), target  :: self
     type            (treeNode                               ), intent(inout), pointer :: node
     class           (nodeComponentBasic                     )               , pointer :: basic
     double precision                                                                  :: massNode, sigmaPrime, &

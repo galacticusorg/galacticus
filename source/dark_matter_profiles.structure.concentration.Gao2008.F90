@@ -80,7 +80,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
     !% algorithm.
     implicit none
-    class           (darkMatterProfileConcentrationGao2008), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationGao2008), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), pointer :: node
     class           (nodeComponentBasic                   )               , pointer :: basic
     double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0

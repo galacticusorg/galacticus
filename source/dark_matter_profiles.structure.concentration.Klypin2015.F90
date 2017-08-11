@@ -629,7 +629,7 @@ contains
     use Cosmology_Parameters
     use Cosmology_Functions
     implicit none
-    class           (darkMatterProfileConcentrationKlypin2015), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), pointer :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_

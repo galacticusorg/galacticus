@@ -95,7 +95,7 @@ contains
     use Dark_Matter_Halos_Correa2015
     use Root_Finder
     implicit none
-    class           (darkMatterProfileConcentrationCorrea2015), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationCorrea2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), pointer :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_

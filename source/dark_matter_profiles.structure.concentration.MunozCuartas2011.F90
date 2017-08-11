@@ -87,7 +87,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{munoz-cuartas_redshift_2011} algorithm.
     implicit none
-    class           (darkMatterProfileConcentrationMunozCuartas2011), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationMunozCuartas2011), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), pointer :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
     double precision                                                , parameter              :: alpha                   =-110.001d0, beta               =2469.720d0, &
