@@ -208,7 +208,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
     implicit none
-    class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), pointer :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
     double precision                                                , parameter              :: littleHubbleConstantDuttonMaccio2014= 0.671d0

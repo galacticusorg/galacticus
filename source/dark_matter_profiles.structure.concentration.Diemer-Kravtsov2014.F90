@@ -200,7 +200,7 @@ contains
     !% using the \cite{diemer_universal_2014} algorithm.
     use Gaussian_Random
     implicit none
-    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
+    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout), target  :: self
     type (treeNode                                        ), intent(inout), pointer :: node
 
     ! Get the mean concentration.

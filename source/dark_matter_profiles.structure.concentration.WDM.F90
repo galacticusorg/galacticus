@@ -82,7 +82,7 @@ contains
     !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
     use Transfer_Functions
     implicit none
-    class           (darkMatterProfileConcentrationWDM), intent(inout)          :: self
+    class           (darkMatterProfileConcentrationWDM), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), pointer :: node
     class           (nodeComponentBasic               )               , pointer :: basic
     class           (transferFunctionClass            )               , pointer :: transferFunction_

@@ -37,6 +37,7 @@ module Dark_Matter_Profiles_Concentration
   !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
   !#  <method name="concentrationMean" >
