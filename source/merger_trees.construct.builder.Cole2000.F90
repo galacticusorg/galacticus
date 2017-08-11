@@ -547,7 +547,7 @@ contains
     nodePrevious => node
     do while (associated(node))       
        if (associated(node%parent)) then
-          basic   => node       %basic()
+          basic       => node       %basic()
           basicParent => node%parent%basic()
           if (basicParent%time() <= basic%time()) then
              if     (                                                                            &
