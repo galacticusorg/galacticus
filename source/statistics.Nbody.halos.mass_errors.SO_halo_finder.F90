@@ -85,13 +85,13 @@ contains
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
     use Numerical_Constants_Math
     implicit none
-    class           (nbodyHaloMassErrorSOHaloFinder), intent(inout)            :: self
-    type            (treeNode                      ), intent(inout), pointer   :: node
-    class           (nodeComponentBasic            )               , pointer   :: basic
-    double precision                                               , parameter :: errorConstant                =0.014d0
-    double precision                                                           :: radiusHalo                           , densityOuterRadius, &
-         &                                                                        densityRatioInternalToSurface        , particleCount     , &
-         &                                                                        errorFractionalFixedSphere
+    class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    class           (nodeComponentBasic            ), pointer       :: basic
+    double precision                                , parameter     :: errorConstant                =0.014d0
+    double precision                                                :: radiusHalo                           , densityOuterRadius, &
+         &                                                             densityRatioInternalToSurface        , particleCount     , &
+         &                                                             errorFractionalFixedSphere
 
     ! Get the basic component of the node.
     basic                         =>  node                     %basic       (               )
@@ -132,8 +132,8 @@ contains
   double precision function soHaloFinderCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
     implicit none
-    class(nbodyHaloMassErrorSOHaloFinder), intent(inout)          :: self
-    type (treeNode                      ), intent(inout), pointer :: node1, node2
+    class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
+    type (treeNode                      ), intent(inout) :: node1, node2
     !GCC$ attributes unused :: self, node1, node2
 
     soHaloFinderCorrelation=0.0d0

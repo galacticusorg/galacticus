@@ -147,10 +147,10 @@ contains
   double precision function trenti2010Correlation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
     implicit none
-    class           (nbodyHaloMassErrorTrenti2010), intent(inout)          :: self
-    type            (treeNode                    ), intent(inout), pointer :: node1    , node2
-    class           (nodeComponentBasic          )               , pointer :: basic1   , basic2
-    double precision                                                       :: massRatio, expansionFactorRatio
+    class           (nbodyHaloMassErrorTrenti2010), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node1    , node2
+    class           (nodeComponentBasic          ), pointer       :: basic1   , basic2
+    double precision                                              :: massRatio, expansionFactorRatio
 
     ! Extract mass and expansion factor ratios.
     basic1               =>                                           node1 %basic()

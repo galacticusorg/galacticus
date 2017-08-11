@@ -35,13 +35,13 @@ module Statistics_NBody_Halo_Mass_Errors
   !#   <description>Return the fractional error on the mass of an N-body halo corresponding to the given {\normalfont \ttfamily \gls{node}}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="correlation" >
   !#   <description>Return the correlation in the  error on the mass of a pair of N-body halos corresponding to the given {\normalfont \ttfamily node1} and {\normalfont \ttfamily node2}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node1, node2</argument>
+  !#   <argument>type(treeNode), intent(inout) :: node1, node2</argument>
   !#  </method>
   !#  <method name="errorZeroAlways" >
   !#   <description>Return {\normalfont \ttfamily true} if the mass error is always zero for any halo.</description>
