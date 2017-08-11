@@ -49,7 +49,7 @@ contains
     if (parameters%isPresent('systematicErrorPolynomialCoefficient')) then
        allocate(systematicErrorPolynomialCoefficient(parameters%count('systematicErrorPolynomialCoefficient')))
     else
-       allocate(systematicErrorPolynomialCoefficient(1                                                   ))
+       allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
     !# <inputParameter>
     !#   <name>redshiftInterval</name>
