@@ -222,24 +222,52 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
+    use Galacticus_Error
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile, &
+         &                                                                      darkMatterProfileWork
     class           (nodeComponentBasic            )               , pointer :: basicParent            , basic
+    type            (treeNode                      )               , pointer :: nodeWork
     double precision                                                         :: deltaTime              , radiusScale
+    logical                                                                  :: finished
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        ! Get the dark matter profile component - creating if if necessary.
        darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-       ! Get the scale radius - this will initialize the radius if necessary.
-       radiusScale=darkMatterProfile%scale()
+       ! If the scale has already been initialized, no need to repeat this part.
+       select type (darkMatterProfile)
+       class is (nodeComponentDarkMatterProfileScale)
+          if (darkMatterProfile%scaleValue() < 0.0d0) then
+             ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
+             ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
+             ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
+             nodeWork => node%hostTree%baseNode
+             finished =  .false.
+             do while (.not.finished)
+                nodeWork => nodeWork%walkTreeWithSatellites()
+                if (.not.associated(nodeWork)) then
+                   ! When a null pointer is returned, the full tree has been walked. We then have to
+                   ! handle the base node as a special case.
+                   nodeWork => node%hostTree%baseNode
+                   finished =  .true.
+                end if
+                ! Get the scale radius - this will initialize the radius if necessary.
+                darkMatterProfileWork => nodeWork             %darkMatterProfile(autoCreate=.true.)
+                radiusScale           =  darkMatterProfileWork%scale            (                 )
+             end do
+          end if
+       class default
+          call Galacticus_Error_Report('Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize','unexpected class')
+       end select
        ! Check if this node is the primary progenitor.
        if (node%isPrimaryProgenitor()) then
           ! It is, so compute the scale radius growth rate.
           ! Now compute the growth rate.
-          basic   => node       %basic()
-          basicParent => node%parent%basic()
-          deltaTime=basicParent%time()-basic%time()
+          basic       =>  node              %basic()
+          basicParent =>  node       %parent%basic()
+          deltaTime   =  +basicParent       %time () &
+               &         -basic             %time ()
           if (deltaTime > 0.0d0) then
              darkMatterProfileParent => node%parent%darkMatterProfile(autoCreate=.true.)
              call darkMatterProfile%scaleGrowthRateSet(                                               &
