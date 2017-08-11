@@ -243,7 +243,7 @@ double precision function distributionNormalStandardInverse(p)
   if (abs(q) <= split1) then
      r=const1-q*q
      distributionNormalStandardInverse=q*distributionNormalPolynomialEvaluate(8,a,r) &
-          &                    /distributionNormalPolynomialEvaluate(8,b,r)
+          &                             /distributionNormalPolynomialEvaluate(8,b,r)
   else
      if (q < 0.0d0) then
         r=p
@@ -258,11 +258,11 @@ double precision function distributionNormalStandardInverse(p)
      if (r <= split2) then
         r=r-const2
         distributionNormalStandardInverse=distributionNormalPolynomialEvaluate(8,c,r) &
-             &                  /distributionNormalPolynomialEvaluate(8,d,r)
+             &                           /distributionNormalPolynomialEvaluate(8,d,r)
      else
         r=r-split2
         distributionNormalStandardInverse=distributionNormalPolynomialEvaluate(8,e,r) &
-             &                  /distributionNormalPolynomialEvaluate(8,f,r)
+             &                           /distributionNormalPolynomialEvaluate(8,f,r)
      end if
      if (q < 0.0d0) distributionNormalStandardInverse=-distributionNormalStandardInverse 
   end if
