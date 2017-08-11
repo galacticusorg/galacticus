@@ -53,8 +53,8 @@ contains
   double precision function nullErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo.
     implicit none
-    class(nbodyHaloMassErrorNull), intent(inout)          :: self
-    type (treeNode              ), intent(inout), pointer :: node
+    class(nbodyHaloMassErrorNull), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
 
     nullErrorFractional=0.0d0
@@ -64,8 +64,8 @@ contains
   double precision function nullCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
     implicit none
-    class(nbodyHaloMassErrorNull), intent(inout)          :: self
-    type (treeNode              ), intent(inout), pointer :: node1, node2
+    class(nbodyHaloMassErrorNull), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node1, node2
     !GCC$ attributes unused :: self, node1, node2
 
     nullCorrelation=0.0d0

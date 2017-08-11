@@ -106,9 +106,9 @@ contains
   double precision function powerLawErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
     implicit none
-    class           (nbodyHaloMassErrorPowerLaw), intent(inout)            :: self
-    type            (treeNode                  ), intent(inout), pointer   :: node
-    class           (nodeComponentBasic        )               , pointer   :: basic
+    class           (nbodyHaloMassErrorPowerLaw), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    class           (nodeComponentBasic        ), pointer       :: basic
 
     basic                   =>  node%basic        ()
     powerLawErrorFractional =   sqrt(                                     &
@@ -125,8 +125,8 @@ contains
   double precision function powerLawCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
     implicit none
-    class(nbodyHaloMassErrorPowerLaw), intent(inout)          :: self
-    type (treeNode                  ), intent(inout), pointer :: node1, node2
+    class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node1, node2
     !GCC$ attributes unused :: self, node1, node2
 
     powerLawCorrelation=0.0d0
