@@ -30,7 +30,7 @@
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisSpinDistribution
      !% A spinDistribution output analysis class.
      private
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
    contains
      final :: spinDistributionDestructor
   end type outputAnalysisSpinDistribution
@@ -106,6 +106,7 @@ contains
     type            (propertyOperatorList                             ), pointer                     :: propertyOperatorSequence
     type            (galacticFilterHaloIsolated                       ), pointer                     :: galacticFilterHaloIsolated_
     type            (galacticFilterNodeMajorMergerRecent              ), pointer                     :: galacticFilterNodeMajorMergerRecent_
+    type            (galacticFilterBasicMass                          ), pointer                     :: galacticFilterBasicMass_
     type            (galacticFilterNot                                ), pointer                     :: galacticFilterNot_
     type            (galacticFilterAll                                ), pointer                     :: galacticFilterAll_
     type            (filterList                                       ), pointer                     :: filters_                                       , filter_
@@ -113,6 +114,8 @@ contains
     type            (haloSpinDistributionDeltaFunction                ), pointer                     :: haloSpinDistributionDeltaFunction_
     double precision                                                   , allocatable, dimension(:  ) :: spins
     double precision                                                   , allocatable, dimension(:,:) :: outputWeight
+    double precision                                                   , parameter                   :: massParticleMillennium                  =1.178d9
+    double precision                                                   , parameter                   :: countParticleMininum                    =3.000d2
     integer         (c_size_t                                         ), parameter                   :: bufferCountMinimum                      =5
     double precision                                                   , parameter                   :: bufferWidthLogarithmic                  =0.5d0
     integer                                                            , parameter                   :: covarianceBinomialBinsPerDecade         =2
@@ -143,7 +146,7 @@ contains
          &                                                                )
     haloSpinDistribution_             =  haloSpinDistributionNbodyErrors  (                                                                                    &
          &                                                                                                    haloSpinDistributionDeltaFunction_             , &
-         &                                                                 massParticle                      =                                       1.178d9 , &
+         &                                                                 massParticle                      =massParticleMillennium                         , &
          &                                                                 particleCountMinimum              =                                     300       , &
          &                                                                 energyEstimateParticleCountMaximum=                                    1000.000d0 , &
          &                                                                 time                              =self%cosmologyFunctions_%cosmicTime(   1.000d0), &
@@ -154,29 +157,34 @@ contains
          &                                                                )
     ! Create a spin parameter property extractor.
     allocate(outputAnalysisPropertyExtractor_        )
-    outputAnalysisPropertyExtractor_        =outputAnalysisPropertyExtractorSpin              (                                    )
+    outputAnalysisPropertyExtractor_        =outputAnalysisPropertyExtractorSpin              (                                           )
     ! Create a log10 property operator.
     allocate(outputAnalysisPropertyOperator_         )
-    outputAnalysisPropertyOperator_         =outputAnalysisPropertyOperatorLog10              (                                    )
+    outputAnalysisPropertyOperator_         =outputAnalysisPropertyOperatorLog10              (                                           )
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_           )
-    outputAnalysisWeightOperator_           =outputAnalysisWeightOperatorIdentity             (                                    )
+    outputAnalysisWeightOperator_           =outputAnalysisWeightOperatorIdentity             (                                           )
     ! Create an N-body spin error distribution operator.
     allocate(outputAnalysisDistributionOperator_     )
-    outputAnalysisDistributionOperator_     =outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_               )
+    outputAnalysisDistributionOperator_     =outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_                      )
     ! Create anit-log10 operator.
     allocate(outputAnalysisPropertyOperatorAntiLog10_)
-    outputAnalysisPropertyOperatorAntiLog10_=outputAnalysisPropertyOperatorAntiLog10          (                                    )
+    outputAnalysisPropertyOperatorAntiLog10_=outputAnalysisPropertyOperatorAntiLog10          (                                           )
     ! Create a filter to select isolated halos with no recent major merger.
     allocate(galacticFilterHaloIsolated_             )
-    galacticFilterHaloIsolated_             =galacticFilterHaloIsolated                       (                                    )
+    galacticFilterHaloIsolated_             =galacticFilterHaloIsolated                       (                                           )
+    allocate(galacticFilterBasicMass_                )
+    galacticFilterBasicMass_                =galacticFilterBasicMass                          (countParticleMininum*massParticleMillennium)
     allocate(galacticFilterNodeMajorMergerRecent_    )
-    galacticFilterNodeMajorMergerRecent_    =galacticFilterNodeMajorMergerRecent              (timeRecent                          )
+    galacticFilterNodeMajorMergerRecent_    =galacticFilterNodeMajorMergerRecent              (timeRecent                                 )
     allocate(galacticFilterNot_                      )
-    galacticFilterNot_                      =galacticFilterNot                                (galacticFilterNodeMajorMergerRecent_)
+    galacticFilterNot_                      =galacticFilterNot                                (galacticFilterNodeMajorMergerRecent_       )
     allocate(filters_                                )
     filter_ => filters_
     filter_%filter_ => galacticFilterHaloIsolated_
+    allocate(filter_%next)
+    filter_ => filter_%next
+    filter_%filter_ => galacticFilterBasicMass_
     allocate(filter_%next)
     filter_ => filter_%next
     filter_%filter_ => galacticFilterNot_
@@ -252,6 +260,7 @@ contains
     nullify(galacticFilterNot_                      )
     nullify(galacticFilterHaloIsolated_             )
     nullify(galacticFilterNodeMajorMergerRecent_    )
+    nullify(galacticFilterBasicMass_                )
     return
   end function spinDistributionConstructorInternal
 
