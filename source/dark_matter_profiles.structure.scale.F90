@@ -43,6 +43,7 @@ contains
     use Galacticus_Calculations_Resets
     use Numerical_Constants_Math
     use Input_Parameters
+    use Numerical_Comparison
     implicit none    
     type            (treeNode                                          ), pointer    , intent(inout)           :: node
     class           (darkMatterProfileConcentrationClass               ), target     , intent(inout), optional :: concentrationMethod
@@ -109,82 +110,95 @@ contains
     ! Determine if concentration must be corrected.
     if (darkMatterProfileScaleCorrectForConcentrationDefinition) then
        ! Get objects for the concentration definition.
-       cosmologyFunctions_             => cosmologyFunctions                                                  ()
-       virialDensityContrast_          => virialDensityContrast                                               ()
-       darkMatterProfile_              => darkMatterProfile                                                   ()
-       virialDensityContrastDefinition => darkMatterProfileConcentrationDefinition%densityContrastDefinition  ()
-       darkMatterProfileDefinition     => darkMatterProfileConcentrationDefinition%darkMatterProfileDefinition()
-       ! Construct a new dark matter halo scale definition object only if the virial density contrast definition differs from that
-       ! previously used. Otherwise, just re-use the saved dark matter halo scale definition.
-       if (.not.associated(virialDensityContrastDefinition,virialDensityContrastDefinitionPrevious)) then
-          if (allocated(darkMatterHaloScaleDefinition)) deallocate(darkMatterHaloScaleDefinition)
-          allocate(darkMatterHaloScaleDefinition)
-          darkMatterHaloScaleDefinition           =  darkMatterHaloScaleVirialDensityContrastDefinition(virialDensityContrastDefinition)
-          virialDensityContrastDefinitionPrevious => virialDensityContrastDefinition
-       end if
+       virialDensityContrast_          => virialDensityContrast                                             ()
+       virialDensityContrastDefinition => darkMatterProfileConcentrationDefinition%densityContrastDefinition()
        ! Get the basic component of the supplied node and extract its mass.
        basic => node %basic()
        mass  =  basic%mass ()
-       ! Create a node and set the mass and time.
-       workNode              => treeNode                  (                 )
-       workBasic             => workNode%basic            (autoCreate=.true.)
-       workDarkMatterProfile => workNode%darkMatterProfile(autoCreate=.true.)
-       call workBasic            %timeSet            (basic%time())
-       call workBasic            %timeLastIsolatedSet(basic%time())
-       call workDarkMatterProfile%scaleIsLimitedSet  (.false.     )
-       ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
-       call finder               %tolerance          (                                                             &
-            &                                         toleranceRelative            =1.0d-3                         &
-            &                                        )
-       call finder               %rangeExpand        (                                                             &
-            &                                         rangeExpandUpward            =1.0d0*massRatioPrevious      , &
-            &                                         rangeExpandDownward          =1.0d0/massRatioPrevious      , &
-            &                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                                         rangeExpandType              =rangeExpandMultiplicative      &
-            &                                        )
-       call finder               %rootFunction       (                                                             &
-            &                                                                       massRootFunction               &
-            &                                        )
-       massDefinition=finder%find(rootGuess=mass)
-       ! Find the ratio of the recovered mass under the given definition to the input mass, defined to be always greater than
-       ! unity. This will be used as the basis of the range expansion for the next solution.
-       if (massDefinition > mass) then
-          massRatio=1.0d0*(massDefinition/mass)
+       ! If there is no difference between the alt and non-alt virial density contrasts, then no correction need be made.
+       if     (                                                                                                 &
+            &  Values_Differ(                                                                                   &
+            &                       virialDensityContrast_         %densityContrast(basic%mass(),basic%time()), &
+            &                       virialDensityContrastDefinition%densityContrast(basic%mass(),basic%time()), &
+            &                relTol=1.0d-6                                                                      &
+            &               )                                                                                   &
+            & ) then
+          ! Get other required objects.
+          cosmologyFunctions_         => cosmologyFunctions                                                  ()
+          darkMatterProfile_          => darkMatterProfile                                                   ()
+          darkMatterProfileDefinition => darkMatterProfileConcentrationDefinition%darkMatterProfileDefinition()
+          ! Construct a new dark matter halo scale definition object only if the virial density contrast definition differs from that
+          ! previously used. Otherwise, just re-use the saved dark matter halo scale definition.
+          if (.not.associated(virialDensityContrastDefinition,virialDensityContrastDefinitionPrevious)) then
+             if (allocated(darkMatterHaloScaleDefinition)) deallocate(darkMatterHaloScaleDefinition)
+             allocate(darkMatterHaloScaleDefinition)
+             darkMatterHaloScaleDefinition           =  darkMatterHaloScaleVirialDensityContrastDefinition(virialDensityContrastDefinition)
+             virialDensityContrastDefinitionPrevious => virialDensityContrastDefinition
+          end if
+          ! Create a node and set the mass and time.
+          workNode              => treeNode                  (                 )
+          workBasic             => workNode%basic            (autoCreate=.true.)
+          workDarkMatterProfile => workNode%darkMatterProfile(autoCreate=.true.)
+          call workBasic            %timeSet            (basic%time())
+          call workBasic            %timeLastIsolatedSet(basic%time())
+          call workDarkMatterProfile%scaleIsLimitedSet  (.false.     )
+          ! The finder is initialized each time as it is allocated on the stack - this allows this function to be called recursively.
+          call finder               %tolerance          (                                                             &
+               &                                         toleranceRelative            =1.0d-3                         &
+               &                                        )
+          call finder               %rangeExpand        (                                                             &
+               &                                         rangeExpandUpward            =1.0d0*massRatioPrevious      , &
+               &                                         rangeExpandDownward          =1.0d0/massRatioPrevious      , &
+               &                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                                         rangeExpandType              =rangeExpandMultiplicative      &
+               &                                        )
+          call finder               %rootFunction       (                                                             &
+               &                                                                       massRootFunction               &
+               &                                        )
+          massDefinition=finder%find(rootGuess=mass)
+          ! Find the ratio of the recovered mass under the given definition to the input mass, defined to be always greater than
+          ! unity. This will be used as the basis of the range expansion for the next solution.
+          if (massDefinition > mass) then
+             massRatio=1.0d0*(massDefinition/mass)
+          else
+             massRatio=1.0d0/(massDefinition/mass)
+          end if
+          ! Increase this mass ratio by a small factor.
+          massRatio=massRatioBuffer*massRatio
+          ! If this new mass ratio exceeds our previous mass ratio, update the previous mass ratio for use in the next
+          ! solution. Otherwise, shrink the previous mass ratio by a small amount.
+          if (massRatio > massRatioPrevious) then
+             massRatioPrevious=massRatio
+          else
+             massRatioPrevious=massRatioShrink*massRatioPrevious
+          end if
+          ! Update the work node properties and computed concentration.
+          call workBasic%massSet(massDefinition)
+          call Galacticus_Calculations_Reset                 (workNode)
+          call darkMatterProfileDefinition  %calculationReset(workNode)
+          ! Find the concentration.
+          if (present(meanConcentration).and.meanConcentration) then
+             ! We are simply using the mean concentration-mass relation here.
+             concentration=+darkMatterProfileConcentrationDefinition%concentrationMean(workNode)
+          else
+             ! In this case we need to allow for possible scatter in the concentration mass relation. Therefore, we take the original
+             ! concentration (which may include some scatter away from the mean relation) and scale it by the ratio of the mean
+             ! concentrations for the corrected and original nodes.
+             concentration=+concentrationOriginal                                                &
+                  &        *darkMatterProfileConcentrationDefinition%concentrationMean(workNode) &
+                  &        /darkMatterProfileConcentrationDefinition%concentrationMean(    node)
+          end if
+          Dark_Matter_Profile_Scale=+darkMatterHaloScaleDefinition%virialRadius(workNode) &
+               &                    /concentration
+          call workNode%destroy()
+          deallocate(workNode)
+          ! Destroy objects as necessary.
+          if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
        else
-          massRatio=1.0d0/(massDefinition/mass)
+          Dark_Matter_Profile_Scale=+darkMatterHaloScale_%virialRadius(node) &
+               &                    /concentrationOriginal
        end if
-       ! Increase this mass ratio by a small factor.
-       massRatio=massRatioBuffer*massRatio
-       ! If this new mass ratio exceeds our previous mass ratio, update the previous mass ratio for use in the next
-       ! solution. Otherwise, shrink the previous mass ratio by a small amount.
-       if (massRatio > massRatioPrevious) then
-          massRatioPrevious=massRatio
-       else
-          massRatioPrevious=massRatioShrink*massRatioPrevious
-       end if
-       ! Update the work node properties and computed concentration.
-       call workBasic%massSet(massDefinition)
-       call Galacticus_Calculations_Reset                 (workNode)
-       call darkMatterProfileDefinition  %calculationReset(workNode)
-       ! Find the concentration.
-       if (present(meanConcentration).and.meanConcentration) then
-          ! We are simply using the mean concentration-mass relation here.
-          concentration=+darkMatterProfileConcentrationDefinition%concentrationMean(workNode)
-       else
-          ! In this case we need to allow for possible scatter in the concentration mass relation. Therefore, we take the original
-          ! concentration (which may include some scatter away from the mean relation) and scale it by the ratio of the mean
-          ! concentrations for the corrected and original nodes.
-          concentration=+concentrationOriginal                                                &
-               &        *darkMatterProfileConcentrationDefinition%concentrationMean(workNode) &
-               &        /darkMatterProfileConcentrationDefinition%concentrationMean(    node)
-       end if
-       Dark_Matter_Profile_Scale=+darkMatterHaloScaleDefinition%virialRadius(workNode) &
-            &                    /concentration
-       call workNode%destroy()
-       deallocate(workNode)
-       ! Destroy objects as necessary.
-       if (darkMatterProfileDefinition%isFinalizable()) deallocate(darkMatterProfileDefinition)
     else
        Dark_Matter_Profile_Scale=+darkMatterHaloScale_%virialRadius(node) &
             &                    /concentrationOriginal
