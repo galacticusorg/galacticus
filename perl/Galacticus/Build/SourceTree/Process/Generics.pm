@@ -77,11 +77,13 @@ sub Process_Generics {
 			&Galacticus::Build::SourceTree::ReplaceNode($subTreeNode->{'node'},\@copies);
 			# Skip over entries in the stack that belonged to the subtree.
 			my $depthTarget = $subTreeNode->{'depth'};
-			do {
-			    $subTreeNode = pop(@stack);
-			} until ( $subTreeNode->{'depth'} == $depthTarget || scalar(@stack) == 0 );
-			push(@stack,$subTreeNode)
-			    if ( $subTreeNode->{'depth'} == $depthTarget );
+			if ( scalar(@stack) > 0 ) {
+			    do {
+				$subTreeNode = pop(@stack);
+			    } until ( $subTreeNode->{'depth'} == $depthTarget || scalar(@stack) == 0 );
+			    push(@stack,$subTreeNode)
+				if ( $subTreeNode->{'depth'} == $depthTarget );
+			}
 		    } elsif ( exists($subTreeNode->{'node'}->{'content'}) ) {
 			# Check that the code is not contained in a node with generic opener.
 			my $processContent = 1;
