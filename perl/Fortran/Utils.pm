@@ -10,33 +10,34 @@ use Data::Dumper;
 use Fcntl qw(SEEK_SET);
 
 # RegEx's useful for matching Fortran code.
-our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
+our $label = qr/[a-zA-Z0-9_\{\}¦]+/;
+our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\((${label})\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
 our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 # Specify unit opening regexs.
 our %unitOpeners = (
     # Find module openings, avoiding module procedures.
-    module             => { unitName => 0, regEx => qr/^\s*module\s+(?!procedure\s)([a-zA-Z0-9_]+)/ },
+    module             => { unitName => 0, regEx => qr/^\s*module\s+(?!procedure\s)(${label})/ },
     # Find program openings.
-    program            => { unitName => 0, regEx => qr/^\s*program\s+([a-zA-Z0-9_]+)/ },
+    program            => { unitName => 0, regEx => qr/^\s*program\s+(${label})/ },
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
-    subroutine         => { unitName => 1, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/},
+    subroutine         => { unitName => 1, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+(${label})/},
     # Find function openings, allowing for pure, elemental and recursive functions, and different function types.
-    function           => { unitName => 4, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/},
+    function           => { unitName => 4, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+(${label})/},
     # Find interfaces.
     interface          => { unitName => 1, regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
     # Find types.
-    type               => { unitName => 2, regEx => qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\([a-zA-Z0-9_]+\)\s*)*(::)??\s*([a-zA-Z0-9_]+)\s*$/}
+    type               => { unitName => 2, regEx => qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(${label}\)\s*)*(::)??\s*(${label})\s*$/}
     );
 
 # Specify unit closing regexs.
 our %unitClosers = (
-    module             => { unitName => 0, regEx => qr/^\s*end\s+module\s+([a-zA-Z0-9_]+)/ },
-    program            => { unitName => 0, regEx => qr/^\s*end\s+program\s+([a-zA-Z0-9_]+)/ },
-    subroutine         => { unitName => 0, regEx => qr/^\s*end\s+subroutine\s+([a-zA-Z0-9_]+)/},
-    function           => { unitName => 0, regEx => qr/^\s*end\s+function\s+([a-zA-Z0-9_]+)/},
+    module             => { unitName => 0, regEx => qr/^\s*end\s+module\s+(${label})/ },
+    program            => { unitName => 0, regEx => qr/^\s*end\s+program\s+(${label})/ },
+    subroutine         => { unitName => 0, regEx => qr/^\s*end\s+subroutine\s+(${label})/},
+    function           => { unitName => 0, regEx => qr/^\s*end\s+function\s+(${label})/},
     interface          => { unitName => 0, regEx => qr/^\s*end\s+interface\s*([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
-    type               => { unitName => 0, regEx => qr/^\s*end\s+type\s+([a-zA-Z0-9_]+)/}
+    type               => { unitName => 0, regEx => qr/^\s*end\s+type\s+(${label})/}
     );
 
 # Specify regexs for intrinsic variable declarations.
@@ -48,7 +49,7 @@ our %intrinsicDeclarations = (
     doubleComplex => { intrinsic => "double complex"  , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)double\s+complex(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:=\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     logical       => { intrinsic => "logical"         , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)logical(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_\.,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     character     => { intrinsic => "character"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)character(?-i)\s*(\(\s*[a-zA-Z0-9_=,\+\-\*\(\)]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
-    type          => { intrinsic => "type"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)type(?-i)\s*(\(\s*[a-zA-Z0-9_]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
+    type          => { intrinsic => "type"            , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)type(?-i)\s*(\(\s*${label}\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     class         => { intrinsic => "class"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
     );
@@ -563,7 +564,7 @@ sub Format_Variable_Definitions {
 		my @thisVariables = @{$_->{'variables'}}[$i0..$i1];
 		my @splitVariables;
 		for(my $j=0;$j<scalar(@thisVariables);++$j) {
-		    if ( $thisVariables[$j] =~ m/([a-zA-Z0-9_]+)\s*(\([a-zA-Z0-9:,\(\)]+\))??(\s*=\s*(.*?)\s*)??$/ ) {
+		    if ( $thisVariables[$j] =~ m/(${label})\s*(\([a-zA-Z0-9:,\(\)]+\))??(\s*=\s*(.*?)\s*)??$/ ) {
 			my $variableName = $1;
 			$variableName = ", ".$variableName
 			    if ( $j > 0 );
