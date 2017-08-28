@@ -516,13 +516,14 @@ contains
           meanValue(i)=weightedValue(i)/unweightedValue(i)
           do j=i,size(binCenter)
              if (unweightedValue(j) > 0.0d0) then
-                meanCovariance(i,j)=+(                                                                                                     &
-                     &                +  weightedCovariance(i,j)* unweightedValue(i)                 *unweightedValue(j)                   &
-                     &                +unweightedCovariance(i,j)*                    weightedValue(i)                   *weightedValue(j)  &
-                     &                -     crossCovariance(i,j)*(unweightedValue(i)*weightedValue(j)+unweightedValue(j)*weightedValue(i)) &
-                     &               )                                                                                                     &
-                     &              /unweightedValue(i)**2                                                                                 &
+                meanCovariance(i,j)=+(                                                                                                      &
+                     &                +  weightedCovariance(i,j)* unweightedValue(i)                 *unweightedValue(j)                    &
+                     &                +unweightedCovariance(i,j)*                    weightedValue(i)                   *weightedValue(j)   &
+                     &                -     crossCovariance(i,j)*(unweightedValue(i)*weightedValue(j)+unweightedValue(j)*weightedValue(i))  &
+                     &               )                                                                                                      &
+                     &              /unweightedValue(i)**2                                                                                  &
                      &              /unweightedValue(j)**2
+                if (i == j) meanCovariance(i,j)=max(meanCovariance(i,j),0.0d0)
                 meanCovariance(j,i)=meanCovariance(i,j)
             end if
           end do
