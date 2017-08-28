@@ -149,7 +149,7 @@ contains
        end do
        ! Initialize count of bound particles.
        countBoundPrevious =     particleCount
-       weightBoundPrevious=dble(particleCount)
+       weightBoundPrevious=dble(particleCount)*self%bootstrapSampleRate
        ! Initialize potentials.
        energyPotential  =0.0d0
        velocityPotential=0.0d0
