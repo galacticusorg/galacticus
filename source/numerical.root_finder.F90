@@ -239,7 +239,6 @@ contains
           allocate(currentFinders(size(currentFindersTmp)+findersIncrement))
           currentFinders(1:size(currentFindersTmp))=currentFindersTmp
           deallocate(currentFindersTmp)
-       else
        end if
     else
        allocate(currentFinders(findersIncrement))
