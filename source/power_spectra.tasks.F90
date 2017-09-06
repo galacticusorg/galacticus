@@ -29,11 +29,11 @@ module Power_Spectrum_Tasks
   type            (hdf5Object), public                    :: powerSpectrumOutputFile
 
   ! Arrays of power spectrum data.
-  double precision            , allocatable, dimension(:  ) :: powerSpectrum_mass      , powerSpectrum_power        , &
-       &                                                       powerSpectrum_sigma     , powerSpectrum_sigmaGradient, &
-       &                                                       powerSpectrum_wavenumber, powerSpectrum_growthFactor , &
+  double precision            , allocatable, dimension(:  ) :: powerSpectrum_mass      , powerSpectrum_power         , &
+       &                                                       powerSpectrum_sigma     , powerSpectrum_sigmaGradient , &
+       &                                                       powerSpectrum_wavenumber, powerSpectrum_growthFactor  , &
        &                                                       powerSpectrum_epochTime , powerSpectrum_epochRedshift
-  double precision            , allocatable, dimension(:,:) :: powerSpectrum_nonLinear
+  double precision            , allocatable, dimension(:,:) :: powerSpectrum_nonLinear , powerSpectrum_sigmaNonLinear
   
   ! Options controlling output.
   logical                                                   :: powerSpectrumNonlinearOutput
@@ -63,10 +63,12 @@ contains
     call powerSpectrumOutputFile%close()
     return
   end subroutine Power_Spectrum_Close_File
-
+  
   subroutine Power_Spectrum_Compute
     !% Computes power spectra and related properties for output.
     use, intrinsic :: ISO_C_Binding
+    use               Numerical_Integration
+    use               FGSL
     use               Memory_Management
     use               Numerical_Ranges
     use               Input_Parameters
@@ -79,17 +81,21 @@ contains
     use               Linear_Growth
     use               Power_Spectra_Nonlinear
     implicit none
-    integer         (c_size_t                     )          :: iWavenumber                  , powerSpectraCount            , &
-         &                                                      iOutput                      , outputCount
-    integer                                                  :: powerSpectraPointsPerDecade
-    double precision                                         :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum
-    class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-    class           (powerSpectrumClass           ), pointer :: powerSpectrum_
-    class           (linearGrowthClass            ), pointer :: linearGrowth_
-    class           (powerSpectrumNonlinearClass  ), pointer :: powerSpectrumNonlinear_
-    
+    integer         (c_size_t                        )          :: iWavenumber                  , powerSpectraCount            , &
+         &                                                         iOutput                      , outputCount
+    integer                                                     :: powerSpectraPointsPerDecade
+    double precision                                            :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum, &
+         &                                                         wavenumberMinimum            , wavenumberMaximum
+    class           (cosmologyParametersClass        ), pointer :: cosmologyParameters_
+    class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass   ), pointer :: cosmologicalMassVariance_
+    class           (powerSpectrumClass              ), pointer :: powerSpectrum_
+    class           (linearGrowthClass               ), pointer :: linearGrowth_
+    class           (powerSpectrumNonlinearClass     ), pointer :: powerSpectrumNonlinear_
+    class           (powerSpectrumWindowFunctionClass), pointer :: powerSpectrumWindowFunction_
+    type            (fgsl_function                   )          :: integrandFunction
+    type            (fgsl_integration_workspace      )          :: integrationWorkspace
+
     ! Find the wavenumber range and increment size.
     !@ <inputParameter>
     !@   <name>powerSpectraWavenumberMinimum</name>
@@ -143,26 +149,30 @@ contains
     powerSpectraCount=int(log10(powerSpectraWavenumberMaximum/powerSpectraWavenumberMinimum)*dble(powerSpectraPointsPerDecade))+1
 
     ! Allocate arrays for power spectra.
-    call                                   allocateArray(powerSpectrum_Wavenumber   ,[powerSpectraCount            ])
-    call                                   allocateArray(powerSpectrum_Power        ,[powerSpectraCount            ])
-    call                                   allocateArray(powerSpectrum_Mass         ,[powerSpectraCount            ])
-    call                                   allocateArray(powerSpectrum_sigma        ,[powerSpectraCount            ])
-    call                                   allocateArray(powerSpectrum_sigmaGradient,[powerSpectraCount            ])
-    call                                   allocateArray(powerSpectrum_growthFactor ,[                  outputCount])
-    call                                   allocateArray(powerSpectrum_epochTime    ,[                  outputCount])
-    call                                   allocateArray(powerSpectrum_epochRedshift,[                  outputCount])
-    if (powerSpectrumNonlinearOutput) call allocateArray(powerSpectrum_nonLinear    ,[powerSpectraCount,outputCount])
+    call    allocateArray(powerSpectrum_Wavenumber    ,[powerSpectraCount            ])
+    call    allocateArray(powerSpectrum_Power         ,[powerSpectraCount            ])
+    call    allocateArray(powerSpectrum_Mass          ,[powerSpectraCount            ])
+    call    allocateArray(powerSpectrum_sigma         ,[powerSpectraCount            ])
+    call    allocateArray(powerSpectrum_sigmaGradient ,[powerSpectraCount            ])
+    call    allocateArray(powerSpectrum_growthFactor  ,[                  outputCount])
+    call    allocateArray(powerSpectrum_epochTime     ,[                  outputCount])
+    call    allocateArray(powerSpectrum_epochRedshift ,[                  outputCount])
+    if (powerSpectrumNonlinearOutput) then
+       call allocateArray(powerSpectrum_nonLinear     ,[powerSpectraCount,outputCount])
+       call allocateArray(powerSpectrum_sigmaNonLinear,[powerSpectraCount,outputCount])
+    end if
     
     ! Build a range of wavenumbers.
     powerSpectrum_Wavenumber(:)=Make_Range(powerSpectraWavenumberMinimum,powerSpectraWavenumberMaximum,int(powerSpectraCount),rangeTypeLogarithmic)
 
     ! Get required objects.
-    cosmologyParameters_      => cosmologyParameters     ()
-    cosmologyFunctions_       => cosmologyFunctions      ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
-    powerSpectrum_            => powerSpectrum           ()
-    linearGrowth_             => linearGrowth            ()
-    powerSpectrumNonLinear_   => powerSpectrumNonlinear  ()
+    cosmologyParameters_         => cosmologyParameters        ()
+    cosmologyFunctions_          => cosmologyFunctions         ()
+    cosmologicalMassVariance_    => cosmologicalMassVariance   ()
+    powerSpectrum_               => powerSpectrum              ()
+    linearGrowth_                => linearGrowth               ()
+    powerSpectrumNonLinear_      => powerSpectrumNonlinear     ()
+    powerSpectrumWindowFunction_ => powerSpectrumWindowFunction()
     ! Iterate over all wavenumbers computing power spectrum and related quantities.
     do iWavenumber=1,powerSpectraCount
        ! Compute power spectrum.
@@ -187,10 +197,46 @@ contains
        if (powerSpectrumNonlinearOutput) then
           do iWavenumber=1,powerSpectraCount
              powerSpectrum_nonLinear(iWavenumber,iOutput)=powerSpectrumNonlinear_%value(powerSpectrum_Wavenumber(iWavenumber),Galacticus_Output_Time(iOutput))
+             ! Compute the variance in the non-linear power spectrum.
+             wavenumberMinimum=    0.0d0
+             wavenumberMaximum=min(1.0d3*powerSpectrum_Wavenumber(iWavenumber),powerSpectrumWindowFunction_%wavenumberMaximum(powerSpectrum_Mass(iWavenumber)))
+             powerSpectrum_sigmaNonLinear(iWavenumber,iOutput)=+sqrt(                                                         &
+                  &                                                  +Integrate(                                              &
+                  &                                                             wavenumberMinimum                           , &
+                  &                                                             wavenumberMaximum                           , &
+                  &                                                             varianceIntegrand                           , &
+                  &                                                             integrandFunction                           , &
+                  &                                                             integrationWorkspace                        , &
+                  &                                                             toleranceAbsolute      =0.0d0               , &
+                  &                                                             toleranceRelative      =1.0d-2              , &
+                  &                                                             integrationRule        =FGSL_Integ_Gauss15    &
+                  &                                                            )                                              &
+                  &                                                  /2.0d0                                                   &
+                  &                                                  /Pi**2                                                   &
+                  &                                                 )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
           end do
        end if
     end do
     return
+
+  contains
+
+    double precision function varianceIntegrand(wavenumber)
+      !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      implicit none
+      double precision, intent(in   ) :: wavenumber
+
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+      ! elsewhere.
+      varianceIntegrand=+  powerSpectrumNonlinear_     %value(wavenumber,Galacticus_Output_Time(iOutput    )) &
+           &            *(                                                                                    &
+           &              +powerSpectrumWindowFunction_%value(wavenumber,powerSpectrum_Mass    (iWavenumber)) &
+           &              *                                   wavenumber                                      &
+           &             )**2
+      return
+    end function varianceIntegrand
+
   end subroutine Power_Spectrum_Compute
 
   subroutine Power_Spectrum_Output
@@ -224,6 +270,7 @@ contains
        call powerSpectrumGroup%writeDataset(powerSpectrum_nonLinear,'powerSpectrumNonlinear','The non-linear power spectrum.',datasetReturned=thisDataset)
        call thisDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call thisDataset%close()
+       call powerSpectrumGroup%writeDataset(powerSpectrum_sigmaNonLinear,'sigmaNonlinear','The non-linear mass fluctuation on this scale.')
     end if
 
     ! Close the datasets group.
