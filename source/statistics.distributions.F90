@@ -110,6 +110,7 @@ module Statistics_Distributions
   include 'statistics.distributions.uniform.type.inc'
   include 'statistics.distributions.loguniform.type.inc'
   include 'statistics.distributions.normal.type.inc'
+  include 'statistics.distributions.lognormal.type.inc'
   include 'statistics.distributions.Cauchy.type.inc'
   include 'statistics.distributions.Student-t.type.inc'
   include 'statistics.distributions.Gamma.type.inc'
@@ -165,7 +166,7 @@ contains
           if (distributionMinimumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"minimum"),distributionMinimum)
           if (distributionMaximumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"maximum"),distributionMaximum)
           if      (     distributionMinimumExists.and.     distributionMaximumExists) then
-             newDistribution=distributionNormal(&
+             newDistribution=distributionNormal(                                          &
                   &                             distributionMean                        , &
                   &                             distributionVariance                    , &
                   &                             limitLower          =distributionMinimum, &
@@ -188,6 +189,42 @@ contains
                   &                             distributionMean                        , &
                   &                             distributionVariance                      &
                   &                            )
+          end if
+       end select
+    case ("lognormal")
+       allocate(distributionLogNormal :: newDistribution)
+       select type (newDistribution)
+       type is (distributionLogNormal)
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"mean"    ),distributionMean    )
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"variance"),distributionVariance)
+          distributionMinimumExists=XML_Path_Exists(definition,"minimum")
+          distributionMaximumExists=XML_Path_Exists(definition,"maximum")
+          if (distributionMinimumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"minimum"),distributionMinimum)
+          if (distributionMaximumExists) call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"maximum"),distributionMaximum)
+          if      (     distributionMinimumExists.and.     distributionMaximumExists) then
+             newDistribution=distributionLogNormal(                                          &
+                  &                                distributionMean                        , &
+                  &                                distributionVariance                    , &
+                  &                                limitLower          =distributionMinimum, &
+                  &                                limitUpper          =distributionMaximum  &
+                  &                               )
+          else if (     distributionMinimumExists.and..not.distributionMaximumExists) then
+             newDistribution=distributionLogNormal(                                          &
+                  &                                distributionMean                        , &
+                  &                                distributionVariance                    , &
+                  &                                limitLower          =distributionMinimum  &
+                  &                               )
+          else if (.not.distributionMinimumExists.and.     distributionMaximumExists) then
+             newDistribution=distributionLogNormal(                                          &
+                  &                                distributionMean                        , &
+                  &                                distributionVariance                    , &
+                  &                                limitUpper          =distributionMaximum  &
+                  &                               )
+          else if (.not.distributionMinimumExists.and..not.distributionMaximumExists) then
+             newDistribution=distributionLogNormal(                                          &
+                  &                                distributionMean                        , &
+                  &                                distributionVariance                      &
+                  &                               )
           end if
        end select
     case ("Gamma")
@@ -363,6 +400,7 @@ contains
   include 'statistics.distributions.uniform.methods.inc'
   include 'statistics.distributions.loguniform.methods.inc'
   include 'statistics.distributions.normal.methods.inc'
+  include 'statistics.distributions.lognormal.methods.inc'
   include 'statistics.distributions.Cauchy.methods.inc'
   include 'statistics.distributions.Student-t.methods.inc'
   include 'statistics.distributions.Gamma.methods.inc'
