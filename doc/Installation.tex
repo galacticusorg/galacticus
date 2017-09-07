@@ -138,6 +138,20 @@ Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Data::Dumper'
 \end{verbatim}
+
+\item [\href{http://search.cpan.org/~abigail/Regexp-Common-2017060201/lib/Regexp/Common.pm}{{\normalfont \ttfamily Regexp::Common }}] This module provides additional regular expression functoinality. On Fedora the following (as root) will install {\normalfont \ttfamily Regexp::Common}:
+\begin{verbatim}
+yum install perl-Regexp-Common
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install Regexp::Common
+\end{verbatim}
+
+\item [\href{http://search.cpan.org/~dcantrell/NestedMap-1.0/lib/NestedMap.pm}{{\normalfont \ttfamily NestedMap}}] This module provides functionality for nested map operators within Perl. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install NestedMap'
+\end{verbatim}
 \end{description}
 
 \subsection{Typical Requirements}\label{sec:requirementsTypical}
@@ -197,11 +211,6 @@ yum install perl-Text-Template
 Alternatively, it can be installed from CPAN using:
 \begin{verbatim}
 perl -MCPAN -e 'install Text::Template'
-\end{verbatim}
-
-\item [\href{http://search.cpan.org/~dcantrell/NestedMap-1.0/lib/NestedMap.pm}{{\normalfont \ttfamily NestedMap}}] This module provides functionality for nested map operators within Perl. It can be installed from CPAN using:
-\begin{verbatim}
-perl -MCPAN -e 'install NestedMap'
 \end{verbatim}
 
   \item [\href{http://search.cpan.org/~rgarcia/Sub-Identify-0.12/lib/Sub/Identify.pm}{{\normalfont \ttfamily Sub::Identify}}] This module provides function names from function references in Perl. On Fedora the following (as root) will install {\normalfont \ttfamily Sub::Identify}:
@@ -516,6 +525,7 @@ perl -MCPAN -e "install File::Copy"
 perl -MCPAN -e "install Image::Magick"
 perl -MCPAN -e "install Term::ReadKey"
 perl -MCPAN -e "install MIME::Lite"
+perl -MCPAN -e 'install Regexp::Common'
 perl -MCPAN -e 'install Text::Table'
 perl -MCPAN -e 'install Text::Template'
 perl -MCPAN -e 'install NestedMap'
