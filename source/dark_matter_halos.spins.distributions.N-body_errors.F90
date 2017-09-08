@@ -60,6 +60,12 @@
      !@     <description>Return the spin distribution function averaged over all halos above the given {\normalfont \ttfamily massLimit}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>distributionFixedPoint</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} node\arginout, \doublezero\ spinMeasured\argin</arguments>
+     !@     <description>Return the spin distribution function at a fixed point in intrinsic mass and spin.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>tabulate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ [massRequired]\argin, \doublezero\ [spinRequired]\argin</arguments>
