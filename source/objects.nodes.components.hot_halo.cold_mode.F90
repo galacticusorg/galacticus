@@ -231,18 +231,19 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    logical                                       , intent(in   )          :: odeConverged
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    class           (nodeComponentBasic          )               , pointer :: basic
-    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
-    class           (accretionHaloClass          )               , pointer :: accretionHalo_
-    double precision                                                       :: angularMomentumAccretionRate, densityAtOuterRadius , &
-         &                                                                    massAccretionRate           , massLossRate         , &
-         &                                                                    outerRadius                 , outerRadiusGrowthRate, &
-         &                                                                    gasMass                     , infallRate
+    type            (treeNode                ), intent(inout), pointer :: node
+    logical                                   , intent(in   )          :: odeConverged
+    logical                                   , intent(inout)          :: interrupt
+    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
+    class           (nodeComponentBasic      )               , pointer :: basic
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (accretionHaloClass      )               , pointer :: accretionHalo_
+    class           (coldModeInfallRateClass )               , pointer :: coldModeInfallRate_
+    double precision                                                   :: angularMomentumAccretionRate, densityAtOuterRadius , &
+         &                                                                massAccretionRate           , massLossRate         , &
+         &                                                                outerRadius                 , outerRadiusGrowthRate, &
+         &                                                                gasMass                     , infallRate
     !GCC$ attributes unused :: odeConverged
     
     ! Return immediately if this class is not in use.
@@ -254,6 +255,7 @@ contains
        ! Get required objects.
        darkMatterHaloScale_ => darkMatterHaloScale()
        accretionHalo_       => accretionHalo      ()
+       coldModeInfallRate_  => coldModeInfallRate ()
        ! Find the rate of gas mass accretion onto the halo.
        massAccretionRate=accretionHalo_%accretionRate(node,accretionModeCold)
        ! Get the basic component.
@@ -261,7 +263,7 @@ contains
        ! Apply accretion rates.
        if (massAccretionRate > 0.0d0 .or. hotHalo%massCold() > 0.0d0) call hotHalo%massColdRate(massAccretionRate,interrupt,interruptProcedure)
        ! Next compute the cold mode infall rate in this halo.
-       infallRate=Cooling_Cold_Mode_Infall_Rate(node)
+       infallRate=coldModeInfallRate_%infallRate(node)
        ! Pipe the cooling rate to which ever component claimed it.
        call Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,infallRate,interrupt,interruptProcedure)
        ! Get the rate at which abundances are accreted onto this halo.

@@ -16,70 +16,90 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a calculation of cold mode infall rates assuming infall on a dynamical timescale.
+  !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
 
-module Cooling_Cold_Mode_Infall_Rates_Dynamical_Time
-  !% Implements a calculation of cold mode infall rates assuming infall on a dynamical timescale.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Cooling_Cold_Mode_Infall_Rate_Dynamical_Time_Initialize
+  use Dark_Matter_Halo_Scales
+  
+  !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime" defaultThreadPrivate="yes">
+  !#  <description>A dynamicalTime cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
+  !# </coldModeInfallRate>
+  type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
+     !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
+     private
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: dynamicalRateFraction
+   contains
+     final     ::               dynamicalTimeDestructor
+     procedure :: infallRate => dynamicalTimeInfallRate
+  end type coldModeInfallRateDynamicalTime
 
-  ! Infall rate.
-  double precision :: coldModeInfallRateDynamicalTime
+  interface coldModeInfallRateDynamicalTime
+     !% Constructors for the dynamicalTime cooling time class.
+     module procedure dynamicalTimeConstructorParameters
+     module procedure dynamicalTimeConstructorInternal
+  end interface coldModeInfallRateDynamicalTime
 
 contains
 
-  !# <coldModeInfallRateMethod>
-  !#  <unitName>Cooling_Cold_Mode_Infall_Rate_Dynamical_Time_Initialize</unitName>
-  !# </coldModeInfallRateMethod>
-  subroutine Cooling_Cold_Mode_Infall_Rate_Dynamical_Time_Initialize(coldModeInfallRateMethod,Cooling_Cold_Mode_Infall_Rate_Get)
-    !% Initializes the ``dynamical time'' cold mode infall rate module.
-    use ISO_Varying_String
-    use Input_Parameters
+  function dynamicalTimeConstructorParameters(parameters) result(self)
+    !% Constructor for the dynamical time cooling time class which builds the object from a parameter set.
+    use Input_Parameters2
+    implicit none
+    type            (coldModeInfallRateDynamicalTime)                :: self
+    type            (inputParameters                ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
+    double precision                                                 :: dynamicalRateFraction
+
+    !# <inputParameter>
+    !#   <name>dynamicalRateFraction</name>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=coldModeInfallRateDynamicalTime(dynamicalRateFraction,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function dynamicalTimeConstructorParameters
+
+  function dynamicalTimeConstructorInternal(dynamicalRateFraction,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the dynamical time cooling time class.
     use Galacticus_Error
     implicit none
-    type     (varying_string                              ), intent(in   )          :: coldModeInfallRateMethod
-    procedure(Cooling_Cold_Mode_Infall_Rate_Dynamical_Time), intent(inout), pointer :: Cooling_Cold_Mode_Infall_Rate_Get
-
-    if (coldModeInfallRateMethod == 'dynamicalTime') then
-       Cooling_Cold_Mode_Infall_Rate_Get => Cooling_Cold_Mode_Infall_Rate_Dynamical_Time
-
-       ! Get cooling rate parameters.
-       !@ <inputParameter>
-       !@   <name>coldModeInfallRateDynamicalTime</name>
-       !@   <defaultValue>2.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale (in units of the halo dynamical time) for infall of the cold mode component.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coldModeInfallRateDynamicalTime',coldModeInfallRateDynamicalTime,defaultValue=2.0d0)
-
-       ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massColdIsGettable())                                         &
-            & call Galacticus_Error_Report(                                                           &
-            &                              'Cooling_Cold_Mode_Infall_Rate_Dynamical_Time_Initialize', &
-            &                              'hot halo component must have gettable cold mass'          &
-            &                             )
-    end if
+    type            (coldModeInfallRateDynamicalTime)                        :: self
+    class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
+    double precision                                 , intent(in   )         :: dynamicalRateFraction
+    !# <constructorAssign variables="dynamicalRateFraction, *darkMatterHaloScale_"/>
+    
+    ! Check that the properties we need are gettable.
+    if (.not.defaultHotHaloComponent%massColdIsGettable())                                 &
+         & call Galacticus_Error_Report(                                                   &
+         &                              'dynamicalTimeConstructorInternal'               , &
+         &                              'hot halo component must have gettable cold mass'  &
+         &                             )
     return
-  end subroutine Cooling_Cold_Mode_Infall_Rate_Dynamical_Time_Initialize
+  end function dynamicalTimeConstructorInternal
 
-  double precision function Cooling_Cold_Mode_Infall_Rate_Dynamical_Time(thisNode)
-    !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
-    use Dark_Matter_Halo_Scales
+  subroutine dynamicalTimeDestructor(self)
+    !% Destructor for the dynamical time cold mode infall rate class.
     implicit none
-    type (treeNode                ), intent(inout) :: thisNode
-    class(nodeComponentHotHalo    ), pointer       :: thisHotHalo
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    type(coldModeInfallRateDynamicalTime), intent(inout) :: self
 
-    thisHotHalo                                  => thisNode%hotHalo   ()
-    darkMatterHaloScale_                         => darkMatterHaloScale()
-    Cooling_Cold_Mode_Infall_Rate_Dynamical_Time =  coldModeInfallRateDynamicalTime*thisHotHalo%massCold()/darkMatterHaloScale_%dynamicalTimescale(thisNode)
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
     return
-  end function Cooling_Cold_Mode_Infall_Rate_Dynamical_Time
+  end subroutine dynamicalTimeDestructor
 
-end module Cooling_Cold_Mode_Infall_Rates_Dynamical_Time
+  double precision function dynamicalTimeInfallRate(self,node)
+    !% Computes the cold mode infall rate as a fraction of the halo dynamical time.
+    class(coldModeInfallRateDynamicalTime), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
+    class(nodeComponentHotHalo           ), pointer       :: hotHalo
+    
+    hotHalo                 =>  node                        %hotHalo              (    )
+    dynamicalTimeInfallRate =  +self                        %dynamicalRateFraction       &
+         &                     /self   %darkMatterHaloScale_%dynamicalTimescale   (node) &
+         &                     *hotHalo                     %massCold             (    )
+    return
+  end function dynamicalTimeInfallRate
