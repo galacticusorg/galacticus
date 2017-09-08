@@ -19,6 +19,7 @@
   !% Implementation of a simple cooling radius class.
   
   use Kind_Numbers
+  use Cooling_Times
   use Cooling_Times_Available
   use Hot_Halo_Mass_Distributions
   use Hot_Halo_Temperature_Profiles
@@ -38,6 +39,7 @@
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
+     class           (coolingTimeClass              ), pointer :: coolingTime_
      class           (coolingTimeAvailableClass     ), pointer :: coolingTimeAvailable_
      class           (hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_
      class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_
@@ -77,14 +79,16 @@ contains
     type (coolingRadiusSimple      )                :: self
     type (inputParameters          ), intent(inout) :: parameters
     class(coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
+    class(coolingTimeClass         ), pointer       :: coolingTime_
 
     !# <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
-    self=coolingRadiusSimple(coolingTimeAvailable_)
+    !# <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
+    self=coolingRadiusSimple(coolingTimeAvailable_,coolingTime_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(coolingTimeAvailable_) result(self)
+  function simpleConstructorInternal(coolingTimeAvailable_,coolingTime_) result(self)
     !% Internal constructor for the simple cooling radius class.
     use ISO_Varying_String
     use Galacticus_Error
@@ -95,7 +99,8 @@ contains
     implicit none
     type (coolingRadiusSimple      )                        :: self
     class(coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
-    !# <constructorAssign variables="*coolingTimeAvailable_"/>
+    class(coolingTimeClass         ), intent(in   ), target :: coolingTime_
+    !# <constructorAssign variables="*coolingTimeAvailable_, *coolingTime_"/>
     
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
@@ -136,6 +141,7 @@ contains
     type(coolingRadiusSimple), intent(inout) :: self
 
     !# <objectDestructor name="self%coolingTimeAvailable_"/>
+    !# <objectDestructor name="self%coolingTime_"         />
     return
   end subroutine simpleDestructor
 
@@ -156,7 +162,6 @@ contains
     use Radiation_Structure
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Cooling_Times
     implicit none
     class           (coolingRadiusSimple ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -200,8 +205,8 @@ contains
           coolingTimeAvailable            =self%coolingTimeAvailable_%timeAvailable            (node)
           coolingTimeAvailableIncreaseRate=self%coolingTimeAvailable_%timeAvailableIncreaseRate(node)
           ! Get gradients of cooling time with density and temperature.
-          coolingTimeDensityLogSlope    =Cooling_Time_Density_Log_Slope    (temperature,density,gasAbundances,chemicalDensities,radiation)
-          coolingTimeTemperatureLogSlope=Cooling_Time_Temperature_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
+          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (temperature,density,gasAbundances,chemicalDensities,radiation)
+          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(temperature,density,gasAbundances,chemicalDensities,radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
              self%radiusGrowthRateStored=+coolingRadius                                        &
@@ -302,7 +307,6 @@ contains
 
   double precision function coolingRadiusRoot(radius)
     !% Root function which evaluates the difference between the cooling time at {\normalfont \ttfamily radius} and the time available for cooling.
-    use Cooling_Times
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: coolingTime, density, temperature
@@ -311,7 +315,7 @@ contains
     density    =simpleSelf_%hotHaloMassDistribution_  %density    (simpleNode_,radius)
     temperature=simpleSelf_%hotHaloTemperatureProfile_%temperature(simpleNode_,radius)
     ! Compute the cooling time at the specified radius.
-    coolingTime=Cooling_Time(temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleRadiation_)
+    coolingTime=simpleSelf_%coolingTime_              %time       (temperature,density,simpleGasAbundances_,simpleChemicalDensities_,simpleRadiation_)
     ! Return the difference between cooling time and time available.
     coolingRadiusRoot=coolingTime-simpleCoolingTimeAvailable_
     return

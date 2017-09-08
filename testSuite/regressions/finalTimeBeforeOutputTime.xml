@@ -9,7 +9,9 @@
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
-  <coolingTimeMethod value="simple"/>
+  <coolingTimeMethod value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTimeMethod>
   <treeNodeMethodSatellite value="verySimple"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
@@ -74,7 +76,6 @@
   <treeNodeMethodSpheroid value="verySimple"/>
   <coolingMeanAngularMomentumFrom value="hotGas"/>
   <timestepSimpleRelative value="0.1"/>
-  <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <imfChabrierYieldInstantaneous value="0.035"/>
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="2.0e14"/>

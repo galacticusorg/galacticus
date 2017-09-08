@@ -933,52 +933,6 @@ Currently defined freefall time available methods are:
  \item [\hyperlink{cooling.freefall_time_available.halo_formation.F90:freefall_times_available_halo_formation:freefall_time_available_halo_formation}{{\normalfont \ttfamily haloFormation}}] The time available for cooling is set equal to the current time minus the formation time of the halo.
 \end{description}
 
-\subsubsection{Cooling Time}
-
-Additional methods for cooling time calculations can be added using the {\normalfont \ttfamily coolingTimeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
-\begin{verbatim}
- !# <coolingTimeMethod>
- !#  <unitName>Cooling_Time_Simple_Initialize</unitName>
- !# </coolingTimeMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Cooling\_Time\_Simple\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(coolingTimeMethod,Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get,Cooling_Time_Temperature_Log_Slope_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: coolingTimeMethod
-    procedure(),          pointer, intent(inout) :: Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get,Cooling_Time_Temperature_Log_Slope_Get
-    
-    if (coolingTimeMethod == 'myMethod') then
-       Cooling_Time_Get => My_Method_Get_Procedure
-       Cooling_Time_Density_Log_Slope_Get     => My_Method_Density_Log_Slope_Procedure
-       Cooling_Time_Temperature_Log_Slope_Get => My_Method_Temperature_Log_Slope_Procedure
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily coolingTimeMethod} input parameter. The procedure pointer {\normalfont \ttfamily Cooling\_Time\_Get} must be set to point to a function which returns the cooling function as described below while the other two pointers should point to functions which return the appropriate logarithmic slope. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The cooling time function must have the form:
-\begin{verbatim}
- double precision function Cooling_Time_Get(temperature,density,abundances,chemicalDensities,radiation)
-    implicit none
-    double precision,                  intent(in) :: temperature,density
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
-    .
-    .
-    .
-    return
- end function Cooling_Time_Get
-\end{verbatim}
-The function must return the cooling time (in units of Gyr) for at the specified {\normalfont \ttfamily temperature}, {\normalfont \ttfamily density} and for composition and radiation field as specified by the {\normalfont \ttfamily abundances}, {\normalfont \ttfamily chemicalDensities} and {\normalfont \ttfamily radiation} structures. The logarithmic slope functions should have the same template, but return the logarithmic slope of the cooling time with respect to the appropriate variable instead.
-
-Currently defined cooling time methods are:
-\begin{description}
- \item [\hyperlink{cooling.cooling_time.simple.F90:cooling_times_simple:cooling_time_simple}{{\normalfont \ttfamily simple}}] Compute the cooling time as the ratio of the gas thermal energy density to the volume rate of radiative energy loss. The gas is assumed to have an effective number of degrees of freedom specified by the {\normalfont \ttfamily coolingTimeSimpleDegreesOfFreedom} parameter.
-\end{description}
-
 \subsubsection{Cosmological Mass Root Variance}
 
 Additional methods for computing the cosmological mass root variance, $\sigma(M)$, can be added using the {\normalfont \ttfamily cosmologicalMassVarianceMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily filteredPowerSpectrum} method is described by a directive:

@@ -14,7 +14,9 @@
     <HubbleConstant value="70.2"/>
   </cosmologyParametersMethod><treeNodeMethodDarkMatterProfile value="scale"/>
   <majorMergerMassRatio value="0.1"/>
-  <coolingTimeMethod value="simple"/>
+  <coolingTimeMethod value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTimeMethod>
   <adiabaticContractionGnedinOmega value="0.77"/>
   <starFormationDiskEfficiency value="0.01"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
@@ -49,7 +51,6 @@
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist"/>
   <timestepSimpleRelative value="0.1"/>
-  <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="1.01e12"/>
   <darkMatterProfileMinimumConcentration value="4"/>
