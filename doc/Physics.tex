@@ -402,6 +402,18 @@ Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttf
 \end{equation}
 where $\alpha=${\normalfont \ttfamily [alpha]}, and $\beta=${\normalfont \ttfamily [beta]}.
 
+\section{Cold Mode Infall Ratres}\index{cold mode!infall rate}
+
+The method to be used for computing the rate of infall of gas from the cold mode is specified by the {\normalfont \ttfamily coldModeInfallRateMethod} parameter.
+
+\subsection{Dynamical Time}\label{phys:coldModeInfallRate:coldModeInfallRateDynamicalTime}
+
+The infall rate from the cold mode is given by
+\begin{equation}
+\dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
+\end{equation}
+where $f_\mathrm{infall, cold mode}=${\normalfont \ttfamily [dynamicalRateFraction]}.
+
 \section{Conditional Mass Functions}\index{conditional mass function}
 
 The method to be used for computing the conditional mass function (for use in data modelling) is specified by the {\normalfont \ttfamily conditionalMassFunctionMethod} parameter.
