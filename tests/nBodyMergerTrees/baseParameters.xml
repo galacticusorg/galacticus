@@ -36,11 +36,12 @@
   <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailableMethod>
-  <coolingTimeMethod value="simple"/>
-  <coolingTimeSimpleDegreesOfFreedom value="3"/>
-  <cosmologyFunctionsMethod value="matter + lambda"/>
+  <coolingTimeMethod value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTimeMethod>
+  <cosmologyFunctionsMethod value="matterLambda"/>
   <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
-  <darkMatterProfileConcentrationMethod value="Gao 2008"/>
+  <darkMatterProfileConcentrationMethod value="gao2008"/>
   <darkMatterProfileMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <diskMassToleranceAbsolute value="1e-06"/>

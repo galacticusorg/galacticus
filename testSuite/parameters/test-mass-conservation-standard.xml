@@ -147,11 +147,12 @@
     <coolingRateMethod value="whiteFrenk1991">
       <velocityCutOff value="10000"/>
     </coolingRateMethod>
-    <coolingTimeMethod value="simple"/>
+  <coolingTimeMethod value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTimeMethod>
     <coolingTimeAvailableMethod value="whiteFrenk1991">
       <ageFactor value="0"/>
     </coolingTimeAvailableMethod>
-    <coolingTimeSimpleDegreesOfFreedom value="3"/>
     <starveSatellites value="false"/>
 
     <!-- Hot halo ram pressure stripping options -->

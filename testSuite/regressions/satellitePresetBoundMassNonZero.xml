@@ -7,7 +7,9 @@
   <verbosityLevel value="1"/>
   <treeNodeMethodDarkMatterProfile value="null"/>
   <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
-  <coolingTimeMethod value="simple"/>
+  <coolingTimeMethod value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTimeMethod>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
   </cosmologicalMassVarianceMethod><intergalaticMediumStateFileName value="constraints/data/igmState.xml"/>
@@ -44,7 +46,6 @@
   <treeNodeMethodBlackHole value="null"/>
   <treeNodeMethodSpheroid value="standard"/>
   <timestepSimpleRelative value="0.1"/>
-  <coolingTimeSimpleDegreesOfFreedom value="3"/>
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="2.0e14"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>

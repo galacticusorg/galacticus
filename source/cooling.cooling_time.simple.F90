@@ -16,135 +16,152 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple cooling time calculation (based on the ratio of the thermal energy density to the
-!% volume cooling rate).
+  !% Implementation of a simple cooling time class.
 
-module Cooling_Times_Simple
-  !% Implements a simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
-  implicit none
-  private
-  public :: Cooling_Time_Simple_Initialize
+  use Cooling_Functions
+  
+  !# <coolingTime name="coolingTimeSimple" defaultThreadPrivate="yes">
+  !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
+  !# </coolingTime>
+  type, extends(coolingTimeClass) :: coolingTimeSimple
+     !% Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
+     private
+     class           (coolingFunctionClass), pointer :: coolingFunction_
+     double precision                                :: degreesOfFreedom
+   contains
+     final     ::                                   simpleDestructor
+     procedure :: time                           => simpleTime
+     procedure :: gradientDensityLogarithmic     => simpleGradientDensityLogarithmic
+     procedure :: gradientTemperatureLogarithmic => simpleGradientTemperatureLogarithmic 
+  end type coolingTimeSimple
 
-  ! Number of degrees of freedom assumed for the cooling time calculation.
-  double precision :: coolingTimeSimpleDegreesOfFreedom
+  interface coolingTimeSimple
+     !% Constructors for the simple cooling time class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface coolingTimeSimple
 
 contains
 
-  !# <coolingTimeMethod>
-  !#  <unitName>Cooling_Time_Simple_Initialize</unitName>
-  !# </coolingTimeMethod>
-  subroutine Cooling_Time_Simple_Initialize(coolingTimeMethod,Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get,Cooling_Time_Temperature_Log_Slope_Get)
-    !% Initializes the ``simple'' cooling time module.
-    use Input_Parameters
-    use ISO_Varying_String
+  function simpleConstructorParameters(parameters) result(self)
+    !% Constructor for the simple cooling time class which builds the object from a parameter set.
+    use Input_Parameters2
     implicit none
-    type     (varying_string  ), intent(in   )          :: coolingTimeMethod
-    procedure(Cooling_Time_Simple), intent(inout), pointer :: Cooling_Time_Density_Log_Slope_Get
-    procedure(Cooling_Time_Density_Log_Slope_Simple), intent(inout), pointer :: Cooling_Time_Get
-    procedure(Cooling_Time_Temperature_Log_Slope_Simple), intent(inout), pointer :: Cooling_Time_Temperature_Log_Slope_Get
-
-    if (coolingTimeMethod == 'simple') then
-       Cooling_Time_Get => Cooling_Time_Simple
-       Cooling_Time_Density_Log_Slope_Get => Cooling_Time_Density_Log_Slope_Simple
-       Cooling_Time_Temperature_Log_Slope_Get => Cooling_Time_Temperature_Log_Slope_Simple
-       !@ <inputParameter>
-       !@   <name>coolingTimeSimpleDegreesOfFreedom</name>
-       !@   <defaultValue>3</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Number of degrees of freedom to assume when computing the energy density of cooling gas in the ``simple'' cooling time module.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingTimeSimpleDegreesOfFreedom',coolingTimeSimpleDegreesOfFreedom,defaultValue=3.0d0)
-    end if
+    type            (coolingTimeSimple   )                :: self
+    type            (inputParameters     ), intent(inout) :: parameters
+    class           (coolingFunctionClass), pointer       :: coolingFunction_
+    double precision                                      :: degreesOfFreedom
+    
+    !# <inputParameter>
+    !#   <name>degreesOfFreedom</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>3.0d0</defaultValue>
+    !#   <description>Number of degrees of freedom to assume when computing the energy density of cooling gas in the ``simple'' cooling time class.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="coolingFunction" name="coolingFunction_" source="parameters"/>
+    self=coolingTimeSimple(degreesOfFreedom,coolingFunction_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Cooling_Time_Simple_Initialize
+  end function simpleConstructorParameters
 
-  double precision function Cooling_Time_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
+  function simpleConstructorInternal(degreesOfFreedom,coolingFunction_) result(self)
+    !% Internal constructor for the simple cooling time class.
+    implicit none
+    type            (coolingTimeSimple   )                        :: self
+    double precision                      , intent(in   )         :: degreesOfFreedom
+    class           (coolingFunctionClass), intent(in   ), target :: coolingFunction_
+    !# <constructorAssign variables="degreesOfFreedom, *coolingFunction_"/>
+    
+    return
+  end function simpleConstructorInternal
+  
+  subroutine simpleDestructor(self)
+    !% Destructor for the simple cooling time class.
+    implicit none
+    type(coolingTimeSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%coolingFunction_"/>
+    return
+  end subroutine simpleDestructor
+
+  double precision function simpleTime(self,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Compute the cooling time (in Gyr) for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Structure
-    use Cooling_Functions
     use Chemical_States
     implicit none
+    class           (coolingTimeSimple   ), intent(inout) :: self
     double precision                      , intent(in   ) :: density                       , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     type            (radiationStructure  ), intent(in   ) :: radiation
     class           (chemicalStateClass  ), pointer       :: chemicalState_
-    class           (coolingFunctionClass), pointer       :: coolingFunction_
     ! Effectively infinite time (for arbitrarily long cooling times).
-    double precision                      , parameter     :: largeTime              =1.0d10
+    double precision                      , parameter     :: timeLarge              =1.0d10
     double precision                                      :: coolingFunctionValue          , energyDensityThermal , &
          &                                                   numberDensityAllSpecies       , numberDensityHydrogen
 
     ! Get required objects.
-    chemicalState_   => chemicalState  ()
-    coolingFunction_ => coolingFunction()
-    ! Compute number density of hydrogen (in cm^-3).
-    numberDensityHydrogen=density*gasAbundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
-
+    chemicalState_         =>  chemicalState()
+    ! Compute number density of hydrogen (in cm⁻³).
+    numberDensityHydrogen  =  +density                                    &
+         &                    *gasAbundances   %hydrogenMassFraction()    &
+         &                    *massSolar                                  &
+         &                    /massHydrogenAtom                           &
+         &                    /hecto                                  **3 &
+         &                    /megaParsec                             **3
     ! Get the number density of all species, including electrons.
-    numberDensityAllSpecies= numberDensityHydrogen/gasAbundances%hydrogenNumberFraction() &
-         &                  +chemicalState_%electronDensity(numberDensityHydrogen,temperature,gasAbundances,radiation)
-
-    ! Get the cooling function (in ergs cm^-3 s^-1).
-    coolingFunctionValue=coolingFunction_%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-
-    ! Determine the thermal energy density of the gas (in ergs cm^-3).
-    energyDensityThermal=(coolingTimeSimpleDegreesOfFreedom/2.0d0)*boltzmannsConstant*temperature*numberDensityAllSpecies/ergs
-
+    numberDensityAllSpecies=+                                           numberDensityHydrogen                                                        &
+         &                  /     gasAbundances %hydrogenNumberFraction(                                                                           ) &
+         &                  +     chemicalState_%electronDensity       (numberDensityHydrogen,temperature,gasAbundances                  ,radiation)
+    ! Get the cooling function (in ergs cm⁻³ s⁻¹).
+    coolingFunctionValue   =+self%coolingFunction_%coolingFunction     (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     ! Compute the cooling time.
     if (coolingFunctionValue > 0.0d0) then
-       Cooling_Time_Simple=energyDensityThermal/coolingFunctionValue/gigaYear
+       ! Determine the thermal energy density of the gas (in ergs cm⁻³).
+       energyDensityThermal=+self%degreesOfFreedom   &
+            &               /2.0d0                   &
+            &               *boltzmannsConstant      &
+            &               *temperature             &
+            &               *numberDensityAllSpecies &
+            &               /ergs
+       simpleTime          =+energyDensityThermal    &
+            &               /coolingFunctionValue    &
+            &               /gigaYear
     else
-       Cooling_Time_Simple=largeTime
+       simpleTime          =+timeLarge
     end if
     return
-  end function Cooling_Time_Simple
+  end function simpleTime
 
-  double precision function Cooling_Time_Density_Log_Slope_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
+  double precision function simpleGradientDensityLogarithmic(self,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln t_{\mathrm cool}/\d\ln \rho$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Structure
-    use Cooling_Functions
-    implicit none
+   implicit none
+    class           (coolingTimeSimple   ), intent(inout) :: self
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     type            (radiationStructure  ), intent(in   ) :: radiation
-    class           (coolingFunctionClass), pointer       :: coolingFunction_
 
-    coolingFunction_ => coolingFunction()
-    Cooling_Time_Density_Log_Slope_Simple=1.0d0-coolingFunction_%coolingFunctionDensityLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
+    simpleGradientDensityLogarithmic=+1.0d0                                                                                                               &
+         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
     return
-  end function Cooling_Time_Density_Log_Slope_Simple
+  end function simpleGradientDensityLogarithmic
 
-  double precision function Cooling_Time_Temperature_Log_Slope_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
+  double precision function simpleGradientTemperatureLogarithmic(self,temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln t_{\mathrm cool}/\d\ln T$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
-    use Abundances_Structure
-    use Chemical_Abundances_Structure
-    use Radiation_Structure
-    use Cooling_Functions
     implicit none
+    class           (coolingTimeSimple   ), intent(inout) :: self
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     type            (radiationStructure  ), intent(in   ) :: radiation
-    class           (coolingFunctionClass), pointer       :: coolingFunction_
 
-    coolingFunction_ => coolingFunction()
-    Cooling_Time_Temperature_Log_Slope_Simple=-coolingFunction_%coolingFunctionTemperatureLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
+    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
     return
-  end function Cooling_Time_Temperature_Log_Slope_Simple
-
-end module Cooling_Times_Simple
+  end function simpleGradientTemperatureLogarithmic
