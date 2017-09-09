@@ -105,9 +105,9 @@ contains
     integer                                 , parameter                              :: countIterationMaximum=30
     logical                                 , allocatable  , dimension(:  )          :: isBound                      , compute                , &
          &                                                                              isBoundNew                   , isBoundCompute
-    integer                                 , allocatable  , dimension(:,:), target  :: boundStatus
+    integer                                 , allocatable  , dimension(:,:), target  :: boundStatus                  , weight
     integer                                                , dimension(:  ), pointer :: boundStatusSingle
-    double precision                        , allocatable  , dimension(:,:)          :: positionRelative
+    double precision                        , allocatable  , dimension(:,:)          :: positionRelative             , positionOffset
     double precision                        , allocatable  , dimension(:  )          :: separation                   , potential              , &
          &                                                                              energyPotential              , separationSquared      , &
          &                                                                              velocityPotential            , energyKinetic          , &
@@ -125,19 +125,21 @@ contains
 
     ! Allocate workspaces.
     particleCount=size(simulation%position,dim=2)
-    call allocateArray(isBound                ,[particleCount                          ])    
-    call allocateArray(isBoundNew             ,[particleCount                          ])    
-    call allocateArray(isBoundCompute         ,[particleCount                          ])    
-    call allocateArray(energyKinetic          ,[particleCount                          ])    
-    call allocateArray(energyPotential        ,[particleCount                          ])    
-    call allocateArray(velocityPotential      ,[particleCount                          ])
-    call allocateArray(compute                ,[particleCount                          ])
-    call allocateArray(energyPotentialChange  ,[particleCount                          ])
-    call allocateArray(velocityPotentialChange,[particleCount                          ])
-    call allocateArray(sampleWeight           ,[particleCount                          ])
-    call allocateArray(boundStatus            ,[particleCount,self%bootstrapSampleCount])
-    call allocateArray(indexMostBound         ,[              self%bootstrapSampleCount])
-    call allocateArray(indexVelocityMostBound ,[              self%bootstrapSampleCount])
+    call allocateArray(isBound                ,[           particleCount                          ])    
+    call allocateArray(isBoundNew             ,[           particleCount                          ])    
+    call allocateArray(isBoundCompute         ,[           particleCount                          ])    
+    call allocateArray(energyKinetic          ,[           particleCount                          ])    
+    call allocateArray(energyPotential        ,[           particleCount                          ])    
+    call allocateArray(velocityPotential      ,[           particleCount                          ])
+    call allocateArray(compute                ,[           particleCount                          ])
+    call allocateArray(energyPotentialChange  ,[           particleCount                          ])
+    call allocateArray(velocityPotentialChange,[           particleCount                          ])
+    call allocateArray(sampleWeight           ,[           particleCount                          ])
+    call allocateArray(positionOffset         ,[3_c_size_t,particleCount                          ])
+    call allocateArray(boundStatus            ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(weight                 ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(indexMostBound         ,[                         self%bootstrapSampleCount])
+    call allocateArray(indexVelocityMostBound ,[                         self%bootstrapSampleCount])
     ! Iterate over bootstrap samplings.
     do iSample=1,self%bootstrapSampleCount
        message='Performing self-bound analysis on bootstrap sample '
@@ -170,7 +172,7 @@ contains
           separationSquared=0.0d0
           positionRelative =0.0d0
           potential        =0.0d0
-           !$omp do schedule(dynamic) reduction(+: energyPotentialChange, velocityPotentialChange)
+          !$omp do schedule(dynamic) reduction(+: energyPotentialChange, velocityPotentialChange)
           do i=1,particleCount-1
              ! Skip particles we do not need to compute.
              if (.not.compute(i)) cycle
@@ -207,7 +209,7 @@ contains
              end forall
              where(isBoundCompute(i+1:particleCount))
                 separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1) &
-                     &                               /simulation%lengthSoftening
+                     &                               /simulation%lengthSoftening**2
                 separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
                 ! Compute potentials.
                 potential        (i+1:particleCount)=+selfBoundPotential(                                      &
@@ -259,12 +261,12 @@ contains
           ! Compute kinetic energies.
           forall(k=1:3)
              where(isBound)
-                positionRelative(k,:)=+simulation%velocity(k,                             : ) &
-                     &                -simulation%velocity(k,indexVelocityMostBound(iSample))
+                positionOffset(k,:)=+simulation%velocity(k,                             : ) &
+                     &              -simulation%velocity(k,indexVelocityMostBound(iSample))
              end where
           end forall
           where(isBound)
-             energyKinetic=0.5d0*sum(positionRelative**2,dim=1)
+             energyKinetic=0.5d0*sum(positionOffset**2,dim=1)
           end where
           ! Determine which particles are bound.
           where (isBound)
@@ -277,10 +279,10 @@ contains
           weightBound=sum  (sampleWeight,mask=isBoundNew)
           !$omp end workshare
           ! Free workspaces.
-          call deallocateArray(positionRelative       )
-          call deallocateArray(separation             )
-          call deallocateArray(separationSquared      )
-          call deallocateArray(potential              )
+          call deallocateArray(positionRelative )
+          call deallocateArray(separation       )
+          call deallocateArray(separationSquared)
+          call deallocateArray(potential        )
           !$omp end parallel
           ! Test for convergence.
           if (abs(weightBound-weightBoundPrevious) < 0.5d0*self%tolerance*(weightBound+weightBoundPrevious)) then
@@ -321,12 +323,14 @@ contains
        elsewhere
           boundStatusSingle=0
        end where
+       weight(:,iSample)=nint(sampleWeight)
     end do
     ! Write indices of most bound particles to file.
     call simulation%analysis%writeDataset(indexMostBound        ,'indexMostBound'        )
     call simulation%analysis%writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
     ! Write bound status to file.
     call simulation%analysis%writeDataset(boundStatus           ,'selfBoundStatus'       )
+    call simulation%analysis%writeDataset(weight                ,'weight'                )
     ! Free workspaces.
     call deallocateArray(compute                )
     call deallocateArray(isBound                )
@@ -336,10 +340,12 @@ contains
     call deallocateArray(energyPotential        )
     call deallocateArray(velocityPotential      )
     call deallocateArray(boundStatus            )
+    call deallocateArray(weight                 )
     call deallocateArray(energyPotentialChange  )
     call deallocateArray(velocityPotentialChange)
     call deallocateArray(indexMostBound         )
     call deallocateArray(indexVelocityMostBound )
+    call deallocateArray(positionOffset         )
     return
   end subroutine selfBoundOperate
 
