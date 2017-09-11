@@ -19,88 +19,28 @@
 !% Contains a module that implements calculations of the infall radius for cooling calculations.
 
 module Cooling_Infall_Radii
-  !% Implements calculations of the infall radius for cooling calculations.
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of the infall radius for cooling calculations.
   use Galacticus_Nodes
-  !# <include directive="infallRadiusMethod" type="moduleUse">
-  include 'cooling.infall_radius.modules.inc'
-  !# </include>
   implicit none
   private
-  public :: Infall_Radius, Infall_Radius_Growth_Rate
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                       :: infallRadiusInitialized      =.false.
-
-  ! Name of cooling radius available method used.
-  type     (varying_string           )          :: infallRadiusMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Infall_Radius            ), pointer :: Infall_Radius_Get            =>null()
-  procedure(Infall_Radius_Growth_Rate), pointer :: Infall_Radius_Growth_Rate_Get=>null()
-
-contains
-
-  subroutine Infall_Radius_Initialize
-    !% Initialize the infall radius module.
-    use Galacticus_Error
-    use Input_Parameters
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.infallRadiusInitialized) then
-       !$omp critical(Infall_Radius_Initialization)
-       if (.not.infallRadiusInitialized) then
-          ! Get the infall radius method parameter.
-          !@ <inputParameter>
-          !@   <name>infallRadiusMethod</name>
-          !@   <defaultValue>coolingRadius</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of the infall radius for cooling calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('infallRadiusMethod',infallRadiusMethod,defaultValue='coolingRadius')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="infallRadiusMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get</functionArgs>
-          include 'cooling.infall_radius.inc'
-          !# </include>
-          if (.not.(associated(Infall_Radius_Get).and.associated(Infall_Radius_Growth_Rate_Get))) call&
-               & Galacticus_Error_Report('Infall_Radius','method ' //char(infallRadiusMethod)//' is unrecognized')
-          infallRadiusInitialized=.true.
-       end if
-       !$omp end critical(Infall_Radius_Initialization)
-    end if
-    return
-  end subroutine Infall_Radius_Initialize
-
-  double precision function Infall_Radius(thisNode)
-    !% Return the infall radius for {\normalfont \ttfamily thisNode} (in units of Mpc).
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Infall_Radius_Initialize
-
-    ! Get the cooling radius using the selected method.
-    Infall_Radius=Infall_Radius_Get(thisNode)
-    return
-  end function Infall_Radius
-
-  double precision function Infall_Radius_Growth_Rate(thisNode)
-    !% Return the rate at which the infall radius grows for {\normalfont \ttfamily thisNode} (in units of Mpc/Gyr).
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Infall_Radius_Initialize
-
-    ! Get the cooling radius using the selected method.
-    Infall_Radius_Growth_Rate=Infall_Radius_Growth_Rate_Get(thisNode)
-    return
-  end function Infall_Radius_Growth_Rate
-
+  !# <functionClass>
+  !#  <name>coolingInfallRadius</name>
+  !#  <descriptiveName>Cooling Infall Radius</descriptiveName>
+  !#  <description>Class providing models of the infall radii for gas cooling in the hot atmosphere surrounding a galaxy.</description>
+  !#  <default>coolingRadius</default>
+  !#  <method name="radius" >
+  !#   <description>Return the infall radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !#  <method name="radiusIncreaseRate" >
+  !#   <description>Return the rate at which the infall radius grows for {\normalfont \ttfamily node} (in units of Mpc/Gyr).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Cooling_Infall_Radii
