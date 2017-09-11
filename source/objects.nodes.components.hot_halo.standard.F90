@@ -693,9 +693,10 @@ contains
     type            (treeNode                    ), intent(inout)          , pointer :: node
     double precision                              , intent(in   )                    :: massRate
     logical                                       , intent(inout), optional          :: interrupt
-    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
+    procedure       (interruptTask               ), intent(inout), optional, pointer :: interruptProcedure
     type            (treeNode                    )                         , pointer :: coolingFromNode
     class           (nodeComponentHotHalo        )                         , pointer :: coolingFromHotHaloComponent, hotHalo
+    class           (coolingInfallRadiusClass    )                         , pointer :: coolingInfallRadius_
     type            (abundances                  ), save                             :: abundancesCoolingRate
     !$omp threadprivate(abundancesCoolingRate)
     double precision                                                                 :: angularMomentumCoolingRate , infallRadius
@@ -727,8 +728,9 @@ contains
              coolingFromNode => null()
              call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes','unknown "hotHaloCoolingFromNode" - this should not happen')
           end select
-          infallRadius=Infall_Radius(node)
-          angularMomentumCoolingRate=massRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
+          coolingInfallRadius_       => coolingInfallRadius        (    )
+          infallRadius               =  coolingInfallRadius_%radius(node)
+          angularMomentumCoolingRate =  massRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
           if (.not.gotAngularMomentumCoolingRate) then
              angularMomentumHeatingRateRemaining=rateCooling*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
              gotAngularMomentumCoolingRate=.true.

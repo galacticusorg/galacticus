@@ -441,14 +441,14 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <infallRadiusMethod>
+    <coolingInfallRadiusMethod>
       <value>coolingRadius</value>
       <value>coolingAndFreefall
       <freefallRadiusMethod value="darkMatterHalo"/> 
       <freefallTimeAvailableMethod value="haloFormation"/> 
       <treeNodeMethodFormationTime value="Cole2000"/>
       </value>
-    </infallRadiusMethod> 
+    </coolingInfallRadiusMethod> 
   </parameters>
   
   <!-- Cooling time available. -->

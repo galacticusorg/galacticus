@@ -16,58 +16,81 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
+  !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
 
-module Infall_Radii_Cooling_Radius
-  !% Implements a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
-  implicit none
-  private
-  public :: Infall_Radius_Cooling_Radius_Initialize
+  use Cooling_Radii
+  
+  !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" defaultThreadPrivate="yes">
+  !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>
+  !# </coolingInfallRadius>
+  type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
+     !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
+     private
+     class(coolingRadiusClass), pointer :: coolingRadius_
+   contains
+     final     ::                       coolingRadiusDestructor
+     procedure :: radius             => coolingRadiusRadius
+     procedure :: radiusIncreaseRate => coolingRadiusRadiusIncreaseRate
+  end type coolingInfallRadiusCoolingRadius
+
+  interface coolingInfallRadiusCoolingRadius
+     !% Constructors for the cooling radius infall radii class.
+     module procedure coolingRadiusConstructorParameters
+     module procedure coolingRadiusConstructorInternal
+  end interface coolingInfallRadiusCoolingRadius
 
 contains
 
-  !# <infallRadiusMethod>
-  !#  <unitName>Infall_Radius_Cooling_Radius_Initialize</unitName>
-  !# </infallRadiusMethod>
-  subroutine Infall_Radius_Cooling_Radius_Initialize(infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get)
-    !% Initializes the ``cooling radius'' infall radius module.
-    use ISO_Varying_String
+  function coolingRadiusConstructorParameters(parameters) result(self)
+    !% Constructor for the cooling radius infall radii class which builds the object from a parameter set.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                          ), intent(in   )          :: infallRadiusMethod
-    procedure(Infall_Radius_Cooling_Radius            ), intent(inout), pointer :: Infall_Radius_Get
-    procedure(Infall_Radius_Growth_Rate_Cooling_Radius), intent(inout), pointer :: Infall_Radius_Growth_Rate_Get
+    type (coolingInfallRadiusCoolingRadius)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(coolingRadiusClass              ), pointer       :: coolingRadius_
 
-    if (infallRadiusMethod == 'coolingRadius') then
-       Infall_Radius_Get             => Infall_Radius_Cooling_Radius
-       Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Radius
-    end if
+    !# <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
+    self=coolingInfallRadiusCoolingRadius(coolingRadius_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Infall_Radius_Cooling_Radius_Initialize
+  end function coolingRadiusConstructorParameters
 
-  double precision function Infall_Radius_Cooling_Radius(thisNode)
+  function coolingRadiusConstructorInternal(coolingRadius_) result(self)
+    !% Internal constructor for the cooling radius infall radii class.
+    use Galacticus_Error
+    implicit none
+    type (coolingInfallRadiusCoolingRadius)                        :: self
+    class(coolingRadiusClass              ), intent(in   ), target :: coolingRadius_
+    !# <constructorAssign variables="*coolingRadius_"/>
+
+    return
+  end function coolingRadiusConstructorInternal
+
+  subroutine coolingRadiusDestructor(self)
+    !% Destructor for the cooling radius infall radii class.
+    implicit none
+    type(coolingInfallRadiusCoolingRadius), intent(inout) :: self
+
+    !# <objectDestructor name="self%coolingRadius_" />
+    return
+  end subroutine coolingRadiusDestructor
+
+  double precision function coolingRadiusRadius(self,node)
+    !% Return the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    implicit none
+    class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
+    type (treeNode                        ), intent(inout) :: node
+
+    coolingRadiusRadius=self%coolingRadius_%radius(node)
+    return
+  end function coolingRadiusRadius
+
+  double precision function coolingRadiusRadiusIncreaseRate(self,node)
     !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
-    use Galacticus_Nodes
-    use Cooling_Radii
     implicit none
-    type (treeNode          ), intent(inout) :: thisNode
-    class(coolingRadiusClass), pointer       :: coolingRadius_
+    class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
+    type (treeNode                        ), intent(inout) :: node
 
-    coolingRadius_ => coolingRadius()
-    Infall_Radius_Cooling_Radius=coolingRadius_%radius(thisNode)
+    coolingRadiusRadiusIncreaseRate=self%coolingRadius_%radiusGrowthRate(node)
     return
-  end function Infall_Radius_Cooling_Radius
-
-  double precision function Infall_Radius_Growth_Rate_Cooling_Radius(thisNode)
-    !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
-    use Galacticus_Nodes
-    use Cooling_Radii
-    implicit none
-    type (treeNode          ), intent(inout) :: thisNode
-    class(coolingRadiusClass), pointer       :: coolingRadius_
-    
-    coolingRadius_ => coolingRadius()
-    Infall_Radius_Growth_Rate_Cooling_Radius=coolingRadius_%radiusGrowthRate(thisNode)
-    return
-  end function Infall_Radius_Growth_Rate_Cooling_Radius
-
-end module Infall_Radii_Cooling_Radius
+  end function coolingRadiusRadiusIncreaseRate

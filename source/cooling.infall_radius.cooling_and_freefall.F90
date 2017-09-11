@@ -15,108 +15,98 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+  
+  use Cooling_Radii
+  use Freefall_Radii
 
-!% Contains a module which implements an infall radius calculation in which the infall radius is the smaller of the cooling and
-!% freefall radii.
+  !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall" defaultThreadPrivate="yes">
+  !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
+  !# </coolingInfallRadius>
+  type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
+     !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+     private
+     class(coolingRadiusClass), pointer :: coolingRadius_
+   contains
+     final     ::                       coolingFreefallDestructor
+     procedure :: radius             => coolingFreefallRadius
+     procedure :: radiusIncreaseRate => coolingFreefallRadiusIncreaseRate
+  end type coolingInfallRadiusCoolingFreefall
 
-module Infall_Radii_Cooling_Freefall
-  !% Implements an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
-  implicit none
-  private
-  public :: Infall_Radius_Cooling_Freefall_Initialize
+  interface coolingInfallRadiusCoolingFreefall
+     !% Constructors for the cooling radius infall radii class.
+     module procedure coolingFreefallConstructorParameters
+     module procedure coolingFreefallConstructorInternal
+  end interface coolingInfallRadiusCoolingFreefall
 
 contains
 
-  !# <infallRadiusMethod>
-  !#  <unitName>Infall_Radius_Cooling_Freefall_Initialize</unitName>
-  !# </infallRadiusMethod>
-  subroutine Infall_Radius_Cooling_Freefall_Initialize(infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get)
-    !% Initializes the ``cooling and freefall'' infall radius module.
-    use ISO_Varying_String
+  function coolingFreefallConstructorParameters(parameters) result(self)
+    !% Constructor for the cooling radius infall radii class which builds the object from a parameter set.
+    use Input_Parameters2
     implicit none
-    type     (varying_string                            ), intent(in   )          :: infallRadiusMethod
-    procedure(Infall_Radius_Cooling_Freefall            ), intent(inout), pointer :: Infall_Radius_Get
-    procedure(Infall_Radius_Growth_Rate_Cooling_Freefall), intent(inout), pointer :: Infall_Radius_Growth_Rate_Get
+    type (coolingInfallRadiusCoolingFreefall)                :: self
+    type (inputParameters                   ), intent(inout) :: parameters
+    class(coolingRadiusClass                ), pointer       :: coolingRadius_
 
-    if (infallRadiusMethod == 'coolingAndFreefall') then
-       Infall_Radius_Get             => Infall_Radius_Cooling_Freefall
-       Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Freefall
-    end if
+    !# <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
+    self=coolingInfallRadiusCoolingFreefall(coolingRadius_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Infall_Radius_Cooling_Freefall_Initialize
+  end function coolingFreefallConstructorParameters
 
-  double precision function Infall_Radius_Cooling_Freefall(thisNode)
-    !% Return the infall radius in the ``cooling and freefall'' model in Mpc/Gyr.
-    use Galacticus_Nodes
-    use Cooling_Radii
-    use Freefall_Radii
-    use Dark_Matter_Halo_Scales
+  function coolingFreefallConstructorInternal(coolingRadius_) result(self)
+    !% Internal constructor for the cooling radius infall radii class.
+    use Galacticus_Error
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    class           (coolingRadiusClass      ), pointer       :: coolingRadius_
-    double precision                                          :: radiusCooling         , freefallRadius, &
-         &                                                       virialRadius
-    logical                                                   :: infallIsCoolingLimited
+    type (coolingInfallRadiusCoolingFreefall)                        :: self
+    class(coolingRadiusClass                ), intent(in   ), target :: coolingRadius_
+    !# <constructorAssign variables="*coolingRadius_"/>
 
-    ! Get required objects.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    coolingRadius_       => coolingRadius      ()
+    return
+  end function coolingFreefallConstructorInternal
 
-    ! Get the virial radius.
-    virialRadius  =darkMatterHaloScale_%virialRadius(thisNode)
+  subroutine coolingFreefallDestructor(self)
+    !% Destructor for the cooling radius infall radii class.
+    implicit none
+    type(coolingInfallRadiusCoolingFreefall), intent(inout) :: self
 
-    ! Get the cooling radius.
-    radiusCooling =coolingRadius_      %radius      (thisNode)
+    !# <objectDestructor name="self%coolingRadius_" />
+    return
+  end subroutine coolingFreefallDestructor
 
-    ! Get the freefall radius.
-    freefallRadius=Freefall_Radius                  (thisNode)
+  double precision function coolingFreefallRadius(self,node)
+    !% Return the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    implicit none
+    class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                                    :: radiusCooling, radiusFreefall
 
-    ! Compute the infall radius as the smaller of the cooling and freefall radii.
-    infallIsCoolingLimited=(radiusCooling < freefallRadius)
-    if (infallIsCoolingLimited) then
-       Infall_Radius_Cooling_Freefall=radiusCooling
+ 
+    radiusCooling =self%coolingRadius_%radius(node)
+    radiusFreefall=Freefall_Radius           (node)
+    if (radiusCooling < radiusFreefall) then
+       coolingFreefallRadius=radiusCooling
     else
-       Infall_Radius_Cooling_Freefall=freefallRadius
+       coolingFreefallRadius=radiusFreefall
     end if
     return
-  end function Infall_Radius_Cooling_Freefall
+  end function coolingFreefallRadius
 
-  double precision function Infall_Radius_Growth_Rate_Cooling_Freefall(thisNode)
-    !% Return the growth rate of the infall radius in the ``cooling and freefall'' model in Mpc/Gyr.
-    use Galacticus_Nodes
-    use Cooling_Radii
-    use Freefall_Radii
-    use Dark_Matter_Halo_Scales
+  double precision function coolingFreefallRadiusIncreaseRate(self,node)
+    !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    class           (coolingRadiusClass      ), pointer       :: coolingRadius_
-    double precision                                          :: radiusCooling         , freefallRadius, &
-         &                                                       virialRadius
-    logical                                                   :: infallIsCoolingLimited
+    class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                                    :: radiusCooling, radiusFreefall
 
-    ! Get required objects.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    coolingRadius_       => coolingRadius      ()
-    
-    ! Get the virial radius.
-    virialRadius  =darkMatterHaloScale_%virialRadius(thisNode)
-    
-    ! Get the cooling radius.
-    radiusCooling =coolingRadius_      %radius      (thisNode)
-
-    ! Get the freefall radius.
-    freefallRadius=Freefall_Radius                  (thisNode)
-
-    ! Compute the infall radius as the smaller of the cooling and freefall radii.
-    infallIsCoolingLimited=(radiusCooling < freefallRadius)
-    if (infallIsCoolingLimited) then
-       Infall_Radius_Growth_Rate_Cooling_Freefall=coolingRadius_%radius      (thisNode)
+    radiusCooling =self%coolingRadius_%radius(node)
+    radiusFreefall=Freefall_Radius           (node)
+    if (radiusCooling < radiusFreefall) then
+       coolingFreefallRadiusIncreaseRate=self%coolingRadius_%radiusGrowthRate(node)
     else
-       Infall_Radius_Growth_Rate_Cooling_Freefall=Freefall_Radius_Growth_Rate(thisNode)
+       coolingFreefallRadiusIncreaseRate=Freefall_Radius_Growth_Rate         (node)
     end if
     return
-  end function Infall_Radius_Growth_Rate_Cooling_Freefall
-
-end module Infall_Radii_Cooling_Freefall
+  end function coolingFreefallRadiusIncreaseRate

@@ -14,10 +14,12 @@
 !!    GNU General Public License for more details.
 !!
 !!    You should have received a copy of the GNU General Public License
-  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
   
   !% Implementation of a cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
-  
+
+  use Cooling_Infall_Radii
+
   !# <coolingRate name="coolingRateCole2000">
   !#  <description>Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
   !# properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.</description>
@@ -25,13 +27,16 @@
   type, extends(coolingRateClass) :: coolingRateCole2000
      !% Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
      private
+      class(coolingInfallRadiusClass), pointer :: coolingInfallRadius_
    contains
+     final     ::         cole2000Destructor
      procedure :: rate => cole2000Rate
   end type coolingRateCole2000
 
   interface coolingRateCole2000
      !% Constructors for the \cite{cole_hierarchical_2000} cooling rate class.
      module procedure cole2000ConstructorParameters
+     module procedure cole2000ConstructorInternal
   end interface coolingRateCole2000
 
 contains
@@ -40,18 +45,37 @@ contains
     !% Constructor for the \cite{cole_hierarchical_2000} cooling rate class which builds the object from a parameter set.
     use Input_Parameters2
     implicit none
-    type(coolingRateCole2000)                :: self
-    type(inputParameters    ), intent(inout) :: parameters
+    type (coolingRateCole2000     )                :: self
+    type (inputParameters         ), intent(inout) :: parameters
+    class(coolingInfallRadiusClass), pointer       :: coolingInfallRadius_
     !GCC$ attributes unused :: parameters
     
-    self=coolingRateCole2000()
+    self=coolingRateCole2000(coolingInfallRadius_)
     return
   end function cole2000ConstructorParameters
+  
+  function cole2000ConstructorInternal(coolingInfallRadius_) result(self)
+    !% Internal constructor for the \cite{cole_hierarchical_2000} cooling rate class.
+    implicit none
+    type (coolingRateCole2000     )                        :: self
+    class(coolingInfallRadiusClass), intent(in   ), target :: coolingInfallRadius_
+    !# <constructorAssign variables="*coolingInfallRadius_"/>
+
+    return
+  end function cole2000ConstructorInternal
+
+  subroutine cole2000Destructor(self)
+    !% Destructor for the \cite{cole_hierarchical_2000} cooling rate class.
+    implicit none
+    type(coolingRateCole2000), intent(inout) :: self
+
+    !# <objectDestructor name="self%coolingInfallRadius_" />
+    return
+  end subroutine cole2000Destructor
 
   double precision function cole2000Rate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
-    use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Mass_Distributions
     implicit none
@@ -75,17 +99,17 @@ contains
     ! Get the outer radius of the hot halo.
     radiusOuter =hotHaloFormation%outerRadius()
     ! Get the infall radius.
-    radiusInfall=Infall_Radius(node%formationNode)
+    radiusInfall=self%coolingInfallRadius_%radius(node%formationNode)
     if (radiusInfall >= radiusOuter) then
        ! Infall radius exceeds the outer radius - zero infall rate.
        cole2000Rate=0.0d0
     else
        ! Get the hot halo mass distribution.
-       hotHaloMassDistribution_ => hotHaloMassDistribution          (                               )
+       hotHaloMassDistribution_ =>      hotHaloMassDistribution                    (                               )
        ! Find the density at the infall radius.
-       densityInfall            =  hotHaloMassDistribution_ %density(node%formationNode,radiusInfall)
+       densityInfall            =       hotHaloMassDistribution_%density           (node%formationNode,radiusInfall)
        ! Find infall radius growth rate.
-       radiusInfallGrowthRate   =  Infall_Radius_Growth_Rate        (node%formationNode             )
+       radiusInfallGrowthRate   =  self%coolingInfallRadius_    %radiusIncreaseRate(node%formationNode             )
        ! Compute the infall rate.
        cole2000Rate             = +4.0d0                     &
             &                     *Pi                        &
