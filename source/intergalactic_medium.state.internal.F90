@@ -113,7 +113,7 @@ contains
 
   function internalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily internal} \gls{igm} state class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(intergalacticMediumStateInternal)                :: self
     type(inputParameters                 ), intent(inout) :: parameters

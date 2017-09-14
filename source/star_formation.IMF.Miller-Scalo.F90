@@ -80,30 +80,26 @@ contains
     if (.not.imfMillerScaloInitialized) then
        !$omp critical (IMF_MillerScalo_Initialize)
        if (.not.imfMillerScaloInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfMillerScaloRecycledInstantaneous</name>
-          !@   <defaultValue>0.52 (computed internally)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The recycled fraction for the MillerScalo \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfMillerScaloRecycledInstantaneous',imfMillerScaloRecycledInstantaneous,defaultValue=0.52d0)
-          !@ <inputParameter>
-          !@   <name>imfMillerScaloYieldInstantaneous</name>
-          !@   <defaultValue>0.026 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The yield for the MillerScalo \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfMillerScaloYieldInstantaneous'   ,imfMillerScaloYieldInstantaneous   ,defaultValue=0.026d0)
+          !# <inputParameter>
+          !#   <name>imfMillerScaloRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(computed internally)</defaultSource>
+          !#   <defaultValue>0.52d0</defaultValue>
+          !#   <description>The recycled fraction for the MillerScalo \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfMillerScaloYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.026d0</defaultValue>
+          !#   <description>The yield for the MillerScalo \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)

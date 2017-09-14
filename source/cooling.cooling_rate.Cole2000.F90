@@ -43,7 +43,7 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} cooling rate class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (coolingRateCole2000     )                :: self
     type (inputParameters         ), intent(inout) :: parameters

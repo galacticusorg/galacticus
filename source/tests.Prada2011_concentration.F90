@@ -40,6 +40,7 @@ program Test_Prada2011_Concentration
   double precision                                     , dimension(massCount)                     :: ourLogConcentration
   class           (cosmologyFunctionsClass )                                            , pointer :: cosmologyFunctions_
   integer                                                                                         :: iMass
+  type            (inputParameters         )                                                      :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Prada2011_concentration.size')
@@ -50,7 +51,8 @@ program Test_Prada2011_Concentration
   ! Test Prada2011 halo concentration algorithm.
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Prada2011HaloConcentration/testParameters.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Create a node.
   node                            => treeNode                            (                 )
@@ -80,9 +82,6 @@ program Test_Prada2011_Concentration
   ! Check that results are as expected.
   message="Halo concentration at z=0"
   call Assert(char(message),ourLogConcentration,pradaLogConcentration,absTol=0.01d0)
-
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

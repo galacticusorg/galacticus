@@ -37,7 +37,7 @@ contains
 
   function booleanConstructorParameters(parameters) result(self)
     !% Constructor for the ``boolean'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyOperatorBoolean)                :: self
     type(inputParameters                      ), intent(inout) :: parameters

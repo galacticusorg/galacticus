@@ -66,7 +66,7 @@ contains
 
   function staticUniverseConstructorParameters(parameters) result(self)
     !% Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (cosmologyFunctionsStaticUniverse)                :: self
     type (inputParameters                 ), intent(inout) :: parameters

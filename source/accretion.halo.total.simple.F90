@@ -38,7 +38,7 @@ contains
 
   function simpleConstructorParameters(parameters) result (self)
     !% Constructor for the simple total halo accretion state class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(accretionHaloTotalSimple)                :: self
     type(inputParameters         ), intent(inout) :: parameters

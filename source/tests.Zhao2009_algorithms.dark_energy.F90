@@ -52,7 +52,8 @@ program Test_Zhao2009_Dark_Energy
        &                                                                                         ourConcentration                                , ourTime                                , &
        &                                                                                         redshift                                        , theirConcentration                     , &
        &                                                                                         theirTime                                       , timeDifferenceMaximum
-
+  type            (inputParameters                        )                                   :: parameters
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.dark_energy.size')
 
@@ -62,7 +63,8 @@ program Test_Zhao2009_Dark_Energy
   ! Test Zhao et al. 2009 algorithms in a dark energy universe.
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Zhao2009Algorithms/darkEnergy.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Create a node.
   node  => treeNode      (                 )
@@ -138,9 +140,6 @@ program Test_Zhao2009_Dark_Energy
      call Assert(char(message),concentrationDifferenceMaximum,0.0d0,absTol=concentrationDifferenceTolerance(iMass))
 
   end do
-
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

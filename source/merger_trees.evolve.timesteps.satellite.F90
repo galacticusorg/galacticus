@@ -65,30 +65,24 @@ contains
           limitTimesteps=defaultSatelliteComponent%mergeTimeIsGettable()
 
           ! Get parameters controlling time maximum allowed time difference between galaxies at merging.
-          !@ <inputParameter>
-          !@   <name>mergeTargetTimeOffsetMaximumAbsolute</name>
-          !@   <defaultValue>0.01</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergeTargetTimeOffsetMaximumAbsolute',mergeTargetTimeOffsetMaximumAbsolute,defaultValue=0.010d0)
-          !@ <inputParameter>
-          !@   <name>mergeTargetTimeOffsetMaximumRelative</name>
-          !@   <defaultValue>0.001</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@      The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergeTargetTimeOffsetMaximumRelative',mergeTargetTimeOffsetMaximumRelative,defaultValue=0.001d0)
+          !# <inputParameter>
+          !#   <name>mergeTargetTimeOffsetMaximumAbsolute</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.010d0</defaultValue>
+          !#   <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergeTargetTimeOffsetMaximumRelative</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.001d0</defaultValue>
+          !#   <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Flag that the module is initialized.
           mergerTimestepsInitialized=.true.
        end if

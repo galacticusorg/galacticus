@@ -83,42 +83,36 @@ contains
     if (starFormationTimescaleDisksMethod == 'velocityMaximumScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_VlctyMxSclng
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksVelocityMaximumScalingTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale for star formation in the velocity maximum scaling timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksVelocityMaximumScalingTimescale',starFormationTimescaleDisksVlctyMxSclngTimescale,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent</name>
-       !@   <defaultValue>$0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent',starFormationTimescaleDisksVlctyMxSclngVelocityExponent,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent</name>
-       !@   <defaultValue>$0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent',starFormationTimescaleDisksVlctyMxSclngRedshiftExponent,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksVelocityMaximumScalingTimescale</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The timescale for star formation in the velocity maximum scaling timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>starFormationTimescaleDisksVlctyMxSclngTimescale</variable>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>starFormationTimescaleDisksVlctyMxSclngVelocityExponent</variable>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>starFormationTimescaleDisksVlctyMxSclngRedshiftExponent</variable>
+       !# </inputParameter>
        ! Compute the normalization of the timescale.
        timeScaleNormalization= starFormationTimescaleDisksVlctyMxSclngTimescale                               &
        &                      /velocityNormalization**starFormationTimescaleDisksVlctyMxSclngVelocityExponent

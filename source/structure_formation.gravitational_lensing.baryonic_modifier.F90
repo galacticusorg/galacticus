@@ -52,7 +52,7 @@ contains
 
   function baryonicModifierConstructorParameters(parameters) result(self)
     !% Default constructor for the ``baryonic modifier'' gravitational lensing class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (gravitationalLensingBaryonicModifier)                :: self
     type            (inputParameters                     ), intent(inout) :: parameters

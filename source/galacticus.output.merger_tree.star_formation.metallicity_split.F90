@@ -72,95 +72,74 @@ contains
        Star_Formation_History_Output_Do => Star_Formation_History_Output_Metallicity_Split
 
        ! Get controlling parameters.
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryTimeStep</name>
-       !@   <defaultValue>$0.1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The time step to use in tabulations of star formation histories [Gyr].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryTimeStep'          ,starFormationHistoryTimeStep          ,defaultValue=0.1d0 )
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryFineTimeStep</name>
-       !@   <defaultValue>$0.01$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The fine time step to use in tabulations of star formation histories [Gyr].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryFineTimeStep'      ,starFormationHistoryFineTimeStep      ,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryFineTime</name>
-       !@   <defaultValue>$0.1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryFineTime'          ,starFormationHistoryFineTime          ,defaultValue=0.1d0 )
+       !# <inputParameter>
+       !#   <name>starFormationHistoryTimeStep</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>The time step to use in tabulations of star formation histories [Gyr].</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationHistoryFineTimeStep</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.01d0</defaultValue>
+       !#   <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationHistoryFineTime</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Check if specific metallicities were given.
-       if (Input_Parameter_Is_Present('starFormationHistoryMetallicityBoundaries')) then
-          starFormationHistoryMetallicityCount=Get_Input_Parameter_Array_Size('starFormationHistoryMetallicityBoundaries')
+       if (globalParameters%isPresent('starFormationHistoryMetallicityBoundaries')) then
+          starFormationHistoryMetallicityCount=globalParameters%count('starFormationHistoryMetallicityBoundaries')
           call allocateArray(metallicityTable,[starFormationHistoryMetallicityCount+1])
-          !@ <inputParameter>
-          !@   <name>starFormationHistoryMetallicityBoundaries</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1..</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationHistoryMetallicityBoundaries',metallicityTable(1:size(metallicityTable)-1))
+          !# <inputParameter>
+          !#   <name>starFormationHistoryMetallicityBoundaries</name>
+          !#   <description>The metallicities corresponding to boundaries between metallicity bins to use when tabulating star formation histories.</description>
+          !#   <variable>metallicityTable(1:size(metallicityTable)-1)</variable>
+          !#   <type>real</type>
+          !#   <cardinality>1..</cardinality>
+          !#   <group>output</group>
+          !# </inputParameter>
           metallicityTable(size(metallicityTable))=metallicityInfinite
        else
-          !@ <inputParameter>
-          !@   <name>starFormationHistoryMetallicityCount</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of bins in metallicity to use when tabulating star formation histories.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationHistoryMetallicityCount'  ,starFormationHistoryMetallicityCount  ,defaultValue=10    )
-          !@ <inputParameter>
-          !@   <name>starFormationHistoryMetallicityMinimum</name>
-          !@   <defaultValue>$10^{-4}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationHistoryMetallicityMinimum',starFormationHistoryMetallicityMinimum,defaultValue=1.0d-4)
-          !@ <inputParameter>
-          !@   <name>starFormationHistoryMetallicityMaximum</name>
-          !@   <defaultValue>$10^{1}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationHistoryMetallicityMaximum',starFormationHistoryMetallicityMaximum,defaultValue=1.0d+1)
+          !# <inputParameter>
+          !#   <name>starFormationHistoryMetallicityCount</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins in metallicity to use when tabulating star formation histories.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>starFormationHistoryMetallicityMinimum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d-4</defaultValue>
+          !#   <description>The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>starFormationHistoryMetallicityMaximum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d+1</defaultValue>
+          !#   <description>The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
           ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity

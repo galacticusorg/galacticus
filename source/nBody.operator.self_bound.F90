@@ -42,7 +42,7 @@ contains
 
   function selfBoundConstructorParameters(parameters) result (self)
     !% Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (nbodyOperatorSelfBound)                :: self
     type            (inputParameters       ), intent(inout) :: parameters
@@ -79,7 +79,7 @@ contains
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate) result (self)
     !% Internal constructor for the ``selfBound'' N-body operator class
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (nbodyOperatorSelfBound)                :: self
     double precision                        , intent(in   ) :: tolerance           , bootstrapSampleRate

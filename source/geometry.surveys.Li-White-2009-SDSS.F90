@@ -45,7 +45,7 @@ contains
 
   function liWhite2009SDSSConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{li_distribution_2009} survey geometry class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (surveyGeometryLiWhite2009SDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters

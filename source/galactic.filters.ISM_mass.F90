@@ -42,7 +42,7 @@ contains
 
   function ismMassConstructorParameters(parameters)
     !% Constructor for the ``ismMass'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(galacticFilterISMMass)                :: ismMassConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters

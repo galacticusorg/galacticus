@@ -62,8 +62,9 @@ program Mocks_Correlation_Functions
        &                                                                    i                                       , j                                             , &
        &                                                                    mockCorrelationFunctionRandomSampleCountType, replicatedGalaxyCount                     , &
        &                                                                    replications
-  type            (pseudoRandom  )                                       :: randomSequence
-  character       (len=128       )                                       :: label
+  type            (pseudoRandom           )                              :: randomSequence
+  character       (len=128                )                              :: label
+  type            (inputParameters        )                              :: parameters
   logical                                                                :: mockCorrelationFunctionHalfIntegral
 
   ! Read in basic code memory usage.
@@ -71,77 +72,60 @@ program Mocks_Correlation_Functions
   ! Check that correct number of arguments have been supplied.
   if (Command_Argument_Count() /= 3) call Galacticus_Error_Report(message="Usage: Mocks_Correlation_Functions.exe <parameterFileName> <galaxyCatalog> <correlationFunctionFileName>")
   ! Get the arguments.
-  call Get_Argument              (1,parameterFileName          )
-  call Get_Argument              (2,galaxyCatalogFileName      )
-  call Get_Argument              (3,correlationFunctionFileName)
+  call Get_Argument(1,parameterFileName          )
+  call Get_Argument(2,galaxyCatalogFileName      )
+  call Get_Argument(3,correlationFunctionFileName)
   ! Open the parameter file.
-  call Input_Parameters_File_Open(  parameterFileName          )
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionMassMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$0$</defaultValue>
-  !@   <description>
-  !@     The minimum mass galaxy to include in a mock catalog correlation function calculation.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionMassMinimum',mockCorrelationFunctionMassMinimum,defaultValue=0.0d0)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionMassMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-  !@   <description>
-  !@     The maximum mass galaxy to include in a mock catalog correlation function calculation.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionMassMaximum',mockCorrelationFunctionMassMaximum,defaultValue=1.0d16)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionSeparationMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$0.1$ Mpc</defaultValue>
-  !@   <description>
-  !@     The minimum separation to compute in a mock catalog correlation function calculation.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionSeparationMinimum',mockCorrelationFunctionSeparationMinimum,defaultValue=0.1d0)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionSeparationMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$30$ Mpc</defaultValue>
-  !@   <description>
-  !@     The maximum separation to compute in a mock catalog correlation function calculation.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionSeparationMaximum',mockCorrelationFunctionSeparationMaximum,defaultValue=30.0d0)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionSeparationCount</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>15</defaultValue>
-  !@   <description>
-  !@     The number of bins in separation to compute in a mock catalog correlation function calculation.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionSeparationCount',mockCorrelationFunctionSeparationCount,defaultValue=15)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionRandomSampleCount</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>*10</defaultValue>
-  !@   <description>
-  !@     The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionRandomSampleCount',mockCorrelationFunctionRandomSampleCount,defaultValue='*10')
+  parameters=inputParameters(parameterFileName)
+  call parameters%markGlobal()
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionMassMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>0.0d0</defaultValue>
+  !#   <description>The minimum mass galaxy to include in a mock catalog correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionMassMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d16</defaultValue>
+  !#   <description>The maximum mass galaxy to include in a mock catalog correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionSeparationMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>0.1d0</defaultValue>
+  !#   <description>The minimum separation to compute in a mock catalog correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionSeparationMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>30.0d0</defaultValue>
+  !#   <description>The maximum separation to compute in a mock catalog correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionSeparationCount</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>15</defaultValue>
+  !#   <description>The number of bins in separation to compute in a mock catalog correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionRandomSampleCount</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>var_str('*10')</defaultValue>
+  !#   <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
   if (extract(mockCorrelationFunctionRandomSampleCount,1,1) == "*") then
      mockCorrelationFunctionRandomSampleCountType=mockCorrelationFunctionRandomSampleCountMultiplicative
      label=char(extract(mockCorrelationFunctionRandomSampleCount,2))
@@ -151,72 +135,54 @@ program Mocks_Correlation_Functions
      label=char(mockCorrelationFunctionRandomSampleCount)
      read (label,*) mockCorrelationFunctionRandomSampleCountValue
   end if
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionRadialSeparationMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>40 Mpc</defaultValue>
-  !@   <description>
-  !@     The maximum radial separation of galaxies to consider when computing projected correlation functions.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionRadialSeparationMaximum',mockCorrelationFunctionRadialSeparationMaximum,defaultValue=40.0d0)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionHalfIntegral</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>false</defaultValue>
-  !@   <description>
-  !@     Set to {\tt true} if the projected correlation function is computed as $w_{\mathrm p}(r_{\mathrm p})=\int_0^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$, instead of the usual $w_{\mathrm p}(r_{\mathrm p})=\int_{-\pi_{\mathrm max}}^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionHalfIntegral',mockCorrelationFunctionHalfIntegral,defaultValue=.false.)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionBufferWidth</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>30 Mpc</defaultValue>
-  !@   <description>
-  !@     The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionBufferWidth',mockCorrelationFunctionBufferWidth,defaultValue=30.0d0)
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionOrigin</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>random</defaultValue>
-  !@   <description>
-  !@     The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionOrigin',mockCorrelationFunctionOrigin,defaultValue=[randomSequence%sample(),randomSequence%sample(),randomSequence%sample()])
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionRotationVector</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>random</defaultValue>
-  !@   <description>
-  !@     The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionRotationVector',mockCorrelationFunctionRotationVector,defaultValue=[acos(2.0d0   *randomSequence%sample()-1.0d0),2.0d0*Pi*randomSequence%sample()])
-  !@ <inputParameter>
-  !@   <name>mockCorrelationFunctionRotationAngle</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>random</defaultValue>
-  !@   <description>
-  !@     The angle through which the mock catalog should be rotated.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('mockCorrelationFunctionRotationAngle',mockCorrelationFunctionRotationAngle,defaultValue=2.0d0*Pi*randomSequence%sample())
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionRadialSeparationMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>40.0d0</defaultValue>
+  !#   <description>The maximum radial separation of galaxies to consider when computing projected correlation functions.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionHalfIntegral</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>.false.</defaultValue>
+  !#   <description>Set to {\tt true} if the projected correlation function is computed as $w_{\mathrm p}(r_{\mathrm p})=\int_0^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$, instead of the usual $w_{\mathrm p}(r_{\mathrm p})=\int_{-\pi_{\mathrm max}}^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionBufferWidth</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>30.0d0</defaultValue>
+  !#   <description>The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionOrigin</name>
+  !#   <defaultValue>[randomSequence%sample(),randomSequence%sample(),randomSequence%sample()]</defaultValue>
+  !#   <defaultSource>Uniformly random distribution within the box.</defaultSource>
+  !#   <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
+  !#   <type>float</type>
+  !#   <cardinality>1</cardinality>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionRotationVector</name>
+  !#   <defaultValue>[acos(2.0d0*randomSequence%sample()-1.0d0),2.0d0*Pi*randomSequence%sample()]</defaultValue>
+  !#   <defaultSource>Isotropically random on the unit sphere.</defaultSource>
+  !#   <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
+  !#   <type>float</type>
+  !#   <cardinality>1</cardinality>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>mockCorrelationFunctionRotationAngle</name>
+  !#   <defaultValue>2.0d0*Pi*randomSequence%sample()</defaultValue>
+  !#   <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
+  !#   <description>The angle through which the mock catalog should be rotated.</description>
+  !#   <type>float</type>
+  !#   <cardinality>1</cardinality>
+  !# </inputParameter>
   ! Get required objects.
   cosmologyFunctions_ => cosmologyFunctions()
   surveyGeometry_     => surveyGeometry    ()
@@ -342,8 +308,6 @@ program Mocks_Correlation_Functions
   call thisDataset%writeAttribute(megaParsec,'unitsInSI')
   call thisDataset%close         (                      )
   call correlationFunctionFile%close()
-  ! Close the parameter file.
-  call Input_Parameters_File_Close()
 
 contains
 

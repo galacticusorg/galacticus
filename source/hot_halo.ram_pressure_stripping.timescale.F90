@@ -52,17 +52,14 @@ contains
        !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)
        if (.not.hotHaloRamPressureStrippingTimescaleInitialized) then
           ! Get the cooling rate method parameter.
-          !@ <inputParameter>
-          !@   <name>hotHaloRamPressureStrippingTimescaleMethod</name>
-          !@   <defaultValue>ramPressureAcceleration</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used when computing ram pressure stripping timescales for hot halos.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloRamPressureStrippingTimescaleMethod',hotHaloRamPressureStrippingTimescaleMethod,defaultValue='ramPressureAcceleration')
+          !# <inputParameter>
+          !#   <name>hotHaloRamPressureStrippingTimescaleMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('ramPressureAcceleration')</defaultValue>
+          !#   <description>The name of the method to be used when computing ram pressure stripping timescales for hot halos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="hotHaloRamPressureStrippingTimescaleMethod" type="functionCall" functionType="void">
           !#  <functionArgs>hotHaloRamPressureStrippingTimescaleMethod,Hot_Halo_Ram_Pressure_Stripping_Timescale_Get</functionArgs>

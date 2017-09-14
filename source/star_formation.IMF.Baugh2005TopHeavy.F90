@@ -80,30 +80,26 @@ contains
     if (.not.imfBaugh2005TopHeavyInitialized) then
        !$omp critical (IMF_Baugh2005TopHeavy_Initialize)
        if (.not.imfBaugh2005TopHeavyInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfBaugh2005TopHeavyRecycledInstantaneous</name>
-          !@   <defaultValue>0.91 \citep{baugh_can_2005}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The recycled fraction for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfBaugh2005TopHeavyRecycledInstantaneous',imfBaugh2005TopHeavyRecycledInstantaneous,defaultValue=0.57d0)
-          !@ <inputParameter>
-          !@   <name>imfBaugh2005TopHeavyYieldInstantaneous</name>
-          !@   <defaultValue>0.15 \citep{baugh_can_2005}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The yield for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfBaugh2005TopHeavyYieldInstantaneous'   ,imfBaugh2005TopHeavyYieldInstantaneous   ,defaultValue=0.044d0)
+          !# <inputParameter>
+          !#   <name>imfBaugh2005TopHeavyRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>\citep{baugh_can_2005}</defaultSource>
+          !#   <defaultValue>0.57d0</defaultValue>
+          !#   <description>The recycled fraction for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfBaugh2005TopHeavyYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>\citep{baugh_can_2005}</defaultSource>
+          !#   <defaultValue>0.044d0</defaultValue>
+          !#   <description>The yield for the \cite{baugh_can_2005} top-heavy \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)

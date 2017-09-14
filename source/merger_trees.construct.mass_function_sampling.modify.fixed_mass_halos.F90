@@ -61,90 +61,78 @@ contains
        if (.not.fixedMassHalosInitialized) then
           ! Find number of masses to insert.
           fixedHalosCount=-1
-          if (Input_Parameter_Is_Present('haloMassSampleModifierFixedMassHalosMass' )) then
+          if (globalParameters%isPresent('haloMassSampleModifierFixedMassHalosMass' )) then
              if     (                                                                                                &
                   &   fixedHalosCount /= -1                                                                          &
                   &  .and.                                                                                           &
-                  &   fixedHalosCount /= Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosMass' ) &
+                  &   fixedHalosCount /= globalParameters%count('haloMassSampleModifierFixedMassHalosMass' )         &
                   & )                                                                                                &
                   & call Galacticus_Error_Report(                                                                    &
                   &                              'fixedMassHalosDefaultConstructor',                                 &
                   &                              'parameter cardinality mismatch'                                    &
                   &                             )
-             if (fixedHalosCount == -1) fixedHalosCount=Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosMass' )
+             if (fixedHalosCount == -1) fixedHalosCount=globalParameters%count('haloMassSampleModifierFixedMassHalosMass' )
           end if
-          if (Input_Parameter_Is_Present('haloMassSampleModifierFixedMassHalosCount')) then
+          if (globalParameters%isPresent('haloMassSampleModifierFixedMassHalosCount')) then
              if     (                                                                                                &
                   &   fixedHalosCount /= -1                                                                          &
                   &  .and.                                                                                           &
-                  &   fixedHalosCount /= Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosCount') &
+                  &   fixedHalosCount /= globalParameters%count('haloMassSampleModifierFixedMassHalosCount')         &
                   & )                                                                                                &
                   & call Galacticus_Error_Report(                                                                    &
                   &                              'fixedMassHalosDefaultConstructor',                                 &
                   &                              'parameter cardinality mismatch'                                    &
                   &                             )
-             if (fixedHalosCount == -1) fixedHalosCount=Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosCount')
+             if (fixedHalosCount == -1) fixedHalosCount=globalParameters%count('haloMassSampleModifierFixedMassHalosCount')
           end if
-          if (Input_Parameter_Is_Present('haloMassSampleModifierFixedMassHalosRadius')) then
+          if (globalParameters%isPresent('haloMassSampleModifierFixedMassHalosRadius')) then
              if     (                                                                                                 &
                   &   fixedHalosCount /= -1                                                                           &
                   &  .and.                                                                                            &
-                  &   fixedHalosCount /= Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosRadius') &
+                  &   fixedHalosCount /= globalParameters%count('haloMassSampleModifierFixedMassHalosRadius')         &
                   & )                                                                                                 &
                   & call Galacticus_Error_Report(                                                                     &
                   &                              'fixedMassHalosDefaultConstructor',                                  &
                   &                              'parameter cardinality mismatch'                                     &
                   &                             )
-             if (fixedHalosCount == -1) fixedHalosCount=Get_Input_Parameter_Array_Size('haloMassSampleModifierFixedMassHalosRadius')
+             if (fixedHalosCount == -1) fixedHalosCount=globalParameters%count('haloMassSampleModifierFixedMassHalosRadius')
           end if
           if (fixedHalosCount == -1) fixedHalosCount=1
           call allocateArray(haloMassSampleModifierFixedMassHalosMass  ,[fixedHalosCount])
           call allocateArray(haloMassSampleModifierFixedMassHalosCount ,[fixedHalosCount])
           call allocateArray(haloMassSampleModifierFixedMassHalosRadius,[fixedHalosCount])
-          !@ <inputParameter>
-          !@   <name>haloMassSampleModifierFixedMassHalosMass</name>
-          !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the masses of halos to insert into the halo mass sample when building halos.
-          !@   </description>
-          !@   <type>float</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosMass',haloMassSampleModifierFixedMassHalosMass,defaultValue=spread(1.0d12,1,fixedHalosCount))
-          !@ <inputParameter>
-          !@   <name>haloMassSampleModifierFixedMassHalosCount</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the number of halos to insert into the halo mass sample when building halos.
-          !@   </description>
-          !@   <type>float</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosCount',haloMassSampleModifierFixedMassHalosCount,defaultValue=spread(1,1,fixedHalosCount))
-          !@ <inputParameter>
-          !@   <name>haloMassSampleModifierFixedMassHalosRadius</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the radii within which halo masses are specified when inserting fixed mass halos into the mass sample when building halos.
-          !@   </description>
-          !@   <type>float</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosRadius',haloMassSampleModifierFixedMassHalosRadius,defaultValue=spread(-1.0d0,1,fixedHalosCount))
-          !@ <inputParameter>
-          !@   <name>haloMassSampleModifierFixedMassHalosOverwrite</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     If {\normalfont \ttfamily true} the sample of halo masses will be overwritten instead of being added to.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('haloMassSampleModifierFixedMassHalosOverwrite',haloMassSampleModifierFixedMassHalosOverwrite,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>haloMassSampleModifierFixedMassHalosMass</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
+          !#   <description>Specifies the masses of halos to insert into the halo mass sample when building halos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>float</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>haloMassSampleModifierFixedMassHalosCount</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
+          !#   <description>Specifies the number of halos to insert into the halo mass sample when building halos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>float</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>haloMassSampleModifierFixedMassHalosRadius</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
+          !#   <description>Specifies the radii within which halo masses are specified when inserting fixed mass halos into the mass sample when building halos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>float</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>haloMassSampleModifierFixedMassHalosOverwrite</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>If {\normalfont \ttfamily true} the sample of halo masses will be overwritten instead of being added to.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Record that we are now initialized.
           fixedMassHalosInitialized=.true.
        end if

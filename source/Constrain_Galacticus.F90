@@ -32,6 +32,7 @@ program Galacticus_Constrain
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter     , configFileCharacter
   type     (varying_string           )            :: parameterFile              , configFile
   integer                                         :: verbosityLevel
+  type     (inputParameters          )            :: parameters
 
   ! Initialize MPI.
   call mpiInitialize()
@@ -47,24 +48,20 @@ program Galacticus_Constrain
   if (len_trim(   configFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Constrain_Galacticus.exe <parameterFile> <simulationConfig>")
   configFile=configFileCharacter
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,allowedParametersFile='Constrain_Galacticus.parameters.xml')
+  parameters=inputParameters(parameterFile,allowedParametersFile='Constrain_Galacticus.parameters.xml')
+  call parameters%markGlobal()
   ! Set the verbosity level.
-  !@ <inputParameter>
-  !@   <name>verbosityLevel</name>
-  !@   <defaultValue>1</defaultValue>
-  !@   <attachedTo>module</attachedTo>
-  !@   <description>
-  !@     The level of verbosity for the {\normalfont \ttfamily Constrain\_Galacticus} code (higher values give more verbosity).
-  !@   </description>
-  !@   <type>integer</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+  !# <inputParameter>
+  !#   <name>verbosityLevel</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1</defaultValue>
+  !#   <description>The level of verbosity for the {\normalfont \ttfamily Constrain\_Galacticus} code (higher values give more verbosity).</description>
+  !#   <source>globalParameters</source>
+  !#   <type>integer</type>
+  !# </inputParameter>
   call Galacticus_Verbosity_Level_Set(verbosityLevel)
   ! Run the simulation
   call Constrain(configFile)
-  ! Close the parameter file.
-  call Input_Parameters_File_Close()
   ! Finalize MPI.
   call mpiFinalize()
 

@@ -42,7 +42,7 @@ contains
 
   function massFunctionStellarConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                             :: self
     type            (inputParameters                        ), intent(inout)              :: parameters

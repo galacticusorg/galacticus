@@ -183,7 +183,7 @@ sub Process_FunctionClass {
 	    };
 	    # Add "descriptor" method.
 	    my $descriptorCode;
-	    my %descriptorModules = ( "Input_Parameters2" => 1 );
+	    my %descriptorModules = ( "Input_Parameters" => 1 );
 	    my %addSubParameters;
 	    my $addLabel         = 0;
 	    my $descriptorUsed   = 0;
@@ -525,7 +525,7 @@ CODE
 		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
 		type        => "type(varying_string)",
 		pass        => "yes",
-		modules     => "ISO_Varying_String Input_Parameters2 Hashes_Cryptographic",
+		modules     => "ISO_Varying_String Input_Parameters Hashes_Cryptographic",
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
@@ -1036,7 +1036,7 @@ CODE
 	    # Create XML constructor.
 	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorParameters(parameters,copyInstance,parameterName)\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
-	    $postContains->[0]->{'content'} .= "      use Input_Parameters2\n";
+	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
 	    $postContains->[0]->{'content'} .= "      class    (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorParameters\n";
@@ -1124,7 +1124,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "   subroutine ".$directive->{'name'}."Initialize()\n";
 	    $postContains->[0]->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      use ISO_Varying_String\n";
-	    $postContains->[0]->{'content'} .= "      use Input_Parameters2\n";
+	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 	    $postContains->[0]->{'content'} .= "      use IO_HDF5\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";

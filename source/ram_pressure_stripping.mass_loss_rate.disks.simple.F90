@@ -42,17 +42,14 @@ contains
 
     if (ramPressureStrippingMassLossRateDisksMethod == 'simple') then
        Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple
-       !@ <inputParameter>
-       !@   <name>ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum</name>
-       !@   <defaultValue>$10$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to ram pressure stripping.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum',ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum,defaultValue=10.0d0)
+       !# <inputParameter>
+       !#   <name>ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to ram pressure stripping.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init

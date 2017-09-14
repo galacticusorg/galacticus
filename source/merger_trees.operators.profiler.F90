@@ -49,7 +49,7 @@ contains
 
   function profilerConstructorParameters(parameters) result(self)
     !% Constructor for the information content merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (mergerTreeOperatorProfiler)                :: self
     type            (inputParameters           ), intent(inout) :: parameters

@@ -97,7 +97,7 @@ contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters

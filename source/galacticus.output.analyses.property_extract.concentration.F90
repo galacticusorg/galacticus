@@ -46,7 +46,7 @@ contains
 
   function concentrationConstructorParameters(parameters) result(self)
     !% Constructor for the ``concentration'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyExtractorConcentration)                :: self
     type (inputParameters                             ), intent(inout) :: parameters
@@ -62,7 +62,7 @@ contains
 
   function concentrationConstructorInternal(virialDensityContrast_) result(self)
     !% Internal constructor for the ``concentration'' output analysis property extractor class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyExtractorConcentration)         :: self
     class(virialDensityContrastClass                  ), target :: virialDensityContrast_

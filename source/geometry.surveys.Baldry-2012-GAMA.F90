@@ -52,7 +52,7 @@ contains
 
   function baldry2012GAMAConstructorParameters(parameters) result (self)
     !% Constructor for the \cite{baldry_galaxy_2012} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Functions
     implicit none
     type (surveyGeometryBaldry2012GAMA)                :: self

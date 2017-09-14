@@ -44,7 +44,7 @@ contains
 
   function csmlgyLuminosityDistanceConstructorParameters(parameters) result(self)
     !% Constructor for the ``csmlgyLuminosityDistance'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                :: self
     type (inputParameters                                ), intent(inout) :: parameters

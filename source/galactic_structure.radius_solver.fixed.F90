@@ -53,28 +53,24 @@ contains
 
     if (galacticStructureRadiusSolverMethod == 'fixed') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Fixed
-       !@ <inputParameter>
-       !@   <name>galacticStructureRadiiFixedFactor</name>
-       !@   <defaultValue>$\sqrt{1/2}$ \citep{mo_formation_1998}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of galaxy radius to $\lambda r_{\mathrm vir}$ in the ``fixed'' galactic structure radius solver algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('galacticStructureRadiiFixedFactor',galacticStructureRadiiFixedFactor,defaultValue=sqrt(0.5d0))
-       !@ <inputParameter>
-       !@   <name>galacticStructureRadiiFixedRadius</name>
-       !@   <defaultValue>virial</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('galacticStructureRadiiFixedRadius',galacticStructureRadiiFixedRadiusText,defaultValue='virial')
+       !# <inputParameter>
+       !#   <name>galacticStructureRadiiFixedFactor</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
+       !#   <defaultValue>sqrt(0.5d0)</defaultValue>
+       !#   <description>The ratio of galaxy radius to $\lambda r_{\mathrm vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>galacticStructureRadiiFixedRadius</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('virial')</defaultValue>
+       !#   <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !#   <variable>galacticStructureRadiiFixedRadiusText</variable>
+       !# </inputParameter>
        select case (char(galacticStructureRadiiFixedRadiusText))
        case ('virial'    )
           galacticStructureRadiiFixedRadius=galacticStructureRadiiFixedRadiusVirial

@@ -57,17 +57,14 @@ contains
        !$omp critical (Meta_Tree_Timing_Pre_Construct_Initialize)
        if (.not.metaTimingDataInitialized) then
           ! Get parameter specifying if output is required.
-          !@ <inputParameter>
-          !@   <name>metaCollectTimingData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not collect and output data on the time spent processing trees.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('metaCollectTimingData',metaCollectTimingData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>metaCollectTimingData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not collect and output data on the time spent processing trees.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is initialized.
           metaTimingDataInitialized=.true.
        end if

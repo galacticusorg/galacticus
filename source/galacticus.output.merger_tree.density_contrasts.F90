@@ -64,30 +64,24 @@ contains
     if (.not.outputDensityContrastDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Density_Contrast_Initialize)
        if (.not.outputDensityContrastDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputDensityContrastData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not density contrast data (i.e. radius and mass at a given density contrast) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputDensityContrastData',outputDensityContrastData,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>outputDensityContrastDataDarkOnly</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not density contrast data should be computed using the dark matter component alone.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputDensityContrastDataDarkOnly',outputDensityContrastDataDarkOnly,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputDensityContrastData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not density contrast data (i.e. radius and mass at a given density contrast) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>outputDensityContrastDataDarkOnly</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not density contrast data should be computed using the dark matter component alone.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Get the default cosmology.
           cosmologyParameters_ => cosmologyParameters()
           select case (outputDensityContrastDataDarkOnly)
@@ -101,32 +95,26 @@ contains
 
           ! Read density contrast values if necessary.
           if (outputDensityContrastData) then
-             densityContrastCount=Get_Input_Parameter_Array_Size('outputDensityContrastValues')
+             densityContrastCount=globalParameters%count('outputDensityContrastValues')
              densityContrastPropertyCount=2*densityContrastCount
              call allocateArray(outputDensityContrastValues,[densityContrastCount])
-             !@ <inputParameter>
-             !@   <name>outputDensityContrastValues</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     A list of density contrasts at which to output data.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputDensityContrastValues',outputDensityContrastValues)
-             !@ <inputParameter>
-             !@   <name>outputDensityContrastHaloLoaded</name>
-             !@   <defaultValue>true</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Specifies whether baryonic loading of the halo should be accounted for when outputting density contrast data.
-             !@   </description>
-             !@   <type>boolean</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputDensityContrastHaloLoaded',outputDensityContrastHaloLoaded,defaultValue=.true.)
+             !# <inputParameter>
+             !#   <name>outputDensityContrastValues</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>A list of density contrasts at which to output data.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>outputDensityContrastHaloLoaded</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <defaultValue>.true.</defaultValue>
+             !#   <description>Specifies whether baryonic loading of the halo should be accounted for when outputting density contrast data.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>boolean</type>
+             !# </inputParameter>
           end if
 
           ! Flag that module is now initialized.

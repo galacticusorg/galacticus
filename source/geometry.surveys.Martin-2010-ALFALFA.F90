@@ -45,7 +45,7 @@ contains
 
   function martin2010ALFALFAConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{martin_arecibo_2010} conditional mass function class which takes a parameter list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (surveyGeometryMartin2010ALFALFA)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -61,7 +61,7 @@ contains
     
   function martin2010ALFALFAConstructorInternal(cosmologyParameters_) result(self)
     !% Internal constructor for the \cite{martin_arecibo_2010} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (surveyGeometryMartin2010ALFALFA)                        :: self
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_

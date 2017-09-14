@@ -56,17 +56,14 @@ contains
        !$omp critical(Stellar_Winds_Initialization)
        if (.not.stellarWindsInitialized) then
           ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>stellarWindsMethod</name>
-          !@   <defaultValue>standard</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The method to use for computing aspects of stellar winds.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarWindsMethod',stellarWindsMethod,defaultValue='Leitherer1992')
+          !# <inputParameter>
+          !#   <name>stellarWindsMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Leitherer1992')</defaultValue>
+          !#   <description>The method to use for computing aspects of stellar winds.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="stellarWindsMethod" type="functionCall" functionType="void">
           !#  <functionArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</functionArgs>

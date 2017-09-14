@@ -78,90 +78,76 @@ contains
        Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_BR
        Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_BR
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>velocityDispersionDiskGas</name>
-       !@   <defaultValue>10 \citep{leroy_star_2008}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity dispersion of gas in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('velocityDispersionDiskGas',velocityDispersionDiskGas,defaultValue=10.0d0)
-       !@ <inputParameter>
-       !@   <name>heightToRadialScaleDiskBlitzRosolowsky</name>
-       !@   <defaultValue>0.137 \citep{kregel_flattening_2002}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('heightToRadialScaleDiskBlitzRosolowsky',heightToRadialScaleDiskBlitzRosolowsky,defaultValue=0.137d0)
-       !@ <inputParameter>
-       !@   <name>surfaceDensityCriticalBlitzRosolowsky</name>
-       !@   <defaultValue>200 \citep{bigiel_star_2008}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky'' star formation timescale calculation at which low-density truncation begins.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('surfaceDensityCriticalBlitzRosolowsky',surfaceDensityCriticalBlitzRosolowsky,defaultValue=200.0d0)
-       !@ <inputParameter>
-       !@   <name>surfaceDensityExponentBlitzRosolowsky</name>
-       !@   <defaultValue>0.4 \citep{bigiel_star_2008}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent for surface density in the ``Blitz-Rosolowsky'' star formation timescale calculation at in the high density regime.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('surfaceDensityExponentBlitzRosolowsky',surfaceDensityExponentBlitzRosolowsky,defaultValue=0.4d0)
-       !@ <inputParameter>
-       !@   <name>starFormationFrequencyNormalizationBlitzRosolowsky</name>
-       !@   <defaultValue>$5.25\times 10^{-10}$ \citep{leroy_star_2008}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFrequencyNormalizationBlitzRosolowsky',starFormationFrequencyNormalizationBlitzRosolowsky,defaultValue=5.25d-10)
-       !@ <inputParameter>
-       !@   <name>pressureCharacteristicBlitzRosolowsky</name>
-       !@   <defaultValue>4.54 \citep{blitz_role_2006}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The characteristic pressure (given as $P_0/k_{\mathrm B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('pressureCharacteristicBlitzRosolowsky',pressureCharacteristicBlitzRosolowsky,defaultValue=4.54d0)
-       !@ <inputParameter>
-       !@   <name>pressureExponentBlitzRosolowsky</name>
-       !@   <defaultValue>0.92 \citep{blitz_role_2006}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('pressureExponentBlitzRosolowsky',pressureExponentBlitzRosolowsky,defaultValue=0.92d0)
+       !# <inputParameter>
+       !#   <name>velocityDispersionDiskGas</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The velocity dispersion of gas in disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>heightToRadialScaleDiskBlitzRosolowsky</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
+       !#   <defaultValue>0.137d0</defaultValue>
+       !#   <description>The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>surfaceDensityCriticalBlitzRosolowsky</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{bigiel_star_2008}</defaultSource>
+       !#   <defaultValue>200.0d0</defaultValue>
+       !#   <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky'' star formation timescale calculation at which low-density truncation begins.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>surfaceDensityExponentBlitzRosolowsky</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{bigiel_star_2008}</defaultSource>
+       !#   <defaultValue>0.4d0</defaultValue>
+       !#   <description>The exponent for surface density in the ``Blitz-Rosolowsky'' star formation timescale calculation at in the high density regime.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationFrequencyNormalizationBlitzRosolowsky</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
+       !#   <defaultValue>5.25d-10</defaultValue>
+       !#   <description>The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>pressureCharacteristicBlitzRosolowsky</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
+       !#   <defaultValue>4.54d0</defaultValue>
+       !#   <description>The characteristic pressure (given as $P_0/k_{\mathrm B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>pressureExponentBlitzRosolowsky</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
+       !#   <defaultValue>0.92d0</defaultValue>
+       !#   <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        if (pressureExponentBlitzRosolowsky < 0.0d0) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_BR_Initialize','pressureExponentBlitzRosolowsky < 0 violates assumptions')
        ! Convert parameters to internal units.
        surfaceDensityCriticalBlitzRosolowsky             =surfaceDensityCriticalBlitzRosolowsky*(mega**2)                                                    ! Convert to M_Solar/Mpc^2.

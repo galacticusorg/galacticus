@@ -47,17 +47,15 @@ contains
     implicit none
     type(stellarSpectraDustAttenuationWittGordon2000) :: wittGordon2003DefaultConstructor
 
-    !@ <inputParameter>
-    !@   <name>dustAttenuationWittGordon2000Model</name>
-    !@   <defaultValue>SMCbar</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The name of the model from \cite{witt_multiple_2000} to use in dust attenuation calculations.
-    !@   </description>
-    !@   <type>string</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('dustAttenuationWittGordon2000Model',wittGordon2003Model,defaultValue='MilkyWayShellTau3.0')
+    !# <inputParameter>
+    !#   <name>dustAttenuationWittGordon2000Model</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('MilkyWayShellTau3.0')</defaultValue>
+    !#   <description>The name of the model from \cite{witt_multiple_2000} to use in dust attenuation calculations.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>string</type>
+    !#   <variable>wittGordon2003Model</variable>
+    !# </inputParameter>
     wittGordon2003DefaultConstructor=wittGordon2003Constructor(char(wittGordon2003Model))
     return
   end function wittGordon2003DefaultConstructor

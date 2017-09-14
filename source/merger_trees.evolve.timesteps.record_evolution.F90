@@ -73,66 +73,55 @@ contains
     class           (nodeComponentBasic           )                         , pointer :: basic
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
     integer         (c_size_t                     )                                   :: timeIndex
-    double precision                                                                  :: ourTimeStep         , time
+    double precision                                                                  :: ourTimeStep         , time, &
+         &                                                                               universeAge
 
     if (.not.timestepRecordEvolutionInitialized) then
        !$omp critical (timestepRecordEvolutionInitialize)
        if (.not.timestepRecordEvolutionInitialized) then
           ! Get module parameters.
-          !@ <inputParameter>
-          !@   <name>timestepRecordEvolution</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not the evolution of the main branch galaxy should be recorded.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepRecordEvolution',timestepRecordEvolution,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>timestepRecordEvolution</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not the evolution of the main branch galaxy should be recorded.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           if (timestepRecordEvolution) then
              ! Get the default cosmology functions object.
              cosmologyFunctions_ => cosmologyFunctions()
-            ! Get time at present day.
-             time=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
+             ! Get time at present day.
+             universeAge=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
              ! Get module parameters.
-             !@ <inputParameter>
-             !@   <name>timestepRecordEvolutionBegin</name>
-             !@   <defaultValue>5\% of the age of the Universe</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>timeStepping</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('timestepRecordEvolutionBegin',timestepRecordEvolutionBegin,defaultValue=0.05d0*time)
-             !@ <inputParameter>
-             !@   <name>timestepRecordEvolutionEnd</name>
-             !@   <defaultValue>The age of the Universe</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>timeStepping</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('timestepRecordEvolutionEnd'  ,timestepRecordEvolutionEnd  ,defaultValue=       time)
-             !@ <inputParameter>
-             !@   <name>timestepRecordEvolutionSteps</name>
-             !@   <defaultValue>30</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>timeStepping</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('timestepRecordEvolutionSteps',timestepRecordEvolutionSteps,defaultValue=100        )
+             !# <inputParameter>
+             !#   <name>timestepRecordEvolutionBegin</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>0.05d0*universeAge</defaultValue>
+             !#   <description>The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
+             !#   <group>timeStepping</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>timestepRecordEvolutionEnd</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>universeAge</defaultValue>
+             !#   <description>The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
+             !#   <group>timeStepping</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>timestepRecordEvolutionSteps</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>100</defaultValue>
+             !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.</description>
+             !#   <group>timeStepping</group>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
              ! Allocate storage arrays.
              call allocateArray(evolutionTime       ,[timestepRecordEvolutionSteps])
              call allocateArray(evolutionExpansion  ,[timestepRecordEvolutionSteps])

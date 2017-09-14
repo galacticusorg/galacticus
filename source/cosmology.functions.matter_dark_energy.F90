@@ -87,7 +87,7 @@ contains
 
   function matterDarkEnergyConstructorParameters(parameters) result(self)
     !% Default constructor for the matter plus dark energy cosmological functions class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
@@ -134,6 +134,9 @@ contains
     ! Store equation of state.
     self%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
     self%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
+    ! Initialize locks.
+    !$ call OMP_Init_Lock(self%expansionFactorTableLock)
+    !$ call OMP_Init_Lock(self%distanceTableLock       )
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
     call self%expansionFactorTabulate()
    return

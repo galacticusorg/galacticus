@@ -46,7 +46,7 @@ contains
 
   function benson2005ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily benson2005} virial orbits class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (virialOrbitBenson2005   )                :: self
     type (inputParameters         ), intent(inout) :: parameters

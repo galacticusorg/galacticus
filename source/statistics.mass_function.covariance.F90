@@ -106,30 +106,24 @@ contains
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
        ! Read controlling parameters.
-       !@ <inputParameter>
-       !@   <name>massFunctionCovarianceHaloMassMinimum</name>
-       !@   <defaultValue>$10^{10}M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum halo mass to use when computing mass function covariance matrices.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massFunctionCovarianceHaloMassMinimum',massFunctionCovarianceHaloMassMinimum,defaultValue=1.0d10)
-       !@ <inputParameter>
-       !@   <name>massFunctionCovarianceHaloMassMaximum</name>
-       !@   <defaultValue>$10^{10}M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum halo mass to use when computing mass function covariance matrices.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massFunctionCovarianceHaloMassMaximum',massFunctionCovarianceHaloMassMaximum,defaultValue=1.0d15)
+       !# <inputParameter>
+       !#   <name>massFunctionCovarianceHaloMassMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d10</defaultValue>
+       !#   <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>massFunctionCovarianceHaloMassMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d15</defaultValue>
+       !#   <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Record that the module is initialized.
        moduleInitialized=.true.
@@ -864,18 +858,15 @@ contains
     
     if (.not.functionInitialized) then
        ! Read controlling parameters.
-       !@ <inputParameter>
-       !@   <name>massFunctionCovarianceFFTGridSize</name>
-       !@   <defaultValue>$64$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The size of the FFT grid to use in computing window functions for mass function covariance matrices.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('massFunctionCovarianceFFTGridSize',massFunctionCovarianceFFTGridSize,defaultValue=64)
+       !# <inputParameter>
+       !#   <name>massFunctionCovarianceFFTGridSize</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>64</defaultValue>
+       !#   <description>The size of the FFT grid to use in computing window functions for mass function covariance matrices.</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
        functionInitialized=.true.
     end if
     ! Allocate arrays for times and volume normalizations.

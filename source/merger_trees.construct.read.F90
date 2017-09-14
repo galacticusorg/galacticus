@@ -199,7 +199,7 @@ contains
     !% Initializes the merger tree reading module.
     use, intrinsic :: ISO_C_Binding
     use Input_Parameters
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Error
     use Galacticus_Display
     use Galacticus_Output_Times
@@ -218,83 +218,63 @@ contains
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_Read_Do
        ! Read parameters for halo mass sampling.
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadFileName</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1..</cardinality>
-       !@ </inputParameter>
-       mergerTreeReadFileCount=Get_Input_Parameter_Array_Size('mergerTreeReadFileName')
+       mergerTreeReadFileCount=globalParameters%count('mergerTreeReadFileName')
        allocate(mergerTreeReadFileName(mergerTreeReadFileCount))
-       call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadForestSizeMaximum</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadForestSizeMaximum',mergerTreeReadForestSizeMaximum,defaultValue=huge(0_c_size_t))
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadFixedThreadAssignment</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadFixedThreadAssignment',mergerTreeReadFixedThreadAssignment,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetMergerTimes</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether merging times for subhalos should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetMergerTimes',mergerTreeReadPresetMergerTimes,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetMergerNodes</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetMergerNodes',mergerTreeReadPresetMergerNodes,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetSubhaloMasses</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether subhalo mass should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetSubhaloMasses',mergerTreeReadPresetSubhaloMasses,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadSubhaloAngularMomentaMethod</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>summation</defaultValue>
-       !@   <description>
-       !@     Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadSubhaloAngularMomentaMethod',mergerTreeReadSubhaloAngularMomentaMethodText,defaultValue="summation")
+       !# <inputParameter>
+       !#   <name>mergerTreeReadFileName</name>
+       !#   <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
+       !#   <type>string</type>
+       !#   <cardinality>1..</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadForestSizeMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>huge(0_c_size_t)</defaultValue>
+       !#   <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadFixedThreadAssignment</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetMergerTimes</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether merging times for subhalos should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetMergerNodes</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetSubhaloMasses</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether subhalo mass should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadSubhaloAngularMomentaMethod</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('summation')</defaultValue>
+       !#   <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !#   <variable>mergerTreeReadSubhaloAngularMomentaMethodText</variable>
+       !# </inputParameter>
        select case (char(mergerTreeReadSubhaloAngularMomentaMethodText))
        case ("scale"    )
           mergerTreeReadSubhaloAngularMomentaMethod=mergerTreeReadSubhaloAngularMomentaScale
@@ -303,259 +283,190 @@ contains
        case default
           call Galacticus_Error_Report('Merger_Tree_Read_Initialize','[mergerTreeReadSubhaloAngularMomentaMethod] must be either "scale" or "summation"')
        end select       
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetSubhaloIndices</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether subhalo indices should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetSubhaloIndices',mergerTreeReadPresetSubhaloIndices,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetPositions</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether node positions should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetPositions',mergerTreeReadPresetPositions,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetScaleRadii</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether node scale radii should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetScaleRadii',mergerTreeReadPresetScaleRadii,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetScaleRadiiFailureIsFatal</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiFailureIsFatal',mergerTreeReadPresetScaleRadiiFailureIsFatal,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetScaleRadiiConcentrationMinimum</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>3</defaultValue>
-       !@   <description>
-       !@     The lowest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiConcentrationMinimum',mergerTreeReadPresetScaleRadiiConcentrationMinimum,defaultValue=3.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetScaleRadiiConcentrationMaximum</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>60</defaultValue>
-       !@   <description>
-       !@     The largest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiConcentrationMaximum',mergerTreeReadPresetScaleRadiiConcentrationMaximum,defaultValue=60.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetScaleRadiiMinimumMass</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0</defaultValue>
-       !@   <description>
-       !@     The minimum halo mass for which scale radii should be preset (if {\normalfont \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true}).
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetScaleRadiiMinimumMass',mergerTreeReadPresetScaleRadiiMinimumMass,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetUnphysicalSpins</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>false</defaultValue>
-       !@   <description>
-       !@     When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetUnphysicalSpins',mergerTreeReadPresetUnphysicalSpins,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetSpins</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether node spins should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetSpins',mergerTreeReadPresetSpins,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetSpins3D</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether node 3-D spin vectors should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetSpins3D',mergerTreeReadPresetSpins3D,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetOrbits</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether node orbits should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetOrbits',mergerTreeReadPresetOrbits,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetOrbitsSetAll</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetOrbitsSetAll',mergerTreeReadPresetOrbitsSetAll,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetOrbitsAssertAllSet</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetOrbitsAssertAllSet',mergerTreeReadPresetOrbitsAssertAllSet,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetOrbitsBoundOnly</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether only bound node orbits should be set.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetOrbitsBoundOnly',mergerTreeReadPresetOrbitsBoundOnly,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetParticleCounts</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>false</defaultValue>
-       !@   <description>
-       !@     Specifies whether node particle counts should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetParticleCounts',mergerTreeReadPresetParticleCounts,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetVelocityMaxima</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>false</defaultValue>
-       !@   <description>
-       !@     Specifies whether node rotation curve velocity maxima should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetVelocityMaxima',mergerTreeReadPresetVelocityMaxima,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadPresetVelocityDispersions</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>false</defaultValue>
-       !@   <description>
-       !@     Specifies whether node velocity dispersions should be preset when reading merger trees from a file.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadPresetVelocityDispersions',mergerTreeReadPresetVelocityDispersions,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadBeginAt</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>-1</defaultValue>
-       !@   <description>
-       !@     Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadBeginAt',mergerTreeReadBeginAt,defaultValue=-1_kind_int8)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadOutputTimeSnapTolerance</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0</defaultValue>
-       !@   <description>
-       !@     The relative tolerance required to ``snap'' a node time to the closest output time.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadOutputTimeSnapTolerance',mergerTreeReadOutputTimeSnapTolerance,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadMissingHostsAreFatal</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether nodes with missing host nodes should be considered to be fatal---see \S\ref{sec:MergerTreeFileProcessing}.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadMissingHostsAreFatal',mergerTreeReadMissingHostsAreFatal,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadTreeIndexToRootNodeIndex</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>false</defaultValue>
-       !@   <description>
-       !@     Specifies whether tree indices should always be set to the index of their root node.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadTreeIndexToRootNodeIndex',mergerTreeReadTreeIndexToRootNodeIndex,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadAllowBranchJumps</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether nodes are allowed to jump between branches.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadAllowBranchJumps',mergerTreeReadAllowBranchJumps,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadAllowSubhaloPromotions</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether subhalos are permitted to be promoted to being isolated halos.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadAllowSubhaloPromotions',mergerTreeReadAllowSubhaloPromotions,defaultValue=.true.)
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetSubhaloIndices</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether subhalo indices should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetPositions</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether node positions should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetScaleRadii</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether node scale radii should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetScaleRadiiFailureIsFatal</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetScaleRadiiConcentrationMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>3.0d0</defaultValue>
+       !#   <description>The lowest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetScaleRadiiConcentrationMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>60.0d0</defaultValue>
+       !#   <description>The largest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetScaleRadiiMinimumMass</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The minimum halo mass for which scale radii should be preset (if {\normalfont \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true}).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetUnphysicalSpins</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetSpins</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether node spins should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetSpins3D</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether node 3-D spin vectors should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetOrbits</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether node orbits should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetOrbitsSetAll</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetOrbitsAssertAllSet</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetOrbitsBoundOnly</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether only bound node orbits should be set.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetParticleCounts</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether node particle counts should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetVelocityMaxima</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether node rotation curve velocity maxima should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadPresetVelocityDispersions</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether node velocity dispersions should be preset when reading merger trees from a file.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadBeginAt</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>-1_kind_int8</defaultValue>
+       !#   <description>Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadOutputTimeSnapTolerance</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The relative tolerance required to ``snap'' a node time to the closest output time.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadMissingHostsAreFatal</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \S\ref{sec:MergerTreeFileProcessing}.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadTreeIndexToRootNodeIndex</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether tree indices should always be set to the index of their root node.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadAllowBranchJumps</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether nodes are allowed to jump between branches.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeReadAllowSubhaloPromotions</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether subhalos are permitted to be promoted to being isolated halos.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Get fallback concentration method.
        if (globalParameters%isPresent('mergerTreeReadConcentrationFallbackMethod')) then
@@ -3100,17 +3011,14 @@ contains
        !$omp critical(Time_Until_Merging_Subresolution_Initialize)
        if (.not.subresolutionMergingInitialized) then
           ! Construct the satellite merging timescale object.
-          !@ <inputParameter>
-          !@   <name>mergerTreeReadSubresolutionMergingMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of a satellite merging timescale method to be used for computing the extra time until merging for subhalos.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeReadSubresolutionMergingMethod',mergerTreeReadSubresolutionMergingMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>mergerTreeReadSubresolutionMergingMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of a satellite merging timescale method to be used for computing the extra time until merging for subhalos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           subresolutionSatelliteMergingTimescales => satelliteMergingTimescales(char(mergerTreeReadSubresolutionMergingMethod))
           ! Record that we are now initialized.
           subresolutionMergingInitialized=.true.

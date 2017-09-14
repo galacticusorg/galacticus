@@ -32,6 +32,7 @@ program Galacticus
   integer                             , parameter :: fileNameLengthMaximum =1024
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
+  type     (inputParameters          )            :: parameters
 
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show
@@ -48,13 +49,11 @@ program Galacticus
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,allowedParametersFile='Galacticus.parameters.xml')
+  parameters=inputParameters(parameterFile,allowedParametersFile='Galacticus.parameters.xml')
+  call parameters%markGlobal()
 
   ! Perform tasks, until all tasks are done.
   call Galacticus_Task_Do
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
 
   ! All done, finish.
 end program Galacticus

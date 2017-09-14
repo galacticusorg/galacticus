@@ -237,18 +237,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisSizeFunctionCovarianceModel</name>
-          !@   <defaultValue>binomial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The model to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisSizeFunctionCovarianceModel',analysisSizeFunctionCovarianceModelText,defaultValue='Poisson')
+          !# <inputParameter>
+          !#   <name>analysisSizeFunctionCovarianceModel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('Poisson')</defaultValue>
+          !#   <description>The model to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>analysisSizeFunctionCovarianceModelText</variable>
+          !# </inputParameter>
           select case (char(analysisSizeFunctionCovarianceModelText))
           case ( 'Poisson'  )
              analysisSizeFunctionCovarianceModel=analysisSizeFunctionCovarianceModelPoisson
@@ -257,42 +255,33 @@ contains
           case default
              call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins','unrecognized value for "analysisSizeFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
           end select
-          !@ <inputParameter>
-          !@   <name>analysisSizeFunctionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisSizeFunctionsHaloMassBinsPerDecade',analysisSizeFunctionsHaloMassBinsPerDecade,defaultValue=10_c_size_t)
-          !@ <inputParameter>
-          !@   <name>analysisSizeFunctionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisSizeFunctionsHaloMassMinimum',analysisSizeFunctionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisSizeFunctionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisSizeFunctionsHaloMassMaximum',analysisSizeFunctionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisSizeFunctionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10_c_size_t</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisSizeFunctionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisSizeFunctionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisSizeFunctionsHaloMassMinimumLogarithmic        =     log10( analysisSizeFunctionsHaloMassMinimum)
           analysisSizeFunctionsHaloMassBinsCount                 =int(                                                  &
                &                                                       log10(                                           &
@@ -341,17 +330,16 @@ contains
                          do k=1,sizeFunctionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(sizeFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent size function mass systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>sizeFunctions(currentAnalysis)%massSystematicCoefficients(k)</variable>
+                            !#   <source>globalParameters</source>
+                            !#   <regEx>(sdssSizeFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent size function mass systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       if (sizeFunctionDescriptors(j)%radiusSystematicCoefficientCount > 0) then
@@ -359,17 +347,16 @@ contains
                          do k=1,sizeFunctionDescriptors(j)%radiusSystematicCoefficientCount
                             parameterName=trim(sizeFunctionLabels(j))//'RadiusSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssSizeFunction)Z[0-9\.]+RadiusSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent size function radius systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%radiusSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>sizeFunctions(currentAnalysis)%radiusSystematicCoefficients(k)</variable>
+                            !#   <source>globalParameters</source>
+                            !#   <regEx>(sdssSizeFunction)Z[0-9\.]+RadiusSystematic[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent size function radius systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -378,43 +365,40 @@ contains
                          do k=1,sizeFunctionDescriptors(j)%massRandomCoefficientCount
                             parameterName=trim(sizeFunctionLabels(j))//'MassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent size function mass random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>sizeFunctions(currentAnalysis)%massRandomCoefficients(k)</variable>
+                            !#   <source>globalParameters</source>
+                            !#   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent size function mass random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       parameterName=trim(sizeFunctionLabels(j))//'MassRandomMinimum'
-                      !@ <inputParameter>
-                      !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandomMinimum</regEx>
-                      !@   <defaultValue>$10^{-3}$</defaultValue>
-                      !@   <attachedTo>module</attachedTo>
-                      !@   <description>
-                      !@     Mass-dependent size function mass random error minimum.
-                      !@   </description>
-                      !@   <type>real</type>
-                      !@   <cardinality>1</cardinality>
-                      !@ </inputParameter>
-                      call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomMinimum,defaultValue=1.0d-3)
+                      !# <inputParameter>
+                      !#   <name>char(parameterName)</name>
+                      !#   <variable>sizeFunctions(currentAnalysis)%massRandomMinimum</variable>
+                      !#   <source>globalParameters</source>
+                      !#   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandomMinimum</regEx>
+                      !#   <defaultValue>1.0d-3</defaultValue>
+                      !#   <description>Mass-dependent size function mass random error minimum.</description>
+                      !#   <type>real</type>
+                      !#   <cardinality>1</cardinality>
+                      !# </inputParameter>
                       parameterName=trim(sizeFunctionLabels(j))//'MassRandomMaximum'
-                      !@ <inputParameter>
-                      !@   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandomMaximum</regEx>
-                      !@   <defaultValue>10</defaultValue>
-                      !@   <attachedTo>module</attachedTo>
-                      !@   <description>
-                      !@     Mass-dependent size function mass random error maximum.
-                      !@   </description>
-                      !@   <type>real</type>
-                      !@   <cardinality>1</cardinality>
-                      !@ </inputParameter>
-                      call Get_Input_Parameter(char(parameterName),sizeFunctions(currentAnalysis)%massRandomMaximum,defaultValue=10.0d0)
+                      !# <inputParameter>
+                      !#   <name>char(parameterName)</name>
+                      !#   <variable>sizeFunctions(currentAnalysis)%massRandomMaximum</variable>
+                      !#   <source>globalParameters</source>
+                      !#   <regEx>(sdssSizeFunction)Z[0-9\.]+MassRandomMaximum</regEx>
+                      !#   <defaultValue>10.0d0</defaultValue>
+                      !#   <description>Mass-dependent size function mass random error maximum.</description>
+                      !#   <type>real</type>
+                      !#   <cardinality>1</cardinality>
+                      !# </inputParameter>
                       ! Read the appropriate observational data definition.
                       select case (trim(sizeFunctionLabels(j)))
                       case ('sdssSizeFunctionZ0.07')

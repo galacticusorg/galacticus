@@ -88,7 +88,7 @@ contains
     use               Galacticus_Calculations_Resets
     use               Galacticus_Nodes
     use               Galacticus_Output_Open
-    use               Input_Parameters2
+    use               Input_Parameters
     use               Galactic_Structure_Radii
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters

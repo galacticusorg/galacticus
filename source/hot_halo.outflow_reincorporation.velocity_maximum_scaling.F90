@@ -69,50 +69,42 @@ contains
     if (.not.velocityMaximumScalingDefaultInitialized) then
        !$omp critical(hotHaloOutflowReincorporationVMSDefaultInitialize)
        if (.not.velocityMaximumScalingDefaultInitialized) then
-          !@ <inputParameter>
-          !@   <name>hotHaloOutflowReincorporationVlctyMxSclngTimeScale</name>
-          !@   <defaultValue>$1$~Gyr</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The timescale in the velocity maximum scaling model for outflow reincorporation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloOutflowReincorporationVlctyMxSclngTimeScale',velocityMaximumScalingTimeScale,defaultValue=1.0d0)
-          !@ <inputParameter>
-          !@   <name>hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent</name>
-          !@   <defaultValue>$0$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The exponent of maximum circular velocity in the velocity maximum scaling model for outflow reincorporation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent',velocityMaximumScalingVelocityExponent,defaultValue=0.0d0)
-          !@ <inputParameter>
-          !@   <name>hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent</name>
-          !@   <defaultValue>$-1.5$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The exponent of redshift in the velocity maximum scaling model for outflow reincorporation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent',velocityMaximumScalingRedshiftExponent,defaultValue=-1.5d0)
-          !@ <inputParameter>
-          !@   <name>hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum</name>
-          !@   <defaultValue>$0.001$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The minimum timescale for outflow reincorporation in the velocity maximum scaling model.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum',velocityMaximumScalingTimescaleMinimum,defaultValue=1.0d-3)
+          !# <inputParameter>
+          !#   <name>hotHaloOutflowReincorporationVlctyMxSclngTimeScale</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The timescale in the velocity maximum scaling model for outflow reincorporation.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>velocityMaximumScalingTimeScale</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>The exponent of maximum circular velocity in the velocity maximum scaling model for outflow reincorporation.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>velocityMaximumScalingVelocityExponent</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>-1.5d0</defaultValue>
+          !#   <description>The exponent of redshift in the velocity maximum scaling model for outflow reincorporation.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>velocityMaximumScalingRedshiftExponent</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d-3</defaultValue>
+          !#   <description>The minimum timescale for outflow reincorporation in the velocity maximum scaling model.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>velocityMaximumScalingTimescaleMinimum</variable>
+          !# </inputParameter>
           ! Record that class is initialized.
           velocityMaximumScalingDefaultInitialized=.true.
        end if

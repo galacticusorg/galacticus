@@ -50,7 +50,7 @@ contains
 
   function schneider2015ConstructorParameters(parameters)
     !% Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Error
     implicit none
     type (darkMatterProfileConcentrationSchneider2015)                :: schneider2015ConstructorParameters

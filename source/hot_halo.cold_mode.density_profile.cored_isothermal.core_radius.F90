@@ -51,17 +51,14 @@ contains
        !$omp critical(Hot_Halo_Cold_Mode_Density_CIso_CoreR_Initialization)
        if (.not.hotHaloColdModeCoredIsothermalCoreRadiiInitialized) then
           ! Get the cold mode core radius method parameter.
-          !@ <inputParameter>
-          !@   <name>hotHaloColdModeCoredIsothermalCoreRadiiMethod</name>
-          !@   <defaultValue>virialRadiusFraction</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing the core radii of cored isothermal cold mode hot halo profiles.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloColdModeCoredIsothermalCoreRadiiMethod',hotHaloColdModeCoredIsothermalCoreRadiiMethod,defaultValue='virialRadiusFraction')
+          !# <inputParameter>
+          !#   <name>hotHaloColdModeCoredIsothermalCoreRadiiMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('virialRadiusFraction')</defaultValue>
+          !#   <description>The name of the method to be used for computing the core radii of cored isothermal cold mode hot halo profiles.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="hotHaloColdModeCoredIsothermalCoreRadiiMethod" type="functionCall" functionType="void">
           !#  <functionArgs>hotHaloColdModeCoredIsothermalCoreRadiiMethod,Hot_Halo_Cold_Mode_Density_CIso_CoreR_Get</functionArgs>

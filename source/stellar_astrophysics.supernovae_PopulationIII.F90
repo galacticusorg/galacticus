@@ -55,17 +55,14 @@ contains
        !$omp critical(Supernovae_Population_III_Initialization)
        if (.not.supernovaePopIIIInitialized) then
           ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>supernovaePopIIIMethod</name>
-          !@   <defaultValue>Heger-Woosley2002</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The method to use for computing properties of Population III supernovae.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('supernovaePopIIIMethod',supernovaePopIIIMethod,defaultValue='Heger-Woosley2002')
+          !# <inputParameter>
+          !#   <name>supernovaePopIIIMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Heger-Woosley2002')</defaultValue>
+          !#   <description>The method to use for computing properties of Population III supernovae.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="supernovaePopIIIMethod" type="functionCall" functionType="void">
           !#  <functionArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</functionArgs>

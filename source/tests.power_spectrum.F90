@@ -21,7 +21,7 @@
 program Tests_Power_Spectrum
   !% Tests power spectrum calculations.
   use Unit_Tests
-  use Input_Parameters2
+  use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
   use Cosmological_Mass_Variance

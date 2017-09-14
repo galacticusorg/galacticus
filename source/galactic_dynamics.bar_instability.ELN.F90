@@ -43,28 +43,22 @@ contains
     if (barInstabilityMethod == 'ELN') then
        Bar_Instability_Timescale_Get => Bar_Instability_Timescale_ELN
        ! Read in stability threshold parameters.
-       !@ <inputParameter>
-       !@   <name>stabilityThresholdStellar</name>
-       !@   <defaultValue>1.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stabilityThresholdStellar',stabilityThresholdStellar,defaultValue=1.1d0)
-       !@ <inputParameter>
-       !@   <name>stabilityThresholdGaseous</name>
-       !@   <defaultValue>0.7</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stabilityThresholdGaseous',stabilityThresholdGaseous,defaultValue=0.7d0)
+       !# <inputParameter>
+       !#   <name>stabilityThresholdStellar</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.1d0</defaultValue>
+       !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely stellar disks.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>stabilityThresholdGaseous</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.7d0</defaultValue>
+       !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
 
     return

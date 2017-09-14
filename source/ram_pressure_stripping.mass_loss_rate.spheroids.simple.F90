@@ -43,17 +43,15 @@ contains
 
     if (ramPressureStrippingMassLossRateSpheroidsMethod == 'simple') then
        Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple
-       !@ <inputParameter>
-       !@   <name>ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMaximum</name>
-       !@   <defaultValue>$10$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to ram pressure stripping.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMaximum',ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax,defaultValue=10.0d0)
+       !# <inputParameter>
+       !#   <name>ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to ram pressure stripping.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !#   <variable>ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax</variable>
+       !# </inputParameter>
     end if
     return
   end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init

@@ -46,18 +46,15 @@ contains
     if (.not.outputHostsInitialized) then
        !$omp critical(Galacticus_Output_Tree_Hosts_Initialize)
        if (.not.outputHostsInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputHostIndices</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not host indices should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputHostIndices',outputHostIndices,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputHostIndices</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not host indices should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is now initialized.
           outputHostsInitialized=.true.
        end if

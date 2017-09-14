@@ -48,34 +48,28 @@ contains
     if (.not.outputMassProfileDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Mass_Profile_Initialize)
        if (.not.outputMassProfileDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputMassProfileData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputMassProfileData',outputMassProfileData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputMassProfileData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not half-light radius data (i.e. radius and mass) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
           ! Read radii if necessary.
           if (outputMassProfileData) then
-             massProfilePropertyCount=Get_Input_Parameter_Array_Size('outputMassProfileRadii')
+             massProfilePropertyCount=globalParameters%count('outputMassProfileRadii')
              call allocateArray(outputMassProfileRadii,[massProfilePropertyCount])
-             !@ <inputParameter>
-             !@   <name>outputMassProfileRadii</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     A list of radii at which to output the mass profile.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputMassProfileRadii',outputMassProfileRadii)
+             !# <inputParameter>
+             !#   <name>outputMassProfileRadii</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>A list of radii at which to output the mass profile.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
           end if
 
           ! Flag that module is now initialized.

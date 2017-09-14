@@ -154,7 +154,7 @@ contains
 
   subroutine fspsDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     class    (stellarPopulationSpectraFSPS), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor

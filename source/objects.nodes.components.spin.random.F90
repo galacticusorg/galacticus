@@ -66,17 +66,14 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Spin_Random_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>randomSpinResetMassFactor</name>
-          !@   <defaultValue>2.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The factor by which a node must increase in mass before its spin parameter is reset.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('randomSpinResetMassFactor',randomSpinResetMassFactor,defaultValue=2.0d0)
+          !# <inputParameter>
+          !#   <name>randomSpinResetMassFactor</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.0d0</defaultValue>
+          !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if

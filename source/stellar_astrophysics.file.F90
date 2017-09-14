@@ -64,7 +64,6 @@ contains
     use Galacticus_Error
     use Memory_Management
     use ISO_Varying_String
-    use Input_Parameters
     use Atomic_Data
     use Galacticus_Input_Paths
     use IO_XML
@@ -95,18 +94,13 @@ contains
        Star_Lifetime_Get         => Star_Lifetime_File
 
        ! Get the name of the file containing stellar data.
-       !@ <inputParameter>
-       !@   <name>stellarPropertiesFile</name>
-       !@   <defaultValue>data/stellarAstrophysics/Stellar\_Properties\_Compilation.xml</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPropertiesFile',stellarPropertiesFile,defaultValue=char(Galacticus_Input_Path())//'data&
-            &/stellarAstrophysics/Stellar_Properties_Compilation.xml')
+       !# <inputParameter>
+       !#   <name>stellarPropertiesFile</name>
+       !#   <defaultValue>Galacticus_Input_Path()//'data/stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
+       !#   <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
+       !#   <type>string</type>
+       !#   <cardinality>1</cardinality>
+       !# </inputParameter>
 
        ! Allocate array to store number of entries in file for yield of each element.
        call allocateArray(elementYieldCount,[Atomic_Data_Atoms_Count()])

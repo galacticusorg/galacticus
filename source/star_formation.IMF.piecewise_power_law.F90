@@ -97,33 +97,27 @@ contains
     if (.not.imfPiecewisePowerLawInitialized) then
        !$omp critical (IMF_PiecewisePowerLaw_Initialize)
        if (.not.imfPiecewisePowerLawInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>0.39</defaultValue>
-          !@   <description>
-          !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous,defaultValue=0.39d0)
-          !@ <inputParameter>
-          !@   <name>imfPiecewisePowerLawYieldInstantaneous</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>0.02</defaultValue>
-          !@   <description>
-          !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   ,defaultValue=0.02d0)
+          !# <inputParameter>
+          !#   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.39d0</defaultValue>
+          !#   <description>The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfPiecewisePowerLawYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.02d0</defaultValue>
+          !#   <description>The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Get the number of intervals and allocate arrays appropriately.
-          imfPieceCount=Get_Input_Parameter_Array_Size('imfPiecewisePowerLawMassPoints')-1
+          imfPieceCount=globalParameters%count('imfPiecewisePowerLawMassPoints',zeroIfNotPresent=.true.)-1
           if (imfPieceCount == -1 ) then
              pieceWiseImfIsDefined=.false.
              imfPieceCount        =1
@@ -136,39 +130,27 @@ contains
           call allocateArray(massExponent    ,[imfPieceCount])
           call allocateArray(imfNormalization,[imfPieceCount])
           allocate(massPoints(imfPieceCount+1))
-
-          if (pieceWiseImfIsDefined) then
-             ! Read the mass intervals.
-             !@ <inputParameter>
-             !@   <name>imfPiecewisePowerLawMassPoints</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>0.1, 125</defaultValue>
-             !@   <description>
-             !@     The mass points used to define a piecewise power-law initial mass function.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>initialMassFunction</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
-             !@ <inputParameter>
-             !@   <name>imfPiecewisePowerLawExponents</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>-2.35</defaultValue>
-             !@   <description>
-             !@     The exponents used to define a piecewise power-law initial mass function.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>initialMassFunction</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
-          else
-             ! Set defaults (a Salpeter IMF).
-             massPoints  =[0.1d0,125.0d0]
-             massExponent=[-2.35d0]
-          end if
-
+          ! Read the mass intervals.
+          !# <inputParameter>
+          !#   <name>imfPiecewisePowerLawMassPoints</name>
+          !#   <variable>massPoints</variable>
+          !#   <defaultValue>[0.1d0,125.0d0]</defaultValue>
+          !#   <source>globalParameters</source>
+          !#   <description>The mass points used to define a piecewise power-law initial mass function.</description>
+          !#   <type>real</type>
+          !#   <cardinality>1..*</cardinality>
+          !#   <group>initialMassFunction</group>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfPiecewisePowerLawExponents</name>
+          !#   <variable>massExponent</variable>
+          !#   <defaultValue>[-2.35d0]</defaultValue>
+          !#   <source>globalParameters</source>
+          !#   <description>The exponents used to define a piecewise power-law initial mass function.</description>
+          !#   <type>real</type>
+          !#   <cardinality>1..*</cardinality>
+          !#   <group>initialMassFunction</group>
+          !# </inputParameter>
           ! Extract lower and upper limits of the mass ranges.
           massLower=massPoints(1:imfPieceCount  )
           massUpper=massPoints(2:imfPieceCount+1)

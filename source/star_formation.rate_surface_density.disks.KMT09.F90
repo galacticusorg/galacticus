@@ -90,54 +90,43 @@ contains
        Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_KMT09
        Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_KMT09
        ! Get parameters of our model.
-       !@ <inputParameter>
-       !@   <name>starFormationFrequencyKMT09</name>
-       !@   <defaultValue>$0.385$ \citep{krumholz_star_2009}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The star formation frequency (in units of Gyr$^{-1}$) in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFrequencyKMT09',starFormationFrequencyKMT09,defaultValue=0.385d0)
-       !@ <inputParameter>
-       !@   <name>molecularComplexClumpingFactorKMT09</name>
-       !@   <defaultValue>5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The density enhancement (relative to mean disk density) for molecular complexes in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('molecularComplexClumpingFactorKMT09',molecularComplexClumpingFactorKMT09,defaultValue=5.0d0)
-       !@ <inputParameter>
-       !@   <name>molecularFractionFastKMT09</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@      Selects whether the fast (but less accurate) fitting formula for molecular hydrogen should be used in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('molecularFractionFastKMT09',molecularFractionFastKMT09,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>assumeMonotonicSurfaceDensityKMT09</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@      If true, assume that the surface density in disks is always monotonically decreasing.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('assumeMonotonicSurfaceDensityKMT09',assumeMonotonicSurfaceDensityKMT09,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>starFormationFrequencyKMT09</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{krumholz_star_2009}</defaultSource>
+       !#   <defaultValue>0.385d0</defaultValue>
+       !#   <description>The star formation frequency (in units of Gyr$^{-1}$) in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>molecularComplexClumpingFactorKMT09</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>5.0d0</defaultValue>
+       !#   <description>The density enhancement (relative to mean disk density) for molecular complexes in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>molecularFractionFastKMT09</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Selects whether the fast (but less accurate) fitting formula for molecular hydrogen should be used in the ``Krumholz-McKee-Tumlinson'' star formation timescale calculation.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>assumeMonotonicSurfaceDensityKMT09</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>If true, assume that the surface density in disks is always monotonically decreasing.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
        ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
        select case (molecularFractionFastKMT09)
        case (.true.)

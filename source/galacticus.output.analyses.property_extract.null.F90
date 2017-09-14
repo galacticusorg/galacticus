@@ -38,7 +38,7 @@ contains
 
   function nullConstructorParameters(parameters)
     !% Constructor for the ``null'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyExtractorNull)                :: nullConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters

@@ -44,17 +44,14 @@ contains
        !$omp critical(Cooling_Cold_Mode_Infall_Output_Initialization)
        if (.not.coldModeInfallRateOutputInitialized) then
           ! Get options controlling output.
-          !@ <inputParameter>
-          !@   <name>outputColdModeInfallRate</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Determines whether or not cold mode infall rates are output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputColdModeInfallRate',outputColdModeInfallRate,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputColdModeInfallRate</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not cold mode infall rates are output.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           coldModeInfallRateOutputInitialized=.true.
        end if
        !$omp end critical(Cooling_Cold_Mode_Infall_Output_Initialization)

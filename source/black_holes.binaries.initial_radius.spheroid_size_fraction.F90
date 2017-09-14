@@ -44,17 +44,14 @@ contains
 
     if (blackHoleBinaryInitialRadiiMethod == 'spheroidRadiusFraction') then
        Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Spheroid_Size
-       !@ <inputParameter>
-       !@   <name>blackHoleInitialRadiusSpheroidRadiusRatio</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The fraction of the spheroid radius at which merging black holes will be initially placed.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleInitialRadiusSpheroidRadiusRatio',blackHoleInitialRadiusSpheroidRadiusRatio,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>blackHoleInitialRadiusSpheroidRadiusRatio</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The fraction of the spheroid radius at which merging black holes will be initially placed.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Black_Hole_Binary_Initial_Radii_Spheroid_Size_Initialize

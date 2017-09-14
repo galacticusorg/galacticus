@@ -18,7 +18,7 @@
 //% Contains test code for testing the C interface to input parameter functions.
 
 #include <iostream>
-#include <utility.input_parameters2.h>
+#include <utility.input_parameters.h>
 
 extern "C"
 {

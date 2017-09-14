@@ -57,7 +57,7 @@ contains
 
   function isothermalConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(darkMatterProfileIsothermal)                :: self
     type (inputParameters           ), intent(inout) :: parameters

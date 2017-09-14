@@ -67,17 +67,14 @@ contains
        !$omp critical(satelliteMergingMassMovementsInitialize)
        if (.not.satelliteMergingMassMovementsInitialized) then
           ! Get the satellite merging mass movement method parameter.
-          !@ <inputParameter>
-          !@   <name>satelliteMergingMassMovementsMethod</name>
-          !@   <defaultValue>simple</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Selects the method to be used for deciding mass movements during satellite mergers.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingMassMovementsMethod',satelliteMergingMassMovementsMethod,defaultValue='simple')
+          !# <inputParameter>
+          !#   <name>satelliteMergingMassMovementsMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('simple')</defaultValue>
+          !#   <description>Selects the method to be used for deciding mass movements during satellite mergers.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satelliteMergingMassMovementsMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</functionArgs>

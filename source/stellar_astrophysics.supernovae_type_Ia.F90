@@ -62,17 +62,14 @@ contains
        !$omp critical(Supernovae_Type_Ia_Initialization)
        if (.not.supernovaeIaInitialized) then
           ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>supernovaeIaMethod</name>
-          !@   <defaultValue>Nagashima</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The method to use for computing properties of Type Ia supernovae.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('supernovaeIaMethod',supernovaeIaMethod,defaultValue='Nagashima')
+          !# <inputParameter>
+          !#   <name>supernovaeIaMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Nagashima')</defaultValue>
+          !#   <description>The method to use for computing properties of Type Ia supernovae.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="supernovaeIaMethod" type="functionCall" functionType="void">
           !#  <functionArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</functionArgs>

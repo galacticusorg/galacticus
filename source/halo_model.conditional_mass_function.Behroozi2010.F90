@@ -96,138 +96,127 @@ contains
     if (.not.behroozi2010Initialized) then
        !$omp critical (conditionalMassFunctionBehroozi2010Initialize)
        if (.not.behroozi2010Initialized) then
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziAlphaSatellite</name>
-          !@   <defaultValue>1.0 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\alpha_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziAlphaSatellite',behrooziAlphaSatellite,defaultValue=1.0d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziLog10M1</name>
-          !@   <defaultValue>12.520 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziLog10M1',behrooziLog10M1,defaultValue=12.520d0)          
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziLog10Mstar0</name>
-          !@   <defaultValue>10.916 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziLog10Mstar0',behrooziLog10Mstar0,defaultValue=10.916d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziBeta</name>
-          !@   <defaultValue>0.457 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziBeta',behrooziBeta,defaultValue=0.457d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziDelta</name>
-          !@   <defaultValue>0.5666 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziDelta',behrooziDelta,defaultValue=0.5666d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziGamma</name>
-          !@   <defaultValue>1.53 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziGamma',behrooziGamma,defaultValue=1.53d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziSigmaLogMstar</name>
-          !@   <defaultValue>0.206 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziSigmaLogMstar',behrooziSigmaLogMstar,defaultValue=0.206d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziBCut</name>
-          !@   <defaultValue>1.47 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $B_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziBCut',behrooziBCut,defaultValue=1.47d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziBSatellite</name>
-          !@   <defaultValue>10.62 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $B_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziBSatellite',behrooziBSatellite,defaultValue=10.62d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziBetaCut</name>
-          !@   <defaultValue>$-0.13$ (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\beta_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziBetaCut',behrooziBetaCut,defaultValue=-0.13d0)
-          !@ <inputParameter>
-          !@   <name>conditionalMassFunctionBehrooziBetaSatellite</name>
-          !@   <defaultValue>0.859 (\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\beta_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>haloModel</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('conditionalMassFunctionBehrooziBetaSatellite',behrooziBetaSatellite,defaultValue=0.859d0)       
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziAlphaSatellite</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The parameter $\alpha_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziAlphaSatellite</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziLog10M1</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>12.520d0</defaultValue>
+          !#   <description>The parameter $\log_{10}M_1$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziLog10M1</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziLog10Mstar0</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>10.916d0</defaultValue>
+          !#   <description>The parameter $\log_{10}M_{\star,0}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziLog10Mstar0</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziBeta</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>0.457d0</defaultValue>
+          !#   <description>The parameter $\beta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziBeta</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziDelta</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>0.5666d0</defaultValue>
+          !#   <description>The parameter $\delta$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziDelta</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziGamma</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>1.53d0</defaultValue>
+          !#   <description>The parameter $\gamma$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziGamma</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziSigmaLogMstar</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>0.206d0</defaultValue>
+          !#   <description>The parameter $\sigma_{\log M_\star}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziSigmaLogMstar</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziBCut</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>1.47d0</defaultValue>
+          !#   <description>The parameter $B_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziBCut</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziBSatellite</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>10.62d0</defaultValue>
+          !#   <description>The parameter $B_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziBSatellite</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziBetaCut</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>-0.13d0</defaultValue>
+          !#   <description>The parameter $\beta_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziBetaCut</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>conditionalMassFunctionBehrooziBetaSatellite</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
+          !#   <defaultValue>0.859d0</defaultValue>
+          !#   <description>The parameter $\beta_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <group>haloModel</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>behrooziBetaSatellite</variable>
+          !# </inputParameter>
            ! Record that we are now initialized.
           behroozi2010Initialized=.true.
        end if

@@ -44,18 +44,15 @@ contains
 
     if (satelliteDynamicalFrictionMethod == 'Chandrasekhar1943') then
        Satellite_Dynamical_Friction_Acceleration => Satellite_Dynamical_Friction_Acceleration_Chandrasekhar
-       !@ <inputParameter>
-       !@   <name>satelliteDynamicalFrictionChandrasekharCoulombLogarithm</name>
-       !@   <defaultValue>2</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The Coulomb logarithm, $\ln \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} formulation of the acceleration due to dynamical friction.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group></group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteDynamicalFrictionChandrasekharCoulombLogarithm',satelliteDynamicalFrictionChandrasekharCoulombLogarithm,defaultValue=2.0d0)
+       !# <inputParameter>
+       !#   <name>satelliteDynamicalFrictionChandrasekharCoulombLogarithm</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>2.0d0</defaultValue>
+       !#   <description>The Coulomb logarithm, $\ln \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} formulation of the acceleration due to dynamical friction.</description>
+       !#   <group></group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
    end if
     return
   end subroutine Satellite_Dynamical_Friction_Chandrasekhar_Initialize

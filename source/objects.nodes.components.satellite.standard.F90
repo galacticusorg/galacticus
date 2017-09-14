@@ -96,30 +96,24 @@ contains
      !$omp critical (Node_Component_Satellite_Standard_Initialize)
      if (satellite%standardIsActive().and..not.moduleInitialized) then
         ! Determine if satellite orbits are to be stored.
-        !@ <inputParameter>
-        !@   <name>satelliteOrbitStoreOrbitalParameters</name>
-        !@   <defaultValue>true</defaultValue>
-        !@   <attachedTo>module</attachedTo>
-        !@   <description>
-        !@     Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
-        !@     again---possibly at random---each time they are requested).
-        !@   </description>
-        !@   <type>boolean</type>
-        !@   <cardinality>1</cardinality>
-        !@ </inputParameter>
-        call Get_Input_Parameter('satelliteOrbitStoreOrbitalParameters',satelliteOrbitStoreOrbitalParameters,defaultValue=.true.)
+        !# <inputParameter>
+        !#   <name>satelliteOrbitStoreOrbitalParameters</name>
+        !#   <cardinality>1</cardinality>
+        !#   <defaultValue>.true.</defaultValue>
+        !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
+        !#      again---possibly at random---each time they are requested).</description>
+        !#   <source>globalParameters</source>
+        !#   <type>boolean</type>
+        !# </inputParameter>
         ! Determine if satellite orbits are to be reset on halo formation events.
-        !@ <inputParameter>
-        !@   <name>satelliteOrbitResetOnHaloFormation</name>
-        !@   <defaultValue>false</defaultValue>
-        !@   <attachedTo>module</attachedTo>
-        !@   <description>
-        !@     Specifies whether satellite virial orbital parameters should be reset on halo formation events.
-        !@   </description>
-        !@   <type>boolean</type>
-        !@   <cardinality>1</cardinality>
-        !@ </inputParameter>
-        call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
+        !# <inputParameter>
+        !#   <name>satelliteOrbitResetOnHaloFormation</name>
+        !#   <cardinality>1</cardinality>
+        !#   <defaultValue>.false.</defaultValue>
+        !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
+        !#   <source>globalParameters</source>
+        !#   <type>boolean</type>
+        !# </inputParameter>
         ! Specify the function to use for setting virial orbits.
         call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
         call satellite%virialOrbitFunction   (Node_Component_Satellite_Standard_Virial_Orbit    )

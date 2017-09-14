@@ -81,17 +81,14 @@ contains
     !$omp critical (Node_Component_Disk_Very_Simple_Size_Initialize)
     if (defaultDiskComponent%verySimpleSizeIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>diskMassToleranceAbsolute</name>
-       !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The mass tolerance used to judge whether the disk is physically plausible.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskMassToleranceAbsolute',diskMassToleranceAbsolute,defaultValue=1.0d-6)
+       !# <inputParameter>
+       !#   <name>diskMassToleranceAbsolute</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-6</defaultValue>
+       !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if

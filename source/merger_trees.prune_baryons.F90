@@ -58,17 +58,14 @@ contains
        !$omp critical (Merger_Tree_Prune_Baryons_Initialize)
        if (.not.pruneBaryonsModuleInitialized) then
           ! Get parameter specifying if pruning is required.
-          !@ <inputParameter>
-          !@   <name>mergerTreePruneBaryons</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to prune merger trees prior to evolution.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreePruneBaryons',mergerTreePruneBaryons,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>mergerTreePruneBaryons</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not to prune merger trees prior to evolution.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is initialized.
           pruneBaryonsModuleInitialized=.true.
        end if

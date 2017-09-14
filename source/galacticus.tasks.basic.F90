@@ -38,17 +38,14 @@ contains
 
     if (.not.doneStart) then
        ! Get the verbosity level parameter.
-       !@ <inputParameter>
-       !@   <name>verbosityLevel</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The level of verbosity for \glc\ (higher values give more verbosity).
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+       !# <inputParameter>
+       !#   <name>verbosityLevel</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1</defaultValue>
+       !#   <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
        call Galacticus_Verbosity_Level_Set(verbosityLevel)
        ! Open the Galacticus output file.
        call Galacticus_Output_Open_File()

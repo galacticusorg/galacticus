@@ -40,9 +40,10 @@ program Conditional_Mass_Function
   class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
   class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_
   class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_
-  class           (massFunctionIncompletenessClass), pointer :: massFunctionIncompleteness_
-  type            (varying_string                 )                            :: parameterFile                         , conditionalMassFunctionOutputFileName
-  character       (len=32                         )                            :: conditionalMassFunctionHaloMassText
+  class           (massFunctionIncompletenessClass), pointer                   :: massFunctionIncompleteness_
+  type            (varying_string                 )                            :: parameterFile                         , conditionalMassFunctionOutputFileName , &
+       &                                                                          conditionalMassFunctionHaloMassText
+  character       (len=32                         )                            :: text
   integer                                                                      :: conditionalMassFunctionMassCount      , iMass                                 , &
        &                                                                          fieldCount                            , iField
   logical                                                                      :: conditionalMassFunctionUseSurveyLimits, integrateOverHaloMassFunction         , &
@@ -60,6 +61,7 @@ program Conditional_Mass_Function
   type     (fgsl_function             )                                        :: integrandFunction                     , integrandFunctionNormalization
   type     (fgsl_integration_workspace)                                        :: integrationWorkspace                  , integrationWorkspaceNormalization
   type     (hdf5Object                )                                        :: outputFile
+  type     (inputParameters           )                                        :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Conditional_Mass_Function.size')
@@ -71,146 +73,114 @@ program Conditional_Mass_Function
   call Get_Argument(1,parameterFile   )
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Read parameters controlling the calculation.
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionOutputFileName</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The name of the file to which the computed conditional mass function should be output.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionOutputFileName',conditionalMassFunctionOutputFileName)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionHaloMass</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>all</defaultValue>
-  !@   <description>
-  !@     The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionHaloMass',conditionalMassFunctionHaloMassText,defaultValue="all")
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionMassMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^8M_\odot$</defaultValue>
-  !@   <description>
-  !@     The minimum mass for which to compute the conditional mass function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionMassMinimum',conditionalMassFunctionMassMinimum,defaultValue=1.0d8)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionMassMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
-  !@   <description>
-  !@     The maximum mass for which to compute the conditional mass function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionMassMaximum',conditionalMassFunctionMassMaximum,defaultValue=1.0d12)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionMassCount</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>21</defaultValue>
-  !@   <description>
-  !@     The number of bins for which to compute the conditional mass function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionMassCount',conditionalMassFunctionMassCount,defaultValue=21)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionRedshiftMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>0</defaultValue>
-  !@   <description>
-  !@     The minimum redshift for which to compute the conditional mass function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionRedshiftMinimum',conditionalMassFunctionRedshiftMinimum,defaultValue=0.0d0)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionRedshiftMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>0</defaultValue>
-  !@   <description>
-  !@     The maximum redshift for which to compute the conditional mass function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionRedshiftMaximum',conditionalMassFunctionRedshiftMaximum,defaultValue=0.0d0)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionUseSurveyLimits</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>false</defaultValue>
-  !@   <description>
-  !@     Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionUseSurveyLimits',conditionalMassFunctionUseSurveyLimits,defaultValue=.false.)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionHaloMassMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^6M_\odot$</defaultValue>
-  !@   <description>
-  !@     The minimum halo mass to use when integrating over the halo mass function.
-  !@   </description>
-  !@   <type>real</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionHaloMassMinimum',conditionalMassFunctionHaloMassMinimum,defaultValue=1.0d6)
-  !@ <inputParameter>
-  !@   <name>conditionalMassFunctionHaloMassMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-  !@   <description>
-  !@     The maximum halo mass to use when integrating over the halo mass function.
-  !@   </description>
-  !@   <type>real</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('conditionalMassFunctionHaloMassMaximum',conditionalMassFunctionHaloMassMaximum,defaultValue=1.0d16)
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionOutputFileName</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The name of the file to which the computed conditional mass function should be output.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionHaloMass</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>var_str('all')</defaultValue>
+  !#   <description>The halo mass for which to compute the conditional mass function. A value of ``all'' will cause the conditional mass function to be integrated over the halo mass function, giving the mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !#   <variable>conditionalMassFunctionHaloMassText</variable>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionMassMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d8</defaultValue>
+  !#   <description>The minimum mass for which to compute the conditional mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionMassMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d12</defaultValue>
+  !#   <description>The maximum mass for which to compute the conditional mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionMassCount</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>21</defaultValue>
+  !#   <description>The number of bins for which to compute the conditional mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionRedshiftMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>0.0d0</defaultValue>
+  !#   <description>The minimum redshift for which to compute the conditional mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionRedshiftMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>0.0d0</defaultValue>
+  !#   <description>The maximum redshift for which to compute the conditional mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionUseSurveyLimits</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>.false.</defaultValue>
+  !#   <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionHaloMassMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d6</defaultValue>
+  !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>real</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>conditionalMassFunctionHaloMassMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d16</defaultValue>
+  !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>real</type>
+  !# </inputParameter>
   ! Compute bin masses and widths.
   call allocateArray(mass                             ,[conditionalMassFunctionMassCount])
   call allocateArray(thisConditionalMassFunction      ,[conditionalMassFunctionMassCount])
   call allocateArray(conditionalMassFunctionIncomplete,[conditionalMassFunctionMassCount])
   call allocateArray(massLogarithmDelta               ,[conditionalMassFunctionMassCount])
-  if (Input_Parameter_Is_Present('conditionalMassFunctionMassBinCenters')) then
+  if (globalParameters%isPresent('conditionalMassFunctionMassBinCenters')) then
      ! Read masses directly.
-     if (.not.Input_Parameter_Is_Present('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('Conditional_Mass_Function','[conditionalMassFunctionMassBinWidths] must be present')
-     !@ <inputParameter>
-     !@   <name>conditionalMassFunctionMassBinCenters</name>
-     !@   <attachedTo>program</attachedTo>
-     !@   <description>
-     !@     Logarithmic mass bins centers for conditional mass function calculations.
-     !@   </description>
-     !@   <type>real</type>
-     !@   <cardinality>1</cardinality>
-     !@ </inputParameter>
-     call Get_Input_Parameter('conditionalMassFunctionMassBinCenters',mass              )
-     !@ <inputParameter>
-     !@   <name>conditionalMassFunctionMassBinWidths</name>
-     !@   <attachedTo>program</attachedTo>
-     !@   <description>
-     !@     Logarithmic widths of mass bins for conditional mass function calculations.
-     !@   </description>
-     !@   <type>real</type>
-     !@   <cardinality>1</cardinality>
-     !@ </inputParameter>
-     call Get_Input_Parameter('conditionalMassFunctionMassBinWidths' ,massLogarithmDelta)
+     if (.not.globalParameters%isPresent('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('Conditional_Mass_Function','[conditionalMassFunctionMassBinWidths] must be present')
+     !# <inputParameter>
+     !#   <name>conditionalMassFunctionMassBinCenters</name>
+     !#   <cardinality>1</cardinality>
+     !#   <description>Logarithmic mass bins centers for conditional mass function calculations.</description>
+     !#   <source>globalParameters</source>
+     !#   <type>real</type>
+     !#   <variable>mass</variable>
+     !# </inputParameter>
+     !# <inputParameter>
+     !#   <name>conditionalMassFunctionMassBinWidths</name>
+     !#   <cardinality>1</cardinality>
+     !#   <description>Logarithmic widths of mass bins for conditional mass function calculations.</description>
+     !#   <source>globalParameters</source>
+     !#   <type>real</type>
+     !#   <variable>massLogarithmDelta</variable>
+     !# </inputParameter>
      massLogarithmDelta=log(massLogarithmDelta)
   else
      ! Compute a range of masses.
@@ -225,7 +195,10 @@ program Conditional_Mass_Function
 
   ! Decode the halo mass parameter.
   integrateOverHaloMassFunction=(conditionalMassFunctionHaloMassText == "all")
-  if (.not.integrateOverHaloMassFunction) read (conditionalMassFunctionHaloMassText,*) conditionalMassFunctionHaloMass
+  if (.not.integrateOverHaloMassFunction) then
+     text=char(conditionalMassFunctionHaloMassText)
+     read (text,*) conditionalMassFunctionHaloMass
+  end if
 
   ! Compute the time corresponding to the specified redshift.
   timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMaximum))
@@ -343,9 +316,6 @@ program Conditional_Mass_Function
      call outputFile%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
   end if
   call outputFile%close()
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
 
 contains  
   

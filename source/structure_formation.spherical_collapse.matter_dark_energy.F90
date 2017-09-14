@@ -135,19 +135,16 @@ contains
        !$omp critical (Spherical_Collapse_Dark_Energy_Initialize)
        if (.not.moduleInitialized) then
           ! Read parameters controlling the calculation.
-          !@ <inputParameter>
-          !@   <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
-          !@   <defaultValue>turnaround</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-          !@    ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-          !@    \citealt{percival_cosmological_2005}; \S8.)
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt',virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt,defaultValue='turnaround')
+          !# <inputParameter>
+          !#   <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('turnaround')</defaultValue>
+          !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+          !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+          !#     \citealt{percival_cosmological_2005}; \S8.)</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Record that the module is initialized.
           moduleInitialized=.true.
        end if

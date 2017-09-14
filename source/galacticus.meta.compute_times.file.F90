@@ -49,16 +49,13 @@ contains
        Galacticus_Time_Per_Tree_Get => Galacticus_Time_Per_Tree_File
 
        ! Get the name of the file containing the fit coefficients.
-       !@ <inputParameter>
-       !@   <name>timePerTreeFitFileName</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <description>
-       !@    The name of the file which contains fit coefficients for the time per tree fitting function.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('timePerTreeFitFileName',timePerTreeFitFileName)
+       !# <inputParameter>
+       !#   <name>timePerTreeFitFileName</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The name of the file which contains fit coefficients for the time per tree fitting function.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
 
        ! Parse the fit file.
        !$omp critical (FoX_DOM_Access)

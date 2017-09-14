@@ -45,7 +45,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} satellite virial orbit class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (virialOrbitFixed          )                :: self
     type            (inputParameters           ), intent(inout) :: parameters

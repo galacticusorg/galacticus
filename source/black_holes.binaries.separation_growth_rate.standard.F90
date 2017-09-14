@@ -52,30 +52,24 @@ contains
 
     if (blackHoleBinarySeparationGrowthRateMethod == 'standard') then
        Black_Hole_Binary_Separation_Growth_Rate_Get => Black_Hole_Binary_Separation_Growth_Rate_Standard
-       !@ <inputParameter>
-       !@   <name>stellarDensityChangeBinaryMotion</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The change in density due to the black hole's motion.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarDensityChangeBinaryMotion',stellarDensityChangeBinaryMotion,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>blackHoleBinariesComputeVelocityDispersion</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not the velocity dispersion of dark matter and stars should be computed using Jeans equation
-       !@     in black hole binary hardening calculations. If {\normalfont \ttfamily false}, then the velocity dispersions are assumed to equal
-       !@     the characteristic velocity of dark matter and spheroid.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('blackHoleBinariesComputeVelocityDispersion',blackHoleBinariesComputeVelocityDispersion,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>stellarDensityChangeBinaryMotion</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>The change in density due to the black hole's motion.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>blackHoleBinariesComputeVelocityDispersion</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not the velocity dispersion of dark matter and stars should be computed using Jeans equation
+       !#      in black hole binary hardening calculations. If {\normalfont \ttfamily false}, then the velocity dispersions are assumed to equal
+       !#      the characteristic velocity of dark matter and spheroid.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Black_Hole_Binary_Separation_Growth_Rate_Standard_Init

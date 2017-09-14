@@ -60,17 +60,14 @@ contains
     if (.not.mergerTreeConstructInitialized) then
        !$omp critical(Merger_Tree_Construct_Initialization)
        if (.not.mergerTreeConstructInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergerTreeConstructMethod</name>
-          !@   <defaultValue>build</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Selects the method to be used for constructing merger trees.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeConstructMethod',mergerTreeConstructMethod,defaultValue='build')
+          !# <inputParameter>
+          !#   <name>mergerTreeConstructMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('build')</defaultValue>
+          !#   <description>Selects the method to be used for constructing merger trees.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="mergerTreeConstructMethod" type="functionCall" functionType="void">
           !#  <functionArgs>mergerTreeConstructMethod,Merger_Tree_Construct</functionArgs>

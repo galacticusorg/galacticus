@@ -55,17 +55,14 @@ contains
        !$omp critical(Galactic_Structure_Radii_Initialization)
        if (.not.galacticStructureRadiusSolverInitialized) then
           ! Get the galactic structure radii solver method parameter.
-          !@ <inputParameter>
-          !@   <name>galacticStructureRadiusSolverMethod</name>
-          !@   <defaultValue>adiabatic</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Selects the method to be used for solving for galactic structure.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='adiabatic')
+          !# <inputParameter>
+          !#   <name>galacticStructureRadiusSolverMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('adiabatic')</defaultValue>
+          !#   <description>Selects the method to be used for solving for galactic structure.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="galacticStructureRadiusSolverMethod" type="functionCall" functionType="void">
           !#  <functionArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</functionArgs>

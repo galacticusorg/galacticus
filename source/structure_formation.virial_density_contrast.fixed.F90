@@ -56,7 +56,7 @@ contains
 
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type            (virialDensityContrastFixed)                :: self

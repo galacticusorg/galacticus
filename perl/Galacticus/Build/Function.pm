@@ -532,17 +532,14 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      if (.not.moduleInitialized) then\n";
     $buildData->{'content'} .= "         !\$omp critical (".$directive."Initialization)\n";
     $buildData->{'content'} .= "         if (.not.moduleInitialized) then\n";
-    $buildData->{'content'} .= "            !@ <inputParameter>\n";
-    $buildData->{'content'} .= "            !@   <name>".$directive."Method</name>\n";
-    $buildData->{'content'} .= "            !@   <defaultValue>".$buildData->{'default'}."</defaultValue>\n";
-    $buildData->{'content'} .= "            !@   <attachedTo>module</attachedTo>\n";
-    $buildData->{'content'} .= "            !@   <description>\n";
-    $buildData->{'content'} .= "            !@     The method to be used for {\\normalfont \\ttfamily ".$directive."}.\n";
-    $buildData->{'content'} .= "            !@   </description>\n";
-    $buildData->{'content'} .= "            !@   <type>string</type>\n";
-    $buildData->{'content'} .= "            !@   <cardinality>1</cardinality>\n";
-    $buildData->{'content'} .= "            !@ </inputParameter>\n";
-    $buildData->{'content'} .= "            call Get_Input_Parameter('".$directive."Method',".$directive."Method,defaultValue='".$buildData->{'default'}."')\n";
+    $buildData->{'content'} .= "            !# <inputParameter>\n";
+    $buildData->{'content'} .= "            !#   <name>".$directive."Method</name>\n";
+    $buildData->{'content'} .= "            !#   <source>globalParameters</source>\n";
+    $buildData->{'content'} .= "            !#   <defaultValue>var_str('".$buildData->{'default'}."')</defaultValue>\n";
+    $buildData->{'content'} .= "            !#   <description>The method to be used for {\\normalfont \\ttfamily ".$directive."}.</description>\n";
+    $buildData->{'content'} .= "            !#   <type>string</type>\n";
+    $buildData->{'content'} .= "            !#   <cardinality>1</cardinality>\n";
+    $buildData->{'content'} .= "            !# </inputParameter>\n";
     $buildData->{'content'} .= "            moduleInitialized=.true.\n";
     $buildData->{'content'} .= "         end if\n";
     $buildData->{'content'} .= "         !\$omp end critical (".$directive."Initialization)\n";
@@ -813,12 +810,13 @@ sub Functions_Generate_Output {
 	    if ( grep {$_ eq "-DDEBUGHDF5"} split(" ",$ENV{'GALACTICUS_FCFLAGS'}) );
     }
     # Insert post-contains implementation code.
+    my $nullifyDirective = 0;
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	my $unitDepth     = 0;
 	my $containsFound = 0;
 	open(my $classFile,$class->{'file'});
 	until ( eof($classFile) ) {
-	    &Fortran::Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
+	    &Fortran::Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);	  
 	    foreach my $unitType ( keys(%unitOpeners) ) {
 		++$unitDepth
 		    if ( $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i );
@@ -832,8 +830,27 @@ sub Functions_Generate_Output {
 		$rawLine  = "call IO_HDF5_End_Critical()\n".$rawLine
 		    if ( $rawLine =~ m /^\s*\!\$omp\s+end\s+critical\s*\(HDF5_Access\)\s*$/ );
 	    }
-	    # Strip directive lines.
-	    $rawLine =~ s/^(\s*)!#/$1!/;
+	    # Identify directives.
+	    if ( $rawLine =~ m/^\s*!\#\s+<\s*([a-zA-Z]+)+.*>\s*$/ ) {
+ 		my $xmlTag = $1;
+		$nullifyDirective = 1
+		    if ( $xmlTag eq $directive );
+	    }
+	    my $rawLineNullified = $rawLine;
+	    $rawLineNullified =~ s/^(\s*)!#/$1!/
+		if ( $nullifyDirective == 1 );
+	    if ( $rawLine =~ m/^\s*!\#\s+<\/\s*([a-zA-Z]+)\s*>\s*$/ ) {
+ 		my $xmlTag = $1;
+		$nullifyDirective = 0
+		    if ( $xmlTag eq $directive );
+	    }
+	    if ( $rawLine =~ m/^\s*!\#\s+<\s*([a-zA-Z]+)\s*\/>\s*$/ ) {
+ 		my $xmlTag = $1;
+		$nullifyDirective = 0
+		    if ( $xmlTag eq $directive );
+	    }
+	    $rawLine = $rawLineNullified;
+	    # Append line.
 	    $buildData->{'content'} .= $rawLine
 		if ( $containsFound == 1 );
 	    $containsFound = 1

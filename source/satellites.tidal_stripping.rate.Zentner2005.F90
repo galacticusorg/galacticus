@@ -57,18 +57,15 @@ contains
 
     if (satelliteTidalStrippingMethod == 'Zentner2005') then
        Satellite_Tidal_Stripping_Rate => Satellite_Tidal_Stripping_Rate_Zentner2005
-       !@ <inputParameter>
-       !@   <name>satelliteTidalStrippingZentner2005Rate</name>
-       !@   <defaultValue>2.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group></group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteTidalStrippingZentner2005Rate',satelliteTidalStrippingZentner2005Rate,defaultValue=2.5d0)
+       !# <inputParameter>
+       !#   <name>satelliteTidalStrippingZentner2005Rate</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>2.5d0</defaultValue>
+       !#   <description>The dimensionless rate coefficient apeparing in the \cite{zentner_physics_2005} expression for the tidal mass loss rate from subhalos.</description>
+       !#   <group></group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
    end if
     return
   end subroutine Satellite_Tidal_Stripping_Rate_Zentner2005_Initialize

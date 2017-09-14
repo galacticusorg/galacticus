@@ -45,7 +45,7 @@ contains
 
   function sharpKSpaceConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (powerSpectrumWindowFunctionSharpKSpace)                :: sharpKSpaceConstructorParameters
     type            (inputParameters                       ), intent(inout) :: parameters

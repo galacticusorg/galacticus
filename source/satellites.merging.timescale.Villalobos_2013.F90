@@ -60,31 +60,26 @@ contains
        !$omp critical(villalobos2013Initialization)
        if (.not.villalobos2013Initialized) then
           ! Read parameter controlling the default base method.
-          !@ <inputParameter>
-          !@   <name>satelliteMergingTimescaleVillalobos2013BaseMethod</name>
-          !@   <defaultValue>boylanKolchin2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The base {\normalfont \ttfamily satelliteMergingTimescales} method to which the \cite{villalobos_improved_2013} modifier for satellite merging timescales should be applied.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingTimescaleVillalobos2013BaseMethod',satelliteMergingTimescaleVillalobos2013BaseMethod,defaultValue="boylanKolchin2008")
+          !# <inputParameter>
+          !#   <name>satelliteMergingTimescaleVillalobos2013BaseMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('boylanKolchin2008')</defaultValue>
+          !#   <description>The base {\normalfont \ttfamily satelliteMergingTimescales} method to which the \cite{villalobos_improved_2013} modifier for satellite merging timescales should be applied.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Read parameter controlling the default scaling exponent.
-          !@ <inputParameter>
-          !@   <name>satelliteMergingTimescaleVillalobos2013Exponent</name>
-          !@   <defaultValue>$0.44$ \citep{villalobos_improved_2013}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingTimescaleVillalobos2013Exponent',satelliteMergingTimescaleVillalobos2013Exponent,defaultValue=0.44d0)
+          !# <inputParameter>
+          !#   <name>satelliteMergingTimescaleVillalobos2013Exponent</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>\citep{villalobos_improved_2013}</defaultSource>
+          !#   <defaultValue>0.44d0</defaultValue>
+          !#   <description>The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Record that this method is now initialized
           villalobos2013Initialized=.true.
        end if

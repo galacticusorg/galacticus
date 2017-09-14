@@ -37,7 +37,7 @@ contains
 
   function binWidthConstructorParameters(parameters) result(self)
     !% Constructor for the ``binWidth'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
     type(inputParameters                             ), intent(inout) :: parameters

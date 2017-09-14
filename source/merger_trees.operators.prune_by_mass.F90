@@ -41,7 +41,7 @@ contains
 
   function pruneByMassConstructorParameters(parameters)
     !% Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters

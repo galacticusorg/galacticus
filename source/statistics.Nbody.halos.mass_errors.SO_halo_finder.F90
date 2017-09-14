@@ -47,7 +47,7 @@ contains
 
   function nbodyHaloMassErrorSOHaloFinderParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder)                :: nbodyHaloMassErrorSOHaloFinderParameters
     type(inputParameters               ), intent(inout) :: parameters

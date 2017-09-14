@@ -67,7 +67,7 @@ contains
   function eisensteinHu1999ConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: eisensteinHu1999ConstructorParameters
     type            (inputParameters                 ), intent(inout) :: parameters

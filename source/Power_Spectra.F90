@@ -29,6 +29,7 @@ program Power_Spectra
   integer                             , parameter :: fileNameLengthMaximum=1024
   character(len=fileNameLengthMaximum)            :: fileCharacter
   type     (varying_string           )            :: parameterFile             , powerSpectrumOutputFileName
+  type     (inputParameters          )            :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Power_Spectra.size')
@@ -45,17 +46,16 @@ program Power_Spectra
   call Power_Spectrum_Open_File(powerSpectrumOutputFileName)
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,powerSpectrumOutputFile)
+  parameters=inputParameters(parameterFile,outputParametersGroup=powerSpectrumOutputFile)  
+  call parameters%markGlobal()
 
   ! Compute the power spectrum.
   call Power_Spectrum_Compute
 
   ! Output the power spectrum.
   call Power_Spectrum_Output
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
-
+  ! Destroy parameters.
+  call parameters%destroy()
   ! Close the output file.
   call Power_Spectrum_Close_File
 

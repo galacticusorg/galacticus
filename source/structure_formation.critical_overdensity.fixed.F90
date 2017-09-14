@@ -45,7 +45,7 @@ contains
 
   function fixedConstructorParameters(parameters)
     !% Constructor for the fixed critical overdensity class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Numerical_Constants_Math
     implicit none
     type(criticalOverdensityFixed)                :: fixedConstructorParameters

@@ -39,7 +39,7 @@ contains
   function formationTimeConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
     use Galacticus_Error
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(coolingTimeAvailableFormationTime)                :: self
     type(inputParameters                  ), intent(inout) :: parameters

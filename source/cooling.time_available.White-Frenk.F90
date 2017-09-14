@@ -44,7 +44,7 @@ contains
 
   function whiteFrenk1991ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{white_galaxy_1991} time available for cooling class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (coolingTimeAvailableWhiteFrenk1991)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters

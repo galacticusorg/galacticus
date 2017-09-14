@@ -41,7 +41,7 @@ contains
 
   function hiMassConstructorParameters(parameters) result(self)
     !% Constructor for the ``hiMass'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
@@ -56,7 +56,7 @@ contains
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
     !% Internal constructor for the ``hiMass'' output analysis distribution operator class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
     class(outputAnalysisMolecularRatioClass   ), intent(in   ), target :: outputAnalysisMolecularRatio_

@@ -28,10 +28,11 @@ program Simple_Merger_Tree_File_Maker
   use Input_Parameters
   use HDF5
   implicit none
-  integer                   :: hdfChunkSize =1024, hdfCompressionLevel=9
-  character(len=1024      ) :: nodesFile         , outputFile           , outputFormat
-  type     (mergerTreeData) :: mergerTrees
-  type     (varying_string) :: parameterFile
+  integer                    :: hdfChunkSize =1024, hdfCompressionLevel=9
+  character(len=1024       ) :: nodesFile         , outputFile           , outputFormat
+  type     (mergerTreeData ) :: mergerTrees
+  type     (varying_string ) :: parameterFile
+  type     (inputParameters) :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Simple_Merger_Tree_File_Maker.size')
@@ -46,15 +47,13 @@ program Simple_Merger_Tree_File_Maker
   if (Command_Argument_Count() == 6) call Get_Argument(6,hdfCompressionLevel)
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,allowedParametersFile='Simple_Merger_Tree_File_Maker.parameters.xml')
+  parameters=inputParameters(parameterFile,allowedParametersFile='Simple_Merger_Tree_File_Maker.parameters.xml')
+  call parameters%markGlobal()
 
   ! Process file.
   call Merger_Trees_Simple_Process(nodesFile,mergerTrees)
 
   ! Output HDF5 file.
   call mergerTrees%export(outputFile,enumerationMergerTreeFormatEncode(trim(outputFormat),includesPrefix=.false.),int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
 
 end program Simple_Merger_Tree_File_Maker

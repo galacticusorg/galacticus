@@ -44,7 +44,7 @@ contains
 
   function simpleIGMConstructorParameters(parameters) result (self)
     !% Constructor for the simple \gls{igm} state class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Functions
     implicit none
     type            (intergalacticMediumStateSimple)                :: self

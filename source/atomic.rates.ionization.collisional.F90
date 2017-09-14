@@ -56,17 +56,14 @@ contains
        !$omp critical(Atomic_Rate_Ionization_Collisional_Initialization)
        if (.not.ionizationRateInitialized) then
           ! Get the ionization state method parameter.
-          !@ <inputParameter>
-          !@   <name>atomicCollisionalIonizationMethod</name>
-          !@   <defaultValue>Verner</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing atomic collisional ionization rates.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('atomicCollisionalIonizationMethod',atomicCollisionalIonizationMethod,defaultValue='Verner')
+          !# <inputParameter>
+          !#   <name>atomicCollisionalIonizationMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Verner')</defaultValue>
+          !#   <description>The name of the method to be used for computing atomic collisional ionization rates.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
 
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="atomicCollisionalIonizationMethod" type="functionCall" functionType="void">

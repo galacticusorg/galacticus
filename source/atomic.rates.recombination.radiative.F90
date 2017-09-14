@@ -50,17 +50,14 @@ contains
        !$omp critical(Atomic_Rate_Recombination_Radiative_Initialization)
        if (.not.recombinationRateInitialized) then
           ! Get the ionization state method parameter.
-          !@ <inputParameter>
-          !@   <name>atomicRadiativeRecombinationMethod</name>
-          !@   <defaultValue>Verner</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing atomic radiative recombination rates.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('atomicRadiativeRecombinationMethod',atomicRadiativeRecombinationMethod,defaultValue='Verner')
+          !# <inputParameter>
+          !#   <name>atomicRadiativeRecombinationMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Verner')</defaultValue>
+          !#   <description>The name of the method to be used for computing atomic radiative recombination rates.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
 
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="atomicRadiativeRecombinationMethod" type="functionCall" functionType="void">

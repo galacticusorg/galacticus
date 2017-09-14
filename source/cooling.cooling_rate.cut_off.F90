@@ -58,7 +58,7 @@ contains
 
   function cutOffConstructorParameters(parameters) result(self)
     !% Constructor for the cut off cooling rate class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (coolingRateCutOff       )                :: self
     type            (inputParameters         ), intent(inout) :: parameters

@@ -43,18 +43,15 @@ contains
     if (.not.outputVelocityMaximumDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Velocity_Maximum_Initialize)
        if (.not.outputVelocityMaximumDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputVelocityMaximumData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not dark matter profile rotation velocity maximum data should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputVelocityMaximumData',outputVelocityMaximumData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputVelocityMaximumData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not dark matter profile rotation velocity maximum data should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is now initialized.
           outputVelocityMaximumDataInitialized=.true.
        end if

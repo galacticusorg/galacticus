@@ -47,42 +47,33 @@ contains
     if (starFormationTimescaleDisksMethod == 'dynamicalTime') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Dynamical_Time
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationDiskEfficiency</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The efficiency of star formation in disks for the dynamical time method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationDiskEfficiency'      ,starFormationDiskEfficiency      ,defaultValue= 0.01d0)
-       !@ <inputParameter>
-       !@   <name>starFormationDiskVelocityExponent</name>
-       !@   <defaultValue>$-1.5$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity exponent for star formation in disks for the dynamical time method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationDiskVelocityExponent',starFormationDiskVelocityExponent,defaultValue=-1.500d0)
-       !@ <inputParameter>
-       !@   <name>starFormationDiskMinimumTimescale</name>
-       !@   <defaultValue>$10^{-3}$ Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum timescale for star formation in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationDiskMinimumTimescale',starFormationDiskMinimumTimescale,defaultValue=1.0d-3)
+       !# <inputParameter>
+       !#   <name>starFormationDiskEfficiency</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.01d0</defaultValue>
+       !#   <description>The efficiency of star formation in disks for the dynamical time method.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationDiskVelocityExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>-1.500d0</defaultValue>
+       !#   <description>The velocity exponent for star formation in disks for the dynamical time method.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationDiskMinimumTimescale</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale for star formation in disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Check that required properties are gettable.
        if     (                                                                                                       &
             &  .not.(                                                                                                 &

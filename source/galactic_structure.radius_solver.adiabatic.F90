@@ -54,39 +54,30 @@ contains
     if (galacticStructureRadiusSolverMethod == 'adiabatic') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Adiabatic
        ! Get parameters of the model.
-       !@ <inputParameter>
-       !@   <name>adiabaticContractionIncludeBaryonGravity</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in adiabatically contracted dark matter halos.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('adiabaticContractionIncludeBaryonGravity',adiabaticContractionIncludeBaryonGravity,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>adiabaticContractionUseFormationHalo</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('adiabaticContractionUseFormationHalo',adiabaticContractionUseFormationHalo,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>adiabaticContractionSolutionTolerance</name>
-       !@   <defaultValue>$10^{-2}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('adiabaticContractionSolutionTolerance',adiabaticContractionSolutionTolerance,defaultValue=1.0d-2)
+       !# <inputParameter>
+       !#   <name>adiabaticContractionIncludeBaryonGravity</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in adiabatically contracted dark matter halos.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>adiabaticContractionUseFormationHalo</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>adiabaticContractionSolutionTolerance</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-2</defaultValue>
+       !#   <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Galactic_Structure_Radii_Adiabatic_Initialize

@@ -44,34 +44,28 @@ contains
     implicit none
     type     (varying_string                        ), intent(in   )          :: satelliteMergingMassMovementsMethod
     procedure(Satellite_Merging_Mass_Movement_Simple), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get
-    character(len=10                                )                         :: minorMergerGasMovesTo
+    type     (varying_string                        )                         :: minorMergerGasMovesTo
 
     if (satelliteMergingMassMovementsMethod == 'simple') then
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Simple
-       !@ <inputParameter>
-       !@   <name>majorMergerMassRatio</name>
-       !@   <defaultValue>0.25</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The mass ratio above which mergers are considered to be ``major'' in the simple merger mass movements method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.25d0)
-       !@ <inputParameter>
-       !@   <name>minorMergerGasMovesTo</name>
-       !@   <defaultValue>spheroid</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The component to which satellite galaxy gas moves to as a result of a minor merger.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("minorMergerGasMovesTo",minorMergerGasMovesTo,defaultValue="spheroid")
-       select case (trim(minorMergerGasMovesTo))
-       case ("disk")
+       !# <inputParameter>
+       !#   <name>majorMergerMassRatio</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.25d0</defaultValue>
+       !#   <description>The mass ratio above which mergers are considered to be ``major'' in the simple merger mass movements method.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>minorMergerGasMovesTo</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('spheroid')</defaultValue>
+       !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+       select case (char(minorMergerGasMovesTo))
+       case ("disk"    )
           minorMergerGasMovesToValue=movesToDisk
        case ("spheroid")
           minorMergerGasMovesToValue=movesToSpheroid

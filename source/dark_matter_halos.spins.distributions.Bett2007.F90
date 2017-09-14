@@ -56,7 +56,7 @@ contains
   function bett2007ConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily bett2007} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (haloSpinDistributionBett2007)                :: bett2007ConstructorParameters
     type            (inputParameters             ), intent(inout) :: parameters

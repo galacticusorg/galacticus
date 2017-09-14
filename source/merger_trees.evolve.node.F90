@@ -97,42 +97,33 @@ contains
        !$omp critical (Tree_Node_Evolve_Initialize)
        if (.not.evolverInitialized) then
           ! Get tolerance values for the ODE solver.
-          !@ <inputParameter>
-          !@   <name>odeToleranceAbsolute</name>
-          !@   <defaultValue>$0.01$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The absolute tolerance used in solving differential equations for node evolution.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('odeToleranceAbsolute',odeToleranceAbsolute,defaultValue=0.01d0)
-          !@ <inputParameter>
-          !@   <name>odeToleranceRelative</name>
-          !@   <defaultValue>0.01</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The relative tolerance used in solving differential equations for node evolution.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('odeToleranceRelative',odeToleranceRelative,defaultValue=1.0d-2)
-          !@ <inputParameter>
-          !@   <name>odeAlgorithm</name>
-          !@   <defaultValue>Runge-Kutta-Cash-Karp</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The algorithm to use in the ODE solver.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('odeAlgorithm',odeAlgorithm,defaultValue='Runge-Kutta-Cash-Karp')
+          !# <inputParameter>
+          !#   <name>odeToleranceAbsolute</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.01d0</defaultValue>
+          !#   <description>The absolute tolerance used in solving differential equations for node evolution.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>odeToleranceRelative</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d-2</defaultValue>
+          !#   <description>The relative tolerance used in solving differential equations for node evolution.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>odeAlgorithm</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Runge-Kutta-Cash-Karp')</defaultValue>
+          !#   <description>The algorithm to use in the ODE solver.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           select case (char(odeAlgorithm))
           case ('Runge-Kutta-Cash-Karp')
              Galacticus_ODE_Algorithm=Fodeiv2_Step_RKCK
@@ -150,18 +141,15 @@ contains
              call Galacticus_Error_Report('Tree_Node_Evolve_Initialize','odeAlgorithm is unrecognized')
           end select
 #ifdef PROFILE
-          !@ <inputParameter>
-          !@   <name>profileOdeEvolver</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to profile the ODE evolver.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('profileOdeEvolver',profileOdeEvolver,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>profileOdeEvolver</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not to profile the ODE evolver.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 #endif
           ! Flag that the module is now initialized.
           evolverInitialized=.true.
@@ -725,17 +713,14 @@ contains
        !$omp critical (Events_Node_Merger_Initialize)
        if (.not.nodeMergersInitialized) then
           ! Get the node mergers method parameter.
-          !@ <inputParameter>
-          !@   <name>nodeMergersMethod</name>
-          !@   <defaultValue>singleLevelHierarchy</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Selects the method to be used for handling node merger events.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeMergersMethod',nodeMergersMethod,defaultValue='singleLevelHierarchy')
+          !# <inputParameter>
+          !#   <name>nodeMergersMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('singleLevelHierarchy')</defaultValue>
+          !#   <description>Selects the method to be used for handling node merger events.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="nodeMergersMethod" type="functionCall" functionType="void">
           !#  <functionArgs>nodeMergersMethod,Events_Node_Merger_Do</functionArgs>

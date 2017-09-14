@@ -45,6 +45,7 @@ program Test_DiemerKravtsov2014_Concentration
   class           (powerSpectrumClass                              ), pointer :: powerSpectrum_
   type            (darkMatterProfileConcentrationDiemerKravtsov2014)          :: darkMatterProfileConcentration_
   type            (varying_string                                  )          :: parameterFile
+  type            (inputParameters                                 )          :: parameters
   double precision                                                            :: ourConcentration               , differenceFractional, &
        &                                                                         concentration                  , mass                , &
        &                                                                         redshift                       , nu                  , &
@@ -59,7 +60,8 @@ program Test_DiemerKravtsov2014_Concentration
   ! Test DiemerKravtsov2014 halo concentration algorithm.
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/DiemerKravtsov2014HaloConcentration/testParameters.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Get the data file if we don't have it.
   if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
@@ -120,8 +122,6 @@ program Test_DiemerKravtsov2014_Concentration
   ! presumably because we don't use precisely the same transfer function as do Diemer &
   ! Kravtsov.
   call Assert("Halo concentration in WMAP7 reference model",differenceFractionalMaximum,0.0d0,absTol=2.9d-2)
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

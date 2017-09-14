@@ -60,17 +60,15 @@ contains
        !$omp critical(klypin2015DefaultInitialize)
        if (.not.klypin2015Initialized) then
           ! Get parameters of the model.
-          !@ <inputParameter>
-          !@   <name>klypin2015ShapeSample</name>
-          !@   <defaultValue>all</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("klypin2015ShapeSample",klypin2015ShapeSampleText,defaultValue='all')
+          !# <inputParameter>
+          !#   <name>klypin2015ShapeSample</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('all')</defaultValue>
+          !#   <description>The sample to use for the halo shape parameter algorithm of \cite{klypin_multidark_2014}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>klypin2015ShapeSampleText</variable>
+          !# </inputParameter>
           select case (char(klypin2015ShapeSampleText))
           case ('all'     )
              klypin2015ConcentrationSample=klypin2015SampleAll

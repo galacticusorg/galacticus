@@ -80,30 +80,26 @@ contains
     if (.not.imfBPASSInitialized) then
        !$omp critical (IMF_BPASS_Initialize)
        if (.not.imfBPASSInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfBPASSRecycledInstantaneous</name>
-          !@   <defaultValue>0.30 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The recycled fraction for the BPASS \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfBPASSRecycledInstantaneous',imfBPASSRecycledInstantaneous,defaultValue=0.30d0)
-          !@ <inputParameter>
-          !@   <name>imfBPASSYieldInstantaneous</name>
-          !@   <defaultValue>0.023 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The yield for the BPASS \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfBPASSYieldInstantaneous'   ,imfBPASSYieldInstantaneous   ,defaultValue=0.023d0)
+          !# <inputParameter>
+          !#   <name>imfBPASSRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.30d0</defaultValue>
+          !#   <description>The recycled fraction for the BPASS \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfBPASSYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.023d0</defaultValue>
+          !#   <description>The yield for the BPASS \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)

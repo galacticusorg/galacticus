@@ -58,17 +58,14 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>massFlowStatisticsResetOnOutput</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not mass flow statistics should be reset to zero at each output.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('massFlowStatisticsResetOnOutput',massFlowStatisticsResetOnOutput,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>massFlowStatisticsResetOnOutput</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Record that the module is now initialized.
           moduleInitialized=.true.     
        end if

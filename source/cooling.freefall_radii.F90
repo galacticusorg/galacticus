@@ -52,17 +52,14 @@ contains
        !$omp critical(Freefall_Radius_Initialization)
        if (.not.freefallRadiusInitialized) then
           ! Get the cooling radius method parameter.
-          !@ <inputParameter>
-          !@   <name>freefallRadiusMethod</name>
-          !@   <defaultValue>darkMatterHalo</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of the freefall radius in cooling calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('freefallRadiusMethod',freefallRadiusMethod,defaultValue='darkMatterHalo')
+          !# <inputParameter>
+          !#   <name>freefallRadiusMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('darkMatterHalo')</defaultValue>
+          !#   <description>The name of the method to be used for calculations of the freefall radius in cooling calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="freefallRadiusMethod" type="functionCall" functionType="void">
           !#  <functionArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</functionArgs>

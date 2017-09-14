@@ -56,17 +56,14 @@ contains
        !$omp critical(Atomic_Cross_Section_Ionization_Photo_Initialization)
        if (.not.ionizationCrossSectionInitialized) then
           ! Get the ionization state method parameter.
-          !@ <inputParameter>
-          !@   <name>atomicPhotoIonizationMethod</name>
-          !@   <defaultValue>Verner</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing atomic photo ionization rates.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('atomicPhotoIonizationMethod',atomicPhotoIonizationMethod,defaultValue='Verner')
+          !# <inputParameter>
+          !#   <name>atomicPhotoIonizationMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Verner')</defaultValue>
+          !#   <description>The name of the method to be used for computing atomic photo ionization rates.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
 
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="atomicPhotoIonizationMethod" type="functionCall" functionType="void">

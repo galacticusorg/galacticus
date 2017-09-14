@@ -67,17 +67,14 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Radiation_Initialize_Intergalactic_Background)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>radiationIntergalacticBackgroundMethod</name>
-          !@   <defaultValue>file</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of the intergalatic background radiation field.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('radiationIntergalacticBackgroundMethod',radiationIntergalacticBackgroundMethod,defaultValue='file')
+          !# <inputParameter>
+          !#   <name>radiationIntergalacticBackgroundMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('file')</defaultValue>
+          !#   <description>The name of the method to be used for calculations of the intergalatic background radiation field.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="radiationIntergalacticBackgroundMethod" type="functionCall" functionType="void">
           !#  <functionArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</functionArgs>

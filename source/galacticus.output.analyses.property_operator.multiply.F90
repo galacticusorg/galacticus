@@ -39,7 +39,7 @@ contains
 
   function multiplyConstructorParameters(parameters) result(self)
     !% Constructor for the ``multiply'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyOperatorMultiply)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
@@ -61,7 +61,7 @@ contains
 
   function multiplyConstructorInternal(multiplier) result (self)
     !% Internal constructor for the ``multiply'' output analysis distribution operator class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisPropertyOperatorMultiply)                :: self
     double precision                                        , intent(in   ) :: multiplier

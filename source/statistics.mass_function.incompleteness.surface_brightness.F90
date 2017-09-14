@@ -58,56 +58,46 @@ contains
     if (.not.surfaceBrightnessInitialized) then
        !$omp critical (massFunctionIncompletenessSurfaceBrightnessInitialize)
        if (.not.surfaceBrightnessInitialized) then
-          !@ <inputParameter>
-          !@   <name>massFunctionIncompletenessSurfaceBrightnessLimit</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Limiting surface brightness for mass function incompleteness calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('massFunctionIncompletenessSurfaceBrightnessLimit'       ,surfaceBrightnessDefaultLimit      )
-          !@ <inputParameter>
-          !@   <name>massFunctionIncompletenessSurfaceBrightnessZeroPoint</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('massFunctionIncompletenessSurfaceBrightnessZeroPoint'   ,surfaceBrightnessDefaultZeroPoint  )
-          !@ <inputParameter>
-          !@   <name>massFunctionIncompletenessSurfaceBrightnessModelSlope</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('massFunctionIncompletenessSurfaceBrightnessModelSlope'  ,surfaceBrightnessDefaultModelSlope )
-          !@ <inputParameter>
-          !@   <name>massFunctionIncompletenessSurfaceBrightnessModelOffset</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Offset in the mass function incompleteness surface brightness model, i.e. $beta$in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('massFunctionIncompletenessSurfaceBrightnessModelOffset' ,surfaceBrightnessDefaultModelOffset )
-          !@ <inputParameter>
-          !@   <name>massFunctionIncompletenessSurfaceBrightnessModelScatter</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Scatter in the mass function incompleteness surface brightness model.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('massFunctionIncompletenessSurfaceBrightnessModelScatter',surfaceBrightnessDefaultModelScatter)
+          !# <inputParameter>
+          !#   <name>massFunctionIncompletenessSurfaceBrightnessLimit</name>
+          !#   <cardinality>1</cardinality>
+          !#   <description>Limiting surface brightness for mass function incompleteness calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>surfaceBrightnessDefaultLimit</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>massFunctionIncompletenessSurfaceBrightnessZeroPoint</name>
+          !#   <cardinality>1</cardinality>
+          !#   <description>Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>surfaceBrightnessDefaultZeroPoint</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>massFunctionIncompletenessSurfaceBrightnessModelSlope</name>
+          !#   <cardinality>1</cardinality>
+          !#   <description>Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>surfaceBrightnessDefaultModelSlope</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>massFunctionIncompletenessSurfaceBrightnessModelOffset</name>
+          !#   <cardinality>1</cardinality>
+          !#   <description>Offset in the mass function incompleteness surface brightness model, i.e. $beta$in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>surfaceBrightnessDefaultModelOffset</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>massFunctionIncompletenessSurfaceBrightnessModelScatter</name>
+          !#   <cardinality>1</cardinality>
+          !#   <description>Scatter in the mass function incompleteness surface brightness model.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>surfaceBrightnessDefaultModelScatter</variable>
+          !# </inputParameter>
           ! Record that we are now initialized.
           surfaceBrightnessInitialized=.true.
        end if

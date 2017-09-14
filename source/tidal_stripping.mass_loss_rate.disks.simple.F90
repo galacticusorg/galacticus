@@ -43,17 +43,14 @@ contains
 
     if (tidalStrippingMassLossRateDisksMethod == 'simple') then
        Tidal_Stripping_Mass_Loss_Rate_Disk_Get => Tidal_Stripping_Mass_Loss_Rate_Disk_Simple
-       !@ <inputParameter>
-       !@   <name>tidalStrippingMassLossRateDiskSimpleFractionalRateMaximum</name>
-       !@   <defaultValue>$10$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to tidal stripping.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('tidalStrippingMassLossRateDiskSimpleFractionalRateMaximum',tidalStrippingMassLossRateDiskSimpleFractionalRateMaximum,defaultValue=10.0d0)
+       !# <inputParameter>
+       !#   <name>tidalStrippingMassLossRateDiskSimpleFractionalRateMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to tidal stripping.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Tidal_Stripping_Mass_Loss_Rate_Disks_Simple_Init

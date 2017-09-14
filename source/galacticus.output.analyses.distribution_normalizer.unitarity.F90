@@ -37,7 +37,7 @@ contains
 
   function unitarityConstructorParameters(parameters) result(self)
     !% Constructor for the ``unitarity'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisDistributionNormalizerUnitarity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters

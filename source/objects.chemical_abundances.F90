@@ -228,8 +228,8 @@ contains
        if (.not.chemicalAbundancesInitialized) then
 
           ! Determine how many elements we are required to track.
-          if (Input_Parameter_Is_Present('chemicalsToTrack')) then
-             chemicalsCount=Get_Input_Parameter_Array_Size('chemicalsToTrack')
+          if (globalParameters%isPresent('chemicalsToTrack')) then
+             chemicalsCount=globalParameters%count('chemicalsToTrack')
           else
              chemicalsCount=0
           end if
@@ -241,16 +241,13 @@ contains
              call allocateArray(chemicalsIndices,[chemicalsCount])
              call allocateArray(chemicalsCharges,[chemicalsCount])
              call allocateArray(chemicalsMasses ,[chemicalsCount])
-             !@ <inputParameter>
-             !@   <name>chemicalsToTrack</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The names of the chemicals to be tracked.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1..*</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('chemicalsToTrack',chemicalsToTrack)
+             !# <inputParameter>
+             !#   <name>chemicalsToTrack</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>The names of the chemicals to be tracked.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
              ! Validate the input names by looking them up in the list of chemical names.
              chemicalNameLengthMaximum=0
              do iChemical=1,chemicalsCount

@@ -43,7 +43,7 @@ contains
 
   function propertyConstructorParameters(parameters) result(self)
     !% Constructor for the ``property'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisWeightOperatorProperty)                :: self
     type (inputParameters                     ), intent(inout) :: parameters

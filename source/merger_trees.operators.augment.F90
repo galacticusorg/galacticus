@@ -110,7 +110,7 @@ contains
 
   function augmentConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
     use Galacticus_Error

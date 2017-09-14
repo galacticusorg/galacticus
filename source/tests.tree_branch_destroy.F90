@@ -21,14 +21,18 @@ program Tests_Tree_Branch_Destroy
   use Memory_Management
   use Galacticus_Nodes
   use Kind_Numbers
+  use Input_Parameters
   implicit none
-  type   (mergerTree    ), pointer :: thisTree
-  type   (treeNodeList  )          :: nodes   (5)
-  integer(kind=kind_int8)          :: iNode
+  type   (mergerTree     ), pointer :: thisTree
+  type   (treeNodeList   )          :: nodes   (5)
+  integer(kind=kind_int8 )          :: iNode
+  type   (inputParameters)          :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.tree_branch_destroy.size')
-
+  ! Initialize parameters.
+  parameters=inputParameters()
+  call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tree branch destruction: Avoid dangling pointers")
 

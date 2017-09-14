@@ -46,7 +46,7 @@ contains
   function traceDarkMatterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class which takes a parameter
     !% list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(satelliteOrphanDistributionTraceDarkMatter)                :: self
     type(inputParameters                           ), intent(inout) :: parameters

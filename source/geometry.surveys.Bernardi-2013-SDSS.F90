@@ -46,7 +46,7 @@ contains
 
   function bernardi2013SDSSConstructorParameters(parameters) result (self)
     !% Constructor for the \cite{bernardi_massive_2013} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(surveyGeometryBernardi2013SDSS)                :: self
     type(inputParameters               ), intent(inout) :: parameters

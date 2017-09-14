@@ -45,7 +45,7 @@ contains
 
   function pruneLightconeConstructorParameters(parameters) result(self)
     !% Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorPruneLightcone)                :: self
     type(inputParameters                 ), intent(inout) :: parameters

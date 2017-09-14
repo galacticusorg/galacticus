@@ -38,6 +38,7 @@ program Tests_Comoving_Distance
   type            (cosmologyFunctionsMatterLambda)                         , target :: cosmologyFunctionsCosmologicalConstant                                                                                                                  , cosmologyFunctionsOpen
   type            (varying_string                )                                  :: parameterFile
   character       (len=1024                      )                                  :: message
+  type            (inputParameters               )                                  :: parameters
   integer                                                                           :: i                                                                                                                                                       , iExpansion
   double precision                                                                  :: distance                                                                                                                                                , distanceModulus        , &
        &                                                                               time                                                                                                                                                    , timeLookup
@@ -48,7 +49,8 @@ program Tests_Comoving_Distance
   call Unit_Tests_Begin_Group("Comoving distance")
   ! Cosmology functions for in an Einstein-de Sitter universe. For this case, we use the default settings.
   parameterFile='testSuite/parameters/comovingDistance/EdS.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   cosmologyFunctionsEdS => cosmologyFunctions()
   ! Cosmology functions for an open Universe.
   cosmologyParametersOpen                =cosmologyParametersSimple     (0.3d0,0.0d0,0.0d0,2.78d0,10000.0d0     )
@@ -90,7 +92,6 @@ program Tests_Comoving_Distance
      end do
      call Unit_Tests_End_Group()
   end do
-  call Input_Parameters_File_Close()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

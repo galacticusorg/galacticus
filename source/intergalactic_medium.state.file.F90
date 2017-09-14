@@ -65,7 +65,7 @@ contains
 
   function fileConstructorParameters(parameters) result(self)
     !% Default constructor for the file \gls{igm} state class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(intergalacticMediumStateFile)                :: self
     type(inputParameters             ), intent(inout) :: parameters

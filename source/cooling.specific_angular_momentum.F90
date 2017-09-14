@@ -51,17 +51,14 @@ contains
        !$omp critical(Cooling_Specific_Angular_Momentum_Initialization)
        if (.not.coolingAngularMomentumInitialized) then
           ! Get the cooling radius method parameter.
-          !@ <inputParameter>
-          !@   <name>coolingSpecificAngularMomentumMethod</name>
-          !@   <defaultValue>constantRotation</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of the specific angular momentum of cooling gas.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('coolingSpecificAngularMomentumMethod',coolingSpecificAngularMomentumMethod,defaultValue='constantRotation')
+          !# <inputParameter>
+          !#   <name>coolingSpecificAngularMomentumMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('constantRotation')</defaultValue>
+          !#   <description>The name of the method to be used for calculations of the specific angular momentum of cooling gas.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="coolingSpecificAngularMomentumMethod" type="functionCall" functionType="void">
           !#  <functionArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</functionArgs>

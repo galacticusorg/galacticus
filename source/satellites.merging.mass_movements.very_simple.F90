@@ -43,17 +43,14 @@ contains
 
     if (satelliteMergingMassMovementsMethod == 'verySimple') then
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Very_Simple
-       !@ <inputParameter>
-       !@   <name>majorMergerMassRatio</name>
-       !@   <defaultValue>0.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The mass ratio above which mergers are considered to be ``major'' in the very simple merger mass movements method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>majorMergerMassRatio</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The mass ratio above which mergers are considered to be ``major'' in the very simple merger mass movements method.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Satellite_Merging_Mass_Movements_Very_Simple_Initialize

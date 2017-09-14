@@ -49,17 +49,15 @@ contains
     if (.not.virialFractionInitialized) then
        !$omp critical (hotHaloMassDistributionCoreRadiusVirialFractionInitialize)
        if (.not.virialFractionInitialized) then
-          !@ <inputParameter>
-          !@   <name>hotHaloCoreRadiusOverVirialRadius</name>
-          !@   <defaultValue>0.3</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The core radius in the hot halo density profile in units of the virial radius.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloCoreRadiusOverVirialRadius',virialFractionCoreRadiusOverVirialRadius,defaultValue=0.3d0)
+          !# <inputParameter>
+          !#   <name>hotHaloCoreRadiusOverVirialRadius</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.3d0</defaultValue>
+          !#   <description>The core radius in the hot halo density profile in units of the virial radius.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>virialFractionCoreRadiusOverVirialRadius</variable>
+          !# </inputParameter>
           ! Record that this implementation is now initialized.
           virialFractionInitialized=.true.
        end if

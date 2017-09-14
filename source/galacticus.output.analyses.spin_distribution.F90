@@ -45,7 +45,7 @@ contains
 
   function spinDistributionConstructorParameters(parameters) result (self)
     !% Constructor for the ``spinDistribution'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisSpinDistribution)                :: self
     type            (inputParameters               ), intent(inout) :: parameters

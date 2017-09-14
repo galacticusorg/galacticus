@@ -214,42 +214,33 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Correlation_Functions_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade',analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisProjectedCorrelationFunctionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisProjectedCorrelationFunctionsHaloMassMinimum',analysisProjectedCorrelationFunctionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisProjectedCorrelationFunctionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisProjectedCorrelationFunctionsHaloMassMaximum',analysisProjectedCorrelationFunctionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisProjectedCorrelationFunctionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisProjectedCorrelationFunctionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisProjectedCorrelationFunctionsHaloMassMinimumLogarithmic=log10(analysisProjectedCorrelationFunctionsHaloMassMinimum)
           analysisProjectedCorrelationFunctionsHaloMassBinsCount=int(log10(analysisProjectedCorrelationFunctionsHaloMassMaximum/analysisProjectedCorrelationFunctionsHaloMassMinimum)*dble(analysisProjectedCorrelationFunctionsHaloMassBinsPerDecade)+0.5d0)
           haloMassIntervalLogarithmicInverse=dble(analysisProjectedCorrelationFunctionsHaloMassBinsCount)/log10(analysisProjectedCorrelationFunctionsHaloMassMaximum/analysisProjectedCorrelationFunctionsHaloMassMinimum)
@@ -290,17 +281,16 @@ contains
                          do k=1,correlationFunctionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(correlationFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssClustering)Z[0-9\.]+MassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Correlation function systematic error model parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                           call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>correlationFunctions(currentAnalysis)%massSystematicCoefficients(k)</variable>
+                            !#   <source>globalParameters</source>
+                            !#   <regEx>(sdssClustering)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Correlation function systematic error model parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -309,43 +299,40 @@ contains
                          do k=1,correlationFunctionDescriptors(j)%massRandomCoefficientCount
                             parameterName=trim(correlationFunctionLabels(j))//'MassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssClustering)Z[0-9\.]+MassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Correlation function mass random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>correlationFunctions(currentAnalysis)%massRandomCoefficients(k)</variable>
+                            !#   <regEx>(sdssClustering)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <source>globalParameters</source>
+                            !#   <description>Correlation function mass random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       parameterName=trim(correlationFunctionLabels(j))//'MassRandomMinimum'
-                      !@ <inputParameter>
-                      !@   <regEx>(sdssClustering)Z[0-9\.]+MassRandomMinimum</regEx>
-                      !@   <defaultValue>$10^{-3}$</defaultValue>
-                      !@   <attachedTo>module</attachedTo>
-                      !@   <description>
-                      !@     Mass-dependent size function mass random minimum.
-                      !@   </description>
-                      !@   <type>real</type>
-                      !@   <cardinality>1</cardinality>
-                      !@ </inputParameter>
-                      call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomMinimum,defaultValue=1.0d-3)
+                      !# <inputParameter>
+                      !#   <name>char(parameterName)</name>
+                      !#   <variable>correlationFunctions(currentAnalysis)%massRandomMinimum</variable>
+                      !#   <regEx>(sdssClustering)Z[0-9\.]+MassRandomMinimum</regEx>
+                      !#   <defaultValue>1.0d-3</defaultValue>
+                      !#   <source>globalParameters</source>
+                      !#   <description>Correlation function mass random minimum.</description>
+                      !#   <type>real</type>
+                      !#   <cardinality>1</cardinality>
+                      !# </inputParameter>
                       parameterName=trim(correlationFunctionLabels(j))//'MassRandomMaximum'
-                      !@ <inputParameter>
-                      !@   <regEx>(sdssClustering)Z[0-9\.]+MassRandomMaximum</regEx>
-                      !@   <defaultValue>10</defaultValue>
-                      !@   <attachedTo>module</attachedTo>
-                      !@   <description>
-                      !@     Mass-dependent size function mass random maximum.
-                      !@   </description>
-                      !@   <type>real</type>
-                      !@   <cardinality>1</cardinality>
-                      !@ </inputParameter>
-                      call Get_Input_Parameter(char(parameterName),correlationFunctions(currentAnalysis)%massRandomMaximum,defaultValue=1.0d-3)
+                      !# <inputParameter>
+                      !#   <name>char(parameterName)</name>
+                      !#   <variable>correlationFunctions(currentAnalysis)%massRandomMaximum</variable>
+                      !#   <regEx>(sdssClustering)Z[0-9\.]+MassRandomMaximum</regEx>
+                      !#   <defaultValue>1.0d-3</defaultValue>
+                      !#   <source>globalParameters</source>
+                      !#   <description>Correlation function mass random maximum.</description>
+                      !#   <type>real</type>
+                      !#   <cardinality>1</cardinality>
+                      !# </inputParameter>
                       ! Read the appropriate observational data definition.
                       select case (trim(correlationFunctionLabels(j)))
                       case ('sdssClusteringZ0.07')

@@ -26,9 +26,10 @@ program Test_Abundances
   use Input_Parameters
   use Abundances_Structure
   implicit none
-  type            (varying_string)               :: parameterFile
-  type            (abundances    )               :: abundances1    , abundances2, abundances3
-  double precision                , dimension(5) :: abundancesArray
+  type            (varying_string )               :: parameterFile
+  type            (abundances     )               :: abundances1    , abundances2, abundances3
+  double precision                 , dimension(5) :: abundancesArray
+  type            (inputParameters)               :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.abundances.size')
@@ -38,7 +39,8 @@ program Test_Abundances
 
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/abundances/testAbundances.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Initialize abundances.
   call abundances1%deserialize([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0])
@@ -46,9 +48,6 @@ program Test_Abundances
   abundances3=max(abundances1,abundances2)
   call abundances3%serialize(abundancesArray)
   call Assert('max() function',abundancesArray,[5.0d0,4.0d0,3.0d0,4.0d0,5.0d0])
-
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

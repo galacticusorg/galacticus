@@ -141,72 +141,54 @@ contains
     !$omp critical (Node_Component_Spheroid_Very_Simple_Initialize)
     if (defaultSpheroidComponent%verySimpleIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>spheroidVerySimpleMassScaleAbsolute</name>
-       !@   <defaultValue>$100 M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidVerySimpleMassScaleAbsolute',spheroidVerySimpleMassScaleAbsolute,defaultValue=100.0d0)
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowTimescaleMinimum</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the spheroid.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>spheroidStarFormationTimescaleMinimum</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the spheroid.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidStarFormationTimescaleMinimum',spheroidStarFormationTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>spheroidVerySimpleTrackAbundances</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not to track abundances in the very simple spheroid component.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>0..1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidVerySimpleTrackAbundances',spheroidVerySimpleTrackAbundances,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>spheroidVerySimpleTrackLuminosities</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not to track stellar luminosities in the very simple disk component.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>0..1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidVerySimpleTrackLuminosities',spheroidVerySimpleTrackLuminosities,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>spheroidMassToleranceAbsolute</name>
-       !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The mass tolerance used to judge whether the spheroid is physically plausible.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
+       !# <inputParameter>
+       !#   <name>spheroidVerySimpleMassScaleAbsolute</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>100.0d0</defaultValue>
+       !#   <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidOutflowTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the spheroid.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidStarFormationTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the spheroid.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidVerySimpleTrackAbundances</name>
+       !#   <cardinality>0..1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidVerySimpleTrackLuminosities</name>
+       !#   <cardinality>0..1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidMassToleranceAbsolute</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-6</defaultValue>
+       !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
        ! Bind the star formation rate function.
        call spheroidVerySimpleComponent%starFormationRateFunction(Node_Component_Spheroid_Very_Simple_SFR)
        ! Record that the module is now initialized.

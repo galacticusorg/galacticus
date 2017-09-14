@@ -38,7 +38,7 @@ contains
 
   function pruneClonesConstructorParameters(parameters)
     !% Constructor for the clone pruning merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters

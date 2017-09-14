@@ -101,18 +101,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Basic_Extended_Bindings)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
-          !@   <defaultValue>matterLambda</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The type of spherical collapse model to assume in the extended basic node component class.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>cosmology</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeComponentBasicExtendedSphericalCollapseType',nodeComponentBasicExtendedSphericalCollapseTypeText,defaultValue='matterLambda')
+          !# <inputParameter>
+          !#   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('matterLambda')</defaultValue>
+          !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
+          !#   <group>cosmology</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
+          !# </inputParameter>
           select case (char(nodeComponentBasicExtendedSphericalCollapseTypeText))
           case ('matterLambda'    )
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeLambda

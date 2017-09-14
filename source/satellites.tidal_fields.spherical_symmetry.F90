@@ -43,17 +43,14 @@ contains
 
     if (satellitesTidalFieldMethod == 'sphericalSymmetry') then
        Satellites_Tidal_Field_Get => Satellites_Tidal_Fields_Spherical_Symmetry_Get
-       !@ <inputParameter>
-       !@   <name>satelliteTidalFieldBoostFactor</name>
-       !@   <defaultValue>1.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field method.
-       !@   </description>
-       !@   <type>float</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteTidalFieldBoostFactor',satelliteTidalFieldBoostFactor,defaultValue=1.0d0)
+       !# <inputParameter>
+       !#   <name>satelliteTidalFieldBoostFactor</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field method.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>float</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Satellites_Tidal_Fields_Spherical_Symmetry_Initialize

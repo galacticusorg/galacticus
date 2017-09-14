@@ -78,42 +78,33 @@ contains
     if (starFormationTimescaleDisksMethod == 'haloScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Halo_Scaling
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksHaloScalingTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale for star formation in the halo scaling timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksHaloScalingTimescale',starFormationTimescaleDisksHaloScalingTimescale,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksHaloScalingVirialVelocityExponent</name>
-       !@   <defaultValue>$0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksHaloScalingVirialVelocityExponent',starFormationTimescaleDisksHaloScalingVirialVelocityExponent,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksHaloScalingRedshiftExponent</name>
-       !@   <defaultValue>$0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of redshift in the timescale for star formation in the halo scaling timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksHaloScalingRedshiftExponent',starFormationTimescaleDisksHaloScalingRedshiftExponent,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksHaloScalingTimescale</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The timescale for star formation in the halo scaling timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksHaloScalingVirialVelocityExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksHaloScalingRedshiftExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Compute the normalization of the timescale.
        timeScaleNormalization= starFormationTimescaleDisksHaloScalingTimescale                                           &
        &                      /virialVelocityNormalization**starFormationTimescaleDisksHaloScalingVirialVelocityExponent

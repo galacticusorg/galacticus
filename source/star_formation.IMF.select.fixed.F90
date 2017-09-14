@@ -47,18 +47,15 @@ contains
        IMF_Select_Do                           => IMF_Select_Fixed
        IMF_Is_Star_Formation_Rate_Dependent_Do => IMF_Is_Star_Formation_Rate_Dependent_Fixed
       ! Get IMF choice.
-       !@ <inputParameter>
-       !@   <name>imfSelectionFixed</name>
-       !@   <defaultValue>Chabrier</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the initial mass function to use in the ``fixed initial mass function'' module.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfSelectionFixed',imfSelectionFixed,defaultValue='Chabrier')
+       !# <inputParameter>
+       !#   <name>imfSelectionFixed</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('Chabrier')</defaultValue>
+       !#   <description>The name of the initial mass function to use in the ``fixed initial mass function'' module.</description>
+       !#   <group>initialMassFunction</group>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
        imfSelectedIndex=IMF_Index_Lookup(imfSelectionFixed,imfNames)
     end if
     return

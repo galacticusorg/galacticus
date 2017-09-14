@@ -55,7 +55,7 @@ sub Process_Source_Introspection {
 			}
 			$branch = $branch->{'parent'};
 		    }
-		    $location .= "//' [line ".$lineNumber."]'";
+		    $location .= "//'   [line ".$lineNumber."]'";
 		    $line =~ s/\{introspection:location:\d+\}/$location/g;
 		}
 		$newCode .= $line;

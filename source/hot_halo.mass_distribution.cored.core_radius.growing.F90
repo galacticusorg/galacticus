@@ -62,26 +62,24 @@ contains
     if (.not.growingInitialized) then
        !$omp critical (hotHaloMassDistributionCoreRadiusGrowingInitialize)
        if (.not.growingInitialized) then
-          !@ <inputParameter>
-          !@   <name>hotHaloCoreRadiusOverScaleRadius</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <description>
-          !@     The core radius in the hot halo density profile in units of the dark matter profile scale radius.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloCoreRadiusOverScaleRadius',growingCoreRadiusOverScaleRadius,defaultValue=0.1d0)
-          !@ <inputParameter>
-          !@   <name>hotHaloCoreRadiusOverVirialRadiusMaximum</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <description>
-          !@     The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloCoreRadiusOverVirialRadiusMaximum',growingCoreRadiusOverVirialRadiusMaximum,defaultValue=10.0d0)
+          !# <inputParameter>
+          !#   <name>hotHaloCoreRadiusOverScaleRadius</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>growingCoreRadiusOverScaleRadius</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>hotHaloCoreRadiusOverVirialRadiusMaximum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>10.0d0</defaultValue>
+          !#   <description>The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>growingCoreRadiusOverVirialRadiusMaximum</variable>
+          !# </inputParameter>
           ! Record that this implementation is now initialized.
           growingInitialized=.true.
        end if

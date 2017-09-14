@@ -40,7 +40,7 @@ contains
 
   function systmtcPolynomialConstructorParameters(parameters) result(self)
     !% Constructor for the ``systmtcPolynomial'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters

@@ -15,22 +15,22 @@
 //    You should have received a copy of the GNU General Public License
 //    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-//% Contains a set of templates and overloaded wrapper functions to provide a C interface the the input parameters module.
+//% Contains definitions of a C++ class to provide input parameters.
 
-extern "C"
+class inputParameters
 {
-  void Get_Input_Parameter_Double (int parameterNameLength, char *parameterName, double *parameterValue, double *defaultValue);
-  void Get_Input_Parameter_Integer(int parameterNameLength, char *parameterName, int    *parameterValue, int    *defaultValue);
-}
+  //% A C++ class which provides input parameters.
+  void *selfParameters;
+ public:
+  inputParameters              (void *parameters    );
+  ~inputParameters             (                    );
+  inputParameters subParameters(char parameterName[]);
+  void            setParameters(void *parameters    );
+  void            value        (char parameterName[], double *parameterValue, double *defaultValue = NULL, int *errorStatus = NULL, bool *writeOutput = NULL);
+  void            value        (char parameterName[], long   *parameterValue, long   *defaultValue = NULL, int *errorStatus = NULL, bool *writeOutput = NULL);
+};
 
-void Get_Input_Parameter(int parameterNameLength, char *parameterName,double *parameterValue, double *defaultValue = NULL)
+namespace globalParameters
 {
-  //% Get the value of a {\tt double} parameter from C.
-  Get_Input_Parameter_Double(parameterNameLength,parameterName,parameterValue,defaultValue);
-}
-
-void Get_Input_Parameter(int parameterNameLength, char *parameterName,int    *parameterValue, int    *defaultValue = NULL)
-{
-  //% Get the value of an {\tt int} parameter from C.
-  Get_Input_Parameter_Integer(parameterNameLength,parameterName,parameterValue,defaultValue);
+  extern inputParameters parameters;
 }

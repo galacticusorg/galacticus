@@ -52,6 +52,7 @@ program Optimal_Sampling_SMF
   type            (fgsl_integration_workspace)                            :: integrationWorkspace
   logical                                                                 :: integrationReset=.true.
   type            (hdf5Object                )                            :: outputFile,thisDataset
+  type            (inputParameters           )                            :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('optimal_sampling.stellar_mass_function.size')
@@ -62,29 +63,24 @@ program Optimal_Sampling_SMF
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Get the name of the output file.
-  !@ <inputParameter>
-  !@   <name>optimalSamplingDensityOutputFileName</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The name of a file to which the optimal tree mass sampling density function will be written.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('optimalSamplingDensityOutputFileName',optimalSamplingDensityOutputFileName)
-  !@ <inputParameter>
-  !@   <name>optimalSamplingLogarithmicBinWidth</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The logarithmic width of bins in the stellar mass function to use when computing the optimal tree mass sampling density function.
-  !@   </description>
-  !@   <type>real</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('optimalSamplingLogarithmicBinWidth',optimalSamplingLogarithmicBinWidth)
+  !# <inputParameter>
+  !#   <name>optimalSamplingDensityOutputFileName</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The name of a file to which the optimal tree mass sampling density function will be written.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>optimalSamplingLogarithmicBinWidth</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The logarithmic width of bins in the stellar mass function to use when computing the optimal tree mass sampling density function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>real</type>
+  !# </inputParameter>
 
   ! Compute number of points to tabulate.
   stellarMassTableCount=int(log10(stellarMassMaximum/stellarMassMinimum)*dble(stellarMassPointsPerDecade)+1.0d0)
@@ -169,9 +165,6 @@ program Optimal_Sampling_SMF
 
    ! Close the output file.
    call outputFile%close()
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
 
 contains
 

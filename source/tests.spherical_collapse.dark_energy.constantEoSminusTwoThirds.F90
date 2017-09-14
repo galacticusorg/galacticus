@@ -42,6 +42,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   double precision                                         :: age                                                                     , alpha                      , &
        &                                                      criticalOverdensityValue                                                , criticalOverdensityExpected, &
        &                                                      expansionFactor                                                         , omega
+  type            (inputParameters         )               :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.size')
@@ -51,7 +52,8 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
 
   ! Test spherical collapse in a flat universe.
   parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminusTwoThirds.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get the default cosmology functions object.
   cosmologyFunctions_  => cosmologyFunctions ()
   criticalOverdensity_ => criticalOverdensity()
@@ -66,10 +68,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
      write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=1.5d-3)
   end do
-  call Input_Parameters_File_Close
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds

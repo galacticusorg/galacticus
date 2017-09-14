@@ -45,7 +45,7 @@ contains
   function gao2008ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class which takes a parameter
     !% list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileConcentrationGao2008)                :: self
     type (inputParameters                      ), intent(inout) :: parameters

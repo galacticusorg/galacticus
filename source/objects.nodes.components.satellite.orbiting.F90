@@ -122,28 +122,21 @@ contains
     !$omp critical (Node_Component_Satellite_Orbiting_Initialize)
     if (defaultSatelliteComponent%orbitingIsActive().and..not.moduleInitialized) then
        ! Create the spheroid mass distribution.
-       !@ <inputParameter>
-       !@   <name>satelliteOrbitingDestructionMassIsFractional</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteOrbitingDestructionMass',satelliteOrbitingDestructionMass,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>satelliteOrbitingDestructionMass</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteOrbitingDestructionMass',satelliteOrbitingDestructionMass,defaultValue=0.01d0)
+       !# <inputParameter>
+       !#   <name>satelliteOrbitingDestructionMassIsFractional</name>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>If true, then {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies the fractional mass a halo must reach before it is tidally destroyed. Otherwise, {\normalfont \ttfamily [satelliteOrbitingDestructionMass]} specifies an absolute mass.</description>
+       !#   <type>double</type>
+       !#   <cardinality>1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>satelliteOrbitingDestructionMass</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.01d0</defaultValue>
+       !#   <description>The mass (possibly fractional---see {\normalfont \ttfamily [satelliteOrbitingDestructionMassIsFractional]}) below which the satellite is considered to be tidally destroyed and merged with the central halo.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
        ! Specify the function to use for setting virial orbits.
        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
        ! Record that the module is now initialized.

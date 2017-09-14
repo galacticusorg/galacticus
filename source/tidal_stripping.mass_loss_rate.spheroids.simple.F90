@@ -43,17 +43,14 @@ contains
 
     if (tidalStrippingMassLossRateSpheroidsMethod == 'simple') then
        Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get => Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple
-       !@ <inputParameter>
-       !@   <name>tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum</name>
-       !@   <defaultValue>$10$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to tidal stripping.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum',tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum,defaultValue=10.0d0)
+       !# <inputParameter>
+       !#   <name>tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to tidal stripping.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init

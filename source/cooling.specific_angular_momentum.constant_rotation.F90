@@ -59,18 +59,16 @@ contains
     if (coolingSpecificAngularMomentumMethod == 'constantRotation') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Constant_Rotation
 
-       !@ <inputParameter>
-       !@   <name>coolingMeanAngularMomentumFrom</name>
-       !@   <defaultValue>hotGas</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the mean specific angular momentum should be computed for
-       !@     calculations of cooling gas specific angular momentum.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingMeanAngularMomentumFrom',inputOption,defaultValue='hotGas')
+       !# <inputParameter>
+       !#   <name>coolingMeanAngularMomentumFrom</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('hotGas')</defaultValue>
+       !#   <description>The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the mean specific angular momentum should be computed for
+       !#      calculations of cooling gas specific angular momentum.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !#   <variable>inputOption</variable>
+       !# </inputParameter>
        select case (char(inputOption))
        case ("darkMatter")
           meanSpecificAngularMomentumFrom=profileDarkMatter
@@ -80,18 +78,16 @@ contains
           call Galacticus_Error_Report('Cooling_Specific_AM_Constant_Rotation_Initialize','[coolingMeanAngularMomentumFrom] must be either "darkMatter" or "hotGas"')
        end select
 
-       !@ <inputParameter>
-       !@   <name>coolingRotationVelocityFrom</name>
-       !@   <defaultValue>hotGas</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the constant rotation speed should be computed for
-       !@     calculations of cooling gas specific angular momentum.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='hotGas')
+       !# <inputParameter>
+       !#   <name>coolingRotationVelocityFrom</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('hotGas')</defaultValue>
+       !#   <description>The component (``{\normalfont \ttfamily hotGas}'' or ``{\normalfont \ttfamily darkMatter}'') from which the constant rotation speed should be computed for
+       !#      calculations of cooling gas specific angular momentum.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !#   <variable>inputOption</variable>
+       !# </inputParameter>
        select case (char(inputOption))
        case ("darkMatter")
           rotationNormalizationFrom=profileDarkMatter
@@ -101,17 +97,14 @@ contains
           call Galacticus_Error_Report('Cooling_Specific_AM_Constant_Rotation_Initialize','[coolingRotationVelocityFrom] must be either "darkMatter" or "hotGas"')
        end select
        
-       !@ <inputParameter>
-       !@   <name>coolingAngularMomentumUseInteriorMean</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingAngularMomentumUseInteriorMean',coolingAngularMomentumUseInteriorMean,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>coolingAngularMomentumUseInteriorMean</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
 
     end if
     return

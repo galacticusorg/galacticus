@@ -40,7 +40,7 @@ contains
 
   function selectWithinRangeConstructorParameters(parameters)
     !% Constructor for the select-within-range merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorSelectWithinRange)                :: selectWithinRangeConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters

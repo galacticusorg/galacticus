@@ -23,7 +23,7 @@ program nbodyAnalyze
   use Galacticus_Error
   use IO_HDF5
   use Memory_Management
-  use Input_Parameters2
+  use Input_Parameters
   use NBody_Simulation_Data
   use NBody_Importers
   use NBody_Operators

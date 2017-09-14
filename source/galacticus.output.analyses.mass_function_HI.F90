@@ -42,7 +42,7 @@ contains
 
   function massFunctionHIConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionHI'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Output_Analysis_Molecular_Ratios
     implicit none
     type            (outputAnalysisMassFunctionHI           )                             :: self

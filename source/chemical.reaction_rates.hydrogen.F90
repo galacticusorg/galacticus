@@ -62,30 +62,24 @@ contains
        ratesSelected=.true.
 
        ! Get parameters controlling implementation.
-       !@ <inputParameter>
-       !@   <name>hydrogenNetworkFast</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not to use simplifying assumptions to speed the hydrogen network calculation. If true, H$^-$
-       !@    is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see
-       !@    \citealt{abel_modeling_1997}).
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hydrogenNetworkFast',hydrogenNetworkFast,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>hydrogenNetworkCMBOnly</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not to use the cosmic microwave background only when computed certain radiative rates.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hydrogenNetworkCMBOnly',hydrogenNetworkCMBOnly,defaultValue=.true.)
+       !# <inputParameter>
+       !#   <name>hydrogenNetworkFast</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not to use simplifying assumptions to speed the hydrogen network calculation. If true, H$^-$
+       !#     is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see
+       !#     \citealt{abel_modeling_1997}).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>hydrogenNetworkCMBOnly</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not to use the cosmic microwave background only when computed certain radiative rates.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Get indices for chemicals as necessary.
        if (hydrogenNetworkFast) then

@@ -42,18 +42,15 @@ contains
     if (.not.outputHalfMassDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Half_Mass_Initialize)
        if (.not.outputHalfMassDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputHalfMassData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not half-mass radii should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputHalfMassData',outputHalfMassData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputHalfMassData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not half-mass radii should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is now initialized.
           outputHalfMassDataInitialized=.true.
        end if

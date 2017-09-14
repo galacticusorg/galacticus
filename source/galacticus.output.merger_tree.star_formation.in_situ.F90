@@ -68,42 +68,33 @@ contains
        Star_Formation_History_Record_Do => Star_Formation_History_Record_In_Situ
        Star_Formation_History_Output_Do => Star_Formation_History_Output_In_Situ
        ! Get controlling parameters.
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryTimeStep</name>
-       !@   <defaultValue>$0.1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The time step to use in tabulations of star formation histories [Gyr].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryTimeStep'          ,starFormationHistoryTimeStep          ,defaultValue=0.1d0 )
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryFineTimeStep</name>
-       !@   <defaultValue>$0.01$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The fine time step to use in tabulations of star formation histories [Gyr].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryFineTimeStep'      ,starFormationHistoryFineTimeStep      ,defaultValue=0.01d0)
-       !@ <inputParameter>
-       !@   <name>starFormationHistoryFineTime</name>
-       !@   <defaultValue>$0.1$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>output</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationHistoryFineTime'          ,starFormationHistoryFineTime          ,defaultValue=0.1d0 )
+       !# <inputParameter>
+       !#   <name>starFormationHistoryTimeStep</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>The time step to use in tabulations of star formation histories [Gyr].</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationHistoryFineTimeStep</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.01d0</defaultValue>
+       !#   <description>The fine time step to use in tabulations of star formation histories [Gyr].</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationHistoryFineTime</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].</description>
+       !#   <group>output</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Star_Formation_Histories_In_Situ_Initialize

@@ -47,7 +47,7 @@ contains
 
   function wdmConstructorParameters(parameters)
     !% Default constructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationWDM)                :: wdmConstructorParameters
     type(inputParameters                  ), intent(inout) :: parameters

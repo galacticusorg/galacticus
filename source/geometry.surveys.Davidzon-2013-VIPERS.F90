@@ -55,7 +55,7 @@ contains
 
   function davidzon2013VIPERSConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{davidzon_vimos_2013} conditional mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (surveyGeometryDavidzon2013VIPERS)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters

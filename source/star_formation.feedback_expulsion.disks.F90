@@ -51,18 +51,15 @@ contains
        !$omp critical(Star_Formation_Expulsive_Feedback_Disks_Initialization)
        if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
           ! Get the disk star formation expulsive feedback method parameter.
-          !@ <inputParameter>
-          !@   <name>starFormationExpulsiveFeedbackDisksMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in disks.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationExpulsiveFeedbackDisksMethod',starFormationExpulsiveFeedbackDisksMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>starFormationExpulsiveFeedbackDisksMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used for calculations of expulsive \gls{sne} feedback in disks.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="functionCall" functionType="void">
           !#  <functionArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</functionArgs>

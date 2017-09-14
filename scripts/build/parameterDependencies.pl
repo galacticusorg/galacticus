@@ -29,7 +29,7 @@ my @objectFiles = map { $_ =~ /^$ENV{'BUILDPATH'}\/(.+\.o)$/ ? $1 : () } read_fi
 
 # Open the source diretory, finding F90 and cpp files.
 my $output;
-opendir(my $sourceDirectory,$sourceDirectoryName);
+opendir(my $sourceDirectory,$sourceDirectoryName."/source");
 while ( my $fileName = readdir($sourceDirectory) ) {
     # Skip junk files.
     next
@@ -44,14 +44,19 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	unless ( grep {$_ eq $objectFileName} @objectFiles );
     # For Fortran files, check for a ".p" parameter file in the build directory. These files are created by
     # Galacticus::Build::SourceTree::Process::FunctionClass.
-    if ( $fileName =~ m/\.F90$/) {
-	(my $rootFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/./;
+    (my $rootFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/./;
+    if ( $fileName =~ m/\.F90$/ ) {
 	push(@{$output->{'parameters'}},read_file($rootFileName."p", chomp => 1, err_mode => 'quiet'))
 	    if ( grep {$_ eq $rootFileName."o"} @objectFiles );
     }
     # Process Fortran and C++ files.
     # Create a stack of files to process.
-    my @fileStack = ( $sourceDirectoryName."/".$fileName );
+    my @fileStack;
+    if ( $fileName =~ m/\.F90$/ && -e $rootFileName."p.F90" ) {
+	@fileStack = ( $rootFileName."p.F90" );
+    } else {
+	@fileStack = ( $sourceDirectoryName."/source/".$fileName ); 
+   }
     while ( scalar(@fileStack) > 0 ) {
 	my $fileToProcess = shift(@fileStack);
 	# Find "include" lines in the file, extract the name of the included file, filter out any include files which are to be
@@ -68,8 +73,26 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    (
 	     @{$output->{'parameters'}},
 	     map 
-	      {exists($_->{'regEx'}) ? "regEx:".&Galacticus::Doc::Parameters::ExpandRegEx($_->{'regEx'},$sourceDirectoryName) : $_->{'name'}}
-	      &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!|\/\/)\@/) 
+	     {
+		 (! exists($_->{'source'}) || $_->{'source'} eq "globalParameters")
+		     ?
+		     (	
+			exists($_->{'regEx'}) 
+			? 
+			"regEx:".&Galacticus::Doc::Parameters::ExpandRegEx($_->{'regEx'},$sourceDirectoryName."/source") 
+			:
+			(
+			 exists($_->{'iterator'}) 
+			 ?
+			 "iterator:".$_->{'iterator'} 
+			 :
+			 $_->{'name'}
+			)
+		     )
+		     :
+		     ()
+	     }
+	     &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!\#|\/\/\@)/) 
 	    );
     }
 }

@@ -80,30 +80,26 @@ contains
     if (.not.imfKennicuttInitialized) then
        !$omp critical (IMF_Kennicutt_Initialize)
        if (.not.imfKennicuttInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfKennicuttRecycledInstantaneous</name>
-          !@   <defaultValue>0.57 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The recycled fraction for the Kennicutt \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfKennicuttRecycledInstantaneous',imfKennicuttRecycledInstantaneous,defaultValue=0.57d0)
-          !@ <inputParameter>
-          !@   <name>imfKennicuttYieldInstantaneous</name>
-          !@   <defaultValue>0.044 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The yield for the Kennicutt \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfKennicuttYieldInstantaneous'   ,imfKennicuttYieldInstantaneous   ,defaultValue=0.044d0)
+          !# <inputParameter>
+          !#   <name>imfKennicuttRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.57d0</defaultValue>
+          !#   <description>The recycled fraction for the Kennicutt \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfKennicuttYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.044d0</defaultValue>
+          !#   <description>The yield for the Kennicutt \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)

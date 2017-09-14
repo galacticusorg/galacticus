@@ -58,17 +58,14 @@ contains
        !$omp critical(Atomic_Rate_Recombination_Dielectronic_Initialization)
        if (.not.dielectronicRateInitialized) then
           ! Get the ionization state method parameter.
-          !@ <inputParameter>
-          !@   <name>dielectronicRecombinationMethod</name>
-          !@   <defaultValue>Arnaud85</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing dielectronic recombination rates.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('dielectronicRecombinationMethod',dielectronicRecombinationMethod,defaultValue='Arnaud85')
+          !# <inputParameter>
+          !#   <name>dielectronicRecombinationMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Arnaud85')</defaultValue>
+          !#   <description>The name of the method to be used for computing dielectronic recombination rates.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="dielectronicRecombinationMethod" type="functionCall" functionType="void">
           !#  <functionArgs>dielectronicRecombinationMethod,Dielectronic_Recombination_Ratebination_Rate_Get</functionArgs>

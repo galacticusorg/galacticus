@@ -30,6 +30,7 @@ program Halo_Mass_Functions
   integer                             , parameter :: fileNameLengthMaximum         =1024
   character(len=fileNameLengthMaximum)            :: fileCharacter
   type     (varying_string           )            :: haloMassFunctionOutputFileName     , parameterFile
+  type     (inputParameters          )            :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Halo_Mass_Functions.size')
@@ -49,17 +50,16 @@ program Halo_Mass_Functions
   call Halo_Mass_Function_Open_File(haloMassFunctionOutputFileName)
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile,haloMassFunctionOutputFile)
+  parameters=inputParameters(parameterFile,outputParametersGroup=haloMassFunctionOutputFile)
+  call parameters%markGlobal()
 
   ! Compute the mass function.
   call Halo_Mass_Function_Compute
 
   ! Output the mass function.
   call Halo_Mass_Function_Output
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
-
+  ! Destroy parameters.
+  call parameters%destroy()
   ! Close the output file.
   call Halo_Mass_Function_Close_File
 

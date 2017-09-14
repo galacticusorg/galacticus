@@ -35,7 +35,7 @@ contains
     use IO_HDF5
     use Galacticus_HDF5
     use Numerical_Ranges
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Functions
     use Intergalactic_Medium_State
     use Numerical_Constants_Astronomical

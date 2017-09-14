@@ -52,17 +52,14 @@ contains
        !$omp critical(blackHoleBinaryRecoilVelocityInitialize)
        if (.not.blackHoleBinaryRecoilVelocityInitialized) then
           ! Get the binary black hole recoil velocity method parameter.
-          !@ <inputParameter>
-          !@   <name>blackHoleBinaryRecoilVelocityMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing the recoil velocity of black hole binaries.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('blackHoleBinaryRecoilVelocityMethod',blackHoleBinaryRecoilVelocityMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>blackHoleBinaryRecoilVelocityMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used for computing the recoil velocity of black hole binaries.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="functionCall" functionType="void">
           !#  <functionArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</functionArgs>

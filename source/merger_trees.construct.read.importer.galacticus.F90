@@ -109,28 +109,22 @@ contains
     if (.not.galacticusInitialized) then
        !$omp critical (mergerTreeImporterGalacticusInitialize)
        if (.not.galacticusInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportGalacticusMismatchIsFatal</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportGalacticusMismatchIsFatal',mergerTreeImportGalacticusMismatchIsFatal,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportGalacticusReweightTrees</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>false</defaultValue>
-          !@   <description>
-          !@     Specifies whether merger tree weights should be recomputed from the halo mass function.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportGalacticusReweightTrees',mergerTreeImportGalacticusReweightTrees,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>mergerTreeImportGalacticusMismatchIsFatal</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportGalacticusReweightTrees</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether merger tree weights should be recomputed from the halo mass function.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           galacticusInitialized=.true.
        end if
        !$omp end critical (mergerTreeImporterGalacticusInitialize)

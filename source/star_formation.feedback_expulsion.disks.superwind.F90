@@ -46,30 +46,24 @@ contains
     if (starFormationExpulsiveFeedbackDisksMethod == 'superwind') then
        Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW
        ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>diskSuperwindMassLoading</name>
-       !@   <defaultValue>2</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The mass loading of the disk superwind.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskSuperwindMassLoading',diskSuperwindMassLoading,defaultValue=2.0d0)
-       !@ <inputParameter>
-       !@   <name>diskSuperwindVelocity</name>
-       !@   <defaultValue>200 km/s</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity scale of the disk superwind.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskSuperwindVelocity',diskSuperwindVelocity,defaultValue=200.0d0)
+       !# <inputParameter>
+       !#   <name>diskSuperwindMassLoading</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>2.0d0</defaultValue>
+       !#   <description>The mass loading of the disk superwind.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskSuperwindVelocity</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>200.0d0</defaultValue>
+       !#   <description>The velocity scale of the disk superwind.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Star_Formation_Expulsive_Feedback_Disks_SW_Initialize

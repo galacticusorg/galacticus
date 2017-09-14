@@ -84,95 +84,78 @@ contains
     call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaBaryon'               ,thisCosmologyParameters%OmegaBaryon    (           ))
     call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'OmegaLambda'               ,thisCosmologyParameters%OmegaDarkEnergy(           ))
     call    mergerTrees%addMetadata(metaDataTypeCosmology  ,'HubbleParam'               ,thisCosmologyParameters%HubbleConstant (hubbleUnitsLittleH))
-    if (Input_Parameter_Is_Present("sigma_8"           )) then
-       !@ <inputParameter>
-       !@   <name>sigma_8</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter    (                        'sigma_8'                   ,sigma_8                            )
+    if (globalParameters%isPresent("sigma_8"           )) then
+       !# <inputParameter>
+       !#   <name>sigma_8</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
+       !#   <group>cosmology</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        call mergerTrees%addMetadata(metaDataTypeCosmology  ,'sigma_8'                   ,sigma_8                            )
     end if
-    if (Input_Parameter_Is_Present("powerSpectrumIndex")) then
-       !@ <inputParameter>
-       !@   <name>powerSpectrumIndex</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The index of the power-law primordial power spectrum.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter    (                        'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+    if (globalParameters%isPresent("powerSpectrumIndex")) then
+       !# <inputParameter>
+       !#   <name>powerSpectrumIndex</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The index of the power-law primordial power spectrum.</description>
+       !#   <group>cosmology</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        call mergerTrees%addMetadata(metaDataTypeCosmology  ,'powerSpectrumIndex'        ,powerSpectrumIndex                 )
     end if
-    if (Input_Parameter_Is_Present("transferFunction"  )) then
-       !@ <inputParameter>
-       !@   <name>transferFunction</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The type of transfer function used.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter    (                        'transferFunction'          ,     transferFunction              )
+    if (globalParameters%isPresent("transferFunction"  )) then
+       !# <inputParameter>
+       !#   <name>transferFunction</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The type of transfer function used.</description>
+       !#   <group>cosmology</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        call mergerTrees%addMetadata(metaDataTypeCosmology  ,'transferFunction'          ,char(transferFunction)             )
     end if
 
     ! Set provenance metadata.
     call    mergerTrees%addMetadata(metaDataTypeProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
     call    mergerTrees%addMetadata(metaDataTypeProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
-    if (Input_Parameter_Is_Present("source"            )) then
-       !@ <inputParameter>
-       !@   <name>source</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The source of the merger trees.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter    (                        'source'                    ,     source                        )
+    if (globalParameters%isPresent("source"            )) then
+       !# <inputParameter>
+       !#   <name>source</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The source of the merger trees.</description>
+       !#   <group>cosmology</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        call mergerTrees%addMetadata(metaDataTypeProvenance ,'source'                    ,char(source)                       )
     end if
 
     ! Set simulation metadata.
-    if (Input_Parameter_Is_Present("boxSize"           )) then
-       !@ <inputParameter>
-       !@   <name>boxSize</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The box size of the simulation from which merger trees were extracted.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter    (                        'boxSize'                   ,boxSize                            )
+    if (globalParameters%isPresent("boxSize"           )) then
+       !# <inputParameter>
+       !#   <name>boxSize</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The box size of the simulation from which merger trees were extracted.</description>
+       !#   <group>cosmology</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        call mergerTrees%addMetadata(metaDataTypeSimulation ,'boxSize'                   ,boxSize                            )
     end if
 
     ! Set halo properties.
-    !@ <inputParameter>
-    !@   <name>haloMassesIncludeSubhalos</name>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     Specifies whether or not halo masses include the masses of their subhalos.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('haloMassesIncludeSubhalos',haloMassesIncludeSubhalos,defaultValue=.true.)
+    !# <inputParameter>
+    !#   <name>haloMassesIncludeSubhalos</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not halo masses include the masses of their subhalos.</description>
+    !#   <group>cosmology</group>
+    !#   <source>globalParameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
     call mergerTrees%setIncludesSubhaloMasses(haloMassesIncludeSubhalos)
     return
   end subroutine Merger_Trees_Simple_Process

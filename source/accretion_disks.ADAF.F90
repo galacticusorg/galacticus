@@ -253,7 +253,7 @@ contains
 
   function adafConstructorParameters(parameters) result(self)
     !% Constructor for the ADAF accretion disk class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (accretionDisksADAF)                :: self
     type            (inputParameters   ), intent(inout) :: parameters

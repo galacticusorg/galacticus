@@ -34,6 +34,7 @@ program Test_Correa2015_Concentration
   class           (cosmologyFunctionsClass                ), pointer      :: cosmologyFunctions_
   class           (darkMatterProfileConcentrationClass    ), pointer      :: darkMatterProfileConcentration_
   type            (varying_string                         )               :: parameterFile
+  type            (inputParameters                        )               :: parameters
   double precision                                         , dimension(3) :: concentrationTarget                , mass         , &
        &                                                                     redshift                           , concentration
   integer                                                                 :: i
@@ -45,7 +46,8 @@ program Test_Correa2015_Concentration
   ! Test Correa et al. 2015 algorithm.
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Correa2015.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Create a node.
   node  => treeNode      (                 )
   ! Get the basic component.
@@ -87,8 +89,6 @@ program Test_Correa2015_Concentration
      concentration(i)=darkMatterProfileConcentration_%concentration(node)
   end do
   call Assert('concentration',concentration,concentrationTarget,relTol=2.0d-3)
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close()
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()

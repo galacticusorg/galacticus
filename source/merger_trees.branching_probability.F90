@@ -152,17 +152,14 @@ contains
        !$omp critical(Tree_Branching_Initialization)
        if (.not.treeBranchingInitialized) then
           ! Get the tree branching method parameter.
-          !@ <inputParameter>
-          !@   <name>treeBranchingMethod</name>
-          !@   <defaultValue>modifiedPress-Schechter</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing merger tree branching probabilities when building merger trees.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeBranchingMethod',treeBranchingMethod,defaultValue='modifiedPress-Schechter')
+          !# <inputParameter>
+          !#   <name>treeBranchingMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('modifiedPress-Schechter')</defaultValue>
+          !#   <description>The name of the method to be used for computing merger tree branching probabilities when building merger trees.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="treeBranchingMethod" type="functionCall" functionType="void">
           !#  <functionArgs>treeBranchingMethod,Tree_Branching_Probability_Bound_Function,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</functionArgs>

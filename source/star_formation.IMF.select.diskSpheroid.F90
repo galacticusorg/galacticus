@@ -47,31 +47,25 @@ contains
        IMF_Select_Do                           => IMF_Select_Disk_Spheroid
        IMF_Is_Star_Formation_Rate_Dependent_Do => IMF_Is_Star_Formation_Rate_Dependent_Disk_Spheroid
        ! Get IMF choices.
-       !@ <inputParameter>
-       !@   <name>imfSelectionDisk</name>
-       !@   <defaultValue>Salpeter</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in disks.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfSelectionDisk',imfSelectionDisk,defaultValue='Salpeter')
+       !# <inputParameter>
+       !#   <name>imfSelectionDisk</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('Salpeter')</defaultValue>
+       !#   <description>The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in disks.</description>
+       !#   <group>initialMassFunction</group>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
        imfSelectedDiskIndex=IMF_Index_Lookup(imfSelectionDisk,imfNames)
-       !@ <inputParameter>
-       !@   <name>imfSelectionSpheroid</name>
-       !@   <defaultValue>Salpeter</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in spheroids.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>initialMassFunction</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfSelectionSpheroid',imfSelectionSpheroid,defaultValue='Salpeter')
+       !# <inputParameter>
+       !#   <name>imfSelectionSpheroid</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('Salpeter')</defaultValue>
+       !#   <description>The name of the initial mass function to use in the ``diskSpheroid initial mass function'' module for star formation in spheroids.</description>
+       !#   <group>initialMassFunction</group>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
        imfSelectedSpheroidIndex=IMF_Index_Lookup(imfSelectionSpheroid,imfNames)
     end if
     return

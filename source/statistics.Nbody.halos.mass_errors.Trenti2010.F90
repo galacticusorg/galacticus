@@ -45,7 +45,7 @@ contains
 
   function nbodyHaloMassErrorTrenti2010Parameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily trenti2010} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (nbodyHaloMassErrorTrenti2010)                :: self
     type            (inputParameters             ), intent(inout) :: parameters

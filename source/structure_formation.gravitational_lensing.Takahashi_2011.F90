@@ -68,7 +68,7 @@ contains
 
   function takahashi2011ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(gravitationalLensingTakahashi2011)                :: self
     type(inputParameters                  ), intent(inout) :: parameters

@@ -47,7 +47,7 @@ contains
   function perturbMassesConstructorParameters(parameters) result(self)
     !% Constructor for the mass perturbing merger tree operator class which takes a
     !% parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (mergerTreeOperatorPerturbMasses)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -62,7 +62,7 @@ contains
   function perturbMassesConstructorInternal(nbodyHaloMassError_) result(self)
     !% Constructor for the mass perturbing merger tree operator class which takes a
     !% parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (mergerTreeOperatorPerturbMasses)                        :: self
     class(nbodyHaloMassErrorClass        ), intent(in   ), target :: nbodyHaloMassError_

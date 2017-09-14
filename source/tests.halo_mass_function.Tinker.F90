@@ -43,6 +43,7 @@ program Tests_Halo_Mass_Function_Tinker
   class           (cosmologyFunctionsClass ), pointer                            :: cosmologyFunctions_
   class           (criticalOverdensityClass), pointer                            :: criticalOverdensity_
   class           (haloMassFunctionClass   ), pointer                            :: haloMassFunction_
+  type            (inputParameters         )                                     :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.halo_mass_function.Tinker.size')
@@ -52,7 +53,8 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Test the Tinker et al. (2008) dark matter halo mass function.
   parameterFile='testSuite/parameters/haloMassFunction/tinker.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get required objects.
   cosmologyParameters_ => cosmologyParameters()
   cosmologyFunctions_  => cosmologyFunctions ()
@@ -92,7 +94,6 @@ program Tests_Halo_Mass_Function_Tinker
        &      all(success),              &
        &      .true.                     &
        &     )
-  call Input_Parameters_File_Close
 
   ! Clean up memory.
   call deallocateArray(mass              )

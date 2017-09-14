@@ -97,50 +97,38 @@ contains
     type            (fgsl_integration_workspace      )          :: integrationWorkspace
 
     ! Find the wavenumber range and increment size.
-    !@ <inputParameter>
-    !@   <name>powerSpectraWavenumberMinimum</name>
-    !@   <defaultValue>$10^{-3}$ Mpc$^{-1}$</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The minimum wavenumber at which to tabulate power spectra.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('powerSpectraWavenumberMinimum',powerSpectraWavenumberMinimum,defaultValue=1.0d-3)
-    !@ <inputParameter>
-    !@   <name>powerSpectraWavenumberMaximum</name>
-    !@   <defaultValue>$10^{3}$ Mpc$^{-1}$</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The maximum wavenumber at which to tabulate power spectra.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('powerSpectraWavenumberMaximum',powerSpectraWavenumberMaximum,defaultValue=1.0d+3)
-    !@ <inputParameter>
-    !@   <name>powerSpectraPointsPerDecade</name>
-    !@   <defaultValue>10</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The number of points per decade of wavenumber at which to tabulate power spectra.
-    !@   </description>
-    !@   <type>integer</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('powerSpectraPointsPerDecade',powerSpectraPointsPerDecade,defaultValue=10)
-    !@ <inputParameter>
-    !@   <name>powerSpectrumNonlinearOutput</name>
-    !@   <defaultValue>true</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@      If true the nonlinear power spectrum will be computed and output.
-    !@   </description>
-    !@   <type>boolean</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('powerSpectrumNonlinearOutput',powerSpectrumNonlinearOutput,defaultValue=.true.)
+    !# <inputParameter>
+    !#   <name>powerSpectraWavenumberMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-3</defaultValue>
+    !#   <description>The minimum wavenumber at which to tabulate power spectra.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>powerSpectraWavenumberMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d+3</defaultValue>
+    !#   <description>The maximum wavenumber at which to tabulate power spectra.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>powerSpectraPointsPerDecade</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of points per decade of wavenumber at which to tabulate power spectra.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>powerSpectrumNonlinearOutput</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true the nonlinear power spectrum will be computed and output.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
 
     ! Find number of output redshifts.
     outputCount      =Galacticus_Output_Time_Count()

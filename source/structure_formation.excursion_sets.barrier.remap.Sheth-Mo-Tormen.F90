@@ -45,7 +45,7 @@ contains
 
   function remapShethMoTormenConstructorParameters(parameters) result(self)
     !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (excursionSetBarrierRemapShethMoTormen)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters

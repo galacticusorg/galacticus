@@ -49,7 +49,7 @@ contains
   function kitayamaSuto1996ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily kitayamaSuto1996} critical overdensity class
     !% which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Error
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                :: self

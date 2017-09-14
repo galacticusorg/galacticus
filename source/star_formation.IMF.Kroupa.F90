@@ -80,30 +80,26 @@ contains
     if (.not.imfKroupaInitialized) then
        !$omp critical (IMF_Kroupa_Initialize)
        if (.not.imfKroupaInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfKroupaRecycledInstantaneous</name>
-          !@   <defaultValue>0.30 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The recycled fraction for the Kroupa \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfKroupaRecycledInstantaneous',imfKroupaRecycledInstantaneous,defaultValue=0.30d0)
-          !@ <inputParameter>
-          !@   <name>imfKroupaYieldInstantaneous</name>
-          !@   <defaultValue>0.023 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The yield for the Kroupa \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
+          !# <inputParameter>
+          !#   <name>imfKroupaRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.30d0</defaultValue>
+          !#   <description>The recycled fraction for the Kroupa \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfKroupaYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.023d0</defaultValue>
+          !#   <description>The yield for the Kroupa \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
 
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)

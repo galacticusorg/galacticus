@@ -38,7 +38,7 @@ contains
 
   function nullConstructorParameters(parameters)
     !% Constructor for the null merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorNull)                :: nullConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters

@@ -45,7 +45,7 @@ contains
 
   function linearConstructorParameters(parameters)
     !% Constructor for the linear nonlinear power spectrum class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(powerSpectrumNonlinearLinear)                :: linearConstructorParameters
     type(inputParameters             ), intent(inout) :: parameters

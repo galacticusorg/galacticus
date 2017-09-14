@@ -43,42 +43,30 @@ contains
 
     if (treeBranchingModifierMethod == 'Parkinson-Cole-Helly2008') then
        Merger_Tree_Branching_Modifier_Get => Merger_Tree_Branching_Modifier_Parkinson
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterG0</name>
-       !@   <defaultValue>0.57</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterG0'                ,modifiedPressSchechterG0                ,defaultValue=&
-            & 0.57d0)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterGamma1</name>
-       !@   <defaultValue>0.38</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterGamma1'            ,modifiedPressSchechterGamma1            ,defaultValue=&
-            & 0.38d0)
-       !@ <inputParameter>
-       !@   <name>modifiedPressSchechterGamma2</name>
-       !@   <defaultValue>-0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('modifiedPressSchechterGamma2'            ,modifiedPressSchechterGamma2            ,defaultValue=&
-            &-0.01d0)
+       !# <inputParameter>
+       !#   <name>modifiedPressSchechterG0</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.57d0</defaultValue>
+       !#   <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>modifiedPressSchechterGamma1</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.38d0</defaultValue>
+       !#   <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>modifiedPressSchechterGamma2</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>-0.01d0</defaultValue>
+       !#   <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Merger_Tree_Branching_Modifiers_Parkinson_Initialize

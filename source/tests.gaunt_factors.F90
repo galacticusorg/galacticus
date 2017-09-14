@@ -24,6 +24,7 @@ program Test_Gaunt_Factors
   use Memory_Management
   use Unit_Tests
   use Atomic_Radiation_Gaunt_Factors
+  use Input_Parameters
   implicit none
   type            (gauntFactorVanHoof2014)                          :: gauntFactorVanHoof2014_
   double precision                        , dimension(5)            :: gauntFactors
@@ -31,12 +32,16 @@ program Test_Gaunt_Factors
   double precision                        , dimension(5), parameter :: temperatures           =[1.0000000000000000d4,1.0000000000000000d5,1.0000000000000000d6,1.0000000000000000d7,1.0000000000000000d8]
   double precision                        , dimension(5), parameter :: gauntFactorsTarget     =[1.2651040532869235d0,1.4144240304642641d0,1.4005277750508995d0,1.2421867138942060d0,1.1500622299841357d0]
   integer                                                           :: i
-  
+  type            (inputParameters       )                          :: parameters
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.gaunt_factors.size')
+  ! Initialize parameters.
+  parameters=inputParameters()
+  call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("van Hoof et al. (2014) fitting function:")  
-  gauntFactorVanHoof2014_=gauntFactorvanHoof2014()
+  gauntFactorVanHoof2014_=gauntFactorVanHoof2014()
   do i=1,size(temperatures)
      gauntFactors(i)=gauntFactorVanHoof2014_%total(1,1,temperatures(i))
   end do

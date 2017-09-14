@@ -41,7 +41,7 @@ contains
   function sphericalCollapseMatterDEConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class
     !% which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Dark_Matter_Particles
     use Galacticus_Error
     implicit none

@@ -58,17 +58,14 @@ contains
        !$omp critical(Atomic_Rate_Excitation_Collisional_Initialization)
        if (.not.collisionalExcitationInitialized) then
           ! Get the collisional excitation method parameter.
-          !@ <inputParameter>
-          !@   <name>collisionalExcitationMethod</name>
-          !@   <defaultValue>ScholzWalters91</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing collisional excitation rates.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('collisionalExcitationMethod',collisionalExcitationMethod,defaultValue='ScholzWalters91')
+          !# <inputParameter>
+          !#   <name>collisionalExcitationMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('ScholzWalters91')</defaultValue>
+          !#   <description>The name of the method to be used for computing collisional excitation rates.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="collisionalExcitationMethod" type="functionCall" functionType="void">
           !#  <functionArgs>collisionalExcitationMethod,Collisional_Excitation_Rate_Get</functionArgs>

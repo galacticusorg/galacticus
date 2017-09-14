@@ -40,17 +40,14 @@ contains
     if (.not.dynamicalFrictionMultiplierInitialized) then
        !$omp critical (Dynamical_Friction_Timescale_Multiplier_Initialize)
        if (.not.dynamicalFrictionMultiplierInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergingTimescaleMultiplier</name>
-          !@   <defaultValue>0.75</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     A multiplier for the merging timescale in dynamical friction timescale calculations.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergingTimescaleMultiplier',mergingTimescaleMultiplier,defaultValue=0.75d0)
+          !# <inputParameter>
+          !#   <name>mergingTimescaleMultiplier</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.75d0</defaultValue>
+          !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Flag that the module is now initialized.
           dynamicalFrictionMultiplierInitialized=.true.
        end if

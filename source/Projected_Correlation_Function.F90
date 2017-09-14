@@ -48,6 +48,7 @@ program Projected_Correlation_Function
   double precision                                     , allocatable, dimension(:) :: projectedSeparationBinned                    , projectedCorrelationBinned
   type            (varying_string                     )                            :: parameterFile                                , projectedCorrelationFunctionOutputFileName
   type            (hdf5Object                         )                            :: outputFile
+  type            (inputParameters                    )                            :: parameters
   double precision                                                                 :: projectedCorrelationFunctionSeparationMinimum, projectedCorrelationFunctionSeparationMaximum, &
        &                                                                              projectedCorrelationFunctionMassMinimum      , projectedCorrelationFunctionMassMaximum      , &
        &                                                                              projectedCorrelationFunctionHaloMassMinimum  , projectedCorrelationFunctionHaloMassMaximum  , &
@@ -62,113 +63,84 @@ program Projected_Correlation_Function
   ! Get the name of the parameter file from the first command line argument.
   call Get_Argument              (1,parameterFile)
   ! Open the parameter file.
-  call Input_Parameters_File_Open(  parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Read parameters controlling the calculation.
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionSeparationMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The minimum separation at which to compute the projected correlation function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionSeparationMinimum',projectedCorrelationFunctionSeparationMinimum)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionSeparationMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The maximum separation at which to compute the projected correlation function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionSeparationMaximum',projectedCorrelationFunctionSeparationMaximum)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionSeparationCount</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The number of separations at which to compute the projected correlation function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionSeparationCount',projectedCorrelationFunctionSeparationCount)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionLineOfSightDepth</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The maximum line of sight depth to which to integrate when computing the projected correlation function.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionLineOfSightDepth',projectedCorrelationFunctionLineOfSightDepth)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionHalfIntegral</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>false</defaultValue>
-  !@   <description>
-  !@     Set to {\tt true} if the projected correlation function is computed as $w_{\mathrm p}(r_{\mathrm p})=\int_0^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$, instead of the usual $w_{\mathrm p}(r_{\mathrm p})=\int_{-\pi_{\mathrm max}}^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionHalfIntegral',projectedCorrelationFunctionHalfIntegral,defaultValue=.false.)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionOutputFileName</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The name of the file to which to output projected correlation function data.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionOutputFileName',projectedCorrelationFunctionOutputFileName)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionMassMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^8M_\odot$</defaultValue>
-  !@   <description>
-  !@     The minimum mass of galaxies to include in the projected correlation function calculation.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionMassMinimum',projectedCorrelationFunctionMassMinimum,defaultValue=1.0d8)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionMassMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
-  !@   <description>
-  !@     The maximum mass of galaxies to include in the projected correlation function calculation.
-  !@   </description>
-  !@   <type>string</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionMassMaximum',projectedCorrelationFunctionMassMaximum,defaultValue=1.0d12)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionHaloMassMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^6M_\odot$</defaultValue>
-  !@   <description>
-  !@     The minimum halo mass to use when integrating over the halo mass function.
-  !@   </description>
-  !@   <type>real</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionHaloMassMinimum',projectedCorrelationFunctionHaloMassMinimum,defaultValue=1.0d6)
-  !@ <inputParameter>
-  !@   <name>projectedCorrelationFunctionHaloMassMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-  !@   <description>
-  !@     The maximum halo mass to use when integrating over the halo mass function.
-  !@   </description>
-  !@   <type>real</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('projectedCorrelationFunctionHaloMassMaximum',projectedCorrelationFunctionHaloMassMaximum,defaultValue=1.0d16)  
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionSeparationMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The minimum separation at which to compute the projected correlation function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionSeparationMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The maximum separation at which to compute the projected correlation function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionSeparationCount</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The number of separations at which to compute the projected correlation function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionLineOfSightDepth</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The maximum line of sight depth to which to integrate when computing the projected correlation function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionHalfIntegral</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>.false.</defaultValue>
+  !#   <description>Set to {\tt true} if the projected correlation function is computed as $w_{\mathrm p}(r_{\mathrm p})=\int_0^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$, instead of the usual $w_{\mathrm p}(r_{\mathrm p})=\int_{-\pi_{\mathrm max}}^{+\pi_{\mathrm max}} \xi(r_{\mathrm p},\pi) {\mathrm d} \pi$.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionOutputFileName</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The name of the file to which to output projected correlation function data.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionMassMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d8</defaultValue>
+  !#   <description>The minimum mass of galaxies to include in the projected correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionMassMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d12</defaultValue>
+  !#   <description>The maximum mass of galaxies to include in the projected correlation function calculation.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>string</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionHaloMassMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d6</defaultValue>
+  !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>real</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>projectedCorrelationFunctionHaloMassMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d16</defaultValue>
+  !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>real</type>
+  !# </inputParameter>
   ! Ensure the nodes objects are initialized.
   call nodeClassHierarchyInitialize                        ()
   call Node_Component_Dark_Matter_Profile_Scale_Initialize()
@@ -195,7 +167,4 @@ program Projected_Correlation_Function
   call outputFile%writeDataset(projectedSeparationBinned ,"separation"          ,commentText="Projected separation in units of Mpc." )
   call outputFile%writeDataset(projectedCorrelationBinned,"projectedCorrelation",commentText="Projected correlation in units of Mpc.")
   call outputFile%close()
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
-
 end program Projected_Correlation_Function

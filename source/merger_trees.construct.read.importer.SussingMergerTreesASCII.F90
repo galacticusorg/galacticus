@@ -63,74 +63,56 @@ contains
     if (.not.sussingASCIIInitialized) then
        !$omp critical (mergerTreeImporterSussingASCIIInitialize)
        if (.not.sussingASCIIInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingConvertToBinary</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingConvertToBinary',mergerTreeImportSussingConvertToBinary,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingBinaryFormatOld</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether the old binary format is to be used (for reading only).
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingBinaryFormatOld',mergerTreeImportSussingBinaryFormatOld,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingConvertToBinary</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingBinaryFormatOld</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether the old binary format is to be used (for reading only).</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Check for a forest file.
-          mergerTreeImportSussingUseForestFile=Input_Parameter_Is_Present('mergerTreeImportSussingForestFile')
+          mergerTreeImportSussingUseForestFile=globalParameters%isPresent('mergerTreeImportSussingForestFile')
           if (mergerTreeImportSussingUseForestFile) then
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestFile</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Name of file containing data on number of halos in each forest.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestFile',mergerTreeImportSussingForestFile)
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestFirst</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>1</defaultValue>
-             !@   <description>
-             !@     Index of first forest to include.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestFirst',mergerTreeImportSussingForestFirst,defaultValue=1)
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestLast</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>-1</defaultValue>
-             !@   <description>
-             !@     Index of last forest to include.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestLast',mergerTreeImportSussingForestLast,defaultValue=-1)
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>false</defaultValue>
-             !@   <description>
-             !@     If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestReverseSnapshotOrder',mergerTreeImportSussingForestReverseSnapshotOrder,defaultValue=.false.)
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestFile</name>
+             !#   <cardinality>1</cardinality>
+             !#   <description>Name of file containing data on number of halos in each forest.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestFirst</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1</defaultValue>
+             !#   <description>Index of first forest to include.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestLast</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>-1</defaultValue>
+             !#   <description>Index of last forest to include.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>.false.</defaultValue>
+             !#   <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
           end if
           sussingASCIIInitialized=.true.
        end if

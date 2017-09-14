@@ -101,7 +101,7 @@ contains
   function nbodyErrorsConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (haloSpinDistributionNbodyErrors)                :: nbodyErrorsConstructorParameters
     type            (inputParameters                ), intent(inout) :: parameters
@@ -441,7 +441,7 @@ contains
     double precision function massSpinIntegral(massIntrinsic)
       !% Integral over the halo mass function, spin distribution, halo mass error distribution, and spin error distribution.
       use Galacticus_Error
-      use Input_Parameters2
+      use Input_Parameters
       implicit none
       double precision                , intent(in   ) :: massIntrinsic
       double precision                , parameter     :: rangeIntegration                                           =1.0000d1 ! Range of integration in units of error.

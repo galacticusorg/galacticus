@@ -73,18 +73,15 @@ contains
        !$omp critical(Star_Formation_Timescale_Disks_Initialization)
        if (.not.starFormationTimescaleDisksInitialized) then
           ! Get the disk star formation timescale method parameter.
-          !@ <inputParameter>
-          !@   <name>starFormationTimescaleDisksMethod</name>
-          !@   <defaultValue>integratedSurfaceDensity</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing star formation timescales in disks.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationTimescaleDisksMethod',starFormationTimescaleDisksMethod,defaultValue='integratedSurfaceDensity')
+          !# <inputParameter>
+          !#   <name>starFormationTimescaleDisksMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('integratedSurfaceDensity')</defaultValue>
+          !#   <description>The name of the method to be used for computing star formation timescales in disks.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="starFormationTimescaleDisksMethod" type="functionCall" functionType="void">
           !#  <functionArgs>

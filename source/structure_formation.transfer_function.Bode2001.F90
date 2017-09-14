@@ -49,7 +49,7 @@ contains
 
   function bode2001ConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Error
     implicit none
     type            (transferFunctionBode2001)                :: bode2001ConstructorParameters

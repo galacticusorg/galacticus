@@ -145,165 +145,127 @@ contains
        !$omp critical (Node_Component_Black_Hole_Standard_Initialize)
        if (.not.moduleInitialized) then
           ! Get accretion rate enhancement factors.
-          !@ <inputParameter>
-          !@   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-          !@   <defaultValue>5</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("bondiHoyleAccretionEnhancementSpheroid",bondiHoyleAccretionEnhancementSpheroid,defaultValue&
-               &=5.0d0)
-          !@ <inputParameter>
-          !@   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-          !@   <defaultValue>6.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=6.0d0)
-          !@ <inputParameter>
-          !@   <name>bondiHoyleAccretionHotModeOnly</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("bondiHoyleAccretionHotModeOnly",bondiHoyleAccretionHotModeOnly,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>bondiHoyleAccretionEnhancementSpheroid</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>5.0d0</defaultValue>
+          !#   <description>The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>bondiHoyleAccretionEnhancementHotHalo</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>6.0d0</defaultValue>
+          !#   <description>The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>bondiHoyleAccretionHotModeOnly</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Determines whether accretion from the hot halo should only occur if the halo is in the hot accretion mode.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
 
           ! Get temperature of accreting gas.
-          !@ <inputParameter>
-          !@   <name>bondiHoyleAccretionTemperatureSpheroid</name>
-          !@   <defaultValue>$10^2$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("bondiHoyleAccretionTemperatureSpheroid",bondiHoyleAccretionTemperatureSpheroid,defaultValue&
-               &=1.0d2)
+          !# <inputParameter>
+          !#   <name>bondiHoyleAccretionTemperatureSpheroid</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d2</defaultValue>
+          !#   <description>The assumed temperature (in Kelvin) of gas in the spheroid when computing Bondi-Hoyle accretion rates onto black holes.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
 
           ! Get wind efficiency and scaling.
-          !@ <inputParameter>
-          !@   <name>blackHoleWindEfficiency</name>
-          !@   <defaultValue>$2.4\times 10^{-3}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The efficiency of the black hole-driven wind: $L_{\mathrm wind} = \epsilon_{\mathrm wind} \dot{M}_\bullet \clight^2$.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.4d-3)
-          !@ <inputParameter>
-          !@   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleWindEfficiencyScalesWithRadiativeEfficiency",blackHoleWindEfficiencyScalesWithRadiativeEfficiency,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>blackHoleWindEfficiency</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.4d-3</defaultValue>
+          !#   <description>The efficiency of the black hole-driven wind: $L_{\mathrm wind} = \epsilon_{\mathrm wind} \dot{M}_\bullet \clight^2$.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether the black hole wind efficiency should scale with the radiative efficiency of the accretion disk.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
 
           ! Options controlling AGN feedback.
-          !@ <inputParameter>
-          !@   <name>blackHoleHeatsHotHalo</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not the black hole launched jets should heat the hot halo.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>blackHoleRadioModeFeedbackEfficiency</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Efficiency with which radio-mode feedback is coupled to the hot halo.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleRadioModeFeedbackEfficiency",blackHoleRadioModeFeedbackEfficiency,defaultValue=1.0d0)
+          !# <inputParameter>
+          !#   <name>blackHoleHeatsHotHalo</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not the black hole launched jets should heat the hot halo.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>blackHoleRadioModeFeedbackEfficiency</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>Efficiency with which radio-mode feedback is coupled to the hot halo.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
 
           ! Get options controlling output.
-          !@ <inputParameter>
-          !@   <name>blackHoleOutputAccretion</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether or not accretion rates and jet powers will be output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleOutputAccretion",blackHoleOutputAccretion,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>blackHoleOutputAccretion</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
           ! Get options controlling output.
-          !@ <inputParameter>
-          !@   <name>blackHoleOutputData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether or not properties for all black holes (rather than just the central black hole) will be output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleOutputData",blackHoleOutputData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>blackHoleOutputData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not properties for all black holes (rather than just the central black hole) will be output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
-          !@ <inputParameter>
-          !@   <name>blackHoleOutputMergers</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether or not properties of black hole mergers will be output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleOutputMergers",blackHoleOutputMergers,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>blackHoleOutputMergers</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not properties of black hole mergers will be output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
           ! Get options controlling three body interactions.
-          !@ <inputParameter>
-          !@   <name>tripleBlackHoleInteraction</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether or not triple black hole interactions will be accounted for.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("tripleBlackHoleInteraction",tripleBlackHoleInteraction,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>tripleBlackHoleInteraction</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Check if cold mode is explicitly tracked.
           coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
           ! Bind deferred functions.

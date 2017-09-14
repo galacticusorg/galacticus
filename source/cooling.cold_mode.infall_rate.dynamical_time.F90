@@ -43,7 +43,7 @@ contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
     !% Constructor for the dynamical time cooling time class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (coldModeInfallRateDynamicalTime)                :: self
     type            (inputParameters                ), intent(inout) :: parameters

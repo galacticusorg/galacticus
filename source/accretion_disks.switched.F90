@@ -67,7 +67,7 @@ contains
   function switchedConstructorParameters(parameters) result(self)
     !% Constructor for the switched accretion disk class which takes a parameter set as input.
     use Galacticus_Error
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (accretionDisksSwitched)                :: self
     type            (inputParameters       ), intent(inout) :: parameters

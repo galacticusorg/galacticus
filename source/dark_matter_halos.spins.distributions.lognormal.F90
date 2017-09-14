@@ -50,7 +50,7 @@ contains
   function logNormalConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(haloSpinDistributionLogNormal)                :: logNormalConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters

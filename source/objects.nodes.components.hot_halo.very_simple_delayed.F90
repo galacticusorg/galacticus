@@ -78,17 +78,14 @@ contains
           call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
           call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
           ! Read parameters controlling the physical implementation.
-          !@ <inputParameter>
-          !@   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
-          !@   <defaultValue>$0.01$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloVerySimpleDelayedMassScaleRelative',hotHaloVerySimpleDelayedMassScaleRelative,defaultValue=1.0d-2)
+          !# <inputParameter>
+          !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d-2</defaultValue>
+          !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if

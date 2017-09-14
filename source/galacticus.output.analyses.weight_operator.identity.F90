@@ -37,7 +37,7 @@ contains
 
   function identityConstructorParameters(parameters) result(self)
     !% Constructor for the ``identity'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisWeightOperatorIdentity)                :: self
     type(inputParameters                     ), intent(inout) :: parameters

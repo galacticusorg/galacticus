@@ -118,7 +118,8 @@ contains
     class           (mergerTreeOperatorClass), pointer                  , save :: mergerTreeOperator_              => null()
     !$omp threadprivate(mergerTreeOperator_)
     type            (semaphore              ), pointer                         :: galacticusMutex                  => null()
-    character       (len=32                 )                                  :: treeEvolveLoadAverageMaximumText          , treeEvolveThreadsMaximumText
+    type            (varying_string         )                                  :: treeEvolveLoadAverageMaximumText          , treeEvolveThreadsMaximumText
+    character       (len=32                 )                                  :: text
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree)
     type            (universeEvent          ), pointer                  , save :: thisEvent
     !$omp threadprivate(thisEvent)
@@ -147,137 +148,108 @@ contains
        if (.not.treeEvolveInitialized) then
 
           ! Get parameters controlling which trees will be processed.
-          !@ <inputParameter>
-          !@   <name>treeEvolveSingleForest</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveSingleForest',treeEvolveSingleForest,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>treeEvolveSingleForestSections</name>
-          !@   <defaultValue>100</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of timesteps into which forests should be split when processing single forests in parallel.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveSingleForestSections',treeEvolveSingleForestSections,defaultValue=100)
-          !@ <inputParameter>
-          !@   <name>treeEvolveWorkerCount</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of workers that will work on this calculation.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveWorkerCount',treeEvolveWorkerCount,defaultValue=1)
-          !@ <inputParameter>
-          !@   <name>treeEvolveWorkerNumber</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of this worker.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveWorkerNumber',treeEvolveWorkerNumber,defaultValue=1)
-          !@ <inputParameter>
-          !@   <name>treeEvolveLimitLoadAverage</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to limit the load average
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveLimitLoadAverage',treeEvolveLimitLoadAverage,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>treeEvolveLoadAverageMaximum</name>
-          !@   <defaultValue>processorCount</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum load average for which new trees will be processed.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveLoadAverageMaximum',treeEvolveLoadAverageMaximumText,defaultValue="processorCount")
+          !# <inputParameter>
+          !#   <name>treeEvolveSingleForest</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveSingleForestSections</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>100</defaultValue>
+          !#   <description>The number of timesteps into which forests should be split when processing single forests in parallel.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveWorkerCount</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1</defaultValue>
+          !#   <description>The number of workers that will work on this calculation.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveWorkerNumber</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1</defaultValue>
+          !#   <description>The number of this worker.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveLimitLoadAverage</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not to limit the load average</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveLoadAverageMaximum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('processorCount')</defaultValue>
+          !#   <description>The maximum load average for which new trees will be processed.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !#   <variable>treeEvolveLoadAverageMaximumText</variable>
+          !# </inputParameter>
           if (treeEvolveLoadAverageMaximumText == "processorCount" ) then
              treeEvolveLoadAverageMaximum=dble(System_Processor_Count())
           else
-             read (treeEvolveLoadAverageMaximumText,*) treeEvolveLoadAverageMaximum
+             text=char(treeEvolveLoadAverageMaximumText)
+             read (text,*) treeEvolveLoadAverageMaximum
           end if
-          !@ <inputParameter>
-          !@   <name>treeEvolveThreadLock</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to limit the number of threads across all \glc\ processes.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveThreadLock',treeEvolveThreadLock,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>treeEvolveThreadsMaximum</name>
-          !@   <defaultValue>processorCount</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum number of active threads across all \glc\ processes.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveThreadsMaximum',treeEvolveThreadsMaximumText,defaultValue="processorCount")
+          !# <inputParameter>
+          !#   <name>treeEvolveThreadLock</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not to limit the number of threads across all \glc\ processes.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveThreadsMaximum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('processorCount')</defaultValue>
+          !#   <description>The maximum number of active threads across all \glc\ processes.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>treeEvolveThreadsMaximumText</variable>
+          !# </inputParameter>
           if (treeEvolveThreadsMaximumText == "processorCount") then
              treeEvolveThreadsMaximum=System_Processor_Count()
           else
-             read (treeEvolveThreadsMaximumText,*) treeEvolveThreadsMaximum
+             text=char(treeEvolveThreadsMaximumText)
+             read (text,*) treeEvolveThreadsMaximum
           end if
-          !@ <inputParameter>
-          !@   <name>treeEvolveThreadLockName</name>
-          !@   <defaultValue>galacticus</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name to use for the semaphore used to lock threads across all \glc\ processes.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveThreadLockName',treeEvolveThreadLockName,defaultValue="galacticus")
-          !@ <inputParameter>
-          !@   <name>treeEvolveSuspendToRAM</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeEvolveSuspendToRAM',treeEvolveSuspendToRAM,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>treeEvolveThreadLockName</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('galacticus')</defaultValue>
+          !#   <description>The name to use for the semaphore used to lock threads across all \glc\ processes.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>treeEvolveSuspendToRAM</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           if (.not.treeEvolveSuspendToRAM) then
-             !@ <inputParameter>
-             !@   <name>treeEvolveSuspendPath</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The path to which tree suspension files will be stored.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('treeEvolveSuspendPath',treeEvolveSuspendPath)
+             !# <inputParameter>
+             !#   <name>treeEvolveSuspendPath</name>
+             !#   <cardinality>1</cardinality>
+             !#   <description>The path to which tree suspension files will be stored.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
           end if
           ! Flag that this task is now initialized.
           treeEvolveInitialized=.true.

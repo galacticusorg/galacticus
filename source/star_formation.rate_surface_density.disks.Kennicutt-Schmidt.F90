@@ -75,78 +75,64 @@ contains
        Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_KS
        Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationKennicuttSchmidtNormalization</name>
-       !@   <defaultValue>$0.147$ \citep{kennicutt_global_1998}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationKennicuttSchmidtNormalization'    ,starFormationKennicuttSchmidtNormalization    ,defaultValue=0.147d0)
-       !@ <inputParameter>
-       !@   <name>starFormationKennicuttSchmidtExponent</name>
-       !@   <defaultValue>$1.4$ \citep{kennicutt_global_1998}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent in the Kennicutt-Schmidt star formation law.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationKennicuttSchmidtExponent'         ,starFormationKennicuttSchmidtExponent         ,defaultValue=1.400d0)
-       !@ <inputParameter>
-       !@   <name>starFormationKennicuttSchmidtTruncate</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to truncate star formation below a critical surface density in disks.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationKennicuttSchmidtTruncate'         ,starFormationKennicuttSchmidtTruncate         ,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>starFormationKennicuttSchmidtExponentTruncated</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of the $\Sigma_{\mathrm gas}/\Sigma_{\mathrm crit}$ term used in truncating the Kennicutt-Schmidt star formation law.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationKennicuttSchmidtExponentTruncated',starFormationKennicuttSchmidtExponentTruncated,defaultValue= 6.0d0)
-       !@ <inputParameter>
-       !@   <name>velocityDispersionDiskGas</name>
-       !@   <defaultValue>10 \citep{leroy_star_2008}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity dispersion of gas in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('velocityDispersionDiskGas'                     ,velocityDispersionDiskGas                     ,defaultValue=10.0d0)
-       !@ <inputParameter>
-       !@   <name>toomreParameterCritical</name>
-       !@   <defaultValue>0.4 \citep{kennicutt_star_1989}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The critical Toomre parameter for star formation in disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('toomreParameterCritical'                       ,toomreParameterCritical                       ,defaultValue= 0.4d0)
+       !# <inputParameter>
+       !#   <name>starFormationKennicuttSchmidtNormalization</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
+       !#   <defaultValue>0.147d0</defaultValue>
+       !#   <description>The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationKennicuttSchmidtExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
+       !#   <defaultValue>1.400d0</defaultValue>
+       !#   <description>The exponent in the Kennicutt-Schmidt star formation law.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationKennicuttSchmidtTruncate</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not to truncate star formation below a critical surface density in disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationKennicuttSchmidtExponentTruncated</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>6.0d0</defaultValue>
+       !#   <description>The exponent of the $\Sigma_{\mathrm gas}/\Sigma_{\mathrm crit}$ term used in truncating the Kennicutt-Schmidt star formation law.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>velocityDispersionDiskGas</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The velocity dispersion of gas in disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>toomreParameterCritical</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{kennicutt_star_1989}</defaultSource>
+       !#   <defaultValue>0.4d0</defaultValue>
+       !#   <description>The critical Toomre parameter for star formation in disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Renormalize the Kennicutt-Schmidt relation to our internal units.
        starFormationKennicuttSchmidtNormalization=                       &
             &  starFormationKennicuttSchmidtNormalization                &

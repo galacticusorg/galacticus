@@ -132,116 +132,86 @@ contains
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
     if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleMassScaleAbsolute</name>
-       !@   <defaultValue>$100 M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleMassScaleAbsolute',diskVerySimpleMassScaleAbsolute,defaultValue=100.0d0)
-       !@ <inputParameter>
-       !@   <name>diskOutflowTimescaleMinimum</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the disk.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>diskStarFormationTimescaleMinimum</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the disk.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskStarFormationTimescaleMinimum',diskStarFormationTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleTrackAbundances</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not to track abundances in the very simple disk component.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>0..1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleTrackAbundances',diskVerySimpleTrackAbundances,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleTrackLuminosities</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not to track stellar luminosities in the very simple disk component.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>0..1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleTrackLuminosities',diskVerySimpleTrackLuminosities,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleSurfaceDensityThreshold</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The threshold gas surface denisty above this star formation occurs [$M_\odot$/Mpc$^2$].
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleSurfaceDensityThreshold',diskVerySimpleSurfaceDensityThreshold,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleSurfaceDensityVelocityExponent</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The exponent of velocity in the threshold gas surface denisty above this star formation occurs.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleSurfaceDensityVelocityExponent',diskVerySimpleSurfaceDensityVelocityExponent,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleUseAnalyticSolver</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    If true, employ an analytic ODE solver when evolving satellites.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleUseAnalyticSolver',diskVerySimpleUseAnalyticSolver,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Gas mass below which the analytic solver will prune a galaxy.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassGas',diskVerySimpleAnalyticSolverPruneMassGas,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Stellar mass below which the analytic solver will prune a galaxy.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskVerySimpleAnalyticSolverPruneMassStars',diskVerySimpleAnalyticSolverPruneMassStars,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>diskVerySimpleMassScaleAbsolute</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>100.0d0</defaultValue>
+       !#   <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskOutflowTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the disk.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskStarFormationTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the disk.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleTrackAbundances</name>
+       !#   <cardinality>0..1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not to track abundances in the very simple disk component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleTrackLuminosities</name>
+       !#   <cardinality>0..1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleSurfaceDensityThreshold</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The threshold gas surface denisty above this star formation occurs [$M_\odot$/Mpc$^2$].</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleSurfaceDensityVelocityExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of velocity in the threshold gas surface denisty above this star formation occurs.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleUseAnalyticSolver</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>If true, employ an analytic ODE solver when evolving satellites.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>Gas mass below which the analytic solver will prune a galaxy.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
        ! Initialize exponentiators.
        velocityExponentiator=fastExponentiator(1.0d+0,1.0d+3,diskVerySimpleSurfaceDensityVelocityExponent,1.0d+1,abortOutsideRange=.false.)
        ! Compute normalization factor for surface density.
