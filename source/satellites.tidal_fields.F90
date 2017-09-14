@@ -52,17 +52,14 @@ contains
        !$omp critical(Satellites_Tidal_Field_Initialization) 
        if (.not.satellitesTidalFieldInitialized) then
           ! Get the cooling rate method parameter.
-          !@ <inputParameter>
-          !@   <name>satellitesTidalFieldMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used when computing the tidal field acting on a satellite.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satellitesTidalFieldMethod',satellitesTidalFieldMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>satellitesTidalFieldMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used when computing the tidal field acting on a satellite.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satellitesTidalFieldMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satellitesTidalFieldMethod,Satellites_Tidal_Field_Get</functionArgs>

@@ -96,102 +96,80 @@ contains
     if (.not.imfChabrierInitialized) then
        !$omp critical (IMF_Chabrier_Initialize)
        if (.not.imfChabrierInitialized) then
-          !@ <inputParameter>
-          !@   <name>imfChabrierRecycledInstantaneous</name>
-          !@   <defaultValue>0.46 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The recycled fraction for the Chabrier \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierRecycledInstantaneous',imfChabrierRecycledInstantaneous,defaultValue=0.46d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierYieldInstantaneous</name>
-          !@   <defaultValue>0.035 (internally computed)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The yield for the Chabrier \gls{imf} in the instantaneous recycling approximation.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierYieldInstantaneous'   ,imfChabrierYieldInstantaneous   ,defaultValue=0.035d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierMassUpper</name>
-          !@   <defaultValue>125</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The upper mass limit for the Chabrier \gls{imf}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierMassUpper'            ,imfChabrierMassUpper            ,defaultValue=125.0d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierMassLower</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The lower mass limit for the Chabrier \gls{imf}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierMassLower'            ,imfChabrierMassLower            ,defaultValue=  0.1d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierMassTransition</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The transition limit for the Chabrier \gls{imf}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierMassTransition'       ,imfChabrierMassTransition       ,defaultValue=  1.0d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierSigma</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The width of the lognormal part of the Chabrier \gls{imf}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierSigma'                ,imfChabrierSigma                ,defaultValue=  0.69d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierExponent</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The exponent of the power law part of the Chabrier \gls{imf}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierExponent'            ,imfChabrierExponent              ,defaultValue=  -2.3d0)
-          !@ <inputParameter>
-          !@   <name>imfChabrierMass</name>
-          !@   <defaultValue>0.08</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Characteristic mass of the lognormal part of the Chabrier \gls{imf}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfChabrierMass'                ,imfChabrierMass                  ,defaultValue= 0.08d0)
+          !# <inputParameter>
+          !#   <name>imfChabrierRecycledInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.46d0</defaultValue>
+          !#   <description>The recycled fraction for the Chabrier \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierYieldInstantaneous</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>(internally computed)</defaultSource>
+          !#   <defaultValue>0.035d0</defaultValue>
+          !#   <description>The yield for the Chabrier \gls{imf} in the instantaneous recycling approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierMassUpper</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>125.0d0</defaultValue>
+          !#   <description>The upper mass limit for the Chabrier \gls{imf}.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierMassLower</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>The lower mass limit for the Chabrier \gls{imf}.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierMassTransition</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The transition limit for the Chabrier \gls{imf}.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierSigma</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.69d0</defaultValue>
+          !#   <description>The width of the lognormal part of the Chabrier \gls{imf}.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierExponent</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>-2.3d0</defaultValue>
+          !#   <description>The exponent of the power law part of the Chabrier \gls{imf}.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>imfChabrierMass</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.08d0</defaultValue>
+          !#   <description>Characteristic mass of the lognormal part of the Chabrier \gls{imf}.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Compute normalizations.
           normalizationLogNormal  =+sqrt(Pi/2.0d0)                                     &
                 &                  *imfChabrierSigma                                   &

@@ -116,18 +116,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Halo_Mass_Functions_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionCovarianceModel</name>
-          !@   <defaultValue>binomial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The model to use when constructing the mass function covariance matrix for main branch halos.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionCovarianceModel',analysisHaloMassFunctionCovarianceModelText,defaultValue='Poisson')
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionCovarianceModel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('Poisson')</defaultValue>
+          !#   <description>The model to use when constructing the mass function covariance matrix for main branch halos.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>analysisHaloMassFunctionCovarianceModelText</variable>
+          !# </inputParameter>
           select case (char(analysisHaloMassFunctionCovarianceModelText))
           case ( 'Poisson'  )
              analysisHaloMassFunctionCovarianceModel=analysisHaloMassFunctionCovarianceModelPoisson
@@ -136,96 +134,75 @@ contains
           case default
              call Galacticus_Error_Report('Galacticus_Output_Analysis_Halo_Mass_Functions','unrecognized value for "analysisHaloMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
           end select
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch halos.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsHaloMassBinsPerDecade',analysisHaloMassFunctionsHaloMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch halos.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsHaloMassMinimum',analysisHaloMassFunctionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch halos.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsHaloMassMaximum',analysisHaloMassFunctionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch halos.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch halos.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch halos.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisHaloMassFunctionsHaloMassMinimumLogarithmic=log10(analysisHaloMassFunctionsHaloMassMinimum)
           analysisHaloMassFunctionsHaloMassBinsCount=int(log10(analysisHaloMassFunctionsHaloMassMaximum/analysisHaloMassFunctionsHaloMassMinimum)*dble(analysisHaloMassFunctionsHaloMassBinsPerDecade)+0.5d0)
           analysisHaloMassFunctionsHaloMassIntervalLogarithmicInverse=dble(analysisHaloMassFunctionsHaloMassBinsCount)/log10(analysisHaloMassFunctionsHaloMassMaximum/analysisHaloMassFunctionsHaloMassMinimum)
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the halo mass function.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsMassBinsPerDecade',analysisHaloMassFunctionsMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch halos.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsMassMinimum',analysisHaloMassFunctionsMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch halos.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsMassMaximum',analysisHaloMassFunctionsMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the halo mass function.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch halos.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch halos.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisHaloMassFunctionsMassMinimumLogarithmic=log10(analysisHaloMassFunctionsMassMinimum)
           analysisHaloMassFunctionsMassBinsCount=int(log10(analysisHaloMassFunctionsMassMaximum/analysisHaloMassFunctionsMassMinimum)*dble(analysisHaloMassFunctionsMassBinsPerDecade)+0.5d0)
           analysisHaloMassFunctionsMassIntervalLogarithmicInverse=dble(analysisHaloMassFunctionsMassBinsCount)/log10(analysisHaloMassFunctionsMassMaximum/analysisHaloMassFunctionsMassMinimum)
-          !@ <inputParameter>
-          !@   <name>analysisHaloMassFunctionsCorrelationTruncateLevel</name>
-          !@   <defaultValue>0.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The correlation below which off-diagonal elements of the covariance matrix are truncated to zero.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisHaloMassFunctionsCorrelationTruncateLevel',analysisHaloMassFunctionsCorrelationTruncateLevel,defaultValue=0.0d0)
+          !# <inputParameter>
+          !#   <name>analysisHaloMassFunctionsCorrelationTruncateLevel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>The correlation below which off-diagonal elements of the covariance matrix are truncated to zero.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,size(mergerTreeAnalyses)

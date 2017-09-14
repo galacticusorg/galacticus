@@ -31,6 +31,7 @@ program Tests_Linear_Growth_Open
   class           (linearGrowthClass      ), pointer                 :: linearGrowth_
   type            (varying_string         )                          :: parameterFile
   character       (len=1024               )                          :: message
+  type            (inputParameters        )                          :: parameters
   integer                                                            :: iExpansion
   double precision                                                   :: expansionFactor                                                                                                                                                                                    , linearGrowthFactor
 
@@ -39,7 +40,8 @@ program Tests_Linear_Growth_Open
 
   ! Test growth factor in an open universe.
   parameterFile='testSuite/parameters/linearGrowth/open.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get the default cosmology functions object.
   cosmologyFunctions_ => cosmologyFunctions()
   linearGrowth_       => linearGrowth      ()
@@ -49,10 +51,7 @@ program Tests_Linear_Growth_Open
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowthFactor,growthFactorOpen(iExpansion),relTol=1.0d-3)
   end do
-  call Input_Parameters_File_Close
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Tests_Linear_Growth_Open

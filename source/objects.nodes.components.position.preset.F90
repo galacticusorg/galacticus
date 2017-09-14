@@ -78,17 +78,14 @@ contains
     !$omp critical (Node_Component_Position_Preset_Initialize)
     if (defaultPositionComponent%presetIsActive().and..not.moduleInitialized) then
       ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>positionsPresetSatelliteToHost</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    If true, the position of satellite halos will be adjusted to match that of their host halo.
-       !@   </description>
-       !@   <type>bool</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('positionsPresetSatelliteToHost',positionsPresetSatelliteToHost,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>positionsPresetSatelliteToHost</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>bool</type>
+       !# </inputParameter>
        moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Position_Preset_Initialize)

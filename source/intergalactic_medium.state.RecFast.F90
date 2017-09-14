@@ -39,7 +39,7 @@ contains
   function recFastConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
     use Cosmology_Parameters
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (intergalacticMediumStateRecFast)                :: self
     type (inputParameters                ), intent(inout) :: parameters
@@ -61,7 +61,7 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths
     use Input_Parameters
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type     (intergalacticMediumStateRecFast)                :: self
     class    (cosmologyParametersClass       ), intent(inout) :: cosmologyParameters_

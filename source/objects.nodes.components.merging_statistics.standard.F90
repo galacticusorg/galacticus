@@ -105,39 +105,30 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Merging_Statistics_Standard_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>nodeMajorMergerFraction</name>
-          !@   <defaultValue>0.25</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeMajorMergerFraction',nodeMajorMergerFraction,defaultValue=0.25d0)
-          !@ <inputParameter>
-          !@   <name>nodeFormationMassFraction</name>
-          !@   <defaultValue>0.5</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The mass fraction in the main branch progenitor used to define the formation time of each halo.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeFormationMassFraction',nodeFormationMassFraction,defaultValue=0.5d0)
-          !@ <inputParameter>
-          !@   <name>hierarchyLevelResetFactor</name>
-          !@   <defaultValue>$10^{100}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hierarchyLevelResetFactor',hierarchyLevelResetFactor,defaultValue=1.0d100)
+          !# <inputParameter>
+          !#   <name>nodeMajorMergerFraction</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.25d0</defaultValue>
+          !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>nodeFormationMassFraction</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.5d0</defaultValue>
+          !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>hierarchyLevelResetFactor</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d100</defaultValue>
+          !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Bind the hierarchy level get functions.
           call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
           call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )

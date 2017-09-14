@@ -101,18 +101,15 @@ contains
        !$omp critical(Galacticus_Output_Star_Formation_Histories_Initialization)
        if (.not.starFormationHistoriesInitialized) then
           ! Get the star formation history method parameter.
-          !@ <inputParameter>
-          !@   <name>starFormationHistoriesMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The method to use for computing and outputting star formation histories.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationHistoriesMethod',starFormationHistoriesMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>starFormationHistoriesMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The method to use for computing and outputting star formation histories.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="starFormationHistoriesMethod" type="functionCall" functionType="void">
           !#  <functionArgs>starFormationHistoriesMethod,Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do,Star_Formation_History_Record_Do,Star_Formation_History_Output_Do</functionArgs>

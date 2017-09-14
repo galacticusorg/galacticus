@@ -87,99 +87,77 @@ contains
           ! Get the black hole seed mass.
           blackHoleSeedMass=blackHoleSimple%massSeed()
           ! Get accretion rate enhancement factors.
-          !@ <inputParameter>
-          !@   <name>blackHoleToSpheroidStellarGrowthRatio</name>
-          !@   <defaultValue>1.0d-3</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The ratio of the rates of black hole growth and spheroid stellar mass growth.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleToSpheroidStellarGrowthRatio",blackHoleToSpheroidStellarGrowthRatio,defaultValue&
-               &=1.0d-3)
+          !# <inputParameter>
+          !#   <name>blackHoleToSpheroidStellarGrowthRatio</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d-3</defaultValue>
+          !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Options controlling AGN feedback.
-          !@ <inputParameter>
-          !@   <name>blackHoleHeatsHotHalo</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not the black hole should heat the hot halo.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleHeatsHotHalo",blackHoleHeatsHotHalo,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>blackHoleHeatsHotHalo</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           if (blackHoleHeatsHotHalo) then
-             !@ <inputParameter>
-             !@   <name>blackHoleAccretesFromHotHalo</name>
-             !@   <defaultValue>false</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Controls whether the black hole additionally grows via accretion from the hot halo. If it does,
-             !@     this accretion rate is used to determine AGN feedback power.
-             !@   </description>
-             !@   <type>double</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>blackHoles</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter("blackHoleAccretesFromHotHalo",blackHoleAccretesFromHotHalo,defaultValue=.false.)
-             !@ <inputParameter>
-             !@   <name>blackHoleHeatingEfficiency</name>
-             !@   <defaultValue>$10^{-3}$</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The efficiency with which accretion onto a black hole heats the hot halo.
-             !@   </description>
-             !@   <type>double</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>blackHoles</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter("blackHoleHeatingEfficiency",blackHoleHeatingEfficiency,defaultValue=1.0d-3)
-             !@ <inputParameter>
-             !@   <name>blackHoleJetEfficiency</name>
-             !@   <defaultValue>$10^{-3}$</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The efficiency with which accretion power onto a black hole is converted into jets.
-             !@   </description>
-             !@   <type>double</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>blackHoles</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter("blackHoleJetEfficiency",blackHoleJetEfficiency,defaultValue=1.0d-3)
+             !# <inputParameter>
+             !#   <name>blackHoleAccretesFromHotHalo</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>.false.</defaultValue>
+             !#   <description>Controls whether the black hole additionally grows via accretion from the hot halo. If it does,
+             !#      this accretion rate is used to determine AGN feedback power.</description>
+             !#   <group>blackHoles</group>
+             !#   <source>globalParameters</source>
+             !#   <type>double</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>blackHoleHeatingEfficiency</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1.0d-3</defaultValue>
+             !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
+             !#   <group>blackHoles</group>
+             !#   <source>globalParameters</source>
+             !#   <type>double</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>blackHoleJetEfficiency</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1.0d-3</defaultValue>
+             !#   <description>The efficiency with which accretion power onto a black hole is converted into jets.</description>
+             !#   <group>blackHoles</group>
+             !#   <source>globalParameters</source>
+             !#   <type>double</type>
+             !# </inputParameter>
           else
              blackHoleHeatingEfficiency=0.0d0
              blackHoleJetEfficiency    =0.0d0
           end if
           ! Get options controlling winds.
-          !@ <inputParameter>
-          !@   <name>blackHoleWindEfficiency</name>
-          !@   <defaultValue>$2.2157\times 10^{-3}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The efficiency of the black hole accretion-driven wind.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>blackHoles</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleWindEfficiency",blackHoleWindEfficiency,defaultValue=2.2157d-3)
+          !# <inputParameter>
+          !#   <name>blackHoleWindEfficiency</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.2157d-3</defaultValue>
+          !#   <description>The efficiency of the black hole accretion-driven wind.</description>
+          !#   <group>blackHoles</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Get options controlling output.
-          !@ <inputParameter>
-          !@   <name>blackHoleOutputAccretion</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether or not accretion rates and jet powers will be output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("blackHoleOutputAccretion",blackHoleOutputAccretion,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>blackHoleOutputAccretion</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if

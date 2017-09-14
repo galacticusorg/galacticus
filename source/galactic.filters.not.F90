@@ -40,7 +40,7 @@ contains
 
   function notConstructorParameters(parameters)
     !% Constructor for the ``not'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(galacticFilterNot)                :: notConstructorParameters
     type(inputParameters  ), intent(inout) :: parameters

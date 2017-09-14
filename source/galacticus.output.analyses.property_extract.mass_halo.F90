@@ -45,7 +45,7 @@ contains
 
   function massHaloConstructorParameters(parameters) result(self)
     !% Constructor for the ``massHalo'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyExtractorMassHalo)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
@@ -61,7 +61,7 @@ contains
 
   function massHaloConstructorInternal(virialDensityContrast_) result(self)
     !% Internal constructor for the ``massHalo'' output analysis property extractor class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyExtractorMassHalo)         :: self
     class(virialDensityContrastClass             ), target :: virialDensityContrast_

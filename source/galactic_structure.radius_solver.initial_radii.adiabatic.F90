@@ -77,28 +77,24 @@ contains
        Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Adiabatic
        Galactic_Structure_Radius_Initial_Derivative_Get => Galactic_Structure_Radius_Initial_Derivative_Adiabatic
        ! Get parameters of the model.
-       !@ <inputParameter>
-       !@   <name>adiabaticContractionGnedinA</name>
-       !@   <defaultValue>0.8 (\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $A$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('adiabaticContractionGnedinA'    ,adiabaticContractionGnedinA    ,defaultValue=0.80d0)
-       !@ <inputParameter>
-       !@   <name>adiabaticContractionGnedinOmega</name>
-       !@   <defaultValue>0.77 (\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $\omega$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('adiabaticContractionGnedinOmega',adiabaticContractionGnedinOmega,defaultValue=0.77d0)
+       !# <inputParameter>
+       !#   <name>adiabaticContractionGnedinA</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>(\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultSource>
+       !#   <defaultValue>0.80d0</defaultValue>
+       !#   <description>The parameter $A$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>adiabaticContractionGnedinOmega</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>(\citealt{gustafsson_baryonic_2006}; from their Fig. 9, strong feedback case)</defaultSource>
+       !#   <defaultValue>0.77d0</defaultValue>
+       !#   <description>The parameter $\omega$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Galactic_Structure_Initial_Radii_Adiabatic_Initialize

@@ -37,7 +37,7 @@ contains
 
   function log10ConstructorParameters(parameters)
     !% Constructor for the ``log10'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyOperatorLog10)                :: log10ConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters

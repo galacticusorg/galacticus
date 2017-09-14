@@ -49,17 +49,15 @@ contains
     
     if (.not.recentInitialized) then
        ! Get parameters of the model.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationSpectraRecentTimeLimit</name>
-       !@   <defaultValue>$10^7$ years</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationSpectraRecentTimeLimit',recentTimeLimit,defaultValue=1.0d-2)
+       !# <inputParameter>
+       !#   <name>stellarPopulationSpectraRecentTimeLimit</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-2</defaultValue>
+       !#   <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>recentTimeLimit</variable>
+       !# </inputParameter>
        recentInitialized=.true.
     end if
     recentDefaultConstructor=recentGenericConstructor(recentTimeLimit)

@@ -20,7 +20,7 @@
 
   use Tables
   use Cosmology_Parameters
-  use Input_Parameters2
+  use Input_Parameters
   use File_Utilities
   use Dark_Matter_Particles
 
@@ -75,7 +75,7 @@ contains
 
   function cambConstructorParameters(parameters)
     !% Constructor for the CAMB transfer function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (transferFunctionCAMB    )                :: cambConstructorParameters
     type   (inputParameters         ), intent(inout) :: parameters
@@ -100,7 +100,7 @@ contains
   
   function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFileGlobally)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Error
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths

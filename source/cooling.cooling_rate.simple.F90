@@ -39,7 +39,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the simple cooling rate class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (coolingRateSimple)                :: self
     type            (inputParameters  ), intent(inout) :: parameters

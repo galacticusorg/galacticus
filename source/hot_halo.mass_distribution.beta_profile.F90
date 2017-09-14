@@ -84,17 +84,15 @@ contains
                &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)  &
                &                           )                                                                            &
                & )
-          !@ <inputParameter>
-          !@   <name>hotHaloMassDistributionBeta</name>
-          !@   <defaultValue>$2/3$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The value of $\beta$ in $\beta$-profile hot halo mass distributions.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloMassDistributionBeta',betaProfileBeta,defaultValue=2.0d0/3.0d0)
+          !# <inputParameter>
+          !#   <name>hotHaloMassDistributionBeta</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.0d0/3.0d0</defaultValue>
+          !#   <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>betaProfileBeta</variable>
+          !# </inputParameter>
           ! Record that implementation is now initialized.
           betaProfileInitialized=.true.
        end if

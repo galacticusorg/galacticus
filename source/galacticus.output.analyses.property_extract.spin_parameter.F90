@@ -38,7 +38,7 @@ contains
 
   function spinConstructorParameters(parameters) result(self)
     !% Constructor for the ``spin'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (outputAnalysisPropertyExtractorSpin)                :: self
     type (inputParameters                    ), intent(inout) :: parameters

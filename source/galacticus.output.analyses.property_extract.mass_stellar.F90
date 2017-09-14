@@ -38,7 +38,7 @@ contains
 
   function massStellarConstructorParameters(parameters)
     !% Constructor for the ``massStellar'' output analysis property extractor class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyExtractorMassStellar)                :: massStellarConstructorParameters
     type(inputParameters                           ), intent(inout) :: parameters

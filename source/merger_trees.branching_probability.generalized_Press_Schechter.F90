@@ -80,42 +80,30 @@ contains
        Tree_Subresolution_Fraction      => Generalized_Press_Schechter_Subresolution_Fraction
        Tree_Branch_Mass                 => Generalized_Press_Schechter_Branch_Mass
        Tree_Maximum_Step                => Generalized_Press_Schechter_Branching_Maximum_Step
-       !@ <inputParameter>
-       !@   <name>generalizedPressSchechterDeltaStepMaximum</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the generalized Press-Schechter branching algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('generalizedPressSchechterDeltaStepMaximum',generalizedPressSchechterDeltaStepMaximum,defaultValue &
-            &=0.1d0)
-       !@ <inputParameter>
-       !@   <name>generalizedPressSchechterMinimumMass</name>
-       !@   <defaultValue>1.0d6</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum mass to used in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('generalizedPressSchechterMinimumMass',generalizedPressSchechterMinimumMass,defaultValue &
-            &=1.0d6)
-       !@ <inputParameter>
-       !@   <name>generalizedPressSchechterSmoothAccretion</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to include smooth accretion in subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('generalizedPressSchechterSmoothAccretion',generalizedPressSchechterSmoothAccretion,defaultValue &
-            &=.true.)
+       !# <inputParameter>
+       !#   <name>generalizedPressSchechterDeltaStepMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>generalizedPressSchechterMinimumMass</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d6</defaultValue>
+       !#   <description>The minimum mass to used in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>generalizedPressSchechterSmoothAccretion</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not to include smooth accretion in subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Generalized_Press_Schechter_Branching_Initialize

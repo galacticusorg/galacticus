@@ -39,7 +39,7 @@ contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
     !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Functions
     implicit none
     type (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                :: self

@@ -43,7 +43,7 @@ contains
 
   function coolingRadiusConstructorParameters(parameters) result(self)
     !% Constructor for the cooling radius infall radii class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (coolingInfallRadiusCoolingRadius)                :: self
     type (inputParameters                 ), intent(inout) :: parameters

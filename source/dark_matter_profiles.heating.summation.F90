@@ -48,7 +48,7 @@ contains
 
   function summationConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily summation} dark matter profile heating class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (darkMatterProfileHeatingSummation), target        :: self
     type   (inputParameters                  ), intent(inout) :: parameters

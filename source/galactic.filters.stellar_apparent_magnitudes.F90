@@ -45,7 +45,7 @@ contains
 
   function stellarApparentMagnitudesConstructorParameters(parameters)
     !% Constructor for the ``stellarApparentMagnitudes'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Stellar_Luminosities_Structure
     use Memory_Management
     use Galacticus_Error

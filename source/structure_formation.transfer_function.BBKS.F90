@@ -51,7 +51,7 @@ contains
 
   function bbksConstructorParameters(parameters)
     !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (transferFunctionBBKS    )                :: bbksConstructorParameters
     type (inputParameters         ), intent(inout) :: parameters

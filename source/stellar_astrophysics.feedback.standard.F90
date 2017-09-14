@@ -51,28 +51,22 @@ contains
        Stellar_Feedback_Cumulative_Energy_Input_Get => Stellar_Feedback_Cumulative_Energy_Input_Standard
 
        ! Read in parameters required by this module.
-       !@ <inputParameter>
-       !@   <name>initialMassForSupernovaeTypeII</name>
-       !@   <defaultValue>8</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum mass that a star must have in order that is result in a Type II supernova.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('initialMassForSupernovaeTypeII',initialMassForSupernovaeTypeII,defaultValue=8.0d0)
-       !@ <inputParameter>
-       !@   <name>supernovaEnergy</name>
-       !@   <defaultValue>$10^{51}$ ergs</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The energy produced by a supernova (in ergs).
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('supernovaEnergy',supernovaEnergy,defaultValue=1.0d51)
+       !# <inputParameter>
+       !#   <name>initialMassForSupernovaeTypeII</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>8.0d0</defaultValue>
+       !#   <description>The minimum mass that a star must have in order that is result in a Type II supernova.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>supernovaEnergy</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d51</defaultValue>
+       !#   <description>The energy produced by a supernova (in ergs).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Convert energy to MSolar (km/s)^2.
        supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2
     end if

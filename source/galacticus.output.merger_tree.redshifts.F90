@@ -47,18 +47,15 @@ contains
        !$omp critical(Galacticus_Output_Redshifts_Initalization)
        if (.not.redshiftOutputIsInitialized) then
           ! Read parameter controlling whether or not this module should output.
-          !@ <inputParameter>
-          !@   <name>outputNodeRedshifts</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Controls whether or not the redshifts corresponding to node times should be output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputNodeRedshifts',outputNodeRedshifts,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputNodeRedshifts</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Controls whether or not the redshifts corresponding to node times should be output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Evaluate which properties we can output.
           redshiftPropertyCount=0
           timeLastIsolatedIsAvailable=.false.

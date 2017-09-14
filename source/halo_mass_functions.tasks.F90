@@ -124,17 +124,14 @@ contains
          &                                                          haloMassLogarithmicInterval
 
     ! Get the verbosity level parameter.
-    !@ <inputParameter>
-    !@   <name>verbosityLevel</name>
-    !@   <defaultValue>1</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The level of verbosity for \glc\ (higher values give more verbosity).
-    !@   </description>
-    !@   <type>integer</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+    !# <inputParameter>
+    !#   <name>verbosityLevel</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1</defaultValue>
+    !#   <description>The level of verbosity for \glc\ (higher values give more verbosity).</description>
+    !#   <source>globalParameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
     
     ! Initialize nodes and components.
@@ -142,7 +139,7 @@ contains
     call Node_Components_Initialize ()
 
     ! Get the requested output redshifts.
-    outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
+    outputCount=max(globalParameters%count('outputRedshifts',zeroIfNotPresent=.true.),1)
     call allocateArray(outputTimes                ,[outputCount])
     call allocateArray(outputRedshifts            ,[outputCount])
     call allocateArray(outputExpansionFactors     ,[outputCount])
@@ -150,22 +147,13 @@ contains
     call allocateArray(outputCriticalOverdensities,[outputCount])
     call allocateArray(outputVirialDensityContrast,[outputCount])
     call allocateArray(outputCharacteristicMass   ,[outputCount])
-    !@ <inputParameter>
-    !@   <name>outputRedshifts</name>
-    !@   <defaultValue>0</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     A list of redshifts at which halo mass functions should be computed.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    if (outputCount == 1) then
-       ! If only one (or zero) output redshifts present, make redshift zero the default.
-       call Get_Input_Parameter('outputRedshifts',outputRedshifts,defaultValue=[0.0d0])
-    else
-       call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
-    end if
+    !# <inputParameter>
+    !#   <name>outputRedshifts</name>
+    !#   <defaultValue>[0.0d0]</defaultValue>
+    !#   <description>A list of redshifts at which halo mass functions should be computed.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     ! Get required objects.
     cosmologyParameters_          => cosmologyParameters         ()
     cosmologyFunctions_           => cosmologyFunctions          ()
@@ -179,39 +167,30 @@ contains
     cosmologicalMassVariance_     => cosmologicalMassVariance    ()
 
     ! Find the mass range and increment size.
-    !@ <inputParameter>
-    !@   <name>haloMassFunctionsMassMinimum</name>
-    !@   <defaultValue>$10^{10}$</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The minimum mass at which to tabulate halo mass functions.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('haloMassFunctionsMassMinimum',haloMassFunctionsMassMinimum,defaultValue=1.0d10)
-    !@ <inputParameter>
-    !@   <name>haloMassFunctionsMassMaximum</name>
-    !@   <defaultValue>$10^{15}$</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The maximum mass at which to tabulate halo mass functions.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('haloMassFunctionsMassMaximum',haloMassFunctionsMassMaximum,defaultValue=1.0d15)
-    !@ <inputParameter>
-    !@   <name>haloMassFunctionsPointsPerDecade</name>
-    !@   <defaultValue>10</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The number of points per decade of halo mass at which to tabulate halo mass functions.
-    !@   </description>
-    !@   <type>integer</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('haloMassFunctionsPointsPerDecade',haloMassFunctionsPointsPerDecade,defaultValue=10)
+    !# <inputParameter>
+    !#   <name>haloMassFunctionsMassMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d10</defaultValue>
+    !#   <description>The minimum mass at which to tabulate halo mass functions.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>haloMassFunctionsMassMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d15</defaultValue>
+    !#   <description>The maximum mass at which to tabulate halo mass functions.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>haloMassFunctionsPointsPerDecade</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of points per decade of halo mass at which to tabulate halo mass functions.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
 
     ! Compute number of tabulation points.
     haloMassFunctionsCount=int(log10(haloMassFunctionsMassMaximum/haloMassFunctionsMassMinimum)*dble(haloMassFunctionsPointsPerDecade))+1

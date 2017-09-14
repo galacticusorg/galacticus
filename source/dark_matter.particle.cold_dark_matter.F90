@@ -38,7 +38,7 @@ contains
 
   function CDMConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily CDM}'' dark matter particle class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(darkMatterParticleCDM)                :: CDMConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
@@ -50,7 +50,7 @@ contains
 
   subroutine CDMDescriptor(self,descriptor)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
+    use Input_Parameters
     use FoX_DOM
     implicit none
     class(darkMatterParticleCDM), intent(inout) :: self

@@ -48,7 +48,7 @@ contains
 
   function bbksWDMConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (transferFunctionBBKSWDM )                :: bbksWDMConstructorParameters
     type            (inputParameters         ), intent(inout) :: parameters

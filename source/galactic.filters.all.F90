@@ -41,7 +41,7 @@ contains
 
   function allConstructorParameters(parameters)
     !% Constructor for the ``all'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (galacticFilterAll)                :: allConstructorParameters
     type   (inputParameters  ), intent(inout) :: parameters

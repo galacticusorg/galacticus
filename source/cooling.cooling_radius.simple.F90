@@ -74,7 +74,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the simple cooling radius class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (coolingRadiusSimple      )                :: self
     type (inputParameters          ), intent(inout) :: parameters

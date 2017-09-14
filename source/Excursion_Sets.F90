@@ -57,6 +57,7 @@ program Tests_Excursion_Sets
   character       (len=fileNameLengthMaximum     )                                                  :: fileCharacter
   type            (varying_string                )                                                  :: outputFileName                   , parameterFile
   type            (hdf5Object                    )                                                  :: outputFile
+  type            (inputParameters               )                                                  :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Excursion_Sets.size')
@@ -73,10 +74,11 @@ program Tests_Excursion_Sets
   call outputFile%openFile(char(outputFileName),overWrite=.true.,objectsOverwritable=.false.)
 
   ! Read the parameter file.
-  call Input_Parameters_File_Open(parameterFile,outputFile,allowedParametersFile='Excursion_Sets.parameters.xml')
+  parameters=inputParameters(parameterFile,outputParametersGroup=outputFile,allowedParametersFile='Excursion_Sets.parameters.xml')
+  call parameters%markGlobal()
 
   ! Set verbosity level.
-  call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+  call globalParameters%value('verbosityLevel',verbosityLevel,defaultValue=1)
   call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
   ! Get required objects.
@@ -135,11 +137,8 @@ program Tests_Excursion_Sets
   call outputFile%writeDataset(firstCrossingProbability    ,'firstCrossingProbability','The first crossing probability'                  )
   call outputFile%writeDataset(haloMassFunctionDifferential,'haloMassFunction'        ,'The halo mass function [Mpc⁻³ M☉⁻¹]'             )
   call outputFile%writeDataset(firstCrossingRate           ,'firstCrossingRate'       ,'The first crossing rate [Gyr⁻¹]'                 )
-
-  ! Close the parameters file.
-  call Input_Parameters_File_Close()
-
   ! Close the output file.
-  call outputFile%close()
+  call parameters%destroy()
+  call outputFile%close  ()
 
 end program Tests_Excursion_Sets

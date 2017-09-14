@@ -64,18 +64,15 @@ contains
     if (.not.lightconeOutputInitialized) then
        !$omp critical(Galacticus_Output_Lightcone_Initialize)
        if (.not.lightconeOutputInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputLightconeData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not satellite host data (node mass) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputLightconeData',outputLightconeData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputLightconeData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not satellite host data (node mass) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is now initialized.
           lightconeOutputInitialized=.true.
        end if

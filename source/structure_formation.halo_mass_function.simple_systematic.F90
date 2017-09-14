@@ -41,7 +41,7 @@ contains
 
   function simpleSystematicConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(haloMassFunctionSimpleSystematic)                :: simpleSystematicConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters

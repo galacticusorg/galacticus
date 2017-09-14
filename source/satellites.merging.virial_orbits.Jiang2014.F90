@@ -57,7 +57,7 @@ contains
 
   function jiang2014ConstructorParameters(parameters) result(self)
     !% Generic constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (virialOrbitJiang2014    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters

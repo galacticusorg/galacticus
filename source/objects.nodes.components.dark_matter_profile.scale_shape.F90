@@ -76,18 +76,15 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergerTreeStructureOutputDarkMatterProfileShape</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeStructureOutputDarkMatterProfileShape',mergerTreeStructureOutputDarkMatterProfileShape,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>mergerTreeStructureOutputDarkMatterProfileShape</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Bind the shape get function.
           call darkMatterProfile%shapeFunction(Node_Component_Dark_Matter_Profile_Scale_Shape_Shape)
           ! Record that the module is now initialize.

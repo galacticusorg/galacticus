@@ -34,6 +34,7 @@ program Tests_Linear_Growth_Cosmological_Constant
   character       (len=1024               )                          :: message
   integer                                                            :: iExpansion
   double precision                                                   :: expansionFactor                                                                                                                                                                                    , linearGrowthFactor
+  type            (inputParameters        )                          :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.linear_growth.cosmological_constant.size')
@@ -43,7 +44,8 @@ program Tests_Linear_Growth_Cosmological_Constant
 
   ! Test growth factor in a dark energy universe.
   parameterFile='testSuite/parameters/linearGrowth/cosmologicalConstant.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get required objects.
   cosmologyFunctions_ => cosmologyFunctions()
   linearGrowth_       => linearGrowth      ()
@@ -60,7 +62,6 @@ program Tests_Linear_Growth_Cosmological_Constant
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowthFactor,growthFactorDarkEnergy(iExpansion),relTol=1.0d-3)
   end do
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

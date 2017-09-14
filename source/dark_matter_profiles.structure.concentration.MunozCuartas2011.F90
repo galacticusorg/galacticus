@@ -46,7 +46,7 @@ contains
 
   function munozCuartas2011ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileConcentrationMunozCuartas2011)                :: self
     type (inputParameters                               ), intent(inout) :: parameters
@@ -62,7 +62,7 @@ contains
 
   function munozCuartas2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileConcentrationMunozCuartas2011)                        :: self
     class(cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
@@ -74,7 +74,7 @@ contains
 
   subroutine munozCuartas2011Destructor(self)
     !% Destructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
     

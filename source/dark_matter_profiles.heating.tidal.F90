@@ -40,7 +40,7 @@ contains
 
   function tidalConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily tidal} dark matter profile heating scales class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(darkMatterProfileHeatingTidal), target        :: self
     type(inputParameters              ), intent(inout) :: parameters

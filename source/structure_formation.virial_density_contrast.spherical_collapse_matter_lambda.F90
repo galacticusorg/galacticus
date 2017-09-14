@@ -60,7 +60,7 @@ contains
 
   function sphericalCollapseMatterLambdaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class that takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (virialDensityContrastSphericalCollapseMatterLambda)                :: self
     type (inputParameters                                   ), intent(inout) :: parameters

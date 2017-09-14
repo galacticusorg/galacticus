@@ -39,7 +39,7 @@ contains
 
   function nbodyHaloMassErrorNullParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily null} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(nbodyHaloMassErrorNull)                :: nbodyHaloMassErrorNullParameters
     type(inputParameters       ), intent(inout) :: parameters

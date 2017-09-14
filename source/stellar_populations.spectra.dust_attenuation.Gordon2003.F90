@@ -47,17 +47,15 @@ contains
     implicit none
     type            (stellarSpectraDustAttenuationGordon2003)            :: gordon2003DefaultConstructor
 
-    !@ <inputParameter>
-    !@   <name>dustAttenuationGordon2003Sample</name>
-    !@   <defaultValue>SMCbar</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The name of the sample from \cite{gordon_quantitative_2003} to use in dust attenuation calculations.
-    !@   </description>
-    !@   <type>string</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('dustAttenuationGordon2003Sample',gordon2003Sample,defaultValue='SMCbar')
+    !# <inputParameter>
+    !#   <name>dustAttenuationGordon2003Sample</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('SMCbar')</defaultValue>
+    !#   <description>The name of the sample from \cite{gordon_quantitative_2003} to use in dust attenuation calculations.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>string</type>
+    !#   <variable>gordon2003Sample</variable>
+    !# </inputParameter>
     gordon2003DefaultConstructor=gordon2003Constructor(char(gordon2003Sample))
     return
   end function gordon2003DefaultConstructor

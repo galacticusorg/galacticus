@@ -51,17 +51,14 @@ contains
        !$omp critical(Galactic_Dynamics_Bar_Instability_Initialize)
        if (.not.barInstabilitiesInitialized) then
           ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>barInstabilityMethod</name>
-          !@   <defaultValue>ELN</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for bar instability calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('barInstabilityMethod',barInstabilityMethod,defaultValue='ELN')
+          !# <inputParameter>
+          !#   <name>barInstabilityMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('ELN')</defaultValue>
+          !#   <description>The name of the method to be used for bar instability calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="barInstabilityMethod" type="functionCall" functionType="void">
           !#  <functionArgs>barInstabilityMethod,Bar_Instability_Timescale_Get</functionArgs>

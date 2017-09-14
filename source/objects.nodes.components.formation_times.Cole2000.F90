@@ -62,29 +62,23 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Formation_Times_Cole2000_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>haloReformationMassFactor</name>
-          !@   <defaultValue>2.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Factor by which halo mass must have increased to trigger a new formation event.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('haloReformationMassFactor',haloReformationMassFactor,defaultValue=2.0d0)
-          !@ <inputParameter>
-          !@   <name>haloReformationOnPromotionOnly</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
-          !@     the halo mass has increased sufficiently in mass.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('haloReformationOnPromotionOnly',haloReformationOnPromotionOnly,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>haloReformationMassFactor</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.0d0</defaultValue>
+          !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>haloReformationOnPromotionOnly</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
+          !#      the halo mass has increased sufficiently in mass.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if

@@ -40,7 +40,7 @@ contains
 
   function kelvin2014GAMAnearConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{kelvin_galaxy_2014-1} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (surveyGeometryKelvin2014GAMAnear)                :: self
     type (inputParameters                 ), intent(inout) :: parameters

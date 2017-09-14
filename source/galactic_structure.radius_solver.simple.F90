@@ -46,17 +46,14 @@ contains
 
     if (galacticStructureRadiusSolverMethod == 'simple') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Simple
-       !@ <inputParameter>
-       !@   <name>simpleRadiusSolverUseFormationHalo</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('simpleRadiusSolverUseFormationHalo',simpleRadiusSolverUseFormationHalo,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>simpleRadiusSolverUseFormationHalo</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Galactic_Structure_Radii_Simple_Initialize

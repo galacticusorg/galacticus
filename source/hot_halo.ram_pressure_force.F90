@@ -52,17 +52,14 @@ contains
        !$omp critical(Hot_Halo_Ram_Pressure_Force_Initialization)
        if (.not.hotHaloRamPressureForceInitialized) then
           ! Get the cooling rate method parameter.
-          !@ <inputParameter>
-          !@   <name>hotHaloRamPressureForceMethod</name>
-          !@   <defaultValue>Font2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used when computing ram pressure force on hot halos.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('hotHaloRamPressureForceMethod',hotHaloRamPressureForceMethod,defaultValue='Font2008')
+          !# <inputParameter>
+          !#   <name>hotHaloRamPressureForceMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Font2008')</defaultValue>
+          !#   <description>The name of the method to be used when computing ram pressure force on hot halos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="hotHaloRamPressureForceMethod" type="functionCall" functionType="void">
           !#  <functionArgs>hotHaloRamPressureForceMethod,Hot_Halo_Ram_Pressure_Force_Get</functionArgs>

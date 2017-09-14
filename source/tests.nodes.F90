@@ -38,13 +38,15 @@ program Test_Nodes
   double precision                               , allocatable, dimension(:)          :: propertyArray
   double precision                                                                    :: propertyValueGet
   type            (varying_string               )                                     :: parameterFile
+  type            (inputParameters              )                                     :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.nodes.size')
-
+  
   ! Open the parameter file.
   parameterFile='testSuite/parameters/nodes/nodes.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Nodes")
@@ -149,11 +151,8 @@ program Test_Nodes
   ! Clean up allocations to avoid them being reported by Valgrind.
   call parameterFile%destroy()
 
-  ! Close the parameter file.
-  call Input_Parameters_File_Close()
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_Finish   ()
 
 end program Test_Nodes

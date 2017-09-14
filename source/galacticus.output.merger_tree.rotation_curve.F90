@@ -74,41 +74,35 @@ contains
     if (.not.outputRotationCurveDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Rotation_Curve_Initialize)
        if (.not.outputRotationCurveDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputRotationCurveData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not rotation curve data should be incldued in the output file.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputRotationCurveData',outputRotationCurveData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputRotationCurveData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not rotation curve data should be incldued in the output file.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
 
           ! Read and parse parameter controlling radii of output.
           if (outputRotationCurveData) then
-             if (.not.Input_Parameter_Is_Present('outputRotationCurveRadii'))                                            &
+             if (.not.globalParameters%isPresent('outputRotationCurveRadii'))                                            &
                   & call Galacticus_Error_Report(                                                                        &
                   &                              'Galacticus_Output_Tree_Rotation_Curve_Initialize'                    , &
                   &                              'outputRotationCurveRadii must be specified for rotation curve output'  &
                   &                             )
-             radiiCount=Get_Input_Parameter_Array_Size('outputRotationCurveRadii')
+             radiiCount=globalParameters%count('outputRotationCurveRadii')
              allocate(outputRotationCurveRadii(radiiCount))
              allocate(radii                   (radiiCount))
-             !@ <inputParameter>
-             !@   <name>outputRotationCurveRadii</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Specifies the radii at which the rotation curve will be output.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputRotationCurveRadii',outputRotationCurveRadii)
+             !# <inputParameter>
+             !#   <name>outputRotationCurveRadii</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>Specifies the radii at which the rotation curve will be output.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
              ! Parse the radii definitions.
              diskIsNeeded                  =.false.
              spheroidIsNeeded              =.false.

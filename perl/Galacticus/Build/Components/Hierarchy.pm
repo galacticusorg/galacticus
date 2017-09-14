@@ -71,17 +71,15 @@ CODE
 	$code::defaultImplementation = $code::class->{'defaultImplementation'};
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
     ! Insert a function call to get the parameter controlling the choice of implementation for this class.
-    !@ <inputParameter>
-    !@   <name>treeNodeMethod{ucfirst($class->{'name'})}</name>
-    !@   <defaultValue>{$defaultImplementation}</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@    Specifies the implementation to be used for the {$class->{'name'}} component of nodes.
-    !@   </description>
-    !@   <type>string</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('treeNodeMethod{ucfirst($class->{'name'})}',methodSelection,defaultValue='{$defaultImplementation}')
+    !# <inputParameter>
+    !#   <name>treeNodeMethod{ucfirst($class->{'name'})}</name>
+    !#   <variable>methodSelection</variable>
+    !#   <source>globalParameters</source>
+    !#   <defaultValue>var_str('{$defaultImplementation}')</defaultValue>
+    !#   <description>Specifies the implementation to be used for the {$class->{'name'}} component of nodes.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
 CODE
     	foreach $code::component ( @{$code::class->{'members'}} ) {
     	    $code::fullName  = ucfirst($code::class->{'name'}).ucfirst($code::component->{'name'});
@@ -125,7 +123,7 @@ CODE
      !@   <type>string</type>
      !@   <cardinality>1</cardinality>
      !@ </inputParameter>
-     call Get_Input_Parameter('{$parameterName}',{$parameterName},defaultValue=.false.)
+     call globalParameters%value('{$parameterName}',{$parameterName},defaultValue=.false.)
 CODE
 			# Add a module-scope variable to store the output status of this property.
 			push(

@@ -59,7 +59,7 @@ contains
 
   function despali2015ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily despali2015} halo mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (haloMassFunctionDespali2015  )                :: self
     type (inputParameters              ), intent(inout) :: parameters

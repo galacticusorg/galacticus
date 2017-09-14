@@ -55,7 +55,7 @@ contains
 
   function bryanNorman1998ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (virialDensityContrastBryanNorman1998)                :: self
     type (inputParameters                     ), intent(inout) :: parameters

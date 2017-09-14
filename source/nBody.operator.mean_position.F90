@@ -42,7 +42,7 @@ contains
 
   function meanPositionConstructorParameters(parameters) result (self)
     !% Constructor for the ``meanPosition'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (nbodyOperatorMeanPosition)                :: self
     type   (inputParameters          ), intent(inout) :: parameters
@@ -71,7 +71,7 @@ contains
 
   function meanPositionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount) result (self)
     !% Internal constructor for the ``meanPosition'' N-body operator class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (nbodyOperatorMeanPosition)                :: self
     logical                           , intent(in   ) :: selfBoundParticlesOnly

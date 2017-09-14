@@ -108,38 +108,25 @@ module Stellar_Population_Spectra_Postprocess
        Stellar_Population_Spectrum_Postprocess_Index=1
     end if
     ! We do not have this chain loaded. Load it now.
-    ! Get the stellar population postprocessing methods parameter.
-    !@ <inputParameter>
-    !@   <regEx>stellarPopulationSpectraPostprocess[a-zA-Z0-9_]+Methods</regEx>
-    !@   <defaultValue>inoue2014 (for ``Default'' chain)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The name of methods to be used for post-processing of stellar population spectra.
-    !@   </description>
-    !@   <type>string</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
     ! Construct the name of the parameter to read.
-    if (postprocessingChain == "default") then
-       parameterName='stellarPopulationSpectraPostprocess'//String_Upper_Case_First(char(postprocessingChain))//'Methods'
-    else
-       parameterName='stellarPopulationSpectraPostprocess'//String_Upper_Case_First(char(postprocessingChain))//'Methods'
-    end if
+    parameterName='stellarPopulationSpectraPostprocess'//String_Upper_Case_First(char(postprocessingChain))//'Methods'
     ! Determine how many methods are to be applied.
-    methodCount=Get_Input_Parameter_Array_Size(char(parameterName))
-    ! Allocate methods array and read method names.
-    if (methodCount > 0) then
-       allocate(postprocessingChainNamesTemporary(methodCount))
-       call Get_Input_Parameter(char(parameterName),postprocessingChainNamesTemporary)
-    else
-       if (postprocessingChain == "default") then
-          methodCount=1
-          allocate(postprocessingChainNamesTemporary(methodCount))
-          call Get_Input_Parameter(char(parameterName),postprocessingChainNamesTemporary,defaultValue=['inoue2014'])
-       else
-          call Galacticus_Error_Report('Stellar_Population_Spectrum_Postprocess_Index','parameter ['//parameterName//'] is not present in parameter file')
-       end if
-    end if
+    if (postprocessingChain /= "default" .and. .not.globalParameters%isPresent(char(parameterName))) &
+         & call Galacticus_Error_Report('Stellar_Population_Spectrum_Postprocess_Index','parameter ['//parameterName//'] is not present in parameter file')
+    methodCount=max(globalParameters%count(char(parameterName),zeroIfNotPresent=.true.),1)
+    allocate(postprocessingChainNamesTemporary(methodCount))
+    ! Note that we specify a default value here, which applies to all post-processing chains, even though we want it to apply only
+    ! to the default chain. This works because for all non-default chains we have already checked that the parameter is actually
+    ! present, and so the default will be ignored.    
+    !# <inputParameter>
+    !#   <name>char(parameterName)</name>
+    !#   <variable>postprocessingChainNamesTemporary</variable>
+    !#   <defaultValue>[var_str('inoue2014')]</defaultValue>
+    !#   <source>globalParameters</source>
+    !#   <description>The name of methods to be used for post-processing of stellar population spectra.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     ! Store the list of method names.
     postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%methodsLabel=String_Join(postprocessingChainNamesTemporary,":")
     ! Allocate postprocessors.

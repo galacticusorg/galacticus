@@ -46,30 +46,25 @@ contains
     if (starFormationExpulsiveFeedbackSpheroidsMethod == 'superwind') then
        Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_SW
        ! Get parameters of for the feedback calculation.
-       !@ <inputParameter>
-       !@   <name>spheroidSuperwindMassLoading</name>
-       !@   <defaultValue>2</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The mass loading of the spheroid superwind.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidSuperwindMassLoading',spheroidSuperwindMassLoading,defaultValue=2.0d0)
-       !@ <inputParameter>
-       !@   <name>spheroidSuperwindVelocity</name>
-       !@   <defaultValue>200 km/s</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The velocity scale of the spheroid superwind.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidSuperwindVelocity',spheroidSuperwindVelocity,defaultValue=200.0d0)
+       !# <inputParameter>
+       !#   <name>spheroidSuperwindMassLoading</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>2.0d0</defaultValue>
+       !#   <description>The mass loading of the spheroid superwind.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidSuperwindVelocity</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>km/s</defaultSource>
+       !#   <defaultValue>200.0d0</defaultValue>
+       !#   <description>The velocity scale of the spheroid superwind.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Star_Formation_Expulsive_Feedback_Spheroids_SW_Initialize

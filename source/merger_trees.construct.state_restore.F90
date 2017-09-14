@@ -50,17 +50,14 @@ contains
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_State_Restore
        ! Get the name of the file from which to read the stored merger tree state.
-       !@ <inputParameter>
-       !@   <name>mergerTreeStateStoreFile</name>
-       !@   <defaultValue>storedTree.dat</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of a file from which to restore a merger tree state.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeStateStoreFile',mergerTreeStateStoreFile,defaultValue='storedTree.dat')
+       !# <inputParameter>
+       !#   <name>mergerTreeStateStoreFile</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('storedTree.dat')</defaultValue>
+       !#   <description>The name of a file from which to restore a merger tree state.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
        ! Open the tree file.
        open(newunit=treeDataUnit,file=char(mergerTreeStateStoreFile),status='old',form='unformatted')
     end if

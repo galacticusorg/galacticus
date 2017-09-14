@@ -66,17 +66,14 @@ contains
        !$omp critical(Stellar_Astrophysics_Initialization)
        if (.not.stellarAstrophysicsInitialized) then
           ! Get the stellar tracks method parameter.
-          !@ <inputParameter>
-          !@   <name>stellarAstrophysicsMethod</name>
-          !@   <defaultValue>file</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for stellar astrophysics calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarAstrophysicsMethod',stellarAstrophysicsMethod,defaultValue='file')
+          !# <inputParameter>
+          !#   <name>stellarAstrophysicsMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('file')</defaultValue>
+          !#   <description>The name of the method to be used for stellar astrophysics calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="stellarAstrophysicsMethod" type="functionCall" functionType="void">
           !#  <functionArgs>stellarAstrophysicsMethod,Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get</functionArgs>

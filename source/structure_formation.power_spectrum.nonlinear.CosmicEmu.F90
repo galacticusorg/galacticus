@@ -59,7 +59,7 @@ contains
 
   function cosmicEmuConstructorParameters(parameters)
     !% Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                :: cosmicEmuConstructorParameters
     type (inputParameters                ), intent(inout) :: parameters
@@ -149,7 +149,7 @@ contains
     use ISO_Varying_String
     use Galacticus_Input_Paths
     use Input_Parameters
-    use Input_Parameters2
+    use Input_Parameters
     use File_Utilities
     use Memory_Management
     use Table_Labels

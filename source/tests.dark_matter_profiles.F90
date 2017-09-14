@@ -43,6 +43,7 @@ program Test_Dark_Matter_Profiles
        &                                                            fourier
   type            (darkMatterProfileBurkert      )               :: darkMatterProfileBurkert_
   type            (varying_string                )               :: parameterFile
+  type            (inputParameters               )               :: parameters
   integer                                                        :: i
   double precision                                               :: radiusScale
 
@@ -52,7 +53,8 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_Begin_Group    ('Dark matter profiles'           )
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/darkMatterProfiles.xml'
-  call Input_Parameters_File_Open(parameterFile                    )
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Initialize node components.
   call Node_Components_Initialize(                                 )
   ! Create a node.
@@ -121,8 +123,6 @@ program Test_Dark_Matter_Profiles
        &      relTol=1.0d-6           &
        &     )  
   call Unit_Tests_End_Group       ()
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close()
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()

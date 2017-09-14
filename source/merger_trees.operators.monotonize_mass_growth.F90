@@ -42,7 +42,7 @@ contains
   function monotonizeMassGrowthConstructorParameters(parameters)
     !% Constructor for the mass growth monotonizing merger tree operator class which takes a
     !% parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters

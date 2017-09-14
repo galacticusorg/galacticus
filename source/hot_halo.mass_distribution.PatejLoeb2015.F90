@@ -57,28 +57,22 @@ contains
        !$omp critical(patejLoeb2015Initialized)
        if (.not.patejLoeb2015Initialized) then
           ! Get default parameters.
-          !@ <inputParameter>
-          !@   <name>patejLoebHotHaloMassDistributionGamma</name>
-          !@   <defaultValue>1.15</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The parameter $\Gamma$ in the \cite{patej_simple_2015} hot halo gas mass distribution model.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("patejLoebHotHaloMassDistributionGamma",patejLoebHotHaloMassDistributionGamma,defaultValue=1.15d0)
-          !@ <inputParameter>
-          !@   <name>patejLoebHotHaloMassDistributionShockRadius</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("patejLoebHotHaloMassDistributionShockRadius",patejLoebHotHaloMassDistributionShockRadius,defaultValue=1.0d0)
+          !# <inputParameter>
+          !#   <name>patejLoebHotHaloMassDistributionGamma</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.15d0</defaultValue>
+          !#   <description>The parameter $\Gamma$ in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>patejLoebHotHaloMassDistributionShockRadius</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Record that implementation is now initialized.
           patejLoeb2015Initialized=.true.
        end if

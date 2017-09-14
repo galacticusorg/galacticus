@@ -122,19 +122,18 @@ contains
           do i=1,centralGalaxyCount
              analysisActive(i)=any(trim(mergerTreeAnalyses) == "localGroupSatelliteMassFunction"//trim(localGroupCentralLabel(i)))
              if (analysisActive(i)) then
-                !@ <inputParameter>
-                !@   <regEx>analysisLGSatelliteMFHaloMass(MilkyWay|M31)</regEx>
-                !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    The mass of the host halo to be used when constructing Local Group satellite galaxy stellar mass functions.
-                !@   </description>
-                !@   <type>string</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
                 parameterName="analysisLGSatelliteMFHaloMass"//trim(localGroupCentralLabel(i))
-                call Get_Input_Parameter(trim(parameterName),analysisLGSatelliteHaloMass(i),defaultValue=1.0d12)
+                !# <inputParameter>
+                !#   <name>trim(parameterName)</name>
+                !#   <variable>analysisLGSatelliteHaloMass(i)</variable>
+                !#   <source>globalParameters</source>
+                !#   <regEx>analysisLGSatelliteMFHaloMass(MilkyWay|M31)</regEx>
+                !#   <defaultValue>1.0d12</defaultValue>
+                !#   <description>The mass of the host halo to be used when constructing Local Group satellite galaxy stellar mass functions.</description>
+                !#   <type>string</type>
+                !#   <cardinality>0..1</cardinality>
+                !#   <group>output</group>
+                !# </inputParameter>
                 ! Construct a temporary node, assign it the given mass, and find the virial radius.
                 cosmologyFunctionsModel  => cosmologyFunctions ()
                 cosmologyParametersModel => cosmologyParameters()
@@ -145,79 +144,62 @@ contains
                 call basic%timeSet(timeNow)
                 call basic%massSet(analysisLGSatelliteHaloMass(i))
                 radiusVirial=darkMatterHaloScale_%virialRadius(node)
-                !@ <inputParameter>
-                !@   <regEx>analysisLGSatelliteMFHaloRadius(MilkyWay|M31)</regEx>
-                !@   <defaultValue>virial radius</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    The radius within whcih the mass of the host halo is defined when constructing Local Group satellite galaxy stellar mass functions.
-                !@   </description>
-                !@   <type>string</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
-                parameterName="analysisLGSatelliteMFHaloRadius"//trim(localGroupCentralLabel(i))
-                call Get_Input_Parameter(trim(parameterName),analysisLGSatelliteHaloRadius(i),defaultValue=radiusVirial)
-                !@ <inputParameter>
-                !@   <name>analysisLGSatelliteMFHighMassSubhalos</name>
-                !@   <defaultValue>false</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    If true, include constraints on the presence of high mass subhalos (e.g. Magellanic Clouds).
-                !@   </description>
-                !@   <type>boolean</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
-                call Get_Input_Parameter('analysisLGSatelliteMFHighMassSubhalos',analysisLGSatelliteMFHighMassSubhalos,defaultValue=.false.)
-                !@ <inputParameter>
-                !@   <name>analysisLGSatelliteMFLogMassLMC</name>
-                !@   <defaultValue>11</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    Base-10 logarithm of the mass of the LMC subhalo (in units of $M_\odot$).
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
-                call Get_Input_Parameter('analysisLGSatelliteMFLogMassLMC',analysisLGSatelliteMFLogMassLMC,defaultValue=11.0d0)
-                !@ <inputParameter>
-                !@   <name>analysisLGSatelliteMFLogMassSMC</name>
-                !@   <defaultValue>11</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    Base-10 logarithm of the mass of the SMC subhalo (in units of $M_\odot$).
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
-                call Get_Input_Parameter('analysisLGSatelliteMFLogMassSMC',analysisLGSatelliteMFLogMassSMC,defaultValue=9.5d0)
-                !@ <inputParameter>
-                !@   <name>analysisLGSatelliteMFSigmaLogMassLMC</name>
-                !@   <defaultValue>0.5</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    Root-variance in the base-10 logarithm of the mass of the LMC subhalo (in units of $M_\odot$).
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
-                call Get_Input_Parameter('analysisLGSatelliteMFSigmaLogMassLMC',analysisLGSatelliteMFSigmaLogMassLMC,defaultValue=0.5d0)
-                !@ <inputParameter>
-                !@   <name>analysisLGSatelliteMFSigmaLogMassSMC</name>
-                !@   <defaultValue>0.5</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    Root-variance in the base-10 logarithm of the mass of the SMC subhalo (in units of $M_\odot$).
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>0..1</cardinality>
-                !@   <group>output</group>
-                !@ </inputParameter>
-                call Get_Input_Parameter('analysisLGSatelliteMFSigmaLogMassSMC',analysisLGSatelliteMFSigmaLogMassSMC,defaultValue=0.5d0)
+                !# <inputParameter>
+                !#   <name>'analysisLGSatelliteMFHaloRadius'//trim(localGroupCentralLabel(i))</name>
+                !#   <regEx>analysisLGSatelliteMFHaloRadius(MilkyWay|M31)</regEx>
+                !#   <variable>analysisLGSatelliteHaloRadius(i)</variable>
+                !#   <source>globalParameters</source>
+                !#   <defaultValue>radiusVirial</defaultValue>
+                !#   <description>The radius within whcih the mass of the host halo is defined when constructing Local Group satellite galaxy stellar mass functions.</description>
+                !#   <type>string</type>
+                !#   <cardinality>0..1</cardinality>
+                !#   <group>output</group>
+                !# </inputParameter>
+                !# <inputParameter>
+                !#   <name>analysisLGSatelliteMFHighMassSubhalos</name>
+                !#   <cardinality>0..1</cardinality>
+                !#   <defaultValue>.false.</defaultValue>
+                !#   <description>If true, include constraints on the presence of high mass subhalos (e.g. Magellanic Clouds).</description>
+                !#   <group>output</group>
+                !#   <source>globalParameters</source>
+                !#   <type>boolean</type>
+                !# </inputParameter>
+                !# <inputParameter>
+                !#   <name>analysisLGSatelliteMFLogMassLMC</name>
+                !#   <cardinality>0..1</cardinality>
+                !#   <defaultValue>11.0d0</defaultValue>
+                !#   <description>Base-10 logarithm of the mass of the LMC subhalo (in units of $M_\odot$).</description>
+                !#   <group>output</group>
+                !#   <source>globalParameters</source>
+                !#   <type>real</type>
+                !# </inputParameter>
+                !# <inputParameter>
+                !#   <name>analysisLGSatelliteMFLogMassSMC</name>
+                !#   <cardinality>0..1</cardinality>
+                !#   <defaultValue>9.5d0</defaultValue>
+                !#   <description>Base-10 logarithm of the mass of the SMC subhalo (in units of $M_\odot$).</description>
+                !#   <group>output</group>
+                !#   <source>globalParameters</source>
+                !#   <type>real</type>
+                !# </inputParameter>
+                !# <inputParameter>
+                !#   <name>analysisLGSatelliteMFSigmaLogMassLMC</name>
+                !#   <cardinality>0..1</cardinality>
+                !#   <defaultValue>0.5d0</defaultValue>
+                !#   <description>Root-variance in the base-10 logarithm of the mass of the LMC subhalo (in units of $M_\odot$).</description>
+                !#   <group>output</group>
+                !#   <source>globalParameters</source>
+                !#   <type>real</type>
+                !# </inputParameter>
+                !# <inputParameter>
+                !#   <name>analysisLGSatelliteMFSigmaLogMassSMC</name>
+                !#   <cardinality>0..1</cardinality>
+                !#   <defaultValue>0.5d0</defaultValue>
+                !#   <description>Root-variance in the base-10 logarithm of the mass of the SMC subhalo (in units of $M_\odot$).</description>
+                !#   <group>output</group>
+                !#   <source>globalParameters</source>
+                !#   <type>real</type>
+                !# </inputParameter>
                 ! Solve for the virial mass that gives the required enclosed mass.
                 call finder%tolerance(1.0d-6,1.0d-6)
                 call finder%rangeExpand(rangeExpandUpward=2.0d0,rangeExpandDownward=0.5d0,rangeExpandType=rangeExpandMultiplicative)

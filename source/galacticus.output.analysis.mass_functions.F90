@@ -723,18 +723,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Functions_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionCovarianceModel</name>
-          !@   <defaultValue>binomial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The model to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionCovarianceModel',analysisMassFunctionCovarianceModelText,defaultValue='Poisson')
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionCovarianceModel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('Poisson')</defaultValue>
+          !#   <description>The model to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>analysisMassFunctionCovarianceModelText</variable>
+          !# </inputParameter>
           select case (char(analysisMassFunctionCovarianceModelText))
           case ( 'Poisson'  )
              analysisMassFunctionCovarianceModel=analysisMassFunctionCovarianceModelPoisson
@@ -743,105 +741,81 @@ contains
           case default
              call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unrecognized value for "analysisMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
           end select
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsHaloMassBinsPerDecade',analysisMassFunctionsHaloMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsHaloMassMinimum',analysisMassFunctionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsHaloMassMaximum',analysisMassFunctionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisMassFunctionsHaloMassMinimumLogarithmic=log10(analysisMassFunctionsHaloMassMinimum)
           analysisMassFunctionsHaloMassBinsCount=int(log10(analysisMassFunctionsHaloMassMaximum/analysisMassFunctionsHaloMassMinimum)*dble(analysisMassFunctionsHaloMassBinsPerDecade)+0.5d0)
           analysisMassFunctionsHaloMassIntervalLogarithmicInverse=dble(analysisMassFunctionsHaloMassBinsCount)/log10(analysisMassFunctionsHaloMassMaximum/analysisMassFunctionsHaloMassMinimum)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsCorrelationTruncateLevel</name>
-          !@   <defaultValue>0.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The correlation below which off-diagonal elements of the covariance matrix are truncated to zero.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsCorrelationTruncateLevel',analysisMassFunctionsCorrelationTruncateLevel,defaultValue=0.0d0)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsApplyCosmologyConversion</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    If true, apply correction factors from the model to the data cosmological model.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsApplyCosmologyConversion',analysisMassFunctionsApplyCosmologyConversion,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsApplyGravitationalLensing</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    If true, apply the effects of gravitational lensing by large-scale structure to mass functions.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsApplyGravitationalLensing',analysisMassFunctionsApplyGravitationalLensing,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsGravitationalLensingSize</name>
-          !@   <defaultValue>0.001~Mpc</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The source size to assume for gravitational lensing calculations.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsGravitationalLensingSize',analysisMassFunctionsGravitationalLensingSize,defaultValue=1.0d-3)
-          !@ <inputParameter>
-          !@   <name>analysisMassFunctionsPRIMUSInternalErrors</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The source size to assume for gravitational lensing calculations.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMassFunctionsPRIMUSInternalErrors',analysisMassFunctionsPRIMUSInternalErrors,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsCorrelationTruncateLevel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>The correlation below which off-diagonal elements of the covariance matrix are truncated to zero.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsApplyCosmologyConversion</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>If true, apply correction factors from the model to the data cosmological model.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsApplyGravitationalLensing</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>If true, apply the effects of gravitational lensing by large-scale structure to mass functions.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsGravitationalLensingSize</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d-3</defaultValue>
+          !#   <description>The source size to assume for gravitational lensing calculations.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMassFunctionsPRIMUSInternalErrors</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>The source size to assume for gravitational lensing calculations.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Establish mass mapping functions for mass function descriptors.
           massFunctionDescriptors   ( 1)%mapMass             => Map_Mass_SDSS_Stellar_Mass_Function_Z0_07
           massFunctionDescriptors   ( 4)%mapMass             => Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
@@ -860,41 +834,39 @@ contains
              select case (i)
              case (gamaStellarMassFunction)
                 parameterName=trim(massFunctionLabels(i))//'SurfaceBrightnessModelSlope'
-                !@ <inputParameter>
-                !@   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelSlope</regEx>
-                !@   <attachedTo>module</attachedTo>
-                !@   <defaultValue>-1</defaultValue>
-                !@   <description>
-                !@     Mass function surface brightness incompleteness model slope.
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>1</cardinality>
-                !@ </inputParameter>
-                call Get_Input_Parameter(char(parameterName),surfaceBrightnessModelSlope,defaultValue=-1.0d0)
+                !# <inputParameter>
+                !#   <name>char(parameterName)</name>
+                !#   <variable>surfaceBrightnessModelSlope</variable>
+                !#   <source>globalParameters</source>
+                !#   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelSlope</regEx>
+                !#   <defaultValue>-1.0d0</defaultValue>
+                !#   <description>Mass function surface brightness incompleteness model slope.</description>
+                !#   <type>real</type>
+                !#   <cardinality>1</cardinality>
+                !# </inputParameter>
                 parameterName=trim(massFunctionLabels(i))//'SurfaceBrightnessModelOffset'
-                !@ <inputParameter>
-                !@   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelOffset</regEx>
-                !@   <attachedTo>module</attachedTo>
-                !@   <defaultValue>0</defaultValue>
-                !@   <description>
-                !@     Mass function surface brightness incompleteness model offset.
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>1</cardinality>
-                !@ </inputParameter>
-                call Get_Input_Parameter(char(parameterName),surfaceBrightnessModelOffset,defaultValue=0.0d0)
+                !# <inputParameter>
+                !#   <name>char(parameterName)</name>
+                !#   <variable>surfaceBrightnessModelOffset</variable>
+                !#   <source>globalParameters</source>
+                !#   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelOffset</regEx>
+                !#   <defaultValue>0.0d0</defaultValue>
+                !#   <description>Mass function surface brightness incompleteness model offset.</description>
+                !#   <type>real</type>
+                !#   <cardinality>1</cardinality>
+                !# </inputParameter>
                 parameterName=trim(massFunctionLabels(i))//'SurfaceBrightnessModelScatter'
-                !@ <inputParameter>
-                !@   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelScatter</regEx>
-                !@   <attachedTo>module</attachedTo>
-                !@   <defaultValue>0</defaultValue>
-                !@   <description>
-                !@     Mass function surface brightness incompleteness model scatter.
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>1</cardinality>
-                !@ </inputParameter>
-                call Get_Input_Parameter(char(parameterName),surfaceBrightnessModelScatter,defaultValue=0.0d0)
+                !# <inputParameter>
+                !#   <name>char(parameterName)</name>
+                !#   <variable>surfaceBrightnessModelScatter</variable>
+                !#   <source>globalParameters</source>
+                !#   <regEx>(gamaStellarMassFunction)Z[0-9\.]+SurfaceBrightnessModelScatter</regEx>
+                !#   <attachedTo>module</attachedTo>
+                !#   <defaultValue>0.0d0</defaultValue>
+                !#   <description>Mass function surface brightness incompleteness model scatter.</description>
+                !#   <type>real</type>
+                !#   <cardinality>1</cardinality>
+                !# </inputParameter>
                 allocate(massFunctionIncompletenessSurfaceBrightness :: massFunctionDescriptors(i)%incompleteness)
                 select type (g => massFunctionDescriptors(i)%incompleteness)
                 type is ( massFunctionIncompletenessSurfaceBrightness )
@@ -1100,17 +1072,16 @@ contains
                          do k=1,massFunctionDescriptors(j)%systematicCoefficientCount
                             parameterName=trim(massFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass function systematic error model parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%systematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>massFunctions(currentAnalysis)%systematicCoefficients(k)</variable>
+                            !#   <source>globalParameters</source>
+                            !#   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass function systematic error model parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -1119,43 +1090,40 @@ contains
                          do k=1,massFunctionDescriptors(j)%randomCoefficientCount
                             parameterName=trim(massFunctionLabels(j))//'MassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0.1</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass function random error model parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>massFunctions(currentAnalysis)%randomCoefficients(k)</variable>
+                            !#   <source>globalParameters</source>
+                            !#   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass function random error model parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       parameterName=trim(massFunctionLabels(j))//'MassRandomMinimum'
-                      !@ <inputParameter>
-                      !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandomMinimum</regEx>
-                      !@   <defaultValue>$10^{-3}$</defaultValue>
-                      !@   <attachedTo>module</attachedTo>
-                      !@   <description>
-                      !@     Mass function random error model minimum error.
-                      !@   </description>
-                      !@   <type>real</type>
-                      !@   <cardinality>1</cardinality>
-                      !@ </inputParameter>
-                      call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomMinimum,defaultValue=1.0d-3)
+                      !# <inputParameter>
+                      !#   <name>char(parameterName)</name>
+                      !#   <variable>massFunctions(currentAnalysis)%randomMinimum</variable>
+                      !#   <source>globalParameters</source>
+                      !#   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandomMinimum</regEx>
+                      !#   <defaultValue>1.0d-3</defaultValue>
+                      !#   <description>Mass function random error model minimum error.</description>
+                      !#   <type>real</type>
+                      !#   <cardinality>1</cardinality>
+                      !# </inputParameter>
                       parameterName=trim(massFunctionLabels(j))//'MassRandomMaximum'
-                      !@ <inputParameter>
-                      !@   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandomMaximum</regEx>
-                      !@   <defaultValue>10</defaultValue>
-                      !@   <attachedTo>module</attachedTo>
-                      !@   <description>
-                      !@     Mass function random error model maximum error.
-                      !@   </description>
-                      !@   <type>real</type>
-                      !@   <cardinality>1</cardinality>
-                      !@ </inputParameter>
-                      call Get_Input_Parameter(char(parameterName),massFunctions(currentAnalysis)%randomMaximum,defaultValue=10.0d0)
+                      !# <inputParameter>
+                      !#   <name>char(parameterName)</name>
+                      !#   <variable>massFunctions(currentAnalysis)%randomMaximum</variable>
+                      !#   <source>globalParameters</source>
+                      !#   <regEx>(sdssStellarMassFunction|bernardiSdssStellarMassFunction|gamaStellarMassFunction|alfalfaHiMassFunction|primusStellarMassFunction|vipersStellarMassFunction|ukidssUdsStellarMassFunction|zfourgeStellarMassFunction|ultravistaStellarMassFunction)Z[0-9\.]+MassRandomMaximum</regEx>
+                      !#   <defaultValue>10.0d0</defaultValue>
+                      !#   <description>Mass function random error model maximum error.</description>
+                      !#   <type>real</type>
+                      !#   <cardinality>1</cardinality>
+                      !# </inputParameter>
                       ! Read the appropriate observational data definition.
                       allocate(cosmologyParametersObserved)
                       select case (trim(massFunctionLabels(j)))
@@ -1702,54 +1670,42 @@ contains
     if (.not.sdssStellarMassFunctionHighMassInitialized) then
        !$omp critical(Map_Mass_SDSS_Stellar_Mass_Function_Z0_07_Initialize)
        if (.not.sdssStellarMassFunctionHighMassInitialized) then
-          !@ <inputParameter>
-          !@   <name>sdssStellarMassFunctionHighMassTransitionLogMass</name>
-          !@   <defaultValue>10.8</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Transition mass, $M_{\mathrm t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('sdssStellarMassFunctionHighMassTransitionLogMass',sdssStellarMassFunctionHighMassTransitionLogMass,defaultValue=10.8d0)
-          !@ <inputParameter>
-          !@   <name>sdssStellarMassFunctionHighMassTransitionWidth</name>
-          !@   <defaultValue>0.5</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Transition mass width, $\Delta M_{\mathrm t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('sdssStellarMassFunctionHighMassTransitionWidth',sdssStellarMassFunctionHighMassTransitionWidth,defaultValue=0.5d0)
-          !@ <inputParameter>
-          !@   <name>sdssStellarMassFunctionHighMassSystematic0</name>
-          !@   <defaultValue>0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Parameter $\mu$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('sdssStellarMassFunctionHighMassSystematic0',sdssStellarMassFunctionHighMassSystematic0,defaultValue=0.0d0)
-          !@ <inputParameter>
-          !@   <name>sdssStellarMassFunctionHighMassSystematic1</name>
-          !@   <defaultValue>0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Parameter $\kappa$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('sdssStellarMassFunctionHighMassSystematic1',sdssStellarMassFunctionHighMassSystematic1,defaultValue=0.0d0)
+          !# <inputParameter>
+          !#   <name>sdssStellarMassFunctionHighMassTransitionLogMass</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10.8d0</defaultValue>
+          !#   <description>Transition mass, $M_{\mathrm t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>sdssStellarMassFunctionHighMassTransitionWidth</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.5d0</defaultValue>
+          !#   <description>Transition mass width, $\Delta M_{\mathrm t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>sdssStellarMassFunctionHighMassSystematic0</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>Parameter $\mu$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>sdssStellarMassFunctionHighMassSystematic1</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>Parameter $\kappa$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Record that initialization is complete.
           sdssStellarMassFunctionHighMassInitialized=.true.
        end if
@@ -1787,138 +1743,124 @@ contains
        !$omp critical(alfalfaHiMassFunctionZ0_00Initialized)
        if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
           ! Read parameters controlling H2/HI mass ratio calculation.
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00ErrorA</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $a$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorA',alfalfaHiMassFunctionZ0_00ErrorA,defaultValue=0.1d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00ErrorB</name>
-          !@   <defaultValue>5.885</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $b$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorB',alfalfaHiMassFunctionZ0_00ErrorB,defaultValue=5.885d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00ErrorC</name>
-          !@   <defaultValue>0.505</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $c$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ErrorC',alfalfaHiMassFunctionZ0_00ErrorC,defaultValue=0.505d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionK</name>
-          !@   <defaultValue>11.3 m$^4$ kg$^{-2}$ \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $K$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionK',alfalfaHiMassFunctionZ0_00MolecularFractionK,defaultValue=11.3d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionfSigma</name>
-          !@   <defaultValue>0.4 \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionfSigma',alfalfaHiMassFunctionZ0_00MolecularFractionfSigma,defaultValue=0.4d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA1</name>
-          !@   <defaultValue>3.44 \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA1',alfalfaHiMassFunctionZ0_00MolecularFractionA1,defaultValue=3.44d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA2</name>
-          !@   <defaultValue>4.82 \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionA2',alfalfaHiMassFunctionZ0_00MolecularFractionA2,defaultValue=4.82d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1</name>
-          !@   <defaultValue>$-0.506$ \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1,defaultValue=-0.506d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2</name>
-          !@   <defaultValue>$-1.054$ \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2',alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2,defaultValue=-1.054d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionBeta</name>
-          !@   <defaultValue>$0.8$ \citep{obreschkow_simulation_2009}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionBeta',alfalfaHiMassFunctionZ0_00MolecularFractionBeta,defaultValue=0.8d0)
-          !@ <inputParameter>
-          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionScatter</name>
-          !@   <defaultValue>$0.4$~dex (Obsreschkow, private communication)</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The scatter in the molecular ratio $\log_{10}R_{\mathrm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionScatter',alfalfaHiMassFunctionZ0_00MolecularFractionScatter,defaultValue=0.4d0)
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00ErrorA</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>The parameter, $a$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00ErrorA</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00ErrorB</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>5.885d0</defaultValue>
+          !#   <description>The parameter, $b$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00ErrorB</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00ErrorC</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.505d0</defaultValue>
+          !#   <description>The parameter, $c$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00ErrorC</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionK</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>m$^4$ kg$^{-2}$ \citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>11.3d0</defaultValue>
+          !#   <description>The parameter, $K$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionK</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionfSigma</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>0.4d0</defaultValue>
+          !#   <description>The parameter, $\langle f_\sigma \rangle$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionfSigma</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA1</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>3.44d0</defaultValue>
+          !#   <description>The parameter, $A_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionA1</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionA2</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>4.82d0</defaultValue>
+          !#   <description>The parameter, $A_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionA2</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha1</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>-0.506d0</defaultValue>
+          !#   <description>The parameter, $\alpha_1$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionAlpha1</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionAlpha2</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>-1.054d0</defaultValue>
+          !#   <description>The parameter, $\alpha_2$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionAlpha2</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionBeta</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>\citep{obreschkow_simulation_2009}</defaultSource>
+          !#   <defaultValue>0.8d0</defaultValue>
+          !#   <description>The parameter, $\beta$, appearing in the model for the H$_2$/HI ratio in galaxies from \cite{obreschkow_simulation_2009}.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionBeta</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>alfalfaHiMassFunctionZ0.00MolecularFractionScatter</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultSource>(Obsreschkow, private communication)</defaultSource>
+          !#   <defaultValue>0.4d0</defaultValue>
+          !#   <description>The scatter in the molecular ratio $\log_{10}R_{\mathrm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>alfalfaHiMassFunctionZ0_00MolecularFractionScatter</variable>
+          !# </inputParameter>
           ! Record that the function is now initialized.
           alfalfaHiMassFunctionZ0_00Initialized=.true.
        end if

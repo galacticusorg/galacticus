@@ -101,69 +101,59 @@ contains
     if (.not.simpleDefaultInitialized) then
        !$omp critical(accretionHaloSimpleDefaultInitialize)
        if (.not.simpleDefaultInitialized) then
-          if (Input_Parameter_Is_Present("simpleReionizationSuppressionOpticalDepth")) then
-             if (Input_Parameter_Is_Present("simpleReionizationSuppressionRedshift")) call Galacticus_Error_Report("simpleDefaultConstructor","only one of [simpleReionizationSuppressionOpticalDepth] and [simpleReionizationSuppressionRedshift] should be specified")
-             !@ <inputParameter>
-             !@   <name>reionizationSuppressionOpticalDepth</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@    The optical depth to electron scattering below which baryonic accretion is suppressed.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter("reionizationSuppressionOpticalDepth",reionizationSuppressionOpticalDepth)
+          if (globalParameters%isPresent("simpleReionizationSuppressionOpticalDepth")) then
+             if (globalParameters%isPresent("simpleReionizationSuppressionRedshift")) call Galacticus_Error_Report("simpleDefaultConstructor","only one of [simpleReionizationSuppressionOpticalDepth] and [simpleReionizationSuppressionRedshift] should be specified")
+             !# <inputParameter>
+             !#   <name>reionizationSuppressionOpticalDepth</name>
+             !#   <cardinality>1</cardinality>
+             !#   <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
              intergalacticMediumState_        => intergalacticMediumState()
              simpleReionizationSuppressionTime=intergalacticMediumState_%electronScatteringTime(reionizationSuppressionOpticalDepth&
                   &,assumeFullyIonized=.true.)
           else
-             !@ <inputParameter>
-             !@   <name>reionizationSuppressionRedshift</name>
-             !@   <defaultValue>9.97 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@    The redshift below which baryonic accretion is suppressed.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter("reionizationSuppressionRedshift",simpleReionizationSuppressionRedshift,defaultValue=9.97d0)
+             !# <inputParameter>
+             !#   <name>reionizationSuppressionRedshift</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+             !#   <defaultValue>9.97d0</defaultValue>
+             !#   <description>The redshift below which baryonic accretion is suppressed.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !#   <variable>simpleReionizationSuppressionRedshift</variable>
+             !# </inputParameter>
              cosmologyFunctionsDefault        => cosmologyFunctions()
              simpleReionizationSuppressionTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(simpleReionizationSuppressionRedshift))
           end if
-          !@ <inputParameter>
-          !@   <name>reionizationSuppressionVelocity</name>
-          !@   <defaultValue>35.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The velocity scale below which baryonic accretion is suppressed.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("reionizationSuppressionVelocity",simpleReionizationSuppressionVelocity,defaultValue=35.0d0)
-          !@ <inputParameter>
-          !@   <name>accretionHalosSimpleNegativeAccretionAllowed</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("accretionHalosSimpleNegativeAccretionAllowed",simpleNegativeAccretionAllowed,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>accretionHalosSimpleAccreteNewGrowthOnly</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("accretionHalosSimpleAccreteNewGrowthOnly",simpleAccreteNewGrowthOnly,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>reionizationSuppressionVelocity</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>35.0d0</defaultValue>
+          !#   <description>The velocity scale below which baryonic accretion is suppressed.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>simpleReionizationSuppressionVelocity</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>accretionHalosSimpleNegativeAccretionAllowed</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !#   <variable>simpleNegativeAccretionAllowed</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>accretionHalosSimpleAccreteNewGrowthOnly</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !#   <variable>simpleAccreteNewGrowthOnly</variable>
+          !# </inputParameter>
           ! Record that class is now initialized.
           simpleDefaultInitialized=.true.
        end if

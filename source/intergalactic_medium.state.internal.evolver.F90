@@ -82,51 +82,39 @@
           &                                                            massFilteringVarianceInitial
      
      ! Get parameter controlling properties.
-     !@ <inputParameter>
-     !@   <name>igmPropertiesCompute</name>
-     !@   <defaultValue>false</defaultValue>
-     !@   <attachedTo>module</attachedTo>
-     !@   <description>
-     !@     Specifies whether or not the properties should be computed.
-     !@   </description>
-     !@   <type>integer</type>
-     !@   <cardinality>1</cardinality>
-     !@ </inputParameter>
-     call Get_Input_Parameter('igmPropertiesCompute', igmPropertiesCompute,defaultValue=.false.)
+     !# <inputParameter>
+     !#   <name>igmPropertiesCompute</name>
+     !#   <cardinality>1</cardinality>
+     !#   <defaultValue>.false.</defaultValue>
+     !#   <description>Specifies whether or not the properties should be computed.</description>
+     !#   <source>globalParameters</source>
+     !#   <type>integer</type>
+     !# </inputParameter>
      if (igmPropertiesCompute) then
-        !@ <inputParameter>
-        !@   <name>igmPropertiesTimeCountPerDecade</name>
-        !@   <defaultValue>10</defaultValue>
-        !@   <attachedTo>module</attachedTo>
-        !@   <description>
-        !@     The number of bins per decade of time to use for calculations of the properties of the universe.
-        !@   </description>
-        !@   <type>integer</type>
-        !@   <cardinality>1</cardinality>
-        !@ </inputParameter>
-        call Get_Input_Parameter('igmPropertiesTimeCountPerDecade', igmPropertiesTimeCountPerDecade,defaultValue=10)
-        !@ <inputParameter>
-        !@   <name>igmPropertiesRedshiftMinimum</name>
-        !@   <defaultValue>0</defaultValue>
-        !@   <attachedTo>module</attachedTo>
-        !@   <description>
-        !@     The minimum redshift to use in calculations.
-        !@   </description>
-        !@   <type>real</type>
-        !@   <cardinality>1</cardinality>
-        !@ </inputParameter>
-        call Get_Input_Parameter('igmPropertiesRedshiftMinimum', igmPropertiesRedshiftMinimum,defaultValue=0.0d0)
-        !@ <inputParameter>
-        !@   <name>igmPropertiesRedshiftMaximum</name>
-        !@   <defaultValue>400</defaultValue>
-        !@   <attachedTo>module</attachedTo>
-        !@   <description>
-        !@     The maximum redshift to use in calculations.
-        !@   </description>
-        !@   <type>real</type>
-        !@   <cardinality>1</cardinality>
-        !@ </inputParameter>
-        call Get_Input_Parameter('igmPropertiesRedshiftMaximum', igmPropertiesRedshiftMaximum,defaultValue=400.0d0)
+        !# <inputParameter>
+        !#   <name>igmPropertiesTimeCountPerDecade</name>
+        !#   <cardinality>1</cardinality>
+        !#   <defaultValue>10</defaultValue>
+        !#   <description>The number of bins per decade of time to use for calculations of the properties of the universe.</description>
+        !#   <source>globalParameters</source>
+        !#   <type>integer</type>
+        !# </inputParameter>
+        !# <inputParameter>
+        !#   <name>igmPropertiesRedshiftMinimum</name>
+        !#   <cardinality>1</cardinality>
+        !#   <defaultValue>0.0d0</defaultValue>
+        !#   <description>The minimum redshift to use in calculations.</description>
+        !#   <source>globalParameters</source>
+        !#   <type>real</type>
+        !# </inputParameter>
+        !# <inputParameter>
+        !#   <name>igmPropertiesRedshiftMaximum</name>
+        !#   <cardinality>1</cardinality>
+        !#   <defaultValue>400.0d0</defaultValue>
+        !#   <description>The maximum redshift to use in calculations.</description>
+        !#   <source>globalParameters</source>
+        !#   <type>real</type>
+        !# </inputParameter>
         ! Build tables of properties and time for the temperature and ionization state densities in the IGM.
         cosmologyParameters_      => cosmologyParameters            (                    )
         cosmologyFunctions_       => cosmologyFunctions             (                    )

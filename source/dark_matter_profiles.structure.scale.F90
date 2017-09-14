@@ -76,19 +76,16 @@ contains
        !$omp critical(Dark_Matter_Profile_Scale_Initialize)
        if (.not.moduleInitialized) then
           ! Get parameter controlling scale calculation method.
-          !@ <inputParameter>
-          !@   <name>darkMatterProfileScaleCorrectForConcentrationDefinition</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales
-          !@    (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account.
-          !@    If false, the concentration is applied blindly.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterProfileScaleCorrectForConcentrationDefinition',darkMatterProfileScaleCorrectForConcentrationDefinition,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>darkMatterProfileScaleCorrectForConcentrationDefinition</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>If true, then when computing dark matter profile scale radii using concentrations, any difference between the current definition of halo scales
+          !#     (i.e. typically virial density contrast definitions) and density profiles and those assumed in measuring the concentrations will be taken into account.
+          !#     If false, the concentration is applied blindly.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Record that module is initialized.
           moduleInitialized=.true.
        end if

@@ -45,17 +45,14 @@ contains
 
     if (hotHaloColdModeCoredIsothermalCoreRadiiMethod == 'virialRadiusFraction') then
        Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Cold_Mode_Density_CIso_CoreR_VFrac
-       !@ <inputParameter>
-       !@   <name>coldModeIsothermalCoreRadiusOverVirialRadius</name>
-       !@   <defaultValue>0.3</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The core radius in the ``cored isothermal'' cold mode hot halo density profile in units of the virial radius.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coldModeIsothermalCoreRadiusOverVirialRadius',coldModeIsothermalCoreRadiusOverVirialRadius,defaultValue=0.3d0)
+       !# <inputParameter>
+       !#   <name>coldModeIsothermalCoreRadiusOverVirialRadius</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.3d0</defaultValue>
+       !#   <description>The core radius in the ``cored isothermal'' cold mode hot halo density profile in units of the virial radius.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Hot_Halo_Cold_Mode_Density_CIso_CoreR_VF_Initialize

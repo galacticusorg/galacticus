@@ -74,24 +74,22 @@ contains
     class           (nodeComponentBasic           )                         , pointer :: basic
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
     integer         (c_size_t                     )                                   :: timeIndex
-    double precision                                                                  :: ourTimeStep         , time
+    double precision                                                                  :: ourTimeStep         , time, &
+         &                                                                               universeAge
 
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
        if (.not.timestepHistoryInitialized) then
           ! Get module parameters.
-          !@ <inputParameter>
-          !@   <name>outputTimestepHistory</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not accumulated galaxy population history statistics should be output.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputTimestepHistory',outputTimestepHistory,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>outputTimestepHistory</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not accumulated galaxy population history statistics should be output.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           if (outputTimestepHistory) then
              ! Get the default cosmology functions object.
              cosmologyFunctions_ => cosmologyFunctions()
@@ -99,44 +97,35 @@ contains
              diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
              spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
              ! Get time at present day.
-             time=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
+             universeAge=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
              ! Get module parameters.
-             !@ <inputParameter>
-             !@   <name>timestepHistoryBegin</name>
-             !@   <defaultValue>5\% of the age of the Universe</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>timeStepping</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
-             !@ <inputParameter>
-             !@   <name>timestepHistoryEnd</name>
-             !@   <defaultValue>The age of the Universe</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>timeStepping</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
-             !@ <inputParameter>
-             !@   <name>timestepHistorySteps</name>
-             !@   <defaultValue>30</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@   <group>timeStepping</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('timestepHistorySteps',timestepHistorySteps,defaultValue=30         )
+             !# <inputParameter>
+             !#   <name>timestepHistoryBegin</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>0.05d0*universeAge</defaultValue>
+             !#   <description>The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
+             !#   <group>timeStepping</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>timestepHistoryEnd</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>universeAge</defaultValue>
+             !#   <description>The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
+             !#   <group>timeStepping</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>timestepHistorySteps</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>30</defaultValue>
+             !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.</description>
+             !#   <group>timeStepping</group>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
              ! Allocate storage arrays.
              call allocateArray(historyTime                     ,[timestepHistorySteps])
              call allocateArray(historyExpansion                ,[timestepHistorySteps])

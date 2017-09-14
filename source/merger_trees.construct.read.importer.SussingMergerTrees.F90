@@ -158,105 +158,79 @@ contains
     if (.not.sussingInitialized) then
        !$omp critical (mergerTreeImporterSussingInitialize)
        if (.not.sussingInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingMismatchIsFatal</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether mismatches in cosmological parameter values between \glc\ and ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be considered fatal.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingMismatchIsFatal',mergerTreeImportSussingMismatchIsFatal,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingNonTreeNodeIsFatal</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingNonTreeNodeIsFatal',mergerTreeImportSussingNonTreeNodeIsFatal,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingSubvolumeCount</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>1</defaultValue>
-          !@   <description>
-          !@    Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingSubvolumeCount',mergerTreeImportSussingSubvolumeCount,defaultValue=1)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingSubvolumeBuffer</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>$0.0$</defaultValue>
-          !@   <description>
-          !@     Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingSubvolumeBuffer',mergerTreeImportSussingSubvolumeBuffer,defaultValue=0.0d0)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingSubvolumeIndex</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>[0,0,0]</defaultValue>
-          !@   <description>
-          !@     Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeCount]}$-1$.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingSubvolumeIndex',mergerTreeImportSussingSubvolumeIndex,defaultValue=[0,0,0])
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingConvertToBinary</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingConvertToBinary',mergerTreeImportSussingConvertToBinary,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingBinaryFormatOld</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>true</defaultValue>
-          !@   <description>
-          !@     Specifies whether the old binary format is to be used (for reading only).
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingBinaryFormatOld',mergerTreeImportSussingBinaryFormatOld,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingBadValue</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>-0.5</defaultValue>
-          !@   <description>
-          !@     Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingBadValue',mergerTreeImportSussingBadValue,defaultValue=-0.5d0)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingBadValueTest</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>lessThan</defaultValue>
-          !@   <description>
-          !@     Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingBadValueTest',mergerTreeImportSussingBadValueTestText,defaultValue="lessThan")
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingMismatchIsFatal</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be considered fatal.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingNonTreeNodeIsFatal</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingSubvolumeCount</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1</defaultValue>
+          !#   <description>Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingSubvolumeBuffer</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingSubvolumeIndex</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>[0,0,0]</defaultValue>
+          !#   <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeCount]}$-1$.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingConvertToBinary</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingBinaryFormatOld</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether the old binary format is to be used (for reading only).</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingBadValue</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>-0.5d0</defaultValue>
+          !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingBadValueTest</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('lessThan')</defaultValue>
+          !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>mergerTreeImportSussingBadValueTestText</variable>
+          !# </inputParameter>
           select case (char(mergerTreeImportSussingBadValueTestText))
           case ("lessThan"   )
              mergerTreeImportSussingBadValueTest=sussingBadValueLessThan
@@ -266,74 +240,57 @@ contains
              call Galacticus_Error_Report('sussingDefaultConstructor','[mergerTreeImportSussingBadValueTest must be either "lessThan" or "greaterThan"]')
           end select
           ! Check for a forest file.
-          mergerTreeImportSussingUseForestFile=Input_Parameter_Is_Present('mergerTreeImportSussingForestFile')
+          mergerTreeImportSussingUseForestFile=globalParameters%isPresent('mergerTreeImportSussingForestFile')
           if (mergerTreeImportSussingUseForestFile) then
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestFile</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Name of file containing data on number of halos in each forest.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestFile',mergerTreeImportSussingForestFile)
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestFirst</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>1</defaultValue>
-             !@   <description>
-             !@     Index of first forest to include.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestFirst',mergerTreeImportSussingForestFirst,defaultValue=1)
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestLast</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>-1</defaultValue>
-             !@   <description>
-             !@     Index of last forest to include.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestLast',mergerTreeImportSussingForestLast,defaultValue=-1)
-             !@ <inputParameter>
-             !@   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <defaultValue>false</defaultValue>
-             !@   <description>
-             !@     If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('mergerTreeImportSussingForestReverseSnapshotOrder',mergerTreeImportSussingForestReverseSnapshotOrder,defaultValue=.false.)
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestFile</name>
+             !#   <cardinality>1</cardinality>
+             !#   <description>Name of file containing data on number of halos in each forest.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestFirst</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1</defaultValue>
+             !#   <description>Index of first forest to include.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestLast</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>-1</defaultValue>
+             !#   <description>Index of last forest to include.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>.false.</defaultValue>
+             !#   <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
           end if
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingTreeSampleRate</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>false</defaultValue>
-          !@   <description>
-          !@     Specify the probability that any given tree should processed (to permit subsampling).
-          !@   </description>
-          !@   <type>float</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingTreeSampleRate',mergerTreeImportSussingTreeSampleRate,defaultValue=1.0d0)
-          !@ <inputParameter>
-          !@   <name>mergerTreeImportSussingMassOption</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>default</defaultValue>
-          !@   <description>
-          !@     Mass option for Sussing merger trees.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeImportSussingMassOption',mergerTreeImportSussingMassOptionText,defaultValue="default")
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingTreeSampleRate</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>Specify the probability that any given tree should processed (to permit subsampling).</description>
+          !#   <source>globalParameters</source>
+          !#   <type>float</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeImportSussingMassOption</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('default')</defaultValue>
+          !#   <description>Mass option for Sussing merger trees.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>mergerTreeImportSussingMassOptionText</variable>
+          !# </inputParameter>
           select case (char(mergerTreeImportSussingMassOptionText))
           case ("default")
              mergerTreeImportSussingMassOption=sussingMassDefault

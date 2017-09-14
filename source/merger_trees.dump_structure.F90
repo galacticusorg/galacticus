@@ -57,54 +57,42 @@ contains
        !$omp critical(structureDumpModuleInitialize)
        if (.not.moduleInitialized) then
           ! Get parameter specifying if output is required.
-          !@ <inputParameter>
-          !@   <name>mergerTreeStructureDump</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to output the structure of merger trees prior to evolution.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeStructureDump',mergerTreeStructureDump,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeStructureDumpDirectory</name>
-          !@   <defaultValue>{\normalfont \ttfamily .}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the directory to which merger tree structure should be dumped.
-          !@   </description>
-          !@   <type>text</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeStructureDumpDirectory',mergerTreeStructureDumpDirectory,defaultValue=".")
-          !@ <inputParameter>
-          !@   <name>mergerTreeStructureDumpMassMinimum</name>
-          !@   <defaultValue>$0M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the minimum root mass for which merger tree structure should be dumped.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeStructureDumpMassMinimum',mergerTreeStructureDumpMassMinimum,defaultValue=0.0d0)
-          !@ <inputParameter>
-          !@   <name>mergerTreeStructureDumpMassMaximum</name>
-          !@   <defaultValue>$10^{30}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the minimum root mass for which merger tree structure should be dumped.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeStructureDumpMassMaximum',mergerTreeStructureDumpMassMaximum,defaultValue=huge(1.0d0))
+          !# <inputParameter>
+          !#   <name>mergerTreeStructureDump</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not to output the structure of merger trees prior to evolution.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeStructureDumpDirectory</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('.')</defaultValue>
+          !#   <description>Specifies the directory to which merger tree structure should be dumped.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>text</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeStructureDumpMassMinimum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeStructureDumpMassMaximum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>huge(1.0d0)</defaultValue>
+          !#   <description>Specifies the minimum root mass for which merger tree structure should be dumped.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Flag that module is initialized.
           moduleInitialized=.true.
        end if

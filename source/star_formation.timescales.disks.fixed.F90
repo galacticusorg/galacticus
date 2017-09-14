@@ -43,18 +43,15 @@ contains
     if (starFormationTimescaleDisksMethod == 'fixed') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Fixed
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleDisksFixedTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale for star formation in the fixed timescale model for disks.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleDisksFixedTimescale',starFormationTimescaleDisksFixedTimescale,defaultValue=1.0d0)
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleDisksFixedTimescale</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The timescale for star formation in the fixed timescale model for disks.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Star_Formation_Timescale_Disks_Fixed_Initialize

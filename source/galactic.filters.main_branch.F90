@@ -37,7 +37,7 @@ contains
 
   function mainBranchConstructorParameters(parameters) result(self)
     !% Constructor for the ``mainBranch'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(galacticFilterMainBranch)                :: self
     type(inputParameters         ), intent(inout) :: parameters

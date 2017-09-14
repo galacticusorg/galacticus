@@ -44,7 +44,7 @@ contains
 
   function randomErrorHIALFALFAConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorHIALFALFA'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorALFLF)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters

@@ -39,7 +39,7 @@ contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
     !% Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(excursionSetFirstCrossingFarahiMidpoint)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
@@ -50,7 +50,7 @@ contains
 
   function farahiMidpointConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
     !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional

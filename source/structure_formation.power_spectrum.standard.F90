@@ -48,7 +48,7 @@ contains
 
   function standardConstructorParameters(parameters)
     !% Constructor for the standard nonstandard power spectrum class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(powerSpectrumStandard)                :: standardConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters

@@ -68,17 +68,14 @@ contains
        !$omp critical(Tree_Branching_Modifiers_Initialization)
        if (.not.treeBranchingModifierInitialized) then
           ! Get the tree branching method parameter.
-          !@ <inputParameter>
-          !@   <name>treeBranchingModifierMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing modifiers to merger tree branching probabilitie.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('treeBranchingModifierMethod',treeBranchingModifierMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>treeBranchingModifierMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used for computing modifiers to merger tree branching probabilitie.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="treeBranchingModifierMethod" type="functionCall" functionType="void">
           !#  <functionArgs>treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get</functionArgs>

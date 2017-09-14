@@ -52,17 +52,14 @@ contains
        !$omp critical(Atomic_Ionization_Potential_Initialize)  
        if (.not.moduleInitialized) then
           ! Get the ionization potential method parameter.
-          !@ <inputParameter>
-          !@   <name>atomicIonizationPotentialMethod</name>
-          !@   <defaultValue>Verner</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing atomic ionization potentials.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('atomicIonizationPotentialMethod',atomicIonizationPotentialMethod,defaultValue='Verner')
+          !# <inputParameter>
+          !#   <name>atomicIonizationPotentialMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Verner')</defaultValue>
+          !#   <description>The name of the method to be used for computing atomic ionization potentials.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
                     ! Include file that makes calls to all available method initialization routines.
           !# <include directive="atomicIonizationPotentialMethod" type="functionCall" functionType="void">
           !#  <functionArgs>atomicIonizationPotentialMethod,Atomic_Ionization_Potential_Get</functionArgs>

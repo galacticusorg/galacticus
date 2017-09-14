@@ -79,42 +79,36 @@ contains
     if (starFormationTimescaleSpheroidsMethod == 'velocityMaximumScaling') then
        Star_Formation_Timescale_Spheroid_Get => Star_Formation_Timescale_Spheroid_VlctyMxSclng
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleSpheroidsVelocityMaximumScalingTimescale</name>
-       !@   <defaultValue>1 Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The timescale for star formation in the velocity maximum scaling timescale model for spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleSpheroidsVelocityMaximumScalingTimescale',starFormationTimescaleSpheroidsVlctyMxSclngTimescale,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleSpheroidsVelocityMaximumScalingVelocityExponent</name>
-       !@   <defaultValue>$0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model for spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleSpheroidsVelocityMaximumScalingVelocityExponent',starFormationTimescaleSpheroidsVlctyMxSclngVelocityExponent,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleSpheroidsVelocityMaximumScalingRedshiftExponent</name>
-       !@   <defaultValue>$0$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model for spheroids.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleSpheroidsVelocityMaximumScalingRedshiftExponent',starFormationTimescaleSpheroidsVlctyMxSclngRedshiftExponent,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleSpheroidsVelocityMaximumScalingTimescale</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The timescale for star formation in the velocity maximum scaling timescale model for spheroids.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>starFormationTimescaleSpheroidsVlctyMxSclngTimescale</variable>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleSpheroidsVelocityMaximumScalingVelocityExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of virial velocity in the timescale for star formation in the velocity maximum scaling timescale model for spheroids.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>starFormationTimescaleSpheroidsVlctyMxSclngVelocityExponent</variable>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleSpheroidsVelocityMaximumScalingRedshiftExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The exponent of redshift in the timescale for star formation in the velocity maximum scaling timescale model for spheroids.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !#   <variable>starFormationTimescaleSpheroidsVlctyMxSclngRedshiftExponent</variable>
+       !# </inputParameter>
        ! Compute the normalization of the timescale.
        timeScaleNormalization=+starFormationTimescaleSpheroidsVlctyMxSclngTimescale                               &
        &                      /velocityNormalization**starFormationTimescaleSpheroidsVlctyMxSclngVelocityExponent

@@ -59,30 +59,24 @@ contains
     if (.not.timestepSimpleInitialized) then
        !$omp critical (timestepSimpleInitialize)
        if (.not.timestepSimpleInitialized) then
-          !@ <inputParameter>
-          !@   <name>timestepSimpleRelative</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum allowed relative change in time for a single step in the evolution of a node.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepSimpleRelative',timestepSimpleRelative,defaultValue=0.1d0)
-          !@ <inputParameter>
-          !@   <name>timestepSimpleAbsolute</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepSimpleAbsolute',timestepSimpleAbsolute,defaultValue=1.0d0)
+          !# <inputParameter>
+          !#   <name>timestepSimpleRelative</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>timestepSimpleAbsolute</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           timestepSimpleInitialized=.true.
        end if
        !$omp end critical (timestepSimpleInitialize)

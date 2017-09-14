@@ -96,7 +96,7 @@ contains
 
   function particulateConstructorParameters(parameters)
     !% Constructor for the particulate merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorParticulate)                :: particulateConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters

@@ -39,7 +39,7 @@ contains
   
   function shakuraSunyaevConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{shakura_black_1973} accretion disk class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(accretionDisksShakuraSunyaev)                :: self
     type(inputParameters             ), intent(inout) :: parameters

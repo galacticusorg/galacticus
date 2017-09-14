@@ -45,18 +45,15 @@ contains
     if (.not.outputTreeInitialized) then
        !$omp critical(Galacticus_Output_Tree_Indices_Initialize)
        if (.not.outputTreeInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputTreeIndices</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not descendent indices (i.e. index of the node at the next output) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputTreeIndices',outputTreeIndices,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputTreeIndices</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not descendent indices (i.e. index of the node at the next output) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that module is now initialized.
           outputTreeInitialized=.true.
        end if

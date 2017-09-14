@@ -61,7 +61,7 @@ contains
 
   function isothermalConstructorParameters(parameters) result(self)
     !% Constructor for the isothermal cooling radius class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (coolingRadiusIsothermal  )                :: self
     type (inputParameters          ), intent(inout) :: parameters

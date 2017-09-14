@@ -51,50 +51,38 @@ contains
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_Smooth_Accretion_Do
        ! Read the mass of the halo to construct.
-       !@ <inputParameter>
-       !@   <name>mergerTreeHaloMass</name>
-       !@   <defaultValue>$10^{12}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeHaloMass'                ,mergerTreeHaloMass                ,defaultValue=1.0d12)
-       !@ <inputParameter>
-       !@   <name>mergerTreeHaloMassResolution</name>
-       !@   <defaultValue>$10^{9}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeHaloMassResolution'      ,mergerTreeHaloMassResolution      ,defaultValue=1.0d9 )
-       !@ <inputParameter>
-       !@   <name>mergerTreeHaloMassDeclineFactor</name>
-       !@   <defaultValue>$0.9$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeHaloMassDeclineFactor'   ,mergerTreeHaloMassDeclineFactor   ,defaultValue=0.9d0 )
-       !@ <inputParameter>
-       !@   <name>mergerTreeBaseRedshift</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The redshift at which to plant the base node when building the smoothly accreting merger tree.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBaseRedshift'            ,mergerTreeBaseRedshift            ,defaultValue=0.0d0 )
+       !# <inputParameter>
+       !#   <name>mergerTreeHaloMass</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d12</defaultValue>
+       !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeHaloMassResolution</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d9</defaultValue>
+       !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeHaloMassDeclineFactor</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.9d0</defaultValue>
+       !#   <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBaseRedshift</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The redshift at which to plant the base node when building the smoothly accreting merger tree.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Merger_Tree_Smooth_Accretion_Initialize

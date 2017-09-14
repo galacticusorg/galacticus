@@ -54,7 +54,7 @@ contains
 
   function moustakas2013PRIMUSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{moustakas_primus:_2013} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (surveyGeometryMoustakas2013PRIMUS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters

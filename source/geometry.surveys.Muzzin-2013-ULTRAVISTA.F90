@@ -55,7 +55,7 @@ contains
 
   function muzzin2013ULTRAVISTAConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{muzzin_evolution_2013} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(surveyGeometryMuzzin2013ULTRAVISTA) :: self
     type   (inputParameters                 ), intent(inout) :: parameters

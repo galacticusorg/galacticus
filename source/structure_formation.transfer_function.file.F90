@@ -139,7 +139,7 @@ contains
   
   function fileConstructorInternal(fileName)
     !% Internal constructor for the file transfer function class.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Parameters
     use FoX_DOM
     use IO_XML
@@ -158,7 +158,7 @@ contains
   
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Parameters
     use FoX_DOM
     use IO_XML

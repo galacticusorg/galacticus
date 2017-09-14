@@ -44,17 +44,14 @@ contains
        !$omp critical(Cooling_Radius_Output_Initialization)
        if (.not.coolingRadiusOutputInitialized) then
           ! Get options controlling output.
-          !@ <inputParameter>
-          !@   <name>outputHotHaloCoolingRadii</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Determines whether or not cooling radii are output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputHotHaloCoolingRadii',outputHotHaloCoolingRadii,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputHotHaloCoolingRadii</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not cooling radii are output.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           coolingRadiusOutputInitialized=.true.
        end if
        !$omp end critical(Cooling_Radius_Output_Initialization)

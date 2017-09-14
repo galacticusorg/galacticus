@@ -110,28 +110,24 @@ contains
     if (.not.naozBarkana2007DefaultInitialized) then
        !$omp critical(accretionHaloNaozBarkana2007DefaultInitialize)
        if (.not.naozBarkana2007DefaultInitialized) then
-          !@ <inputParameter>
-          !@   <name>accretionHaloNaozBarkana2007RateAdjust</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>0.3d0</defaultValue>
-          !@   <description>
-          !@    The dimensionless multiplier for the rate at which the halo gas content adjusts to changes in the filtering mass.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("accretionHaloNaozBarkana2007RateAdjust",naozBarkana2007RateAdjust,defaultValue=0.3d0)
-         !@ <inputParameter>
-          !@   <name>accretionHaloNaozBarkana2007MassMinimum</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>0.0d0</defaultValue>
-          !@   <description>
-          !@    The minimum mass of gas accreted into a halo below which the mass is truncated to zero.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("accretionHaloNaozBarkana2007MassMinimum",naozBarkana2007MassMinimum,defaultValue=0.0d0)
+          !# <inputParameter>
+          !#   <name>accretionHaloNaozBarkana2007RateAdjust</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.3d0</defaultValue>
+          !#   <description>The dimensionless multiplier for the rate at which the halo gas content adjusts to changes in the filtering mass.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>naozBarkana2007RateAdjust</variable>
+          !# </inputParameter>
+         !# <inputParameter>
+         !#   <name>accretionHaloNaozBarkana2007MassMinimum</name>
+         !#   <cardinality>1</cardinality>
+         !#   <defaultValue>0.0d0</defaultValue>
+         !#   <description>The minimum mass of gas accreted into a halo below which the mass is truncated to zero.</description>
+         !#   <source>globalParameters</source>
+         !#   <type>real</type>
+         !#   <variable>naozBarkana2007MassMinimum</variable>
+         !# </inputParameter>
           ! Record that class is now initialized.
           naozBarkana2007DefaultInitialized=.true.
        end if

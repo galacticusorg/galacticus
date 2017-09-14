@@ -62,17 +62,14 @@ contains
        Stellar_Population_Properties_Scales_Get        => Stellar_Population_Properties_Scales_Noninstantaneous
        Stellar_Population_Properties_History_Count_Get => Stellar_Population_Properties_History_Count_Noninstantaneous
        Stellar_Population_Properties_History_Create_Do => Stellar_Population_Properties_History_Create_Noninstantaneous
-       !@ <inputParameter>
-       !@   <name>noninstantHistoryTimesCount</name>
-       !@   <defaultValue>10</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of times at which a galaxy's stellar properties history is stored.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('noninstantHistoryTimesCount',noninstantHistoryTimesCount,defaultValue=10)
+       !# <inputParameter>
+       !#   <name>noninstantHistoryTimesCount</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10</defaultValue>
+       !#   <description>The number of times at which a galaxy's stellar properties history is stored.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
 
        ! Get a count of the number of elements (plus total metals) that will be tracked.
        elementsCount=Abundances_Property_Count()

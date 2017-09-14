@@ -54,17 +54,14 @@ contains
        if (.not.satelliteTidalHeatingInitialized) then
           
           ! Get the satellite tidal heating method.
-          !@ <inputParameter>
-          !@   <name>satelliteTidalHeatingMethod</name>
-          !@   <defaultValue>Gnedin1999</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used to compute satellite tidal heating rate.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteTidalHeatingMethod',satelliteTidalHeatingMethod,defaultValue='Gnedin1999')
+          !# <inputParameter>
+          !#   <name>satelliteTidalHeatingMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Gnedin1999')</defaultValue>
+          !#   <description>The name of the method to be used to compute satellite tidal heating rate.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satelliteTidalHeatingMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satelliteTidalHeatingMethod,Satellite_Tidal_Heating_Rate_Get</functionArgs>

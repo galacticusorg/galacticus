@@ -52,6 +52,7 @@ program Test_Zhao2009_Open
        &                                                                                         ourConcentration                         , ourTime                         , &
        &                                                                                         redshift                                 , theirConcentration              , &
        &                                                                                         theirTime                                , timeDifferenceMaximum
+  type            (inputParameters                        )                                   :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.open.size')
@@ -62,7 +63,8 @@ program Test_Zhao2009_Open
   ! Test Zhao et al. 2009 algorithms in an open universe.
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Zhao2009Algorithms/open.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Create a node.
   node  => treeNode      (                 )
@@ -138,9 +140,6 @@ program Test_Zhao2009_Open
      call Assert(char(message),concentrationDifferenceMaximum,0.0d0,absTol=concentrationDifferenceTolerance(iMass))
 
   end do
-
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

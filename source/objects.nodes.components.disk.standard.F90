@@ -191,95 +191,73 @@ contains
        call diskStandardComponent%starFormationRateFunction(Node_Component_Disk_Standard_Star_Formation_Rate)
 
        ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>diskMassToleranceAbsolute</name>
-       !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The mass tolerance used to judge whether the disk is physically plausible.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskMassToleranceAbsolute',diskMassToleranceAbsolute,defaultValue=1.0d-6)
-       !@ <inputParameter>
-       !@   <name>diskOutflowTimescaleMinimum</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowTimescaleMinimum',diskOutflowTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>diskStructureSolverRadius</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The radius (in units of the standard scale length) to use in solving for the size of the disk.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskStructureSolverRadius',diskStructureSolverRadius,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>diskRadiusSolverCole2000Method</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskRadiusSolverCole2000Method',diskRadiusSolverCole2000Method,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>heightToRadialScaleDisk</name>
-       !@   <defaultValue>0.137 \citep{kregel_flattening_2002}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The ratio of scale height to scale radius for standard disks.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('heightToRadialScaleDisk',heightToRadialScaleDisk,defaultValue=0.137d0)
-       !@ <inputParameter>
-       !@   <name>diskNegativeAngularMomentumAllowed</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not negative angular momentum is allowed for the disk.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskNegativeAngularMomentumAllowed',diskNegativeAngularMomentumAllowed,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>diskStarFormationInSatellites</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not star formation occurs in disks in satellites.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskStarFormationInSatellites',diskStarFormationInSatellites,defaultValue=.true.)
+       !# <inputParameter>
+       !#   <name>diskMassToleranceAbsolute</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-6</defaultValue>
+       !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskOutflowTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskStructureSolverRadius</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskRadiusSolverCole2000Method</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description></description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>heightToRadialScaleDisk</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
+       !#   <defaultValue>0.137d0</defaultValue>
+       !#   <description>The ratio of scale height to scale radius for standard disks.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskNegativeAngularMomentumAllowed</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not negative angular momentum is allowed for the disk.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskStarFormationInSatellites</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not star formation occurs in disks in satellites.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
        ! Create the disk mass distribution.
-       !@ <inputParameter>
-       !@   <name>diskMassDistribution</name>
-       !@   <defaultValue>exponentialDisk</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The type of mass distribution to use for the standard disk component.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('diskMassDistribution',diskMassDistributionName,defaultValue="exponentialDisk")
+       !# <inputParameter>
+       !#   <name>diskMassDistribution</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('exponentialDisk')</defaultValue>
+       !#   <description>The type of mass distribution to use for the standard disk component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !#   <variable>diskMassDistributionName</variable>
+       !# </inputParameter>
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if

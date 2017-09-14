@@ -47,7 +47,7 @@ contains
     !% Constructor for the export merger tree operator class which takes a
     !% parameter set as input.
     use Merger_Tree_Data_Structure
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (mergerTreeOperatorExport)                :: exportConstructorParameters
     type   (inputParameters         ), intent(inout) :: parameters

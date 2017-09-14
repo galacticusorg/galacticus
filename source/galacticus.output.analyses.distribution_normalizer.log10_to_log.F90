@@ -37,7 +37,7 @@ contains
 
   function log10ToLogConstructorParameters(parameters) result(self)
     !% Constructor for the ``log10ToLog'' output analysis distribution normalizer class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisDistributionNormalizerLog10ToLog)                :: self
     type(inputParameters                               ), intent(inout) :: parameters

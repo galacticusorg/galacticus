@@ -43,7 +43,7 @@ contains
 
   function randomErrorNbodyMassConstructorParameters(parameters) result(self)
     !% Constructor for the ``randomErrorNbodyMass'' output analysis distribution operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisDistributionOperatorRndmErrNbodyMass)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters

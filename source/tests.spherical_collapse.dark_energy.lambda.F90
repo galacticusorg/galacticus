@@ -46,25 +46,27 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
        &                                                        criticalOverdensityExpected                                                 , expansionFactor            , &
        &                                                        omegaf                                                                      , virialDensityContrastActual, &
        &                                                        virialDensityContrastExpected
+  type            (inputParameters           )               :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.lambda.size')
-
+  
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (lambda cosmology)")
 
   ! Test spherical collapse in a flat universe.
   parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.lambda.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get the default cosmology functions object.
   cosmologyFunctions_    => cosmologyFunctions   ()
   virialDensityContrast_ => virialDensityContrast()
   criticalOverdensity_   => criticalOverdensity  ()
   linearGrowth_          => linearGrowth         ()
-  do iExpansion=1,size(redshift)
-     expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift       (iExpansion))
-     age                        =cosmologyFunctions_%cosmicTime                 (expansionFactor            )
-     criticalOverdensityValue   =criticalOverdensity_     %value                      (age                        )
+  do iExpansion=size(redshift),1,-1
+     expansionFactor            =cosmologyFunctions_ %expansionFactorFromRedshift(redshift       (iExpansion))
+     age                        =cosmologyFunctions_ %cosmicTime                 (expansionFactor            )
+     criticalOverdensityValue   =criticalOverdensity_%value                      (age                        )
      criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal(age)))/linearGrowth_%value(age)
      write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=1.5d-2)
@@ -74,10 +76,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast       [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),virialDensityContrastActual,virialDensityContrastExpected,relTol=2.0d-2)
   end do
-  call Input_Parameters_File_Close
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Tests_Spherical_Collapse_Dark_Energy_Lambda

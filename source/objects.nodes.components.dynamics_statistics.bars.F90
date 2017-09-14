@@ -93,18 +93,15 @@ contains
        !$omp critical (dynamicsStatisticsBarsInitialize)
        if (.not.dynamicsStatisticsBarsInitialized) then
           ! Get module parameters.
-          !@ <inputParameter>
-          !@   <name>dynamicsStatisticsBarsFrequency</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>timeStepping</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('dynamicsStatisticsBarsFrequency',dynamicsStatisticsBarsFrequency,defaultValue=0.1d0)
+          !# <inputParameter>
+          !#   <name>dynamicsStatisticsBarsFrequency</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
+          !#   <group>timeStepping</group>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Record that initialization is now complete.
           dynamicsStatisticsBarsInitialized=.true.
        end if

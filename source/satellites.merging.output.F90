@@ -52,26 +52,24 @@ contains
        !$omp critical (Satellite_Merging_Output_Initialize)
        if (.not.initialized) then
           ! Read controlling parameters.
-          !@ <inputParameter>
-          !@   <name>outputSatelliteMergers</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>Specifies whether satellite merger information should be output.</description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>???</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("outputSatelliteMergers",outputSatelliteMergers,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>outputSatelliteMergersMainBranchOnly</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>Specifies whether satellite merger information should be output only for the main branch host halo.</description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>???</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter("outputSatelliteMergersMainBranchOnly",outputSatelliteMergersMainBranchOnly,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>outputSatelliteMergers</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether satellite merger information should be output.</description>
+          !#   <group>???</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>outputSatelliteMergersMainBranchOnly</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether satellite merger information should be output only for the main branch host halo.</description>
+          !#   <group>???</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           initialized=.true.
        end if
        !$omp end critical (Satellite_Merging_Output_Initialize)

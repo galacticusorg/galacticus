@@ -45,7 +45,7 @@ contains
   
   function sequenceConstructorParameters(parameters) result (self)
     !% Constructor for the ``sequence'' N-body operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (nbodyOperatorSequence)                :: self
     type   (inputParameters      ), intent(inout) :: parameters
@@ -69,7 +69,7 @@ contains
   
   function sequenceConstructorInternal(operators) result (self)
     !% Internal constructor for the ``sequence'' N-body operator class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(nbodyOperatorSequence)                        :: self
     type(nbodyOperatorList    ), target, intent(in   ) :: operators

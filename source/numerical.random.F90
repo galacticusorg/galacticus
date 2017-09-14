@@ -108,17 +108,14 @@ contains
     if (.not.Seed_Is_Set) then
        !$omp critical (Pseudo_Random_Get)
        if (.not.Seed_Is_Set) then
-          !@ <inputParameter>
-          !@   <name>randomSeed</name>
-          !@   <defaultValue>219</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     A seed value for the random number generator.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('randomSeed',randomSeed,defaultValue=219)
+          !# <inputParameter>
+          !#   <name>randomSeed</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>219</defaultValue>
+          !#   <description>A seed value for the random number generator.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
           Seed_Is_Set=.true.
        end if
        !$omp end critical (Pseudo_Random_Get)

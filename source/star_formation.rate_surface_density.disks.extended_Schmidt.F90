@@ -75,42 +75,36 @@ contains
        Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_ExSchmidt
        Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_ExSchmidt
        ! Get parameters of for the timescale calculation.
-       !@ <inputParameter>
-       !@   <name>starFormationExtendedSchmidtNormalization</name>
-       !@   <defaultValue>$10^{-10.28}$ \citep{shi_extended_2011}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationExtendedSchmidtNormalization',starFormationExtendedSchmidtNormalization,defaultValue=0.5248d-10)
-       !@ <inputParameter>
-       !@   <name>starFormationExtendedSchmidtGasExponent</name>
-       !@   <defaultValue>$1.0$ \citep{shi_extended_2011}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of gas surface density in the extended Schmidt star formation law.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationExtendedSchmidtGasExponent'  ,starFormationExtendedSchmidtGasExponent  ,defaultValue=1.0000d+0 )
-       !@ <inputParameter>
-       !@   <name>starFormationExtendedSchmidtStarExponent</name>
-       !@   <defaultValue>$0.48$ \citep{shi_extended_2011}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The exponent of stellar surface density in the extended Schmidt star formation law.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>starFormation</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationExtendedSchmidtStarExponent' ,starFormationExtendedSchmidtStarExponent ,defaultValue=0.4800d+0 )
+       !# <inputParameter>
+       !#   <name>starFormationExtendedSchmidtNormalization</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
+       !#   <defaultValue>0.5248d-10</defaultValue>
+       !#   <description>The normalization of the extended Schmidt star formation law [$M_\odot$ yr$^{-1}$pc$^{-2}$].</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationExtendedSchmidtGasExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
+       !#   <defaultValue>1.0000d+0</defaultValue>
+       !#   <description>The exponent of gas surface density in the extended Schmidt star formation law.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>starFormationExtendedSchmidtStarExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{shi_extended_2011}</defaultSource>
+       !#   <defaultValue>0.4800d+0</defaultValue>
+       !#   <description>The exponent of stellar surface density in the extended Schmidt star formation law.</description>
+       !#   <group>starFormation</group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Renormalize the relation to internal units.
        starFormationExtendedSchmidtNormalization=                          &
             &  starFormationExtendedSchmidtNormalization                   &

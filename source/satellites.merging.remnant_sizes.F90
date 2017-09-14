@@ -55,17 +55,14 @@ contains
        !$omp critical(satelliteMergingRemnantSizeInitialize)
        if (.not.satelliteMergingRemnantSizeInitialized) then
           ! Do the satellite merging remnant sizes method parameter.
-          !@ <inputParameter>
-          !@   <name>satelliteMergingRemnantSizeMethod</name>
-          !@   <defaultValue>Covington2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing merger remnant sizes.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingRemnantSizeMethod',satelliteMergingRemnantSizeMethod,defaultValue='Covington2008')
+          !# <inputParameter>
+          !#   <name>satelliteMergingRemnantSizeMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Covington2008')</defaultValue>
+          !#   <description>The name of the method to be used for computing merger remnant sizes.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satelliteMergingRemnantSizeMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</functionArgs>

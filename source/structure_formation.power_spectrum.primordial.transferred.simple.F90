@@ -46,7 +46,7 @@ contains
   function simpleConstructorParameters(parameters)
     !% Constructor for the ``simple'' transferred primordial power spectrum class which takes a
     !% parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(powerSpectrumPrimordialTransferredSimple)                :: simpleConstructorParameters
     type(inputParameters                         ), intent(inout) :: parameters

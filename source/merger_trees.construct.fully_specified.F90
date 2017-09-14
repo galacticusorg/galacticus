@@ -48,16 +48,13 @@ contains
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_Construct_Fully_Specified
        ! Read parameter giving the name of the file to read.
-       !@ <inputParameter>
-       !@   <name>mergerTreeConstructFullySpecifiedFileName</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the file giving the fully-specified description of the merger tree to process.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeConstructFullySpecifiedFileName',mergerTreeConstructFullySpecifiedFileName)
+       !# <inputParameter>
+       !#   <name>mergerTreeConstructFullySpecifiedFileName</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The name of the file giving the fully-specified description of the merger tree to process.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Merger_Tree_Construct_Fully_Specified_Initialize

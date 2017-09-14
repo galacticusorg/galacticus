@@ -44,7 +44,7 @@ contains
 
   function remapScaleConstructorParameters(parameters) result(self)
     !% Constructor for the critical overdensity excursion set class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (excursionSetBarrierRemapScale)                :: self
     type            (inputParameters              ), intent(inout) :: parameters

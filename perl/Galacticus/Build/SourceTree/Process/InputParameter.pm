@@ -66,18 +66,30 @@ sub Process_InputParameters {
 		} else {
 		    $inputParameterSource .= "globalParameters";
 		}
-		$inputParameterSource .= "%value('".$node->{'directive'}->{'name'}."',";
+		my $parameterName = $node->{'directive'}->{'name'};
+		$parameterName = "'".$parameterName."'" # Add delimiters to name unless the name is actually a function.
+		    unless ( $parameterName =~ m/\(/ );
+		$inputParameterSource .= "%value(".$parameterName.",";
 		if ( exists($node->{'directive'}->{'variable'}) ) {
 		    $inputParameterSource .= $node->{'directive'}->{'variable'};
 		} else {
 		    $inputParameterSource .= $node->{'directive'}->{'name'    };
 		}
 		$inputParameterSource .= ",defaultValue=".$node->{'directive'}->{'defaultValue'}
-	            if ( exists($node->{'directive'}->{'defaultValue'}) );
+		if ( exists($node->{'directive'}->{'defaultValue'}) );
+		$inputParameterSource .= ",writeOutput=".($node->{'directive'}->{'writeOutput'} eq "no" ? ".false." : ".true.")
+		    if ( exists($node->{'directive'}->{'writeOutput'}) );
 		$inputParameterSource .= ")\n";
 		# Use raw name for file and documentation.
 		$nameForFile          = $node->{'directive'}->{'name'};
 		$nameForDocumentation = $node->{'directive'}->{'name'};
+		if ( $node->{'directive'}->{'name'} =~ m/\(/ ) {
+		    # Parameter name is a function.
+		    $nameForFile          =~ s/[^a-zA-Z0-9_]//g;
+		    $nameForDocumentation =  "determined at run time";
+		}
+		$nameForDocumentation = latex_encode($node->{'directive'}->{'regEx'})
+		    if ( exists($node->{'directive'}->{'regEx'}) );
 	    } elsif ( exists($node->{'directive'}->{'iterator'})) {
 		# A parameter whose name iterates over a set of possible names.
 		if ( $node->{'directive'}->{'iterator'} =~ m/(.*)\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)(.*)/ ) {
@@ -108,6 +120,8 @@ sub Process_InputParameters {
 				(my $defaultValue = $node->{'directive'}->{'defaultValue'}) =~ s/\$1/$_->{$attributeName}/;
 				$inputParameterSource .= ",defaultValue=".$defaultValue;
 			    }
+			    $inputParameterSource .= ",writeOutput=".($node->{'directive'}->{'writeOutput'} eq "no" ? ".false." : ".true.")
+				if ( exists($node->{'directive'}->{'writeOutput'}) );
 			    $inputParameterSource .= ")\n";
 			}
 		    }
@@ -134,7 +148,7 @@ sub Process_InputParameters {
 		type      => "moduleUse",
 		moduleUse =>
 		{
-		    Input_Parameters2 =>
+		    Input_Parameters =>
 		    {
 			intrinsic => 0,
 			all       => 1
@@ -212,7 +226,8 @@ sub Process_InputParameters {
 		    if ( exists($node->{'directive'}->{'defaultSource'}) );
 		print $defHndl "\\\\\n";
 	    }
-	    print $defHndl "{\\normalfont \\bfseries Description:} ".$node->{'directive'}->{'description'}." \\\\\n";	    
+	    print $defHndl "{\\normalfont \\bfseries Description:} ".$node->{'directive'}->{'description'};
+	    print $defHndl ($node->{'directive'}->{'description'} =~ m/\\end{[a-z]+}\s*$/ ? "" : " \\\\")."\n";	    
 	    print $defHndl "{\\normalfont \\bfseries Defined in:} \\hyperlink{".join(":",@hyperTarget)."}{{\\normalfont \\ttfamily ".$definedIn."}}\\\\\n";
 	    print $defHndl "{\\normalfont \\bfseries File:} \\hyperlink{".$fileIn."}{{\\normalfont \\ttfamily ".latex_encode($fileIn)."}}\\\\\n";
 	    print $defHndl "{\\normalfont \\bfseries Used by:} ".join(", ",map {"\\hyperlink{".&replace($_,qr/\.exe$/s,".F90")."}{\\normalfont \\ttfamily ".latex_encode($_)."}"} @influencedExecutableNames)."\\\\\n\n";

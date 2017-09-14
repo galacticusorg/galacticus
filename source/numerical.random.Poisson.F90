@@ -53,17 +53,14 @@ contains
     if (.not.Seed_Is_Set) then
        !$omp critical (Poisson_Random_Get)
        if (.not.Seed_Is_Set) then
-          !@ <inputParameter>
-          !@   <name>poissonRandomSeed</name>
-          !@   <defaultValue>843</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     A seed for the Poisson random number generator.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('poissonRandomSeed',poissonRandomSeed,defaultValue=843)
+          !# <inputParameter>
+          !#   <name>poissonRandomSeed</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>843</defaultValue>
+          !#   <description>A seed for the Poisson random number generator.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
           Seed_Is_Set=.true.
        end if
        !$omp end critical (Poisson_Random_Get)

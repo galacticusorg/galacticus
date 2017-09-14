@@ -55,7 +55,7 @@ contains
 
   function velocityMaximumScalingConstructorParameters(parameters) result(self)
     !% Constructor for the velocity maximum scaling cooling rate class which builds the object from a parameter set.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (coolingRateVelocityMaximumScaling)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters

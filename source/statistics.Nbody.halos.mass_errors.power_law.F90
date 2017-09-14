@@ -45,7 +45,7 @@ contains
 
   function nbodyHaloMassErrorPowerLawParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily powerLaw} N-body halo mass error class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (nbodyHaloMassErrorPowerLaw)                :: nbodyHaloMassErrorPowerLawParameters
     type            (inputParameters           ), intent(inout) :: parameters

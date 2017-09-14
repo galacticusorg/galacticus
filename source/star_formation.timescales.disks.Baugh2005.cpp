@@ -105,7 +105,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@   <cardinality>1</cardinality>
       //@   <group>starFormation</group>
       //@ </inputParameter>
-      Get_Input_Parameter(strlen(timescaleParameter),timescaleParameter,&starFormationDiskTimescale       ,&starFormationDiskTimescaleDefault       );
+      globalParameters::parameters.value(timescaleParameter,&starFormationDiskTimescale       ,&starFormationDiskTimescaleDefault       );
       //@ <inputParameter>
       //@   <name>starFormationDiskVelocityExponent</name>
       //@   <defaultValue>-3.0</defaultValue>
@@ -117,7 +117,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@   <cardinality>1</cardinality>
       //@   <group>starFormation</group>
       //@ </inputParameter>
-      Get_Input_Parameter(strlen(velocityParameter ),velocityParameter ,&starFormationDiskVelocityExponent,&starFormationDiskVelocityExponentDefault);
+      globalParameters::parameters.value(velocityParameter ,&starFormationDiskVelocityExponent,&starFormationDiskVelocityExponentDefault);
       //@ <inputParameter>
       //@   <name>starFormationExpansionExponent</name>
       //@   <defaultValue>0.0</defaultValue>
@@ -129,7 +129,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@   <cardinality>1</cardinality>
       //@   <group>starFormation</group>
       //@ </inputParameter>
-      Get_Input_Parameter(strlen(expansionParameter),expansionParameter,&starFormationExpansionExponent   ,&starFormationExpansionExponentDefault   );
+      globalParameters::parameters.value(expansionParameter,&starFormationExpansionExponent   ,&starFormationExpansionExponentDefault   );
     }
 
   }

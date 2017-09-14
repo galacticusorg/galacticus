@@ -107,104 +107,78 @@ contains
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_Build_Do
        ! Read parameters for halo mass sampling.
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildHaloMassMinimum</name>
-       !@   <defaultValue>$10^{10}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildHaloMassMinimum'  ,mergerTreeBuildHaloMassMinimum  ,defaultValue=1.0d10)
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildHaloMassMaximum</name>
-       !@   <defaultValue>$10^{15}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildHaloMassMaximum'  ,mergerTreeBuildHaloMassMaximum  ,defaultValue=1.0d15)
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesPerDecade</name>
-       !@   <defaultValue>10</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of merger trees to build per decade of base halo mass.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesBaseRedshift</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The redshift at which to plant the base node when building merger trees.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesBaseRedshift',mergerTreeBuildTreesBaseRedshift,defaultValue=0.0d0 )
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesBeginAtTree</name>
-       !@   <defaultValue>1 (if processing trees in ascending order), or equal to the number of trees (otherwise)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesBeginAtTree' ,mergerTreeBuildTreesBeginAtTree ,defaultValue=0     )
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesHaloMassDistribution</name>
-       !@   <defaultValue>uniform</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The method to be used to construct a distribution of base halo masses.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesHaloMassDistribution',mergerTreeBuildTreesHaloMassDistribution,defaultValue="uniform")
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesProcessDescending</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     If true, causes merger trees to be processed in order of decreasing mass.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.true.)
-       !@ <inputParameter>
-       !@   <name>mergerTreesBuildFixedThreadAssignment</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreesBuildFixedThreadAssignment',mergerTreesBuildFixedThreadAssignment,defaultValue=.false.)
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreeMassesFile</name>
-       !@   <defaultValue>null</defaultValue>
-       !@   <description>
-       !@     Specifies the name of a file from which to read the masses of merger tree root halos when building merger trees.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildHaloMassMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d10</defaultValue>
+       !#   <description>The minimum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildHaloMassMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d15</defaultValue>
+       !#   <description>The maximum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesPerDecade</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10.0d0</defaultValue>
+       !#   <description>The number of merger trees to build per decade of base halo mass.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesBaseRedshift</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The redshift at which to plant the base node when building merger trees.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesBeginAtTree</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0</defaultValue>
+       !#   <description>The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees. A value of ``0'' means to begin with tree number 1 (if processing trees in ascending order), or equal to the number of trees (otherwise).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesHaloMassDistribution</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('uniform')</defaultValue>
+       !#   <description>The method to be used to construct a distribution of base halo masses.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesProcessDescending</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>If true, causes merger trees to be processed in order of decreasing mass.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreesBuildFixedThreadAssignment</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>If true, assignment of trees to OpenMP threads will be done deterministically. Otherwise, assignment is on a first-come-first-served basis.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreeMassesFile</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('null')</defaultValue>
+       !#   <description>Specifies the name of a file from which to read the masses of merger tree root halos when building merger trees.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
 
        ! Validate input.
        if (mergerTreeBuildHaloMassMaximum >= 1.0d16)                                                                            &

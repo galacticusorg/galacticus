@@ -78,6 +78,7 @@ program Halo_Model_Mock
   type            (fgsl_rng                      )                              :: poissonSampler            , gaussianSampler
   logical                                                                       :: poissonSamplerReset=.true., gaussianSamplerReset=.true.
   character       (len=6                         )                              :: label
+  type            (inputParameters               )                              :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Halo_Model_Mock.size')
@@ -88,29 +89,24 @@ program Halo_Model_Mock
   call Get_Argument              (2,haloCatalogFileName  )
   call Get_Argument              (3,galaxyCatalogFileName)
   ! Open the parameter file.
-  call Input_Parameters_File_Open(  parameterFileName    )
+  parameters=inputParameters(parameterFileName)
+  call parameters%markGlobal()
   ! Read parameters controlling the calculation.
-  !@ <inputParameter>
-  !@   <name>haloModelMockMassMinimum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <description>
-  !@     The minimum mass galaxy to include in a mock halo model realization.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('haloModelMockMassMinimum',haloModelMockMassMinimum)
-  !@ <inputParameter>
-  !@   <name>haloModelMockMassMaximum</name>
-  !@   <attachedTo>program</attachedTo>
-  !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-  !@   <description>
-  !@     The minimum mass galaxy to include in a mock halo model realization.
-  !@   </description>
-  !@   <type>float</type>
-  !@   <cardinality>1</cardinality>
-  !@ </inputParameter>
-  call Get_Input_Parameter('haloModelMockMassMaximum',haloModelMockMassMaximum,defaultValue=1.0d16)
+  !# <inputParameter>
+  !#   <name>haloModelMockMassMinimum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
+  !# <inputParameter>
+  !#   <name>haloModelMockMassMaximum</name>
+  !#   <cardinality>1</cardinality>
+  !#   <defaultValue>1.0d16</defaultValue>
+  !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
+  !#   <source>globalParameters</source>
+  !#   <type>float</type>
+  !# </inputParameter>
   ! Initialize nodes infrastructure.
   call nodeClassHierarchyInitialize()
   call Node_Components_Initialize  ()
@@ -244,9 +240,7 @@ program Halo_Model_Mock
   call haloFile%copyCosmology (galaxyFile)
   call haloFile%copySimulation(galaxyFile)
   call galaxyFile%writeHalos(1,redshift,galaxyPosition(:,1:galaxyCount),galaxyVelocity(:,1:galaxyCount),galaxyMass(1:galaxyCount))
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
-
+ 
 contains
   
   double precision function centralMassRoot(mass)

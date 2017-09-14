@@ -37,6 +37,7 @@ program Test_Correa2015_MAH
   double precision                                         , dimension(3) :: time                               , mass          , &
        &                                                                     redshift                           , redshiftTarget
   integer                                                                 :: i
+  type            (inputParameters                        )               :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.mass_accretion_history.Correa2015.size')
@@ -45,7 +46,8 @@ program Test_Correa2015_MAH
   ! Test Correa et al. 2015 algorithm.
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Correa2015.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Create a node.
   node  => treeNode      (                 )
   ! Get the basic component.
@@ -85,10 +87,7 @@ program Test_Correa2015_MAH
           &                                                      )
   end do  
   call Assert('mass accretion history',1.0d0+redshift,1.0d0+redshiftTarget,relTol=1.0d-3)
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close()
   ! End unit tests.
-  call Unit_Tests_End_Group       ()
-  call Unit_Tests_Finish          ()
-
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
 end program Test_Correa2015_MAH

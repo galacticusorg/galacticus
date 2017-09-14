@@ -45,50 +45,38 @@ contains
 
     if (haloMassFunctionSamplingMethod == 'haloMassFunction') then
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
-       !@ <inputParameter>
-       !@   <name>haloMassFunctionSamplingAbundanceMinimum</name>
-       !@   <defaultValue>-1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('haloMassFunctionSamplingAbundanceMinimum',haloMassFunctionSamplingAbundanceMinimum,defaultValue=-1.0d0)
-       !@ <inputParameter>
-       !@   <name>haloMassFunctionSamplingAbundanceMaximum</name>
-       !@   <defaultValue>-1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('haloMassFunctionSamplingAbundanceMaximum',haloMassFunctionSamplingAbundanceMaximum,defaultValue=-1.0d0)
-       !@ <inputParameter>
-       !@   <name>haloMassFunctionSamplingModifier1</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('haloMassFunctionSamplingModifier1',haloMassFunctionSamplingModifier1,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>haloMassFunctionSamplingModifier2</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('haloMassFunctionSamplingModifier2',haloMassFunctionSamplingModifier2,defaultValue=0.0d0)
+       !# <inputParameter>
+       !#   <name>haloMassFunctionSamplingAbundanceMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>-1.0d0</defaultValue>
+       !#   <description>The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>haloMassFunctionSamplingAbundanceMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>-1.0d0</defaultValue>
+       !#   <description>The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>haloMassFunctionSamplingModifier1</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>haloMassFunctionSamplingModifier2</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize

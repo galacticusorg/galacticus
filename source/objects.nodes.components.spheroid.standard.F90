@@ -192,17 +192,15 @@ contains
        abundancesCount  =Abundances_Property_Count            ()
 
        ! Create the spheroid mass distribution.
-       !@ <inputParameter>
-       !@   <name>spheroidMassDistribution</name>
-       !@   <defaultValue>hernquist</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The type of mass distribution to use for the standard spheroid component.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidMassDistribution',spheroidMassDistributionName,defaultValue="hernquist")
+       !# <inputParameter>
+       !#   <name>spheroidMassDistribution</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('hernquist')</defaultValue>
+       !#   <description>The type of mass distribution to use for the standard spheroid component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !#   <variable>spheroidMassDistributionName</variable>
+       !# </inputParameter>
 
        ! Bind deferred functions.
        call spheroidStandardComponent%       starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
@@ -212,50 +210,38 @@ contains
        call spheroidStandardComponent%               createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
        ! Read parameters controlling the physical implementation.
-       !@ <inputParameter>
-       !@   <name>spheroidEnergeticOutflowMassRate</name>
-       !@   <defaultValue>0.01</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\mathrm spheroid}^2$.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d-2)
-       !@ <inputParameter>
-       !@   <name>spheroidMassToleranceAbsolute</name>
-       !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The mass tolerance used to judge whether the spheroid is physically plausible.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidMassToleranceAbsolute',spheroidMassToleranceAbsolute,defaultValue=1.0d-6)
-       !@ <inputParameter>
-       !@   <name>spheroidOutflowTimescaleMinimum</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidOutflowTimescaleMinimum',spheroidOutflowTimescaleMinimum,defaultValue=1.0d-3)
-       !@ <inputParameter>
-       !@   <name>spheroidStarFormationInSatellites</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not star formation occurs in spheroids in satellites.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('spheroidStarFormationInSatellites',spheroidStarFormationInSatellites,defaultValue=.true.)
+       !# <inputParameter>
+       !#   <name>spheroidEnergeticOutflowMassRate</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-2</defaultValue>
+       !#   <description>The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\mathrm spheroid}^2$.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidMassToleranceAbsolute</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-6</defaultValue>
+       !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidOutflowTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidStarFormationInSatellites</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not star formation occurs in spheroids in satellites.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Record that the module is now initialized.
        moduleInitialized=.true.
@@ -286,17 +272,14 @@ contains
           if (.not.sersicIndexInitialized) then
              !$omp critical (spheroidStandardInitializeSersic)
              if (.not.sersicIndexInitialized) then
-                !@ <inputParameter>
-                !@   <name>spheroidSersicIndex</name>
-                !@   <defaultValue>$4$</defaultValue>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@    The S\'ersic index to use for the spheroid component mass distribution.
-                !@   </description>
-                !@   <type>double</type>
-                !@   <cardinality>1</cardinality>
-                !@ </inputParameter>
-                call Get_Input_Parameter('spheroidSersicIndex',spheroidSersicIndex,defaultValue=4.0d0)
+                !# <inputParameter>
+                !#   <name>spheroidSersicIndex</name>
+                !#   <cardinality>1</cardinality>
+                !#   <defaultValue>4.0d0</defaultValue>
+                !#   <description>The S\'ersic index to use for the spheroid component mass distribution.</description>
+                !#   <source>globalParameters</source>
+                !#   <type>double</type>
+                !# </inputParameter>
                 sersicIndexInitialized=.true.
              end if
              !$omp end critical (spheroidStandardInitializeSersic)
@@ -322,17 +305,15 @@ contains
        if (.not.angularMomentumInitialized) then
           !$omp critical (spheroidStandardInitializeAngularMomentum)
           if (.not.angularMomentumInitialized) then
-             !@ <inputParameter>
-             !@   <name>spheroidAngularMomentumAtScaleRadius</name>
-             !@   <defaultValue>$I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@    The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.
-             !@   </description>
-             !@   <type>double</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
+             !# <inputParameter>
+             !#   <name>spheroidAngularMomentumAtScaleRadius</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultSource>($I_2/I_3$ where $I_n=\int_0^\infty \rho(r) r^n {\mathrm d}r$, where $\rho(r)$ is the spheroid density profile, unless either $I_2$ or $I_3$ is infinite, in which case a default of $1/2$ is used instead.)</defaultSource>
+             !#   <defaultValue>spheroidAngularMomentumAtScaleRadiusDefault</defaultValue>
+             !#   <description>The assumed ratio of the specific angular momentum at the scale radius to the mean specific angular momentum of the standard spheroid component.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>double</type>
+             !# </inputParameter>
              angularMomentumInitialized=.true.
           end if
           !$omp end critical (spheroidStandardInitializeAngularMomentum)

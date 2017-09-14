@@ -68,18 +68,15 @@ contains
     if (.not.jiang2008Initialized) then
        !$omp critical (satelliteMergingTimescalesJiang2008Initialize)
        if (.not.jiang2008Initialized) then
-          !@ <inputParameter>
-          !@   <name>satelliteMergingJiang2008Scatter</name>
-          !@   <defaultValue>$0$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingJiang2008Scatter',satelliteMergingJiang2008Scatter,defaultValue=0.0d0)
+          !# <inputParameter>
+          !#   <name>satelliteMergingJiang2008Scatter</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Check that required properties are gettable.
           if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('jiang2008DefaultConstructor','this method requires that the "mass" property of the basic component be gettable')
           ! Record that we are now initialized.

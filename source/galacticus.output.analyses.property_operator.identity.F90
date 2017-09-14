@@ -37,7 +37,7 @@ contains
 
   function identityConstructorParameters(parameters)
     !% Constructor for the ``identity'' output analysis property operateor class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyOperatorIdentity)                :: identityConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters

@@ -42,27 +42,21 @@ contains
     if (haloMassFunctionSamplingMethod == 'gaussian') then
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Gaussian
 
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesHaloMassGaussianMean</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesHaloMassGaussianMean',mergerTreeBuildTreesHaloMassGaussianMean)
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesHaloMassGaussianMean</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
 
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesHaloMassGaussianSigma</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesHaloMassGaussianSigma',mergerTreeBuildTreesHaloMassGaussianSigma)
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesHaloMassGaussianSigma</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
 
     end if
     return

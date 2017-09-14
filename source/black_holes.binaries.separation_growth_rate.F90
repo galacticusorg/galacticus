@@ -53,17 +53,14 @@ contains
        !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
        if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
           ! Get the binary black hole separation growth rate method parameter.
-          !@ <inputParameter>
-          !@   <name>blackHoleBinarySeparationGrowthRateMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing the separation growth rate of black hole binaries.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('blackHoleBinarySeparationGrowthRateMethod',blackHoleBinarySeparationGrowthRateMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>blackHoleBinarySeparationGrowthRateMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used for computing the separation growth rate of black hole binaries.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="functionCall" functionType="void">
           !#  <functionArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</functionArgs>

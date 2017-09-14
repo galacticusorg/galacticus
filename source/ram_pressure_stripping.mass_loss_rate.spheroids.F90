@@ -51,17 +51,14 @@ contains
        !$omp critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Init)
        if (.not.moduleInitialized) then
           ! Get the ram pressure stripping mass loss rate method parameter.
-          !@ <inputParameter>
-          !@   <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used when computing mass loss rates from spheroids due to ram pressure stripping.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('ramPressureStrippingMassLossRateSpheroidsMethod',ramPressureStrippingMassLossRateSpheroidsMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used when computing mass loss rates from spheroids due to ram pressure stripping.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="ramPressureStrippingMassLossRateSpheroidsMethod" type="functionCall" functionType="void">
           !#  <functionArgs>ramPressureStrippingMassLossRateSpheroidsMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get</functionArgs>

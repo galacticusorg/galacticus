@@ -68,84 +68,63 @@ contains
     integer                                         :: iWavelength        , iTime
 
     ! Get parameter controlling background radiation spectral and time resolution.
-    !@ <inputParameter>
-    !@   <name>backgroundRadiationCompute</name>
-    !@   <defaultValue>false</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     Specifies whether or not cosmic background radiation should be computed.
-    !@   </description>
-    !@   <type>integer</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
-    call Get_Input_Parameter('backgroundRadiationCompute',backgroundRadiationCompute,defaultValue=.false.)
+    !# <inputParameter>
+    !#   <name>backgroundRadiationCompute</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether or not cosmic background radiation should be computed.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
     if (backgroundRadiationCompute) then
-       !@ <inputParameter>
-       !@   <name>backgroundRadiationWavelengthCountPerDecade</name>
-       !@   <defaultValue>10</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('backgroundRadiationWavelengthCountPerDecade',backgroundRadiationWavelengthCountPerDecade,defaultValue=10)
-       !@ <inputParameter>
-       !@   <name>backgroundRadiationWavelengthMinimum</name>
-       !@   <defaultValue>100\AA</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('backgroundRadiationWavelengthMinimum',backgroundRadiationWavelengthMinimum,defaultValue=100.0d0)
-       !@ <inputParameter>
-       !@   <name>backgroundRadiationWavelengthMaximum</name>
-       !@   <defaultValue>100000\AA</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('backgroundRadiationWavelengthMaximum',backgroundRadiationWavelengthMaximum,defaultValue=100000.0d0)
-       !@ <inputParameter>
-       !@   <name>backgroundRadiationTimeCountPerDecade</name>
-       !@   <defaultValue>10</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of bins per decade of time to use for calculations of tge cosmic background radiation.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('backgroundRadiationTimeCountPerDecade',backgroundRadiationTimeCountPerDecade,defaultValue=10)
-       !@ <inputParameter>
-       !@   <name>backgroundRadiationRedshiftMinimum</name>
-       !@   <defaultValue>0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum redshift to use in calculations of the cosmic background radiation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('backgroundRadiationRedshiftMinimum',backgroundRadiationRedshiftMinimum,defaultValue=0.0d0)
-       !@ <inputParameter>
-       !@   <name>backgroundRadiationRedshiftMaximum</name>
-       !@   <defaultValue>30</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The maximum redshift to use in calculations of the cosmic background radiation.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('backgroundRadiationRedshiftMaximum',backgroundRadiationRedshiftMaximum,defaultValue=30.0d0)
+       !# <inputParameter>
+       !#   <name>backgroundRadiationWavelengthCountPerDecade</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10</defaultValue>
+       !#   <description>The number of bins per decade of wavelength to use for calculations of the cosmic background radiation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>backgroundRadiationWavelengthMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>100.0d0</defaultValue>
+       !#   <description>The minimum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>backgroundRadiationWavelengthMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>100000.0d0</defaultValue>
+       !#   <description>The maximum wavelength (in units of \AA) to use in calculations of the cosmic background radiation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>backgroundRadiationTimeCountPerDecade</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>10</defaultValue>
+       !#   <description>The number of bins per decade of time to use for calculations of tge cosmic background radiation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>backgroundRadiationRedshiftMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <description>The minimum redshift to use in calculations of the cosmic background radiation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>backgroundRadiationRedshiftMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>30.0d0</defaultValue>
+       !#   <description>The maximum redshift to use in calculations of the cosmic background radiation.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
        ! Build tables of wavelength and time for cosmic background radiation.
        cosmologyFunctions_       => cosmologyFunctions      ()
        backgroundRadiationTimeMaximum                                                              &

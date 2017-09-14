@@ -59,30 +59,25 @@ contains
     if (.not.outputSatelliteStatusInitialized) then
        !$omp critical(Galacticus_Output_Tree_Satellite_Status_Initialize)
        if (.not.outputSatelliteStatusInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputSatelliteStatus</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not satellite status (i.e. whether the satellite is orphaned or not) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputSatelliteStatus',outputSatelliteStatus,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>statusOrphanDiscriminator</name>
-          !@   <defaultValue>boundMass</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether bound mass or position history will be used to determine satellite orphan status.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('statusOrphanDiscriminator',statusOrphanDiscriminatorText,defaultValue='boundMass')
+          !# <inputParameter>
+          !#   <name>outputSatelliteStatus</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not satellite status (i.e. whether the satellite is orphaned or not) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>statusOrphanDiscriminator</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('boundMass')</defaultValue>
+          !#   <description>Specifies whether bound mass or position history will be used to determine satellite orphan status.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>statusOrphanDiscriminatorText</variable>
+          !# </inputParameter>
           statusOrphanDiscriminator=enumerationStatusOrphanDiscriminatorEncode(char(statusOrphanDiscriminatorText),includesPrefix=.false.)             
           ! Count number of properties to output and check that required properties are gettable.
           satelliteStatusPropertyCount=0

@@ -73,17 +73,14 @@ contains
        !$omp critical (Node_Component_Satellite_Very_Simple_Initialize)
        if (.not.moduleInitialized) then
           ! Determine if satellite orbits are to be reset on halo formation events.
-          !@ <inputParameter>
-          !@   <name>satelliteOrbitResetOnHaloFormation</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether satellite virial orbital parameters should be reset on halo formation events.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteOrbitResetOnHaloFormation',satelliteOrbitResetOnHaloFormation,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>satelliteOrbitResetOnHaloFormation</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if

@@ -45,7 +45,7 @@ contains
 
   function gadgetHDF5ConstructorParameters(parameters) result (self)
     !% Constructor for the ``gadgetHDF5'' N-body importer class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (nbodyImporterGadgetHDF5)                :: self
     type            (inputParameters        ), intent(inout) :: parameters

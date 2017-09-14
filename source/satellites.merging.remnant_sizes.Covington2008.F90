@@ -48,28 +48,23 @@ contains
 
     if (satelliteMergingRemnantSizeMethod == 'Covington2008') then
        Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Covington2008
-       !@ <inputParameter>
-       !@   <name>mergerRemnantSizeOrbitalEnergy</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The orbital energy used in the ``Covington2008'' merger remnant sizes calculation in units of the characteristic orbital energy.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("mergerRemnantSizeOrbitalEnergy",mergerRemnantSizeOrbitalEnergy,defaultValue=1.0d0)
-       !@ <inputParameter>
-       !@   <name>mergerRemnantRadiativeEfficiency</name>
-       !@   <defaultValue>2.75 \citep{covington_predicting_2008}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The coefficient, $C_{\mathrm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("mergerRemnantRadiativeEfficiency",mergerRemnantRadiativeEfficiency,defaultValue=2.75d0)
+       !# <inputParameter>
+       !#   <name>mergerRemnantSizeOrbitalEnergy</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The orbital energy used in the ``Covington2008'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>mergerRemnantRadiativeEfficiency</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>\citep{covington_predicting_2008}</defaultSource>
+       !#   <defaultValue>2.75d0</defaultValue>
+       !#   <description>The coefficient, $C_{\mathrm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Satellite_Merging_Remnant_Sizes_Covington2008_Initialize

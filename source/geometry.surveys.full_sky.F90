@@ -48,7 +48,7 @@ contains
 
   function fullSkyConstructorParameters(parameters) result(self)
     !% Default constructor for the full sky survey geometry.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(surveyGeometryFullSky) :: self
     type            (inputParameters              ), intent(inout) :: parameters

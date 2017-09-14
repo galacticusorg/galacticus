@@ -53,54 +53,42 @@ contains
     if (.not.outputHaloModelDataInitialized) then
        !$omp critical(Galacticus_Output_Halo_Model_Initialize)
        if (.not.outputHaloModelDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputHaloModelData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not halo model data (bias, power spectra, etc.) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputHaloModelData',outputHaloModelData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputHaloModelData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not halo model data (bias, power spectra, etc.) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
           ! Read additional parameters if required.
           if (outputHaloModelData) then
-             !@ <inputParameter>
-             !@   <name>haloModelWavenumberPointsPerDecade</name>
-             !@   <defaultValue>10</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The number of points per decade in wavenumber at which to tabulate power spectra for the halo model.
-             !@   </description>
-             !@   <type>integer</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('haloModelWavenumberPointsPerDecade',haloModelWavenumberPointsPerDecade,defaultValue=10)
-             !@ <inputParameter>
-             !@   <name>haloModelWavenumberMinimum</name>
-             !@   <defaultValue>$10^{-3}$</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The minimum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('haloModelWavenumberMinimum',haloModelWavenumberMinimum,defaultValue=1.0d-3)
-             !@ <inputParameter>
-             !@   <name>haloModelWavenumberMaximum</name>
-             !@   <defaultValue>$10^4$</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The maximum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('haloModelWavenumberMaximum',haloModelWavenumberMaximum,defaultValue=1.0d4)
+             !# <inputParameter>
+             !#   <name>haloModelWavenumberPointsPerDecade</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>10</defaultValue>
+             !#   <description>The number of points per decade in wavenumber at which to tabulate power spectra for the halo model.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>haloModelWavenumberMinimum</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1.0d-3</defaultValue>
+             !#   <description>The minimum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>haloModelWavenumberMaximum</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1.0d4</defaultValue>
+             !#   <description>The maximum wavenumber (in Mpc${^-1}$) at which to tabulate power spectra for the halo model.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
           end if
 
           ! Flag that module is now initialized.

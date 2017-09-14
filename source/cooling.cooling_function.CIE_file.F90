@@ -189,7 +189,7 @@ contains
 
   function cieFileConstructorParameters(parameters)
     !% Constructor for the ``CIE file'' cooling function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(coolingFunctionCIEFile)                :: cieFileConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters

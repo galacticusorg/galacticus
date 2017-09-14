@@ -58,17 +58,14 @@ contains
        !$omp critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
        if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then
           ! Get the progenitor properties method parameter.
-          !@ <inputParameter>
-          !@   <name>satelliteMergingRemnantProgenitorPropertiesMethod</name>
-          !@   <defaultValue>standard</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing progenitor properties in merger remnant calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingRemnantProgenitorPropertiesMethod',satelliteMergingRemnantProgenitorPropertiesMethod,defaultValue='standard')
+          !# <inputParameter>
+          !#   <name>satelliteMergingRemnantProgenitorPropertiesMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('standard')</defaultValue>
+          !#   <description>The name of the method to be used for computing progenitor properties in merger remnant calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satelliteMergingRemnantProgenitorPropertiesMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get</functionArgs>

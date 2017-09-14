@@ -44,30 +44,24 @@ contains
 
     if (satelliteTidalHeatingMethod == 'Gnedin1999') then
        Satellite_Tidal_Heating_Rate => Satellite_Tidal_Heating_Rate_Gnedin
-       !@ <inputParameter>
-       !@   <name>satelliteTidalHeatingGnedinEpsilon</name>
-       !@   <defaultValue>3</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group></group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteTidalHeatingGnedinEpsilon',satelliteTidalHeatingGnedinEpsilon,defaultValue=3.0d0)
-       !@ <inputParameter>
-       !@   <name>satelliteTidalHeatingGnedinGamma</name>
-       !@   <defaultValue>2.5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group></group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('satelliteTidalHeatingGnedinGamma',satelliteTidalHeatingGnedinGamma,defaultValue=2.5d0)
+       !# <inputParameter>
+       !#   <name>satelliteTidalHeatingGnedinEpsilon</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>3.0d0</defaultValue>
+       !#   <description>Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
+       !#   <group></group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>satelliteTidalHeatingGnedinGamma</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>2.5d0</defaultValue>
+       !#   <description>Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
+       !#   <group></group>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
      end if
     return
   end subroutine Satellite_Tidal_Heating_Rate_Gnedin_Initialize

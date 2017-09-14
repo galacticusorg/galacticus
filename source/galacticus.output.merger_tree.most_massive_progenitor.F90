@@ -43,18 +43,15 @@ contains
     if (.not.moduleIsInitialized) then
        !$omp critical(Galacticus_Output_Most_Massive_Progenitor_Initialize)
        if (.not.moduleIsInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputMostMassiveProgenitor</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not most massive progenitor status should be output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputMostMassiveProgenitor',outputMostMassiveProgenitor,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputMostMassiveProgenitor</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not most massive progenitor status should be output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Record that the module is initialized.
           moduleIsInitialized=.true.
        end if

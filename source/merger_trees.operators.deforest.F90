@@ -38,7 +38,7 @@ contains
 
   function deforestConstructorParameters(parameters)
     !% Constructor for the deforestation merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
     type(inputParameters           ), intent(inout) :: parameters

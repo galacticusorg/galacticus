@@ -52,10 +52,10 @@ contains
        !$omp critical (Tasks_Evolve_Tree_Initialize)
        if (.not.outputsInitialized) then
           ! Get a list of output redshifts - stored temporarily in the outputTimes array.
-          if      (Input_Parameter_Is_Present('outputTimes'    )) then
-             outputCount=Get_Input_Parameter_Array_Size('outputTimes'    )
-          else if (Input_Parameter_Is_Present('outputRedshifts')) then
-             outputCount=Get_Input_Parameter_Array_Size('outputRedshifts')
+          if      (globalParameters%isPresent('outputTimes'    )) then
+             outputCount=globalParameters%count('outputTimes'    )
+          else if (globalParameters%isPresent('outputRedshifts')) then
+             outputCount=globalParameters%count('outputRedshifts')
           else
              outputCount=1
           end if
@@ -63,42 +63,30 @@ contains
           call allocateArray(outputTimes    ,[outputCount])
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
-          if (Input_Parameter_Is_Present('outputTimes')) then
-             !@ <inputParameter>
-             !@   <name>outputTimes</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputTimes',outputTimes)
+          if (globalParameters%isPresent('outputTimes')) then
+             !# <inputParameter>
+             !#   <name>outputTimes</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
              call Sort_Do(outputTimes)
              ! Convert times to redshifts.
              do iOutput=1,outputCount
                 outputRedshifts(iOutput)=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(outputTimes(iOutput)))
              end do
-           else
-             !@ <inputParameter>
-             !@   <name>outputRedshifts</name>
-             !@   <defaultValue>0</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             if (outputCount == 1) then
-                ! If only one (or zero) output redshifts present, make redshift zero the default.
-                call Get_Input_Parameter('outputRedshifts',outputRedshifts,defaultValue=[0.0d0])
-             else
-                call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
-             end if
-              ! Sort the redshifts.
+          else
+             !# <inputParameter>
+             !#   <name>outputRedshifts</name>
+             !#   <defaultValue>[0.0d0]</defaultValue>
+             !#   <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
+             !#   <type>real</type>
+             !#   <cardinality>1..*</cardinality>
+             !#   <group>output</group>
+             !# </inputParameter>
+             ! Sort the redshifts.
              outputRedshifts=-outputRedshifts
              call Sort_Do(outputRedshifts)
              outputRedshifts=-outputRedshifts

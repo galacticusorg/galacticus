@@ -73,39 +73,31 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Merging_Statistics_Recent_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>nodeMajorMergerFraction</name>
-          !@   <defaultValue>0.25</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeMajorMergerFraction',nodeMajorMergerFraction,defaultValue=0.25d0)
-          !@ <inputParameter>
-          !@   <name>nodeRecentMajorMergerInterval</name>
-          !@   <defaultValue>2.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeRecentMajorMergerInterval',nodeRecentMajorMergerInterval,defaultValue=2.0d0)
-          !@ <inputParameter>
-          !@   <name>nodeRecentMajorMergerIntervalType</name>
-          !@   <defaultValue>dynamical</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeRecentMajorMergerIntervalType',nodeRecentMajorMergerIntervalTypeText,defaultValue="dynamical")
+          !# <inputParameter>
+          !#   <name>nodeMajorMergerFraction</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.25d0</defaultValue>
+          !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>nodeRecentMajorMergerInterval</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.0d0</defaultValue>
+          !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>nodeRecentMajorMergerIntervalType</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('dynamical')</defaultValue>
+          !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
+          !# </inputParameter>
           select case (char(nodeRecentMajorMergerIntervalTypeText))
           case ("absolute" )
              nodeRecentMajorMergerIntervalType=nodeRecentMajorMergerIntervalTypeAbsolute
@@ -114,17 +106,14 @@ contains
           case default
              call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Initialize','[nodeRecentMajorMergerIntervalType] has unrecognized value')
           end select
-          !@ <inputParameter>
-          !@   <name>nodeRecentMajorMergerFromInfall</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.
-          !@   </description>
-          !@   <type>double</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodeRecentMajorMergerFromInfall',nodeRecentMajorMergerFromInfall,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>nodeRecentMajorMergerFromInfall</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>double</type>
+          !# </inputParameter>
           ! Determine the number of output times.
           outputCount=Galacticus_Output_Time_Count()
           call allocateArray(zeroCount,[outputCount])

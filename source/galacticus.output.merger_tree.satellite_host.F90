@@ -44,18 +44,15 @@ contains
     if (.not.outputSatelliteHostDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Satellite_Host_Initialize)
        if (.not.outputSatelliteHostDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputSatelliteHostData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not satellite host data (node mass) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputSatelliteHostData',outputSatelliteHostData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputSatelliteHostData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not satellite host data (node mass) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Count number of properties to output.
           satelliteHostPropertyCount=0
           if (outputSatelliteHostData) satelliteHostPropertyCount=satelliteHostPropertyCount+1

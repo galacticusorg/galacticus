@@ -62,7 +62,7 @@ contains
 
   function barkana2001WDMConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (criticalOverdensityBarkana2001WDM)                :: barkana2001WDMConstructorParameters
     type            (inputParameters                  ), intent(inout) :: parameters

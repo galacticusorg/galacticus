@@ -124,7 +124,7 @@ contains
   function squareConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
     !% input.
-    use Input_Parameters2
+    use Input_Parameters
     use Cosmology_Parameters
     use Numerical_Constants_Astronomical
     use Galacticus_Error

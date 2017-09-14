@@ -42,17 +42,14 @@ contains
     if (haloMassFunctionSamplingMethod == 'powerLaw') then
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Power_Law
 
-       !@ <inputParameter>
-       !@   <name>mergerTreeBuildTreesHaloMassExponent</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\normalfont \ttfamily mergerTreeBuildTreesHaloMassExponent}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesHaloMassExponent',mergerTreeBuildTreesHaloMassExponent,defaultValue=1.0d0)
+       !# <inputParameter>
+       !#   <name>mergerTreeBuildTreesHaloMassExponent</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\normalfont \ttfamily mergerTreeBuildTreesHaloMassExponent}.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
 
     end if
     return

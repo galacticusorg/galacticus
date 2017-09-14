@@ -67,17 +67,14 @@ contains
        !$omp critical(haloBiasInitialize)
        if (.not.haloBiasInitialized) then
           ! Get the halo bias method parameter.
-          !@ <inputParameter>
-          !@   <name>darkMatterHaloBiasMethod</name>
-          !@   <defaultValue>Tinker2010</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Selects which dark matter halo bias method to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterHaloBiasMethod',darkMatterHaloBiasMethod,defaultValue='Tinker2010')
+          !# <inputParameter>
+          !#   <name>darkMatterHaloBiasMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Tinker2010')</defaultValue>
+          !#   <description>Selects which dark matter halo bias method to use.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="darkMatterHaloBiasMethod" type="functionCall" functionType="void">
           !#  <functionArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get</functionArgs>

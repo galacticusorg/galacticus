@@ -213,18 +213,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Dpndnt_Fractions_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisFractionFunctionCovarianceModel</name>
-          !@   <defaultValue>binomial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The model to use when constructing the fraction functions covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisFractionFunctionCovarianceModel',analysisFractionFunctionCovarianceModelText,defaultValue='Poisson')
+          !# <inputParameter>
+          !#   <name>analysisFractionFunctionCovarianceModel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('Poisson')</defaultValue>
+          !#   <description>The model to use when constructing the fraction functions covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>analysisFractionFunctionCovarianceModelText</variable>
+          !# </inputParameter>
           select case (char(analysisFractionFunctionCovarianceModelText))
           case ( 'Poisson'  )
              analysisFractionFunctionCovarianceModel=analysisFractionFunctionCovarianceModelPoisson
@@ -233,42 +231,33 @@ contains
           case default
              call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Fractions','unrecognized value for "analysisFractionFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
           end select
-          !@ <inputParameter>
-          !@   <name>analysisFractionFunctionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisFractionFunctionsHaloMassBinsPerDecade',analysisFractionFunctionsHaloMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisFractionFunctionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisFractionFunctionsHaloMassMinimum',analysisFractionFunctionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisFractionFunctionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisFractionFunctionsHaloMassMaximum',analysisFractionFunctionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisFractionFunctionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisFractionFunctionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisFractionFunctionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisFractionFunctionsHaloMassMinimumLogarithmic  =     log10( analysisFractionFunctionsHaloMassMinimum)
           analysisFractionFunctionsHaloMassBinsCount           =int(                                                      &
                &                                                     log10(                                               &
@@ -317,17 +306,16 @@ contains
                          do k=1,fractionFunctionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(fractionFunctionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(gamaEarlyTypeFraction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution mass systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),fractionFunctions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>fractionFunctions(currentAnalysis)%massSystematicCoefficients(k)</variable>
+                            !#   <regEx>(gamaEarlyTypeFraction)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution mass systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -336,17 +324,16 @@ contains
                          do k=1,fractionFunctionDescriptors(j)%massRandomCoefficientCount
                             parameterName=trim(fractionFunctionLabels(j))//'MassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(gamaEarlyTypeFraction)Z[0-9\.]+MassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution mass random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),fractionFunctions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>fractionFunctions(currentAnalysis)%massRandomCoefficients(k)</variable>
+                            !#   <regEx>(gamaEarlyTypeFraction)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution mass random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read the appropriate observational data definition.
@@ -691,39 +678,30 @@ contains
     if (.not.initialized) then
        !$omp critical (Classifier_GAMA_Early_Type_Fraction_Z0_03_Initialize)
        if (.not.initialized) then
-          !@ <inputParameter>
-          !@   <name>gamaEarlyTypeRatio</name>
-          !@   <defaultValue>0.5</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum spheroid-to-total ratio for a galaxy to be classified as ``early-type'' when constructing the \gls{gama} early-type fraction function.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gamaEarlyTypeRatio',gamaEarlyTypeRatio,defaultValue=0.5d0)
-          !@ <inputParameter>
-          !@   <name>gamaEarlyTypeRatioError</name>
-          !@   <defaultValue>0.3</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The error in spheriod fraction to be used when constructing the \gls{gama} early-type fraction function.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gamaEarlyTypeRatioError',gamaEarlyTypeRatioError,defaultValue=0.3d0)
-          !@ <inputParameter>
-          !@   <name>gamaEarlyTypeLBSProbability</name>
-          !@   <defaultValue>0.5</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The probability that the LBS (``little blue spheroid'') class belongs to the early-type class when constructing the \gls{gama} early-type fraction function.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gamaEarlyTypeLBSProbability',gamaEarlyTypeLBSProbability,defaultValue=0.5d0)
+          !# <inputParameter>
+          !#   <name>gamaEarlyTypeRatio</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.5d0</defaultValue>
+          !#   <description>The minimum spheroid-to-total ratio for a galaxy to be classified as ``early-type'' when constructing the \gls{gama} early-type fraction function.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>gamaEarlyTypeRatioError</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.3d0</defaultValue>
+          !#   <description>The error in spheriod fraction to be used when constructing the \gls{gama} early-type fraction function.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>gamaEarlyTypeLBSProbability</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>0.5d0</defaultValue>
+          !#   <description>The probability that the LBS (``little blue spheroid'') class belongs to the early-type class when constructing the \gls{gama} early-type fraction function.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Record that function is initialized.
           initialized=.true.
        end if

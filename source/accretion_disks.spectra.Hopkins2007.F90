@@ -37,7 +37,7 @@ contains
 
   function hopkins2007ConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(accretionDiskSpectraHopkins2007)                :: hopkins2007ConstructorParameters
     type(inputParameters                ), intent(inout) :: parameters

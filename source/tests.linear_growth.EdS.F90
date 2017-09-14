@@ -32,6 +32,7 @@ program Tests_Linear_Growth_EdS
   character       (len=1024               )                          :: message
   integer                                                            :: iExpansion
   double precision                                                   :: expansionFactor                                                                    , linearGrowthFactor
+  type            (inputParameters        )                          :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.linear_growth.EdS.size')
@@ -41,7 +42,8 @@ program Tests_Linear_Growth_EdS
 
   ! Test growth factor in an Einstein-de Sitter universe. Growth factor should equal the expansion factor.
   parameterFile='testSuite/parameters/linearGrowth/EdS.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get the default cosmology functions object.
   cosmologyFunctions_ => cosmologyFunctions()
   linearGrowth_       => linearGrowth      ()
@@ -51,10 +53,7 @@ program Tests_Linear_Growth_EdS
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"     
      call Assert(trim(message),linearGrowthFactor,expansionFactor,relTol=1.0d-3)
   end do
-  call Input_Parameters_File_Close
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Tests_Linear_Growth_EdS

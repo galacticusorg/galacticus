@@ -50,7 +50,7 @@ contains
 
   function peacockDodds1996ConstructorParameters(parameters)
     !% Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (powerSpectrumNonlinearPeacockDodds1996)                        :: peacockDodds1996ConstructorParameters
     type (inputParameters                       ), target, intent(inout) :: parameters

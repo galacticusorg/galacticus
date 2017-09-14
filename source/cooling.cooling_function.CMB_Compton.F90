@@ -39,7 +39,7 @@ contains
 
   function cmbComptonConstructorParameters(parameters)
     !% Constructor for the ``CMB Compton'' cooling function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(coolingFunctionCMBCompton)                :: cmbComptonConstructorParameters
     type(inputParameters          ), intent(inout) :: parameters

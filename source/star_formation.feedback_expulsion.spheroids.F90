@@ -51,18 +51,15 @@ contains
        !$omp critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization)
        if (.not.starFormationExpulsiveFeedbackSpheroidsInitialized) then
           ! Get the spheroid star formation expulsive feedback method parameter.
-          !@ <inputParameter>
-          !@   <name>starFormationExpulsiveFeedbackSpheroidsMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in spheroids.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationExpulsiveFeedbackSpheroidsMethod',starFormationExpulsiveFeedbackSpheroidsMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>starFormationExpulsiveFeedbackSpheroidsMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used for calculations of expulsive \gls{sne} feedback in spheroids.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="starFormationExpulsiveFeedbackSpheroidsMethod" type="functionCall" functionType="void">
           !#  <functionArgs>starFormationExpulsiveFeedbackSpheroidsMethod,Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get</functionArgs>

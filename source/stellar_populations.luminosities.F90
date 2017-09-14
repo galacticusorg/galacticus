@@ -87,7 +87,7 @@ contains
     use Memory_Management
     use Stellar_Population_Spectra
     use Stellar_Population_Spectra_Postprocess
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     integer                                                                                       , intent(in   ) :: filterIndex                              (:), imfIndex                   , &
          &                                                                                                           luminosityIndex                          (:), postprocessingChainIndex(:)
@@ -118,63 +118,50 @@ contains
        !$omp critical (Luminosity_Tables_Initialize)
        if (.not.moduleInitialized) then
           ! Read the parameter controlling integration tolerance.
-          !@ <inputParameter>
-          !@   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
-          !@   <defaultValue>$2 \times 10^{-3}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The relative tolerance used when integrating the flux of stellar populations through filters.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=2.0d-3)
-          !@ <inputParameter>
-          !@   <name>stellarPopulationLuminosityIntegrationToleranceDegrade</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceDegrade',stellarPopulationLuminosityIntegrationToleranceDegrade,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>2.0d-3</defaultValue>
+          !#   <description>The relative tolerance used when integrating the flux of stellar populations through filters.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>stellarPopulationLuminosityIntegrationToleranceDegrade</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>If {\normalfont \ttfamily true}, automatically degrade the relative tolerance used when integrating the flux of stellar populations through filters to ensure convergence.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           ! Read parameters controlling storing luminosities to file.
-          !@ <inputParameter>
-          !@   <name>stellarPopulationLuminosityStoreToFile</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationLuminosityStoreToFile',stellarPopulationLuminosityStoreToFile,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>stellarPopulationLuminosityStoreDirectory</name>
-          !@   <defaultValue>{\normalfont \ttfamily \$GALACTICUS\_ROOT\_V094/data/stellarPopulations}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationLuminosityStoreDirectory',stellarPopulationLuminosityStoreDirectory,defaultValue=char(Galacticus_Input_Path()//"data/stellarPopulations"))
+          !# <inputParameter>
+          !#   <name>stellarPopulationLuminosityStoreToFile</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>stellarPopulationLuminosityStoreDirectory</name>
+          !#   <defaultValue>Galacticus_Input_Path()//'data/stellarPopulations'</defaultValue>
+          !#   <attachedTo>module</attachedTo>
+          !#   <description>
+          !#    Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.
+          !#   </description>
+          !#   <type>string</type>
+          !#   <cardinality>1</cardinality>
+          !# </inputParameter>
           ! Read the parameter controlling behavior if maximum age of stellar populations are exceeded.
-          !@ <inputParameter>
-          !@   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies whether or not exceeding the maximum available age of the stellar population is fatal.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationLuminosityMaximumAgeExceededIsFatal',stellarPopulationLuminosityMaximumAgeExceededIsFatal,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>stellarPopulationLuminosityMaximumAgeExceededIsFatal</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not exceeding the maximum available age of the stellar population is fatal.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Initialize the luminosity table lock.
           luminosityTableLock=ompReadWriteLock()
           ! Flag that this module is now initialized.

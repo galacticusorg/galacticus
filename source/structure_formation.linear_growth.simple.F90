@@ -63,7 +63,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} linear growth class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (linearGrowthSimple      )                :: self
     type (inputParameters         ), intent(inout) :: parameters

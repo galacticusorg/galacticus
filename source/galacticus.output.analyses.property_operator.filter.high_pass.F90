@@ -39,7 +39,7 @@ contains
 
   function filterHighPassConstructorParameters(parameters) result(self)
     !% Constructor for the ``filterHighPass'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyOperatorFilterHighPass)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
@@ -61,7 +61,7 @@ contains
 
   function filterHighPassConstructorInternal(filterThreshold) result (self)
     !% Internal constructor for the ``filterHighPass'' output analysis distribution operator class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisPropertyOperatorFilterHighPass)                :: self
     double precision                                              , intent(in   ) :: filterThreshold

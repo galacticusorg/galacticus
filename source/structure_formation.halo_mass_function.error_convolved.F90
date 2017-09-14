@@ -55,7 +55,7 @@ contains
 
   function errorConvolvedConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(haloMassFunctionErrorConvolved)                :: errorConvolvedConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters

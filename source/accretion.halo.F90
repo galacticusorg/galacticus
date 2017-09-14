@@ -121,17 +121,14 @@ module Accretion_Halos
        !$omp critical(Accretion_Halos_Output_Initialization)
        if (.not.accretionHalosOutputInitialized) then
           ! Get options controlling output.
-          !@ <inputParameter>
-          !@   <name>outputHaloAccretionMode</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Determines whether or not halo accretion rates are output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputHaloAccretionMode',outputHaloAccretionMode,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputHaloAccretionMode</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Determines whether or not halo accretion rates are output.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           accretionHalosOutputInitialized=.true.
        end if
        !$omp end critical(Accretion_Halos_Output_Initialization)

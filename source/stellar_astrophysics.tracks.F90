@@ -57,17 +57,14 @@ contains
        !$omp critical(Stellar_Tracks_Initialization)
        if (.not.stellarTracksInitialized) then
           ! Get the stellar tracks method parameter.
-          !@ <inputParameter>
-          !@   <name>stellarTracksMethod</name>
-          !@   <defaultValue>file</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for stellar tracks calculations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarTracksMethod',stellarTracksMethod,defaultValue='file')
+          !# <inputParameter>
+          !#   <name>stellarTracksMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('file')</defaultValue>
+          !#   <description>The name of the method to be used for stellar tracks calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="stellarTracksMethod" type="functionCall" functionType="void">
           !#  <functionArgs>stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get</functionArgs>

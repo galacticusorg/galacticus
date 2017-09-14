@@ -81,16 +81,14 @@ contains
        Radiation_Set_Intergalactic_Background_Do  => Radiation_IGB_File_Set
        Radiation_Flux_Intergalactic_Background_Do => Radiation_IGB_File_Flux
        ! Get the name of the file from which to read data.
-       !@ <inputParameter>
-       !@   <name>radiationIGBFileName</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the file containing a tabulation of the radiation field.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('radiationIGBFileName',radiationIGBFileName,defaultValue=char(Galacticus_Input_Path())//"data/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml")
+       !# <inputParameter>
+       !#   <name>radiationIGBFileName</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str(char(Galacticus_Input_Path())//'data/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml')</defaultValue>
+       !#   <description>The name of the file containing a tabulation of the radiation field.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
        !$omp critical (FoX_DOM_Access)
        ! Parse the XML file.
        doc => parseFile(char(radiationIGBFileName),iostat=ioErr)

@@ -53,17 +53,14 @@ contains
     if (.not.Seed_Is_Set) then
        !$omp critical (Gaussian_Random_Get)
        if (.not.Seed_Is_Set) then
-          !@ <inputParameter>
-          !@   <name>gaussianRandomSeed</name>
-          !@   <defaultValue>843</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     A seed for the Gaussian random number generator.
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('gaussianRandomSeed',gaussianRandomSeed,defaultValue=843)
+          !# <inputParameter>
+          !#   <name>gaussianRandomSeed</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>843</defaultValue>
+          !#   <description>A seed for the Gaussian random number generator.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !# </inputParameter>
           Seed_Is_Set=.true.
        end if
        !$omp end critical (Gaussian_Random_Get)

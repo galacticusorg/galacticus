@@ -55,7 +55,7 @@ contains
 
   function tomczak2014ZFOURGEConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{tomczak_galaxy_2014} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (surveyGeometryTomczak2014ZFOURGE)                :: self
     type   (inputParameters                 ), intent(inout) :: parameters

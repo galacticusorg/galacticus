@@ -38,7 +38,7 @@ contains
 
   function massFunctionStellarSDSSConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellarSDSS'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisMassFunctionStellarSDSS)                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
@@ -143,7 +143,7 @@ contains
 
   function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarSDSS'' output analysis class for internal use.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Input_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters

@@ -57,18 +57,15 @@ contains
 
     if (hotHaloRamPressureStrippingMethod == 'Font2008') then
        Hot_Halo_Ram_Pressure_Stripping_Get => Hot_Halo_Ram_Pressure_Stripping_Font2008_Get
-       !@ <inputParameter>
-       !@   <name>ramPressureStrippingFormFactor</name>
-       !@   <defaultValue>2</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
-       !@     of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('ramPressureStrippingFormFactor',ramPressureStrippingFormFactor,defaultValue=2.0d0)
+       !# <inputParameter>
+       !#   <name>ramPressureStrippingFormFactor</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>2.0d0</defaultValue>
+       !#   <description>The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
+       !#      of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize

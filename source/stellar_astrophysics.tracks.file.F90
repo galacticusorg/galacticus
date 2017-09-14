@@ -53,7 +53,6 @@ contains
     use IO_HDF5
     use ISO_Varying_String
     use Galacticus_Input_Paths
-    use Input_Parameters
     use String_Handling
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarTracksMethod
@@ -74,17 +73,13 @@ contains
        Stellar_Effective_Temperature_Get => Stellar_Effective_Temperature_File
 
        ! Get the name of the file from which to read stellar tracks.
-       !@ <inputParameter>
-       !@   <name>stellarTracksFile</name>
-       !@   <defaultValue>data/stellarAstrophysics/Stellar\_Tracks\_Padova.hdf5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the HDF5 file from which to read stellar tracks.
-       !@   </description>
-       !@   <type>string</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarTracksFile',stellarTracksFile,defaultValue=char(Galacticus_Input_Path())//'data/stellarAstrophysics/Stellar_Tracks_Padova.hdf5')
+       !# <inputParameter>
+       !#   <name>stellarTracksFile</name>
+       !#   <defaultValue>Galacticus_Input_Path()//'data/stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
+       !#   <description>The name of the HDF5 file from which to read stellar tracks.</description>
+       !#   <type>string</type>
+       !#   <cardinality>1</cardinality>
+       !# </inputParameter>
 
        ! Open the HDF5 file.
        !$omp critical(HDF5_Access)

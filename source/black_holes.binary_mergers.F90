@@ -53,17 +53,14 @@ contains
        !$omp critical(blackHoleBinaryMergersInitialize)
        if (.not.blackHoleBinaryMergersInitialized) then
           ! Do the binary black hole merger method parameter.
-          !@ <inputParameter>
-          !@   <name>blackHoleBinaryMergersMethod</name>
-          !@   <defaultValue>Rezzolla2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing the effects of black hole binary mergers.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('blackHoleBinaryMergersMethod',blackHoleBinaryMergersMethod,defaultValue='Rezzolla2008')
+          !# <inputParameter>
+          !#   <name>blackHoleBinaryMergersMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Rezzolla2008')</defaultValue>
+          !#   <description>The name of the method to be used for computing the effects of black hole binary mergers.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="blackHoleBinaryMergersMethod" type="functionCall" functionType="void">
           !#  <functionArgs>blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do</functionArgs>

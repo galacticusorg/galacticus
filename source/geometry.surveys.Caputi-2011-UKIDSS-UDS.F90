@@ -45,7 +45,7 @@ contains
 
   function caputi2011UKIDSSUDSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{caputi_stellar_2011} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (surveyGeometryCaputi2011UKIDSSUDS)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters

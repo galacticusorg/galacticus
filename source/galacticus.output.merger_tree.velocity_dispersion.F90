@@ -88,39 +88,33 @@ contains
     if (.not.outputVelocityDispersionDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Velocity_Dispersion_Initialize)
        if (.not.outputVelocityDispersionDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputVelocityDispersionData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not velocity dispersion data should be incldued in the output file.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputVelocityDispersionData',outputVelocityDispersionData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputVelocityDispersionData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not velocity dispersion data should be incldued in the output file.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Read and parse parameter controlling radii of output.
           if (outputVelocityDispersionData) then
-             if (.not.Input_Parameter_Is_Present('outputVelocityDispersionRadii'))                                                 &
+             if (.not.globalParameters%isPresent('outputVelocityDispersionRadii'))                                                 &
                   & call Galacticus_Error_Report(                                                                                  &
                   &                              'Galacticus_Output_Tree_Velocity_Dispersion_Initialize'                         , &
                   &                              'outputVelocityDispersionRadii must be specified for velocity dispersion output'  &
                   &                             )
-             radiiCount=Get_Input_Parameter_Array_Size('outputVelocityDispersionRadii')
+             radiiCount=globalParameters%count('outputVelocityDispersionRadii')
              allocate(outputVelocityDispersionRadii(radiiCount))
              allocate(radii                        (radiiCount))
-             !@ <inputParameter>
-             !@   <name>outputVelocityDispersionRadii</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Specifies the radii at which the velocity dispersion will be output.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputVelocityDispersionRadii',outputVelocityDispersionRadii)
+             !# <inputParameter>
+             !#   <name>outputVelocityDispersionRadii</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>Specifies the radii at which the velocity dispersion will be output.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
              ! Parse the radii definitions.
              diskIsNeeded                  =.false.
              spheroidIsNeeded              =.false.

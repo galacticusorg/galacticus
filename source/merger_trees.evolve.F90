@@ -102,29 +102,23 @@ contains
        !$omp critical (Merger_Tree_Evolve_To_Initialize)
        if (.not.mergerTreeEvolveToInitialized) then
           ! Read parameters.
-          !@ <inputParameter>
-          !@   <name>allTreesExistAtFinalTime</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
-          !@     then trees which finish before a given output time will be ignored.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('allTreesExistAtFinalTime',allTreesExistAtFinalTime,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>mergerTreesDumpStructure</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreesDumpStructure',mergerTreesDumpStructure,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>allTreesExistAtFinalTime</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
+          !#      then trees which finish before a given output time will be ignored.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreesDumpStructure</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
           ! Flag that this routine is now initialized.
           mergerTreeEvolveToInitialized=.true.
@@ -563,28 +557,22 @@ contains
     if (.not.evolveToTimeInitialized) then
        !$omp critical (evolveToTimeInitialize)
        if (.not.evolveToTimeInitialized) then
-          !@ <inputParameter>
-          !@   <name>timestepHostRelative</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum allowed relative timestep for node evolution relative to the time of the host halo.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHostRelative',timestepHostRelative,defaultValue=0.1d0)
-          !@ <inputParameter>
-          !@   <name>timestepHostAbsolute</name>
-          !@   <defaultValue>1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timestepHostAbsolute',timestepHostAbsolute,defaultValue=1.0d0)
+          !# <inputParameter>
+          !#   <name>timestepHostRelative</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>The maximum allowed relative timestep for node evolution relative to the time of the host halo.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>timestepHostAbsolute</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           evolveToTimeInitialized=.true.
        end if
        !$omp end critical (evolveToTimeInitialize)

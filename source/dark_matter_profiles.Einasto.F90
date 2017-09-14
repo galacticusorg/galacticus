@@ -195,7 +195,7 @@ contains
 
   function einastoConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(darkMatterProfileEinasto )                :: self
     type (inputParameters         ), intent(inout) :: parameters

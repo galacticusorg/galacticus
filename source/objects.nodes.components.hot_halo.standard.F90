@@ -248,83 +248,66 @@ contains
        chemicalsCount =Chemicals_Property_Count ()
 
        ! Determine whether satellite nodes will be starved of gas.
-       !@ <inputParameter>
-       !@   <name>starveSatellites</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starveSatellites',starveSatellites,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>starveSatellites</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
-       !@ <inputParameter>
-       !@   <name>starveSatellitesOutflowed</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starveSatellitesOutflowed',starveSatellitesOutflowed,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>starveSatellitesOutflowed</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Determine whether stripped material should be tracked.
-       !@ <inputParameter>
-       !@   <name>hotHaloTrackStrippedGas</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not gas stripped from the hot halo should be tracked.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloTrackStrippedGas',hotHaloTrackStrippedGas,defaultValue=.true.)
+       !# <inputParameter>
+       !#   <name>hotHaloTrackStrippedGas</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether or not gas stripped from the hot halo should be tracked.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Determine whether outflowed gas should be restored to the hot reservoir on halo formation events.
-       !@ <inputParameter>
-       !@   <name>hotHaloOutflowReturnOnFormation</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowReturnOnFormation',hotHaloOutflowReturnOnFormation,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>hotHaloOutflowReturnOnFormation</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Determine whether negative angular momentum accretion rates onto the halo should be treated as positive for the purposes
        ! of computing the hot halo angular momentum.
-       !@ <inputParameter>
-       !@   <name>hotHaloAngularMomentumAlwaysGrows</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
-       !@     for the purposes of computing the hot halo angular momentum.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloAngularMomentumAlwaysGrows',hotHaloAngularMomentumAlwaysGrows,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>hotHaloAngularMomentumAlwaysGrows</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
+       !#      for the purposes of computing the hot halo angular momentum.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Determine whether the angular momentum of cooling gas should be computed from the "current node" or the "formation node".
-       !@ <inputParameter>
-       !@   <name>hotHaloCoolingFromNode</name>
-       !@   <defaultValue>currentNode</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloCoolingFromNode',hotHaloCoolingFromText,defaultValue='currentNode')
+       !# <inputParameter>
+       !#   <name>hotHaloCoolingFromNode</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('currentNode')</defaultValue>
+       !#   <description>Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !#   <variable>hotHaloCoolingFromText</variable>
+       !# </inputParameter>
        select case (char(hotHaloCoolingFromText))
        case ("currentNode"  )
           hotHaloCoolingFromNode=currentNode
@@ -335,85 +318,67 @@ contains
        end select
 
        ! Determine whether excess heating of the halo will drive an outflow.
-       !@ <inputParameter>
-       !@   <name>hotHaloExcessHeatDrivesOutflow</name>
-       !@   <defaultValue>true</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloExcessHeatDrivesOutflow',hotHaloExcessHeatDrivesOutflow,defaultValue=.true.)
+       !# <inputParameter>
+       !#   <name>hotHaloExcessHeatDrivesOutflow</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.true.</defaultValue>
+       !#   <description>Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
 
        ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
-       !@ <inputParameter>
-       !@   <name>hotHaloOutflowReturnRate</name>
-       !@   <defaultValue>5</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowReturnRate',hotHaloOutflowReturnRate,defaultValue=5.0d0)
+       !# <inputParameter>
+       !#   <name>hotHaloOutflowReturnRate</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>5.0d0</defaultValue>
+       !#   <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
 
        ! Get efficiency with which outflowing gas is stripped from the hot halo.
-       !@ <inputParameter>
-       !@   <name>hotHaloOutflowStrippingEfficiency</name>
-       !@   <defaultValue>0.1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_{\mathrm strip}$ in their eqn.~6).
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowStrippingEfficiency',hotHaloOutflowStrippingEfficiency,defaultValue=0.1d0)
+       !# <inputParameter>
+       !#   <name>hotHaloOutflowStrippingEfficiency</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_{\mathrm strip}$ in their eqn.~6).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
 
        ! Get the maximum rate (in units of halo inverse dynamical time) at which gas can be expelled from the halo.
-       !@ <inputParameter>
-       !@   <name>hotHaloExpulsionRateMaximum</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloExpulsionRateMaximum',hotHaloExpulsionRateMaximum,defaultValue=1.0d0)
+       !# <inputParameter>
+       !#   <name>hotHaloExpulsionRateMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
 
        ! Get fraction of angular momentum that is lost during cooling/infall.
-       !@ <inputParameter>
-       !@   <name>hotHaloAngularMomentumLossFraction</name>
-       !@   <defaultValue>0.3</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies the fraction of angular momentum that is lost from cooling/infalling gas.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.3d0)
+       !# <inputParameter>
+       !#   <name>hotHaloAngularMomentumLossFraction</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.3d0</defaultValue>
+       !#   <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
 
        ! Get option controlling limiting of baryon fraction during node mergers.
-       !@ <inputParameter>
-       !@   <name>hotHaloNodeMergerLimitBaryonFraction</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
-       !@    merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
-       !@    removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
-       !@    fraction where possible.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloNodeMergerLimitBaryonFraction',hotHaloNodeMergerLimitBaryonFraction,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>hotHaloNodeMergerLimitBaryonFraction</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
+       !#     merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
+       !#     removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
+       !#     fraction where possible.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
 
        ! Bind the outer radius get function.
        call hotHaloComponent%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )

@@ -44,30 +44,24 @@ contains
     if (.not.outputSatelliteExtremumDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Satellite_Extremum_Initialize)
        if (.not.outputSatelliteExtremumDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputSatellitePericenterData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not satellite orbital pericenter data (radius, velocity) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputSatellitePericenterData',outputSatellitePericenterData,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>outputSatelliteApocenterData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not satellite orbital apocenter data (radius, velocity) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputSatelliteApocenterData',outputSatelliteApocenterData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputSatellitePericenterData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not satellite orbital pericenter data (radius, velocity) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>outputSatelliteApocenterData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not satellite orbital apocenter data (radius, velocity) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Count number of properties to output.
           satelliteExtremumPropertyCount=0
           if (outputSatellitePericenterData) satelliteExtremumPropertyCount=satelliteExtremumPropertyCount+2

@@ -188,7 +188,7 @@ contains
 
   function nfwConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileNFW    )                :: self
     type (inputParameters         ), intent(inout) :: parameters

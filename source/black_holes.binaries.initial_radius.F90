@@ -51,17 +51,14 @@ contains
        !$omp critical(blackHoleBinaryInitialRadiiInitialize)
        if (.not.blackHoleBinaryInitialRadiiInitialized) then
           ! Get the binary black hole initial radii method parameter.
-          !@ <inputParameter>
-          !@   <name>blackHoleBinaryInitialRadiiMethod</name>
-          !@   <defaultValue>spheroidRadiusFraction</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing the initial separation of black hole binaries.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('blackHoleBinaryInitialRadiiMethod',blackHoleBinaryInitialRadiiMethod,defaultValue='spheroidRadiusFraction')
+          !# <inputParameter>
+          !#   <name>blackHoleBinaryInitialRadiiMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('spheroidRadiusFraction')</defaultValue>
+          !#   <description>The name of the method to be used for computing the initial separation of black hole binaries.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="blackHoleBinaryInitialRadiiMethod" type="functionCall" functionType="void">
           !#  <functionArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</functionArgs>

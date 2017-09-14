@@ -51,17 +51,14 @@ contains
        !$omp critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization)
        if (.not.darkMatterHaloMassLossRateInitialized) then
           ! Get the dark matter halo mass loss rate method parameter.
-          !@ <inputParameter>
-          !@   <name>darkMatterHaloMassLossRateMethod</name>
-          !@   <defaultValue>dynamicalTime</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing mass loss rates from dark matter halos.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('darkMatterHaloMassLossRateMethod',darkMatterHaloMassLossRateMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>darkMatterHaloMassLossRateMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used for computing mass loss rates from dark matter halos.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="darkMatterHaloMassLossRateMethod" type="functionCall" functionType="void">
           !#  <functionArgs>darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get</functionArgs>

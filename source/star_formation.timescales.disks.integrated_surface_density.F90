@@ -51,17 +51,14 @@ contains
 
     if (starFormationTimescaleDisksMethod == 'integratedSurfaceDensity') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Integrated_SD
-       !@ <inputParameter>
-       !@   <name>starFormationTimescaleIntegratedSurfaceDensityTolerance</name>
-       !@   <defaultValue>$10^{-3}$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Relative tolerance to use when integrating star formation rate surface densities over the disk.
-       !@   </description>
-       !@   <type>float</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationTimescaleIntegratedSurfaceDensityTolerance',starFormationTimescaleIntegratedSurfaceDensityTolerance,defaultValue=1.0d-3)
+       !# <inputParameter>
+       !#   <name>starFormationTimescaleIntegratedSurfaceDensityTolerance</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>Relative tolerance to use when integrating star formation rate surface densities over the disk.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>float</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Star_Formation_Timescale_Disks_Integrated_SD_Initialize

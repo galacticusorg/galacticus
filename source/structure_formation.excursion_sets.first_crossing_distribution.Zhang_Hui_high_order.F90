@@ -53,7 +53,7 @@ contains
 
   function zhangHuiHighOrderConstructorParameters(parameters) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (excursionSetFirstCrossingZhangHuiHighOrder)                :: self
     type (inputParameters                           ), intent(inout) :: parameters
@@ -65,7 +65,7 @@ contains
 
   function zhangHuiHighOrderConstructorInternal(excursionSetBarrier_) result(self)
     !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (excursionSetFirstCrossingZhangHuiHighOrder)                        :: self
     class(excursionSetBarrierClass                  ), intent(in   ), target :: excursionSetBarrier_

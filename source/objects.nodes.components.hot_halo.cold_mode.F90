@@ -101,32 +101,27 @@ contains
        ! Get numbers of abundance properties.
        abundancesCount=Abundances_Property_Count()
        ! Determine whether outflows go to the cold mode.
-       !@ <inputParameter>
-       !@   <name>hotHaloOutflowToColdMode</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Specifies whether or not outflows from galaxies are returned to the cold or hot modes in the hot halo.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutflowToColdMode',hotHaloOutflowToColdMode,defaultValue=.false.)
+       !# <inputParameter>
+       !#   <name>hotHaloOutflowToColdMode</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not outflows from galaxies are returned to the cold or hot modes in the hot halo.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
        ! not bind any function and let the parent class handle this behavior.)
        if (hotHaloOutflowToColdMode) call hotHaloComponent%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
        ! Create the cold mode mass distribution.
-       !@ <inputParameter>
-       !@   <name>coldModeMassDistribution</name>
-       !@   <defaultValue>betaProfile</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The type of mass distribution to use for the cold mode component.
-       !@   </description>
-       !@   <type>double</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coldModeMassDistribution',coldModeMassDistributionName,defaultValue="betaProfile")
+       !# <inputParameter>
+       !#   <name>coldModeMassDistribution</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('betaProfile')</defaultValue>
+       !#   <description>The type of mass distribution to use for the cold mode component.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !#   <variable>coldModeMassDistributionName</variable>
+       !# </inputParameter>
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if

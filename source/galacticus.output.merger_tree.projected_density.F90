@@ -75,39 +75,33 @@ contains
     if (.not.outputProjectedDensityDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Projected_Density_Initialize)
        if (.not.outputProjectedDensityDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputProjectedDensityData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not projected density data should be incldued in the output file.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputProjectedDensityData',outputProjectedDensityData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputProjectedDensityData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not projected density data should be incldued in the output file.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Read and parse parameter controlling radii of output.
           if (outputProjectedDensityData) then
-             if (.not.Input_Parameter_Is_Present('outputProjectedDensityRadii'))                                               &
+             if (.not.globalParameters%isPresent('outputProjectedDensityRadii'))                                               &
                   & call Galacticus_Error_Report(                                                                              &
                   &                              'Galacticus_Output_Tree_Projected_Density_Initialize'                       , &
                   &                              'outputProjectedDensityRadii must be specified for projected density output'  &
                   &                             )
-             radiiCount=Get_Input_Parameter_Array_Size('outputProjectedDensityRadii')
+             radiiCount=globalParameters%count('outputProjectedDensityRadii')
              allocate(outputProjectedDensityRadii(radiiCount))
              allocate(radii                      (radiiCount))
-             !@ <inputParameter>
-             !@   <name>outputProjectedDensityRadii</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     Specifies the radii at which the projected density will be output.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1..*</cardinality>
-             !@   <group>output</group>
-             !@ </inputParameter>
-             call Get_Input_Parameter('outputProjectedDensityRadii',outputProjectedDensityRadii)
+             !# <inputParameter>
+             !#   <name>outputProjectedDensityRadii</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>Specifies the radii at which the projected density will be output.</description>
+             !#   <group>output</group>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
              ! Parse the radii definitions.
              diskIsNeeded                  =.false.
              spheroidIsNeeded              =.false.

@@ -40,6 +40,7 @@ program Tests_Cosmic_Age
        &                                                                           cosmologyFunctionsDarkEnergyOmegaMinusOneThird
   type            (varying_string                    )                          :: parameterFile
   character       (len=1024                          )                          :: message
+  type            (inputParameters                   )                          :: parameters
   integer                                                                       :: iExpansion
   double precision                                                              :: age                                                                                                                                                                             , expansionFactor                                 , &
        &                                                                           expansionFactorSymmetric                                                                                                                                                        , timeTurnaround
@@ -50,7 +51,8 @@ program Tests_Cosmic_Age
   call Unit_Tests_Begin_Group("Cosmic age")
   ! Cosmology functions for in an Einstein-de Sitter universe. For this case, we use the default settings.
   parameterFile='testSuite/parameters/cosmicAge/EdS.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   cosmologyFunctionsDefault => cosmologyFunctions()
   ! Define other cosmological parameters.
   cosmologyParametersOpen                =cosmologyParametersSimple( 0.3d0,0.0d0,0.0d0,2.78d0,10000.0d0)
@@ -106,7 +108,6 @@ program Tests_Cosmic_Age
   end do
   call Unit_Tests_End_Group()
   ! End unit tests.
-  call Input_Parameters_File_Close()
-  call Unit_Tests_End_Group       ()
-  call Unit_Tests_Finish          ()
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish   ()
 end program Tests_Cosmic_Age

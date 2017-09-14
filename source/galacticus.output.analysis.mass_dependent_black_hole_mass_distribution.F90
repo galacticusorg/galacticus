@@ -197,18 +197,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisBlackHoleMassDistributionCovarianceModel</name>
-          !@   <defaultValue>binomial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The model to use when constructing the black hole mass distribution covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisBlackHoleMassDistributionCovarianceModel',analysisBlackHoleMassDistributionCovarianceModelText,defaultValue='Poisson')
+          !# <inputParameter>
+          !#   <name>analysisBlackHoleMassDistributionCovarianceModel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('Poisson')</defaultValue>
+          !#   <description>The model to use when constructing the black hole mass distribution covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>analysisBlackHoleMassDistributionCovarianceModelText</variable>
+          !# </inputParameter>
           select case (char(analysisBlackHoleMassDistributionCovarianceModelText))
           case ( 'Poisson'  )
              analysisBlackHoleMassDistributionCovarianceModel=analysisBlackHoleMassDistributionCovarianceModelPoisson
@@ -217,42 +215,33 @@ contains
           case default
              call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins','unrecognized value for "analysisBlackHoleMassDistributionCovarianceModel" - allowed values are "Poisson", and "binomial"')
           end select
-          !@ <inputParameter>
-          !@   <name>analysisBlackHoleMassDistributionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisBlackHoleMassDistributionsHaloMassBinsPerDecade',analysisBlackHoleMassDistributionsHaloMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisBlackHoleMassDistributionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisBlackHoleMassDistributionsHaloMassMinimum',analysisBlackHoleMassDistributionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisBlackHoleMassDistributionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisBlackHoleMassDistributionsHaloMassMaximum',analysisBlackHoleMassDistributionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisBlackHoleMassDistributionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisBlackHoleMassDistributionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisBlackHoleMassDistributionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisBlackHoleMassDistributionsHaloMassMinimumLogarithmic=    log10( analysisBlackHoleMassDistributionsHaloMassMinimum)
           analysisBlackHoleMassDistributionsHaloMassBinsCount         =int(                                                             &
                &                                                           log10(                                                       &
@@ -308,17 +297,16 @@ contains
                          do k=1,blackHoleDistributionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(blackHoleMassDistributionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(blackHoleDistributionKormendyHo)MassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent black hole mass distribution mass systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),blackHoleDistributions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>blackHoleDistributions(currentAnalysis)%massSystematicCoefficients(k)</variable>
+                            !#   <regEx>(blackHoleDistributionKormendyHo)MassSystematic[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent black hole mass distribution mass systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       if (blackHoleDistributionDescriptors(j)%blackHoleMassSystematicCoefficientCount > 0) then
@@ -326,17 +314,16 @@ contains
                          do k=1,blackHoleDistributionDescriptors(j)%blackHoleMassSystematicCoefficientCount
                             parameterName=trim(blackHoleMassDistributionLabels(j))//'BlackHoleMassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(blackHoleDistributionKormendyHo)BlackHoleMassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent black hole mass distribution blackHoleMass systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),blackHoleDistributions(currentAnalysis)%blackHoleMassSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>blackHoleDistributions(currentAnalysis)%blackHoleMassSystematicCoefficients(k)</variable>
+                            !#   <regEx>(blackHoleDistributionKormendyHo)BlackHoleMassSystematic[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent black hole mass distribution blackHoleMass systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -345,17 +332,16 @@ contains
                          do k=1,blackHoleDistributionDescriptors(j)%massRandomCoefficientCount
                             parameterName=trim(blackHoleMassDistributionLabels(j))//'MassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(blackHoleDistributionKormendyHo)MassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent black hole mass distribution mass random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),blackHoleDistributions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>blackHoleDistributions(currentAnalysis)%massRandomCoefficients(k)</variable>
+                            !#   <regEx>(blackHoleDistributionKormendyHo)MassRandom[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent black hole mass distribution mass random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       if (blackHoleDistributionDescriptors(j)%blackHoleMassRandomCoefficientCount > 0) then
@@ -363,17 +349,16 @@ contains
                          do k=1,blackHoleDistributionDescriptors(j)%blackHoleMassRandomCoefficientCount
                             parameterName=trim(blackHoleMassDistributionLabels(j))//'BlackHoleMassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarBlackHoleMassDistribution|sdssGasBlackHoleMassDistribution)Z[0-9\.]+BlackHoleMassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent blackHoleMass distribution blackHoleMass random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),blackHoleDistributions(currentAnalysis)%blackHoleMassRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>blackHoleDistributions(currentAnalysis)%blackHoleMassRandomCoefficients(k)</variable>
+                            !#   <regEx>(sdssStellarBlackHoleMassDistribution|sdssGasBlackHoleMassDistribution)Z[0-9\.]+BlackHoleMassRandom[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent blackHoleMass distribution blackHoleMass random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read the appropriate observational data definition.

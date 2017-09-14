@@ -52,30 +52,24 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical (Merger_Tree_Dump_Evolution)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>mergerTreeEvolutionDump</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not to output the evolution of merger trees.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeEvolutionDump',mergerTreeEvolutionDump,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeEvolutionDumpFileName</name>
-          !@   <defaultValue>mergerTreeEvolution.xml</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies the file to which merger tree evolution should be dumped.
-          !@   </description>
-          !@   <type>text</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeEvolutionDumpFileName',mergerTreeEvolutionDumpFileName,defaultValue="mergerTreeEvolution.xml")
+          !# <inputParameter>
+          !#   <name>mergerTreeEvolutionDump</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not to output the evolution of merger trees.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>mergerTreeEvolutionDumpFileName</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('mergerTreeEvolution.xml')</defaultValue>
+          !#   <description>Specifies the file to which merger tree evolution should be dumped.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>text</type>
+          !# </inputParameter>
           ! Open a file for output.
           if (mergerTreeEvolutionDump)  then
              open(newUnit=mergerTreeEvolutionDumpFileUnit,file=char(mergerTreeEvolutionDumpFileName),status='unknown',form='formatted')

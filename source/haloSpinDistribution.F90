@@ -23,7 +23,6 @@ program haloSpinDistributions
   use Galacticus_Error
   use Galacticus_Nodes
   use Input_Parameters
-  use Input_Parameters2
   use Memory_Management
   use Functions_Global_Utilities
   use IO_HDF5
@@ -44,6 +43,7 @@ program haloSpinDistributions
   character       (len=fileNameLengthMaximum     )                              :: fileCharacter
   type            (varying_string                )                              :: outputFileName            , parameterFileName
   type            (hdf5Object                    )                              :: outputFile
+  type            (inputParameters               )                              :: parameters
   integer                                                                       :: iOutput                   , spinCount          , &
        &                                                                           iSpin
   double precision                                                              :: spinMinimum               , spinMaximum        , &
@@ -62,7 +62,8 @@ program haloSpinDistributions
   ! Open the output file.
   call outputFile%openFile(char(outputFileName),overWrite=.true.,objectsOverwritable=.false.)
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFileName,outputFile)  
+  parameters=inputParameters(parameterFileName,outputParametersGroup=outputFile)
+  call parameters%markGlobal()
   ! Initialize nodes and components.
   call nodeClassHierarchyInitialize()
   call Node_Components_Initialize  ()
@@ -154,8 +155,7 @@ program haloSpinDistributions
   call outputFile%writeDataset(outputRedshifts ,'redshift'    ,'Redshifts at which the spin distribution is tabulated.')
   call outputFile%writeDataset(spin            ,'spin'        ,'Spins at which the spin distribution is tabulated.'    )
   call outputFile%writeDataset(spinDistribution,'distribution','Spin parameter distribution.'                          )
-  ! Close the parameter file.
-  call Input_Parameters_File_Close()
   ! Close the output file.
-  call outputFile%close()
+  call parameters%destroy()
+  call outputFile%close  ()
 end program haloSpinDistributions

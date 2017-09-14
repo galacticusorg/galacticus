@@ -31,18 +31,15 @@ double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
      !$omp critical (Node_Component_Black_Hole_Simple_Seed_Mass)
      if (.not.functionInitialized) then
         ! Get the black hole seed mass.
-        !@ <inputParameter>
-        !@   <name>blackHoleSeedMass</name>
-        !@   <defaultValue>100</defaultValue>
-        !@   <attachedTo>module</attachedTo>
-        !@   <description>
-        !@     The mass of the seed black hole placed at the center of each newly formed galaxy.
-        !@   </description>
-        !@   <type>real</type>
-        !@   <cardinality>1</cardinality>
-        !@   <group>blackHoles</group>
-        !@ </inputParameter>
-        call Get_Input_Parameter("blackHoleSeedMass",blackHoleSeedMass,defaultValue=100.0d0)
+        !# <inputParameter>
+        !#   <name>blackHoleSeedMass</name>
+        !#   <source>globalParameters</source>
+        !#   <defaultValue>100.0d0</defaultValue>
+        !#   <description>The mass of the seed black hole placed at the center of each newly formed galaxy.</description>
+        !#   <type>real</type>
+        !#   <cardinality>1</cardinality>
+        !#   <group>blackHoles</group>
+        !# </inputParameter>
         ! Record that the function is now initialized.
         functionInitialized=.true.
      end if

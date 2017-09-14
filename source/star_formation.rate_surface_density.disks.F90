@@ -52,18 +52,15 @@ contains
        !$omp critical(Star_Formation_Rate_Surface_Density_Disks_Initialization)
        if (.not.moduleInitialized) then
           ! Get the disk star formation timescale method parameter.
-          !@ <inputParameter>
-          !@   <name>starFormationRateSurfaceDensityDisksMethod</name>
-          !@   <defaultValue>KMT09</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for computing star formation timescales in disks.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>starFormation</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationRateSurfaceDensityDisksMethod',starFormationRateSurfaceDensityDisksMethod,defaultValue='KMT09')
+          !# <inputParameter>
+          !#   <name>starFormationRateSurfaceDensityDisksMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('KMT09')</defaultValue>
+          !#   <description>The name of the method to be used for computing star formation timescales in disks.</description>
+          !#   <group>starFormation</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="starFormationRateSurfaceDensityDisksMethod" type="functionCall" functionType="void">
           !#  <functionArgs>starFormationRateSurfaceDensityDisksMethod,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get</functionArgs>

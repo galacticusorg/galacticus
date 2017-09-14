@@ -268,18 +268,16 @@ contains
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Initialize)
        if (.not.moduleInitialized) then
-          !@ <inputParameter>
-          !@   <name>analysisMetallicityDistributionCovarianceModel</name>
-          !@   <defaultValue>binomial</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The model to use when constructing the metallicity distribution covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMetallicityDistributionCovarianceModel',analysisMetallicityDistributionCovarianceModelText,defaultValue='Poisson')
+          !# <inputParameter>
+          !#   <name>analysisMetallicityDistributionCovarianceModel</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('Poisson')</defaultValue>
+          !#   <description>The model to use when constructing the metallicity distribution covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !#   <variable>analysisMetallicityDistributionCovarianceModelText</variable>
+          !# </inputParameter>
           select case (char(analysisMetallicityDistributionCovarianceModelText))
           case ( 'Poisson'  )
              analysisMetallicityDistributionCovarianceModel=analysisMetallicityDistributionCovarianceModelPoisson
@@ -288,42 +286,33 @@ contains
           case default
              call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unrecognized value for "analysisMetallicityDistributionCovarianceModel" - allowed values are "Poisson", and "binomial"')
           end select
-          !@ <inputParameter>
-          !@   <name>analysisMetallicityDistributionsHaloMassBinsPerDecade</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMetallicityDistributionsHaloMassBinsPerDecade',analysisMetallicityDistributionsHaloMassBinsPerDecade,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>analysisMetallicityDistributionsHaloMassMinimum</name>
-          !@   <defaultValue>$10^8M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMetallicityDistributionsHaloMassMinimum',analysisMetallicityDistributionsHaloMassMinimum,defaultValue=1.0d8)
-          !@ <inputParameter>
-          !@   <name>analysisMetallicityDistributionsHaloMassMaximum</name>
-          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('analysisMetallicityDistributionsHaloMassMaximum',analysisMetallicityDistributionsHaloMassMaximum,defaultValue=1.0d16)
+          !# <inputParameter>
+          !#   <name>analysisMetallicityDistributionsHaloMassBinsPerDecade</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>10</defaultValue>
+          !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMetallicityDistributionsHaloMassMinimum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d8</defaultValue>
+          !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>analysisMetallicityDistributionsHaloMassMaximum</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>1.0d16</defaultValue>
+          !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           analysisMetallicityDistributionsHaloMassMinimumLogarithmic        =     log10( analysisMetallicityDistributionsHaloMassMinimum)
           analysisMetallicityDistributionsHaloMassBinsCount                 =int(                                                             &
                &                                                                  log10(                                                      &
@@ -389,17 +378,16 @@ contains
                          do k=1,metallicityDistributionDescriptors(j)%massSystematicCoefficientCount
                             parameterName=trim(metallicityDistributionLabels(j))//'MassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution mass systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),metallicityDistributions(currentAnalysis)%massSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>metallicityDistributions(currentAnalysis)%massSystematicCoefficients(k)</variable>
+                            !#   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MassSystematic[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution mass systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       if (metallicityDistributionDescriptors(j)%metallicityMassSystematicCoefficientCount > 0) then
@@ -407,17 +395,16 @@ contains
                          do k=1,metallicityDistributionDescriptors(j)%metallicityMassSystematicCoefficientCount
                             parameterName=trim(metallicityDistributionLabels(j))//'MetallicityMassSystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MetallicityMassSystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution metallicity systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),metallicityDistributions(currentAnalysis)%metallicityMassSystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>metallicityDistributions(currentAnalysis)%metallicityMassSystematicCoefficients(k)</variable>
+                            !#   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MetallicityMassSystematic[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution metallicity systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       if (metallicityDistributionDescriptors(j)%metallicityMetallicitySystematicCoefficientCount > 0) then
@@ -425,17 +412,16 @@ contains
                          do k=1,metallicityDistributionDescriptors(j)%metallicityMetallicitySystematicCoefficientCount
                             parameterName=trim(metallicityDistributionLabels(j))//'MetallicityMetallicitySystematic'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MetallicityMetallicitySystematic[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution metallicity systematic parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),metallicityDistributions(currentAnalysis)%metallicityMetallicitySystematicCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>metallicityDistributions(currentAnalysis)%metallicityMetallicitySystematicCoefficients(k)</variable>
+                            !#   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MetallicityMetallicitySystematic[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution metallicity systematic parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -444,17 +430,16 @@ contains
                          do k=1,metallicityDistributionDescriptors(j)%massRandomCoefficientCount
                             parameterName=trim(metallicityDistributionLabels(j))//'MassRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MassRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution mass random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),metallicityDistributions(currentAnalysis)%massRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>metallicityDistributions(currentAnalysis)%massRandomCoefficients(k)</variable>
+                            !#   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MassRandom[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution mass random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read parameters of the random error model.
@@ -463,17 +448,16 @@ contains
                          do k=1,metallicityDistributionDescriptors(j)%metallicityRandomCoefficientCount
                             parameterName=trim(metallicityDistributionLabels(j))//'MetallicityRandom'
                             parameterName=parameterName//(k-1)
-                            !@ <inputParameter>
-                            !@   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MetallicityRandom[0-9]+</regEx>
-                            !@   <defaultValue>0</defaultValue>
-                            !@   <attachedTo>module</attachedTo>
-                            !@   <description>
-                            !@     Mass-dependent metallicity distribution metallicity random parameters.
-                            !@   </description>
-                            !@   <type>real</type>
-                            !@   <cardinality>1</cardinality>
-                            !@ </inputParameter>
-                            call Get_Input_Parameter(char(parameterName),metallicityDistributions(currentAnalysis)%metallicityRandomCoefficients(k),defaultValue=0.0d0)
+                            !# <inputParameter>
+                            !#   <name>char(parameterName)</name>
+                            !#   <variable>metallicityDistributions(currentAnalysis)%metallicityRandomCoefficients(k)</variable>
+                            !#   <regEx>(sdssStellarMetallicityDistribution|sdssGasMetallicityDistribution)Z[0-9\.]+MetallicityRandom[0-9]+</regEx>
+                            !#   <source>globalParameters</source>
+                            !#   <defaultValue>0.0d0</defaultValue>
+                            !#   <description>Mass-dependent metallicity distribution metallicity random parameters.</description>
+                            !#   <type>real</type>
+                            !#   <cardinality>1</cardinality>
+                            !# </inputParameter>
                          end do
                       end if
                       ! Read the appropriate observational data definition.

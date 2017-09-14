@@ -61,7 +61,7 @@ contains
 
   function tinker2008ConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily tinker2008} halo mass function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(haloMassFunctionTinker2008    )                :: tinker2008ConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters

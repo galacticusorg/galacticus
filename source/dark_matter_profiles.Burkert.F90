@@ -160,7 +160,7 @@ contains
 
   function burkertConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileBurkert)                :: self
     type (inputParameters         ), intent(inout) :: parameters

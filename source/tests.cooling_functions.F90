@@ -22,7 +22,7 @@ program Test_Cooling_Functions
   !% Tests cooling function functionality.
   use ISO_Varying_String
   use Memory_Management
-  use Input_Parameters2
+  use Input_Parameters
   use Unit_Tests
   use Galacticus_Input_Paths
   use Cooling_Functions

@@ -45,7 +45,7 @@ contains
   function deltaFunctionConstructorParameters(parameters)
     !% Constructor for the {\normalfont \ttfamily deltaFunction} dark matter halo spin
     !% distribution class which takes a parameter list as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(haloSpinDistributionDeltaFunction)                :: deltaFunctionConstructorParameters
     type(inputParameters                  ), intent(inout) :: parameters

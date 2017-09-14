@@ -125,7 +125,7 @@ contains
 
   function farahiConstructorParameters(parameters) result(self)
     !% Constructor for the Farahi excursion set class first crossing class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (excursionSetFirstCrossingFarahi)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
@@ -159,7 +159,7 @@ contains
 
   function farahiConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Input_Paths
     use Galacticus_Display
     implicit none

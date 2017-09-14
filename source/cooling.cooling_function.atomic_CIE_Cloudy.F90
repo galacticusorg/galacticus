@@ -75,7 +75,7 @@ contains
 
   function atomicCIECloudyConstructorParameters(parameters)
     !% Constructor for the ``atomic CIE Cloudy'' cooling function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: atomicCIECloudyConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters

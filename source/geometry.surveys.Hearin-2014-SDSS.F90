@@ -47,7 +47,7 @@ contains
 
   function hearin2014SDSSConstructorParameters(parameters) result(self)
     !% Default constructor for the \cite{hearin_dark_2013} conditional mass function class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (surveyGeometryHearin2014SDSS)                :: self
     type (inputParameters             ), intent(inout) :: parameters

@@ -37,6 +37,7 @@ program Tests_Sigma
   integer                                                               :: iMass
   double precision                                                      :: mass8                         , radius8            , &
        &                                                                   sigma8
+  type            (inputParameters              )                       :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.sigma.size')
@@ -46,7 +47,8 @@ program Tests_Sigma
 
   ! Open the parameter file.
   parameterFile='parameters.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Create an array of masses.
   mass=Make_Range(massMinimum,massMaximum,massCount,rangeType=rangeTypeLogarithmic)
@@ -67,12 +69,7 @@ program Tests_Sigma
   mass8=4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
   sigma8=cosmologicalMassVariance_%rootVariance(mass8)
   call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVariance_%sigma8(),relTol=2.5d-6)
-
-  ! Close the input parameter file.
-  call Input_Parameters_File_Close
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Tests_Sigma

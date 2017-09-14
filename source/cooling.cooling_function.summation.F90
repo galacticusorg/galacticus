@@ -49,7 +49,7 @@ contains
 
   function summationConstructorParameters(parameters)
     !% Constructor for the ``summation'' cooling function class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (coolingFunctionSummation)                :: summationConstructorParameters
     type   (inputParameters         ), intent(inout) :: parameters
@@ -220,7 +220,7 @@ contains
 
   subroutine summationDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
+    use Input_Parameters
     use FoX_DOM
     implicit none
     class  (coolingFunctionSummation), intent(inout)           :: self

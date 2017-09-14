@@ -38,7 +38,7 @@ contains
     !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class which takes a parameter set as input.
     use Cosmology_Parameters
     use Cosmology_Functions
-    use Input_Parameters2
+    use Input_Parameters
     use Output_Analysis_Molecular_Ratios
     implicit none
     type            (outputAnalysisHIVsHaloMassRelationPadmanabhan2017)                              :: self

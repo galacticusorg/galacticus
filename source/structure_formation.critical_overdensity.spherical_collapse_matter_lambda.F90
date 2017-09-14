@@ -65,7 +65,7 @@ contains
   function sphericalCollapseMatterLambdaConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class
     !% which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Error
     implicit none
     type (criticalOverdensitySphericalCollapseMatterLambda)                :: self

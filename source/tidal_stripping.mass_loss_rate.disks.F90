@@ -51,17 +51,14 @@ contains
        !$omp critical(Tidal_Stripping_Mass_Loss_Rate_Disk_Init)
        if (.not.moduleInitialized) then
           ! Get the tidal stripping mass loss rate method parameter.
-          !@ <inputParameter>
-          !@   <name>tidalStrippingMassLossRateDisksMethod</name>
-          !@   <defaultValue>null</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used when computing mass loss rates from disks due to tidal stripping.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('tidalStrippingMassLossRateDisksMethod',tidalStrippingMassLossRateDisksMethod,defaultValue='null')
+          !# <inputParameter>
+          !#   <name>tidalStrippingMassLossRateDisksMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('null')</defaultValue>
+          !#   <description>The name of the method to be used when computing mass loss rates from disks due to tidal stripping.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="tidalStrippingMassLossRateDisksMethod" type="functionCall" functionType="void">
           !#  <functionArgs>tidalStrippingMassLossRateDisksMethod,Tidal_Stripping_Mass_Loss_Rate_Disk_Get</functionArgs>

@@ -118,44 +118,42 @@ CODE
 	$dependencyFileName =~ s/$ENV{'BUILDPATH'}\/(.*)\.o$/$1/;       
 	# Scan the file for default parameter values.
 	my $sourceFile = $sourceDirectory."/".$dependencyFileName.".F90";	
-	unless ( $dependencyFileName eq "utility.input_parameters" ) {
-	    # Extract default values for all parameters defined in this file.
-	    map {
-		$_->{'submatches'}->[1] =~ s/^\s*//;
-		$_->{'submatches'}->[1] =~ s/\s*$//;
-		$_->{'submatches'}->[1] =~ s/^'(.*)'$/$1/;
-		$_->{'submatches'}->[1] =~ s/'/''/g;
-		$defaultValues{$_->{'submatches'}->[0]} = $_->{'submatches'}->[1];
-	    } &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/Get_Input_Parameter\s*\(\s*'([^']*)'.*defaultValue\s*=\s*(.*)[,\)]/);
-	    # Locate and process any new-style method definitions.
-	    foreach my $include ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"include",conditions => {type => "function"}) ) {
-		# Add any files implementing this method to the list of dependencies.
-		push(
-		    @dependencyFileStack,
-		    map
-		    {$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
-		    &List::ExtraUtils::as_array($codeDirectiveLocations->{$include->{'directive'}}->{'file'})
-		    );
-	        # Extract and store the default implementation for this method.
-		$defaultValues{$include->{'directive'}."Method"} = $include->{'default'};
-		# Add this method to the list of method directives to watch.
-		push(@directives,$include->{'directive'});
- 	    }
-	    # Locate and process any preprocessor functionClass directives.
-	    foreach my $functionClass ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"functionClass") ) {
-		# Add any files implementing this method to the list of dependencies.
-		push(
-		    @dependencyFileStack,
-		    map
-		    {$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
-		    &List::ExtraUtils::as_array($codeDirectiveLocations->{$functionClass->{'name'}}->{'file'})
-		    );
-	        # Extract and store the default implementation for this method.
-		$defaultValues{$functionClass->{'name'}."Method"} = $functionClass->{'default'};
-		# Add this method to the list of method directives to watch.
-		push(@directives,$functionClass->{'name'});
- 	    }
-	}		
+	# Extract default values for all parameters defined in this file.
+	map {
+	    $_->{'submatches'}->[1] =~ s/^\s*//;
+	    $_->{'submatches'}->[1] =~ s/\s*$//;
+	    $_->{'submatches'}->[1] =~ s/^'(.*)'$/$1/;
+	    $_->{'submatches'}->[1] =~ s/'/''/g;
+	    $defaultValues{$_->{'submatches'}->[0]} = $_->{'submatches'}->[1];
+	} &Fortran::Utils::Get_Matching_Lines($sourceFile,qr/Get_Input_Parameter\s*\(\s*'([^']*)'.*defaultValue\s*=\s*(.*)[,\)]/);
+	# Locate and process any new-style method definitions.
+	foreach my $include ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"include",conditions => {type => "function"}) ) {
+	    # Add any files implementing this method to the list of dependencies.
+	    push(
+		@dependencyFileStack,
+		map
+		{$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
+		&List::ExtraUtils::as_array($codeDirectiveLocations->{$include->{'directive'}}->{'file'})
+		);
+	    # Extract and store the default implementation for this method.
+	    $defaultValues{$include->{'directive'}."Method"} = $include->{'default'};
+	    # Add this method to the list of method directives to watch.
+	    push(@directives,$include->{'directive'});
+	}
+	# Locate and process any preprocessor functionClass directives.
+	foreach my $functionClass ( &Galacticus::Build::Directives::Extract_Directives($sourceFile,"functionClass") ) {
+	    # Add any files implementing this method to the list of dependencies.
+	    push(
+		@dependencyFileStack,
+		map
+		{$_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/; $_;}
+		&List::ExtraUtils::as_array($codeDirectiveLocations->{$functionClass->{'name'}}->{'file'})
+		);
+	    # Extract and store the default implementation for this method.
+	    $defaultValues{$functionClass->{'name'}."Method"} = $functionClass->{'default'};
+	    # Add this method to the list of method directives to watch.
+	    push(@directives,$functionClass->{'name'});
+	}
     }
     # Construct dependencies between new-style method implementations.
     foreach my $directive ( @directives ) {
@@ -283,7 +281,8 @@ CODE
 		    } else {
 			# Determine the default value for this parameter.
 			my $defaultValue = exists($defaultValues{$directive->{'name'}}) ? $defaultValues{$directive->{'name'}} : "";
-			$defaultValue = "var_str('".$defaultValue."')"
+			my $delim = $defaultValue =~ m/'/ ? "\"" : "'";
+			$defaultValue = "var_str(".$delim.$defaultValue.$delim.")"
 			    unless ( $defaultValue =~ m/^var_str/ );
 			# Check for a sub-parameter.
 			if ( exists($directive->{'source'}) && $directive->{'source'} eq "parameters" ) {
@@ -357,9 +356,12 @@ CODE
 	    if ( $hasParameters ) {
 		if ( $testMethodParameter ) {
 		    my $defaultValue  = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
+		    my $delim = $defaultValue =~ m/'/ ? "\"" : "'";
+		    $defaultValue = "var_str(".$delim.$defaultValue.$delim.")"
+			unless ( $defaultValue =~ m/^var_str/ );
  		    $definitionCode  .=
 <<CODE;
-  call globalParameters%value('$methodParameter',parameterValue,defaultValue=var_str('$defaultValue'),writeOutput=.false.)
+  call globalParameters%value('$methodParameter',parameterValue,defaultValue=$defaultValue,writeOutput=.false.)
   if (parameterValue == '$methodValue') then
 $moduleCode  end if
 CODE

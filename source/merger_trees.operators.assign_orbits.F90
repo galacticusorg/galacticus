@@ -38,7 +38,7 @@ contains
 
   function assignOrbitsConstructorParameters(parameters)
     !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(mergerTreeOperatorAssignOrbits)                :: assignOrbitsConstructorParameters
     type(inputParameters               ), intent(inout) :: parameters

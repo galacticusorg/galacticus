@@ -43,7 +43,7 @@ contains
 
   function obreschkow2009ConstructorParameters(parameters) result(self)
     !% Constructor for the ``obreschkow2009'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisMolecularRatioObreschkow2009)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
@@ -134,7 +134,7 @@ contains
 
   function obreschkow2009ConstructorInternal(K,fSigma,A1,A2,alpha1,alpha2,beta,scatter) result (self)
     !% Internal constructor for the ``obreschkow2009'' output analysis distribution operator class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisMolecularRatioObreschkow2009)                :: self
     double precision                                            , intent(in   ) :: K     , fSigma , &

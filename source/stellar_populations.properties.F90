@@ -60,17 +60,14 @@ contains
        !$omp critical(Stellar_Population_Properties_Rates_Initialization)
        if (.not.stellarPopulationPropertiesInitialized) then
           ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>stellarPopulationPropertiesMethod</name>
-          !@   <defaultValue>instantaneous</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The method to use for computing properties of stellar populations.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarPopulationPropertiesMethod',stellarPopulationPropertiesMethod,defaultValue='instantaneous')
+          !# <inputParameter>
+          !#   <name>stellarPopulationPropertiesMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('instantaneous')</defaultValue>
+          !#   <description>The method to use for computing properties of stellar populations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="stellarPopulationPropertiesMethod" type="functionCall" functionType="void">
           !#  <functionArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</functionArgs>

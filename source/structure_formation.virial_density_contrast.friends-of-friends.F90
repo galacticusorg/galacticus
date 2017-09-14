@@ -40,7 +40,7 @@ contains
   
   function friendsOfFriendsConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily friendsOfFriends} dark matter halo virial density contrast class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (virialDensityContrastFriendsOfFriends)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters

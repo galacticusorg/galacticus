@@ -94,7 +94,7 @@ contains
 
   function heatedConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (darkMatterProfileHeated       )                :: self    
     type   (inputParameters               ), intent(inout) :: parameters

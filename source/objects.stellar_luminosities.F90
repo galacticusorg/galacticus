@@ -296,23 +296,23 @@ contains
        !$omp critical (Stellar_Luminosities_Initialize)
        if (.not.luminositiesInitialized) then
           ! Get luminosity output option.
-          !@ <inputParameter>
-          !@   <name>luminosityOutputOption</name>
-          !@   <defaultValue>present</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Selects which luminosities will be output at each output time:
-          !@     \begin{description}
-          !@     \item [all] Output all luminosities;
-          !@     \item [future] Output only those luminosities computed for the present output or future times;
-          !@     \item [present] Output only those luminosities computed for the present output time.
-          !@     \end{description}
-          !@   </description>
-          !@   <type>integer</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('luminosityOutputOption',luminosityOutputOptionText,defaultValue="present")
+          !# <inputParameter>
+          !#   <name>luminosityOutputOption</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('present')</defaultValue>
+          !#   <description>
+          !#      Selects which luminosities will be output at each output time:
+          !#      \begin{description}
+          !#      \item [all] Output all luminosities;
+          !#      \item [future] Output only those luminosities computed for the present output or future times;
+          !#      \item [present] Output only those luminosities computed for the present output time.
+          !#      \end{description}
+          !#   </description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>integer</type>
+          !#   <variable>luminosityOutputOptionText</variable>
+          !# </inputParameter>
           select case (char(luminosityOutputOptionText))
           case ("all")
              luminosityOutputOption=luminosityOutputOptionAll
@@ -325,16 +325,16 @@ contains
           end select
 
           ! Read in the parameters which specify the luminosities to be computed.
-          luminosityCount=Get_Input_Parameter_Array_Size('luminosityRedshift')
+          luminosityCount=globalParameters%count('luminosityRedshift',zeroIfNotPresent=.true.)
           luminosityCountUnmapped=luminosityCount
-          if (Get_Input_Parameter_Array_Size('luminosityFilter') /= luminosityCount) call&
+          if (globalParameters%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) call&
                & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityFilter and luminosityRedshift&
                & input arrays must have same dimension')
-          if (Get_Input_Parameter_Array_Size('luminosityType') /= luminosityCount) call&
+          if (globalParameters%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) call&
                & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityType and luminosityRedshift&
                & input arrays must have same dimension')
-          if (Input_Parameter_Is_Present('luminosityBandRedshift')) then
-             if (Get_Input_Parameter_Array_Size('luminosityBandRedshift') /= luminosityCount) call&
+          if (globalParameters%isPresent('luminosityBandRedshift')) then
+             if (globalParameters%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) call&
                   & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityBandRedshift and luminosityRedshift&
                   & input arrays must have same dimension')
           end if
@@ -348,16 +348,14 @@ contains
              allocate(luminosityPostprocessSet(luminosityCount))
              allocate(luminosityRedshiftText  (luminosityCount))
              call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityPostprocessSet),blockCount=4)
-             !@ <inputParameter>
-             !@   <name>luminosityRedshift</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The redshift for which to compute each specified stellar luminosity.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>0..*</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('luminosityRedshift',luminosityRedshiftText)
+             !# <inputParameter>
+             !#   <name>luminosityRedshift</name>
+             !#   <cardinality>0..*</cardinality>
+             !#   <description>The redshift for which to compute each specified stellar luminosity.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !#   <variable>luminosityRedshiftText</variable>
+             !# </inputParameter>
              do iLuminosity=1,size(luminosityRedshiftText)
                 if (luminosityRedshiftText(iLuminosity) /= "all") then
                    redshiftLabel=char(luminosityRedshiftText(iLuminosity))
@@ -368,62 +366,52 @@ contains
                 ! Assign a mapping from initial to final array of luminosities (this is initially an identity mapping).
                 luminosityMap(iLuminosity)=iLuminosity
              end do
-             if (Input_Parameter_Is_Present('luminosityBandRedshift')) then
-                !@ <inputParameter>
-                !@   <name>luminosityBandRedshift</name>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@     If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.
-                !@   </description>
-                !@   <type>real</type>
-                !@   <cardinality>0..*</cardinality>
-                !@ </inputParameter>
-                call Get_Input_Parameter('luminosityBandRedshift',luminosityBandRedshift)
+             if (globalParameters%isPresent('luminosityBandRedshift')) then
+                !# <inputParameter>
+                !#   <name>luminosityBandRedshift</name>
+                !#   <cardinality>0..*</cardinality>
+                !#   <description>If present, force filters to be shifted to this redshift rather than that specified by {\normalfont \ttfamily [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.</description>
+                !#   <source>globalParameters</source>
+                !#   <type>real</type>
+                !# </inputParameter>
              else                
                 luminosityBandRedshift=luminosityRedshift
              end if
-             !@ <inputParameter>
-             !@   <name>luminosityFilter</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The filter name for each stellar luminosity to be computed.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>0..*</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('luminosityFilter'  ,luminosityFilter  )
-             !@ <inputParameter>
-             !@   <name>luminosityType</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The luminosity type for each stellar luminosity to be computed:
-             !@     \begin{description}
-             !@      \item[rest] Compute luminosity in the galaxy rest frame;
-             !@      \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
-             !@                      frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
-             !@                      must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
-             !@                      frequencies.}.
-             !@     \end{description}
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>0..*</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('luminosityType'    ,luminosityType    )
+             !# <inputParameter>
+             !#   <name>luminosityFilter</name>
+             !#   <cardinality>0..*</cardinality>
+             !#   <description>The filter name for each stellar luminosity to be computed.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
+             !# <inputParameter>
+             !#   <name>luminosityType</name>
+             !#   <cardinality>0..*</cardinality>
+             !#   <description>
+             !#      The luminosity type for each stellar luminosity to be computed:
+             !#      \begin{description}
+             !#       \item[rest] Compute luminosity in the galaxy rest frame;
+             !#       \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
+             !#                       frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
+             !#                       must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
+             !#                       frequencies.}.
+             !#      \end{description}
+             !#   </description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
              ! Read postprocessing set information.
-             if (Get_Input_Parameter_Array_Size('luminosityPostprocessSet') > 0) then
-                if (Get_Input_Parameter_Array_Size('luminosityPostprocessSet') /= luminosityCount) call&
+             if (globalParameters%count('luminosityPostprocessSet') > 0) then
+                if (globalParameters%count('luminosityPostprocessSet') /= luminosityCount) call&
                      & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityPostprocessSet and luminosityFilter&
                      & input arrays must have same dimension')
-                !@ <inputParameter>
-                !@   <name>luminosityPostprocessSet</name>
-                !@   <attachedTo>module</attachedTo>
-                !@   <description>
-                !@     The name of the set of postprocessing algorithms to apply to this filter.
-                !@   </description>
-                !@   <type>string</type>
-                !@   <cardinality>0..*</cardinality>
-                !@ </inputParameter>
-                call Get_Input_Parameter('luminosityPostprocessSet',luminosityPostprocessSet)
+                !# <inputParameter>
+                !#   <name>luminosityPostprocessSet</name>
+                !#   <cardinality>0..*</cardinality>
+                !#   <description>The name of the set of postprocessing algorithms to apply to this filter.</description>
+                !#   <source>globalParameters</source>
+                !#   <type>string</type>
+                !# </inputParameter>
              else
                 luminosityPostprocessSet="default"
              end if

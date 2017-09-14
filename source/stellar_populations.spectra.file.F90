@@ -483,7 +483,7 @@ contains
 
   subroutine fileDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
+    use Input_Parameters
     use FoX_DOM
     use Star_Formation_IMF
     implicit none

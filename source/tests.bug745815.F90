@@ -26,11 +26,12 @@ program Tests_Bug745815
   use Galacticus_Nodes
   use Kind_Numbers
   implicit none
-  type   (varying_string)          :: parameterFile
-  type   (treeNodeList  )          :: nodes        (5)
-  logical                          :: nodeFound    (5)
-  type   (treeNode      ), pointer :: thisNode
-  integer(kind=kind_int8)          :: iNode
+  type   (varying_string )          :: parameterFile
+  type   (treeNodeList   )          :: nodes        (5)
+  logical                           :: nodeFound    (5)
+  type   (treeNode       ), pointer :: thisNode
+  integer(kind=kind_int8 )          :: iNode
+  type   (inputParameters)          :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.bug745815.size')
@@ -40,7 +41,8 @@ program Tests_Bug745815
 
   ! Open the parameter file.
   parameterFile='testSuite/parameters/bug745815.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Create nodes.
   do iNode=1,5
@@ -83,9 +85,6 @@ program Tests_Bug745815
   do iNode=1,5
      call nodes(iNode)%node%destroy()
   end do
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

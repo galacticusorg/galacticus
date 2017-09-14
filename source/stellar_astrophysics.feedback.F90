@@ -60,17 +60,14 @@ contains
        !$omp critical(Stellar_Feedback_Initialization)
        if (.not.stellarFeedbackInitialized) then
           ! Get the halo spin distribution method parameter.
-          !@ <inputParameter>
-          !@   <name>stellarFeedbackMethod</name>
-          !@   <defaultValue>standard</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The method to use for computing aspects of stellar feedback.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('stellarFeedbackMethod',stellarFeedbackMethod,defaultValue='standard')
+          !# <inputParameter>
+          !#   <name>stellarFeedbackMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('standard')</defaultValue>
+          !#   <description>The method to use for computing aspects of stellar feedback.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="stellarFeedbackMethod" type="functionCall" functionType="void">
           !#  <functionArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</functionArgs>

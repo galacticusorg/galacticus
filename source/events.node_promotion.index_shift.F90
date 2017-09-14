@@ -50,17 +50,14 @@ contains
     if (.not.indexShiftInitialized) then
        !$omp critical (Node_Promotion_Index_Shift_Initialize)
        if (.not.indexShiftInitialized) then
-          !@ <inputParameter>
-          !@   <name>nodePromotionIndexShift</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    Specifies whether or not the index of a node should be shifted to its parent node prior to promotion.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('nodePromotionIndexShift',nodePromotionIndexShift,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>nodePromotionIndexShift</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not the index of a node should be shifted to its parent node prior to promotion.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Flag that the module is now initialized.
           indexShiftInitialized=.true.
        end if

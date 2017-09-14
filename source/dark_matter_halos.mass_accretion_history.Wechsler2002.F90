@@ -55,30 +55,24 @@ contains
     if (.not.wechsler2002Initialized) then
        !$omp critical(wechsler2002Initialize)
        if (.not.wechsler2002Initialized) then       
-          !@ <inputParameter>
-          !@   <name>accretionHistoryWechslerFormationRedshiftCompute</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories?
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('accretionHistoryWechslerFormationRedshiftCompute',accretionHistoryWechslerFormationRedshiftCompute,defaultValue=.true.)
+          !# <inputParameter>
+          !#   <name>accretionHistoryWechslerFormationRedshiftCompute</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories?</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           if (.not.accretionHistoryWechslerFormationRedshiftCompute) then
              ! In this case, read the formation redshift.
-             !@ <inputParameter>
-             !@   <name>accretionHistoryWechslerFormationRedshift</name>
-             !@   <defaultValue>0.4</defaultValue>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.
-             !@   </description>
-             !@   <type>real</type>
-             !@   <cardinality>1</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('accretionHistoryWechslerFormationRedshift',accretionHistoryWechslerFormationRedshift,defaultValue=0.4d0)             
+             !# <inputParameter>
+             !#   <name>accretionHistoryWechslerFormationRedshift</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>0.4d0</defaultValue>
+             !#   <description>The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>real</type>
+             !# </inputParameter>
           end if
           ! Record that module is now initialized.
           wechsler2002Initialized=.true.

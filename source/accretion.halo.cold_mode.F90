@@ -105,28 +105,26 @@ contains
        !$omp critical(accretionHaloColdModeDefaultInitialize)
        if (.not.coldModeDefaultInitialized) then
           ! Read parameters controlling the cold mode.
-          !@ <inputParameter>
-          !@   <name>accretionColdModeShockStabilityThreshold</name>
-          !@   <defaultValue>0.0126 \citep{birnboim_virial_2003}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The threshold value, $\epsilon_{\mathrm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("accretionColdModeShockStabilityThreshold",coldModeShockStabilityThreshold,defaultValue=0.0126d0)
-          !@ <inputParameter>
-          !@   <name>accretionColdModeShockStabilityTransitionWidth</name>
-          !@   <defaultValue>0.01 \citep{benson_cold_2010}</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter("accretionColdModeShockStabilityTransitionWidth",coldModeShockStabilityTransitionWidth,defaultValue=0.01d0)
+          !# <inputParameter>
+          !#   <name>accretionColdModeShockStabilityThreshold</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>\citep{birnboim_virial_2003}</defaultSource>
+          !#   <defaultValue>0.0126d0</defaultValue>
+          !#   <description>The threshold value, $\epsilon_{\mathrm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>coldModeShockStabilityThreshold</variable>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>accretionColdModeShockStabilityTransitionWidth</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultSource>\citep{benson_cold_2010}</defaultSource>
+          !#   <defaultValue>0.01d0</defaultValue>
+          !#   <description>The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>coldModeShockStabilityTransitionWidth</variable>
+          !# </inputParameter>
           ! Record that class is now initialized.
           coldModeDefaultInitialized=.true.
        end if

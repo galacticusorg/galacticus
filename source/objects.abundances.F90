@@ -296,27 +296,20 @@ contains
        !$omp critical (Abundances_Module_Initialize)
        if (.not.abundancesInitialized) then
           ! Determine how many elements we are required to track.
-          if (Input_Parameter_Is_Present('elementsToTrack')) then
-             elementsCount=Get_Input_Parameter_Array_Size('elementsToTrack')
-          else
-             elementsCount=0
-          end if
+          elementsCount=globalParameters%count('elementsToTrack',zeroIfNotPresent=.true.)
           ! Number of properties to track is one greater, as we always track total metallicity.
           propertyCount=elementsCount+1
           ! If tracking elements, read names of which ones to track.
           if (elementsCount > 0) then
              call allocateArray(elementsToTrack,[elementsCount])
              call allocateArray(elementsIndices,[elementsCount])
-             !@ <inputParameter>
-             !@   <name>elementsToTrack</name>
-             !@   <attachedTo>module</attachedTo>
-             !@   <description>
-             !@     The names of the elements to be tracked.
-             !@   </description>
-             !@   <type>string</type>
-             !@   <cardinality>1..*</cardinality>
-             !@ </inputParameter>
-             call Get_Input_Parameter('elementsToTrack',elementsToTrack)
+             !# <inputParameter>
+             !#   <name>elementsToTrack</name>
+             !#   <cardinality>1..*</cardinality>
+             !#   <description>The names of the elements to be tracked.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
              ! Validate the input names by looking them up in the list of atomic names.
              do iElement=1,elementsCount
                 elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))

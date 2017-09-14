@@ -38,7 +38,7 @@ contains
 
   function massFunctionHIALFALFAMartin2010ConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Output_Analysis_Molecular_Ratios
     implicit none
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010)                              :: self
@@ -117,7 +117,7 @@ contains
 
   function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class for internal use.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Input_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters

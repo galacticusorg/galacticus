@@ -37,7 +37,7 @@ contains
   function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters(parameters) result (self)
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class which takes a parameter set as input.
     use Cosmology_Functions
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters

@@ -54,39 +54,30 @@ contains
     !$omp critical (Meta_Profile_Record)
     if (.not.metaProfileInitialized) then
        ! Get parameters controlling profiling.
-       !@ <inputParameter>
-       !@   <name>metaProfileTimeStepMinimum</name>
-       !@   <defaultValue>$10^{-6}$ Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The smallest timestep to use in profiling ODE solver steps.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('metaProfileTimeStepMinimum',metaProfileTimeStepMinimum,defaultValue=1.0d-6)
-       !@ <inputParameter>
-       !@   <name>metaProfileTimeStepMaximum</name>
-       !@   <defaultValue>$10$ Gyr</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The largest timestep to use in profiling ODE solver steps.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('metaProfileTimeStepMaximum',metaProfileTimeStepMaximum,defaultValue=1.0d+1)
-       !@ <inputParameter>
-       !@   <name>metaProfileTimeStepPointsPerDecade</name>
-       !@   <defaultValue>3</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The number of bins per decade of timestep to use when profiling ODE solver steps.
-       !@   </description>
-       !@   <type>integer</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('metaProfileTimeStepPointsPerDecade',metaProfileTimeStepPointsPerDecade,defaultValue=3)
+       !# <inputParameter>
+       !#   <name>metaProfileTimeStepMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-6</defaultValue>
+       !#   <description>The smallest timestep to use in profiling ODE solver steps.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>metaProfileTimeStepMaximum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d+1</defaultValue>
+       !#   <description>The largest timestep to use in profiling ODE solver steps.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>metaProfileTimeStepPointsPerDecade</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>3</defaultValue>
+       !#   <description>The number of bins per decade of timestep to use when profiling ODE solver steps.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>integer</type>
+       !# </inputParameter>
        ! Create an array of timesteps.
        metaProfileTimeStepPoints=int(log10(metaProfileTimeStepMaximum/metaProfileTimeStepMinimum)*dble(metaProfileTimeStepPointsPerDecade))+1
        call allocateArray(metaProfileTimeStep     ,[metaProfileTimeStepPoints])

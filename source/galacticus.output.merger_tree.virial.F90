@@ -43,18 +43,15 @@ contains
     if (.not.outputVirialDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Virial_Initialize)
        if (.not.outputVirialDataInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputVirialData</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not virial data (radius, velocity) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputVirialData',outputVirialData,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputVirialData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not virial data (radius, velocity) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
 
           ! Flag that module is now initialized.
           outputVirialDataInitialized=.true.

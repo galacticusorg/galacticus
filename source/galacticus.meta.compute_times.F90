@@ -55,17 +55,14 @@ contains
        !$omp critical(Galacticus_Time_Per_Tree_Initialization)
        if (.not.metaComputeTimesInitialized) then
           ! Get the time per tree method parameter.
-          !@ <inputParameter>
-          !@   <name>timePerTreeMethod</name>
-          !@   <defaultValue>file</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <type>string</type>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>
-          !@     The name of the method to be used for computing the time per tree.
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('timePerTreeMethod',timePerTreeMethod,defaultValue='file')
+          !# <inputParameter>
+          !#   <name>timePerTreeMethod</name>
+          !#   <cardinality>0..1</cardinality>
+          !#   <defaultValue>var_str('file')</defaultValue>
+          !#   <description>The name of the method to be used for computing the time per tree.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="timePerTreeMethod" type="functionCall" functionType="void">
           !#  <functionArgs>timePerTreeMethod,Galacticus_Time_Per_Tree_Get</functionArgs>

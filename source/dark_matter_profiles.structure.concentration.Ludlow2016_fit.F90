@@ -50,7 +50,7 @@ contains
 
   function ludlow2016FitConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileConcentrationLudlow2016Fit)                :: self
     type (inputParameters                            ), intent(inout) :: parameters

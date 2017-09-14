@@ -47,7 +47,7 @@ contains
 
   function sequenceConstructorParameters(parameters)
     !% Constructor for the sequence merger tree operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (mergerTreeOperatorSequence)                :: sequenceConstructorParameters
     type   (inputParameters           ), intent(inout) :: parameters

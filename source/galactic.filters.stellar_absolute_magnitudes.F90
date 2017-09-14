@@ -42,7 +42,7 @@ contains
 
   function stellarAbsoluteMagnitudesConstructorParameters(parameters)
     !% Constructor for the ``stellarAbsoluteMagnitudes'' galactic filter class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Stellar_Luminosities_Structure
     use Memory_Management
     use Galacticus_Error

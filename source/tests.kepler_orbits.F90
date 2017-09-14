@@ -25,9 +25,10 @@ program Tests_Kepler_Orbits
   use Kepler_Orbits
   use Numerical_Constants_Physical
   implicit none
-  type            (varying_string) :: parameterFile
-  type            (keplerOrbit   ) :: thisOrbit
-  double precision                 :: valueActual  , valueExpected, velocityScale
+  type            (varying_string ) :: parameterFile
+  type            (keplerOrbit    ) :: thisOrbit
+  double precision                  :: valueActual  , valueExpected, velocityScale
+  type            (inputParameters) :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.kepler_orbits.size')
@@ -37,7 +38,8 @@ program Tests_Kepler_Orbits
 
   ! Open the parameter file.
   parameterFile='parameters.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
 
   ! Compute velocity scale for unit mass and radius.
   velocityScale=sqrt(gravitationalConstantGalacticus)
@@ -128,9 +130,6 @@ program Tests_Kepler_Orbits
   valueActual  =thisOrbit%semiMajorAxis     ()
   valueExpected=1.0d0
   call Assert('Semi-major axis of circular orbit'    ,valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
-
-  ! Close the parameter file.
-  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -54,17 +54,14 @@ contains
        if (.not.satelliteTidalStrippingRateInitialized) then
           
           ! Get the satellite tidal stripping method.
-          !@ <inputParameter>
-          !@   <name>satelliteTidalStrippingMethod</name>
-          !@   <defaultValue>Zentner2005</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used to compute satellite tidal stripping rate.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteTidalStrippingMethod',satelliteTidalStrippingMethod,defaultValue='Zentner2005')
+          !# <inputParameter>
+          !#   <name>satelliteTidalStrippingMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Zentner2005')</defaultValue>
+          !#   <description>The name of the method to be used to compute satellite tidal stripping rate.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satelliteTidalStrippingMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satelliteTidalStrippingMethod,Satellite_Tidal_Stripping_Rate_Get</functionArgs>

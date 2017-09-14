@@ -27,7 +27,7 @@ program Test_Parameters
   use IO_HDF5
   use ISO_Varying_String
   use Memory_Management
-  use Input_Parameters2
+  use Input_Parameters
   use Cosmology_Parameters
   implicit none
   type   (hdf5Object              )               :: outputFile

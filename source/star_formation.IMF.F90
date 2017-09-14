@@ -23,7 +23,7 @@ module Star_Formation_IMF
   use ISO_Varying_String
   use Abundances_Structure
   use Input_Parameters
-  use Input_Parameters2
+  use Input_Parameters
   !# <include directive="imfRegister" type="moduleUse">
   include 'star_formation.IMF.register.modules.inc'
   !# </include>
@@ -255,18 +255,15 @@ contains
           !# </include>
 
           ! Register the IMF selection method.
-          !@ <inputParameter>
-          !@   <name>imfSelectionMethod</name>
-          !@   <defaultValue>fixed</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used for selecting which \gls{imf} to use.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('imfSelectionMethod',imfSelectionMethod,defaultValue='fixed')
+          !# <inputParameter>
+          !#   <name>imfSelectionMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('fixed')</defaultValue>
+          !#   <description>The name of the method to be used for selecting which \gls{imf} to use.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="imfSelectionMethod" type="functionCall" functionType="void">
           !#  <functionArgs>imfSelectionMethod,IMF_Select_Do,IMF_Is_Star_Formation_Rate_Dependent_Do,imfNames</functionArgs>
@@ -276,42 +273,33 @@ contains
                &,'method '//char(imfSelectionMethod)//' is unrecognized')
 
           ! Get options controlling the instantaneous stellar evolution approximation.
-          !@ <inputParameter>
-          !@   <name>starFormationImfInstantaneousApproximation</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Option controlling whether stellar evolution should follow the instantaneous approximation.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationImfInstantaneousApproximation',starFormationImfInstantaneousApproximation,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>starFormationImfInstantaneousApproximationMassLongLived</name>
-          !@   <defaultValue>$1M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationImfInstantaneousApproximationMassLongLived',starFormationImfInstantaneousApproximationMassLongLived,defaultValue=1.0d0)
-          !@ <inputParameter>
-          !@   <name>starFormationImfInstantaneousApproximationEffectiveAge</name>
-          !@   <defaultValue>$13.8$Gyr</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>initialMassFunction</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('starFormationImfInstantaneousApproximationEffectiveAge',starFormationImfInstantaneousApproximationEffectiveAge,defaultValue=13.8d0)
+          !# <inputParameter>
+          !#   <name>starFormationImfInstantaneousApproximation</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Option controlling whether stellar evolution should follow the instantaneous approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>starFormationImfInstantaneousApproximationMassLongLived</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d0</defaultValue>
+          !#   <description>The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>starFormationImfInstantaneousApproximationEffectiveAge</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>13.8d0</defaultValue>
+          !#   <description>The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.</description>
+          !#   <group>initialMassFunction</group>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
 
           ! Get a count of the number of individual elements that must be tracked.
           elementCount=Abundances_Property_Count()

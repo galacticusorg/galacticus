@@ -37,7 +37,7 @@ contains
 
   function antiLog10ConstructorParameters(parameters)
     !% Constructor for the ``antiLog10'' output analysis property operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type(outputAnalysisPropertyOperatorAntiLog10)                :: antiLog10ConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters

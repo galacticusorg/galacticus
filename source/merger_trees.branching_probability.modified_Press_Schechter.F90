@@ -115,90 +115,64 @@ contains
     if (.not.parametersRead) then
        !$omp critical(Modified_Press_Schechter_Branching_Parameters)
        if (.not.parametersRead) then
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterG0</name>
-          !@   <defaultValue>0.57</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterG0'                ,modifiedPressSchechterG0                ,defaultValue=&
-               & 0.57d0)
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterGamma1</name>
-          !@   <defaultValue>0.38</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterGamma1'            ,modifiedPressSchechterGamma1            ,defaultValue=&
-               & 0.38d0)
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterGamma2</name>
-          !@   <defaultValue>-0.01</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@    The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterGamma2'            ,modifiedPressSchechterGamma2            ,defaultValue=&
-               &-0.01d0)
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterFirstOrderAccuracy</name>
-          !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
-          !@     algorithm, so that it never exceeds {\normalfont \ttfamily
-          !@     modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterFirstOrderAccuracy',modifiedPressSchechterFirstOrderAccuracy,defaultValue &
-               &=0.1d0)
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterHypergeometricPrecision</name>
-          !@   <defaultValue>$10^{-6}$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterHypergeometricPrecision',modifiedPressSchechterHypergeometricPrecision,defaultValue &
-               &=1.0d-6)
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterTabulateHypergeometricFactors</name>
-          !@   <defaultValue>true</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterTabulateHypergeometricFactors',modifiedPressSchechterTabulateHypergeometricFactors,defaultValue=.true.)
-          !@ <inputParameter>
-          !@   <name>modifiedPressSchechterUseCDMAssumptions</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     If true, assume that $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)>0$ and ${\mathrm d}\alpha/{\mathrm d}M>0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('modifiedPressSchechterUseCDMAssumptions',modifiedPressSchechterUseCDMAssumptions,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterG0</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.57d0</defaultValue>
+          !#   <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterGamma1</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.38d0</defaultValue>
+          !#   <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterGamma2</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>-0.01d0</defaultValue>
+          !#   <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterFirstOrderAccuracy</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.1d0</defaultValue>
+          !#   <description>Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
+          !#      algorithm, so that it never exceeds {\normalfont \ttfamily
+          !#      modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterHypergeometricPrecision</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>1.0d-6</defaultValue>
+          !#   <description>The fractional precision required in evaluates of hypergeometric functions in the modified Press-Schechter tree branching calculations.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterTabulateHypergeometricFactors</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.true.</defaultValue>
+          !#   <description>Specifies whether hypergeometric factors should be precomputed and tabulated in modified Press-Schechter tree branching functions.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>modifiedPressSchechterUseCDMAssumptions</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>If true, assume that $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)&gt;0$ and ${\mathrm d}\alpha/{\mathrm d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !# </inputParameter>
           parametersRead=.true.
        end if
        !$omp end critical(Modified_Press_Schechter_Branching_Parameters)

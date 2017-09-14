@@ -53,17 +53,14 @@ contains
        !$omp critical(Satellite_Dynamical_Friction_Acceleration_Initialization) 
        if (.not.satelliteDynamicalFrictionAccelerationInitialized) then
           ! Get the satellite dynamical friction method.
-          !@ <inputParameter>
-          !@   <name>satelliteDynamicalFrictionMethod</name>
-          !@   <defaultValue>Chandrasekhar1943</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used to compute satellite dynamical friction acceleration.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteDynamicalFrictionMethod',satelliteDynamicalFrictionMethod,defaultValue='Chandrasekhar1943')
+          !# <inputParameter>
+          !#   <name>satelliteDynamicalFrictionMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('Chandrasekhar1943')</defaultValue>
+          !#   <description>The name of the method to be used to compute satellite dynamical friction acceleration.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satelliteDynamicalFrictionMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satelliteDynamicalFrictionMethod,Satellite_Dynamical_Friction_Acceleration_Get</functionArgs>

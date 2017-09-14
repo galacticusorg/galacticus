@@ -50,7 +50,7 @@ contains
   function zhao2009ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
     !% concentration class which takes an input parameter list.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type (darkMatterProfileConcentrationZhao2009)                :: self
     type (inputParameters                       ), intent(inout) :: parameters

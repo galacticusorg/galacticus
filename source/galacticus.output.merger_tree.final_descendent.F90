@@ -47,18 +47,15 @@ contains
     if (.not.outputFInalDescendentsInitialized) then
        !$omp critical(Galacticus_Output_Tree_Final_Descendents_Initialize)
        if (.not.outputFinalDescendentsInitialized) then
-          !@ <inputParameter>
-          !@   <name>outputFinalDescendentIndices</name>
-          !@   <defaultValue>false</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Specifies whether or not final descendent indices (i.e. index of the node at the base of the tree) should be included in the output.
-          !@   </description>
-          !@   <type>boolean</type>
-          !@   <cardinality>1</cardinality>
-          !@   <group>output</group>
-          !@ </inputParameter>
-          call Get_Input_Parameter('outputFinalDescendentIndices',outputFinalDescendentIndices,defaultValue=.false.)
+          !# <inputParameter>
+          !#   <name>outputFinalDescendentIndices</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not final descendent indices (i.e. index of the node at the base of the tree) should be included in the output.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
           ! Ensure that the satellite timeOfMerging property is gettable.
           if     (                                                                                                                &
                &   outputFinalDescendentIndices                                                                                   &

@@ -53,17 +53,14 @@ contains
        !$omp critical(Galactic_Structure_Radius_Initial_Initialization)
        if (.not.moduleInitialized) then
           ! Get the galactic structure radii solver method parameter.
-          !@ <inputParameter>
-          !@   <name>galacticStructureRadiusSolverInitialRadiusMethod</name>
-          !@   <defaultValue>adiabatic</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     Selects the method to be used to determine initial radii in the dark matter halo when solving for galactic structure.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('galacticStructureRadiusSolverInitialRadiusMethod',galacticStructureRadiusSolverInitialRadiusMethod,defaultValue='adiabatic')
+          !# <inputParameter>
+          !#   <name>galacticStructureRadiusSolverInitialRadiusMethod</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>var_str('adiabatic')</defaultValue>
+          !#   <description>Selects the method to be used to determine initial radii in the dark matter halo when solving for galactic structure.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>string</type>
+          !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="galacticStructureRadiusSolverInitialRadiusMethod" type="functionCall" functionType="void">
           !#  <functionArgs>galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get</functionArgs>

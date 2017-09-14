@@ -24,6 +24,7 @@ program Test_Math_Distributions
   use Math_Distributions_Poisson_Binomial
   use Pseudo_Random
   use Statistics_Distributions
+  use Input_Parameters
   implicit none
   double precision                   , dimension(  10) :: p                , x           , y
   integer                            , dimension(0:10) :: trials
@@ -32,10 +33,13 @@ program Test_Math_Distributions
   type            (distributionGamma)                  :: distributionGamma_
   integer                                              :: i                , j           , k
   type            (pseudoRandom     )                  :: prng
+  type            (inputParameters  )                  :: parameters
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: distributions")
-
+  ! Initialize parameters.
+  parameters=inputParameters()
+  call parameters%markGlobal()
   ! Test Poisson binomial distribution.
   p=[0.1d0,0.2d0,0.3d0,0.4d0,0.5d0,0.6d0,0.7d0,0.8d0,0.9d0,1.0d0]
   do k=0,11

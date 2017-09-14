@@ -86,7 +86,7 @@ contains
 
   function volumeFunction1DConstructorParameters(parameters) result(self)
     !% Constructor for the ``volumeFunction1D'' output analysis class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     use Galacticus_Output_Times
     use Memory_Management
     use Galacticus_Error

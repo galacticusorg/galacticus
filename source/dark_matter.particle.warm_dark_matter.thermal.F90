@@ -65,7 +65,7 @@ contains
 
   function wdmThermalConstructorParameters(parameters)
     !% Constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (darkMatterParticleWDMThermal)                :: wdmThermalConstructorParameters
     type            (inputParameters             ), intent(inout) :: parameters
@@ -98,7 +98,7 @@ contains
 
   function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_)
     !% Internal constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type            (darkMatterParticleWDMThermal)                        :: wdmThermalConstructorInternal
     double precision                              , intent(in   )         :: mass                         , degreesOfFreedomEffective
@@ -112,7 +112,7 @@ contains
   
   subroutine wdmThermalDescriptor(self,descriptor)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters2
+    use Input_Parameters
     use FoX_DOM
     implicit none
     class    (darkMatterParticleWDMThermal), intent(inout) :: self

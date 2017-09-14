@@ -24,19 +24,23 @@ program Test_Random
   use Unit_Tests
   use FGSL
   use Pseudo_Random
+  use Input_Parameters
   implicit none
-  integer                   , parameter             :: sampleCount=10000000, limitCount=6
-  double precision          , dimension(limitCount) :: upperLimit=[1.0d-5,1.0d-4,1.0d-3,1.0d-2,1.0d-1,0.5d0]
-  double precision          , dimension(limitCount) :: frequency,frequencyError,deviation
-  integer                   , dimension(limitCount) :: upperLimitCount
-  type            (fgsl_rng)                        :: pseudoSequenceObject
-  double precision                                  :: x
-  logical                                           :: reset=.true.
-  integer                                           :: i,j
-  
+  integer                          , parameter             :: sampleCount=10000000, limitCount=6
+  double precision                 , dimension(limitCount) :: upperLimit=[1.0d-5,1.0d-4,1.0d-3,1.0d-2,1.0d-1,0.5d0]
+  double precision                 , dimension(limitCount) :: frequency,frequencyError,deviation
+  integer                          , dimension(limitCount) :: upperLimitCount
+  type            (fgsl_rng       )                        :: pseudoSequenceObject
+  double precision                                         :: x
+  logical                                                  :: reset=.true.
+  integer                                                  :: i,j
+  type            (inputParameters)                        :: parameters
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.random.size')
-
+  ! Initialize parameters.
+  parameters=inputParameters()
+  call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("random numbers")
   

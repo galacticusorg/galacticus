@@ -55,7 +55,7 @@ contains
 
   function sequenceConstructorParameters(parameters) result (self)
     !% Constructor for the ``sequence'' output analysis weight operator class which takes a parameter set as input.
-    use Input_Parameters2
+    use Input_Parameters
     implicit none
     type   (outputAnalysisWeightOperatorSequence)                :: self
     type   (inputParameters                     ), intent(inout) :: parameters

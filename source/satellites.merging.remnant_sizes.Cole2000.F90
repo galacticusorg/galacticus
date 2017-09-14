@@ -42,17 +42,14 @@ contains
 
     if (satelliteMergingRemnantSizeMethod == 'Cole2000') then
        Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Cole2000
-       !@ <inputParameter>
-       !@   <name>mergerRemnantSizeOrbitalEnergy</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The orbital energy used in the ``Cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("mergerRemnantSizeOrbitalEnergy",mergerRemnantSizeOrbitalEnergy,defaultValue=1.0d0)
+       !# <inputParameter>
+       !#   <name>mergerRemnantSizeOrbitalEnergy</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The orbital energy used in the ``Cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
     end if
     return
   end subroutine Satellite_Merging_Remnant_Sizes_Cole2000_Initialize

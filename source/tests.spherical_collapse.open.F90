@@ -39,6 +39,7 @@ program Tests_Spherical_Collapse_Open
   double precision                                           :: age                                                                     , bryanNormanFit , &
        &                                                        densityContrast                                                         , expansionFactor, &
        &                                                        x
+  type            (inputParameters           )               :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.open.size')
@@ -48,7 +49,8 @@ program Tests_Spherical_Collapse_Open
 
   ! Test spherical collapse in an open universe.
   parameterFile='testSuite/parameters/sphericalCollapse/open.xml'
-  call Input_Parameters_File_Open(parameterFile)
+  parameters=inputParameters(parameterFile)
+  call parameters%markGlobal()
   ! Get the default cosmology functions object.
   cosmologyFunctionsDefault => cosmologyFunctions   ()
   virialDensityContrast_    => virialDensityContrast()
@@ -61,10 +63,7 @@ program Tests_Spherical_Collapse_Open
      write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
      call Assert(trim(message),densityContrast,bryanNormanFit,relTol=1.0d-2)
   end do
-  call Input_Parameters_File_Close
-
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Tests_Spherical_Collapse_Open
