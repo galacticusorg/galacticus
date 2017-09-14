@@ -401,7 +401,7 @@ contains
              !#   <type>string</type>
              !# </inputParameter>
              ! Read postprocessing set information.
-             if (globalParameters%count('luminosityPostprocessSet') > 0) then
+             if (globalParameters%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
                 if (globalParameters%count('luminosityPostprocessSet') /= luminosityCount) call&
                      & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityPostprocessSet and luminosityFilter&
                      & input arrays must have same dimension')
