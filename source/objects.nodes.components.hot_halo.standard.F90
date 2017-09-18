@@ -700,7 +700,6 @@ contains
              angularMomentumHeatingRateRemaining=rateCooling*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
              gotAngularMomentumCoolingRate=.true.
           end if
-
           if (massRate < 0.0d0) then
              if (massHeatingRateRemaining == 0.0d0) then
                 angularMomentumCoolingRate=-angularMomentumHeatingRateRemaining
@@ -950,16 +949,16 @@ contains
        accretionHalo_ => accretionHalo()
        ! Find the rate of gas mass accretion onto the halo. We take all of the unaccreted gas, including any which is nominally
        ! cold mode, since we do not care what mode it should be in (since it is not actually accreted). It will be assigned to the
-       ! relevant mode later when reaccreted.
+       ! relevant mode later when reaccreted. Negative accretion is allowed here as (for example) we may need to record the amount
+       ! of negative accretion during periods where a halo is declining in mass, such that this loss of mass must be accounted for
+       ! when the halo starts growing again before we allow gas to actually accrete into the hot component.
        massAccretionRate      =accretionHalo_%accretionRate      (node,accretionModeHot  )
        failedMassAccretionRate=accretionHalo_%failedAccretionRate(node,accretionModeTotal)
        ! Get the basic component.
        basic => node%basic()
        ! Apply accretion rates.
-       if (      massAccretionRate > 0.0d0 .or. hotHalo%mass() > 0.0d0) &
-            & call hotHalo%          massRate(      massAccretionRate,interrupt,interruptProcedure)
-       if (failedMassAccretionRate > 0.0d0 .or. hotHalo%mass() > 0.0d0) &
-            & call hotHalo%unaccretedMassRate(failedMassAccretionRate,interrupt,interruptProcedure)
+       call hotHalo%          massRate(      massAccretionRate,interrupt,interruptProcedure)
+       call hotHalo%unaccretedMassRate(failedMassAccretionRate,interrupt,interruptProcedure)
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
        ! Pipe the cooling rate to which ever component claimed it.
@@ -1381,6 +1380,8 @@ contains
          &                                                                massChemicalsReaccreted
     !$omp threadprivate(massChemicalsAccreted,fractionChemicalsAccreted,massChemicalsReaccreted)
 
+    ! Get required objects.
+    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of unspecified class.
@@ -1425,12 +1426,11 @@ contains
        call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
        call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
        ! Compute the reaccreted angular momentum.
-       if (parentBasic%accretionRate() /= 0.0d0) then
-          angularMomentumAccreted=+Dark_Matter_Halo_Angular_Momentum_Growth_Rate(nodeParent) &
-               &                  *massReaccreted                                            &
-               &                  /parentBasic%accretionRate()
-          call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
-       end if
+       angularMomentumAccreted=+massreaccreted                                  &
+            &                  *spinParent          %spin          (          ) &
+            &                  *darkMatterHaloScale_%virialRadius  (nodeParent) &
+            &                  *darkMatterHaloScale_%virialVelocity(nodeParent)
+       call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
        ! Compute the reaccreted metals.
        !! First, find the metal mass the node would have if it formed instantaneously.
        massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeHot)
@@ -1467,7 +1467,6 @@ contains
        if (starveSatellites.or.starveSatellitesOutflowed) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
-          darkMatterHaloScale_ => darkMatterHaloScale()
           if (starveSatellites) then
              call hotHaloParent%                    massSet(                                                           &
                   &                                          hotHaloParent       %mass                    (          ) &

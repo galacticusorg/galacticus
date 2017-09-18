@@ -255,7 +255,7 @@ contains
        ! Get the basic component.
        basic => node%basic()
        ! Apply accretion rates.
-       if (massAccretionRate > 0.0d0 .or. hotHalo%massCold() > 0.0d0) call hotHalo%massColdRate(massAccretionRate,interrupt,interruptProcedure)
+       call hotHalo%massColdRate(massAccretionRate,interrupt,interruptProcedure)
        ! Next compute the cold mode infall rate in this halo.
        infallRate=coldModeInfallRate_%infallRate(node)
        ! Pipe the cooling rate to which ever component claimed it.
@@ -532,7 +532,49 @@ contains
        spinParent    => nodeParent%spin   (                 )
        basicParent   => nodeParent%basic  (                 )
        basic         => node  %basic  (                 )
-       ! Determine if starvation is to be applied and if .
+       ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
+       ! the hot phase.
+       !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
+       massAccretedCold=accretionHalo_%      accretedMass(nodeParent,accretionModeCold )
+       massAccreted    =accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
+       massUnaccreted  =accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
+       !! Find the fraction of mass that would be successfully accreted.
+       fractionAccreted=+  massAccretedCold &
+            &           /(                  &
+            &             +massAccreted     &
+            &             +massUnaccreted   &
+            &            )
+       !! Find the change in the unaccreted mass.
+       massReaccreted=+hotHaloParent   %unaccretedMass() &
+            &         *fractionAccreted                  &
+            &         *basic           %          mass() &
+            &         /basicParent     %          mass()
+       !! Reaccrete the gas.
+       call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
+       call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
+       ! Compute the reaccreted angular momentum.
+       angularMomentumAccreted=+massreaccreted                                  &
+            &                  *spinParent          %spin          (          ) &
+            &                  *darkMatterHaloScale_%virialRadius  (nodeParent) &
+            &                  *darkMatterHaloScale_%virialVelocity(nodeParent)
+       call hotHaloParent%angularMomentumColdSet(hotHaloParent%angularMomentumCold()+angularMomentumAccreted)
+       ! Compute the reaccreted metals.
+       !! First, find the metal mass the node would have if it formed instantaneously.
+       massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeCold)
+       !! Find the mass fraction of metals that would be successfully accreted.
+       fractionMetalsAccreted=+  massMetalsAccreted &
+            &                 /(                    &
+            &                   +massAccreted       &
+            &                   +massUnaccreted     &
+            &                  )
+       !! Find the change in the unaccreted mass.
+       massMetalsReaccreted=+hotHaloParent         %unaccretedMass() &
+            &               *fractionMetalsAccreted                  &
+            &               *basic                 %          mass() &
+            &               /basicParent           %          mass()
+       !! Reaccrete the metals.
+       call hotHaloParent%abundancesColdSet(hotHaloParent%abundancesCold()+massMetalsReaccreted)
+      ! Determine if starvation is to be applied and if .
        if (starveSatellites) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
@@ -560,49 +602,6 @@ contains
           call hotHalo      %     abundancesColdSet(                                                 &
                &                                     zeroAbundances                                  &
                &                                   )
-          ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
-          ! the hot phase.
-          !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
-          massAccretedCold=accretionHalo_%      accretedMass(nodeParent,accretionModeCold )
-          massAccreted    =accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
-          massUnaccreted  =accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
-          !! Find the fraction of mass that would be successfully accreted.
-          fractionAccreted=+  massAccretedCold &
-               &           /(                  &
-               &             +massAccreted     &
-               &             +massUnaccreted   &
-               &            )
-          !! Find the change in the unaccreted mass.
-          massReaccreted=+hotHaloParent   %unaccretedMass() &
-               &         *fractionAccreted                  &
-               &         *basic           %          mass() &
-               &         /basicParent     %          mass()
-          !! Reaccrete the gas.
-          call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
-          call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
-          ! Compute the reaccreted angular momentum.
-          if (basicParent%accretionRate() /= 0.0d0) then
-             angularMomentumAccreted=+Dark_Matter_Halo_Angular_Momentum_Growth_Rate(nodeParent) &
-                  &                  *massReaccreted                                            &
-                  &                  /basicParent%accretionRate()
-             call hotHaloParent%angularMomentumColdSet(hotHaloParent%angularMomentumCold()+angularMomentumAccreted)
-          end if
-          ! Compute the reaccreted metals.
-          !! First, find the metal mass the node would have if it formed instantaneously.
-          massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeCold)
-          !! Find the mass fraction of metals that would be successfully accreted.
-          fractionMetalsAccreted=+  massMetalsAccreted &
-               &                 /(                    &
-               &                   +massAccreted       &
-               &                   +massUnaccreted     &
-               &                  )
-          !! Find the change in the unaccreted mass.
-          massMetalsReaccreted=+hotHaloParent         %unaccretedMass() &
-               &               *fractionMetalsAccreted                  &
-               &               *basic                 %          mass() &
-               &               /basicParent           %          mass()
-          !! Reaccrete the metals.
-          call hotHaloParent%abundancesColdSet(hotHaloParent%abundancesCold()+massMetalsReaccreted)
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
