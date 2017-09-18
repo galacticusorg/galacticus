@@ -695,8 +695,9 @@ contains
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
-    nfwEnergy=self%nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
-         &*basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
+    nfwEnergy=+self %nfwConcentrationTable%interpolate   (concentration,table=nfwConcentrationEnergyIndex)    &
+         &    *self %darkMatterHaloScale_ %virialVelocity(node                                           )**2 &
+         &    *basic                      %mass          (                                               )
     return
   end function nfwEnergy
 
@@ -722,15 +723,28 @@ contains
     call self%tabulate(concentration)
 
     ! Find the energy gradient by interpolation.
-    energy        =self%nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
-    energyGradient=self%nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
+    energy             =+self%nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
+    energyGradient     =+self%nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
 
-    nfwEnergyGrowthRate=self%energy(node)&
-         &*(basic%accretionRate()/basic%mass()+2.0d0 &
-         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node)+(energyGradient&
-         &*concentration/energy)*(self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)&
-         &-darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()))
-
+    nfwEnergyGrowthRate=+    self                     %energy                   (node)&
+         &              *(                                                            &
+         &                +       basic               %accretionRate           (    ) &
+         &                /       basic               %mass                    (    ) &
+         &                +2.0d0                                                      &
+         &                *  self%darkMatterHaloScale_%virialVelocityGrowthRate(node) &
+         &                /  self%darkMatterHaloScale_%virialVelocity          (node) &
+         &                +(                                                          &
+         &                  +energyGradient                                           &
+         &                  *concentration                                            &
+         &                  /energy                                                   &
+         &                 )                                                          &
+         &                *(                                                          &
+         &                  +self%darkMatterHaloScale_%virialRadiusGrowthRate  (node) &
+         &                  /self%darkMatterHaloScale_%virialRadius            (node) &
+         &                  -     darkMatterProfile   %scaleGrowthRate         (    ) &
+         &                  /     darkMatterProfile   %scale                   (    ) &
+         &                 )                                                          &
+         &               )
     return
   end function nfwEnergyGrowthRate
 
