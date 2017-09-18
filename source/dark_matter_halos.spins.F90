@@ -103,13 +103,20 @@ contains
     ! Ensure that the module is initialized.
     call Dark_Matter_Halo_Spins_Initialize
 
-    basic              => node%basic       (                 )
-    spin               => node%spin        (autoCreate=.true.)
-    darkMatterProfile_ => darkMatterProfile(                 )
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=Dark_Matter_Halo_Angular_Momentum(node)&
-         &*(spin%spinGrowthRate()/spin%spin()+2.5d0*basic%accretionRate()&
-         &/basic%mass()-0.5d0*darkMatterProfile_%energyGrowthRate(node)/darkMatterProfile_%energy(node))
-
+    basic                                         =>  node%basic       (                 )
+    spin                                          =>  node%spin        (autoCreate=.true.)
+    darkMatterProfile_                            =>  darkMatterProfile(                 )
+    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +Dark_Matter_Halo_Angular_Momentum    (node) &
+         &                                           *(                                           &
+         &                                             +spin%spinGrowthRate                (    ) &
+         &                                             /spin%spin                          (    ) &
+         &                                             +2.5d0                                     &
+         &                                             *basic%accretionRate                (    ) &
+         &                                             /basic%mass                         (    ) &
+         &                                             -0.5d0                                     &
+         &                                             *darkMatterProfile_%energyGrowthRate(node) &
+         &                                             /darkMatterProfile_%energy          (node) &
+         &                                            )
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
