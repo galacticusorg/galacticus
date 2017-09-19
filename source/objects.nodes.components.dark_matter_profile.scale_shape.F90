@@ -205,8 +205,7 @@ contains
        darkMatterProfileParent => node%parent%darkMatterProfile()
        basic                   => node       %basic            ()
        basicParent             => node%parent%basic            ()
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Dark_Matter_Profile_Scale_Shape_Promote','node&
-            & has not been evolved to its parent')
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
        ! Adjust the shape parameter to that of the parent node.
        call darkMatterProfile%shapeSet          (darkMatterProfileParent%shape          ())
        ! Adjust the growth rate to that of the parent node.

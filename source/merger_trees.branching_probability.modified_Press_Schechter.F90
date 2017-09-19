@@ -627,7 +627,7 @@ contains
                          cycle
                       else
                          Modified_Press_Schechter_Branching_Probability_Bound=0.0d0
-                         call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
+                         call Galacticus_Error_Report('hypergeometric function evaluation failed'//{introspection:location})
                       end if
                    end if
                    probabilityIntegrandLower=+sqrtTwoOverPi                                              &
@@ -657,7 +657,7 @@ contains
                          cycle
                       else
                          Modified_Press_Schechter_Branching_Probability_Bound=0.0d0
-                         call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','hypergeometric function evaluation failed')
+                         call Galacticus_Error_Report('hypergeometric function evaluation failed'//{introspection:location})
                       end if
                    end if
                    probabilityIntegrandUpper=+sqrtTwoOverPi                                           &
@@ -711,7 +711,7 @@ contains
                 end if
              case default
                 Modified_Press_Schechter_Branching_Probability_Bound=-1.0d0
-                call Galacticus_Error_Report('Modified_Press_Schechter_Branching_Probability_Bound','unknown bound type')
+                call Galacticus_Error_Report('unknown bound type'//{introspection:location})
              end select
              if (statusUpper == FGSL_Success .and. statusLower == FGSL_Success) exit
           end do

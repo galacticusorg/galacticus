@@ -65,8 +65,8 @@ contains
           !#  <functionArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</functionArgs>
           include 'cooling.freefall_radius.inc'
           !# </include>
-          if (.not.(associated(Freefall_Radius_Get).and.associated(Freefall_Radius_Growth_Rate_Get))) call&
-               & Galacticus_Error_Report('Freefall_Radius','method ' //char(freefallRadiusMethod)//' is unrecognized')
+          if (.not.(associated(Freefall_Radius_Get).and.associated(Freefall_Radius_Growth_Rate_Get))) &
+               & call Galacticus_Error_Report('method ' //char(freefallRadiusMethod)//' is unrecognized'//{introspection:location})
           freefallRadiusInitialized=.true.
        end if
        !$omp end critical(Freefall_Radius_Initialization)

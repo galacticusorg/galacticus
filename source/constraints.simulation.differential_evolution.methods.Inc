@@ -93,7 +93,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   character       (len=32                        )                                   :: label
   
   ! Check that we have sufficient chains for differential evolution.
-  if (mpiSelf%count() < 3) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','at least 3 chains are required for differential evolution')
+  if (mpiSelf%count() < 3) call Galacticus_Error_Report('at least 3 chains are required for differential evolution'//{introspection:location})
   ! Write start-up message.
   message="Process "//mpiSelf%rankLabel()//" [PID: "
   message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
@@ -115,7 +115,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
   timeEvaluatePrevious=timeEvaluate     
   ! Check for impossible state.
-  if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','impossible initial state')
+  if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('impossible initial state'//{introspection:location})
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
@@ -385,7 +385,7 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
            end do
            if (processToProcess(timesEvaluateOrder(i)) >= 0) exit
         end do
-        if (processToProcess(timesEvaluateOrder(i)) < 0) call Galacticus_Error_Report('simulatorDifferentialEvolutionPosterior','failed to assign task to process')
+        if (processToProcess(timesEvaluateOrder(i)) < 0) call Galacticus_Error_Report('failed to assign task to process'//{introspection:location})
      end do
      ! Report.
      if (mpiSelf%isMaster() .and. mod(self%simulationState%count(),self%reportCount) == 0) then

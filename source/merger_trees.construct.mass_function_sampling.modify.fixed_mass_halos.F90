@@ -68,8 +68,8 @@ contains
                   &   fixedHalosCount /= globalParameters%count('haloMassSampleModifierFixedMassHalosMass' )         &
                   & )                                                                                                &
                   & call Galacticus_Error_Report(                                                                    &
-                  &                              'fixedMassHalosDefaultConstructor',                                 &
-                  &                              'parameter cardinality mismatch'                                    &
+                  &                              'parameter cardinality mismatch'//                                  &
+                  &                              {introspection:location}                                            &
                   &                             )
              if (fixedHalosCount == -1) fixedHalosCount=globalParameters%count('haloMassSampleModifierFixedMassHalosMass' )
           end if
@@ -80,8 +80,8 @@ contains
                   &   fixedHalosCount /= globalParameters%count('haloMassSampleModifierFixedMassHalosCount')         &
                   & )                                                                                                &
                   & call Galacticus_Error_Report(                                                                    &
-                  &                              'fixedMassHalosDefaultConstructor',                                 &
-                  &                              'parameter cardinality mismatch'                                    &
+                  &                              'parameter cardinality mismatch'//                                  &
+                  &                              {introspection:location}                                            &
                   &                             )
              if (fixedHalosCount == -1) fixedHalosCount=globalParameters%count('haloMassSampleModifierFixedMassHalosCount')
           end if
@@ -92,8 +92,8 @@ contains
                   &   fixedHalosCount /= globalParameters%count('haloMassSampleModifierFixedMassHalosRadius')         &
                   & )                                                                                                 &
                   & call Galacticus_Error_Report(                                                                     &
-                  &                              'fixedMassHalosDefaultConstructor',                                  &
-                  &                              'parameter cardinality mismatch'                                     &
+                  &                              'parameter cardinality mismatch'//                                   &
+                  &                              {introspection:location}                                            &
                   &                             )
              if (fixedHalosCount == -1) fixedHalosCount=globalParameters%count('haloMassSampleModifierFixedMassHalosRadius')
           end if

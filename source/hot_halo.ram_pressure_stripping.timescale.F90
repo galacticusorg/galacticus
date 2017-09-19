@@ -65,8 +65,7 @@ contains
           !#  <functionArgs>hotHaloRamPressureStrippingTimescaleMethod,Hot_Halo_Ram_Pressure_Stripping_Timescale_Get</functionArgs>
           include 'hot_halo.ram_pressure_stripping.timescales.inc'
           !# </include>
-          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Timescale_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Stripping_Timescale','method ' &
-               &//char(hotHaloRamPressureStrippingTimescaleMethod)//' is unrecognized')
+          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Timescale_Get)) call Galacticus_Error_Report('method '//char(hotHaloRamPressureStrippingTimescaleMethod)//' is unrecognized'//{introspection:location})
           hotHaloRamPressureStrippingTimescaleInitialized=.true.
        end if
        !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)

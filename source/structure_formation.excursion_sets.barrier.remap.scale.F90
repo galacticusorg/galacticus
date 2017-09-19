@@ -86,7 +86,7 @@ contains
     integer                                        , intent(in   ) :: applyTo
     !# <constructorAssign variables="factor, applyTo, *excursionSetBarrier_"/>
 
-    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('remapScaleConstructorInternal','applyTo is invalid')
+    if (.not.enumerationExcursionSetRemapIsValid(applyTo)) call Galacticus_Error_Report('applyTo is invalid'//{introspection:location})
     self%applyToText=enumerationExcursionSetRemapDecode(applyTo,includePrefix=.false.)
     return
   end function remapScaleConstructorInternal

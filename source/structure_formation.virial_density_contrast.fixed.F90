@@ -97,7 +97,7 @@ contains
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="densityContrastValue, densityType, *cosmologyFunctions_"/>
 
-    if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('fixedConstructor','invalid densityType')
+    if (.not.enumerationFixedDensityTypeIsValid(densityType)) call Galacticus_Error_Report('invalid densityType'//{introspection:location})
     return
   end function fixedConstructorInternal
   

@@ -211,7 +211,7 @@
                     ionicFraction=igmInitialState%doublyIonizedHeliumFraction  (timeMinimum)
                  end select                 
               case default
-                 call Galacticus_Error_Report('Intergalactic_Medium_State_Internal_Initialize','unknown atomic number')
+                 call Galacticus_Error_Report('unknown atomic number'//{introspection:location})
               end select             
               density=+massFractionPrimordial                               &
                    &  *cosmologyParameters_%OmegaBaryon    (           )    &
@@ -452,7 +452,7 @@
         call igmState_%densityHe3Set   (densityHelium  (1:iNow,3))
         call igmState_%massFilteringSet(massFiltering  (1:iNow  ))
      class default
-        call Galacticus_Error_Report('Intergalactic_Medium_State_Internal_Update','"internal" IGM evolution calculation requires [intergalacticMediumStateMethod]=internal')
+        call Galacticus_Error_Report('"internal" IGM evolution calculation requires [intergalacticMediumStateMethod]=internal'//{introspection:location})
      end select
      ! Display message.
      call Galacticus_Display_Unindent('done')

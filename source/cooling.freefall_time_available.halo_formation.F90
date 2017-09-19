@@ -50,13 +50,13 @@ contains
        if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
             & call Galacticus_Error_Report                                                                                        &
             &      (                                                                                                              &
-            &       'Freefall_Time_Available_Halo_Formation_Initialize'                                                        ,  &
             &       "'haloFormation' method for time available for freefall requires a formation time component that supports "// &
             &       "getting of the formationTime property."                                                                   // &
             &       Galacticus_Component_List(                                                                                    &
             &                                 'formationTime'                                                                  ,  &
             &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
-            &                                )                                                                                    &
+            &                                )                                                                                 // &
+            &       {introspection:location}                                                                                      &
             &      )
     end if
     return

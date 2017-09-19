@@ -107,7 +107,7 @@ contains
           Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor+sqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
        case default
           Black_Hole_ISCO_Radius_Spin=0.0d0
-          call Galacticus_Error_Report('Black_Hole_ISCO_Radius_Spin','unrecognized orbit parameter')
+          call Galacticus_Error_Report('unrecognized orbit parameter'//{introspection:location})
        end select
        orbitPrevious        =orbitActual
        blackHoleSpinPrevious=blackHoleSpin
@@ -300,7 +300,7 @@ contains
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        radiusDimensionless=0.0d0
-       call Galacticus_Error_Report('Black_Hole_Frame_Dragging_Frequency_Spin','unrecognized units')
+       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
@@ -344,7 +344,7 @@ contains
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        radiusDimensionless=0.0d0
-       call Galacticus_Error_Report('Black_Hole_Metric_A_Factor_Spin','unrecognized units')
+       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
@@ -388,7 +388,7 @@ contains
        radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        radiusDimensionless=0.0d0
-       call Galacticus_Error_Report('Black_Hole_Metric_D_Factor_Spin','unrecognized units')
+       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
 
     ! Get the black hole spin.
@@ -435,7 +435,7 @@ contains
        Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        Black_Hole_Horizon_Radius_Node=0.0d0
-       call Galacticus_Error_Report('Black_Hole_Horizon_Radius_Node','unrecognized units')
+       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
     return
   end function Black_Hole_Horizon_Radius_Node
@@ -481,7 +481,7 @@ contains
        Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        Black_Hole_Static_Radius_Node=0.0d0
-       call Galacticus_Error_Report('Black_Hole_Static_Radius_Node','unrecognized units')
+       call Galacticus_Error_Report('unrecognized units'//{introspection:location})
     end select
     return
   end function Black_Hole_Static_Radius_Node

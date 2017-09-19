@@ -104,7 +104,7 @@ contains
     treeCount   =  0
     treeCurrent => tree
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%event)) call Galacticus_Error_Report('Merger_Tree_State_Store','tree events not current supported')
+       if (associated(treeCurrent%event)) call Galacticus_Error_Report('tree events not current supported'//{introspection:location})
        treeCount   =  treeCount           +1
        treeCurrent => treeCurrent%nextTree
     end do
@@ -219,7 +219,7 @@ contains
        if (nodeIndices(Node_Array_Position) /= nodeIndex) then
           message="node ["
           message=message//nodeIndex//"] could not be found in merger tree"
-          call Galacticus_Error_Report('Node_Array_Position',message)          
+          call Galacticus_Error_Report(message//{introspection:location})          
        end if
     end if
     return
@@ -300,7 +300,7 @@ contains
 
     ! Open the file.
     open(newUnit=treeUnit,file=fileName,status='old',form='unformatted',iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('Merger_Tree_State_From_File','unable to open file "'//trim(fileName)//'"')
+    if (ioStatus /= 0) call Galacticus_Error_Report('unable to open file "'//trim(fileName)//'"'//{introspection:location})
     ! Read the tree(s).
     call Merger_Tree_State_From_Unit(tree,skipTree=.false.,unit=treeUnit)
     ! Close the file.
@@ -424,7 +424,7 @@ contains
              message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID()
              message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID()
              message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID()
-             call Galacticus_Error_Report('Merger_Tree_State_Restore',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           end if
        end if
     end do

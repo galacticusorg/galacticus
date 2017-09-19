@@ -65,8 +65,8 @@ contains
           !#  <functionArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</functionArgs>
           include 'star_formation.timescales.spheroids.inc'
           !# </include>
-          if (.not.associated(Star_Formation_Timescale_Spheroid_Get)) call Galacticus_Error_Report('Star_Formation_Timescale_Spheroids'&
-               &,'method ' //char(starFormationTimescaleSpheroidsMethod)//' is unrecognized')
+          if (.not.associated(Star_Formation_Timescale_Spheroid_Get)) &
+               & call Galacticus_Error_Report('method ' //char(starFormationTimescaleSpheroidsMethod)//' is unrecognized'//{introspection:location})
           starFormationTimescaleSpheroidsInitialized=.true.
        end if
        !$omp end critical(Star_Formation_Timescale_Spheroids_Initialization)

@@ -293,7 +293,7 @@ CODE
 	    }
 	}
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('{$class->{'name'}.ucfirst($member->{'name'}).ucfirst($property->{'name'})}RateGeneric','interrupt required, but optional arguments missing')
+  if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
   interrupt          =  .true.
   interruptProcedure => {$class->{'name'}}CreateByInterrupt
   return
@@ -391,7 +391,7 @@ CODE
 	}
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('{$class->{'name'}.ucfirst($property->{'name'})}Rate','interrupt required, but optional arguments missing')
+if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('interrupt required, but optional arguments missing'//\{introspection:location\})
 interrupt=.true.
 interruptProcedure => {$class->{'name'}}CreateByInterrupt
 CODE

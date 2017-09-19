@@ -132,7 +132,7 @@ contains
        Equivalent_Circular_Orbit_Solver=-potentialInfinite
     case default
        Equivalent_Circular_Orbit_Solver=0.0d0
-       call Galacticus_Error_Report('Equivalent_Circular_Orbit_Solver','dark matter potential evaluation failed')
+       call Galacticus_Error_Report('dark matter potential evaluation failed'//{introspection:location})
     end select
     return
   end function Equivalent_Circular_Orbit_Solver
@@ -253,7 +253,7 @@ contains
              ! value.
              velocity=speedLight/kilo
           case default
-             call Galacticus_Error_Report('Satellite_Orbit_Extremum_Phase_Space_Coordinates','dark matter potential evaluation failed')
+             call Galacticus_Error_Report('dark matter potential evaluation failed'//{introspection:location})
           end select
        end if
        ! Store values and record that they are computed.

@@ -86,7 +86,7 @@ contains
        return
     end if
     ! Validate input.
-    if (electronNumber > atomicNumber) call Galacticus_Error_Report('vanHoof2014Total','number of electrons exceeds atomic number')
+    if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
     if (Atomic_Ionization_Potential(atomicNumber,electronNumber) == 0.0d0) then
        vanHoof2014Total=0.0d0

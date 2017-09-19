@@ -75,7 +75,7 @@ contains
           case ('relaxed' )
              klypin2015ConcentrationSample=klypin2015SampleRelaxed
           case default
-             call Galacticus_Error_Report('klypin2015DefaultConstructor','unrecognized sample')
+             call Galacticus_Error_Report('unrecognized sample'//{introspection:location})
           end select
           ! Record that method is now initialized.
           klypin2015Initialized=.true.
@@ -100,7 +100,7 @@ contains
     case (klypin2015SampleRelaxed)
        klypin2015Constructor%sample=klypin2015SampleRelaxed
     case default
-       call Galacticus_Error_Report('klypin2015DefaultConstructor','unrecognized sample')
+       call Galacticus_Error_Report('unrecognized sample'//{introspection:location})
     end select
     return
   end function klypin2015Constructor
@@ -135,7 +135,7 @@ contains
        klypin2015Shape=0.115d0+0.0140d0*nu**2
     case default
        klypin2015Shape=0.0d0
-       call Galacticus_Error_Report('klypin2015Shape','unknown sample')
+       call Galacticus_Error_Report('unknown sample'//{introspection:location})
     end select
     return
   end function klypin2015Shape

@@ -138,7 +138,7 @@ contains
           case ('multistepAdams')
              Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
           case default
-             call Galacticus_Error_Report('Tree_Node_Evolve_Initialize','odeAlgorithm is unrecognized')
+             call Galacticus_Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
           end select
 #ifdef PROFILE
           !# <inputParameter>
@@ -726,8 +726,7 @@ contains
           !#  <functionArgs>nodeMergersMethod,Events_Node_Merger_Do</functionArgs>
           include 'events.node_mergers.inc'
           !# </include>
-          if (.not.associated(Events_Node_Merger_Do)) call Galacticus_Error_Report('Events_Node_Merger','method '&
-               &//char(nodeMergersMethod)//' is unrecognized')
+          if (.not.associated(Events_Node_Merger_Do)) call Galacticus_Error_Report('method '//char(nodeMergersMethod)//' is unrecognized'//{introspection:location})
           nodeMergersInitialized=.true.
        end if
        !$omp end critical (Events_Node_Merger_Initialize)

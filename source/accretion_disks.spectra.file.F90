@@ -94,14 +94,14 @@ contains
             &       )                                                                                                                  &
             & ) call Galacticus_Error_Report                                                                                           &
             & (                                                                                                                        &
-            &  'fileConstructorInternal'                                                                                             , &
             &  'This method requires that the "radiativeEfficiency", and "accretionRate" properties of the black hole are gettable.'// &
             &  Galacticus_Component_List(                                                                                              &
             &                            'blackHole'                                                                                ,  &
             &                             defaultBlackHoleComponent%radiativeEfficiencyAttributeMatch(requireGettable=.true.)          &
             &                            .intersection.                                                                                &
             &                             defaultBlackHoleComponent%      accretionRateAttributeMatch(requireGettable=.true.)          &
-            &                           )                                                                                              &
+            &                           )                                                                                           // &
+            &  {introspection:location}                                                                                                &
             & )
     ! Load the file.
     fileConstructorInternal%fileName=fileName
@@ -142,7 +142,7 @@ contains
     call spectraFile%openFile(fileName,readOnly=.true.)
     ! Check file format.
     call spectraFile%readAttribute('fileFormat',fileFormatFile,allowPseudoScalar=.true.)
-    if (fileFormatFile /= fileFormatCurrent) call Galacticus_Error_Report('fileLoadFile','file format mismatch')
+    if (fileFormatFile /= fileFormatCurrent) call Galacticus_Error_Report('file format mismatch'//{introspection:location})
     ! Read datasets.
     call spectraFile%readDataset('wavelength'          ,self%wavelength)
     call spectraFile%readDataset('bolometricLuminosity',self%luminosity)

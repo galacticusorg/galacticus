@@ -102,9 +102,9 @@ contains
     if (self%selfBoundParticlesOnly) then
        if (simulation%analysis%hasDataset('selfBoundStatus')) then
           call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('meanPositionOperate','number of selfBoundStatus samples must equal number of requested bootstrap samples')
+          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('meanPositionOperate','self-bound status not available - apply a self-bound operator first')
+          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
        end if
     else
        call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])

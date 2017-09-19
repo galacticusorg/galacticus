@@ -77,7 +77,7 @@ contains
        ! Compute the enclosed mass.
        Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=coldModeMassDistribution%massEnclosedBySphere(radius)
     class default
-       call Galacticus_Error_Report('Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task','unsupported mass distribution')
+       call Galacticus_Error_Report('unsupported mass distribution'//{introspection:location})
     end select
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task
@@ -179,7 +179,7 @@ contains
        position=[positionSpherical(1)/radiusCore,0.0d0,0.0d0]
        Node_Component_Hot_Halo_Cold_Mode_Density_Task=coldModeMassDistribution%density(position)
     class default
-       call Galacticus_Error_Report('Node_Component_Hot_Halo_Cold_Mode_Density_Task','unsupported mass distribution')
+       call Galacticus_Error_Report('unsupported mass distribution'//{introspection:location})
     end select
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Density_Task

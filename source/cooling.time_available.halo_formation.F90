@@ -49,13 +49,13 @@ contains
     if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
          & call Galacticus_Error_Report                                                                                        &
          &      (                                                                                                              &
-         &       'formationTimeConstructorInternal'                                                                         ,  &
-         &       "'haloFormation' method for time available for cooling requires a formationTime component that supports "//   &
-         &       "getting of the formationTime property."                                                                 //   &
+         &       "'haloFormation' method for time available for cooling requires a formationTime component that supports "  // &
+         &       "getting of the formationTime property."                                                                   // &
          &       Galacticus_Component_List(                                                                                    &
          &                                 'formationTime'                                                                  ,  &
          &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                                    &
+         &                                )                                                                                 // &
+         &       {introspection:location}                                                                                      &
          &      )
     self=coolingTimeAvailableFormationTime()
     return

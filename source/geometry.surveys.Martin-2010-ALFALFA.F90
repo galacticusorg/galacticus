@@ -103,7 +103,7 @@ contains
     !GCC$ attributes unused :: self
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('martin2010ALFALFADistanceMaximum','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Get the logarithm of the mass.
     logarithmicMass=log10(mass)
     ! Find the median line width for this mass. (See
@@ -131,7 +131,7 @@ contains
     !GCC$ attributes unused :: self
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('martin2010ALFALFASolidAngle','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     martin2010ALFALFASolidAngle=solidAngleSurvey
     return
   end function martin2010ALFALFASolidAngle

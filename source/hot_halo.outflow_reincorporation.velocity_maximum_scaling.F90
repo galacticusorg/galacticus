@@ -157,12 +157,12 @@ contains
           if (.not.defaultHotHaloComponent%outflowedMassIsGettable())                                                       &
                & call Galacticus_Error_Report                                                                               &
                &   (                                                                                                        &
-               &    'velocityMaximumScalingInitalize'                                                                     , &
                &    'the "outflowedMass" properties of the hotHalo component must be gettable.'                          // &
                &    Galacticus_Component_List(                                                                              &
                &                              'hotHalo'                                                                   , &
                &                              defaultHotHaloComponent%outflowedMassAttributeMatch(requireGettable=.true.)   &
-               &                             )                                                                              &
+               &                             )                                                                           // &
+               &    {introspection:location}                                                                                &
                &   )
           ! Record that class is initialized.
           velocityMaximumScalingInitialized=.true.

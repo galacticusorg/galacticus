@@ -112,7 +112,7 @@ contains
                &                                  )
        end select
      case default
-       call Galacticus_Error_Report('deProposalSizeNew','deProposalSize type is unrecognized')
+       call Galacticus_Error_Report('deProposalSize type is unrecognized'//{introspection:location})
     end select
     return
   end function deProposalSizeNew

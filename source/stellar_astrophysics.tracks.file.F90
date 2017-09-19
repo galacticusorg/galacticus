@@ -87,7 +87,7 @@ contains
 
        ! Check that this file has the correct format.
        call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Tracks_Initialize_File','format of stellar tracks file is out of date')
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})
 
        ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
        metallicityCountMaximum=0

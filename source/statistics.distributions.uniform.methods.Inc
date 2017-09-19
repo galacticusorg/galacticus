@@ -84,10 +84,10 @@ double precision function distributionUniformInverse(self,p)
   class           (distributionUniform), intent(in   ) :: self
   double precision                     , intent(in   ) :: p
 
-  if (p < 0.0d0 .or. p > 1.0d0)                                        &
-       & call Galacticus_Error_Report(                                 &
-       &                              'distributionUniformCumulative', &
-       &                              'probability out of range'       &
+  if (p < 0.0d0 .or. p > 1.0d0)                                    &
+       & call Galacticus_Error_Report(                             &
+       &                              'probability out of range'// &
+       &                              {introspection:location}     &
        &                             )
   distributionUniformInverse=self%limitLower+p*(self%limitUpper-self%limitLower)
   return

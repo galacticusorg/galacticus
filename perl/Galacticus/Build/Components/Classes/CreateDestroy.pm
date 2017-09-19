@@ -53,7 +53,7 @@ sub Class_Initialization {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
 
-call Galacticus_Error_Report('nodeComponent{ucfirst($class->{'name'})}Initialize','can not initialize a generic component')
+call Galacticus_Error_Report('can not initialize a generic component'//\{introspection:location\})
 CODE
     # Insert a type-binding for this function.
     push(
@@ -134,7 +134,7 @@ sub Class_Builder {
     $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self, componentDefinition
 
-call Galacticus_Error_Report('nodeComponent{ucfirst($class->{'name'})}Builder','can not build a generic component')
+call Galacticus_Error_Report('can not build a generic component'//\{introspection:location\})
 CODE
     # Insert a type-binding for this function.
     push(

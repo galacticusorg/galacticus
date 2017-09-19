@@ -98,7 +98,7 @@ contains
             & /darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     case default
        orbitalCircularity=0.0d0
-       call Galacticus_Error_Report('boylanKolchin2008TimeUntilMerging','unrecognized error code')
+       call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     basic => node%basic()

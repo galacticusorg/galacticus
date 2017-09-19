@@ -74,7 +74,7 @@ program Test_Nodes
      propertyValueGet=thisComponent%mass()
      call Assert('Set followed by get returns expected value',propertyValueGet,propertyValueSet)
      class default
-     call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
+     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Get the spheroid component of the node - assert that it is of the expected type.
@@ -89,7 +89,7 @@ program Test_Nodes
      propertyArray=thisComponent%velocity()
      call Assert('1D array property get/set consistency',propertyArray,[1.0d0,3.0d0,-12.3d0])
   class default
-     call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
+     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Destroy the node.
@@ -103,7 +103,7 @@ program Test_Nodes
      ! Ensure that the size of a scalar property is correctly reported.
      call Assert('Scalar property size',thisComponent%massCount(),1)
      class default
-     call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
+     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Get the basic component from the spheroid component - assert that it has the expected type.
@@ -135,7 +135,7 @@ program Test_Nodes
      call thisNode%deserializeValues(serializedArray)
      call Assert('Serialize/deserialize values consistency',[thisComponent%mass(),thisComponent%time()],[2.0d0,1.0d0])
   class default
-     call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
+     call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})
   end select
 
   ! Check that we can create and retrieve instances of a component.

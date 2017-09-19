@@ -175,7 +175,7 @@ contains
     !GCC$ attributes unused :: self, i, j, l
 
     randomPointsAngularPower=0.0d0
-    call Galacticus_Error_Report('randomPointsAngularPower','angular power is not available')
+    call Galacticus_Error_Report('angular power is not available'//{introspection:location})
     return
   end function randomPointsAngularPower
 
@@ -189,7 +189,7 @@ contains
     !GCC$ attributes unused :: self, point, mass
 
     randomPointIncluded=.false.
-    call Galacticus_Error_Report('randomPointIncluded','point inclusion is not supported for window functions defined by random points')
+    call Galacticus_Error_Report('point inclusion is not supported for window functions defined by random points'//{introspection:location})
     return
   end function randomPointIncluded
 

@@ -136,7 +136,7 @@ contains
 
     !# <constructorAssign variables="velocityCutOff, timeCutOff, whenCutOff, useFormationNode, *coolingRate_, *darkMatterHaloScale_"/>
     ! Validate "whenCutOff" argument.
-    if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Galacticus_Error_Report('cutOffConstructorInternal','[whenCutOff] is invalid')
+    if (.not.enumerationCutOffWhenIsValid(whenCutOff)) call Galacticus_Error_Report('[whenCutOff] is invalid'//{introspection:location})
     return
   end function cutOffConstructorInternal
 

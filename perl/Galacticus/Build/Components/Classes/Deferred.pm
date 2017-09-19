@@ -267,7 +267,7 @@ CODE
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call Galacticus_Error_Report('{$classFunctionName}','deferred function has not been assigned')
+   call Galacticus_Error_Report('deferred function has not been assigned'//\{introspection:location\})
 end if
 CODE
 	# Insert a type-binding for this function into the node component class type.

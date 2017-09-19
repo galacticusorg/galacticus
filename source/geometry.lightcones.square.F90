@@ -146,7 +146,7 @@ contains
        allocate(redshift   (parameters%count('redshift')))
        allocate(outputTimes(parameters%count('redshift')))
     else
-       call Galacticus_Error_Report('squareConstructorParameters','list of output redshifts to use must be supplied')
+       call Galacticus_Error_Report('list of output redshifts to use must be supplied'//{introspection:location})
     end if
     !# <inputParameter>
     !#   <name>origin</name>
@@ -314,7 +314,7 @@ contains
           if (magnitude > orthogonalityTolerance) then
              write (label,'(e12.6)') magnitude
              message=var_str('unit vectors ')//i//' and '//j//' are not orthogonal (|êᵢ⨯êⱼ|='//label//')'
-             call Galacticus_Error_Report('squareConstructorInternal',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           end if
        end do
     end do
@@ -460,12 +460,12 @@ contains
        if (.not.defaultPositionComponent%positionIsGettable())                                                                          &
             & call Galacticus_Error_Report                                                                                              &
             &      (                                                                                                                    &
-            &       'squareIsInLightcone'                                                                                             , &
             &       'testing if a node is in the lightcone requires that the position property of the position component be gettable'// &
             &       Galacticus_Component_List(                                                                                          &
             &                                 'position'                                                                             ,  &
             &                                  defaultPositionComponent%positionAttributeMatch(requireGettable=.true.)                  &
-            &                                )                                                                                          &
+            &                                )                                                                                       // &
+            &       {introspection:location}                                                                                            &
             &      )
     end if
     ! Determine to which output this galaxy corresponds.
@@ -479,7 +479,7 @@ contains
           message=message//'               node time = '//trim(label)//' Gyr'                //char(10)
           write (label,'(f6.3)') self%outputTimes(outputMinimum)
           message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//outputMinimum//']'
-          call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
        outputMaximum=outputMinimum
     else
@@ -491,22 +491,22 @@ contains
           if (.not.defaultSatelliteComponent%timeOfMergingIsGettable())                                                                               &
                & call Galacticus_Error_Report                                                                                                         &
                &      (                                                                                                                               &
-               &       'squareIsInLightcone'                                                                                                        , &
                &       'testing if a node is ever in the lightcone requires that the timeOfMerging property of the satellite component be gettable'// &
                &       Galacticus_Component_List(                                                                                                     &
                &                                 'satellite'                                                                                        , &
                &                                  defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                       &
-               &                                )                                                                                                     &
+               &                                )                                                                                                  // &
+               &       {introspection:location}                                                                                                       &
                &      )
           if (.not.defaultPositionComponent%positionIsGettable())                                                                                     &
                & call Galacticus_Error_Report                                                                                                         &
                &      (                                                                                                                               &
-               &       'squareIsInLightcone'                                                                                                        , &
                &       'testing if a node is ever in the lightcone requires that the position property of the position component be gettable'      // &
                &       Galacticus_Component_List(                                                                                                     &
                &                                 'position'                                                                                         , &
                &                                  defaultPositionComponent %positionAttributeMatch     (requireGettable=.true.)                       &
-               &                                )                                                                                                     &
+               &                                )                                                                                                  // &
+               &       {introspection:location}                                                                                                       &
                &      )
        end if
        ! Ensure minimum output time is after when the node exists.
@@ -553,7 +553,7 @@ contains
           ! as a satellite and its position during that time.
           satellite => node     %satellite    ()
           timeMerge =  satellite%timeOfMerging()
-          if (timeMerge < basic%time()) call Galacticus_Error_Report('squareIsInLightcone','can not determine if satellite is in lightcone without knowledge of its time of merging')
+          if (timeMerge < basic%time()) call Galacticus_Error_Report('can not determine if satellite is in lightcone without knowledge of its time of merging'//{introspection:location})
           outputMaximum=Search_Array_For_Closest(self%outputTimes,timeMerge)
           ! Ensure maximum output is before the parent time.
           if (self%outputTimes(outputMaximum) > timeMerge) then
@@ -632,7 +632,7 @@ contains
        message=message//'               node time = '//trim(label)//' Gyr'                //char(10)
        write (label,'(f6.3)') self%outputTimes(output)
        message=message//'  closest lightcone time = '//trim(label)//' Gyr ['//output//']'
-       call Galacticus_Error_Report('squarePosition',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     squarePosition=self%positionAtOutput(output,position%position(),instance)
     return
@@ -687,14 +687,14 @@ contains
     ! Validate input.
     select case (action)
     case (replicantActionCount   )
-       if (.not.present(count        )) call Galacticus_Error_Report('squareReplicants',        'count argument not provided')
+       if (.not.present(count        )) call Galacticus_Error_Report('count argument not provided'        //{introspection:location})
     case (replicantActionAny     )
-       if (.not.present(isInLightcone)) call Galacticus_Error_Report('squareReplicants','isInLightcone argument not provided')
+       if (.not.present(isInLightcone)) call Galacticus_Error_Report('isInLightcone argument not provided'//{introspection:location})
     case (replicantActionInstance)
-       if (.not.present(instance     )) call Galacticus_Error_Report('squareReplicants',     'instance argument not provided')
-       if (.not.present(position     )) call Galacticus_Error_Report('squareReplicants',     'position argument not provided')
+       if (.not.present(instance     )) call Galacticus_Error_Report('instance argument not provided'     //{introspection:location})
+       if (.not.present(position     )) call Galacticus_Error_Report('position argument not provided'     //{introspection:location})
     case default
-       call Galacticus_Error_Report('squareReplicants','unknown action')
+       call Galacticus_Error_Report('unknown action'//{introspection:location})
     end select
     ! If a buffer radius (i.e. a point is to be considered to be inside the lightcone if it is within that distance from an edge
     ! of the cone) is being specified then adjust origin. We shift the origin backward along the lightcone principal axis such
@@ -776,9 +776,9 @@ contains
     case (replicantActionAny     )
        isInLightcone=.false.
     case (replicantActionInstance)
-       call Galacticus_Error_Report('squareReplicants','instance not found')
+       call Galacticus_Error_Report('instance not found'//{introspection:location})
     case default
-       call Galacticus_Error_Report('squareReplicants','unknown action'    )
+       call Galacticus_Error_Report('unknown action'    //{introspection:location})
     end select
     return
   end subroutine squareReplicants

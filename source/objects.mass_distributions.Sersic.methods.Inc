@@ -39,7 +39,7 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
   !$omp critical (Mass_Distribution_Sersic_Initialize)
   if (sersicProfileTabulated) then
      ! Profile has already been tabulated. Check that it has the same index as that requested.
-     if (Values_Differ(index,sersicProfileIndex,absTol=1.0d-2)) call Galacticus_Error_Report('Mass_Distribution_Sersic_Initialize','requested Sersic index differs from that tabulated')
+     if (Values_Differ(index,sersicProfileIndex,absTol=1.0d-2)) call Galacticus_Error_Report('requested Sersic index differs from that tabulated'//{introspection:location})
   else
      ! Store the index.
      sersicProfileIndex=index
@@ -51,10 +51,10 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
   ! If dimensionless, then set scale length and mass to unity.
   if (self%dimensionless) then
      if (present(halfMassRadius      )) then
-        if (Values_Differ(halfMassRadius      ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Sersic_Initialize','halfMassRadius should be unity for a dimensionless profile (or simply do not specify a half mass radius)')
+        if (Values_Differ(halfMassRadius      ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('halfMassRadius should be unity for a dimensionless profile (or simply do not specify a half mass radius)'//{introspection:location})
      end if
      if (present(mass                )) then
-        if (Values_Differ(mass                ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Sersic_Initialize','mass should be unity for a dimensionless profile (or simply do not specify a mass)')
+        if (Values_Differ(mass                ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
      end if
      self%radiusHalfMass=1.0d0
      self%mass          =1.0d0
@@ -62,12 +62,12 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
      if (present(halfMassRadius)) then
         self%radiusHalfMass=halfMassRadius
      else
-        call Galacticus_Error_Report('Mass_Distribution_Sersic_Initialize','"halfMassRadius" must be specified')
+        call Galacticus_Error_Report('"halfMassRadius" must be specified'//{introspection:location})
      end if
      if (present(mass)) then
         self%mass          =mass
      else
-        call Galacticus_Error_Report('Mass_Distribution_Sersic_Initialize','"mass" must be specified'       )
+        call Galacticus_Error_Report('"mass" must be specified'//{introspection:location})
      end if
   end if
   return

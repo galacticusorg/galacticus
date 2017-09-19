@@ -8,6 +8,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use Data::Dumper;
 use Scalar::Util qw(reftype);
 use Fortran::Utils;
+use File::Slurp;
 use Galacticus::Build::SourceTree::Hooks;
 use Galacticus::Build::SourceTree::Parse::Directives;
 use Galacticus::Build::SourceTree::Parse::Visibilities;
@@ -55,6 +56,8 @@ sub ParseCode {
     # Grab the source to parse.
     my $code     = shift();
     my $fileName = shift();
+    # Instrument code.
+    $code = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Instrument($code);
     # Initialize root object.
     (my $fileRootName = $fileName) =~ s/^.*\/([^\/]+)$/$1/;
     my $tree =

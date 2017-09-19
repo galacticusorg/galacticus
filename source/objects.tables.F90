@@ -497,7 +497,7 @@ contains
     !# <optionalArgument name="includeType" defaultsTo=".true." />
     !GCC$ attributes unused :: self, fileUnit, includeType, includeType_
     
-    call Galacticus_Error_Report('Table1D_Serialize_Raw','serialization is not implemented')
+    call Galacticus_Error_Report('serialization is not implemented'//{introspection:location})
     return
   end subroutine Table1D_Serialize_Raw
 
@@ -516,7 +516,7 @@ contains
     case (tableTypeLogarithmicLinear1d)
        allocate(table1DLogarithmicLinear :: self)
     case default
-       call Galacticus_Error_Report('table1DDeserializeClassRaw','unknown table type')
+       call Galacticus_Error_Report('unknown table type'//{introspection:location})
     end select
     call self%deserializeRaw(fileUnit)
     return
@@ -530,7 +530,7 @@ contains
     integer         , intent(in   ) :: fileUnit
     !GCC$ attributes unused :: self, fileUnit
     
-    call Galacticus_Error_Report('Table1D_Deserialize_Raw','deserialization is not implemented')
+    call Galacticus_Error_Report('deserialization is not implemented'//{introspection:location})
     return
   end subroutine Table1D_Deserialize_Raw
   
@@ -595,10 +595,10 @@ contains
     logical                      , intent(in   ), optional :: precise
     integer                                                :: i           , tableActual
 
-    if (present(precise).and.precise) call Galacticus_Error_Report('Table_1D_Reverse','table cannot be precisely reversed')
+    if (present(precise).and.precise) call Galacticus_Error_Report('table cannot be precisely reversed'//{introspection:location})
     tableActual=1
     if (present(table)) tableActual=table
-    if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_1D_Reverse','reversed table would not be monotonic')
+    if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
     if (allocated(reversedSelf)) deallocate(reversedSelf)
     allocate(table1DGeneric :: reversedSelf)
     select type (reversedSelf)
@@ -659,8 +659,8 @@ contains
     double precision                                                                 :: weight, lx0, lx1
     integer                                                                          :: i
 
-    if (x1 < x0           ) call Galacticus_Error_Report('Table1D_Integration_Weights','inverted limits'         )
-    if (present(integrand)) call Galacticus_Error_Report('Table1D_Integration_Weights','integrands not supported')
+    if (x1 < x0           ) call Galacticus_Error_Report('inverted limits'//{introspection:location})
+    if (present(integrand)) call Galacticus_Error_Report('integrands not supported'//{introspection:location})
     Table1D_Integration_Weights=0.0d0
     do i=2,size(self%xv)
        if (self%xv(i) <= x1 .and. self%xv(i-1) >= x0) then
@@ -706,7 +706,7 @@ contains
     end if
     ! Set extrapolation type.
     if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Generic_1D_Create','zero extrapolation is not supported')
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -735,8 +735,8 @@ contains
     integer                                                                 :: tableActual
 
     ! Validate the input.
-    if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("Table_Generic_1D_Populate","create the table before populating it")
-    if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("Table_Generic_1D_Populate","provided y array is of wrong size"    )
+    if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("provided y array is of wrong size"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -758,8 +758,8 @@ contains
     integer                                                   :: tableActual
 
     ! Validate the input.
-    if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("Table_Generic_1D_Populate_Single","create the table before populating it")
-    if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("Table_Generic_1D_Populate_Single","provided i value is out of bounds"    )
+    if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -828,7 +828,7 @@ contains
     self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_1D_Create','zero extrapolation is not supported')
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -904,8 +904,8 @@ contains
     integer                                                                      :: tableActual
 
     ! Validate the input.
-    if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("Table_Linear_1D_Populate","create the table before populating it")
-    if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("Table_Linear_1D_Populate","provided y array is of wrong size"    )
+    if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("provided y array is of wrong size"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -931,8 +931,8 @@ contains
     integer                                                        :: tableActual
 
     ! Validate the input.
-    if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("Table_Linear_1D_Populate_Single","create the table before populating it")
-    if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("Table_Linear_1D_Populate_Single","provided i value is out of bounds"    )
+    if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -1126,7 +1126,7 @@ contains
     type            (fgsl_integration_workspace)                                             :: integrationWorkspace
     logical                                                                                  :: integrationReset
  
-    if (x1 < x0) call Galacticus_Error_Report('Table_Logarithmic_Integration_Weights','inverted limits')
+    if (x1 < x0) call Galacticus_Error_Report('inverted limits'//{introspection:location})
     Table_Logarithmic_Integration_Weights=0.0d0    
     do i=2,size(self%xv)
        ! Evaluate integration range for this interval of the table.
@@ -1224,7 +1224,7 @@ contains
     
     tableActual=1
     if (present(table)) tableActual=table
-    if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('Table_Logarithmic_1D_Reverse','reversed table would not be monotonic')
+    if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
     if (allocated(reversedSelf)) deallocate(reversedSelf)
     allocate(table1DNonUniformLinearLogarithmic :: reversedSelf)
     select type (reversedSelf)
@@ -1278,7 +1278,7 @@ contains
     self%dxPrevious    =-1.0d0
     ! Set extrapolation type.
     if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_CSpline_1D_Create','zero extrapolation is not supported')
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -1313,8 +1313,8 @@ contains
     logical                                                                       :: computeSplineActual
 
     ! Validate the input.
-    if (.not.(allocated(self%yv).and.allocated(self%sv))) call Galacticus_Error_Report("Table_Linear_CSpline_1D_Populate","create the table before populating it")
-    if (size(self%yv,dim=1) /= size(y)                  ) call Galacticus_Error_Report("Table_Linear_CSpline_1D_Populate","provided y array is of wrong size"    )
+    if (.not.(allocated(self%yv).and.allocated(self%sv))) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%yv,dim=1) /= size(y)                  ) call Galacticus_Error_Report("provided y array is of wrong size"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -1343,8 +1343,8 @@ contains
     logical                                                         :: computeSplineActual
 
     ! Validate the input.
-    if (.not.(allocated(self%yv).and.allocated(self%sv))) call Galacticus_Error_Report("Table_Linear_CSpline_1D_Populate_Single","create the table before populating it")
-    if (i < 1 .or. i > size(self%yv,dim=1)              ) call Galacticus_Error_Report("Table_Linear_CSpline_1D_Populate_Single","provided i value is out of bounds"    )
+    if (.not.(allocated(self%yv).and.allocated(self%sv))) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%yv,dim=1)              ) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -1569,7 +1569,7 @@ contains
     !GCC$ attributes unused :: self, x0, x1, integrand
 
     Table_Linear_CSpline_Integration_Weights=0.0d0
-    call Galacticus_Error_Report('Table_Linear_CSpline_Integration_Weights','integration weights not supported')
+    call Galacticus_Error_Report('integration weights not supported'//{introspection:location})
     return
   end function Table_Linear_CSpline_Integration_Weights
   
@@ -1588,7 +1588,7 @@ contains
           Table1D_Find_Effective_X=self%x(+1)
        case default
           Table1D_Find_Effective_X=0.0d0
-          call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is below range')
+          call Galacticus_Error_Report('x is below range'//{introspection:location})
        end select
     else if (x > self%x(-1)) then
        select case (self%extrapolationType(2))
@@ -1598,7 +1598,7 @@ contains
           Table1D_Find_Effective_X=self%x(-1)
        case default
           Table1D_Find_Effective_X=0.0d0
-          call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is above range')
+          call Galacticus_Error_Report('x is above range'//{introspection:location})
        end select       
     else
        Table1D_Find_Effective_X=x
@@ -1664,7 +1664,7 @@ contains
     !GCC$ attributes unused :: self, x0, x1, integrand
 
     Table_NonUniform_Linear_Logarithmic_Integration_Weights=0.0d0
-    call Galacticus_Error_Report('Table_NonUniform_Linear_Logarithmic_Integration_Weights','integrand is not linear in y')
+    call Galacticus_Error_Report('integrand is not linear in y'//{introspection:location})
     return    
   end function Table_NonUniform_Linear_Logarithmic_Integration_Weights
   
@@ -1826,12 +1826,12 @@ contains
     integer                                                                     :: tableActual
 
     ! Validate the input.
-    if (.not.allocated(self%zv)) call Galacticus_Error_Report("Table_2DLogLogLin_Populate","create the table before populating it")
+    if (.not.allocated(self%zv)) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
     if     (                                                                                                &
          &   size(self%zv,dim=1) /= size(z,dim=1)                                                           &
          &  .or.                                                                                            &
          &   size(self%zv,dim=2) /= size(z,dim=2)                                                           &
-         & ) call Galacticus_Error_Report("Table_2DLogLogLin_Populate","provided z array is of wrong size")
+         & ) call Galacticus_Error_Report("provided z array is of wrong size"//{introspection:location})
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
@@ -1853,9 +1853,9 @@ contains
     integer                                                     :: tableActual
 
     ! Validate the input.
-    if (.not.allocated(self%zv)           ) call Galacticus_Error_Report("Table_2DLogLogLin_Populate_Single","create the table before populating it")
-    if (i < 1 .or. i > size(self%zv,dim=1)) call Galacticus_Error_Report("Table_2DLogLogLin_Populate_Single","provided i value is out of bounds"    )
-    if (j < 1 .or. j > size(self%zv,dim=2)) call Galacticus_Error_Report("Table_2DLogLogLin_Populate_Single","provided j value is out of bounds"    )
+    if (.not.allocated(self%zv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%zv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
+    if (j < 1 .or. j > size(self%zv,dim=2)) call Galacticus_Error_Report("provided j value is out of bounds"    //{introspection:location})
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
@@ -1880,7 +1880,7 @@ contains
        Table_2DLogLogLin_Size=self%yCount
     case default
        Table_2DLogLogLin_Size=0
-       call Galacticus_Error_Report('Table_2DLogLogLin_Size','1 ≤ dim ≤ 2 is required')
+       call Galacticus_Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
     end select
     return
   end function Table_2DLogLogLin_Size
@@ -1946,7 +1946,7 @@ contains
                & *self%inverseDeltaY                                                                               &
                & /self%yLinearPrevious
        case default
-          call Galacticus_Error_Report('Table_2DLogLogLin_Interpolate_Gradient','1 ≤ dim ≤ 2 is required')
+          call Galacticus_Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
        end select
     end if
     ! Return the stored value.
@@ -2046,7 +2046,7 @@ contains
     self%iPrevious    =-1
     ! Set extrapolation type.
     if (present(extrapolationType)) then
-       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('Table_Linear_Monotone_CSpline_1D_Create','zero extrapolation is not supported')
+       if (any(extrapolationType == extrapolationTypeZero)) call Galacticus_Error_Report('zero extrapolation is not supported'//{introspection:location})
        self%extrapolationType=extrapolationType
     else
        self%extrapolationType=extrapolationTypeExtrapolate
@@ -2079,8 +2079,8 @@ contains
     logical                                                                               :: computeSplineActual
 
     ! Validate the input.
-    if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("Table_Linear_Monotone_CSpline_1D_Populate","create the table before populating it")
-    if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("Table_Linear_Monotone_CSpline_1D_Populate","provided y array is of wrong size"    )
+    if (.not.allocated(self%yv)       ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%yv,dim=1) /= size(y)) call Galacticus_Error_Report("provided y array is of wrong size"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -2109,8 +2109,8 @@ contains
     logical                                                                 :: computeSplineActual
 
     ! Validate the input.
-    if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("Table_Linear_Monotone_CSpline_1D_Populate_Single","create the table before populating it")
-    if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("Table_Linear_Monotone_CSpline_1D_Populate_Single","provided i value is out of bounds"    )
+    if (.not.allocated(self%yv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%yv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
 
     ! Determine which table to use.
     tableActual=1
@@ -2252,7 +2252,7 @@ contains
     !GCC$ attributes unused :: self, x0, x1, integrand
 
     Table_Linear_Monotone_CSpline_Integration_Weights=0.0d0
-    call Galacticus_Error_Report('Table_Linear_Monotone_CSpline_Integration_Weights','integration weights not supported')
+    call Galacticus_Error_Report('integration weights not supported'//{introspection:location})
     return
   end function Table_Linear_Monotone_CSpline_Integration_Weights
 

@@ -80,8 +80,7 @@ contains
           !#  <functionArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</functionArgs>
           include 'satellites.merging.mass_movements.inc'
           !# </include>
-          if (.not.associated(Satellite_Merging_Mass_Movement_Get)) call Galacticus_Error_Report('Satellite_Merging_Mass_Movement','method ' &
-               &//char(satelliteMergingMassMovementsMethod)//' is unrecognized')
+          if (.not.associated(Satellite_Merging_Mass_Movement_Get)) call Galacticus_Error_Report('method '//char(satelliteMergingMassMovementsMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           satelliteMergingMassMovementsInitialized=.true.
        end if

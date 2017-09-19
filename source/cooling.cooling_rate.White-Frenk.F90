@@ -80,22 +80,22 @@ contains
     !# <constructorAssign variables="velocityCutOff, *darkMatterHaloScale_, *coolingInfallRadius_"/>
     
     ! Check that the properties we need are gettable.
-    if     (                                                                                                             &
-         &  .not.(                                                                                                       &
-         &         defaultHotHaloComponent%       massIsGettable()                                                       &
-         &        .and.                                                                                                  &
-         &         defaultHotHaloComponent%outerRadiusIsGettable()                                                       &
-         &       )                                                                                                       &
-         & ) call Galacticus_Error_Report                                                                                &
-         &        (                                                                                                      &
-         &         'whiteFrenk1991ConstructorInternal'                                                                 , &
-         &         'mass and outerRadius properties of hot halo component must be gettable.'//                           &
-         &         Galacticus_Component_List(                                                                            &
-         &                                   'hotHalo'                                                                 , &
-         &                                    defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)  &
-         &                                   .intersection.                                                              &
-         &                                    defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)  &
-         &                                  )                                                                            &
+    if     (                                                                                                              &
+         &  .not.(                                                                                                        &
+         &         defaultHotHaloComponent%       massIsGettable()                                                        &
+         &        .and.                                                                                                   &
+         &         defaultHotHaloComponent%outerRadiusIsGettable()                                                        &
+         &       )                                                                                                        &
+         & ) call Galacticus_Error_Report                                                                                 &
+         &        (                                                                                                       &
+         &         'mass and outerRadius properties of hot halo component must be gettable.'//                            &
+         &         Galacticus_Component_List(                                                                             &
+         &                                   'hotHalo'                                                                 ,  &
+         &                                    defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
+         &                                   .intersection.                                                               &
+         &                                    defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
+         &                                  )                                                                          // &
+         &         {introspection:location}                                                                               &
          &        )
     return
   end function whiteFrenk1991ConstructorInternal

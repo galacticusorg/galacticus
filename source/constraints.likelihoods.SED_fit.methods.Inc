@@ -92,7 +92,7 @@ function likelihoodSEDFitConstructor(definition)
      case ("WittGordon2000" )
         likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeWittGordon2000
      case default
-        call Galacticus_Error_Report('likelihoodSEDFitConstructor','unrecognized dust type')
+        call Galacticus_Error_Report('unrecognized dust type'//{introspection:location})
      end select
   else
      likelihoodSEDFitConstructor%dustType=likelihoodSEDFitDustTypeNull
@@ -262,7 +262,7 @@ double precision function likelihoodSEDFitEvaluate(self,simulationState,paramete
      burstIndexOffset=6
   case default
      burstIndexOffset=-1
-     call Galacticus_Error_Report('likelihoodSEDFitEvaluate','unknown dust type')
+     call Galacticus_Error_Report('unknown dust type'//{introspection:location})
   end select
   ! Extract bursts.
   do i=1,self%burstCount

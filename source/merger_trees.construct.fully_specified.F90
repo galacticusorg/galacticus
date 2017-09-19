@@ -90,11 +90,11 @@ contains
     ! Parse the definition file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(mergerTreeConstructFullySpecifiedFileName),iostat=ioErr)
-    if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','unable to read or parse fully-specified merger tree file')
+    if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
     ! Get the list of nodes.
     nodes => getElementsByTagname(doc,"node")
     nodeCount=getLength(nodes)
-    if (nodeCount <= 0) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','no nodes were specified')
+    if (nodeCount <= 0) call Galacticus_Error_Report('no nodes were specified'//{introspection:location})
     ! Create an array of nodes.
     allocate(nodeArray(nodeCount))
     call Memory_Usage_Record(sizeof(nodeArray))
@@ -133,7 +133,7 @@ contains
        !$omp end critical (FoX_DOM_Access)
        ! Assign the tree root node if this node has no parent.
        if (.not.associated(nodeArray(i)%node%parent)) then
-          if (associated(thisTree%baseNode)) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','multiple trees are not supported')
+          if (associated(thisTree%baseNode)) call Galacticus_Error_Report('multiple trees are not supported'//{introspection:location})
           thisTree%baseNode => nodeArray(i)%node
        end if
        ! Build components.
@@ -150,7 +150,7 @@ contains
     ! Destroy the node array.
     deallocate(nodeArray)
     ! Check that we found a root node.
-    if (.not.associated(thisTree%baseNode)) call Galacticus_Error_Report('Merger_Tree_Construct_Fully_Specified','no root node was found')
+    if (.not.associated(thisTree%baseNode)) call Galacticus_Error_Report('no root node was found'//{introspection:location})
     return
   end subroutine Merger_Tree_Construct_Fully_Specified
 
@@ -171,10 +171,10 @@ contains
     
     ! Find all matching tags.
     indexElements => getElementsByTagname(nodeDefinition,indexType)
-    if (getLength(indexElements) > 1) call Galacticus_Error_Report('Node_Definition_Index','multiple indices specified'  )
+    if (getLength(indexElements) > 1) call Galacticus_Error_Report('multiple indices specified'//{introspection:location})
     if (getLength(indexElements) < 1) then
        if (required_) then
-          call Galacticus_Error_Report('Node_Definition_Index','required index not specified')
+          call Galacticus_Error_Report('required index not specified'//{introspection:location})
        else
           Node_Definition_Index=-1
           return
@@ -208,7 +208,7 @@ contains
           exit
        end if
     end do
-    if (.not.associated(node)) call Galacticus_Error_Report('Node_Lookup','unable to find requested node')
+    if (.not.associated(node)) call Galacticus_Error_Report('unable to find requested node'//{introspection:location})
     return
   end function Node_Lookup
 

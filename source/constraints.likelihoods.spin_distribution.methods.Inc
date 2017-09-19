@@ -54,7 +54,7 @@ function likelihoodHaloSpinDistributionConstructor(fileName,distributionName,red
   case ("bett2007")
      self%distributionType=distributionTypeBett2007
   case default
-     call Galacticus_Error_Report('likelihoodHaloSpinDistributionConstructor','unknown distribution type')
+     call Galacticus_Error_Report('unknown distribution type'//{introspection:location})
   end select
   ! Read the target spin distribution from file.
   !$omp critical(HDF5_Access)
@@ -142,10 +142,10 @@ double precision function likelihoodHaloSpinDistributionEvaluate(self,simulation
   ! Build the halo spin distribution object.
   select case (self%distributionType)
   case (distributionTypeLogNormal)
-     if (size(stateVector) /= 2)                                                                            &
-          & call Galacticus_Error_Report(                                                                   & 
-          &                              'likelihoodHaloSpinDistributionEvaluate'                         , &
-          &                              '2 parameters are required for the "lognormal" spin distribution'  &
+     if (size(stateVector) /= 2)                                                                             &
+          & call Galacticus_Error_Report(                                                                    & 
+          &                              '2 parameters are required for the "lognormal" spin distribution'// &
+          &                              {introspection:location}                                            &
           &                             )
      allocate(haloSpinDistributionLogNormal :: distributionLogNormal)
      select type (distributionLogNormal)
@@ -167,10 +167,10 @@ double precision function likelihoodHaloSpinDistributionEvaluate(self,simulation
              &                                               )
      end select
   case (distributionTypeBett2007)
-     if (size(stateVector) /= 2)                                                                           &
-          & call Galacticus_Error_Report(                                                                  & 
-          &                              'likelihoodHaloSpinDistributionEvaluate'                        , &
-          &                              '2 parameters are required for the "bett2007" spin distribution'  &
+     if (size(stateVector) /= 2)                                                                            &
+          & call Galacticus_Error_Report(                                                                   & 
+          &                              '2 parameters are required for the "bett2007" spin distribution'// &
+          &                              {introspection:location}                                           &
           &                             )
      allocate(haloSpinDistributionBett2007 :: distributionBett2007)
      select type (distributionBett2007)

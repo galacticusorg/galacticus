@@ -389,7 +389,7 @@ contains
                          correlationFunctions(currentAnalysis)%wavenumber=Make_Range(wavenumberMinimum,wavenumberMaximum,wavenumberCount,rangeTypeLogarithmic)
                       case default
                          massCount=0
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions','unknown size function')
+                         call Galacticus_Error_Report('unknown size function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
                       call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
@@ -470,7 +470,7 @@ contains
                          else
                             message="correlation function '"//trim(correlationFunctions(currentAnalysis)%descriptor%label)//"' mass bin "
                             message=message//k//" has zero weights"
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Correlation_Functions',message)
+                            call Galacticus_Error_Report(message//{introspection:location})
                          end if
                       end do
                       ! Initialize population statistics.
@@ -1307,7 +1307,7 @@ contains
             & ) then
           write (label,'(f8.5)') descriptors(i)%massSystematicLogM0
           message="Error model mass zero-point ["//trim(adjustl(label))//"] for correlation function descriptor ["//trim(descriptors(i)%label)//"] is outside of plausible range"
-          call Galacticus_Error_Report('validateDescriptors',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
     end do
     return

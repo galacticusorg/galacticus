@@ -250,7 +250,7 @@ contains
              label="false"
           end if
           message=var_str("Node ")//node%index()//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
-          call Galacticus_Error_Report('Galacticus_Output_Tree_Lightcone_Instances',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
        call instance%append(replicationCount)
        instanceIndex=instance%count()

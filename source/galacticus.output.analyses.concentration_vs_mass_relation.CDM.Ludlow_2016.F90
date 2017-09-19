@@ -110,7 +110,7 @@ contains
     do iOutput=1,Galacticus_Output_Time_Count()
        if (Values_Agree(Galacticus_Output_Redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
     end do
-    if (any(sum(outputWeight,dim=2) /= 1.0d0)) call Galacticus_Error_Report('concentrationVsHaloMassCDMLudlow2016ConstructorInternal','zero redshift output is required')
+    if (any(sum(outputWeight,dim=2) /= 1.0d0)) call Galacticus_Error_Report('zero redshift output is required'//{introspection:location})
     ! Build a filter which select isolated halos with M200c mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilterBasicMass_        )
     allocate(galacticFilterHaloIsolated_     )

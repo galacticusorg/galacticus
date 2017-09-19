@@ -78,7 +78,7 @@ contains
          &   ageFactor < 0.0d0 &
          &  .or.               &
          &   ageFactor > 1.0d0 &
-         & ) call Galacticus_Error_Report('whiteFrenk1991ConstructorInternal','0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required')
+         & ) call Galacticus_Error_Report('0 ≤ coolingTimeAvailableAgeFactor ≤ 1 is required'//{introspection:location})
     return
   end function whiteFrenk1991ConstructorInternal
 

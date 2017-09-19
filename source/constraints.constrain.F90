@@ -87,7 +87,7 @@ contains
     call System_Command_Do(filterCommand)
     ! Parse the simulation config file.
     configDoc => parseFile(char(filteredFile),iostat=ioError)
-    if (ioError /= 0) call Galacticus_Error_Report('Constrain','Unable to find or parse config file "'//char(filteredFile)//'"')
+    if (ioError /= 0) call Galacticus_Error_Report('Unable to find or parse config file "'//char(filteredFile)//'"'//{introspection:location})
     call System_Command_Do("rm -f "//filteredFile)
     ! Determine the number of parameters.
     parameterCount         =  0
@@ -105,7 +105,7 @@ contains
           end if
       end do
     end do
-    if (parameterCount <= 0) call Galacticus_Error_Report('Constrain','at least one parameter must be specified in config file')
+    if (parameterCount <= 0) call Galacticus_Error_Report('at least one parameter must be specified in config file'//{introspection:location})
     if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Found '
        message=message//parameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'

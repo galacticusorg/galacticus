@@ -110,13 +110,13 @@ contains
 
     ! Check if data has yet to be read.
     if (.not.self%dataRead) then
-       if (.not.File_Exists(char(self%fileName))) call Galacticus_Error_Report('fileReadData','Unable to find intergalactic medium state file "' //char(self%fileName)//'"')
+       if (.not.File_Exists(char(self%fileName))) call Galacticus_Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
        !$omp critical (HDF5_Access)
        ! Open the file.
        call file%openFile(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('fileReadData','file format version is out of date')
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
        ! Read the data.
        call file%readDataset('redshift'         ,self%timeTable                   )
        call file%readDataset('electronFraction' ,self%electronFractionTable       )

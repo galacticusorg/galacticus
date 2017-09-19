@@ -58,10 +58,10 @@ double precision function distributionStudentTInverse(self,p)
   class           (distributionStudentT), intent(in   ) :: self
   double precision                      , intent(in   ) :: p
 
-  if (p < 0.0d0 .or. p > 1.0d0)                                      &
-       & call Galacticus_Error_Report(                               &
-       &                              'distributionStudentTInverse', &
-       &                              'probability out of range'     &
+  if (p < 0.0d0 .or. p > 1.0d0)                                    &
+       & call Galacticus_Error_Report(                             &
+       &                              'probability out of range'// &
+       &                              {introspection:location}     &
        &                             )
   distributionStudentTInverse=FGSL_CDF_tDist_Pinv(p,self%degreesOfFreedom)
   return

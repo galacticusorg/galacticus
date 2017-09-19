@@ -213,7 +213,7 @@ contains
           case ( 'binomial' )
              analysisBlackHoleMassDistributionCovarianceModel=analysisBlackHoleMassDistributionCovarianceModelBinomial
           case default
-             call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins','unrecognized value for "analysisBlackHoleMassDistributionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+             call Galacticus_Error_Report('unrecognized value for "analysisBlackHoleMassDistributionCovarianceModel" - allowed values are "Poisson", and "binomial"'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>analysisBlackHoleMassDistributionsHaloMassBinsPerDecade</name>
@@ -381,7 +381,7 @@ contains
                             ! Convert from log10 mass to linear mass.
                             masses=10.0d0**masses
                          case default
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins','unrecognized scaling')
+                            call Galacticus_Error_Report('unrecognized scaling'//{introspection:location})
                          end select
                          masses=masses*unitsInSI/massSolar
                          ! Find range of galaxy masses.
@@ -401,7 +401,7 @@ contains
                             ! Convert from log10 mass to linear mass.
                             blackHoleMasses=10.0d0**blackHoleMasses
                          case default
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins','unrecognized scaling')
+                            call Galacticus_Error_Report('unrecognized scaling'//{introspection:location})
                          end select
                          blackHoleMasses=blackHoleMasses*unitsInSI/massSolar
                          ! Find range of black hole masses.
@@ -530,7 +530,7 @@ contains
                          blackHoleDistributions(currentAnalysis)%mainBranchGalaxyWeights            =0.0d0
                          blackHoleDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared     =0.0d0
                       case default
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins','unknown black hole mass function')
+                         call Galacticus_Error_Report('unknown black hole mass function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
                       call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionMass         ,[Galacticus_Output_Time_Count()])
@@ -605,29 +605,29 @@ contains
                          else
                             message="blackHoleMass distribution '"//trim(blackHoleDistributions(currentAnalysis)%descriptor%label)//"' bin "
                             message=message//k//" has zero weights"
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins',message)
+                            call Galacticus_Error_Report(message//{introspection:location})
                          end if
                       end do
                       ! Ensure that spheroid and black hole components support relevant mass properties.
-                      if (.not.defaultSpheroidComponent %massStellarIsGettable())                                                     &
-                           & call Galacticus_Error_Report                                                                             &
-                           & (                                                                                                        &
-                           &  'Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins'                                                 , &
-                           &  'This analysis requires that the "massStellar" property of the spheroid is gettable.'//                 &
-                           &  Galacticus_Component_List(                                                                              &
-                           &                            'spheroid'                                                                  , &
-                           &                             defaultSpheroidComponent %massStellarAttributeMatch(requireGettable=.true.)  &
-                           &                           )                                                                              &
+                      if (.not.defaultSpheroidComponent %massStellarIsGettable())                                                      &
+                           & call Galacticus_Error_Report                                                                              &
+                           & (                                                                                                         &
+                           &  'This analysis requires that the "massStellar" property of the spheroid is gettable.'//                  &
+                           &  Galacticus_Component_List(                                                                               &
+                           &                            'spheroid'                                                                  ,  &
+                           &                             defaultSpheroidComponent %massStellarAttributeMatch(requireGettable=.true.)   &
+                           &                           )                                                                            // &
+                           &  {introspection:location}                                                                                 &
                            & )
-                      if (.not.defaultBlackHoleComponent%       massIsGettable())                                                     &
-                           & call Galacticus_Error_Report                                                                             &
-                           & (                                                                                                        &
-                           &  'Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins'                                                 , &
-                           &  'This analysis requires that the "mass" property of the black hole is gettable.'//                      &
-                           &  Galacticus_Component_List(                                                                              &
-                           &                            'blackHole'                                                                 , &
-                           &                             defaultBlackHoleComponent%       massAttributeMatch(requireGettable=.true.)  &
-                           &                           )                                                                              &
+                      if (.not.defaultBlackHoleComponent%       massIsGettable())                                                      &
+                           & call Galacticus_Error_Report                                                                              &
+                           & (                                                                                                         &
+                           &  'This analysis requires that the "mass" property of the black hole is gettable.'//                       &
+                           &  Galacticus_Component_List(                                                                               &
+                           &                            'blackHole'                                                                 ,  &
+                           &                             defaultBlackHoleComponent%       massAttributeMatch(requireGettable=.true.)   &
+                           &                           )                                                                            // &
+                           &  {introspection:location}                                                                                 &
                            & )
                       exit
                    end if

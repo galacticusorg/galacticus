@@ -69,7 +69,7 @@ contains
           include 'galactic_structure.radius_solver.inc'
           !# </include>
           if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
-               & call Galacticus_Error_Report('Galactic_Structure_Radii','method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized'//{introspection:location})
           galacticStructureRadiusSolverInitialized=.true.
        end if
        !$omp end critical(Galactic_Structure_Radii_Initialization)

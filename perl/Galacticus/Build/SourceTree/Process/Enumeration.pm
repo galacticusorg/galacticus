@@ -10,6 +10,7 @@ use Data::Dumper;
 use XML::Simple;
 use LaTeX::Encode;
 use List::ExtraUtils;
+use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'enumerations'} = \&Process_Enumerations;
@@ -120,7 +121,7 @@ sub Process_Enumerations {
 		    }
 		    $function .= "      case default\n";
 		    $function .= "      ".$encodeFunctionName."=-1\n";
-		    $function .= "      call Galacticus_Error_Report('".$encodeFunctionName."','unrecognized enumeration member ['//trim(name)//']')\n";
+		    $function .= "      call Galacticus_Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    $function .= "      end select\n";
 		}
 		$function .= "    end if\n";
@@ -155,7 +156,7 @@ sub Process_Enumerations {
 			$function .= "'\n";
 		    }
 		    $function .= "    case default\n";
-		    $function .= "      call Galacticus_Error_Report('".$decodeFunctionName."','invalid enumeration value')\n";
+		    $function .= "      call Galacticus_Error_Report('invalid enumeration value'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    $function .= "    end select\n";
 		}
 		$function .= "    end if\n";

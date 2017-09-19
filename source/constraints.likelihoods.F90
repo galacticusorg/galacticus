@@ -386,7 +386,7 @@ contains
           newLikelihood=likelihoodSEDFit(definition)
        end select
     case default
-       call Galacticus_Error_Report('likelihoodNew','likelihood type is unrecognized')
+       call Galacticus_Error_Report('likelihood type is unrecognized'//{introspection:location})
     end select
     return
   end function likelihoodNew

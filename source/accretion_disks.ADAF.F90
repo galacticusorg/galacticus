@@ -368,9 +368,9 @@ contains
 
     ! Validate arguments.
     if (efficiencyRadiationType == adafRadiativeEfficiencyTypeFixed .and. .not.present(efficiencyRadiation)) &
-         & call Galacticus_Error_Report('adafConstructorInternal','radiation efficiency must be provided')
+         & call Galacticus_Error_Report('radiation efficiency must be provided'//{introspection:location})
     if (viscosityOption         == adafViscosityFixed               .and. .not.present(viscosityAlpha     )) &
-         & call Galacticus_Error_Report('adafConstructorInternal','viscosity parameter must be provided' )
+         & call Galacticus_Error_Report('viscosity parameter must be provided'//{introspection:location})
     ! Make assignments.
     !# <constructorAssign variables="energyOption, fieldEnhancementOption, efficiencyRadiationType, viscosityOption, efficiencyJetMaximum, efficiencyRadiation, adiabaticIndex, viscosityAlpha"/>  
     ! Set the default adiabatic index if none was provided.
@@ -443,7 +443,7 @@ contains
           adafEnergy=Black_Hole_ISCO_Specific_Energy(spinBlackHole,orbitPrograde)
        case default
           adafEnergy=0.0d0
-          call Galacticus_Error_Report('adafConstructorInternal','unknown energy type')
+          call Galacticus_Error_Report('unknown energy type'//{introspection:location})
        end select
        ! Compute jet launch radii.
        radiusISCO  =Black_Hole_ISCO_Radius  (spinBlackHole)
@@ -506,7 +506,7 @@ contains
        adafEfficiencyRadiative=self%thinDisk%efficiencyRadiative(blackHole,accretionRateMass)
     case default
        adafEfficiencyRadiative=0.0d0
-       call Galacticus_Error_Report('adafEfficiencyRadiative','unknown radiative efficiency type')
+       call Galacticus_Error_Report('unknown radiative efficiency type'//{introspection:location})
     end select
     return
   end function adafEfficiencyRadiative
@@ -1263,7 +1263,7 @@ contains
        adafAdiabaticIndexDefault=1.333d0
     case default
        adafAdiabaticIndexDefault=0.000d0
-      call Galacticus_Error_Report('adafAdiabaticIndexDefault','unknown field enhancement option')
+      call Galacticus_Error_Report('unknown field enhancement option'//{introspection:location})
     end select
     return
   end function adafAdiabaticIndexDefault

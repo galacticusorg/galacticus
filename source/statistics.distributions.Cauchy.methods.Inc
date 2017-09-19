@@ -76,8 +76,8 @@ double precision function distributionCauchyInverse(self,p)
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &
        & call Galacticus_Error_Report(                             &
-       &                              'distributionCauchyInverse', &
-       &                              'probability out of range'   &
+       &                              'probability out of range'// &
+       &                              {introspection:location}     &
        &                             )
   distributionCauchyInverse=self%median+self%scale*tan(Pi*(p-0.5d0))
   return

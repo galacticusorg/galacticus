@@ -114,7 +114,7 @@ contains
        redshiftMinimum=2.50d0
        redshiftMaximum=3.00d0
     case default
-       call Galacticus_Error_Report('tomczak2014ZFOURGEConstructorInternal','0≤redshiftBin≤7 is required')
+       call Galacticus_Error_Report('0≤redshiftBin≤7 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -174,8 +174,8 @@ contains
     double precision                                                            :: redshift           , logarithmicMass
     
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('tomczak2014ZFOURGEDistanceMaximum','field must be specified')
-    if (field < 1 .or. field > 2) call Galacticus_Error_Report('tomczak2014ZFOURGEDistanceMaximum','1 ≤ field ≤ 2 required')
+    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+    if (field < 1 .or. field > 2) call Galacticus_Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)

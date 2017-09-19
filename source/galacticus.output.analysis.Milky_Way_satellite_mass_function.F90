@@ -229,11 +229,8 @@ contains
                    exit
                 end if
              end do
-             if (outputPresentDay < 0)                                                                       &
-                  & call Galacticus_Error_Report(                                                            &
-                  &                                'Galacticus_Output_Analysis_LG_Satellite_Mass_Functions', &
-                  &                                'unable to find present day [z=0] in outputs'             &
-                  &                             )
+             if (outputPresentDay < 0)                                                                                    &
+                  & call Galacticus_Error_Report('unable to find present day [z=0] in outputs'//{introspection:location})
              ! Construct mass bins.
              massBinsCount=int(log10(massMaximum/massMinimum)*dble(massFunctionBinsPerDecade))+1
              call allocateArray(massBins                      ,[massBinsCount                   ])

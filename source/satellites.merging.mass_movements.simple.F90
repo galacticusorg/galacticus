@@ -70,7 +70,7 @@ contains
        case ("spheroid")
           minorMergerGasMovesToValue=movesToSpheroid
        case default
-          call Galacticus_Error_Report('Satellite_Merging_Mass_Movements_Simple_Initialize','unrecognized location for minor merger satellite gas')
+          call Galacticus_Error_Report('unrecognized location for minor merger satellite gas'//{introspection:location})
        end select
     end if
     return

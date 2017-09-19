@@ -194,7 +194,7 @@ contains
     ! Read the snapshots times file.
     call allocateArray(self%snapshotTimes,[snapshotFileCount])
     open(newUnit=fileUnit,file=char(snapshotTimesFile),status='old',form='formatted',ioStat=ioStat)
-    if (ioStat /= 0) call Galacticus_Error_Report('sussingASCIIOpen','can not open file "'//char(snapshotTimesFile)//'"')
+    if (ioStat /= 0) call Galacticus_Error_Report('can not open file "'//char(snapshotTimesFile)//'"'//{introspection:location})
     read (fileUnit,*)
     do i=1,snapshotFileCount
        read (fileUnit,*) snapshotNumber,expansionFactor,redshift,timeNormalized,time
@@ -224,7 +224,7 @@ contains
                 write (valueString,'(e14.8)') localLittleH0
                 message=message//trim(valueString)//']'
                 if (self%fatalMismatches) then
-                   call Galacticus_Error_Report('sussingOpen',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 else
                    call Galacticus_Display_Message(message,verbosityWarn)
                 end if
@@ -238,7 +238,7 @@ contains
                 write (valueString,'(e14.8)') localOmegaMatter
                 message=message//trim(valueString)//']'
                 if (self%fatalMismatches) then
-                   call Galacticus_Error_Report('sussingOpen',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 else
                    call Galacticus_Display_Message(message,verbosityWarn)
                 end if
@@ -252,7 +252,7 @@ contains
                 write (valueString,'(e14.8)') localOmegaDE
                 message=message//trim(valueString)//']'
                 if (self%fatalMismatches) then
-                   call Galacticus_Error_Report('sussingOpen',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 else
                    call Galacticus_Display_Message(message,verbosityWarn)
                 end if
@@ -260,7 +260,7 @@ contains
           case ('B')
              read (parameterValue,*) self%boxLength
              unitString=String_Strip(parameterValue(index(parameterValue,' '):len(parameterValue)-index(parameterValue,' ')+1))
-             if (String_Strip(unitString) /= 'Mpc/h') call Galacticus_Error_Report('sussingASCIIOpen','box length should be reported in units of Mpc/h')
+             if (String_Strip(unitString) /= 'Mpc/h') call Galacticus_Error_Report('box length should be reported in units of Mpc/h'//{introspection:location})
              self%boxLengthUnits=importerUnits(.true.,megaParsec,-1,0)
           end select
        end if
@@ -427,7 +427,7 @@ contains
     if (fileFormatVersion /= fileFormatVersionCurrent) then
        message='incorrect file format version [found '
        message=message//fileFormatVersion//'; expected '//fileFormatVersionCurrent//';]'
-       call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     ! Allocate storage for list of nodes in subvolume.
     nodeCountSubVolume=int(dble(nodeCount)/dble(self%subvolumeCount)**3,kind=c_size_t)+1
@@ -467,7 +467,7 @@ contains
              haloFormat=sussingHaloFormatAll
           else
              ! Unrecognized format.
-             call Galacticus_Error_Report('sussingTreeIndicesRead','unrecognized format for halo files')
+             call Galacticus_Error_Report('unrecognized format for halo files'//{introspection:location})
           end if         
        end if
        iCount=0
@@ -836,7 +836,7 @@ contains
     else
        open(newUnit=fileUnit,file=char(self%mergerTreeFile        ),status='old',form='formatted'  ,ioStat=ioStat)
     end if
-    if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to open merger tree file "'//char(self%mergerTreeFile)//'"')
+    if (ioStat /= 0) call Galacticus_Error_Report('failed to open merger tree file "'//char(self%mergerTreeFile)//'"'//{introspection:location})
     ! Read progenitor indices and make links.
     call Galacticus_Display_Message('Reading trees',verbosityWorking)
     if (mergerTreeFileIsBinary) then
@@ -844,11 +844,11 @@ contains
        read (fileUnit  ,ioStat=ioStat) nodeCount
     else
        read (fileUnit,*,ioStat=ioStat) fileFormatVersion
-       if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 1')
+       if (ioStat /= 0) call Galacticus_Error_Report('failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 1'//{introspection:location})
        read (fileUnit,'(a)',ioStat=ioStat) line
-       if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 2')
+       if (ioStat /= 0) call Galacticus_Error_Report('failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 2'//{introspection:location})
        read (fileUnit,*,ioStat=ioStat) nodeCount
-       if (ioStat /= 0) call Galacticus_Error_Report('sussingTreeIndicesRead','failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 3')
+       if (ioStat /= 0) call Galacticus_Error_Report('failed to read merger tree file "'//char(self%mergerTreeFile)//'" header line 3'//{introspection:location})
     end if
     i                      = 0
     iCount                 = 0
@@ -892,7 +892,7 @@ contains
                    message=message//char(10)//" first descendent: "//nodeSelfIndices(nodeDescendentLocations(nodeIndexRanks(iProgenitor)))
                    message=message//char(10)//"   new descendent: "//nodeSelfIndices(i)
                    message=message//char(10)//" progenitor index: "//nodeIndex
-                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 end if
                 nodeDescendentLocations(nodeIndexRanks(iProgenitor))=i
                 ! Find the progenitor node in the list of halos in the subvolume.
@@ -939,7 +939,7 @@ contains
                 else
                    message='can not find halo ['
                    message=message//nodeIndex//'] in subvolume'
-                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 end if
              end if
           end if
@@ -1200,7 +1200,7 @@ contains
                       message=message//char(10)//"     node index: "//ID
                       message=message//char(10)//"    found index: "//nodeSelfIndices(l)
                       message=message//char(10)//" found location: "//l
-                      call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                      call Galacticus_Error_Report(message//{introspection:location})
                    else
                       ! Just skip this node.
                       cycle
@@ -1230,7 +1230,7 @@ contains
                 case (sussingMassTopHat )
                    self%nodes(l)%nodeMass          =M_TopHat
                 case default
-                   call Galacticus_Error_Report('sussingTreeIndicesRead','unrecognized mass option')
+                   call Galacticus_Error_Report('unrecognized mass option'//{introspection:location})
                 end select
                 if (self%nodes(l)%nodeMass == 0.0d0 .or. self%valueIsBad(self%nodes(l)%nodeMass)) self%nodes(l)%nodeMass=Mvir
                 self   %nodes(l)%nodeTime          =self%snapshotTimes(i)
@@ -1576,7 +1576,7 @@ contains
                &   Ygroup        ,                        &
                &   Zgroup
        else
-          call Galacticus_Error_Report('sussingASCIIReadHalo','unknown halo file format')
+          call Galacticus_Error_Report('unknown halo file format'//{introspection:location})
        end if
     end if
     return

@@ -81,7 +81,7 @@ contains
           include 'structure_formation.halo_bias.inc'
           !# </include>
           if (.not.(associated(Dark_Matter_Halo_Bias_Get).and.associated(Dark_Matter_Halo_Bias_Node_Get))) call&
-               & Galacticus_Error_Report('Dark_Matter_Halo_Bias_Initialize','method '//char(darkMatterHaloBiasMethod)//' is unrecognized')
+               & Galacticus_Error_Report('method '//char(darkMatterHaloBiasMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           haloBiasInitialized=.true.
        end if

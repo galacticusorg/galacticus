@@ -57,7 +57,7 @@ contains
     type(inputParameters                             ), intent(inout) :: parameters
     type(inputParameters                             )                :: referenceParameters
 
-    if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('schneider2015ConstructorParameters','parameters must contain a "reference" section')
+    if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
     referenceParameters=parameters%subParameters('reference',requireValue=.false.)
     ! Check and read parameters.
     !# <inputParameter>

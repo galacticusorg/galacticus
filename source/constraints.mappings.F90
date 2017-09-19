@@ -119,7 +119,7 @@ contains
           newMapping=mappingInverse    ()
        end select
     case default
-       call Galacticus_Error_Report('mappingNew','mapping type is unrecognized')
+       call Galacticus_Error_Report('mapping type is unrecognized'//{introspection:location})
     end select
     return
   end function mappingNew

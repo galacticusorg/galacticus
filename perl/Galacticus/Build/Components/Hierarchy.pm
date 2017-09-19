@@ -150,7 +150,7 @@ CODE
              @{$class->{'members'}}
            )
       }
-      call Galacticus_Error_Report('Node_Class_Hierarchy_Initialize',message)
+      call Galacticus_Error_Report(message//\{introspection:location\})
     end if
 CODE
     }

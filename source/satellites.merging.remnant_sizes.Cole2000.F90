@@ -146,7 +146,7 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
+       if (errorCondition) call Galacticus_Error_Report('error condition detected'//{introspection:location})
        ! Check if host has finite mass.
        if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
           ! Compute masses of dark matter within the host and satellite radii.

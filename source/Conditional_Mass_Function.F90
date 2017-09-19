@@ -164,7 +164,7 @@ program Conditional_Mass_Function
   call allocateArray(massLogarithmDelta               ,[conditionalMassFunctionMassCount])
   if (globalParameters%isPresent('conditionalMassFunctionMassBinCenters')) then
      ! Read masses directly.
-     if (.not.globalParameters%isPresent('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('Conditional_Mass_Function','[conditionalMassFunctionMassBinWidths] must be present')
+     if (.not.globalParameters%isPresent('conditionalMassFunctionMassBinWidths')) call Galacticus_Error_Report('[conditionalMassFunctionMassBinWidths] must be present'//{introspection:location})
      !# <inputParameter>
      !#   <name>conditionalMassFunctionMassBinCenters</name>
      !#   <cardinality>1</cardinality>

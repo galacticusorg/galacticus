@@ -272,12 +272,12 @@ contains
           distributionProbabilityExists=XML_Path_Exists(definition,"probability")
           distributionLimitExists      =XML_Path_Exists(definition,"limit"      )
           if (distributionScaleExists) then
-             if (distributionProbabilityExists.or.distributionLimitExists) call Galacticus_Error_Report('distributionNew','if "scale" is specified, "probability" and "limit" must be unspecified')
+             if (distributionProbabilityExists.or.distributionLimitExists) call Galacticus_Error_Report('if "scale" is specified, "probability" and "limit" must be unspecified'//{introspection:location})
              call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"scale" ),distributionScale )
              newDistribution=distributionCauchy(distributionMedian,distributionScale)
           else
-             if (.not.distributionProbabilityExists.or..not.distributionLimitExists) call Galacticus_Error_Report('distributionNew','if "scale" is not specified, both "probability" and "limit" must be specified')
-             if (distributionScaleExists                                           ) call Galacticus_Error_Report('distributionNew','if "probability" and "limit" are unspecified, "scale" must be unspecified')
+             if (.not.distributionProbabilityExists.or..not.distributionLimitExists) call Galacticus_Error_Report('if "scale" is not specified, both "probability" and "limit" must be specified'//{introspection:location})
+             if (distributionScaleExists                                           ) call Galacticus_Error_Report('if "probability" and "limit" are unspecified, "scale" must be unspecified'//{introspection:location})
              call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"limit"      ),distributionLimit      )
              call extractDataContent(XML_Get_First_Element_By_Tag_Name(definition,"probability"),distributionProbability)
              newDistribution=distributionCauchy(distributionMedian,distributionLimit,distributionProbability)
@@ -307,7 +307,7 @@ contains
           newDistribution=distributionNegativeExponential(distributionRate)
        end select
     case default
-       call Galacticus_Error_Report('distributionNew','distribution type is unrecognized')
+       call Galacticus_Error_Report('distribution type is unrecognized'//{introspection:location})
     end select
     ! Ensure random number generator is appropriately initialized.
     select type (newDistribution)
@@ -364,9 +364,7 @@ contains
     !GCC$ attributes unused :: self, p
 
     distribution1DInverse=0.0d0
-    call Galacticus_Error_Report('distribution1DInverse', &
-         &                       'not implemented'        &
-         &                      )
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function distribution1DInverse
 
@@ -377,9 +375,7 @@ contains
     !GCC$ attributes unused :: self
 
     distribution1DMinimum=0.0d0
-    call Galacticus_Error_Report('distribution1DMinimum', &
-         &                       'not implemented'        &
-         &                      )
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function distribution1DMinimum
 
@@ -390,9 +386,7 @@ contains
     !GCC$ attributes unused :: self
 
     distribution1DMaximum=0.0d0
-    call Galacticus_Error_Report('distribution1DMaximum', &
-         &                       'not implemented'        &
-         &                      )
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function distribution1DMaximum
 

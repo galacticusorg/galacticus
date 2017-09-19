@@ -27,11 +27,11 @@ subroutine Node_Component_Disk_Standard_Attach_Pipes(self)
   !GCC$ attributes unused :: self
   
   if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
-       call Galacticus_Error_Report('Node_Component_Disk_Standard_Attach_Pipes','expected to find unclaimed hot halo mass cooling pipe'            )
+       call Galacticus_Error_Report('expected to find unclaimed hot halo mass cooling pipe'//{introspection:location})
   if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
-       call Galacticus_Error_Report('Node_Component_Disk_Standard_Attach_Pipes','expected to find unclaimed hot halo angular momentum cooling pipe')
+       call Galacticus_Error_Report('expected to find unclaimed hot halo angular momentum cooling pipe'//{introspection:location})
   if (hotHalo%hotHaloCoolingAbundancesRateIsAttached     ()) &
-       call Galacticus_Error_Report('Node_Component_Disk_Standard_Attach_Pipes','expected to find unclaimed hot halo abundances cooling pipe'      )
+       call Galacticus_Error_Report('expected to find unclaimed hot halo abundances cooling pipe'//{introspection:location})
   call hotHalo%hotHaloCoolingMassRateFunction           (DiskStandardMassGasRateGeneric        )
   call hotHalo%hotHaloCoolingAngularMomentumRateFunction(DiskStandardAngularMomentumRateGeneric)
   call hotHalo%hotHaloCoolingAbundancesRateFunction     (DiskStandardAbundancesGasRateGeneric  )
@@ -51,7 +51,7 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
      Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%halfMassRadius()
   class default
      Node_Component_Disk_Standard_Half_Mass_Radius=0.0d0
-     call Galacticus_Error_Report('Node_Component_Disk_Standard_Half_Mass_Radius','mass distribution should be cylindrical')   
+     call Galacticus_Error_Report('mass distribution should be cylindrical'//{introspection:location})   
   end select
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius

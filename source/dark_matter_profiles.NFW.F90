@@ -223,15 +223,15 @@ contains
     self%nfwTableInitialized               =.false.
     self%lastUniqueID                      =-1
     ! Ensure that the dark matter profile component supports a "scale" property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                         &
-         & call Galacticus_Error_Report                                                                                   &
-         &      (                                                                                                         &
-         &       'nfwConstructorInternal'                                                                               , &
-         &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
-         &       Galacticus_Component_List(                                                                               &
-         &                                 'darkMatterProfile'                                                          , &
-         &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
-         &                                )                                                                               &
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                          &
+         & call Galacticus_Error_Report                                                                                    &
+         &      (                                                                                                          &
+         &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'  //  &
+         &       Galacticus_Component_List(                                                                                &
+         &                                 'darkMatterProfile'                                                          ,  &
+         &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
+         &                                )                                                                             // &
+         &      {introspection:location}                                                                                   &
          &      )
     ! Initialize the tabulations.
     call self%tabulate              ()

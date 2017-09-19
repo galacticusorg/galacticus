@@ -102,7 +102,7 @@ contains
        ! Handle zero distance (i.e. present day outputs - and in fact we test for very small rather than zero distance to catch
        ! rounding errors) as a special case.
        if (distanceModel < distanceSmall) then
-          if (distanceData > distanceSmall) call Galacticus_Error_Report('csmlgyLuminosityDistanceConstructorInternal','luminosity distance in model cosmology is zero, but non-zero for data cosmology - correction is undefined')
+          if (distanceData > distanceSmall) call Galacticus_Error_Report('luminosity distance in model cosmology is zero, but non-zero for data cosmology - correction is undefined'//{introspection:location})
           self%correctionFactor(outputIndex)= +1.0d0
        else
           self%correctionFactor(outputIndex)=(               &
@@ -138,7 +138,7 @@ contains
     !GCC$ attributes unused :: propertyType, node
 
     ! Validate.
-    if (.not.present(outputIndex)) call Galacticus_Error_Report('csmlgyLuminosityDistanceOperate','ouputIndex is required')
+    if (.not.present(outputIndex)) call Galacticus_Error_Report('ouputIndex is required'//{introspection:location})
     ! Apply the correction.
     csmlgyLuminosityDistanceOperate=+propertyValue                      &
          &                          *self%correctionFactor(outputIndex)

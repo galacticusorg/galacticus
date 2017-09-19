@@ -40,25 +40,25 @@ contains
        !$omp critical(Dark_Matter_Halo_Spins_Initialize)
        if (.not.moduleInitialized) then
           ! Ensure that the spin property is available.
-          if (.not.defaultSpinComponent%spinIsGettable())                                                          &
-               & call Galacticus_Error_Report                                                                      &
-               &      (                                                                                            &
-               &       'Dark_Matter_Halo_Spins_Initialize'                                                       , &
-               &       'spin property of spin component must be gettable.'//                                       &
-               &       Galacticus_Component_List(                                                                  &
-               &                                 'spin'                                                          , &
-               &                                 defaultSpinComponent%spinAttributeMatch(requireGettable=.true.)   &
-               &                                )                                                                  &
+          if (.not.defaultSpinComponent%spinIsGettable())                                                           &
+               & call Galacticus_Error_Report                                                                       &
+               &      (                                                                                             &
+               &       'spin property of spin component must be gettable.'//                                        &
+               &       Galacticus_Component_List(                                                                   &
+               &                                 'spin'                                                          ,  &
+               &                                 defaultSpinComponent %spinAttributeMatch(requireGettable=.true.)   &
+               &                                )                                                                // &
+               &       {introspection:location}                                                                     &
                &      )
-          if (.not.defaultBasicComponent%massIsGettable())                                                         &
-               & call Galacticus_Error_Report                                                                      &
-               &      (                                                                                            &
-               &       'Dark_Matter_Halo_Spins_Initialize'                                                       , &
-               &       'mass property of basic component must be gettable.'//                                      &
-               &       Galacticus_Component_List(                                                                  &
-               &                                 'basic'                                                         , &
-               &                                 defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
-               &                                )                                                                  &
+          if (.not.defaultBasicComponent%massIsGettable())                                                          &
+               & call Galacticus_Error_Report                                                                       &
+               &      (                                                                                             &
+               &       'mass property of basic component must be gettable.'//                                       &
+               &       Galacticus_Component_List(                                                                   &
+               &                                 'basic'                                                         ,  &
+               &                                 defaultBasicComponent%massAttributeMatch(requireGettable=.true.)   &
+               &                                )                                                                // &
+               &       {introspection:location}                                                                     &
                &      )
           ! Record that the module is now initialized.
           moduleInitialized=.true.

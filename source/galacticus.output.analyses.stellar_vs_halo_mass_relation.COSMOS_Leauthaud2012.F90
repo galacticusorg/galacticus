@@ -143,7 +143,7 @@ contains
        redshiftMaximum = 1.00d0
        massStellarLimit=10.00d0**9.8d0
     case default
-       call Galacticus_Error_Report('stellarVsHaloMassRelationLeauthaud2012ConstructorInternal','redshiftInterval ∈ {1,2,3}')
+       call Galacticus_Error_Report('redshiftInterval ∈ {1,2,3}'//{introspection:location})
     end select
     surveyGeometry_=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     ! Create output time weights.

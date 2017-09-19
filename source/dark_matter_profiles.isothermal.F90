@@ -375,7 +375,7 @@ contains
     !GCC$ attributes unused :: self, node, density
 
     isothermalRadiusEnclosingDensity=0.0d0
-    call Galacticus_Error_Report('isothermalRadiusEnclosingDensity','function is not implemented')
+    call Galacticus_Error_Report('function is not implemented'//{introspection:location})
     return
   end function isothermalRadiusEnclosingDensity
   

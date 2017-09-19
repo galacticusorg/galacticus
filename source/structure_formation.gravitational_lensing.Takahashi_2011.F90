@@ -438,7 +438,7 @@ contains
              tableConvergenceVariance(i)=convergencePdfMoment2/convergencePdfMoment0
              ! Check that the ratio of first to second moments equals -2.
              if (Values_Differ(convergencePdfMoment1/convergencePdfMoment2,-2.0d0,absTol=2.0d-3)) &
-                  & call Galacticus_Error_Report('takahashi2011MagnificationPDF','convergence PDF does not satisfy consistency criterion')
+                  & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
           end do
           ! Store the results to file.
           !$omp critical(HDF5_Access)

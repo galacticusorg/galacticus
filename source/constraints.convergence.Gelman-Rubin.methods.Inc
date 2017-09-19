@@ -44,7 +44,7 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   convergenceGelmanRubinConstructor%convergedAtStepCount      =-1
   convergenceGelmanRubinConstructor%chainMask                 =.true.
   ! Validate.
-  if (mpiSelf%count()-outlierCountMaximum < 3) call Galacticus_Error_Report('convergenceGelmanRubinConstructor','maximum number of outliers is too large')
+  if (mpiSelf%count()-outlierCountMaximum < 3) call Galacticus_Error_Report('maximum number of outliers is too large'//{introspection:location})
   ! Open log file.
   if (mpiSelf%isMaster()) open(newUnit=convergenceGelmanRubinConstructor%logFileUnit,file=trim(logFileName),form='formatted',status='unknown')
  return

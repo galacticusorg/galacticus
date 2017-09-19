@@ -57,9 +57,9 @@ contains
 
     ! Check and read parameters.
     if (parameters%count('apparentMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.)) &
-         & call  Galacticus_Error_Report(                                                                                                  &
-         &                                 'stellarApparentMagnitudesConstructorParameters'                                              , &
-         &                                 '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'  &
+         & call  Galacticus_Error_Report(                                                                                                 &
+         &                               '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                               {introspection:location}                                                                         &
          &                              )
     call allocateArray(apparentMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
     !# <inputParameter>
@@ -85,10 +85,10 @@ contains
     class           (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     !# <constructorAssign variables="apparentMagnitudeThreshold, *cosmologyFunctions_"/>
 
-    if (size(apparentMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                    &
-         & call  Galacticus_Error_Report(                                                                                                &
-         &                               'stellarApparentMagnitudesConstructorInternal'                                                , &
-         &                               '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'  &
+    if (size(apparentMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                     &
+         & call  Galacticus_Error_Report(                                                                                                 &
+         &                               '[apparentMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                               {introspection:location}                                                                         &
          &                              )    
     ! Map magnitude limits onto the expanded filter set.
     call Stellar_Luminosities_Parameter_Map(stellarApparentMagnitudesConstructorInternal%apparentMagnitudeThreshold)

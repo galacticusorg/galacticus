@@ -64,8 +64,7 @@ contains
           !#  <functionArgs>ramPressureStrippingMassLossRateDisksMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get</functionArgs>
           include 'ram_pressure_stripping.mass_loss_rate.disks.inc'
           !# </include>
-          if (.not.associated(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get)) call Galacticus_Error_Report('Ram_Pressure_Stripping_Mass_Loss_Rate_Disk','method ' &
-               &//char(ramPressureStrippingMassLossRateDisksMethod)//' is unrecognized')
+          if (.not.associated(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get)) call Galacticus_Error_Report('method '//char(ramPressureStrippingMassLossRateDisksMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Init)

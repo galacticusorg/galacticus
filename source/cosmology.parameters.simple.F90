@@ -225,7 +225,7 @@ contains
             &                    /HubbleConstantNormalization
     case default
        simpleHubbleConstant=0.0d0
-       call Galacticus_Error_Report('cosmologyParametersSimple:simpleHubbleConstant','unknown units for Hubble parameter')
+       call Galacticus_Error_Report('unknown units for Hubble parameter'//{introspection:location})
     end select
     return
   end function simpleHubbleConstant

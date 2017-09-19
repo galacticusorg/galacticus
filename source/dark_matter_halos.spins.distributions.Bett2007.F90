@@ -158,7 +158,7 @@ contains
        bett2007Sample=self%distributionInverse%interpolate(node%hostTree%randomNumberGenerator%sample())
     else
        bett2007Sample=0.0d0
-       call Galacticus_Error_Report('bett2007Sample','can not sample - cumulative distribution table was not monotonic')
+       call Galacticus_Error_Report('can not sample - cumulative distribution table was not monotonic'//{introspection:location})
     end if
     return
   end function bett2007Sample

@@ -102,7 +102,7 @@ contains
        !$omp critical(accretionHaloSimpleDefaultInitialize)
        if (.not.simpleDefaultInitialized) then
           if (globalParameters%isPresent("simpleReionizationSuppressionOpticalDepth")) then
-             if (globalParameters%isPresent("simpleReionizationSuppressionRedshift")) call Galacticus_Error_Report("simpleDefaultConstructor","only one of [simpleReionizationSuppressionOpticalDepth] and [simpleReionizationSuppressionRedshift] should be specified")
+             if (globalParameters%isPresent("simpleReionizationSuppressionRedshift")) call Galacticus_Error_Report("only one of [simpleReionizationSuppressionOpticalDepth] and [simpleReionizationSuppressionRedshift] should be specified"//{introspection:location})
              !# <inputParameter>
              !#   <name>reionizationSuppressionOpticalDepth</name>
              !#   <cardinality>1</cardinality>
@@ -181,19 +181,19 @@ contains
     simpleConstructor%accreteNewGrowthOnly           =accreteNewGrowthOnly
     call simpleConstructor%radiation%define([radiationTypeCMB])
     ! Check that required properties have required attributes.       
-    if     (                                                                                                      &
-         &   accreteNewGrowthOnly                                                                                 &
-         &  .and.                                                                                                 &
-         &   .not.defaultBasicComponent%massMaximumIsGettable()                                                   &
-         & ) call Galacticus_Error_Report                                                                         &
-         &   (                                                                                                    &
-         &    'simpleConstructor'                                                                               , &
-         &    'accreteNewGrowthOnly=true requires that the "massMaximum" '//                                      &
-         &    'property of the basic component be gettable.'              //                                      &
-         &    Galacticus_Component_List(                                                                          &
-         &                              'basic'                                                                 , &
-         &                               defaultBasicComponent%massMaximumAttributeMatch(requireGettable=.true.)  &
-         &                             )                                                                          &
+    if     (                                                                                                       &
+         &   accreteNewGrowthOnly                                                                                  &
+         &  .and.                                                                                                  &
+         &   .not.defaultBasicComponent%massMaximumIsGettable()                                                    &
+         & ) call Galacticus_Error_Report                                                                          &
+         &   (                                                                                                     &
+         &    'accreteNewGrowthOnly=true requires that the "massMaximum" '//                                       &
+         &    'property of the basic component be gettable.'              //                                       &
+         &    Galacticus_Component_List(                                                                           &
+         &                              'basic'                                                                 ,  &
+         &                               defaultBasicComponent%massMaximumAttributeMatch(requireGettable=.true.)   &
+         &                             )                                                                        // &
+         &    {introspection:location}                                                                             &
          &   )
     ! Perform class global initialization.
     if (.not.simpleInitialized) then

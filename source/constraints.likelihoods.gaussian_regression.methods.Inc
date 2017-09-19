@@ -169,7 +169,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
                 &  '] is too few to constrain global trend polynomial ['// &
                 &  self%polynomialCoefficientCount                      // &
                 &  ']'
-           call Galacticus_Error_Report('likelihoodGaussianRegressionEvaluate',message)
+           call Galacticus_Error_Report(message//{introspection:location})
         end if
         call allocateArray(self%polynomialCoefficient,    [self%polynomialCoefficientCount                                ] )
         call allocateArray(self%likelihoodSums       ,    [self%polynomialCoefficientCount                                ] )
@@ -524,9 +524,9 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
   cVector  =FGSL_Vector_Init(type=1.0_FGSL_Double)
   C        =[semiVariancesBinned(1),semiVariancesBinned(binCount),separationsBinned(binCount/2)] ! Initial guess for the parameters.
   status   =FGSL_Vector_Align(C,3_FGSL_Size_T,cVector,3_FGSL_Size_T,0_FGSL_Size_T,1_FGSL_Size_T)
-  if (status /= FGSL_Success) call Galacticus_Error_Report('likelihoodGaussianRegressionFitVariogram','failed to initialize parameter vector')
+  if (status /= FGSL_Success) call Galacticus_Error_Report('failed to initialize parameter vector'//{introspection:location})
   status   =FGSL_MultiMin_FDFMinimizer_Set(minimizer,minimizationFunction,cVector,0.01d0,0.1d0)
-  if (status /= FGSL_Success) call Galacticus_Error_Report('likelihoodGaussianRegressionFitVariogram','failed to set minimizer')
+  if (status /= FGSL_Success) call Galacticus_Error_Report('failed to set minimizer'//{introspection:location})
   ! Iterate the minimizer until a sufficiently good solution is found.
   currentMinimum=0.0d0
   iteration     =0
@@ -539,7 +539,7 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
      status        =FGSL_MultiMin_FDFMinimizer_Iterate(minimizer)
      currentMinimum=FGSL_MultiMin_FDFMinimizer_Minimum(minimizer)
      if (status == FGSL_ENoProg) exit
-     if (status /= FGSL_Success) call Galacticus_Error_Report('likelihoodGaussianRegressionFitVariogram','failed to iterate minimizer')  
+     if (status /= FGSL_Success) call Galacticus_Error_Report('failed to iterate minimizer'//{introspection:location})  
   end do
   ! Extract the best fit parameters.
   call FGSL_Vector_Free(cVector)

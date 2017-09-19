@@ -64,8 +64,7 @@ contains
           !#  <functionArgs>ramPressureStrippingMassLossRateSpheroidsMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get</functionArgs>
           include 'ram_pressure_stripping.mass_loss_rate.spheroids.inc'
           !# </include>
-          if (.not.associated(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get)) call Galacticus_Error_Report('Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid','method ' &
-               &//char(ramPressureStrippingMassLossRateSpheroidsMethod)//' is unrecognized')
+          if (.not.associated(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get)) call Galacticus_Error_Report('method '//char(ramPressureStrippingMassLossRateSpheroidsMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Init)

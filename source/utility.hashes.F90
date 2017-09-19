@@ -216,7 +216,7 @@ contains
        thisHash%hashValues(ikey:thisHash%elementCount-1)=thisHash%hashValues(ikey+1:thisHash%elementCount)
        thisHash%elementCount                        =thisHash%elementCount-1
     else
-       call Galacticus_Error_Report('Delete_{Type¦label}_Scalar_VS','key '''//char(key)//''' does not exist in hash')
+       call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
     return
   end subroutine Delete_{Type¦label}_Scalar_VS
@@ -296,7 +296,7 @@ contains
        Value_{Type¦label}_Scalar_VS=thisHash%hashValues(iKey)
     else
        Value_{Type¦label}_Scalar_VS=0
-       call Galacticus_Error_Report('Value_{Type¦label}_Scalar','key '''//char(key)//''' does not exist in hash')
+       call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
     return
   end function Value_{Type¦label}_Scalar_VS

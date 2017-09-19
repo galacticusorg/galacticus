@@ -268,7 +268,7 @@ contains
     !GCC$ attributes unused :: self, time, variance, varianceProgenitor
 
     zhangHuiRate=0.0d0
-    call Galacticus_Error_Report('zhangHuiRateNonCrossing','barrier crossing rates are not implemented for this method [too slow]')
+    call Galacticus_Error_Report('barrier crossing rates are not implemented for this method [too slow]'//{introspection:location})
     return
   end function zhangHuiRate
 
@@ -281,7 +281,7 @@ contains
     !GCC$ attributes unused :: self, time, variance
 
     zhangHuiRateNonCrossing=0.0d0
-    call Galacticus_Error_Report('zhangHuiRateNonCrossing','barrier non-crossing rates are not implemented for this method [too slow]')
+    call Galacticus_Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})
     return
   end function zhangHuiRateNonCrossing
 

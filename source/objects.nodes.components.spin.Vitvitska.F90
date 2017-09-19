@@ -273,7 +273,7 @@ contains
        basicParent => nodeParent%basic ()
        spinParent  => nodeParent%spin  ()
        if (basic%time() /= basicParent%time()) &
-            & call Galacticus_Error_Report('Node_Component_Spin_Vitvitska_Promote','node has not been evolved to its parent')   
+            & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})   
        ! Adjust the spin to that of the parent node.
        call spin%spinSet      (spinParent%spin      ())
        call spin%spinVectorSet(spinParent%spinVector())

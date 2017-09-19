@@ -92,12 +92,12 @@ contains
                      &       )                                                                                                              &
                      & ) call Galacticus_Error_Report                                                                                       &
                      &        (                                                                                                             &
-                     &         'Galacticus_Output_Tree_Satellite_Status_Initialize'                                                      ,  &
                      &         'this method requires that boundMassHistory property must be gettable for the satellite component.'       // &
                      &         Galacticus_Component_List(                                                                                   &
                      &                                   'satellite'                                                                     ,  &
                      &                                   defaultSatelliteComponent%boundMassHistoryAttributeMatch(requireGettable=.true.)   &
-                     &                                  )                                                                                   &
+                     &                                  )                                                                                // &
+                     &         {introspection:location}                                                                                     &
                      &        )
              case (statusOrphanDiscriminatorPosition )
                 if     (                                                                                                                    &
@@ -107,12 +107,12 @@ contains
                      &       )                                                                                                              &
                      & ) call Galacticus_Error_Report                                                                                       &
                      &        (                                                                                                             &
-                     &         'Galacticus_Output_Tree_Satellite_Status_Initialize'                                                      ,  &
                      &         'this method requires that positionHistory property must be gettable for the position component.'         // &
                      &         Galacticus_Component_List(                                                                                   &
                      &                                   'position'                                                                      ,  &
                      &                                   defaultPositionComponent%positionHistoryAttributeMatch  (requireGettable=.true.)   &
-                     &                                  )                                                                                   &
+                     &                                  )                                                                                // &
+                     &         {introspection:location}                                                                                     &
                      &        )
              end select
            end if

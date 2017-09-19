@@ -146,7 +146,7 @@ contains
           message='ODE integration failed with status '
           message=message//status//' [generic failure]'//char(10)
           message=message//' => most likely a stepsize underflow'
-          call Galacticus_Error_Report('ODEIV2_Solve',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1Internal=interruptedAtX
@@ -161,7 +161,7 @@ contains
           end if
           message='ODE integration failed with status '
           message=message//status
-          call Galacticus_Error_Report('ODEIV2_Solve',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end select
     end do
     ! Return the new value of x.

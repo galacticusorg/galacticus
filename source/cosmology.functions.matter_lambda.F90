@@ -306,18 +306,18 @@ contains
 
     ! Check that we have a uniquely specified epoch.
     if (      present(timeIn).and.present(expansionFactorIn) ) &
-         & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','either "time" or "expansionFactor" should be specified, not both')
+         & call Galacticus_Error_Report('either "time" or "expansionFactor" should be specified, not both'               //{introspection:location})
     if (.not.(present(timeIn).or. present(expansionFactorIn))) &
-         & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','one of "time" or "expansionFactor" should be specified')
+         & call Galacticus_Error_Report('one of "time" or "expansionFactor" should be specified'                         //{introspection:location})
     if (      present(timeIn).and.present(collapsingIn     ) ) &
-         & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','collapsing status of universe cannot be specified when epoch is defined by time')
+         & call Galacticus_Error_Report('collapsing status of universe cannot be specified when epoch is defined by time'//{introspection:location})
     ! If we have a time, check that it is a valid, and compute outputs as required.
     if (present(timeIn)) then
        ! Validate.
-       if (                              timeIn < 0.0d0           )                                                        &
-            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','time preceeds the Big Bang' )
-       if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                                                        &
-            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','time exceeds the Big Crunch')
+       if (                              timeIn < 0.0d0           )                                 &
+            & call Galacticus_Error_Report('time preceeds the Big Bang' //{introspection:location})
+       if (self%collapsingUniverse .and. timeIn > self%timeMaximum)                                 &
+            & call Galacticus_Error_Report('time exceeds the Big Crunch'//{introspection:location})
        ! Set outputs.
        if (present(timeOut           )) timeOut           =                           timeIn
        if (present(expansionFactorOut)) expansionFactorOut= self%expansionFactor     (timeIn)
@@ -329,15 +329,15 @@ contains
     if (present(expansionFactorIn)) then
        ! Validate.
        if (                              expansionFactorIn <                       0.0d0) &
-            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','expansion factor preceeds the Big Bang'    )
+            & call Galacticus_Error_Report('expansion factor preceeds the Big Bang'    //{introspection:location})
        if (self%collapsingUniverse .and. expansionFactorIn > self%expansionFactorMaximum) &
-            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','expansion factor exceeds maximum expansion')
+            & call Galacticus_Error_Report('expansion factor exceeds maximum expansion'//{introspection:location})
        ! Determine collapse status.
        collapsingActual=.false.
        if (present(collapsingIn)) collapsingActual=collapsingIn
        ! Validate collapse status.
        if (collapsingActual .and. .not.self%collapsingUniverse) &
-            & call Galacticus_Error_Report('cosmologyFunctions:matterLambdaEpochValidate','epoch during collapsing phase specified, but universe does not collapse')
+            & call Galacticus_Error_Report('epoch during collapsing phase specified, but universe does not collapse'//{introspection:location})
        ! Set outputs.
        if (present(timeOut           )) timeOut           =self%cosmicTime(expansionFactorIn,collapsingActual)
        if (present(expansionFactorOut)) expansionFactorOut=expansionFactorIn
@@ -428,7 +428,7 @@ contains
     ! Check if the time differs from the previous time.
     if (time /= self%timePrevious) then
        ! Quit on invalid input.
-       if (time < 0.0d0) call Galacticus_Error_Report('matterLambdaExpansionFactor','cosmological time must be positive')
+       if (time < 0.0d0) call Galacticus_Error_Report('cosmological time must be positive'//{introspection:location})
        ! Get lock on interpolation tables.
        !$ call OMP_Set_Lock(self%expansionFactorTableLock)
        ! Check if we need to recompute our table.
@@ -440,7 +440,7 @@ contains
        if (remakeTable) call self%expansionFactorTabulate(time)
        ! Quit on invalid input.
        if (self%collapsingUniverse.and.time > self%timeMaximum) &
-            & call Galacticus_Error_Report('matterLambdaExpansionFactor','cosmological time exceeds that at the Big Crunch')
+            & call Galacticus_Error_Report('cosmological time exceeds that at the Big Crunch'//{introspection:location})
        ! Find the effective time to which to interpolate.
        if (self%collapsingUniverse) then
           if (time <= self%timeTurnaround) then
@@ -609,7 +609,7 @@ contains
     if (present(time)) then
        if (present(expansionFactor)) then
           expansionFactorActual=-1.0d0
-          call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','only one of time or expansion factor can be specified')
+          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
        else
           expansionFactorActual=self%expansionFactor(time)
        end if
@@ -618,7 +618,7 @@ contains
           expansionFactorActual=expansionFactor
        else
           expansionFactorActual=-1.0d0
-          call Galacticus_Error_Report('matterLambdaMatterDensityEpochal','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
        end if
     end if
     matterLambdaMatterDensityEpochal=self%cosmologyParameters_%omegaMatter()*self%cosmologyParameters_%densityCritical()/expansionFactorActual**3
@@ -947,7 +947,7 @@ contains
     logical                                                         :: remakeTable
 
     ! Quit on invalid input.
-    if (comovingDistance < 0.0d0) call Galacticus_Error_Report('matterLambdaTimeAtDistanceComoving','comoving distance must be positive')
+    if (comovingDistance < 0.0d0) call Galacticus_Error_Report('comoving distance must be positive'//{introspection:location})
     ! Get lock on interpolation tables.
     !$ call OMP_Set_Lock(self%distanceTableLock)
     ! Check if we need to recompute our table.
@@ -994,7 +994,7 @@ contains
     if (time > self%cosmicTime(1.0d0)*(1.0d0+toleranceRelative)) then
        write (timeLabel   ,'(e12.6)') time
        write (timeNowLabel,'(e12.6)') self%cosmicTime(1.0d0)
-       call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time ['//trim(timeLabel)//'] must be in the past [≤'//trim(timeNowLabel)//']')
+       call Galacticus_Error_Report('cosmological time ['//trim(timeLabel)//'] must be in the past [≤'//trim(timeNowLabel)//']'//{introspection:location})
     end if
     ! Get lock on interpolation tables.
     !$ call OMP_Set_Lock(self%distanceTableLock)
@@ -1007,7 +1007,7 @@ contains
     if (remakeTable) call self%distanceTabulate(time)
     ! Quit on invalid input.
     if (self%collapsingUniverse.and.time>self%timeMaximum) &
-         & call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time exceeds that at the Big Crunch')
+         & call Galacticus_Error_Report('cosmological time exceeds that at the Big Crunch'//{introspection:location})
     ! Interpolate to get the comoving distance.
     matterLambdaDistanceComoving                               &
          & =Interpolate(                                       &
@@ -1091,14 +1091,14 @@ contains
        gotComovingDistance=.true.
     end if
     if (.not.gotComovingDistance) &
-         & call Galacticus_Error_Report('matterLambdaComovingDistanceConvert','no distance measure provided')
+         & call Galacticus_Error_Report('no distance measure provided'//{introspection:location})
     ! Convert to required distance measure.
     select case (output)
     case (distanceTypeComoving)
        matterLambdaDistanceComovingConvert=comovingDistance
     case default
        matterLambdaDistanceComovingConvert=-1.0d0
-       call Galacticus_Error_Report('matterLambdaComovingDistanceConvert','unrecognized output option')
+       call Galacticus_Error_Report('unrecognized output option'//{introspection:location})
     end select
     return
   end function matterLambdaDistanceComovingConvert

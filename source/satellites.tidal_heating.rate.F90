@@ -67,10 +67,10 @@ contains
           !#  <functionArgs>satelliteTidalHeatingMethod,Satellite_Tidal_Heating_Rate_Get</functionArgs>
           include 'satellite.tidal.heating.rate.inc'
           !# </include>
-          if (.not.associated(Satellite_Tidal_Heating_Rate_Get))                                                &
-               & call Galacticus_Error_Report(                                                                  &
-               &                              'Satellite_Tidal_Heating_Rate_Initialize'                       , &
-               &                              'method '//char(satelliteTidalHeatingMethod)//' is unrecognized'  &
+          if (.not.associated(Satellite_Tidal_Heating_Rate_Get))                                                 &
+               & call Galacticus_Error_Report(                                                                   &
+               &                              'method '//char(satelliteTidalHeatingMethod)//' is unrecognized'// &
+               &                              {introspection:location}                                           &
                &                             )
           ! Record that this module is now initialized.
           satelliteTidalHeatingInitialized=.true.

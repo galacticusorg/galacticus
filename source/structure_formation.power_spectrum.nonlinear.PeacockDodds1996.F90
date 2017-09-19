@@ -187,7 +187,7 @@ contains
        fNLLastIteration=fNL
        iterationCount  =iterationCount+1
     end do
-    if (.not.converged) call Galacticus_Error_Report('peacockDodds1996Value','nonlinear power spectrum calculation failed to converge')
+    if (.not.converged) call Galacticus_Error_Report('nonlinear power spectrum calculation failed to converge'//{introspection:location})
     ! Store evaluations.
     self%timePrevious         =time
     self%waveNumberPrevious(1)=self%waveNumberPrevious(2)

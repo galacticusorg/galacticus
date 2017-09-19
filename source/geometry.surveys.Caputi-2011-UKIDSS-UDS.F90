@@ -89,7 +89,7 @@ contains
        redshiftMinimum=4.25d0
        redshiftMaximum=5.00d0
     case default
-       call Galacticus_Error_Report('caputi2011UKIDSSUDSConstructorInternal','0≤redshiftBin≤2 is required')
+       call Galacticus_Error_Report('0≤redshiftBin≤2 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -139,7 +139,7 @@ contains
     double precision                                                             :: redshift           , logarithmicMass
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSDistanceMaximum','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -166,7 +166,7 @@ contains
     integer                                            , intent(in   ), optional :: field
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSVolumeMaximum','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Compute the volume.
     caputi2011UKIDSSUDSVolumeMaximum                       &
          & =max(                                           &
@@ -192,7 +192,7 @@ contains
     !GCC$ attributes unused :: self
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('caputi2011UKIDSSUDSSolidAngle','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     caputi2011UKIDSSUDSSolidAngle=solidAngleSurvey
     return
   end function caputi2011UKIDSSUDSSolidAngle
@@ -217,7 +217,7 @@ contains
     if (.not.File_Exists(Galacticus_Input_Path()//&
          &"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) then
        call System_Command_Do(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
-       if (.not.File_Exists(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('caputi2011UKIDSSUDSWindowFunctions','unable to create survey geometry randoms file')
+       if (.not.File_Exists(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
     !$omp critical(HDF5_Access)

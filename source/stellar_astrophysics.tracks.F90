@@ -71,7 +71,7 @@ contains
           include 'stellar_astrophysics.tracks.inc'
           !# </include>
           if (.not.(associated(Stellar_Luminosity_Get).and.associated(Stellar_Effective_Temperature_Get))) &
-               & call Galacticus_Error_Report('Stellar_Tracks','method '//char(stellarTracksMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method '//char(stellarTracksMethod)//' is unrecognized'//{introspection:location})
           stellarTracksInitialized=.true.
        end if
        !$omp end critical(Stellar_Tracks_Initialization)

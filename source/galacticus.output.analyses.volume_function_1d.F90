@@ -116,7 +116,7 @@ contains
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                               ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*Galacticus_Output_Time_Count()])
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*Galacticus_Output_Time_Count()) &
-         & call Galacticus_Error_Report('volumeFunction1DConstructorParameters','incorrect number of output weights provided')
+         & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
     !# <inputParameter>
     !#   <name>label</name>
     !#   <source>parameters</source>

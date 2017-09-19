@@ -134,8 +134,9 @@ sub createNullFunction {
     }
     # Add error for set functions.
     if ( $descriptor->{'attribute'} eq "set" ) {
-	$function->{'content'} .= "call Galacticus_Error_Report('".$functionName."','attempt to set value in null component')\n";
-    }    # Insert into the function list (if it is used).
+	$function->{'content'} .= "call Galacticus_Error_Report('attempt to set value in null component'//{introspection:location})\n";
+    }  
+    # Insert into the function list (if it is used).
     push(
 	@{$build->{'functions'}},
 	$function

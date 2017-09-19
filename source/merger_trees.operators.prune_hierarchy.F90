@@ -75,7 +75,7 @@ contains
     type   (mergerTreeOperatorPruneHierarchy)                :: pruneHierarchyConstructorInternal
     integer                                  , intent(in   ) :: hierarchyDepth
 
-    if (hierarchyDepth < 1) call Galacticus_Error_Report('pruneHierarchyConstructorInternal','[hierarchyDepth] > 0 is required')
+    if (hierarchyDepth < 1) call Galacticus_Error_Report('[hierarchyDepth] > 0 is required'//{introspection:location})
     pruneHierarchyConstructorInternal%hierarchyDepth=hierarchyDepth
     return
   end function pruneHierarchyConstructorInternal

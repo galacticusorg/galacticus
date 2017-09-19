@@ -94,7 +94,7 @@ contains
        degreesOfFreedomEffectiveDecoupling=particle%degreesOfFreedomEffectiveDecoupling()
     class default
        degreesOfFreedomEffectiveDecoupling=0.0d0
-       call Galacticus_Error_Report('bbksWDMConstructorInternal','transfer function expects a thermal warm dark matter particle')
+       call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
     bbksWDMConstructorInternal%lengthFreeStreaming=+0.2d0                                                                                     &

@@ -75,10 +75,10 @@ contains
                &       )                                                                                &
                & )                                                                                      &
                & call Galacticus_Error_Report(                                                          &
-               &                              'Galactic_Structure_Radius_Initial_Initialize'          , &
                &                              'method '                                                 &
                &                              //char(galacticStructureRadiusSolverInitialRadiusMethod)  &
                &                              //' is unrecognized'                                      &
+               &                              //{introspection:location}                                &
                &                             )
           moduleInitialized=.true.
        end if

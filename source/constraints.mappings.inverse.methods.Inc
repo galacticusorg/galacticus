@@ -30,19 +30,19 @@ subroutine mappingInverseMapPrior(self,thisPrior)
   select type (thisDistribution => thisPrior%priorDistribution)
   type is (distributionUniform)
      ! Simply map the upper and lower limits of this uniform distribution.
-     if     (                                                                                                      &
-          &   thisDistribution%limitLower <= 0.0d0                                                                 &
-          &  .and.                                                                                                 &
-          &   thisDistribution%limitUpper >= 0.0d0                                                                 &
-          & ) call Galacticus_Error_Report(                                                                        &
-          &                                'mappingInverseMapPrior'                                              , &
-          &                                'inverse mapping cannot be applied to uniform distribution spans zero'  &
+     if     (                                                                                                       &
+          &   thisDistribution%limitLower <= 0.0d0                                                                  &
+          &  .and.                                                                                                  &
+          &   thisDistribution%limitUpper >= 0.0d0                                                                  &
+          & ) call Galacticus_Error_Report(                                                                         &
+          &                                'inverse mapping cannot be applied to uniform distribution spans zero'// &
+          &                                {introspection:location}                                                 &
           &                               )
      thisDistribution%limitLower=1.0d0/thisDistribution%limitLower
      thisDistribution%limitUpper=1.0d0/thisDistribution%limitUpper
   class default
      ! Report an error.
-     call Galacticus_Error_Report('mappingInverseMapPrior','mapping can not handle this prior distribution')
+     call Galacticus_Error_Report('mapping can not handle this prior distribution'//{introspection:location})
   end select
   return
 end subroutine mappingInverseMapPrior

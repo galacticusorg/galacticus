@@ -166,7 +166,7 @@ contains
               &          /                           x                     ** self%exponent
       else
          gammaIncomplete=0.0d0
-         call Galacticus_Error_Report('gammaIncomplete','exponent out of range')
+         call Galacticus_Error_Report('exponent out of range'//{introspection:location})
       end if
       return
     end function gammaIncomplete

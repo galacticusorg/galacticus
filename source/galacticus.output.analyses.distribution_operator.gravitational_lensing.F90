@@ -113,7 +113,7 @@ contains
     !GCC$ attributes unused :: self, propertyValue, propertyType, propertyValueMinimum, propertyValueMaximum, outputIndex, node
 
     distributionNew=0.0d0
-    call Galacticus_Error_Report('grvtnlLnsngOperateScalar','not implemented')
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function grvtnlLnsngOperateScalar
   
@@ -202,7 +202,7 @@ contains
          ratioMinimum=10.0d0**(-0.4d0*(propertyValueMinimum(k)-propertyValue))
          ratioMaximum=10.0d0**(-0.4d0*(propertyValueMaximum(k)-propertyValue))
       case default
-         call Galacticus_Error_Report('magnificationCDFIntegrand','unknown property type')
+         call Galacticus_Error_Report('unknown property type'//{introspection:location})
       end select
       ! Compute the lensing CDF across this range of magnifications.
       magnificationCDFIntegrand=                                               &

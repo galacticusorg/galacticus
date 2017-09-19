@@ -70,23 +70,23 @@ contains
     if (.not.bertschingerInitialized) then
        !$omp critical(accretionHaloBertschingerInitialize)
        if (.not.bertschingerInitialized) then
-          if     (                                                                                                                     &
-               &  .not.(                                                                                                               &
-               &         defaultBasicComponent%         massBertschingerIsGettable()                                                   &
-               &        .and.                                                                                                          &
-               &         defaultBasicComponent%accretionRateBertschingerIsGettable()                                                   &
-               &       )                                                                                                               &
-               & )                                                                                                                     &
-               & call Galacticus_Error_Report                                                                                          &
-               &   (                                                                                                                   &
-               &    'bertschingerInitialize'                                                                                         , &
-               &    'the "massBertschinger" and "accretionRateBertschinger" properties of the basic component must be gettable.'    // &
-               &    Galacticus_Component_List(                                                                                         &
-               &                              'basic'                                                                                , &
-               &                                defaultBasicComponent%         massBertschingerAttributeMatch(requireGettable=.true.)  &
-               &                               .intersection.                                                                          &
-               &                                defaultBasicComponent%accretionRateBertschingerAttributeMatch(requireGettable=.true.)  &
-               &                             )                                                                                         &
+          if     (                                                                                                                      &
+               &  .not.(                                                                                                                &
+               &         defaultBasicComponent%         massBertschingerIsGettable()                                                    &
+               &        .and.                                                                                                           &
+               &         defaultBasicComponent%accretionRateBertschingerIsGettable()                                                    &
+               &       )                                                                                                                &
+               & )                                                                                                                      &
+               & call Galacticus_Error_Report                                                                                           &
+               &   (                                                                                                                    &
+               &    'the "massBertschinger" and "accretionRateBertschinger" properties of the basic component must be gettable.'     // &
+               &    Galacticus_Component_List(                                                                                          &
+               &                              'basic'                                                                                ,  &
+               &                                defaultBasicComponent%         massBertschingerAttributeMatch(requireGettable=.true.)   &
+               &                               .intersection.                                                                           &
+               &                                defaultBasicComponent%accretionRateBertschingerAttributeMatch(requireGettable=.true.)   &
+               &                             )                                                                                       // &
+               &    {introspection:location}                                                                                            &
                &   )
           bertschingerInitialized=.true.
        end if

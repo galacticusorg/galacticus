@@ -250,14 +250,14 @@ contains
     if     (          (present(massRequired).or. present(spinRequired))                                                                      &
          &  .and.                                                                                                                            &
          &       .not.(present(massRequired).and.present(spinRequired))                                                                      &
-         & ) call Galacticus_Error_Report('nbodyErrorsTabulate','both massRequired and spinRequired must be provided if either is provided')
+         & ) call Galacticus_Error_Report('both massRequired and spinRequired must be provided if either is provided'//{introspection:location})
     if     (          (present(massFixed   ).or. present(spinFixed   ))                                                                      &
          &  .and.                                                                                                                            &
          &       .not.(present(massFixed   ).and.present(spinFixed   ))                                                                      &
-         & ) call Galacticus_Error_Report('nbodyErrorsTabulate','both massFixed and spinFixed  must be provided if either is provided')
+         & ) call Galacticus_Error_Report('both massFixed and spinFixed  must be provided if either is provided'//{introspection:location})
     if     (                                                                                                                                 &
          &             present(massRequired).and.present(massFixed   )                                                                       &
-         & ) call Galacticus_Error_Report('nbodyErrorsTabulate','either required or fixed points must be specified - not both')
+         & ) call Galacticus_Error_Report('either required or fixed points must be specified - not both'//{introspection:location})
     fixedPoint=present(massFixed)
     ! Determine if the tabulation needs to be rebuilt.
     if (allocated(self%distributionTable)) then
@@ -551,7 +551,7 @@ contains
                     &               char(10)                                                                                 // &
                     &               descriptor%serializeToString()                                                              &
                  &              )
-               if (tolerance >= 1.0d0) call Galacticus_Error_Report('massSpinIntegral','integral failed to reach any tolerance')
+               if (tolerance >= 1.0d0) call Galacticus_Error_Report('integral failed to reach any tolerance'//{introspection:location})
             end if
          end do
       end if
@@ -774,7 +774,7 @@ contains
     !GCC$ attributes unused :: self, node
 
     nbodyErrorsSample=0.0d0
-    call Galacticus_Error_Report('nbodyErrorsSample','sampling from distribution is not implemented')
+    call Galacticus_Error_Report('sampling from distribution is not implemented'//{introspection:location})
     return
   end function nbodyErrorsSample
 

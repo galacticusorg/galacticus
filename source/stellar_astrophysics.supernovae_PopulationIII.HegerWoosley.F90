@@ -55,7 +55,7 @@ contains
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
        doc => parseFile('data/stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Population_III_HegerWoosley_Initialize','Unable to parse supernovae file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse supernovae file'//{introspection:location})
 
        ! Get the mass and energy elements.
        massElement    => XML_Get_First_Element_By_Tag_Name(doc,"heliumCoreMass" )

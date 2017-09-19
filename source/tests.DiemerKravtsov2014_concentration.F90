@@ -71,7 +71,7 @@ program Test_DiemerKravtsov2014_Concentration
           &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                       &
           &                )
      if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
-          & call Galacticus_Error_Report('Test_DiemerKravtsov2014_Concentration','unable to retrieve reference dataset')
+          & call Galacticus_Error_Report('unable to retrieve reference dataset'//{introspection:location})
   end if
   ! Create a node.
   node                            => treeNode                                        (                 )

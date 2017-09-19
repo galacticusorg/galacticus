@@ -165,7 +165,7 @@ contains
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
     if (collapsingPhaseActual) then
        ! We assume that the universe does not collapse.
-       call Galacticus_Error_Report('matterDarkEnergyCosmicTime','non-collapsing universe assumed')
+       call Galacticus_Error_Report('non-collapsing universe assumed'//{introspection:location})
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
        do while (self%ageTableExpansionFactor(                        1) > expansionFactor)
@@ -205,7 +205,7 @@ contains
     ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','only one of time or expansion factor can be specified')
+          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
        else
           expansionFactorActual=self%expansionFactor(time)
        end if
@@ -213,7 +213,7 @@ contains
        if (present(expansionFactor)) then
           expansionFactorActual=expansionFactor
        else
-          call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
        end if
     end if
     matterDarkEnergyOmegaDarkEnergyEpochal                                                                                      &
@@ -310,7 +310,7 @@ contains
     ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterEpochal','only one of time or expansion factor can be specified')
+          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
        else
           expansionFactorActual=self%expansionFactor(time)
        end if
@@ -318,7 +318,7 @@ contains
        if (present(expansionFactor)) then
           expansionFactorActual=expansionFactor
        else
-          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterEpochal','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
        end if
     end if
     ! Compute the Hubble parameter at the specified expansion factor.
@@ -358,7 +358,7 @@ contains
     ! Determine the actual expansion factor to use.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterRateOfChange','only one of time or expansion factor can be specified')
+          call Galacticus_Error_Report('only one of time or expansion factor can be specified'//{introspection:location})
        else
           expansionFactorActual=self%expansionFactor(time)
        end if
@@ -366,7 +366,7 @@ contains
        if (present(expansionFactor)) then
           expansionFactorActual=expansionFactor
        else
-          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterRateOfChange','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('either a time or expansion factor must be specified'//{introspection:location})
        end if
     end if
     ! Compute the rat of change of the Hubble parameter.
@@ -688,7 +688,7 @@ contains
     !GCC$ attributes unused :: self, comovingDistance
 
     matterDarkEnergyTimeAtDistanceComoving=0.0d0
-    call Galacticus_Error_Report('matterDarkEnergyTimeAtDistanceComoving','functionality not implemented')
+    call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
     return
   end function matterDarkEnergyTimeAtDistanceComoving
 
@@ -701,7 +701,7 @@ contains
     !GCC$ attributes unused :: self, time
 
     matterDarkEnergyDistanceComoving=0.0d0
-    call Galacticus_Error_Report('matterDarkEnergyDistanceComoving','functionality not implemented')
+    call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
     return
    end function matterDarkEnergyDistanceComoving
 
@@ -715,7 +715,7 @@ contains
     !GCC$ attributes unused :: self, output, distanceModulus, redshift
 
     matterDarkEnergyDistanceComovingConvert=0.0d0
-    call Galacticus_Error_Report('matterDarkEnergyDistanceComovingConvert','functionality not implemented')
+    call Galacticus_Error_Report('functionality not implemented'//{introspection:location})
     return
   end function matterDarkEnergyDistanceComovingConvert
 
@@ -732,7 +732,7 @@ contains
     else if (present(time)) then
        expansionFactorActual=self%expansionFactor(time)
     else
-       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('matterDarkEnergyEquationOfStateDarkEnergy','equation of state is time dependent, but no time given')
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
        expansionFactorActual=1.0d0
     end if
     matterDarkEnergyEquationOfStateDarkEnergy= &
@@ -756,7 +756,7 @@ contains
     else if (present(time           )) then
        expansionFactorActual=self%expansionFactor(time)
     else
-       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('matterDarkEnergyExponentDarkEnergy','equation of state is time dependent, but no time given')
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
        expansionFactorActual=1.0d0
     end if
     if (expansionFactorActual == 1.0d0) then
@@ -780,7 +780,7 @@ contains
     else if (present(time           )) then
        expansionFactorActual=self%expansionFactor(time)
     else
-       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('matterDarkEnergyExponentDarkEnergyDerivative','equation of state is time dependent, but no time given')
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
        expansionFactorActual=1.0d0
     end if
     if (expansionFactorActual == 1.0d0) then

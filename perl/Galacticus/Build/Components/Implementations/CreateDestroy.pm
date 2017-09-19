@@ -309,7 +309,7 @@ propertyList => getElementsByTagName(componentDefinition,'{$property->{'name'}}'
 CODE
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (getLength(propertyList) > 1) call Galacticus_Error_Report('{$implementationTypeName}Builder','scalar property must have precisely one value')
+if (getLength(propertyList) > 1) call Galacticus_Error_Report('scalar property must have precisely one value'//\{introspection:location\})
 if (getLength(propertyList) == 1) then
   property => item(propertyList,0)
 CODE
@@ -325,7 +325,7 @@ CODE
 CODE
 		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-  call Galacticus_Error_Report('{$implementationTypeName}Builder','building of long integer properties currently not supported')
+  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

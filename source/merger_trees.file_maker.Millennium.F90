@@ -54,7 +54,7 @@ contains
        particleMass=6.89d-4
        boxSize     =1.00d+2
     case default
-       call Galacticus_Error_Report('Merger_Trees_Millennium_Process','unknown Millennium Simulation generation')
+       call Galacticus_Error_Report('unknown Millennium Simulation generation'//{introspection:location})
     end select
     call mergerTrees%setParticleMass         (particleMass)
 

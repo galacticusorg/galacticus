@@ -79,15 +79,15 @@ contains
           if (.not.defaultBasicComponent%radiusTurnaroundIsGettable())                                                         &
                & call Galacticus_Error_Report                                                                                  &
                &   (                                                                                                           &
-               &    'Galactic_Structure_Radii_Fixed_Initialize'                                                              , &
                &    'the "radiusTurnaround" property of the basic component must be gettable.'                              // &
                &    Galacticus_Component_List(                                                                                 &
                &                              'basic'                                                                        , &
                &                                defaultBasicComponent%radiusTurnaroundAttributeMatch(requireGettable=.true.)   &
-               &                             )                                                                                 &
+               &                             )                                                                              // &
+               &    {introspection:location}                                                                                   &
                &   )
         case default
-          call Galacticus_Error_Report('Galactic_Structure_Radii_Fixed_Initialize','[galacticStructureRadiiFixedRadius] must be either "virial" or "turnaround"')
+          call Galacticus_Error_Report('[galacticStructureRadiiFixedRadius] must be either "virial" or "turnaround"'//{introspection:location})
        end select
     end if
     return

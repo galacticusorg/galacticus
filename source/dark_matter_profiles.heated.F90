@@ -227,7 +227,7 @@ contains
 
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
-       call Galacticus_Error_Report('heatedDensityLogSlope','density logarithmic slope in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('density logarithmic slope in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedDensityLogSlopeWarned) then
@@ -256,7 +256,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedRadiusEnclosingDensity=0.0d0
-       call Galacticus_Error_Report('heatedRadiusEnclosingDensity','radius enclosing density in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('radius enclosing density in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedRadiusEnclosingDensityWarned) then
@@ -286,7 +286,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedRadialMoment=0.0d0
-       call Galacticus_Error_Report('heatedRadialMoment','radial moment in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('radial moment in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedRadialMomentWarned) then
@@ -453,7 +453,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedCircularVelocityMaximum=0.0d0
-       call Galacticus_Error_Report('heatedCircularVelocityMaximum','circular velocity maximum in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('circular velocity maximum in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedCircularVelocityMaximumWarned) then
@@ -530,7 +530,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedRotationNormalization=0.0d0
-       call Galacticus_Error_Report('heatedRotationNormalization','rotation normalization in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('rotation normalization in heated dark matter profiles is not supported'//{introspection:location})
     else       ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedRotationNormalizationWarned) then
           !$omp critical(heatedDarkMatterProfileRotationNormalizationWarn)
@@ -556,7 +556,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedEnergy=0.0d0
-       call Galacticus_Error_Report('heatedEnergy','energy in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('energy in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedEnergyWarned) then
@@ -583,7 +583,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedEnergyGrowthRate=0.0d0
-       call Galacticus_Error_Report('heatedEnergyGrowthRate','energy growth rate in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('energy growth rate in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedEnergyGrowthRateWarned) then
@@ -612,7 +612,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedKSpace=0.0d0
-       call Galacticus_Error_Report('heatedKSpace','Fourier profile in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('Fourier profile in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedKSpaceWarned) then
@@ -641,7 +641,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedFreefallRadius=0.0d0
-       call Galacticus_Error_Report('heatedFreefallRadius','freefall radius in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('freefall radius in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedFreefallRadiusWarned) then
@@ -670,7 +670,7 @@ contains
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
        heatedFreefallRadiusIncreaseRate=0.0d0
-       call Galacticus_Error_Report('heatedFreefallRadiusIncreaseRate','freefall radius increase rate in heated dark matter profiles is not supported')
+       call Galacticus_Error_Report('freefall radius increase rate in heated dark matter profiles is not supported'//{introspection:location})
     else
        ! Issue a warning and then fall through to the unheated profile.
        if (.not.heatedFreefallRadiusIncreaseRateWarned) then

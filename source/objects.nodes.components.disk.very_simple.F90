@@ -470,7 +470,7 @@ contains
        disk => node%disk()
        if (node%isSatellite().and.disk%isInitialized()) then
           ! Luminosities can not be computed analytically.
-          if (diskVerySimpleTrackLuminosities) call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Analytic_Solver','analytic solver does not support stellar luminosity calculation')
+          if (diskVerySimpleTrackLuminosities) call Galacticus_Error_Report('analytic solver does not support stellar luminosity calculation'//{introspection:location})
           ! Calculate analytic solution.
           timeStep          =timeEnd-timeStart
           massGasInitial          =disk%massGas          ()
@@ -807,9 +807,9 @@ contains
                &                                 +disk        %abundancesGas() &
                &                                )
        case default
-          call Galacticus_Error_Report(                                                      &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
-               &                       'unrecognized movesTo descriptor'                     &
+          call Galacticus_Error_Report(                                    &
+               &                       'unrecognized movesTo descriptor'// &
+               &                       {introspection:location}            &
                &                      )
        end select
        call    disk%massGasSet                  (                                        &
@@ -847,9 +847,9 @@ contains
                &                                   +disk        %luminositiesStellar() &
                &                                  )
        case default
-          call Galacticus_Error_Report(                                                      &
-               &                       'Node_Component_Disk_Very_Simple_Satellite_Merging',  &
-               &                       'unrecognized movesTo descriptor'                     &
+          call Galacticus_Error_Report(                                    &
+               &                       'unrecognized movesTo descriptor'// &
+               &                       {introspection:location}            &
                &                      )
        end select
        call    disk%         massStellarSet(                       &

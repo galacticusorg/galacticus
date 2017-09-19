@@ -65,8 +65,8 @@ contains
           !#  <functionArgs>starFormationExpulsiveFeedbackSpheroidsMethod,Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get</functionArgs>
           include 'star_formation.feedback_expulsive.spheroids.inc'
           !# </include>
-          if (.not.associated(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Spheroids'&
-               &,'method ' //char(starFormationExpulsiveFeedbackSpheroidsMethod)//' is unrecognized')
+          if (.not.associated(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get)) &
+               & call Galacticus_Error_Report('method ' //char(starFormationExpulsiveFeedbackSpheroidsMethod)//' is unrecognized'//{introspection:location})
           starFormationExpulsiveFeedbackSpheroidsInitialized=.true.
        end if
        !$omp end critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization)

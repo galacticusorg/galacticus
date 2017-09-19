@@ -132,7 +132,7 @@ contains
           case ( 'binomial' )
              analysisHaloMassFunctionCovarianceModel=analysisHaloMassFunctionCovarianceModelBinomial
           case default
-             call Galacticus_Error_Report('Galacticus_Output_Analysis_Halo_Mass_Functions','unrecognized value for "analysisHaloMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+             call Galacticus_Error_Report('unrecognized value for "analysisHaloMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>analysisHaloMassFunctionsHaloMassBinsPerDecade</name>
@@ -269,24 +269,24 @@ contains
                       if (.not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                                                              &
                            & call Galacticus_Error_Report                                                                                                                            &
                            &      (                                                                                                                                                  &
-                           &       'Galacticus_Output_Analysis_Halo_Mass_Functions'                                                                                               ,  &
                            &       'mass functions of always isolated halos require a merging statistics component that provides a gettable "nodeHierarchyLevelMaximum" property.'// &
                            &       Galacticus_Component_List(                                                                                                                        &
                            &                                 'mergingStatistics'                                                                                                   , &
                            &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)                      &
-                           &                                )                                                                                                                        &
+                           &                                )                                                                                                                     // &
+                           &       {introspection:location}                                                                                                                          &
                            &      )    
                       redshiftLabel=extract(mergerTreeAnalyses(i),26,len(mergerTreeAnalyses(i)))
                       massFunctions(currentAnalysis)%alwaysIsolatedHalosOnly=.true.
                    else
-                      call Galacticus_Error_Report('Galacticus_Output_Analysis_Halo_Mass_Functions','unrecognized mass function type')
+                      call Galacticus_Error_Report('unrecognized mass function type'//{introspection:location})
                    end if
                    ! Find the index of the output corresponding to the requested redshift.
                    read (redshiftLabel,*) redshift
                    outputTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
                    massFunctions(currentAnalysis)%outputIndex=Galacticus_Output_Time_Index(outputTime,findClosest=.true.)
                    if (Values_Differ(Galacticus_Output_Time(massFunctions(currentAnalysis)%outputIndex),outputTime,relTol=1.0d-3)) &
-                        & call Galacticus_Error_Report('Galacticus_Output_Analysis_Halo_Mass_Functions','no output available for requested analysis')
+                        & call Galacticus_Error_Report('no output available for requested analysis'//{introspection:location})
                 end if
              end do
           end if

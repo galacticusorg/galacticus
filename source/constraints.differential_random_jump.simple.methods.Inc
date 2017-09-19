@@ -36,7 +36,7 @@ function deRandomJumpSimpleSample(self,randomDistributions,simulationState)
         deRandomJumpSimpleSample(i)=deRandomJumpSimpleSample(i)+d%sample()
      class default
         deRandomJumpSimpleSample(i)=0.0d0
-        call Galacticus_Error_Report('deRandomJumpSimpleSample','only 1D distributions are supported')
+        call Galacticus_Error_Report('only 1D distributions are supported'//{introspection:location})
      end select
   end do
   return

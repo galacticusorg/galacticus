@@ -131,7 +131,7 @@ contains
     double precision, dimension(size(matrix,dim=1),size(matrix,dim=2))                :: Matrix_Copy_Upper_To_Lower_Triangle
     integer                                                                           :: i                                  , j
 
-    if (size(matrix,dim=1) /= size(matrix,dim=2)) call Galacticus_Error_Report('Matrix_Copy_Upper_To_Lower_Triangle','matrix must be square')
+    if (size(matrix,dim=1) /= size(matrix,dim=2)) call Galacticus_Error_Report('matrix must be square'//{introspection:location})
     do i=1,size(matrix,dim=1)
        do j=i,size(matrix,dim=2)
           Matrix_Copy_Upper_To_Lower_Triangle(i,j)=matrix(i,j)

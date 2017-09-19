@@ -183,7 +183,7 @@ contains
                &                                                     )
        case (movesToSpheroid)
        case default
-          call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        ! Zero rates in the secondary,
        call ageStatistics%    diskTimeWeightedIntegratedSFRSet(                                                          &
@@ -233,7 +233,7 @@ contains
        case (doesNotMove)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report('Node_Component_Age_Statistics_Standard_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select       
     end select
     return

@@ -465,14 +465,14 @@ contains
            &                                                         imfIndex     , &
            &                                                         status         &
            &                                                        )
-      if     (                                                                             &
-           &   status /= errorStatusSuccess                                                &
-           &  .and.                                                                        &
-           &   status /= errorStatusInputDomain                                            &
-           & ) call Galacticus_Error_Report(                                               &
-           &                                'stellarSpectraConvolution'                  , &
-           &                                'stellar population spectrum function failed'  &
-         &                               )
+      if     (                                                                              &
+           &   status /= errorStatusSuccess                                                 &
+           &  .and.                                                                         &
+           &   status /= errorStatusInputDomain                                             &
+           & ) call Galacticus_Error_Report(                                                &
+           &                                'stellar population spectrum function failed'// &
+           &                                {introspection:location}                        &
+           &                               )
       return
     end function stellarSpectraConvolution
 
@@ -609,7 +609,7 @@ contains
 
     ! Check that the time is within the applicable range.
     time=radiationProperties(1)
-    if (time > backgroundTimeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('Radiation_IGB_Internal_Flux','time is out of range')
+    if (time > backgroundTimeNext*(1.0d0+timeTolerance)) call Galacticus_Error_Report('time is out of range'//{introspection:location})
     ! Find interpolation in the array of wavelengths.
     iWavelength=Interpolate_Locate                 (backgroundRadiationWavelength,interpolationAccelerator,wavelength,reset=interpolationReset)
     hWavelength=Interpolate_Linear_Generate_Factors(backgroundRadiationWavelength,iWavelength             ,wavelength)

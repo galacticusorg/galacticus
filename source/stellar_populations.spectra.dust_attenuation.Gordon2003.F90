@@ -77,7 +77,7 @@ contains
         call gordon2003Constructor%attenuationTable%create([0.455d0,0.606d0,0.800d0,1.818d0,2.273d0,2.703d0,3.375d0,3.625d0,3.875d0,4.125d0,4.375d0,4.625d0,4.875d0,5.125d0,5.375d0,5.625d0,5.875d0,6.125d0,6.375d0,6.625d0,6.875d0,7.125d0,7.375d0,7.625d0,7.875d0,8.125d0,8.375d0],1,extrapolationType=spread(extrapolationTypeExtrapolate,1,2))
         call gordon2003Constructor%attenuationTable%populate([0.030d0,0.186d0,0.257d0,1.000d0,1.293d0,1.518d0,1.786d0,1.969d0,2.149d0,2.391d0,2.771d0,2.967d0,2.846d0,2.646d0,2.565d0,2.566d0,2.598d0,2.607d0,2.668d0,2.787d0,2.874d0,2.983d0,3.118d0,3.231d0,3.374d0,3.366d0,3.467d0])
      case default
-        call Galacticus_Error_Report('gordon2003Constructor','sample must be one of "SMCbar", "SMCwing", and "LMC"')
+        call Galacticus_Error_Report('sample must be one of "SMCbar", "SMCwing", and "LMC"'//{introspection:location})
      end select
     return
   end function gordon2003Constructor

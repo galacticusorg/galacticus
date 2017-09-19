@@ -64,8 +64,8 @@ contains
           !#  <functionArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</functionArgs>
           include 'cooling.specific_angular_momentum.inc'
           !# </include>
-          if (.not.associated(Cooling_Specific_Angular_Momentum_Get)) call&
-               & Galacticus_Error_Report('Cooling_Specific_Angular_Momentum','method ' //char(coolingSpecificAngularMomentumMethod)//' is unrecognized')
+          if (.not.associated(Cooling_Specific_Angular_Momentum_Get)) &
+               & call Galacticus_Error_Report('method ' //char(coolingSpecificAngularMomentumMethod)//' is unrecognized'//{introspection:location})
           coolingAngularMomentumInitialized=.true.
        end if
        !$omp end critical(Cooling_Specific_Angular_Momentum_Initialization)

@@ -204,13 +204,13 @@ contains
     type     (integerScalarHash         )                            :: processCount
     
     call MPI_Init_Thread(MPI_THREAD_FUNNELED,MPI_Threading_Provided,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to initialize MPI'     )
+    if (iError /= 0) call Galacticus_Error_Report('failed to initialize MPI'//{introspection:location})
     call MPI_Comm_Size(MPI_Comm_World,mpiSelf%countValue,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI count')
+    if (iError /= 0) call Galacticus_Error_Report('failed to determine MPI count'//{introspection:location})
     call MPI_Comm_Rank(MPI_Comm_World,mpiSelf% rankValue,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI rank' )
+    if (iError /= 0) call Galacticus_Error_Report('failed to determine MPI rank'//{introspection:location})
     call MPI_Get_Processor_Name(processorName(1),processorNameLength,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to get MPI processor name' )
+    if (iError /= 0) call Galacticus_Error_Report('failed to get MPI processor name'//{introspection:location})
     mpiSelf%hostName=trim(processorName(1))
     call mpiBarrier()
     ! Construct an array containing all ranks.
@@ -253,7 +253,7 @@ contains
     integer :: iError
     
     call MPI_Finalize(iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiFinalize','failed to finalize MPI')
+    if (iError /= 0) call Galacticus_Error_Report('failed to finalize MPI'//{introspection:location})
     ! Record that MPI is inactive.
     mpiIsActiveValue=.false.
 #endif
@@ -267,7 +267,7 @@ contains
     integer :: iError
     
     call MPI_Barrier(MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiBarrier','MPI barrier failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI barrier failed'//{introspection:location})
 #endif
     return
   end subroutine mpiBarrier
@@ -306,7 +306,7 @@ contains
 #else
     !GCC$ attributes unused :: self
     mpiGetRank=0
-    call Galacticus_Error_Report('mpiGetRank','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGetRank
@@ -331,7 +331,7 @@ contains
 #else
     !GCC$ attributes unused :: self
     mpiGetRankLabel=''
-    call Galacticus_Error_Report('mpiGetRankLabel','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGetRankLabel
@@ -346,7 +346,7 @@ contains
 #else
     !GCC$ attributes unused :: self
     mpiGetCount=0
-    call Galacticus_Error_Report('mpiGetCount','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGetCount
@@ -361,7 +361,7 @@ contains
 #else
     !GCC$ attributes unused :: self
     mpiGetNodeCount=0
-    call Galacticus_Error_Report('mpiGetNodeCount','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGetNodeCount
@@ -382,7 +382,7 @@ contains
 #else
     !GCC$ attributes unused :: self, rank
     mpiGetNodeAffinity=0
-    call Galacticus_Error_Report('mpiGetNodeAffinity','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGetNodeAffinity
@@ -398,7 +398,7 @@ contains
 #else
     !GCC$ attributes unused :: self
     mpiGetHostAffinity=""
-    call Galacticus_Error_Report('mpiGetHostAffinity','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGetHostAffinity
@@ -419,11 +419,11 @@ contains
     if (present(from)) fromActual=from
     if (present(tag ) ) tagActual=tag
     call MPI_IProbe(fromActual,tagActual,MPI_Comm_World,mpiMessageWaiting,messageStatus,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiMessageWaiting','failed to probe for waiting messages')
+    if (iError /= 0) call Galacticus_Error_Report('failed to probe for waiting messages'//{introspection:location})
 #else
     !GCC$ attributes unused :: self, from, tag
     mpiMessageWaiting=.false.
-    call Galacticus_Error_Report('mpiMessageWaiting','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMessageWaiting
@@ -503,7 +503,7 @@ contains
 #else
     !GCC$ attributes unused :: self, requestFrom, array
     mpiRequestData1D=0.0d0
-    call Galacticus_Error_Report('mpiRequestData1D','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiRequestData1D
@@ -583,7 +583,7 @@ contains
 #else
     !GCC$ attributes unused :: self, requestFrom, array
     mpiRequestData2D=0.0d0
-    call Galacticus_Error_Report('mpiRequestData2D','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiRequestData2D
@@ -663,7 +663,7 @@ contains
 #else
     !GCC$ attributes unused :: self, requestFrom, array
     mpiRequestDataInt1D=0
-    call Galacticus_Error_Report('mpiRequestDataInt1D','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiRequestDataInt1D
@@ -690,11 +690,11 @@ contains
        activeCount=count(mask)
     end if
     call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiSumArrayInt','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiSumArrayInt=0
-    call Galacticus_Error_Report('mpiSumArrayInt','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiSumArrayInt
@@ -715,7 +715,7 @@ contains
 #else
     !GCC$ attributes unused :: self, scalar, mask
     mpiSumScalarInt=0
-    call Galacticus_Error_Report('mpisumScalarInt','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiSumScalarInt
@@ -741,11 +741,11 @@ contains
        activeCount=count(mask)
     end if
     call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiSumArrayDouble','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiSumArrayDouble=0.0d0
-    call Galacticus_Error_Report('mpiSumArrayDouble','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiSumArrayDouble
@@ -766,7 +766,7 @@ contains
 #else
     !GCC$ attributes unused :: self, scalar, mask
     mpiSumScalarDouble=0.0d0
-    call Galacticus_Error_Report('mpisumScalarDouble','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiSumScalarDouble
@@ -792,13 +792,13 @@ contains
        activeCount=count(mask)
     end if
     call MPI_AllReduce(maskedArray,mpiAverageArray,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiAverageArray','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
     ! Convert the sum into an average.
     mpiAverageArray=mpiAverageArray/dble(activeCount)
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiAverageArray=0.0d0
-    call Galacticus_Error_Report('mpiAverageArray','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiAverageArray
@@ -850,7 +850,7 @@ contains
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiMedianArray=0.0d0
-    call Galacticus_Error_Report('mpiMedianArray','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMedianArray
@@ -871,7 +871,7 @@ contains
 #else
     !GCC$ attributes unused :: self, scalar, mask
     mpiAverageScalar=0.0d0
-    call Galacticus_Error_Report('mpiAverageScalar','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiAverageScalar
@@ -895,11 +895,11 @@ contains
        if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
     end if
     call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiMaxvalArray','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiMaxvalArray=0.0d0
-    call Galacticus_Error_Report('mpiMaxvalArray','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMaxvalArray
@@ -920,7 +920,7 @@ contains
 #else
     !GCC$ attributes unused :: self, scalar, mask
     mpiMaxvalScalar=0.0d0
-    call Galacticus_Error_Report('mpiMaxvalScalar','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMaxvalScalar
@@ -945,12 +945,12 @@ contains
     end if
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiMax','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
     mpiMaxloc=int(arrayOut(2,:))
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiMaxloc=0
-    call Galacticus_Error_Report('mpiMaxloc','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMaxloc
@@ -974,11 +974,11 @@ contains
        if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
     end if
     call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiMinvalArray','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiMinvalArray=0.0d0
-    call Galacticus_Error_Report('mpiMinvalArray','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMinvalArray
@@ -999,7 +999,7 @@ contains
 #else
     !GCC$ attributes unused :: self, scalar, mask
     mpiMinvalScalar=0.0d0
-    call Galacticus_Error_Report('mpiMinvalScalar','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMinvalScalar
@@ -1024,12 +1024,12 @@ contains
     end if
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiMin','MPI all reduce failed')
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
     mpiMinloc=int(arrayOut(2,:))
 #else
     !GCC$ attributes unused :: self, array, mask
     mpiMinloc=0
-    call Galacticus_Error_Report('mpiMinloc','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiMinloc
@@ -1050,7 +1050,7 @@ contains
 #else
     !GCC$ attributes unused :: self, scalar
     mpiGatherScalar=0.0d0
-    call Galacticus_Error_Report('mpiGatherScalar','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGatherScalar
@@ -1067,7 +1067,7 @@ contains
 #else
     !GCC$ attributes unused :: self, array
     mpiGather1D=0.0d0
-    call Galacticus_Error_Report('mpiGather1D','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGather1D
@@ -1084,7 +1084,7 @@ contains
 #else
     !GCC$ attributes unused :: self, array
     mpiGather2D=0.0d0
-    call Galacticus_Error_Report('mpiGather2D','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGather2D
@@ -1101,7 +1101,7 @@ contains
 #else
     !GCC$ attributes unused :: self, array
     mpiGatherInt1D=0
-    call Galacticus_Error_Report('mpiGatherInt1D','code was not compiled for MPI')
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
 #endif
     return
   end function mpiGatherInt1D

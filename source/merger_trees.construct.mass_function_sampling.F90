@@ -72,7 +72,7 @@ contains
                &  .not.(                                                             &
                &        associated(Merger_Tree_Construct_Mass_Function_Sampling_Get) &
                &       )                                                             &
-               & ) call Galacticus_Error_Report('Merger_Trees_Mass_Function_Sampling','method '//char(haloMassFunctionSamplingMethod)//' is unrecognized')
+               & ) call Galacticus_Error_Report('method '//char(haloMassFunctionSamplingMethod)//' is unrecognized'//{introspection:location})
           haloMassFunctionSamplingInitialized=.true.
        end if
        !$omp end critical(Merger_Trees_Mass_Function_Sampling_Initialization)

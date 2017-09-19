@@ -96,7 +96,7 @@ contains
        if (present(formationRedshift)) then
           wechsler2002Constructor%formationRedshift=formationRedshift
        else
-          call Galacticus_Error_Report('wechsler2002Constructor','formation redshift must be provided')
+          call Galacticus_Error_Report('formation redshift must be provided'//{introspection:location})
        end if
     end if
     return

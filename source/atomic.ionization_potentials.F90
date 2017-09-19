@@ -65,8 +65,8 @@ contains
           !#  <functionArgs>atomicIonizationPotentialMethod,Atomic_Ionization_Potential_Get</functionArgs>
           include 'atomic.ionization_potentials.inc'
           !# </include>
-          if (.not.associated(Atomic_Ionization_Potential_Get)) call&
-               & Galacticus_Error_Report('Atomic_Ionization_Potential_Initialize','method '//char(atomicIonizationPotentialMethod)//' is unrecognized')
+          if (.not.associated(Atomic_Ionization_Potential_Get)) &
+               & call Galacticus_Error_Report('method '//char(atomicIonizationPotentialMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Atomic_Ionization_Potential_Initialize) 

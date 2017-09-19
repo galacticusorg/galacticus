@@ -110,7 +110,7 @@ contains
     double precision                                                        :: logarithmicMass
     
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('baldry2012GAMADistanceMaximum','field must be specified')
+    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
     ! Compute the limiting distance.
     logarithmicMass=log10(mass)
     select case (field)
@@ -128,7 +128,7 @@ contains
             &          )
     case default
        baldry2012GAMADistanceMaximum=0.0d0
-       call Galacticus_Error_Report('baldry2012GAMADistanceMaximum','1 ≤ field ≤ 3 required')
+       call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
     end select
     baldry2012GAMADistanceMaximum=min(baldry2012GAMADistanceMaximum,self%distanceMaximumSurvey)
     return

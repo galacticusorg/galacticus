@@ -122,7 +122,7 @@ contains
        call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
        read (fileUnit,'(a)') line
        call String_Split_Words(words,line)
-       if (words(1) /= "polygon") call Galacticus_Error_Report('windowRead','expected polygon')
+       if (words(1) /= "polygon") call Galacticus_Error_Report('expected polygon'//{introspection:location})
        line=words(4)       
        read (line,*) self%polygons(i)%capCount
        line=words(6)       

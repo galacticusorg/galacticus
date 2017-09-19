@@ -297,7 +297,7 @@ contains
     if (index >= 1 .and. index <= chemicalsCount) then
        Chemicals_Names=trim(chemicalsToTrack(index))
     else
-       call Galacticus_Error_Report('Chemicals_Names','index out of range')
+       call Galacticus_Error_Report('index out of range'//{introspection:location})
     end if
     return
   end function Chemicals_Names
@@ -507,7 +507,7 @@ contains
     type (node              ), pointer       :: chemicalsDefinition
     !GCC$ attributes unused :: self, chemicalsDefinition
     
-    call Galacticus_Error_Report('Chemicals_Builder','building of chemicalAbundances objects is not yet supported')
+    call Galacticus_Error_Report('building of chemicalAbundances objects is not yet supported'//{introspection:location})
     return
   end subroutine Chemicals_Builder
 

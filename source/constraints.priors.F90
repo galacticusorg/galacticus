@@ -174,7 +174,7 @@ contains
        end  if
     class default
        priorLogDensity=0.0d0
-       call Galacticus_Error_Report('priorInvert','no known log-density for this prior')
+       call Galacticus_Error_Report('no known log-density for this prior'//{introspection:location})
     end select
     return
   end function priorLogDensity
@@ -190,7 +190,7 @@ contains
        priorMinimum=priorDistribution%minimum()
     class default
        priorMinimum=0.0d0
-       call Galacticus_Error_Report('priorMinimum','no known minimum for this prior')
+       call Galacticus_Error_Report('no known minimum for this prior'//{introspection:location})
     end select
     return
   end function priorMinimum
@@ -206,7 +206,7 @@ contains
        priorMaximum=priorDistribution%maximum()
     class default
        priorMaximum=0.0d0
-       call Galacticus_Error_Report('priorMaximum','no known maximum for this prior')
+       call Galacticus_Error_Report('no known maximum for this prior'//{introspection:location})
     end select
     return
   end function priorMaximum
@@ -245,7 +245,7 @@ contains
        priorInvert=priorDistribution%inverse(p)
     class default
        priorInvert=0.0d0
-       call Galacticus_Error_Report('priorInvert','unable to invert prior')
+       call Galacticus_Error_Report('unable to invert prior'//{introspection:location})
     end select
     return
   end function priorInvert

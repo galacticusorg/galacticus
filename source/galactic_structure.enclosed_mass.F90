@@ -94,13 +94,12 @@ contains
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
     ! Determine what mass to use.
     if (present(mass)) then
-       if (present(fractionalMass)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','only one mass or&
-            & fractionalMass can be specified')
+       if (present(fractionalMass)) call Galacticus_Error_Report('only one mass or fractionalMass can be specified'//{introspection:location})
        massRoot=mass
     else if (present(fractionalMass)) then
        massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared,haloLoaded=haloLoadedShared)
     else
-       call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','either mass or fractionalMass must be specified')
+       call Galacticus_Error_Report('either mass or fractionalMass must be specified'//{introspection:location})
     end if
     if (massRoot <= 0.0d0) then
        Galactic_Structure_Radius_Enclosing_Mass=0.0d0
@@ -158,15 +157,14 @@ contains
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
     ! Determine what mass to use.
     if (present(density)) then
-       if (present(densityContrast)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Density','only one density or&
-            & densityContrast can be specified')
+       if (present(densityContrast)) call Galacticus_Error_Report('only one density or densityContrast can be specified'//{introspection:location})
        densityRoot=density
     else if (present(densityContrast)) then
        cosmologyFunctions_ => cosmologyFunctions()
        basic               => thisNode%basic    ()
        densityRoot=densityContrast*cosmologyFunctions_%matterDensityEpochal(time=basic%time())
     else
-       call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Density','either density or densityContrast must be specified')
+       call Galacticus_Error_Report('either density or densityContrast must be specified'//{introspection:location})
     end if
     if (densityRoot <= 0.0d0) then
        Galactic_Structure_Radius_Enclosing_Density=0.0d0
@@ -216,7 +214,7 @@ contains
        weightByShared=weightBy
        select case (weightByShared)
        case (weightByLuminosity)
-          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','weightIndex should be specified for luminosity weighting')
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
           weightIndexShared=weightIndex
        end select
     else

@@ -297,7 +297,7 @@ contains
        behroozi2010MassFunction=               numberSatellites
     case default
        behroozi2010MassFunction=0.0d0
-       call Galacticus_Error_Report('behroozi2010MassFunction','unknown galaxy type')
+       call Galacticus_Error_Report('unknown galaxy type'//{introspection:location})
     end select
     return
   end function behroozi2010MassFunction

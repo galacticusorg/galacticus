@@ -79,7 +79,7 @@ contains
      case ("SMCShellTau3.0"    )
         call wittGordon2003Constructor%attenuationTable%populate(magnitudesPerOpticalDepth*Array_Reverse([ 29.025d0,  22.320d0,  18.204d0,  15.501d0,  13.608d0,  12.222d0,  11.100d0,  10.137d0,   9.303d0,   8.571d0,   7.926d0,   7.356d0,   6.846d0,   6.399d0,   6.093d0,   4.830d0,   3.663d0,   2.640d0,   1.890d0,   1.290d0,   0.816d0,   0.498d0,   0.333d0,   0.225d0,   0.099d0]))
      case default
-        call Galacticus_Error_Report('wittGordon2003Constructor','model "'//model//'"unrecognized')
+        call Galacticus_Error_Report('model "'//model//'"unrecognized'//{introspection:location})
      end select
     return
   end function wittGordon2003Constructor

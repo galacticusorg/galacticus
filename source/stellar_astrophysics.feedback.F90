@@ -73,8 +73,8 @@ contains
           !#  <functionArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</functionArgs>
           include 'stellar_astrophysics.feedback.inc'
           !# </include>
-          if (.not.associated(Stellar_Feedback_Cumulative_Energy_Input_Get)) call Galacticus_Error_Report('Stellar_Feedback_Initialize'&
-               &,'method '//char(stellarFeedbackMethod)//' is unrecognized')
+          if (.not.associated(Stellar_Feedback_Cumulative_Energy_Input_Get)) &
+               & call Galacticus_Error_Report('method '//char(stellarFeedbackMethod)//' is unrecognized'//{introspection:location})
           stellarFeedbackInitialized=.true.
        end if
        !$omp end critical(Stellar_Feedback_Initialization)

@@ -104,7 +104,7 @@ contains
           case ("dynamical")
              nodeRecentMajorMergerIntervalType=nodeRecentMajorMergerIntervalTypeDynamical
           case default
-             call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Initialize','[nodeRecentMajorMergerIntervalType] has unrecognized value')
+             call Galacticus_Error_Report('[nodeRecentMajorMergerIntervalType] has unrecognized value'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>nodeRecentMajorMergerFromInfall</name>
@@ -188,7 +188,7 @@ contains
              darkMatterHaloScale_ => darkMatterHaloScale()
              recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(node)
           case default
-             call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Node_Merger','unrecognized time interval type')
+             call Galacticus_Error_Report('unrecognized time interval type'//{introspection:location})
           end select
           if (nodeRecentMajorMergerFromInfall) then
              if (node%parent%isSatellite()) then

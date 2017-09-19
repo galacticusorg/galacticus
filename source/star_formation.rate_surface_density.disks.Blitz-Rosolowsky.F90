@@ -148,7 +148,7 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>real</type>
        !# </inputParameter>
-       if (pressureExponentBlitzRosolowsky < 0.0d0) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_BR_Initialize','pressureExponentBlitzRosolowsky < 0 violates assumptions')
+       if (pressureExponentBlitzRosolowsky < 0.0d0) call Galacticus_Error_Report('pressureExponentBlitzRosolowsky < 0 violates assumptions'//{introspection:location})
        ! Convert parameters to internal units.
        surfaceDensityCriticalBlitzRosolowsky             =surfaceDensityCriticalBlitzRosolowsky*(mega**2)                                                    ! Convert to M_Solar/Mpc^2.
        starFormationFrequencyNormalizationBlitzRosolowsky=starFormationFrequencyNormalizationBlitzRosolowsky*giga                                            ! Convert to Gyr^-1.

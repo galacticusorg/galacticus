@@ -314,7 +314,7 @@ contains
              weightBoundPrevious=weightBound
           end if
           ! Check for excess iterations.
-          if (countIteration > countIterationMaximum) call Galacticus_Error_Report('selfBoundOperate','maximum iterations exceeded')
+          if (countIteration > countIterationMaximum) call Galacticus_Error_Report('maximum iterations exceeded'//{introspection:location})
        end do
        ! Write bound status to file.
        boundStatusSingle => boundStatus(:,iSample)

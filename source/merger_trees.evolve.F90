@@ -157,7 +157,7 @@ contains
                    vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
                    vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
                    vMessage=vMessage//'         <allTreesExistAtFinalTime value="false" />'//char(10)
-                   call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
+                   call Galacticus_Error_Report(vMessage//{introspection:location})
                 end if
              else
                 ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
@@ -179,7 +179,7 @@ contains
                       vMessage=vMessage//'           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
                       vMessage=vMessage//'       or similar in your parameter file to ensure that nodes exist'   //char(10)
                       vMessage=vMessage//'       precisely at the output times you request'
-                      call Galacticus_Error_Report('Merger_Tree_Evolve_To',vMessage)
+                      call Galacticus_Error_Report(vMessage//{introspection:location})
                    end if
                    event => event%next
                 end do
@@ -494,7 +494,7 @@ contains
                 call Galacticus_Display_Unindent("report done")
                 call Deadlock_Tree_Output(endTime)
                 if (.not.deadlockReporting) then
-                   call Galacticus_Error_Report('Merger_Tree_Evolve_To','merger tree appears to be deadlocked (see preceding report) - check timestep criteria')
+                   call Galacticus_Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
                 else
                    return
                 end if
@@ -768,7 +768,7 @@ contains
           ! on the time limits.
           message=message//' Gyr)'
           if (.not.report) time=Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report=.true.)
-          call Galacticus_Error_Report('Evolve_To_Time',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'

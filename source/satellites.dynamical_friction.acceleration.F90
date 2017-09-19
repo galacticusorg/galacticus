@@ -66,11 +66,8 @@ contains
           !#  <functionArgs>satelliteDynamicalFrictionMethod,Satellite_Dynamical_Friction_Acceleration_Get</functionArgs>
           include 'satellite.dynamical.friction.acceleration.inc'
           !# </include>
-          if (.not.associated(Satellite_Dynamical_Friction_Acceleration_Get))                                        &
-               & call Galacticus_Error_Report(                                                                       &
-               &                              'Satellite_Dynamical_Friction_Acceleration_Initialize'               , &
-               &                              'method '//char(satelliteDynamicalFrictionMethod)//' is unrecognized'  &
-               &                             )
+          if (.not.associated(Satellite_Dynamical_Friction_Acceleration_Get))                                                                  &
+               & call Galacticus_Error_Report('method '//char(satelliteDynamicalFrictionMethod)//' is unrecognized'//{introspection:location})
           ! Record that this module is now initialized.
           satelliteDynamicalFrictionAccelerationInitialized=.true.
        end if

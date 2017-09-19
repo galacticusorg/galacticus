@@ -349,7 +349,7 @@ contains
        end if
     end do
     ! If too many iterations were required to find an orbit, abort.
-    if (attempts >= attemptsMaximum) call Galacticus_Error_Report('jiang2014Orbit','maximum number of attempts exceeded')
+    if (attempts >= attemptsMaximum) call Galacticus_Error_Report('maximum number of attempts exceeded'//{introspection:location})
     return
   end function jiang2014Orbit
   

@@ -501,11 +501,11 @@ contains
           coldModeColdModeFraction=     +self%coldFractionStored
        case default
           coldModeColdModeFraction=1.0d0
-          call Galacticus_Error_Report('coldModeColdModeFraction','unknown accretion mode - this should not happen')
+          call Galacticus_Error_Report('unknown accretion mode - this should not happen'//{introspection:location})
        end select
     case default
        coldModeColdModeFraction=1.0d0
-       call Galacticus_Error_Report('coldModeColdModeFraction','unknown accretion mode - this should not happen')  
+       call Galacticus_Error_Report('unknown accretion mode - this should not happen'//{introspection:location})  
     end select
     return
   end function coldModeColdModeFraction

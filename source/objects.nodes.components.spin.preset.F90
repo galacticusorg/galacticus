@@ -151,7 +151,7 @@ contains
        nodeParent => node%parent
        basic      => node%basic()
        basicParent => nodeParent%basic()
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Spin_Random_Promote','node has not been evolved to its parent')
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
        ! Adjust the spin growth rate to that of the parent node.
        spinParent => nodeParent%spin()
        call spin%spinSet          (spinParent%spin          ())

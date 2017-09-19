@@ -353,7 +353,7 @@ contains
 
     ! Get the metallicity.
     abundanceList => getElementsByTagName(abundancesDefinition,'metals')
-    if (getLength(abundanceList) >  1) call Galacticus_Error_Report('Abundances_Builder','multiple metallicity values specified')
+    if (getLength(abundanceList) >  1) call Galacticus_Error_Report('multiple metallicity values specified'//{introspection:location})
     if (getLength(abundanceList) == 1) then
        abundance => item(abundanceList,0)
        call extractDataContent(abundance,self%metallicityValue)
@@ -361,7 +361,7 @@ contains
     if (elementsCount > 0) then
        do i=1,elementsCount
           abundanceList => getElementsByTagName(abundancesDefinition,trim(elementsToTrack(i)))
-          if (getLength(abundanceList) >  1) call Galacticus_Error_Report('Abundances_Builder','multiple '//trim(elementsToTrack(i))//' values specified')
+          if (getLength(abundanceList) >  1) call Galacticus_Error_Report('multiple '//trim(elementsToTrack(i))//' values specified'//{introspection:location})
           if (getLength(abundanceList) == 1) then
              abundance => item(abundanceList,0)
              call extractDataContent(abundance,self%elementalValue(i))
@@ -611,11 +611,11 @@ contains
        if (index <= elementsCount+1) then
           Abundances_Names=trim(elementsToTrack(index-1))
        else
-          call Galacticus_Error_Report('Abundances_Names','index out of range')
+          call Galacticus_Error_Report('index out of range'//{introspection:location})
        end if
     case default
        Abundances_Names=""
-       call Galacticus_Error_Report('Abundances_Names','index out of range')
+       call Galacticus_Error_Report('index out of range'//{introspection:location})
     end select
     return
   end function Abundances_Names
@@ -637,11 +637,11 @@ contains
           Abundances_Atomic_Index=elementsIndices(index-1)
        else
           Abundances_Atomic_Index=-1
-          call Galacticus_Error_Report('Abundances_Atomic_Index','index out of range')
+          call Galacticus_Error_Report('index out of range'//{introspection:location})
        end if
     case default
        Abundances_Atomic_Index=-1
-       call Galacticus_Error_Report('Abundances_Atomic_Index','index out of range')
+       call Galacticus_Error_Report('index out of range'//{introspection:location})
     end select
     return
   end function Abundances_Atomic_Index
@@ -730,7 +730,7 @@ contains
        ! Convert to metallicity by mass relative to Solar.
        Abundances_Get_Metallicity=Abundances_Get_Metallicity/metallicitySolar
     case default
-       call Galacticus_Error_Report('Abundances_Get_Metallicity','metallicity type not supported')
+       call Galacticus_Error_Report('metallicity type not supported'//{introspection:location})
     end select
     return
   end function Abundances_Get_Metallicity
@@ -772,7 +772,7 @@ contains
        case (metallicityTypeLogarithmicByMassSolar)
           self%metallicityValue=(10.0d0**self%metallicityValue)*metallicitySolar
        case default
-          call Galacticus_Error_Report('Abundances_Set_Metallicity','type not supported')
+          call Galacticus_Error_Report('type not supported'//{introspection:location})
        end select
     end if
 
@@ -783,8 +783,8 @@ contains
           ! Do nothing to the elemental abundances in this case.
        case (adjustElementsReset)
           ! Ensure that we have an abundanceIndex specified.
-          if (self%metallicityValue /= 0.0d0 .and. .not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
-               & 'an abundance pattern must be specified in order to reset elemental abundances')
+          if (self%metallicityValue /= 0.0d0 .and. .not.present(abundanceIndex)) &
+               & call Galacticus_Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
           ! Ensure elemental values array exists.
           call Abundances_Allocate_Elemental_Values(self)
           if (self%metallicityValue == 0.0d0) then
@@ -797,8 +797,7 @@ contains
           end if
        case (adjustElementsUpdate)
           ! Ensure that we have an abundanceIndex specified.
-          if (.not.present(abundanceIndex)) call Galacticus_Error_Report('Abundances_Set_Metallicity', &
-               & 'an abundance pattern must be specified in order to reset elemental abundances')
+          if (.not.present(abundanceIndex)) call Galacticus_Error_Report('an abundance pattern must be specified in order to reset elemental abundances'//{introspection:location})
           ! Ensure elemental values array exists.
           call Abundances_Allocate_Elemental_Values(self)
           do iElement=1,elementsCount

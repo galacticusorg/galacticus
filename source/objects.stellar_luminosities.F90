@@ -321,22 +321,19 @@ contains
           case ("present")
              luminosityOutputOption=luminosityOutputOptionPresent
           case default
-             call Galacticus_Error_Report("Stellar_Luminosities_Initialize","unrecognized luminosityOutputOption")
+             call Galacticus_Error_Report("unrecognized luminosityOutputOption"//{introspection:location})
           end select
 
           ! Read in the parameters which specify the luminosities to be computed.
           luminosityCount=globalParameters%count('luminosityRedshift',zeroIfNotPresent=.true.)
           luminosityCountUnmapped=luminosityCount
-          if (globalParameters%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) call&
-               & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityFilter and luminosityRedshift&
-               & input arrays must have same dimension')
-          if (globalParameters%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) call&
-               & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityType and luminosityRedshift&
-               & input arrays must have same dimension')
+          if (globalParameters%count('luminosityFilter',zeroIfNotPresent=.true.) /= luminosityCount) &
+               & call Galacticus_Error_Report('luminosityFilter and luminosityRedshift input arrays must have same dimension'//{introspection:location})
+          if (globalParameters%count('luminosityType',zeroIfNotPresent=.true.) /= luminosityCount) &
+               & call Galacticus_Error_Report('luminosityType and luminosityRedshift input arrays must have same dimension'//{introspection:location})
           if (globalParameters%isPresent('luminosityBandRedshift')) then
-             if (globalParameters%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) call&
-                  & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityBandRedshift and luminosityRedshift&
-                  & input arrays must have same dimension')
+             if (globalParameters%count('luminosityBandRedshift',zeroIfNotPresent=.true.) /= luminosityCount) &
+                  & call Galacticus_Error_Report('luminosityBandRedshift and luminosityRedshift input arrays must have same dimension'//{introspection:location})
           end if
 
           if (luminosityCount > 0) then
@@ -402,9 +399,8 @@ contains
              !# </inputParameter>
              ! Read postprocessing set information.
              if (globalParameters%count('luminosityPostprocessSet',zeroIfNotPresent=.true.) > 0) then
-                if (globalParameters%count('luminosityPostprocessSet') /= luminosityCount) call&
-                     & Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosityPostprocessSet and luminosityFilter&
-                     & input arrays must have same dimension')
+                if (globalParameters%count('luminosityPostprocessSet') /= luminosityCount) &
+                     & call Galacticus_Error_Report('luminosityPostprocessSet and luminosityFilter input arrays must have same dimension'//{introspection:location})
                 !# <inputParameter>
                 !#   <name>luminosityPostprocessSet</name>
                 !#   <cardinality>0..*</cardinality>
@@ -439,7 +435,7 @@ contains
                 if (iLuminosity > 1) then
                    do jLuminosity=1,iLuminosity-1
                       if (luminosityName(iLuminosity) == luminosityName(jLuminosity)) then
-                         call Galacticus_Error_Report('Stellar_Luminosities_Initialize','luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file')
+                         call Galacticus_Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
                       end if
                    end do
                 end if
@@ -458,7 +454,7 @@ contains
                 case ("observed")
                    ! Do nothing, we already have the correct redshift.
                 case default
-                   call Galacticus_Error_Report('Stellar_Luminosities_Initialize','unrecognized filter type - must be "rest" or "observed"')
+                   call Galacticus_Error_Report('unrecognized filter type - must be "rest" or "observed"'//{introspection:location})
                 end select
                 ! Find the index for the postprocessing chain to be applied to this filter.
                 luminosityPostprocessingChainIndex(iLuminosity)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(iLuminosity))
@@ -647,7 +643,7 @@ contains
           Stellar_Luminosities_Luminosity=self%luminosityValue(index)
        else
           Stellar_Luminosities_Luminosity=0.0d0
-          call Galacticus_Error_Report('Stellar_Luminosities_Luminosity','index out of range')
+          call Galacticus_Error_Report('index out of range'//{introspection:location})
        end if
     else
        Stellar_Luminosities_Luminosity=0.0d0
@@ -864,7 +860,7 @@ contains
     if (index > 0 .and. index <= luminosityCount) then
        Stellar_Luminosities_Name=trim(luminosityName(index))
     else
-       call Galacticus_Error_Report('Stellar_Luminosities_Name','index out of range')
+       call Galacticus_Error_Report('index out of range'//{introspection:location})
     end if
     return
   end function Stellar_Luminosities_Name
@@ -1050,7 +1046,7 @@ contains
        Stellar_Luminosities_Is_Output=(abs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
     case default
        Stellar_Luminosities_Is_Output=.false.
-       call Galacticus_Error_Report('Stellar_Luminosities_Is_Output','unknown luminosity output option')
+       call Galacticus_Error_Report('unknown luminosity output option'//{introspection:location})
     end select
     return
   end function Stellar_Luminosities_Is_Output
@@ -1109,7 +1105,7 @@ contains
           return
        end if
     end do
-    call Galacticus_Error_Report('Stellar_Population_Luminosities_Index','unmatched name')
+    call Galacticus_Error_Report('unmatched name'//{introspection:location})
     return
   end function Stellar_Luminosities_Index
 

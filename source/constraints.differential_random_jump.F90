@@ -81,7 +81,7 @@ contains
           newDeRandomJump=deRandomJumpAdaptive()
        end select
      case default
-       call Galacticus_Error_Report('deRandomJumpNew','deRandomJump type is unrecognized')
+       call Galacticus_Error_Report('deRandomJump type is unrecognized'//{introspection:location})
     end select
     return
   end function deRandomJumpNew

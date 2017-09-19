@@ -137,11 +137,11 @@ contains
             &                                      /(darkMatterParticle_%degreesOfFreedomEffective()/1.5d0)                                                &
             &                                      /(darkMatterParticle_%mass                     ()/1.0d0)                                        **4
     class default
-       call Galacticus_Error_Report('barkana2001WDMConstructorInternal','critical overdensity expects a thermal warm dark matter particle')
+       call Galacticus_Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Read in the tabulated critical overdensity scaling.
     doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
-    if (ioStatus /= 0) call Galacticus_Error_Report('barkana2001WDMConstructorInternal','unable to find or parse the tabulated data')
+    if (ioStatus /= 0) call Galacticus_Error_Report('unable to find or parse the tabulated data'//{introspection:location})
     ! Extract the datum lists.
     element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )
     call XML_Array_Read(element,"datum",barkana2001WDMConstructorInternal%deltaTableMass )
@@ -185,7 +185,7 @@ contains
          &                                                                          powerLawFit                  , smoothTransition
 
     ! Validate.
-    if (.not.present(mass)) call Galacticus_Error_Report('barkana2001WDMValue','mass is required for this critical overdensity class')
+    if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     ! Determine the scale-free mass.
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.
@@ -288,7 +288,7 @@ contains
          &                                                                          smoothTransitionGradient
 
     ! Validate.
-    if (.not.present(mass)) call Galacticus_Error_Report('barkana2001WDMGradientMass','mass is required for this critical overdensity class')
+    if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
     ! Determine the scale-free mass.
     massScaleFree=log(mass/self%jeansMass)
     ! Compute the mass scaling via a fitting function or interpolation in tabulated results.

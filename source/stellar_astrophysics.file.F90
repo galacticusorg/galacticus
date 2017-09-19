@@ -109,12 +109,12 @@ contains
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing stellar properties.
        doc => parseFile(char(stellarPropertiesFile),iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize','Unable to parse stellar properties file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse stellar properties file'//{introspection:location})
 
        ! Check the file format version of the file.
        thisDatum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(thisDatum,fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Astrophysics_File_Initialize','file format version is out of date')
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
 
        ! Get a list of all stars.
        starList => getElementsByTagname(doc,"star")
@@ -127,28 +127,22 @@ contains
        do iStar=0,getLength(starList)-1
           thisStar     => item(starList,iStar)
           propertyList => getElementsByTagname(thisStar,"initialMass")
-          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize'&
-               & ,'star must have precisely one initial mass')
+          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one initial mass'//{introspection:location})
           propertyList => getElementsByTagname(thisStar,"metallicity")
-          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize'&
-               & ,'star must have precisely one metallicity')
+          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one metallicity'//{introspection:location})
           propertyList => getElementsByTagname(thisStar,"lifetime")
           if (getLength(propertyList) == 1) lifetimeCount=lifetimeCount+1
-          if (getLength(propertyList) >  1) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize'&
-               & ,'star has multiple lifetimes')
+          if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple lifetimes'//{introspection:location})
           propertyList => getElementsByTagname(thisStar,"ejectedMass")
           if (getLength(propertyList) == 1) ejectedMassCount=ejectedMassCount+1
-          if (getLength(propertyList) >  1) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize'&
-               & ,'star has multiple ejected masses')
+          if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple ejected masses'//{introspection:location})
           propertyList => getElementsByTagname(thisStar,"metalYieldMass")
           if (getLength(propertyList) == 1) metalYieldCount=metalYieldCount+1
-          if (getLength(propertyList) >  1) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize'&
-               & ,'star has multiple metal yield masses')
+          if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple metal yield masses'//{introspection:location})
           do iElement=1,size(elementYieldCount)
              propertyList => getElementsByTagname(thisStar,"elementYieldMass"//trim(Atomic_Short_Label(iElement)))
              if (getLength(propertyList) == 1) elementYieldCount(iElement)=elementYieldCount(iElement)+1
-             if (getLength(propertyList) >  1) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize'&
-                  & ,'star has multiple element yield masses')
+             if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple element yield masses'//{introspection:location})
           end do
        end do
 

@@ -253,7 +253,7 @@ contains
           case ( 'binomial' )
              analysisSizeFunctionCovarianceModel=analysisSizeFunctionCovarianceModelBinomial
           case default
-             call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins','unrecognized value for "analysisSizeFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+             call Galacticus_Error_Report('unrecognized value for "analysisSizeFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>analysisSizeFunctionsHaloMassBinsPerDecade</name>
@@ -527,7 +527,7 @@ contains
                             end if
                          end do
                       case default
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins','unknown size function')
+                         call Galacticus_Error_Report('unknown size function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
                       call allocateArray(sizeFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
@@ -599,7 +599,7 @@ contains
                          else
                             message="size function '"//trim(sizeFunctions(currentAnalysis)%descriptor%label)//"' bin "
                             message=message//k//" has zero weights"
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins',message)
+                            call Galacticus_Error_Report(message//{introspection:location})
                          end if
                       end do
                       exit
@@ -608,14 +608,14 @@ contains
              end do
              ! Ensure that disk component supports radius property.
              if (.not.defaultDiskComponent%radiusIsGettable()) &
-                  & call Galacticus_Error_Report                                                                   &
-                  & (                                                                                              &
-                  &  'Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins'                                       , &
-                  &  'This analysis requires that the "radius" property of the disk is gettable.'//                &
-                  &  Galacticus_Component_List(                                                                    &
-                  &                            'disk'                                                            , &
-                  &                             defaultDiskComponent%radiusAttributeMatch(requireGettable=.true.)  &
-                  &                           )                                                                    &
+                  & call Galacticus_Error_Report                                                                    &
+                  & (                                                                                               &
+                  &  'This analysis requires that the "radius" property of the disk is gettable.'//                 &
+                  &  Galacticus_Component_List(                                                                     &
+                  &                            'disk'                                                            ,  &
+                  &                             defaultDiskComponent%radiusAttributeMatch(requireGettable=.true.)   &
+                  &                           )                                                                  // &
+                  &  {introspection:location}                                                                       &
                   & )             
              ! Tabulate dependence of projected half-light radius on disk inclination angle.
              call finder%tolerance            (                                                                           &

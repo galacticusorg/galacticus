@@ -63,8 +63,8 @@ contains
     ! Return on unphysical temperature.
     if (temperature <= 0.0) return
     ! Abort on unphysical conditions.
-    if (atomicNumber   < 1 .or. atomicNumber   >           28) call Galacticus_Error_Report('Dielectronic_Recombination_Rate_Arnaud1985()','Fatal: atomic number is unphysical or too large')
-    if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('Dielectronic_Recombination_Rate_Arnaud1985()','Fatal: electron number is unphysical or too large')
+    if (atomicNumber   < 1 .or. atomicNumber   >           28) call Galacticus_Error_Report('atomic number is unphysical or too large'  //{introspection:location})
+    if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('electron number is unphysical or too large'//{introspection:location})
     ! Evaluate the fitting function.
     Dielectronic_Recombination_Rate_Arnaud1985=                             &
          & +       coefficients(1,atomicNumber,electronNumber)              &

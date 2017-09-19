@@ -549,9 +549,9 @@ contains
                      &   .not.evolutionIsEventLimited    &
                      & ) then
                    if (deadlockReport) exit
-                   call Galacticus_Error_Report(                                          &
-                        &                       'Galacticus_Task_Evolve_Tree'           , &
-                        &                       'failed to evolve tree to required time'  &
+                   call Galacticus_Error_Report(                                           &
+                        &                       'failed to evolve tree to required time'// &
+                        &                       {introspection:location}                   &
                         &                      )
                 end if
                 ! Determine what limited evolution.
@@ -636,7 +636,7 @@ contains
                 !$omp end critical(universeTransform)
                 call Galacticus_Display_Message(message)
                 call Inter_Tree_Event_Post_Evolve()
-                call Galacticus_Error_Report('Galacticus_Task_Evolve_Tree','exiting')
+                call Galacticus_Error_Report('exiting'//{introspection:location})
              else
                 deadlockReport=.true.
              end if
@@ -651,7 +651,7 @@ contains
              thisEvent => universeWaiting%event
              do while (associated(thisEvent))
                 if (thisEvent%time < universalEvolveToTime) then
-                   call Galacticus_Error_Report('Galacticus_Task_Evolve_Tree','a universal event exists in the past - this should not happen')
+                   call Galacticus_Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
                 else if (thisEvent%time == universalEvolveToTime) then
                    success=thisEvent%task(universeWaiting)
                    if (success) call universeWaiting%removeEvent(thisEvent)

@@ -227,7 +227,7 @@ contains
     double precision            , dimension(3), intent(in   ) :: x
     !GCC$ attributes unused :: self, x
     
-    call Galacticus_Error_Report('Coordinates_Null_To','no transformation from cartesian coordinates defined')
+    call Galacticus_Error_Report('no transformation from cartesian coordinates defined'//{introspection:location})
     return
   end subroutine Coordinates_Null_From
 
@@ -240,7 +240,7 @@ contains
     !GCC$ attributes unused :: self
 
     Coordinates_Null_To=0.0d0
-    call Galacticus_Error_Report('Coordinates_Null_To','no transformation to cartesian coordinates defined')
+    call Galacticus_Error_Report('no transformation to cartesian coordinates defined'//{introspection:location})
     return
   end function Coordinates_Null_To
 

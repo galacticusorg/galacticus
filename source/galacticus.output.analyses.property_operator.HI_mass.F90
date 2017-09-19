@@ -78,7 +78,7 @@ contains
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
     !GCC$ attributes unused :: propertyType, outputIndex
 
-    if (.not.present(node)) call Galacticus_Error_Report('hiMassOperate','node must be provided')
+    if (.not.present(node)) call Galacticus_Error_Report('node must be provided'//{introspection:location})
     hiMassOperate=+propertyValue                                                &
          &        *self%outputAnalysisMolecularRatio_%ratio(propertyValue,node)
     return

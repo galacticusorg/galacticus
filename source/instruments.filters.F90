@@ -181,10 +181,10 @@ contains
        end if
        if (.not.parseSuccess)                                                                 &
             & call Galacticus_Error_Report(                                                   &
-            &                              'Filter_Response_Load'                          ,  &
             &                              'unable to read or parse filter response file: '// &
             &                              char(filterFileName)                            // &
-            &                                   errorMessage                                  &
+            &                                   errorMessage                               // &
+            &                              {introspection:location}                           &
             &                             )
        ! Extract wavelengths and filter response.
        call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
@@ -255,7 +255,7 @@ contains
     implicit none
     integer, intent(in   ) :: filterIndex
 
-    if (.not.filterResponses(filterIndex)%vegaOffsetAvailable) call Galacticus_Error_Report('Filter_Vega_Offset','Vega offset is not available')
+    if (.not.filterResponses(filterIndex)%vegaOffsetAvailable) call Galacticus_Error_Report('Vega offset is not available'//{introspection:location})
     Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
     return
   end function Filter_Vega_Offset
@@ -266,7 +266,7 @@ contains
     implicit none
     integer, intent(in   ) :: filterIndex
 
-    if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('Filter_Wavelength_Effective','effective wavelength is not available')
+    if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('effective wavelength is not available'//{introspection:location})
     Filter_Wavelength_Effective=filterResponses(filterIndex)%wavelengthEffective
     return
   end function Filter_Wavelength_Effective

@@ -101,14 +101,14 @@ contains
        end if
     else
        Hypergeometric_2F1=0.0d0
-       call Galacticus_Error_Report('Hypergeometric_2F1','function cannot be evaluated for x>1')
+       call Galacticus_Error_Report('function cannot be evaluated for x>1'//{introspection:location})
     end if
     if (present(status)) then
        status=statusActual
        ! Reset error handler.
        call Galacticus_GSL_Error_Handler_Abort_On()
     else if (statusActual /= FGSL_Success) then
-       call Galacticus_Error_Report('Hypergeometric_2F1','GSL failed')
+       call Galacticus_Error_Report('GSL failed'//{introspection:location})
     end if
     return
   end function Hypergeometric_2F1

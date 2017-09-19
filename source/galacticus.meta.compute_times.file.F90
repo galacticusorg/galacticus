@@ -60,7 +60,7 @@ contains
        ! Parse the fit file.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(timePerTreeFitFileName),iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Time_Per_Tree_File_Initialize','Unable to find or parse tree timing file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to find or parse tree timing file'//{introspection:location})
        thisFit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
        call XML_Array_Read_Static(thisFit,"coefficient",fitCoefficient)
        !$omp end critical (FoX_DOM_Access)

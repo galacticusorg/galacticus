@@ -83,7 +83,7 @@ contains
     double precision                                                           :: gradient                       , xActual
 
     ! Detect mismatched array sizes.
-    if (size(xArray,kind=c_size_t) /= size(yArray,kind=c_size_t)) call Galacticus_Error_Report('Interpolate','mismatched array sizes')
+    if (size(xArray,kind=c_size_t) /= size(yArray,kind=c_size_t)) call Galacticus_Error_Report('mismatched array sizes'//{introspection:location})
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -105,7 +105,7 @@ contains
        interpolationObject=fgsl_interp_alloc(interpolationTypeActual,nPointsC)
        ! Check status.
        status=fgsl_interp_init(interpolationObject,xArray,yArray,nPointsC)
-       if (status /= fgsl_success) call Galacticus_Error_Report('Interpolate','interpolation initialization failed')
+       if (status /= fgsl_success) call Galacticus_Error_Report('interpolation initialization failed'//{introspection:location})
     end if
 
     ! If extrapolation is allowed, check if this is necessary.
@@ -136,7 +136,7 @@ contains
           case default
              message='interpolation failed for unknown reason'
           end select
-          call Galacticus_Error_Report('Interpolate',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
        Interpolate=yArray(basePoint)+gradient*(x-xArray(basePoint))
     else
@@ -159,7 +159,7 @@ contains
           case default
              message='interpolation failed for unknown reason'
           end select
-          call Galacticus_Error_Report('Interpolate',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
     end if
     return
@@ -188,7 +188,7 @@ contains
     double precision                                                           :: xActual
 
     ! Detect mismatched array sizes.
-    if (size(xArray,kind=c_size_t) /= size(yArray,kind=c_size_t)) call Galacticus_Error_Report('Interpolate_Derivative','mismatched array sizes')
+    if (size(xArray,kind=c_size_t) /= size(yArray,kind=c_size_t)) call Galacticus_Error_Report('mismatched array sizes'//{introspection:location})
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -210,7 +210,7 @@ contains
        interpolationObject=fgsl_interp_alloc(interpolationTypeActual,nPointsC)
        ! Check status.
        status=fgsl_interp_init(interpolationObject,xArray,yArray,nPointsC)
-       if (status /= fgsl_success) call Galacticus_Error_Report('Interpolate_Derivative','interpolation initialization failed')
+       if (status /= fgsl_success) call Galacticus_Error_Report('interpolation initialization failed'//{introspection:location})
     end if
     ! If extrapolation is allowed, check if this is necessary.
     xActual=x
@@ -233,7 +233,7 @@ contains
        case default
           message='interpolation failed for unknown reason'
        end select
-       call Galacticus_Error_Report('Interpolate_Derivative',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
      return
    end function Interpolate_Derivative
@@ -255,7 +255,7 @@ contains
     ! Get array size.
     nPointsC=size(xArray,kind=c_size_t)
     ! Abort on non-positive sized arrays.
-    if (nPointsC <= 0) call Galacticus_Error_Report('Interpolate_Locate','array has non-positive size')
+    if (nPointsC <= 0) call Galacticus_Error_Report('array has non-positive size'//{introspection:location})
 
     ! If array has just one point, always return it.
     if (nPointsC == 1) then

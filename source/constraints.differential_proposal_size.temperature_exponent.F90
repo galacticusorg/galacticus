@@ -116,7 +116,7 @@ contains
                &                                        )
        end select
      case default
-       call Galacticus_Error_Report('dePropSizeTempExpNew','dePropSizeTempExp type is unrecognized')
+       call Galacticus_Error_Report('dePropSizeTempExp type is unrecognized'//{introspection:location})
     end select
     return
   end function dePropSizeTempExpNew

@@ -108,6 +108,6 @@ contains
     !GCC$ attributes unused :: self, node
     
     deltaFunctionDistribution=0.0d0
-    call Galacticus_Error_Report('deltaFunctionSample','distribution function can not be evaluated')
+    call Galacticus_Error_Report('distribution function can not be evaluated'//{introspection:location})
     return
   end function deltaFunctionDistribution

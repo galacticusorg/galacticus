@@ -92,7 +92,7 @@ logical function simulatorStochasticDifferentialEvolutionAcceptProposal(self,log
      end if
   class default
      temperatureConvergenceFactor=0.0d0
-     call Galacticus_Error_Report('simulatorStochasticDifferentialEvolutionAcceptProposal','this class requires a Gelman-Rubin convergence criterion')
+     call Galacticus_Error_Report('this class requires a Gelman-Rubin convergence criterion'//{introspection:location})
   end select  
   ! Set the chain temperature to the root-variance of the difference between the current and proposed likelihoods (which is
   ! characteristic amount by which we expect them to differ due to random fluctuations). Multiply by a user-specified factor to

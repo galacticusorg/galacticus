@@ -249,8 +249,8 @@ contains
     ! Get the elements
     do i=1,6
        elementList => getElementsByTagName(tensorDefinition,elementNames(i))
-       if (getLength(elementList) > 1) call Galacticus_Error_Report('Tensor_R2_D3_Sym_Builder','multiple "'//elementNames(i)//'" values specified')
-       if (getLength(elementList) < 1) call Galacticus_Error_Report('Tensor_R2_D3_Sym_Builder','no "'//elementNames(i)//'" value specified'       )
+       if (getLength(elementList) > 1) call Galacticus_Error_Report('multiple "'//elementNames(i)//'" values specified'//{introspection:location})
+       if (getLength(elementList) < 1) call Galacticus_Error_Report('no "'//elementNames(i)//'" value specified'       //{introspection:location})
        element => item(elementList,0)
        select case (elementNames(i))
        case ( 'x00' )
@@ -604,7 +604,7 @@ contains
          &   matrix(1,3) /= matrix(3,1) &
          &  .or.                        &
          &   matrix(2,3) /= matrix(3,2) &
-         & ) call Galacticus_Error_Report('Tensor_R2_D3_Sym_From_Matrix','supplied matrix is not symmetric')
+         & ) call Galacticus_Error_Report('supplied matrix is not symmetric'//{introspection:location})
     ! Set the values of the tensor object.
     self%x00=matrix(1,1)
     self%x01=matrix(1,2)

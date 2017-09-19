@@ -64,8 +64,7 @@ contains
           !#  <functionArgs>darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get</functionArgs>
           include 'dark_matter_halos.mass_loss_rates.inc'
           !# </include>
-          if (.not.associated(Dark_Matter_Halos_Mass_Loss_Rate_Get)) call Galacticus_Error_Report('Dark_Matter_Halo_Mass_Loss_Rates_Initialize'&
-               &,'method ' //char(darkMatterHaloMassLossRateMethod)//' is unrecognized')
+          if (.not.associated(Dark_Matter_Halos_Mass_Loss_Rate_Get)) call Galacticus_Error_Report('method '//char(darkMatterHaloMassLossRateMethod)//' is unrecognized'//{introspection:location})
           darkMatterHaloMassLossRateInitialized=.true.
        end if
        !$omp end critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization)

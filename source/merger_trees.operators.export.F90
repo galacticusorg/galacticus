@@ -89,7 +89,7 @@ contains
     integer                            , intent(in   ) :: exportFormat
 
     ! Validate the export format.
-    if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportConstructorInternal','exportFormat is invalid')
+    if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportFormat is invalid'//{introspection:location})
     ! Construct the object.
     exportConstructorInternal%outputFileName   =outputFileName
     exportConstructorInternal%exportFormat     =exportFormat

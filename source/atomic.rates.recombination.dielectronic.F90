@@ -72,7 +72,7 @@ contains
           include 'atomic.rates.recombination.dielectronic.inc'
           !# </include>
           if (.not.associated(Dielectronic_Recombination_Ratebination_Rate_Get)) call&
-               & Galacticus_Error_Report('Dielectronic_Recombination_Ratebination_Rate_Initialize','method '//char(dielectronicRecombinationMethod)//' is unrecognized')
+               & Galacticus_Error_Report('method '//char(dielectronicRecombinationMethod)//' is unrecognized'//{introspection:location})
           dielectronicRateInitialized = .true.
        end if
        !$omp end critical(Atomic_Rate_Recombination_Dielectronic_Initialization)

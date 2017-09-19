@@ -198,7 +198,7 @@ contains
           tNow                 =deltaTable%x(iTime)
           ! Check dark energy equation of state is within acceptable range.
           if (cosmologyFunctions__%equationOfStateDarkEnergy(time=tNow) >= -1.0d0/3.0d0) &
-               & call Galacticus_Error_Report('Make_Table','ω<-1/3 required')
+               & call Galacticus_Error_Report('ω<-1/3 required'//{introspection:location})
           ! Find the value of epsilon for which the perturbation just collapses at this time.
           if (.not.finder%isInitialized()) then
              call finder%rootFunction(radiusPerturbation                 )
@@ -247,7 +247,7 @@ contains
              case ('virialization')
                 timeEnergyFixed=tNow
              case default
-                call Galacticus_Error_Report('Make_Table','unrecognized epoch')
+                call Galacticus_Error_Report('unrecognized epoch'//{introspection:location})
              end select
              a=1.0d0-(1.0d0+3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=timeEnergyFixed))*q/2.0d0
              b=      (1.0d0+3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=tNow           ))*q/y

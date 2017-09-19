@@ -117,30 +117,30 @@ contains
 
     !# <constructorAssign variables="timeScale, exponentRedshift, massCutOff, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
     ! Check that the properties we need are gettable.
-    if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
-         & call Galacticus_Error_Report(                                                                                               &
-         &                              'simpleScalingConstructorParameters'                                                , &
-         &                              'Hot halo component must have gettable mass.'//                                                &
-         &                              Galacticus_Component_List(                                                                     &
-         &                                                        'hotHalo'                                                          , &
-         &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
-         &                                                       )                                                                     &
+    if (.not.defaultHotHaloComponent%massIsGettable())                                                                                  &
+         & call Galacticus_Error_Report(                                                                                                &
+         &                              'Hot halo component must have gettable mass.'//                                                 &
+         &                              Galacticus_Component_List(                                                                      &
+         &                                                        'hotHalo'                                                          ,  &
+         &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)   &
+         &                                                       )                                                                   // &
+         &                              {introspection:location}                                                                        &
          &                             )
-    if     (                                                                                                                           &
-         &  .not.(                                                                                                                     &
-         &         defaultBasicComponent%massIsGettable()                                                                              &
-         &        .and.                                                                                                                &
-         &         defaultBasicComponent%timeIsGettable()                                                                              &
-         &       )                                                                                                                     &
-         & ) call Galacticus_Error_Report(                                                                                             &
-         &                                'simpleScalingConstructorParameters'                                              , &
-         &                                'Basic component must have gettable mass and time.'//                                        &
-         &                                Galacticus_Component_List(                                                                   &
-         &                                                          'basic'                                                          , &
-         &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
-         &                                                          .intersection.                                                     &
-         &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
-         &                                                         )                                                                   &
+    if     (                                                                                                                            &
+         &  .not.(                                                                                                                      &
+         &         defaultBasicComponent%massIsGettable()                                                                               &
+         &        .and.                                                                                                                 &
+         &         defaultBasicComponent%timeIsGettable()                                                                               &
+         &       )                                                                                                                      &
+         & ) call Galacticus_Error_Report(                                                                                              &
+         &                                'Basic component must have gettable mass and time.'//                                         &
+         &                                Galacticus_Component_List(                                                                    &
+         &                                                          'basic'                                                          ,  &
+         &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)   &
+         &                                                          .intersection.                                                      &
+         &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)   &
+         &                                                         )                                                                 // &
+         &                               {introspection:location}                                                                       &
          &                               )
     ! Initialize stored solutions.
     self%expansionFactorPrevious=-1.0d0

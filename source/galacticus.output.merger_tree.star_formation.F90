@@ -116,8 +116,7 @@ contains
           include 'galacticus.output.merger_tree.star_formation.inc'
           !# </include>
           if (.not.(associated(Star_Formation_History_Create_Do).and.associated(Star_Formation_History_Scales_Do).and.associated(Star_Formation_History_Record_Do).and.associated(Star_Formation_History_Output_Do))) &
-               & call Galacticus_Error_Report('Galacticus_Output_Star_Formation_Histories_Initialize'&
-               &,'method '//char(starFormationHistoriesMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method '//char(starFormationHistoriesMethod)//' is unrecognized'//{introspection:location})
           starFormationHistoriesInitialized=.true.
        end if
        !$omp end critical(Galacticus_Output_Star_Formation_Histories_Initialization)

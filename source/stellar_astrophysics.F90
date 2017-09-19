@@ -80,7 +80,7 @@ contains
           include 'stellar_astrophysics.inc'
           !# </include>
           if (.not.(associated(Star_Ejected_Mass_Get).and.associated(Star_Initial_Mass_Get).and.associated(Star_Metal_Yield_Mass_Get).and.associated(Star_Lifetime_Get))) &
-               & call Galacticus_Error_Report('Stellar_Astrophysics','method '//char(stellarAstrophysicsMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method '//char(stellarAstrophysicsMethod)//' is unrecognized'//{introspection:location})
           stellarAstrophysicsInitialized=.true.
        end if
        !$omp end critical(Stellar_Astrophysics_Initialization)

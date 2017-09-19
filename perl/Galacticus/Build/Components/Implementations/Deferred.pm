@@ -211,7 +211,7 @@ CODE
 CODE
 	    }
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-      call Galacticus_Error_Report('{$memberFunctionName}','deferred function has not been assigned')
+      call Galacticus_Error_Report('deferred function has not been assigned'//\{introspection:location\})
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -225,7 +225,7 @@ CODE
 CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-   call Galacticus_Error_Report('{$memberFunctionName}','incorrect class - this should not happen')
+   call Galacticus_Error_Report('incorrect class - this should not happen'//\{introspection:location\})
 end select
 CODE
 	# Insert a type-binding for this function into the node component class type.

@@ -82,7 +82,7 @@ contains
           include 'merger_trees.branching_probability.modifier.inc'
           !# </include>
           if (.not.associated(Merger_Tree_Branching_Modifier_Get))  &
-               & call Galacticus_Error_Report('Tree_Branching_Modifiers_Initialize','method '//char(treeBranchingModifierMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method '//char(treeBranchingModifierMethod)//' is unrecognized'//{introspection:location})
 
           treeBranchingModifierInitialized=.true.
        end if

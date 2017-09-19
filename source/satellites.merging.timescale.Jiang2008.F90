@@ -78,7 +78,7 @@ contains
           !#   <type>string</type>
           !# </inputParameter>
           ! Check that required properties are gettable.
-          if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('jiang2008DefaultConstructor','this method requires that the "mass" property of the basic component be gettable')
+          if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
           ! Record that we are now initialized.
           jiang2008Initialized=.true.
        end if
@@ -154,7 +154,7 @@ contains
        return
     case (errorCodeSuccess          )
     case default
-       call Galacticus_Error_Report('jiang2008TimeUntilMerging','unrecognized error code')
+       call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Get velocity scale.
     velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)

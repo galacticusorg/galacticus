@@ -67,7 +67,7 @@ contains
     case (coordinateSystemCartesian)
        positionSphericalShared=Coordinates_Cartesian_To_Spherical  (position)
     case default
-       call Galacticus_Error_Report('Galactic_Structure_Density','unknown coordinate system type')
+       call Galacticus_Error_Report('unknown coordinate system type'//{introspection:location})
     end select
     ! Determine which mass type to use.
     if (present(massType)) then
@@ -92,7 +92,7 @@ contains
        weightByShared=weightBy
        select case (weightByShared)
        case (weightByLuminosity)
-          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Density','weightIndex should be specified for luminosity weighting')
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('weightIndex should be specified for luminosity weighting'//{introspection:location})
           weightIndexShared=weightIndex
        end select
     else

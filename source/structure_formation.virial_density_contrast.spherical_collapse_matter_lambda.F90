@@ -134,7 +134,7 @@ contains
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('sphericalCollapseMatterLambdaDensityContrast','only one argument can be specified')
+          call Galacticus_Error_Report('only one argument can be specified'//{introspection:location})
        else
           timeActual=time
        end if
@@ -147,7 +147,7 @@ contains
           end if
           timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
-          call Galacticus_Error_Report('sphericalCollapseMatterLambdaDensityContrast','at least one argument must be given')
+          call Galacticus_Error_Report('at least one argument must be given'//{introspection:location})
        end if
     end if
     ! Remake the table if necessary.
@@ -172,7 +172,7 @@ contains
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(expansionFactor)) then
-          call Galacticus_Error_Report('sphericalCollapseMatterLambdaDensityContrastRateOfChange','only one argument can be specified')
+          call Galacticus_Error_Report('only one argument can be specified'//{introspection:location})
        else
           timeActual=time
        end if
@@ -185,7 +185,7 @@ contains
           end if
           timeActual=self%cosmologyFunctions_%cosmicTime(expansionFactor,collapsingActual)
        else
-          call Galacticus_Error_Report('sphericalCollapseMatterLambdaDensityContrastRateOfChange','at least one argument must be given')
+          call Galacticus_Error_Report('at least one argument must be given'//{introspection:location})
        end if
     end if
     ! Remake the table if necessary.

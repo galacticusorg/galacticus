@@ -258,7 +258,7 @@ contains
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
 
     ! Validate input.
-    if (.not.enumerationSelectionIsValid(selection)) call Galacticus_Error_Report('particulateConstructorInternal','invalid selection type')
+    if (.not.enumerationSelectionIsValid(selection)) call Galacticus_Error_Report('invalid selection type'//{introspection:location})
     ! Store properties.
     particulateConstructorInternal%outputFileName                 =  outputFileName
     particulateConstructorInternal%idMultiplier                   =  idMultiplier
@@ -558,7 +558,7 @@ contains
                       message='distribution function ['//trim(label)//'] exceeds estimated maximum ['
                       write (label,'(e12.6)') distributionFunctionMaximum
                       message=message//trim(label)//']'
-                      call Galacticus_Error_Report('particulateOperate',message)
+                      call Galacticus_Error_Report(message//{introspection:location})
                    end if
                    !$omp critical (mergerTreeOperatorParticulateSample)
                    keepSample= +Pseudo_Random_Get(                     &
@@ -890,7 +890,7 @@ contains
                &    particulateEnergyDistribution%y(i  ,table=energyDistributionTableDistribution) &
                &   >                                                                               &
                &    particulateEnergyDistribution%y(i-1,table=energyDistributionTableDistribution) &
-               & ) call Galacticus_Error_Report('particulateEnergyDistribution','unphysical distribution function')
+               & ) call Galacticus_Error_Report('unphysical distribution function'//{introspection:location})
        end do
        ! Construct a reversed (radius vs. potential function) table.
        call particulateEnergyDistribution%reverse(particulateRadiusDistribution,table=energyDistributionTablePotential)

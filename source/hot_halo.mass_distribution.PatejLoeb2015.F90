@@ -91,35 +91,35 @@ contains
     double precision                                      , intent(in   ) :: gamma                   , shockRadius
 
     ! Check that required properties are gettable.
-    if     (                                                                                                                &
-         &  .not.(                                                                                                          &
-         &         defaultHotHaloComponent          %       massIsGettable()                                                &
-         &        .and.                                                                                                     &
-         &         defaultHotHaloComponent          %outerRadiusIsGettable()                                                &
-         &       )                                                                                                          &
-         & ) call Galacticus_Error_Report                                                                                   &
-         & (                                                                                                                &
-         &  'patejLoeb2015Constructor'                                                                                    , &
-         &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//             &
-         &  Galacticus_Component_List(                                                                                      &
-         &                            'hotHalo'                                                                           , &
-         &                             defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)  &
-         &                            .intersection.                                                                        &
-         &                             defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)  &
-         &                           )                                                                                      &
+    if     (                                                                                                                 &
+         &  .not.(                                                                                                           &
+         &         defaultHotHaloComponent          %       massIsGettable()                                                 &
+         &        .and.                                                                                                      &
+         &         defaultHotHaloComponent          %outerRadiusIsGettable()                                                 &
+         &       )                                                                                                           &
+         & ) call Galacticus_Error_Report                                                                                    &
+         & (                                                                                                                 &
+         &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//              &
+         &  Galacticus_Component_List(                                                                                       &
+         &                            'hotHalo'                                                                           ,  &
+         &                             defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)   &
+         &                            .intersection.                                                                         &
+         &                             defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)   &
+         &                           )                                                                                    // &
+         &  {introspection:location}                                                                                         &
          & )
-    if     (                                                                                                                &
-         &  .not.(                                                                                                          &
-         &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                                &
-         &       )                                                                                                          &
-         & ) call Galacticus_Error_Report                                                                                   &
-         & (                                                                                                                &
-         &  'patejLoeb2015Constructor'                                                                                    , &
-         &  'This method requires that the "scale" property of the dark matter profile is gettable.'//                      &
-         &  Galacticus_Component_List(                                                                                      &
-         &                            'darkMatterProfile'                                                                 , &
-         &                             defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)  &
-         &                           )                                                                                      &
+    if     (                                                                                                                 &
+         &  .not.(                                                                                                           &
+         &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                                 &
+         &       )                                                                                                           &
+         & ) call Galacticus_Error_Report                                                                                    &
+         & (                                                                                                                 &
+         &  'This method requires that the "scale" property of the dark matter profile is gettable.'//                       &
+         &  Galacticus_Component_List(                                                                                       &
+         &                            'darkMatterProfile'                                                                 ,  &
+         &                             defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)   &
+         &                           )                                                                                    // &
+         &  {introspection:location}                                                                                         &
          & )
     patejLoeb2015Constructor%gamma      =gamma
     patejLoeb2015Constructor%shockRadius=shockRadius

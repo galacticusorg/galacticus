@@ -30,19 +30,19 @@ subroutine mappingLogarithmicMapPrior(self,thisPrior)
   select type (thisDistribution => thisPrior%priorDistribution)
   type is (distributionUniform)
      ! Simply map the upper and lower limits of this uniform distribution.
-     if     (                                                                                                                   &
-          &   thisDistribution%limitLower <= 0.0d0                                                                              &
-          &  .or.                                                                                                               &
-          &   thisDistribution%limitUpper <= 0.0d0                                                                              &
-          & ) call Galacticus_Error_Report(                                                                                     &
-          &                                'mappingLogarithmicMapPrior'                                                       , &
-          &                                'logarithmic mapping cannot be applied to uniform distribution with negative range'  &
+     if     (                                                                                                                    &
+          &   thisDistribution%limitLower <= 0.0d0                                                                               &
+          &  .or.                                                                                                                &
+          &   thisDistribution%limitUpper <= 0.0d0                                                                               &
+          & ) call Galacticus_Error_Report(                                                                                      &
+          &                                'logarithmic mapping cannot be applied to uniform distribution with negative range'// &
+          &                                {introspection:location}                                                              &
           &                               )
      thisDistribution%limitLower=log(thisDistribution%limitLower)
      thisDistribution%limitUpper=log(thisDistribution%limitUpper)
   class default
      ! Report an error.
-     call Galacticus_Error_Report('mappingLogarithmicMapPrior','mapping can not handle this prior distribution')
+     call Galacticus_Error_Report('mapping can not handle this prior distribution'//{introspection:location})
   end select
   return
 end subroutine mappingLogarithmicMapPrior

@@ -86,6 +86,6 @@ contains
     !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     randomErrorOperateDistribution=0.0d0
-    call Galacticus_Error_Report('randomErrorOperateDistribution','not implemented')
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function randomErrorOperateDistribution

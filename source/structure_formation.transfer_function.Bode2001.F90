@@ -61,7 +61,7 @@ contains
          &                                                       nu
     
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("bode2001ConstructorParameters","an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
     !# <inputParameter>
     !#   <name>epsilon</name>
@@ -145,7 +145,7 @@ contains
             &                                  /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0                   &
             &                                  /(particle%mass                     ()/            massReference)**1.15d0
     class default
-       call Galacticus_Error_Report('bode2001ConstructorInternal','transfer function expects a thermal warm dark matter particle')
+       call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     return
   end function bode2001ConstructorInternal

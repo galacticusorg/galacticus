@@ -77,26 +77,24 @@ module Galacticus_Error
   
 contains
 
-  subroutine Galacticus_Error_Report_VarStr(unitName,message)
+  subroutine Galacticus_Error_Report_VarStr(message)
     !% Display an error message.
     implicit none
-    character(len=*         ), intent(in   ) :: unitName
-    type     (varying_string), intent(in   ) :: message
+    type(varying_string), intent(in   ) :: message
 
-    call Galacticus_Error_Report_Char(unitName,char(message))
-
+    call Galacticus_Error_Report_Char(char(message))
     return
   end subroutine Galacticus_Error_Report_VarStr
 
-  subroutine Galacticus_Error_Report_Char(unitName,message)
+  subroutine Galacticus_Error_Report_Char(message)
     !% Display an error message (optionally reporting the unit name in which the error originated) and stop.
     !$ use OMP_Lib
     implicit none
-    character(len=*), intent(in   ), optional :: message, unitName
-    integer                                   :: error
+    character(len=*), intent(in   ) :: message
+    integer                         :: error
 
-    if (present(unitName)) write (0,'(a,a,a)') 'Fatal error in ',trim(unitName),'():'
-    if (present(message )) write (0,'(a)'    ) trim(message)
+    write (0,'(a)') 'Fatal error:'
+    write (0,'(a)') trim(message)
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
     !$ else

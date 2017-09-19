@@ -122,7 +122,7 @@ contains
        return
     end if
     ! Validate input.
-    if (electronNumber > atomicNumber) call Galacticus_Error_Report('sutherland1998Total','number of electrons exceeds atomic number')
+    if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
     if (Atomic_Ionization_Potential(atomicNumber,electronNumber) == 0.0d0) then
        sutherland1998Total=0.0d0

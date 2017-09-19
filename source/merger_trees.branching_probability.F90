@@ -170,7 +170,7 @@ contains
                & .or..not.associated(Tree_Subresolution_Fraction_Function      )  &
                & .or..not.associated(Tree_Branch_Mass_Function                 )  &
                & .or..not.associated(Tree_Maximum_Step_Function                )) &
-               & call Galacticus_Error_Report('Tree_Branching_Initialize','method '//char(treeBranchingMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method '//char(treeBranchingMethod)//' is unrecognized'//{introspection:location})
 
           treeBranchingInitialized=.true.
        end if

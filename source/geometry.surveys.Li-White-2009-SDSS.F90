@@ -137,7 +137,7 @@ contains
     !GCC$ attributes unused :: self
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('liWhite2009SDSSDistanceMaximum','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -185,7 +185,7 @@ contains
     !GCC$ attributes unused :: self
     
     ! Validate field.
-    if (present(field).and.field /= 1) call Galacticus_Error_Report('liWhite2009SDSSSolidAngle','field = 1 required')
+    if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     liWhite2009SDSSSolidAngle=solidAngleSurvey
     return
   end function liWhite2009SDSSSolidAngle
@@ -213,7 +213,7 @@ contains
     if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) then
        call System_Command_Do("mkdir -p "//Galacticus_Input_Path()//"data/surveyGeometry")
        call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
-       if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('liWhite2009SDSSWindowFunctions','unable to download SDSS survey geometry randoms file')
+       if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if
     randomsCount=Count_Lines_In_File(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
     call allocateArray(self%randomTheta,[randomsCount])

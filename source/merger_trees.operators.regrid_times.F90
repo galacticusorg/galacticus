@@ -122,7 +122,7 @@ contains
     ! Read redshifts if necessary.
     if (snapshotSpacing == snapshotSpacingList) then
        allocate(snapshotTimes(parameters%count('snapshotRedshifts')))
-       if (size(snapshotTimes) /= regridCount) call Galacticus_Error_Report('regridTimesConstructorParameters','mismatch between [regridCount] and size of [snapshotRedshifts]')
+       if (size(snapshotTimes) /= regridCount) call Galacticus_Error_Report('mismatch between [regridCount] and size of [snapshotRedshifts]'//{introspection:location})
        !# <inputParameter>
        !#   <name>snapshotRedshifts</name>
        !#   <variable>snapshotTimes</variable>
@@ -163,7 +163,7 @@ contains
     integer                                                                                :: iTime
     
     ! Validate arguments.
-    if (regridCount < 2) call Galacticus_Error_Report('regridTimesConstructorInternal','regridCount > 2 is required')
+    if (regridCount < 2) call Galacticus_Error_Report('regridCount > 2 is required'//{introspection:location})
     ! Store options.
     regridTimesConstructorInternal%dumpTrees    =dumpTrees
     regridTimesConstructorInternal%snapTolerance=snapTolerance
@@ -202,7 +202,7 @@ contains
        ! 11; http://adsabs.harvard.edu/abs/2006MNRAS.365...11C). Note that we specifically use the redshifts for these
        ! snapshots as reported by the Millennium Database using query: "select z from Snapshots..MR".
        ! Check for consistent number of timesteps.
-       if (regridCount /= 60) call Galacticus_Error_Report('regridTimesConstructorInternal','"millennium" grid spacing requires exactly 60 timesteps')
+       if (regridCount /= 60) call Galacticus_Error_Report('"millennium" grid spacing requires exactly 60 timesteps'//{introspection:location})
        ! Convert expansion factors to time.
        regridTimesConstructorInternal%timeGrid=[                                                                         &
             &                                   19.915688d0,18.243723d0,16.724525d0,15.343073d0,14.085914d0,12.940780d0, &
@@ -220,7 +220,7 @@ contains
           regridTimesConstructorInternal%timeGrid(iTime)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(regridTimesConstructorInternal%timeGrid(iTime)))
        end do
     case (snapshotSpacingList                  )
-       if (.not.present(snapshotTimes)) call Galacticus_Error_Report('regridTimesConstructorInternal','"list" grid spacing requires a list of snapshot times be supplied')
+       if (.not.present(snapshotTimes)) call Galacticus_Error_Report('"list" grid spacing requires a list of snapshot times be supplied'//{introspection:location})
        regridTimesConstructorInternal%timeGrid=snapshotTimes
        call Sort_Do(regridTimesConstructorInternal%timeGrid)
     end select
@@ -387,7 +387,7 @@ contains
              if (iParent > iNow) then
                 ! Create new nodes.
                 allocate(newNodes(iParent-iNow),stat=allocErr)
-                if (allocErr/=0) call Galacticus_Error_Report('regridTimesOperate','unable to allocate new nodes')
+                if (allocErr/=0) call Galacticus_Error_Report('unable to allocate new nodes'//{introspection:location})
                 do iTime=iNow+1,iParent
                    nodeIndex=nodeIndex+1_kind_int8
                    newNodes(iTime-iNow)%node => treeNode(hostTree=currentTree)

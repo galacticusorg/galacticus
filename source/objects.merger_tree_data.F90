@@ -490,7 +490,7 @@ contains
     type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary
 
     ! Validate the metadata type.
-    if (.not.enumerationMetadataTypeIsValid(metadataType)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','invalid metadata type')
+    if (.not.enumerationMetadataTypeIsValid(metadataType)) call Galacticus_Error_Report('invalid metadata type'//{introspection:location})
 
     ! Ensure we have enough space in the metadata properties array.
     if (mergerTrees%metaDataCount == 0) then
@@ -516,21 +516,21 @@ contains
     ! Store the data.
     mergerTrees%metaData(mergerTrees%metaDataCount)%dataType=dataTypeNull
     if (present(integerValue)) then
-       if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','only one data type can be specified')
+       if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('only one data type can be specified'//{introspection:location})
        mergerTrees%metaData(mergerTrees%metaDataCount)%integerAttribute=integerValue
        mergerTrees%metaData(mergerTrees%metaDataCount)%dataType        =dataTypeInteger
     end if
     if (present(doubleValue)) then
-       if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','only one data type can be specified')
+       if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('only one data type can be specified'//{introspection:location})
        mergerTrees%metaData(mergerTrees%metaDataCount)%doubleAttribute =doubleValue
        mergerTrees%metaData(mergerTrees%metaDataCount)%dataType        =dataTypeDouble
     end if
     if (present(textValue)) then
-       if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','only one data type can be specified')
+       if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType /= dataTypeNull) call Galacticus_Error_Report('only one data type can be specified'//{introspection:location})
        mergerTrees%metaData(mergerTrees%metaDataCount)%textAttribute   =textValue
        mergerTrees%metaData(mergerTrees%metaDataCount)%dataType        =dataTypeText
     end if
-    if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType == dataTypeNull) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','no data was given')
+    if (mergerTrees%metaData(mergerTrees%metaDataCount)%dataType == dataTypeNull) call Galacticus_Error_Report('no data was given'//{introspection:location})
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata
 
@@ -651,7 +651,7 @@ contains
     double precision       , intent(in   ) :: conversionFactor
 
     ! Ensure the property type is valid.
-    if (.not.enumerationPropertyTypeIsValid(propertyType)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Conversion_Factor','invalid property type')
+    if (.not.enumerationPropertyTypeIsValid(propertyType)) call Galacticus_Error_Report('invalid property type'//{introspection:location})
 
     ! Store conversion factor into array.
     mergerTrees%convertProperty(propertyType)=conversionFactor
@@ -669,7 +669,7 @@ contains
     character       (len=*         ), intent(in   ), optional :: name
 
     ! Ensure the unit type is valid.
-    if (.not.enumerationUnitsIsValid(unitType)) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Units','invalid unit type')
+    if (.not.enumerationUnitsIsValid(unitType)) call Galacticus_Error_Report('invalid unit type'//{introspection:location})
 
     ! Flag the units as set.
     mergerTrees%unitsSet(unitType)=.true.
@@ -765,7 +765,7 @@ contains
     integer(kind=kind_int8), dimension(:), intent(in   ) :: property
 
     ! Check the supplied arrays is of the correct size.
-    if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','property array size is incorrect')
+    if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('property array size is incorrect'//{introspection:location})
 
     ! Assign to the relevant property.
     select case (propertyType)
@@ -796,7 +796,7 @@ contains
        call allocateArray(mergerTrees%snapshot       ,[size(property)])
        mergerTrees%snapshot=property
     case default
-       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','unrecognized integer property')
+       call Galacticus_Error_Report('unrecognized integer property'//{introspection:location})
     end select
     return
   end subroutine Merger_Tree_Data_Structure_Set_Property_Integer8
@@ -811,7 +811,7 @@ contains
     double precision                , dimension(:), intent(in   ) :: property
 
     ! Check the supplied arrays is of the correct size.
-    if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','property array size is incorrect')
+    if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('property array size is incorrect'//{introspection:location})
 
     ! Assign to the relevant property.
     select case (propertyType)
@@ -891,7 +891,7 @@ contains
        if (.not.allocated(mergerTrees%velocity)) call allocateArray(mergerTrees%velocity,[3,size(property)])
        mergerTrees%velocity(3,:)=property
     case default
-       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','unrecognized double property')
+       call Galacticus_Error_Report('unrecognized double property'//{introspection:location})
     end select
     return
   end subroutine Merger_Tree_Data_Structure_Set_Property_Double
@@ -974,37 +974,37 @@ contains
          &        .or.                                                                                                &
          &        (.not.mergerTrees%hasPositionX       .and..not.mergerTrees%hasPositionY       .and..not.mergerTrees%hasPositionZ       ) &
          &        )                                                                                                   &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","all three axes or none must be supplied for position"        )
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for position"        //{introspection:location})
     if     (.not.((     mergerTrees%hasVelocityX       .and.     mergerTrees%hasVelocityY       .and.     mergerTrees%hasVelocityZ       ) &
          &        .or.                                                                                                &
          &        (.not.mergerTrees%hasVelocityX       .and..not.mergerTrees%hasVelocityY       .and..not.mergerTrees%hasVelocityZ       ) &
          &        )                                                                                                   &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","all three axes or none must be supplied for velocity"        )
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for velocity"        //{introspection:location})
     if     (.not.((     mergerTrees%hasSpinX           .and.     mergerTrees%hasSpinY           .and.     mergerTrees%hasSpinZ           ) &
          &        .or.                                                                                                &
          &        (.not.mergerTrees%hasSpinX           .and..not.mergerTrees%hasSpinY           .and..not.mergerTrees%hasSpinZ           ) &
          &        )                                                                                                   &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","all three axes or none must be supplied for spin"            )
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for spin"            //{introspection:location})
     if     (.not.((     mergerTrees%hasAngularMomentumX        .and.     mergerTrees%hasAngularMomentumY        .and.     mergerTrees%hasAngularMomentumZ        ) &
          &        .or.                                                                                                &
          &        (.not.mergerTrees%hasAngularMomentumX        .and..not.mergerTrees%hasAngularMomentumY        .and..not.mergerTrees%hasAngularMomentumZ        ) &
          &        )                                                                                                   &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","all three axes or none must be supplied for angular momentum"         )
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for angular momentum"         //{introspection:location})
     if     (.not.((     mergerTrees%hasSpecificAngularMomentumX.and.     mergerTrees%hasSpecificAngularMomentumY.and.     mergerTrees%hasSpecificAngularMomentumZ) &
          &        .or.                                                                                                                                             &
          &        (.not.mergerTrees%hasSpecificAngularMomentumX.and..not.mergerTrees%hasSpecificAngularMomentumY.and..not.mergerTrees%hasSpecificAngularMomentumZ) &
          &        )                                                                                                                                                &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","all three axes or none must be supplied for specific angular momentum")
-    if (mergerTrees%hasSpinX           .and.mergerTrees%hasSpinMagnitude           ) call &
-         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar spin"                     )
-    if (mergerTrees%hasAngularMomentumX        .and.mergerTrees%hasAngularMomentumMagnitude        ) call &
-         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar angular momentum"         )
-    if (mergerTrees%hasSpecificAngularMomentumX.and.mergerTrees%hasSpecificAngularMomentumMagnitude) call &
-         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar specific angular momentum")
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for specific angular momentum"//{introspection:location})
+    if (mergerTrees%hasSpinX                   .and.mergerTrees%hasSpinMagnitude                   ) &
+         & call Galacticus_Error_Report("can not specify both 3-D and scalar spin"                     //{introspection:location})
+    if (mergerTrees%hasAngularMomentumX        .and.mergerTrees%hasAngularMomentumMagnitude        ) &
+         & call Galacticus_Error_Report("can not specify both 3-D and scalar angular momentum"         //{introspection:location})
+    if (mergerTrees%hasSpecificAngularMomentumX.and.mergerTrees%hasSpecificAngularMomentumMagnitude) &
+         & call Galacticus_Error_Report("can not specify both 3-D and scalar specific angular momentum"//{introspection:location})
 
     ! Validate that either redshift or scale factor is given.
-    if (.not.(mergerTrees%hasRedshift .or. mergerTrees%hasScaleFactor)) call &
-         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","either redshift or scale factor has to be given")
+    if (.not.(mergerTrees%hasRedshift .or. mergerTrees%hasScaleFactor)) &
+         & call Galacticus_Error_Report("either redshift or scale factor has to be given"//{introspection:location})
 
     ! Deallocate internal arrays.
     if (allocated(mergerTrees%forestIndex           )) call deallocateArray(mergerTrees%forestIndex           )
@@ -1080,8 +1080,8 @@ contains
                 ! Column is a tree index.
                 read (inputColumns(iColumn),*) mergerTrees%forestIndex(iNode)
                 if (iNode > 1) then
-                   if (mergerTrees%forestIndex(iNode) < mergerTrees%forestIndex(iNode-1)) call &
-                        & Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','tree indices must be in ascending order')
+                   if (mergerTrees%forestIndex(iNode) < mergerTrees%forestIndex(iNode-1)) &
+                        & call Galacticus_Error_Report('tree indices must be in ascending order'//{introspection:location})
                    if (mergerTrees%forestIndex(iNode) /= mergerTrees%forestIndex(iNode-1)) mergerTrees%forestCount=mergerTrees%forestCount+1
                 else
                    mergerTrees%forestCount=1
@@ -1183,7 +1183,7 @@ contains
                 ! Column is a velocity dispersion.
                 read (inputColumns(iColumn),*) mergerTrees%velocityDispersion              (  iNode)
              case default
-                call Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','unknown column type')
+                call Galacticus_Error_Report('unknown column type'//{introspection:location})
              end select
           end do
        end if
@@ -1307,7 +1307,7 @@ contains
        mergerTrees%velocityDispersion           =mergerTrees%velocityDispersion           *conversionFactor
     case default
        ! Property has no units.
-       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','property has no units to convert.')
+       call Galacticus_Error_Report('property has no units to convert.'//{introspection:location})
     end select
     return 
   end subroutine Merger_Tree_Data_Structure_Convert_Property_Units
@@ -1408,15 +1408,15 @@ contains
          &        .or.                                                                                                &
          &        (.not.mergerTrees%hasParticlePositionX.and..not.mergerTrees%hasParticlePositionY.and..not.mergerTrees%hasParticlePositionZ) &
          &        )                                                                                                   &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_Particle_ASCII","all three axes or none must be supplied for particle position")
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for particle position"//{introspection:location})
     if     (.not.((     mergerTrees%hasParticleVelocityX.and.     mergerTrees%hasParticleVelocityY.and.     mergerTrees%hasParticleVelocityZ) &
          &        .or.                                                                                                &
          &        (.not.mergerTrees%hasParticleVelocityX.and..not.mergerTrees%hasParticleVelocityY.and..not.mergerTrees%hasParticleVelocityZ) &
          &        )                                                                                                   &
-         & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_Particle_ASCII","all three axes or none must be supplied for particle velocity")
+         & ) call Galacticus_Error_Report("all three axes or none must be supplied for particle velocity"//{introspection:location})
 
     ! Ensure we have a redshift.
-    if (.not.mergerTrees%hasParticleRedshift) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_Particle_ASCII","particle redshift must be supplied")
+    if (.not.mergerTrees%hasParticleRedshift) call Galacticus_Error_Report("particle redshift must be supplied"//{introspection:location})
 
     ! Deallocate internal arrays.
     if (allocated(mergerTrees%particleIndex   )) call deallocateArray(mergerTrees%particleIndex   )
@@ -1485,7 +1485,7 @@ contains
                 ! Column is z velocity.
                 read (inputColumns(iColumn),*) mergerTrees%particleVelocity(3,iNode)
              case default
-                call Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_Particle_ASCII','unknown column type')
+                call Galacticus_Error_Report('unknown column type'//{introspection:location})
              end select
           end do
        end if
@@ -1522,7 +1522,7 @@ contains
     case (mergerTreeFormatIrate     )
        call Merger_Tree_Data_Structure_Export_IRATE     (mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     case default
-       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export','output format is not recognized')
+       call Galacticus_Error_Report('output format is not recognized'//{introspection:location})
     end select
     return
   end subroutine Merger_Tree_Data_Structure_Export
@@ -1759,7 +1759,7 @@ contains
              attributeGroup => provenanceGroup
           case default
              attributeGroup => null()
-             call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_Galacticus','unknown meta-data group')
+             call Galacticus_Error_Report('unknown meta-data group'//{introspection:location})
           end select
 
           ! Determine what data type to write.
@@ -1832,10 +1832,10 @@ contains
     fileExists=appendActual.and.File_Exists(outputFileName)
     
     ! IRATE-specific validation.
-    if (.not.mergerTrees%hasSnapshot       ) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_IRATE','snapshot indices are required for this format'  )
-    if (.not.mergerTrees%hasPositionX      ) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_IRATE','halo positions are required for this format'    )
-    if (.not.mergerTrees%hasNodeIndex      ) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_IRATE','halo indices are required for this format'      )
-    if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_IRATE','descendent indices are required for this format')
+    if (.not.mergerTrees%hasSnapshot       ) call Galacticus_Error_Report('snapshot indices are required for this format'  //{introspection:location})
+    if (.not.mergerTrees%hasPositionX      ) call Galacticus_Error_Report('halo positions are required for this format'    //{introspection:location})
+    if (.not.mergerTrees%hasNodeIndex      ) call Galacticus_Error_Report('halo indices are required for this format'      //{introspection:location})
+    if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report('descendent indices are required for this format'//{introspection:location})
 
     ! Open the output file.
     !$omp critical (HDF5_Access)
@@ -1951,7 +1951,7 @@ contains
 
     if (mergerTrees%hasMostBoundParticleIndex) then
        ! Find the highest and lowest snapshot numbers in the particles.
-       if (.not.mergerTrees%hasParticleSnapshot) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Export_IRATE','particle snapshot numbers must be available for IRATE format export')
+       if (.not.mergerTrees%hasParticleSnapshot) call Galacticus_Error_Report('particle snapshot numbers must be available for IRATE format export'//{introspection:location})
        snapshotMinimum=minval(mergerTrees%particleSnapshot)
        snapshotMaximum=maxval(mergerTrees%particleSnapshot)
 
@@ -2147,11 +2147,11 @@ contains
     use Galacticus_Error
     class(mergerTreeData), intent(in   ) :: mergerTrees
 
-    if (.not.mergerTrees%hasForestIndex    ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'forestIndex'"    )
-    if (.not.mergerTrees%hasNodeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'nodeIndex'"      )
-    if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'descendentIndex'")
-    if (.not.mergerTrees%hasRedshift       ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'redshift'"       )
-    if (.not.mergerTrees%hasNodeMass       ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'nodeMass'"       )
+    if (.not.mergerTrees%hasForestIndex    ) call Galacticus_Error_Report("merger trees do not have required property 'forestIndex'"    //{introspection:location})
+    if (.not.mergerTrees%hasNodeIndex      ) call Galacticus_Error_Report("merger trees do not have required property 'nodeIndex'"      //{introspection:location})
+    if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report("merger trees do not have required property 'descendentIndex'"//{introspection:location})
+    if (.not.mergerTrees%hasRedshift       ) call Galacticus_Error_Report("merger trees do not have required property 'redshift'"       //{introspection:location})
+    if (.not.mergerTrees%hasNodeMass       ) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass'"       //{introspection:location})
     return
   end subroutine Merger_Tree_Data_Validate_Trees
 
@@ -2179,7 +2179,7 @@ contains
 
     if (mergerTrees%hasMostBoundParticleIndex) then
        ! Insist on having particle data.
-       if (.not.mergerTrees%hasParticles) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","most bound particle IDs provided, but no particle data was read")
+       if (.not.mergerTrees%hasParticles) call Galacticus_Error_Report("most bound particle IDs provided, but no particle data was read"//{introspection:location})
        ! Allocate arrays for storing indices.
        if (allocated(mergerTrees%particleReferenceStart)) call deallocateArray(mergerTrees%particleReferenceStart)
        if (allocated(mergerTrees%particleReferenceCount)) call deallocateArray(mergerTrees%particleReferenceCount)

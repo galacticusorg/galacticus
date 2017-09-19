@@ -72,7 +72,7 @@ contains
     case (coordinateSystemCartesian)
        positionCylindricalShared=Coordinates_Cartesian_To_Cylindrical(position)
     case default
-       call Galacticus_Error_Report('Galactic_Structure_Surface_Density','unknown coordinate system type')
+       call Galacticus_Error_Report('unknown coordinate system type'//{introspection:location})
     end select
     ! Determine which mass type to use.
     if (present(massType)) then
