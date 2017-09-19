@@ -119,15 +119,15 @@ contains
           !#   <type>real</type>
           !#   <variable>naozBarkana2007RateAdjust</variable>
           !# </inputParameter>
-         !# <inputParameter>
-         !#   <name>accretionHaloNaozBarkana2007MassMinimum</name>
-         !#   <cardinality>1</cardinality>
-         !#   <defaultValue>0.0d0</defaultValue>
-         !#   <description>The minimum mass of gas accreted into a halo below which the mass is truncated to zero.</description>
-         !#   <source>globalParameters</source>
-         !#   <type>real</type>
-         !#   <variable>naozBarkana2007MassMinimum</variable>
-         !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>accretionHaloNaozBarkana2007MassMinimum</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>0.0d0</defaultValue>
+          !#   <description>The minimum mass of gas accreted into a halo below which the mass is truncated to zero.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>real</type>
+          !#   <variable>naozBarkana2007MassMinimum</variable>
+          !# </inputParameter>
           ! Record that class is now initialized.
           naozBarkana2007DefaultInitialized=.true.
        end if
