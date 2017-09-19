@@ -218,7 +218,7 @@ contains
     case (movesToSpheroid)
        hostSpheroidMass     =hostSpheroidMass     +hostSpheroidComponent%massStellar()                             +hostDiskComponent%massStellar()
        angularMomentumFactor=angularMomentumFactor+hostSpheroidComponent%massStellar()*hostSpheroidDarkMatterFactor+hostDiskComponent%massStellar()*hostDiskDarkMatterFactor
-      remnantSpheroidMass   =remnantSpheroidMass  +hostSpheroidComponent%massStellar()                             +hostDiskComponent%massStellar()
+       remnantSpheroidMass  =remnantSpheroidMass  +hostSpheroidComponent%massStellar()                             +hostDiskComponent%massStellar()
     case (movesToDisk)
        hostSpheroidMass     =hostSpheroidMass
        angularMomentumFactor=angularMomentumFactor
@@ -268,14 +268,19 @@ contains
        activeNode       => hostNode
        activeGasMovesTo =  thisHostGasMovesTo
        activeStarsMoveTo=  thisHostStarsMoveTo
-       activeHalfMass   =  0.0d0
+       activeHalfMass   =  0.0d0                                                                                    ! Set active half-mass to zero here so that Half_Mass_Radius_Root_Cole2000() returns the actual half mass.
        activeHalfMass   =  0.5d0*Half_Mass_Radius_Root_Cole2000(radiusLarge)
-       hostRadius=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-            &                                                                    activeNode                     , &
-            &                                                                    fractionalMass=0.50d0          , &
-            &                                                                    massType      =massTypeGalactic  &
-            &                                                                   )                                 &
-            &                )
+       if (Half_Mass_Radius_Root_Cole2000(0.0d0) <= 0.0d0) then
+          hostRadius=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+               &                                                                    activeNode                     , &
+               &                                                                    fractionalMass=0.50d0          , &
+               &                                                                    massType      =massTypeGalactic  &
+               &                                                                   )                                 &
+               &                )
+       else
+          hostRadius      =0.0d0
+          hostSpheroidMass=0.0d0
+       end if
     else
        hostRadius=0.0d0
     end if
@@ -283,25 +288,30 @@ contains
        activeNode       => satelliteNode
        activeGasMovesTo =  thisMergerGasMovesTo
        activeStarsMoveTo=  thisMergerStarsMoveTo
-       activeHalfMass   =  0.0d0
+       activeHalfMass   =  0.0d0                                                                                    ! Set active half-mass to zero here so that Half_Mass_Radius_Root_Cole2000() returns the actual half mass.
        activeHalfMass   =  0.50d0*Half_Mass_Radius_Root_Cole2000(radiusLarge)
-       satelliteRadius=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-            &                                                                         activeNode                     , &
-            &                                                                         fractionalMass=0.50d0          , &
-            &                                                                         massType      =massTypeGalactic  &
-            &                                                                        )                                 &
-            &                     )
+       if (Half_Mass_Radius_Root_Cole2000(0.0d0) <= 0.0d0) then
+          satelliteRadius=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+               &                                                                         activeNode                     , &
+               &                                                                         fractionalMass=0.50d0          , &
+               &                                                                         massType      =massTypeGalactic  &
+               &                                                                        )                                 &
+               &                     )
+       else
+          satelliteRadius      =0.0d0
+          satelliteSpheroidMass=0.0d0
+       end if
     else
        satelliteRadius=0.0d0
     end if
-
+    
     ! Compute the angular momentum factor.
     if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
        angularMomentumFactor=angularMomentumFactor/(satelliteSpheroidMass+hostSpheroidMass)
     else
        angularMomentumFactor=1.0d0
     end if
-
+    
     ! Compute the mass of the host spheroid before the merger.
     hostSpheroidMassPreMerger=hostSpheroidComponent%massStellar()+hostSpheroidComponent%massGas()
     return
@@ -321,23 +331,23 @@ contains
     ! Account for gas mass.
     select case (activeGasMovesTo)
     case (movesToSpheroid)
-       Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid                         ) &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
+       Half_Mass_Radius_Root_Cole2000=+Half_Mass_Radius_Root_Cole2000                                                                                   &
+            &                         +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous) &
+            &                         +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
     case (doesNotMove    )
-       Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
+       Half_Mass_Radius_Root_Cole2000=+Half_Mass_Radius_Root_Cole2000                                                                                   &
+            &                         +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
     end select
 
-    ! Account for gas mass.
+    ! Account for stellar mass.
     select case (activeStarsMoveTo)
     case (movesToSpheroid)
-       Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid                         ) &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
+       Half_Mass_Radius_Root_Cole2000=+Half_Mass_Radius_Root_Cole2000                                                                                   &
+            &                         +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeStellar) &
+            &                         +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
     case (doesNotMove    )
-       Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
+       Half_Mass_Radius_Root_Cole2000=+Half_Mass_Radius_Root_Cole2000                                                                                   &
+            &                         +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
     end select
     return
   end function Half_Mass_Radius_Root_Cole2000
