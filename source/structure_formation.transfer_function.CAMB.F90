@@ -121,7 +121,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('cambConstructorInternal','transfer function expects a cold dark matter particle')
+       call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Set lock file option.
     cambConstructorInternal%lockFileGlobally=lockFileGlobally_

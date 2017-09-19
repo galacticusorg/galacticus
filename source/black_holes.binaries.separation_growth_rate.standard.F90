@@ -324,7 +324,7 @@ contains
           write (message,'(a,e12.6)') '   a_{df} = ',dynamicalFrictionAcceleration
           call Galacticus_Display_Message(trim(message))
           call Galacticus_Display_Unindent('done')
-          call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate_Standard','rotation curve gradient is zero')
+          call Galacticus_Error_Report('rotation curve gradient is zero'//{introspection:location})
        end if
        rateScatteringDynamicalFriction= 2.0d0                                   &
             &                          *dynamicalFrictionAcceleration           &

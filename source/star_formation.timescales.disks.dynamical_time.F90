@@ -75,22 +75,22 @@ contains
        !#   <type>real</type>
        !# </inputParameter>
        ! Check that required properties are gettable.
-       if     (                                                                                                       &
-            &  .not.(                                                                                                 &
-            &         defaultDiskComponent%velocityIsGettable()                                                       &
-            &        .and.                                                                                            &
-            &         defaultDiskComponent%  radiusIsGettable()                                                       &
-            &       )                                                                                                 &
-            & ) call Galacticus_Error_Report                                                                          &
-            &        (                                                                                                &
-            &         'Star_Formation_Timescale_Disks_Dynamical_Time_Initialize'                                    , &
-            &         'disk component must have gettable radius and velocity properties.'//                           &
-            &         Galacticus_Component_List(                                                                      &
-            &                                   'disk'                                                              , &
-            &                                    defaultDiskComponent%velocityAttributeMatch(requireGettable=.true.)  &
-            &                                   .intersection.                                                        &
-            &                                    defaultDiskComponent%  radiusAttributeMatch(requireGettable=.true.)  &
-            &                                  )                                                                      &
+       if     (                                                                                                        &
+            &  .not.(                                                                                                  &
+            &         defaultDiskComponent%velocityIsGettable()                                                        &
+            &        .and.                                                                                             &
+            &         defaultDiskComponent%  radiusIsGettable()                                                        &
+            &       )                                                                                                  &
+            & ) call Galacticus_Error_Report                                                                           &
+            &        (                                                                                                 &
+            &         'disk component must have gettable radius and velocity properties.'//                            &
+            &         Galacticus_Component_List(                                                                       &
+            &                                   'disk'                                                              ,  &
+            &                                    defaultDiskComponent%velocityAttributeMatch(requireGettable=.true.)   &
+            &                                   .intersection.                                                         &
+            &                                    defaultDiskComponent%  radiusAttributeMatch(requireGettable=.true.)   &
+            &                                  )                                                                    // &
+            &         {introspection:location}                                                                           &
             &        )
     end if
     return

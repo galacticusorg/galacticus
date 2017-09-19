@@ -111,14 +111,14 @@ contains
             & )                                                                                                                    &
             & call Galacticus_Error_Report                                                                                         &
             &      (                                                                                                               &
-            &       'pruneLightconeValidate'                                                                                     , &
             &       'buffering isolated halos requires that the position history property of the position component be gettable'// &
             &       Galacticus_Component_List(                                                                                     &
             &                                 'satellite'                                                                       ,  &
             &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)      &
             &                                  .intersection.                                                                      &
             &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)      &
-            &                                 )                                                                                    &
+            &                                 )                                                                                 // &
+            &       {introspection:location}                                                                                       &
             &      )
     end if
     return

@@ -74,7 +74,7 @@ program Test_Mass_Distributions
      radiusInProjection=myMassDistribution%halfMassRadiusProjected()
   class default
      radiusInProjection=0.0d0
-     call Galacticus_Error_Report('Test_Mass_Distributions','unknown mass distribution')
+     call Galacticus_Error_Report('unknown mass distribution'//{introspection:location})
   end select
   select type (myMassDistribution)
   class is (massDistributionSpherical)

@@ -184,7 +184,7 @@ contains
              nodeCoolingFrom => node%formationNode
           case default
              nodeCoolingFrom => null()
-             call Galacticus_Error_Report('Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes','unknown cooling node')
+             call Galacticus_Error_Report('unknown cooling node'//{introspection:location})
           end select
           ! Compute the infall rate of angular momentum.
           angularMomentumCoolingRate=massRate*hotHalo%angularMomentumCold()/hotHalo%massCold()
@@ -388,7 +388,7 @@ contains
           end if
        end if
     class default
-       call Galacticus_Error_Report('Node_Component_Hot_Halo_Cold_Mode_Outflow_Return','this function should not be called for non-coldMode class hot halo components')
+       call Galacticus_Error_Report('this function should not be called for non-coldMode class hot halo components'//{introspection:location})
     end select
     return   
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Outflow_Return

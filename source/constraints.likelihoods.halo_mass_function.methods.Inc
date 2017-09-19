@@ -61,7 +61,7 @@ function likelihoodHaloMassFunctionConstructor(fileName,redshift,massRangeMinimu
   case ("isolated")
      typeLabel="isolatedHalo"
   case default
-     call Galacticus_Error_Report('likelihoodHaloMassFunctionConstructor','unknown mass function type')
+     call Galacticus_Error_Report('unknown mass function type'//{introspection:location})
   end select
   !$omp critical(HDF5_Access)
   call massFunctionFile %openFile(trim(fileName),readOnly=.true.)
@@ -82,7 +82,7 @@ function likelihoodHaloMassFunctionConstructor(fileName,redshift,massRangeMinimu
      if (sqrt(massFunctionCovarianceOriginal(i,i)) >= massFunctionOriginal(i)/sqrt(dble(binCountMinimum))) cycle
      massCountReduced=massCountReduced+1
   end do
-  if (massCountReduced == 0) call Galacticus_Error_Report('likelihoodHaloMassFunctionConstructor','no usable bins in mass function')  
+  if (massCountReduced == 0) call Galacticus_Error_Report('no usable bins in mass function'//{introspection:location})  
   call allocateArray(likelihoodHaloMassFunctionConstructor%mass            ,[massCountReduced                 ])
   call allocateArray(likelihoodHaloMassFunctionConstructor%massFunction    ,[massCountReduced                 ])
   call allocateArray(likelihoodHaloMassFunctionConstructor%covarianceMatrix,[massCountReduced,massCountReduced])
@@ -205,10 +205,10 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
   ! Construct mass function.
   select case (self%errorModel)
   case (haloMassFunctionErrorModelNone                )
-     if (size(stateVector) /= 3 )                                                                  &
-          & call Galacticus_Error_Report(                                                          & 
-          &                              'likelihoodHaloMassFunctionEvaluate'                    , &
-          &                              '3 parameters are required for this likelihood function'  &
+     if (size(stateVector) /= 3 )                                                                   &
+          & call Galacticus_Error_Report(                                                           & 
+          &                              '3 parameters are required for this likelihood function'// &
+          &                              {introspection:location}                                   &
           &                             )
      ! Use an unconvolved mass function.
      haloMassFunctionRaw_=haloMassFunctionShethTormen(                              &
@@ -221,10 +221,10 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
           &                                          )
      haloMassFunction_ => haloMassFunctionRaw_
   case (haloMassFunctionErrorModelPowerLaw            )
-     if (size(stateVector) /= 6 )                                                                  &
-          & call Galacticus_Error_Report(                                                          & 
-          &                              'likelihoodHaloMassFunctionEvaluate'                    , &
-          &                              '6 parameters are required for this likelihood function'  &
+     if (size(stateVector) /= 6 )                                                                   &
+          & call Galacticus_Error_Report(                                                           & 
+          &                              '6 parameters are required for this likelihood function'// &
+          &                              {introspection:location}                                   &
           &                             )
      ! Use a mass function convolved with an error distribution.
      allocate(haloMassFunctionShethTormen::haloMassFunction_)
@@ -258,10 +258,10 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
      nullify(haloMassFunction_  )
      haloMassFunction_ => haloMassFunctionConvolved_
   case (haloMassFunctionErrorModelSphericalOverdensity)
-     if (size(stateVector) /= 3 )                                                                  &
-          & call Galacticus_Error_Report(                                                          & 
-          &                              'likelihoodHaloMassFunctionEvaluate'                    , &
-          &                              '3 parameters are required for this likelihood function'  &
+     if (size(stateVector) /= 3 )                                                                   &
+          & call Galacticus_Error_Report(                                                           & 
+          &                              '3 parameters are required for this likelihood function'// &
+          &                              {introspection:location}                                   &
           &                             )
      ! Use a mass function convolved with an error model for spherical overdensity algorithm errors.
      allocate(haloMassFunctionShethTormen::haloMassFunction_)
@@ -299,10 +299,10 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
      nullify(haloMassFunction_   )
      haloMassFunction_ => haloMassFunctionConvolved_
   case (haloMassFunctionErrorModelTrenti2010          )
-     if (size(stateVector) /= 3 )                                                                  &
-          & call Galacticus_Error_Report(                                                          & 
-          &                              'likelihoodHaloMassFunctionEvaluate'                    , &
-          &                              '3 parameters are required for this likelihood function'  &
+     if (size(stateVector) /= 3 )                                                                   &
+          & call Galacticus_Error_Report(                                                           & 
+          &                              '3 parameters are required for this likelihood function'// &
+          &                              {introspection:location}                                   &
           &                             )
      ! Use a mass function convolved with the error model from Trenti et al. (2010).
      allocate(haloMassFunctionShethTormen::haloMassFunction_)

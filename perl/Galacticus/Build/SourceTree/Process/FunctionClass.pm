@@ -14,6 +14,7 @@ use Scalar::Util qw(reftype);
 use List::ExtraUtils;
 use Fortran::Utils;
 use Text::Template 'fill_in_string';
+use Galacticus::Build::SourceTree::Process::SourceIntrospection;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'functionClass'} = \&Process_FunctionClass;
@@ -409,7 +410,7 @@ sub Process_FunctionClass {
 		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		if ( $hasCustomDescriptor ) {
 		    # The class has its own descriptor function, so we should never arrive at this point in the code.
-		    $descriptorCode .= " call Galacticus_Error_Report('".$directive->{'name'}."Descriptor','custom descriptor exists - this should not happen')\n";
+		    $descriptorCode .= " call Galacticus_Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    $descriptorModules{'Galacticus_Error'} = 1;
 		} else{
 		    # Build an auto-descriptor function.
@@ -463,11 +464,10 @@ sub Process_FunctionClass {
 			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeMethod=.false.)\n";
 			}
 		    } elsif ( ! $declarationMatches     ) {		    
-			$descriptorCode .= " call Galacticus_Error_Report('".$directive->{'name'}."Descriptor','auto-descriptor not supported for this class: parameter-based constructor not found')\n";
+			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 			$descriptorModules{'Galacticus_Error'} = 1;
 		    } elsif (   $supported         != 1 ) {
-			$descriptorCode .= " call Galacticus_Error_Report('".$directive->{'name'}."Descriptor','auto-descriptor not supported for this class because:'//char(10)// &\n";
-			$descriptorCode .= " & ".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage).")\n";
+			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 			$descriptorModules{'Galacticus_Error'} = 1;
 		    }
 		}
@@ -819,7 +819,7 @@ CODE
 		$deepCopyCode .= $assignments
 		    if ( defined($assignments) );
 		$deepCopyCode .= "class default\n";
-		$deepCopyCode .= "call Galacticus_Error_Report('".$directive->{'name'}."DeepCopy','destination and source types do not match')\n";
+		$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		$deepCopyCode .= "end select\n";
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
@@ -1075,7 +1075,7 @@ CODE
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "         message=message//char(10)//'   -> ".$name."'\n";
 	    }
-	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('".$directive->{'name'}."ConstructorParameters',message)\n";
+	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."ConstructorParameters\n\n";
@@ -1179,7 +1179,7 @@ CODE
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
 	    }
-	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('".$directive->{'name'}."Initialize',message)\n";
+	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
 	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isIndestructible=.true.\n";
 	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefaultOfClass=.true.\n";
@@ -1326,7 +1326,7 @@ CODE
 		    $code =~ s/\n/\n      /g;
 		    $postContains->[0]->{'content'} .= $code."\n";
 		} else {
-		    $postContains->[0]->{'content'} .= "      call Galacticus_Error_Report('".$methodName."Null','this is a null method - initialize the ".$directive->{'name'}." object before use')\n";
+		    $postContains->[0]->{'content'} .= "      call Galacticus_Error_Report('this is a null method - initialize the ".$directive->{'name'}." object before use'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    if ( $category eq "function" ) {
 			# Avoid warnings about unset function values.
 			$postContains->[0]->{'content'} .= "      ".$directive->{'name'}.ucfirst($methodName).$extension."=";

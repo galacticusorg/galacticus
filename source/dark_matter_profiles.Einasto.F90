@@ -266,13 +266,13 @@ contains
             &                   matchingComponentsScale
        call Galacticus_Error_Report                                                                                     &
             &        (                                                                                                  &
-            &         'einastoConstructorInternal'                                                                    , &
             &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//  &
             &         '"scale" and "shape" properties.'                                                             //  &
             &         Galacticus_Component_List(                                                                        &
             &                                   'darkMatterProfile'                                                   , &
             &                                    matchingComponents                                                     &
-            &                                  )                                                                        &
+            &                                  )                                                                    //  &
+            &         {introspection:location}                                                                          &
             &        )
     end if
     return
@@ -1262,7 +1262,7 @@ contains
                          write (label,'(e12.6)') self%fourierProfileTable(iWavenumber-1,iConcentration,iAlpha)
                          message=message//"   value at previous tabulated point was "//trim(adjustl(label))
                       end if
-                      call Galacticus_Error_Report('einastoFourierProfileTableMake',message)
+                      call Galacticus_Error_Report(message//{introspection:location})
                    end if
                 end if
              end do
@@ -1616,7 +1616,7 @@ contains
     !GCC$ attributes unused :: self, node, density
 
     einastoRadiusEnclosingDensity=0.0d0
-    call Galacticus_Error_Report('einastoRadiusEnclosingDensity','function is not implemented')
+    call Galacticus_Error_Report('function is not implemented'//{introspection:location})
     return
   end function einastoRadiusEnclosingDensity
   

@@ -65,8 +65,8 @@ contains
           !#  <functionArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</functionArgs>
           include 'cooling.freefall_time_available.inc'
           !# </include>
-          if (.not.(associated(Cooling_Freefall_Time_Available_Get).and.associated(Cooling_Freefall_Time_Available_Increase_Rate_Get))) call&
-               & Galacticus_Error_Report('Cooling_Freefall_Time_Available','method ' //char(freefallTimeAvailableMethod)//' is unrecognized')
+          if (.not.(associated(Cooling_Freefall_Time_Available_Get).and.associated(Cooling_Freefall_Time_Available_Increase_Rate_Get))) &
+               & call Galacticus_Error_Report('method ' //char(freefallTimeAvailableMethod)//' is unrecognized'//{introspection:location})
           freefallTimeAvailableInitialized=.true.
        end if
        !$omp end critical(Cooling_Freefall_Time_Available_Initialization)

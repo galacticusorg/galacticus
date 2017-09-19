@@ -65,7 +65,7 @@ contains
           include 'galactic_dynamics.bar_instability.inc'
           !# </include>
           if (.not.associated(Bar_Instability_Timescale_Get)) &
-               & call Galacticus_Error_Report('Galactic_Dynamics_Bar_Instability_Initialize','method ' //char(barInstabilityMethod)//' is unrecognized')
+               & call Galacticus_Error_Report('method ' //char(barInstabilityMethod)//' is unrecognized'//{introspection:location})
           barInstabilitiesInitialized=.true.
        end if
        !$omp end critical(Galactic_Dynamics_Bar_Instability_Initialize)

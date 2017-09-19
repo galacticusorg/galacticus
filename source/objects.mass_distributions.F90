@@ -207,7 +207,7 @@ contains
     else if (trim(type) == "exponentialDisk") then
        allocate(newMassDistribution,source=massDistributionTemplateExponentialDisk)
     else
-       call Galacticus_Error_Report('Mass_Distribution_Create','unrecognized mass distribution: "'//trim(type)//'"')
+       call Galacticus_Error_Report('unrecognized mass distribution: "'//trim(type)//'"'//{introspection:location})
     end if
     return
   end function Mass_Distribution_Create
@@ -255,7 +255,7 @@ contains
     !GCC$ attributes unused :: self, coordinates
 
     Mass_Distribution_Density_Null=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Density_Null','this mass distribution has no density method defined')
+    call Galacticus_Error_Report('this mass distribution has no density method defined'//{introspection:location})
     return
   end function Mass_Distribution_Density_Null
 
@@ -270,7 +270,7 @@ contains
     !GCC$ attributes unused :: self, coordinates, logarithmic
 
     Mass_Distribution_Density_Gradient_Radial_Null=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Density_Gradient_Radial_Null','this mass distribution has no densityGradientRadial method defined')
+    call Galacticus_Error_Report('this mass distribution has no densityGradientRadial method defined'//{introspection:location})
     return
   end function Mass_Distribution_Density_Gradient_Radial_Null
 
@@ -286,7 +286,7 @@ contains
 
     if (present(isInfinite)) isInfinite=.false.
     Mass_Distribution_Density_Radial_Moment_Null=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Density_Radial_Moment_Null','this mass distribution has no radial density moment method defined')
+    call Galacticus_Error_Report('this mass distribution has no radial density moment method defined'//{introspection:location})
     return
   end function Mass_Distribution_Density_Radial_Moment_Null
 
@@ -299,7 +299,7 @@ contains
     !GCC$ attributes unused :: self, radius
     
     Mass_Distribution_Mass_Enc_By_Sphere_Null=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Mass_Enc_By_Sphere_Null','this mass distribution has no massEnclosedBySphere defined')
+    call Galacticus_Error_Report('this mass distribution has no massEnclosedBySphere defined'//{introspection:location})
     return
   end function Mass_Distribution_Mass_Enc_By_Sphere_Null
 
@@ -347,7 +347,7 @@ contains
     !GCC$ attributes unused :: self, coordinates
 
     Mass_Distribution_Potential_Null=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Potential_Null','this mass distribution has no potential method defined')
+    call Galacticus_Error_Report('this mass distribution has no potential method defined'//{introspection:location})
     return
   end function Mass_Distribution_Potential_Null
 
@@ -359,7 +359,7 @@ contains
     !GCC$ attributes unused :: self
 
     Mass_Distribution_Half_Mass_Radius_Spherical=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Half_Mass_Radius_Spherical','this mass distribution has no halfMassRadius method defined')
+    call Galacticus_Error_Report('this mass distribution has no halfMassRadius method defined'//{introspection:location})
     return
   end function Mass_Distribution_Half_Mass_Radius_Spherical
 
@@ -371,7 +371,7 @@ contains
     !GCC$ attributes unused :: self
 
     Mass_Distribution_Half_Mass_Radius_Cylindrical=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Half_Mass_Radius_Cylindrical','this mass distribution has no halfMassRadius method defined')
+    call Galacticus_Error_Report('this mass distribution has no halfMassRadius method defined'//{introspection:location})
     return
   end function Mass_Distribution_Half_Mass_Radius_Cylindrical
 
@@ -385,7 +385,7 @@ contains
     !GCC$ attributes unused :: self, coordinates
 
     Mass_Distribution_Surface_Density_Cylindrical=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Surface_Density_Cylindrical','this mass distribution has no surface density method defined')
+    call Galacticus_Error_Report('this mass distribution has no surface density method defined'//{introspection:location})
     return
   end function Mass_Distribution_Surface_Density_Cylindrical
 
@@ -399,7 +399,7 @@ contains
     !GCC$ attributes unused :: self, radius
 
     Mass_Distribution_Rotation_Curve_Cylindrical=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Rotation_Curve_Cylindrical','this mass distribution has no rotation curve method defined')
+    call Galacticus_Error_Report('this mass distribution has no rotation curve method defined'//{introspection:location})
     return
   end function Mass_Distribution_Rotation_Curve_Cylindrical
 
@@ -413,7 +413,7 @@ contains
     !GCC$ attributes unused :: self, radius
     
     Mass_Distribution_Rotation_Curve_Gradient_Cylindrical=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Rotation_Curve_Gradient_Cylindrical','this mass distribution has no rotation curve gradient method defined')
+    call Galacticus_Error_Report('this mass distribution has no rotation curve gradient method defined'//{introspection:location})
     return
   end function Mass_Distribution_Rotation_Curve_Gradient_Cylindrical
 
@@ -428,7 +428,7 @@ contains
     !GCC$ attributes unused :: self, moment, radiusMinimum, radiusMaximum, isInfinite
     
     Mass_Distribution_Surface_Density_Radial_Moment_Cylindrical=0.0d0
-    call Galacticus_Error_Report('Mass_Distribution_Surface_Density_Radial_Moment_Null','this mass distribution has no radial surface density moment method defined')
+    call Galacticus_Error_Report('this mass distribution has no radial surface density moment method defined'//{introspection:location})
     return
   end function Mass_Distribution_Surface_Density_Radial_Moment_Cylindrical
 

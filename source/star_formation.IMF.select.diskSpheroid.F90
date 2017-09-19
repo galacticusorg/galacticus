@@ -90,7 +90,7 @@ contains
        IMF_Select_Disk_Spheroid=imfSelectedSpheroidIndex
     case default
        IMF_Select_Disk_Spheroid=0
-       call Galacticus_Error_Report('IMF_Select_Disk_Spheroid','only disk and spheroid components are allowed')
+       call Galacticus_Error_Report('only disk and spheroid components are allowed'//{introspection:location})
     end select
     return
   end function IMF_Select_Disk_Spheroid

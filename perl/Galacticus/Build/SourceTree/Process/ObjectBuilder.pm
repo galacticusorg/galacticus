@@ -35,7 +35,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "   ! Determine where to build+store or point to the required object....\n";
 	    $builderCode .= "   parametersCurrent => ".$node->{'directive'}->{'source'}."\n";
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
-		$builderCode .= "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('".$node->{'parent'}->{'name'}."','[".$parameterName."] object is undefined')\n";
+		$builderCode .= "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    } else {	    
 		$builderCode .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
 		$builderCode .= "      parametersCurrent => parametersCurrent%parent\n";
@@ -51,7 +51,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "         class is (".$node->{'directive'}->{'class'}."Class)\n";
 	    $builderCode .= "            ".$node->{'directive'}->{'name'}." => genericObject\n";
 	    $builderCode .= "         class default\n";
-	    $builderCode .= "            call Galacticus_Error_Report('".$node->{'parent'}->{'name'}."','parameter-stored object is not of [$node->{'directive'}->{'class'}] class')\n";
+	    $builderCode .= "            call Galacticus_Error_Report('parameter-stored object is not of [$node->{'directive'}->{'class'}] class'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $builderCode .= "         end select\n";
 	    $builderCode .= "      else\n";
 	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node.\n";
@@ -63,7 +63,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
 	    $builderCode .= "   else\n";
 	    $builderCode .= "      ! No means to define the object.\n";
-	    $builderCode .= "      call Galacticus_Error_Report('".$node->{'parent'}->{'name'}."','[".$parameterName."] object is undefined')\n";
+	    $builderCode .= "      call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $builderCode .= "   end if\n";
 	    # Build a code node.
 	    my $newNode =

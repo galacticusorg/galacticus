@@ -174,7 +174,7 @@ contains
     fileConstructorInternal%fileName="?"
     do i=1,size(imfIndices)
        if (imfIndices(i) < 1 .or. imfIndices(i) > imfCount) then
-          call Galacticus_Error_Report('fileConstructorInternal','IMF index is out of range')
+          call Galacticus_Error_Report('IMF index is out of range'//{introspection:location})
        else
           fileConstructorInternal%fileName(imfIndices(i))=fileNames(i)
        end if
@@ -264,7 +264,7 @@ contains
        message='age ['//trim(label)//'] exceeds the maximum tabulated ['
        write (label,'(e12.4)') self%spectra(imfLookupIndex)%ages(self%spectra(imfLookupIndex)%agesCount)
        message=message//trim(label)//']'
-       call Galacticus_Error_Report('fileLuminosity',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     if (self%forceZeroMetallicity) then
        metallicity=logMetallicityZero
@@ -280,7 +280,7 @@ contains
           message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['
           write (metallicityLabel,'(f12.6)') self%spectra(imfLookupIndex)%metallicities(self%spectra(imfLookupIndex)%metallicityCount)
           message=message//trim(adjustl(metallicityLabel))//']'
-          call Galacticus_Error_Report('fileLuminosity',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
     end if
     ! Assume zero flux outside of the tabulated wavelength range.
@@ -428,13 +428,13 @@ contains
        end if
        imfLookupIndex=self%imfLookup(imfIndex)
        ! Check that we have a file name for this IMF.
-       if (self%fileName(imfIndex) == "?") call Galacticus_Error_Report('fileReadFile',"no file name specified for '"//IMF_Name(imfIndex)//"' IMF")
+       if (self%fileName(imfIndex) == "?") call Galacticus_Error_Report("no file name specified for '"//IMF_Name(imfIndex)//"' IMF"//{introspection:location})
        !$omp critical(HDF5_Access)
        ! Open the HDF5 file.
        call spectraFile%openFile(char(self%fileName(imfIndex)),readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('fileReadFile','format of stellar tracks file is out of date')
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})
        ! Read the wavelengths array.
        call spectraFile%readDataset('wavelengths'                 ,self%spectra(imfLookupIndex)%wavelengths  )
        self%spectra(imfLookupIndex)%wavelengthsCount=size(self%spectra(imfLookupIndex)%wavelengths  )

@@ -284,7 +284,7 @@ contains
           case ( 'binomial' )
              analysisMetallicityDistributionCovarianceModel=analysisMetallicityDistributionCovarianceModelBinomial
           case default
-             call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unrecognized value for "analysisMetallicityDistributionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+             call Galacticus_Error_Report('unrecognized value for "analysisMetallicityDistributionCovarianceModel" - allowed values are "Poisson", and "binomial"'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>analysisMetallicityDistributionsHaloMassBinsPerDecade</name>
@@ -480,7 +480,7 @@ contains
                             ! Convert from log10 mass to linear mass.
                             metallicityDistributions(currentAnalysis)%masses=10.0d0**metallicityDistributions(currentAnalysis)%masses
                          case default
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unrecognized scaling')
+                            call Galacticus_Error_Report('unrecognized scaling'//{introspection:location})
                          end select
                          metallicityDistributions        (currentAnalysis)%masses= &
                               & +metallicityDistributions(currentAnalysis)%masses  &
@@ -514,7 +514,7 @@ contains
                             metallicityMinimum=10.0d0**metallicityMinimum
                             metallicityMaximum=10.0d0**metallicityMaximum
                          case default
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unrecognized scaling')
+                            call Galacticus_Error_Report('unrecognized scaling'//{introspection:location})
                          end select
                          metallicityMinimum=+1.0d-1*metallicityMinimum*unitsInSI/metallicitySolar
                          metallicityMaximum=+1.0d+1*metallicityMaximum*unitsInSI/metallicitySolar
@@ -650,7 +650,7 @@ contains
                             ! Convert from log10 mass to linear mass.
                             metallicityDistributions(currentAnalysis)%masses=10.0d0**metallicityDistributions(currentAnalysis)%masses
                          case default
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unrecognized scaling')
+                            call Galacticus_Error_Report('unrecognized scaling'//{introspection:location})
                          end select
                          metallicityDistributions        (currentAnalysis)%masses= &
                               & +metallicityDistributions(currentAnalysis)%masses  &
@@ -730,7 +730,7 @@ contains
                          metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeights          =0.0d0
                          metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared   =0.0d0
                       case default
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins','unknown metallicity function')
+                         call Galacticus_Error_Report('unknown metallicity function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
                       call allocateArray(metallicityDistributions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
@@ -796,7 +796,7 @@ contains
                          else
                             message="metallicity distribution '"//trim(metallicityDistributions(currentAnalysis)%descriptor%label)//"' bin "
                             message=message//k//" has zero weights"
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins',message)
+                            call Galacticus_Error_Report(message//{introspection:location})
                          end if
                       end do
                       ! Ensure that disk and spheroid components support relevant abundances property.
@@ -814,45 +814,45 @@ contains
                       case (massTypeGaseous)
                          massTypeGaseousRequired=.true.
                       end select
-                      if (massTypeStellarRequired.and..not.defaultDiskComponent    %abundancesStellarIsGettable())                         &
-                           & call Galacticus_Error_Report                                                                                  &
-                           & (                                                                                                             &
-                           &  'Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins'                                                     , &
-                           &  'This analysis requires that the "abundancesStellar" property of the disk is gettable.'//                    &
-                           &  Galacticus_Component_List(                                                                                   &
-                           &                            'disk'                                                                           , &
-                           &                             defaultDiskComponent    %abundancesStellarAttributeMatch(requireGettable=.true.)  &
-                           &                           )                                                                                   &
+                      if (massTypeStellarRequired.and..not.defaultDiskComponent    %abundancesStellarIsGettable())                          &
+                           & call Galacticus_Error_Report                                                                                   &
+                           & (                                                                                                              &
+                           &  'This analysis requires that the "abundancesStellar" property of the disk is gettable.'//                     &
+                           &  Galacticus_Component_List(                                                                                    &
+                           &                            'disk'                                                                           ,  &
+                           &                             defaultDiskComponent    %abundancesStellarAttributeMatch(requireGettable=.true.)   &
+                           &                           )                                                                                 // &
+                           &  {introspection:location}                                                                                      &
                            & )
-                      if (massTypeGaseousRequired.and..not.defaultDiskComponent    %    abundancesGasIsGettable())                         &
-                           & call Galacticus_Error_Report                                                                                  &
-                           & (                                                                                                             &
-                           &  'Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins'                                                     , &
-                           &  'This analysis requires that the "abundancesGas" property of the disk is gettable.'//                        &
-                           &  Galacticus_Component_List(                                                                                   &
-                           &                            'disk'                                                                           , &
-                           &                             defaultDiskComponent    %    abundancesGasAttributeMatch(requireGettable=.true.)  &
-                           &                           )                                                                                   &
+                      if (massTypeGaseousRequired.and..not.defaultDiskComponent    %    abundancesGasIsGettable())                          &
+                           & call Galacticus_Error_Report                                                                                   &
+                           & (                                                                                                              &
+                           &  'This analysis requires that the "abundancesGas" property of the disk is gettable.'//                         &
+                           &  Galacticus_Component_List(                                                                                    &
+                           &                            'disk'                                                                           ,  &
+                           &                             defaultDiskComponent    %    abundancesGasAttributeMatch(requireGettable=.true.)   &
+                           &                           )                                                                                 // &
+                           &  {introspection:location}                                                                                      &
                            & )
-                      if (massTypeStellarRequired.and..not.defaultSpheroidComponent%abundancesStellarIsGettable())                         &
-                           & call Galacticus_Error_Report                                                                                  &
-                           & (                                                                                                             &
-                           &  'Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins'                                                     , &
-                           &  'This analysis requires that the "abundancesStellar" property of the spheroid is gettable.'//                &
-                           &  Galacticus_Component_List(                                                                                   &
-                           &                            'spheroid'                                                                       , &
-                           &                             defaultSpheroidComponent%abundancesStellarAttributeMatch(requireGettable=.true.)  &
-                           &                           )                                                                                   &
+                      if (massTypeStellarRequired.and..not.defaultSpheroidComponent%abundancesStellarIsGettable())                          &
+                           & call Galacticus_Error_Report                                                                                   &
+                           & (                                                                                                              &
+                           &  'This analysis requires that the "abundancesStellar" property of the spheroid is gettable.'//                 &
+                           &  Galacticus_Component_List(                                                                                    &
+                           &                            'spheroid'                                                                       ,  &
+                           &                             defaultSpheroidComponent%abundancesStellarAttributeMatch(requireGettable=.true.)   &
+                           &                           )                                                                                 // &
+                           &  {introspection:location}                                                                                      &
                            & )
-                      if (massTypeGaseousRequired.and..not.defaultSpheroidComponent%    abundancesGasIsGettable())                         &
-                           & call Galacticus_Error_Report                                                                                  &
-                           & (                                                                                                             &
-                           &  'Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins'                                                     , &
-                           &  'This analysis requires that the "abundancesGas" property of the spheroid is gettable.'//                    &
-                           &  Galacticus_Component_List(                                                                                   &
-                           &                            'spheroid'                                                                       , &
-                           &                             defaultSpheroidComponent%    abundancesGasAttributeMatch(requireGettable=.true.)  &
-                           &                           )                                                                                   &
+                      if (massTypeGaseousRequired.and..not.defaultSpheroidComponent%    abundancesGasIsGettable())                          &
+                           & call Galacticus_Error_Report                                                                                   &
+                           & (                                                                                                              &
+                           &  'This analysis requires that the "abundancesGas" property of the spheroid is gettable.'//                     &
+                           &  Galacticus_Component_List(                                                                                    &
+                           &                            'spheroid'                                                                       ,  &
+                           &                             defaultSpheroidComponent%    abundancesGasAttributeMatch(requireGettable=.true.)   &
+                           &                           )                                                                                //  &
+                           &  {introspection:location}                                                                                      &
                            & )
                       exit
                    end if

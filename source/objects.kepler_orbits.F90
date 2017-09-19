@@ -429,7 +429,7 @@ contains
     ! Get the radius.
     do i=1,size(propertyNames)
        propertyList => getElementsByTagName(keplerOrbitDefinition,trim(propertyNames(i)))
-       if (getLength(propertyList) >  1) call Galacticus_Error_Report('Kepler_Orbits_Builder','multiple '//trim(propertyNames(i))//' values specified')
+       if (getLength(propertyList) >  1) call Galacticus_Error_Report('multiple '//trim(propertyNames(i))//' values specified'//{introspection:location})
        if (getLength(propertyList) == 1) then
           property => item(propertyList,0)
           call extractDataContent(property,propertyValue)
@@ -447,11 +447,11 @@ contains
              massSatellite   =propertyValue
              massSatelliteSet=.true.
           case default
-             call Galacticus_Error_Report('Kepler_Orbits_Builder','unrecognized property name')
+             call Galacticus_Error_Report('unrecognized property name'//{introspection:location})
           end select
        end if
     end do
-    if (.not.(massHostSet.and.massSatelliteSet)) call Galacticus_Error_Report('Kepler_Orbits_Builder','satellite and host masses must be specified')
+    if (.not.(massHostSet.and.massSatelliteSet)) call Galacticus_Error_Report('satellite and host masses must be specified'//{introspection:location})
     call self%massesSet(massSatellite,massHost)
     call self%assertIsDefined()
     return
@@ -712,8 +712,7 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('Kepler_Orbits_Specific_Reduced_Mass', &
-         & 'mass factor has not been set for this orbit')
+    if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('mass factor has not been set for this orbit'//{introspection:location})
     Kepler_Orbits_Specific_Reduced_Mass=thisOrbit%specificReducedMassValue
     return
   end function Kepler_Orbits_Specific_Reduced_Mass
@@ -724,8 +723,7 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('Kepler_Orbits_Host_Mass', &
-         & 'host mass has not been set for this orbit')
+    if (.not.thisOrbit%massesIsSet) call Galacticus_Error_Report('host mass has not been set for this orbit'//{introspection:location})
     Kepler_Orbits_Host_Mass=thisOrbit%hostMassValue
     return
   end function Kepler_Orbits_Host_Mass
@@ -736,8 +734,7 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
-    if (.not.thisOrbit%radiusIsSet) call Galacticus_Error_Report('Kepler_Orbits_Radius', &
-         & 'radius has not been set for this orbit')
+    if (.not.thisOrbit%radiusIsSet) call Galacticus_Error_Report('radius has not been set for this orbit'//{introspection:location})
     Kepler_Orbits_Radius=thisOrbit%radiusValue
     return
   end function Kepler_Orbits_Radius
@@ -795,8 +792,7 @@ contains
           thisOrbit%velocityRadialIsSet=.true.
        end if
        ! If we were not able to compute the radial velocity, exit.
-       if (.not.thisOrbit%velocityRadialIsSet) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Radial','radial velocity&
-            & has not been set for this orbit and can not be computed')
+       if (.not.thisOrbit%velocityRadialIsSet) call Galacticus_Error_Report('radial velocity has not been set for this orbit and can not be computed'//{introspection:location})
     end if
     Kepler_Orbits_Velocity_Radial=thisOrbit%velocityRadialValue
     return
@@ -823,8 +819,7 @@ contains
           thisOrbit%velocityTangentialIsSet=.true.
        end if
        ! If we were not able to compute the tangential velocity, exit.
-       if (.not.thisOrbit%velocityTangentialIsSet) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Tangential','tangential velocity&
-            & has not been set for this orbit and can not be computed')
+       if (.not.thisOrbit%velocityTangentialIsSet) call Galacticus_Error_Report('tangential velocity has not been set for this orbit and can not be computed'//{introspection:location})
     end if
     Kepler_Orbits_Velocity_Tangential=thisOrbit%velocityTangentialValue
     return
@@ -931,7 +926,7 @@ contains
     implicit none
     class(keplerOrbit), intent(in   ) :: thisOrbit
 
-    if (.not.thisOrbit%isDefined()) call Galacticus_Error_Report('Kepler_Orbits_Assert_Is_Defined','orbit is not defined')
+    if (.not.thisOrbit%isDefined()) call Galacticus_Error_Report('orbit is not defined'//{introspection:location})
     return
   end subroutine Kepler_Orbits_Assert_Is_Defined
 
@@ -955,8 +950,7 @@ contains
     class(keplerOrbit), intent(inout) :: thisOrbit
 
     ! Check that masses and radius have been specified.
-    if (.not.(thisOrbit%radiusIsSet.and.thisOrbit%massesIsSet)) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Scale','orbit&
-         & masses and radius must be specified')
+    if (.not.(thisOrbit%radiusIsSet.and.thisOrbit%massesIsSet)) call Galacticus_Error_Report('orbit masses and radius must be specified'//{introspection:location})
     ! Compute the velocity scale.
     Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius())
     return
@@ -980,7 +974,7 @@ contains
          &    newRadius < thisOrbit%radiusPericenter()                                                                     &
          &  .or.                                                                                                           &
          &   (newRadius > thisOrbit%radiusApocenter () .and. thisOrbit%radiusApocenter() > 0.0d0)                          &
-         & ) call Galacticus_Error_Report('Kepler_Orbits_Propagate','radius lies outside of allowed range for this orbit')
+         & ) call Galacticus_Error_Report('radius lies outside of allowed range for this orbit'//{introspection:location})
     ! Get the energy and angular momentum
     energy         =thisOrbit%energy         ()
     angularMomentum=thisOrbit%angularMomentum()

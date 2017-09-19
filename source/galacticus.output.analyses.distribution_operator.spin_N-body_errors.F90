@@ -70,7 +70,7 @@ contains
        ! This is OK, do nothing.
     class default
        ! This is not OK.
-       call Galacticus_Error_Report('spinNBodyErrorsConstructorInternal','must provide an N-body errors halo spin distribution class')
+       call Galacticus_Error_Report('must provide an N-body errors halo spin distribution class'//{introspection:location})
     end select
     return
   end function spinNBodyErrorsConstructorInternal
@@ -118,7 +118,7 @@ contains
           spinMeasuredMinimum=10.0d0**propertyValueMinimum(i)
           spinMeasuredMaximum=10.0d0**propertyValueMaximum(i)
        case default
-          call Galacticus_Error_Report('spinNBodyErrorsOperateScalar','unhandled property type')
+          call Galacticus_Error_Report('unhandled property type'//{introspection:location})
        end select
        spinNBodyErrorsOperateScalar(i)=+Integrate(                                 &
             &                                    spinMeasuredMinimum             , &
@@ -171,6 +171,6 @@ contains
     !GCC$ attributes unused :: self, distribution, propertyValueMinimum, propertyValueMaximum, outputIndex, propertyType, node
 
     spinNBodyErrorsOperateDistribution=0.0d0
-    call Galacticus_Error_Report('spinNBodyErrorsOperateDistribution','not implemented')
+    call Galacticus_Error_Report('not implemented'//{introspection:location})
     return
   end function spinNBodyErrorsOperateDistribution

@@ -52,10 +52,10 @@ contains
     double precision                                         , allocatable  , dimension(:) :: absoluteMagnitudeThreshold
 
     ! Check and read parameters.
-    if (parameters%count('absoluteMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.)) &
-         & call  Galacticus_Error_Report(                                                                                                  &
-         &                                 'stellarAbsoluteMagnitudesConstructorParameters'                                              , &
-         &                                 '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'  &
+    if (parameters%count('absoluteMagnitudeThreshold') /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                       &
+         & call  Galacticus_Error_Report(                                                                                                 &
+         &                               '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                               {introspection:location}                                                                         &
          &                              )
     call allocateArray(absoluteMagnitudeThreshold,[unitStellarLuminosities%luminosityCount(unmapped=.true.)])
     !# <inputParameter>
@@ -79,10 +79,10 @@ contains
     double precision                                         , intent(in   ), dimension(:) :: absoluteMagnitudeThreshold
     !# <constructorAssign variables="absoluteMagnitudeThreshold"/>
 
-    if (size(absoluteMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                    &
-         & call  Galacticus_Error_Report(                                                                                                &
-         &                               'stellarAbsoluteMagnitudesConstructorInternal'                                                , &
-         &                               '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'  &
+    if (size(absoluteMagnitudeThreshold) /= unitStellarLuminosities%luminosityCount(unmapped=.true.))                                     &
+         & call  Galacticus_Error_Report(                                                                                                 &
+         &                               '[absoluteMagnitudeThreshold] input array must have same dimension as other luminosity arrays'// &
+         &                               {introspection:location}                                                                         &
          &                              )    
     ! Map magnitude limits onto the expanded filter set.
     call Stellar_Luminosities_Parameter_Map(stellarAbsoluteMagnitudesConstructorInternal%absoluteMagnitudeThreshold)

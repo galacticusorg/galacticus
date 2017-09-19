@@ -63,7 +63,7 @@ class is (treeNode)
  end if
 class default
  treeNode{ucfirst($class->{'name'})}Count=0
- call Galacticus_Error_Report('treeNode{ucfirst($class->{'name'})}Count','treeNode of unknown class')
+ call Galacticus_Error_Report('treeNode of unknown class'//\{introspection:location\})
 end select
 CODE
     # Insert a type-binding for this function into the treeNode type.
@@ -132,7 +132,7 @@ if (.not.allocated(self%component{ucfirst($class->{'name'})})) then
   if (autoCreateActual) then
      call self%{$class->{'name'}}Create()
   else
-     call Galacticus_Error_Report('{$class->{'name'}}Get','component is not allocated')
+     call Galacticus_Error_Report('component is not allocated'//\{introspection:location\})
   end if
 end if
 component => self%component{ucfirst($class->{'name'})}(instanceActual)

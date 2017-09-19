@@ -26,7 +26,7 @@ function distributionGammaConstructor(shape,rate,limitLower,limitUpper)
   double precision                   , intent(in   )           :: shape                        , rate
   double precision                   , intent(in   ), optional :: limitLower                   , limitUpper
   
-  if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('distributionGammaConstructor','rate>0 and shape>0 are required')
+  if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('rate>0 and shape>0 are required'//{introspection:location})
   distributionGammaConstructor%rate            =rate
   distributionGammaConstructor%shape           =shape
   distributionGammaConstructor%limitLowerExists=.false.
@@ -34,14 +34,14 @@ function distributionGammaConstructor(shape,rate,limitLower,limitUpper)
   distributionGammaConstructor%cdfAtLowerLimit =0.0d0
   distributionGammaConstructor%cdfAtUpperLimit =1.0d0
   if (present(limitLower)) then
-     if (limitLower < 0.0d0) call Galacticus_Error_Report('distributionGammaConstructor','limitLower≥0 is required')
+     if (limitLower < 0.0d0) call Galacticus_Error_Report('limitLower≥0 is required'//{introspection:location})
      distributionGammaConstructor%limitLower     =limitLower
      distributionGammaConstructor%cdfAtLowerLimit=distributionGammaCumulative(distributionGammaConstructor,limitLower)
   else
      distributionGammaConstructor%cdfAtLowerLimit=0.0d0
   end if
   if (present(limitUpper)) then
-     if (limitUpper < 0.0d0) call Galacticus_Error_Report('distributionGammaConstructor','limitUpper≥0 is required')
+     if (limitUpper < 0.0d0) call Galacticus_Error_Report('limitUpper≥0 is required'//{introspection:location})
      distributionGammaConstructor%limitUpper     =limitUpper
      distributionGammaConstructor%cdfAtUpperLimit=distributionGammaCumulative(distributionGammaConstructor,limitUpper)
   else
@@ -126,10 +126,10 @@ double precision function distributionGammaInverse(self,p)
   class           (distributionGamma), intent(in   ) :: self
   double precision                   , intent(in   ) :: p
 
-  if (p < 0.0d0 .or. p > 1.0d0)                                   &
-       & call Galacticus_Error_Report(                            &
-       &                              'distributionGammaInverse', &
-       &                              'probability out of range'  &
+  if (p < 0.0d0 .or. p > 1.0d0)                                    &
+       & call Galacticus_Error_Report(                             &
+       &                              'probability out of range'// &
+       &                              {introspection:location}     &
        &                             )
   distributionGammaInverse=                                                        &
        & +Inverse_Gamma_Function_Incomplete_Complementary(                         &

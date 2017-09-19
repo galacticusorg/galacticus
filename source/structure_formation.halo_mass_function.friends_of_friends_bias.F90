@@ -275,7 +275,7 @@ contains
             &            /0.5d0
        massHaloInfinitePrevious=massHaloInfinite
     end do
-    if (iterationCount >= iterationCountMaximum) call Galacticus_Error_Report('fofBiasDifferential','failed to converge after maximum iterations')    
+    if (iterationCount >= iterationCountMaximum) call Galacticus_Error_Report('failed to converge after maximum iterations'//{introspection:location})    
     ! Compute the Jacobian of the transform. We currently ignore
     ! d/dm(densityProfileLogarithmicSlope) as we have no straightforward way to evaluate
     ! this. It should be a relatively minor correction as this term is likely small for

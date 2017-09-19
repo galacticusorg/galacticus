@@ -73,8 +73,7 @@ contains
           !#  <functionArgs>mergerTreeConstructMethod,Merger_Tree_Construct</functionArgs>
           include 'merger_trees.construct.inc'
           !# </include>
-          if (.not.associated(Merger_Tree_Construct)) call Galacticus_Error_Report('Merger_Tree_Create','method '&
-               &//char(mergerTreeConstructMethod)//' is unrecognized')
+          if (.not.associated(Merger_Tree_Construct)) call Galacticus_Error_Report('method '//char(mergerTreeConstructMethod)//' is unrecognized'//{introspection:location})
           mergerTreeConstructInitialized=.true.
        end if
        !$omp end critical(Merger_Tree_Construct_Initialization)

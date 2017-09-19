@@ -195,12 +195,12 @@ contains
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                             &
          & call Galacticus_Error_Report                                                                                       &
          &      (                                                                                                             &
-         &       'selfInternal'                                                                               , &
          &       'Burkert dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
          &       Galacticus_Component_List(                                                                                   &
          &                                 'darkMatterProfile'                                                              , &
          &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)      &
-         &                                )                                                                                   &
+         &                                )                                                                             //    &
+         &       {introspection:location}                                                                                     &
          &      )
     ! Initialize the tabulations.
     call self%tabulate              ()
@@ -1070,7 +1070,7 @@ contains
     !GCC$ attributes unused :: self, node, density
 
     burkertRadiusEnclosingDensity=0.0d0
-    call Galacticus_Error_Report('burkertRadiusEnclosingDensity','function is not implemented')
+    call Galacticus_Error_Report('function is not implemented'//{introspection:location})
     return
   end function burkertRadiusEnclosingDensity
   

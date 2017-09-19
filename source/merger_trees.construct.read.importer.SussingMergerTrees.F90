@@ -237,7 +237,7 @@ contains
           case ("greaterThan")
              mergerTreeImportSussingBadValueTest=sussingBadValueGreaterThan
           case default
-             call Galacticus_Error_Report('sussingDefaultConstructor','[mergerTreeImportSussingBadValueTest must be either "lessThan" or "greaterThan"]')
+             call Galacticus_Error_Report('[mergerTreeImportSussingBadValueTest must be either "lessThan" or "greaterThan"]'//{introspection:location})
           end select
           ! Check for a forest file.
           mergerTreeImportSussingUseForestFile=globalParameters%isPresent('mergerTreeImportSussingForestFile')
@@ -303,7 +303,7 @@ contains
           case ("TopHat" )
              mergerTreeImportSussingMassOption=sussingMassTopHat
           case default
-             call Galacticus_Error_Report('sussingDefaultConstructor','unrecognized mass option')
+             call Galacticus_Error_Report('unrecognized mass option'//{introspection:location})
           end select
           sussingInitialized=.true.
        end if
@@ -565,7 +565,7 @@ contains
                 message=message//char(10)//'  hosted node time: '//label
                 write (label,'(f7.4)') self%nodes(j)%nodeTime
                 message=message//char(10)//'    host node time: '//label
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
              ! Move to the new host.
              l=j
@@ -601,7 +601,7 @@ contains
                 message=message//char(10)//'  hosted node time: '//label
                 write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                 message=message//char(10)//'    host node time: '//label
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
              hostStepCount=hostStepCount+1
              if (hostStepCount > stepCountMaximum) then
@@ -612,7 +612,7 @@ contains
                 message=message//char(10)//'  hosted node time: '//label
                 write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                 message=message//char(10)//'    host node time: '//label
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
              l=nodeIndexRanks(k)
           end do
@@ -631,7 +631,7 @@ contains
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
                 message=message//char(10)//'  descendent node time: '//label
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
              descendentStepCount=descendentStepCount+1
              if (descendentStepCount > stepCountMaximum) then
@@ -642,7 +642,7 @@ contains
                 message=message//char(10)//'  progenitor node time: '//label
                 write (label,'(f7.4)') self%nodes(k)%nodeTime
                 message=message//char(10)//'  descendent node time: '//label
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
              l=k
              hostStepCount=0
@@ -659,7 +659,7 @@ contains
                    message=message//char(10)//'  hosted node time: '//label
                    write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                    message=message//char(10)//'    host node time: '//label
-                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 end if
                 hostStepCount=hostStepCount+1
                 if (hostStepCount > stepCountMaximum) then
@@ -670,7 +670,7 @@ contains
                    message=message//char(10)//'  hosted node time: '//label
                    write (label,'(f7.4)') self%nodes(nodeIndexRanks(k))%nodeTime
                    message=message//char(10)//'    host node time: '//label
-                   call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                   call Galacticus_Error_Report(message//{introspection:location})
                 end if
                 l=nodeIndexRanks(k)
              end do
@@ -706,7 +706,7 @@ contains
           l=nodeDescendentLocations(i)
           if (l /= -1) then
              if (nodeTreeIndices(i) /= nodeTreeIndices(l))                                              &
-                  & call Galacticus_Error_Report('sussingTreeIndicesRead','failed to cross-link trees')
+                  & call Galacticus_Error_Report('failed to cross-link trees'//{introspection:location})
           end if
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
@@ -766,7 +766,7 @@ contains
              if (k < 0 .or. self%nodes(i)%descendentIndex /= self%nodes(k)%nodeIndex) then
                 message='zero mass halo ['
                 message=message//self%nodes(i)%nodeIndex//'] has no non-zero mass descendents'
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
           end do
        end if
@@ -794,7 +794,7 @@ contains
                 message=message//char(10)//'          y: '//label
                 write (label,'(e12.6)') self%nodes(j)%position(3)
                 message=message//char(10)//'          z: '//label
-                call Galacticus_Error_Report('sussingTreeIndicesRead',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
           else
              ! Reset index to the start of this tree.
@@ -986,7 +986,7 @@ contains
     double precision                           , intent(  out), dimension(:,:) :: position, velocity
     !GCC$ attributes unused :: self, node, time, position, velocity
 
-    call Galacticus_Error_Report('sussingSubhaloTrace','subhalo traces are not available')
+    call Galacticus_Error_Report('subhalo traces are not available'//{introspection:location})
     return
   end subroutine sussingSubhaloTrace
 
@@ -1023,8 +1023,8 @@ contains
     ! Decide if this tree should be included.
     if (self%randomSequence%sample() <= self%treeSampleRate) then
     ! Validate arguments.
-    if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('sussingImport','import of structure only is not supported')
-    if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('sussingImport','import of subsets is not supported'       )
+    if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('import of structure only is not supported'//{introspection:location})
+    if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('import of subsets is not supported'       //{introspection:location})
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
        !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
@@ -1118,7 +1118,7 @@ contains
        sussingValueIsBad=(x > self%badValue)
     case default
        sussingValueIsBad=.false.
-       call Galacticus_Error_Report('sussingValueIsBad','unknown badness test')
+       call Galacticus_Error_Report('unknown badness test'//{introspection:location})
     end select
     return
   end function sussingValueIsBad

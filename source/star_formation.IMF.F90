@@ -184,7 +184,7 @@ contains
     if (imfIndex <= size (imfNames)) then
        IMF_Name=imfNames(imfIndex)
     else
-       call Galacticus_Error_Report('IMF_Name','imfIndex is out of range')
+       call Galacticus_Error_Report('imfIndex is out of range'//{introspection:location})
     end if
     return
   end function IMF_Name
@@ -206,7 +206,7 @@ contains
           return
        end if
     end do
-    call Galacticus_Error_Report('IMF_Index','IMF name is unknown')
+    call Galacticus_Error_Report('IMF name is unknown'//{introspection:location})
     return
   end function IMF_Index
 
@@ -223,7 +223,7 @@ contains
     if (imfIndex <= size (imfDescriptors)) then
        IMF_Descriptor=imfDescriptors(imfIndex)
     else
-       call Galacticus_Error_Report('IMF_Descriptor','imfIndex is out of range')
+       call Galacticus_Error_Report('imfIndex is out of range'//{introspection:location})
     end if
     return
   end function IMF_Descriptor
@@ -269,8 +269,8 @@ contains
           !#  <functionArgs>imfSelectionMethod,IMF_Select_Do,IMF_Is_Star_Formation_Rate_Dependent_Do,imfNames</functionArgs>
           include 'star_formation.IMF.select.inc'
           !# </include>
-          if (.not.associated(IMF_Select_Do).or..not.associated(IMF_Is_Star_Formation_Rate_Dependent_Do)) call Galacticus_Error_Report('Star_Formation_IMF_Initialize'&
-               &,'method '//char(imfSelectionMethod)//' is unrecognized')
+          if (.not.associated(IMF_Select_Do).or..not.associated(IMF_Is_Star_Formation_Rate_Dependent_Do)) &
+               & call Galacticus_Error_Report('method '//char(imfSelectionMethod)//' is unrecognized'//{introspection:location})
 
           ! Get options controlling the instantaneous stellar evolution approximation.
           !# <inputParameter>
@@ -559,7 +559,7 @@ contains
           ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
+          if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse recycled fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
           ! Check the version number.
           if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -580,38 +580,36 @@ contains
 
           ! Find the ages element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
-          if (XML_Array_Length(thisItem,"data") /= recycledFractionTableAgeCount) call&
-               & Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous' ,'ages array in XML file does not match internal&
-               & expectation')
+          if (XML_Array_Length(thisItem,"data") /= recycledFractionTableAgeCount) &
+               & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
           call XML_Array_Read(thisItem,"data",tableTemporary)
           if (recycledFractionIndex(imfSelected) == 1) then
              recycledFractionTableAge=tableTemporary
           else
-             if (any(recycledFractionTableAge /= tableTemporary)) call&
-                  & Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous' ,'mismatch in ages array in XML file')
+             if (any(recycledFractionTableAge /= tableTemporary)) &
+                  & call Galacticus_Error_Report('mismatch in ages array in XML file'//{introspection:location})
           end if
           deallocate(tableTemporary)
 
           ! Find the metallicities element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"metallicities")
           dataList => getElementsByTagname(thisItem,"data"         )
-          if (XML_Array_Length(thisItem,"data") /= recycledFractionTableMetallicityCount) call&
-               & Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous' ,'metallicities array in XML file does not match&
-               & internal expectation')
+          if (XML_Array_Length(thisItem,"data") /= recycledFractionTableMetallicityCount) &
+               & call Galacticus_Error_Report('metallicities array in XML file does not match internal expectation'//{introspection:location})
           call XML_Array_Read(thisItem,"data",tableTemporary)
           if (recycledFractionIndex(imfSelected) == 1) then
              recycledFractionTableMetallicity=tableTemporary
           else
-             if (any(recycledFractionTableMetallicity /= tableTemporary)) call&
-                  & Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous' ,'mismatch in metallicities array in XML file')
+             if (any(recycledFractionTableMetallicity /= tableTemporary)) &
+                  & call Galacticus_Error_Report('mismatch in metallicities array in XML file'//{introspection:location})
           end if
           deallocate(tableTemporary)
 
           ! Find the recycledFraction element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"recycledFraction")
           dataList => getElementsByTagname(thisItem,"data"            )
-          if (getLength(dataList) /= recycledFractionTableAgeCount*recycledFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous'&
-               & ,'recycled fractions array in XML file does not match internal expectation')
+          if (getLength(dataList) /= recycledFractionTableAgeCount*recycledFractionTableMetallicityCount) &
+               & call Galacticus_Error_Report('recycled fractions array in XML file does not match internal expectation'//{introspection:location})
           iRecycledFraction=0
           do iAge=1,recycledFractionTableAgeCount
              do iMetallicity=1,recycledFractionTableMetallicityCount
@@ -931,7 +929,7 @@ contains
           ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous','Unable to parse remnant fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
+          if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse remnant fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
           ! Check the version number.
           if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -952,38 +950,36 @@ contains
 
           ! Find the ages element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
-          if (XML_Array_Length(thisItem,"data") /= remnantFractionTableAgeCount) call&
-               & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'ages array in XML file does not match internal&
-               & expectation')
+          if (XML_Array_Length(thisItem,"data") /= remnantFractionTableAgeCount) &
+               & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
           call XML_Array_Read(thisItem,"data",tableTemporary)
           if (remnantFractionIndex(imfSelected) == 1) then
              remnantFractionTableAge=tableTemporary
           else
-             if (any(remnantFractionTableAge /= tableTemporary)) call&
-                  & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'mismatch in ages array in XML file')
+             if (any(remnantFractionTableAge /= tableTemporary)) &
+                  & call Galacticus_Error_Report('mismatch in ages array in XML file'//{introspection:location})
           end if
           deallocate(tableTemporary)
 
           ! Find the metallicities element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"metallicities")
           dataList => getElementsByTagname(thisItem,"data"         )
-          if (XML_Array_Length(thisItem,"data") /= remnantFractionTableMetallicityCount) call&
-               & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'metallicities array in XML file does not match&
-               & internal expectation')
+          if (XML_Array_Length(thisItem,"data") /= remnantFractionTableMetallicityCount) &
+               & call Galacticus_Error_Report('metallicities array in XML file does not match internal expectation'//{introspection:location})
           call XML_Array_Read(thisItem,"data",tableTemporary)
           if (remnantFractionIndex(imfSelected) == 1) then
              remnantFractionTableMetallicity=tableTemporary
           else
-             if (any(remnantFractionTableMetallicity /= tableTemporary)) call&
-                  & Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous' ,'mismatch in metallicities array in XML file')
+             if (any(remnantFractionTableMetallicity /= tableTemporary)) &
+                  & call Galacticus_Error_Report('mismatch in metallicities array in XML file'//{introspection:location})
           end if
           deallocate(tableTemporary)
 
           ! Find the remnantFraction element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"remnantFraction")
           dataList => getElementsByTagname(thisItem,"data"            )
-          if (getLength(dataList) /= remnantFractionTableAgeCount*remnantFractionTableMetallicityCount) call Galacticus_Error_Report('IMF_Remnant_Production_Rate_NonInstantaneous'&
-               & ,'recycled fractions array in XML file does not match internal expectation')
+          if (getLength(dataList) /= remnantFractionTableAgeCount*remnantFractionTableMetallicityCount) &
+               & call Galacticus_Error_Report('recycled fractions array in XML file does not match internal expectation'//{introspection:location})
           iRecycledFraction=0
           do iAge=1,remnantFractionTableAgeCount
              do iMetallicity=1,remnantFractionTableMetallicityCount
@@ -1332,7 +1328,7 @@ contains
              ! Open the XML file containing energy input.
              call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
              doc => parseFile(char(fileName),iostat=ioErr)
-             if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
+             if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse metal yields file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
              ! Check the version number.
              if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
                 thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -1353,30 +1349,27 @@ contains
 
              ! Find the ages element and extract data.
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
-             if (XML_Array_Length(thisItem,"data") /= metalYieldTableAgeCount) call&
-                  & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'ages array in XML file does not match&
-                  & internal expectation')
+             if (XML_Array_Length(thisItem,"data") /= metalYieldTableAgeCount) &
+                  & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
              call XML_Array_Read(thisItem,"data",tableTemporary)
              if (iElement == 1 .and. metalYieldIndex(imfSelected) == 1) then
                 metalYieldTableAge=tableTemporary
              else
                 if (any(metalYieldTableAge /= tableTemporary)) call&
-                     & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'mismatch in ages array in XML file')
+                     & Galacticus_Error_Report('mismatch in ages array in XML file'//{introspection:location})
              end if
              deallocate(tableTemporary)
 
              ! Find the metallicities element and extract data.
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"metallicities")
-             if (XML_Array_Length(thisItem,"data") /= metalYieldTableMetallicityCount) call&
-                  & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'metallicities array in XML file does not&
-                  & match internal expectation')
+             if (XML_Array_Length(thisItem,"data") /= metalYieldTableMetallicityCount) &
+                  & call Galacticus_Error_Report('metallicities array in XML file does not match internal expectation'//{introspection:location})
              call XML_Array_Read(thisItem,"data",tableTemporary)
              if (iElement == 1 .and. metalYieldIndex(imfSelected) == 1) then
                 metalYieldTableMetallicity=tableTemporary
              else
-                if (any(metalYieldTableMetallicity /= tableTemporary)) call&
-                     & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'mismatch in metallicities array in XML&
-                     & file')
+                if (any(metalYieldTableMetallicity /= tableTemporary)) &
+                     & call Galacticus_Error_Report('mismatch in metallicities array in XML file'//{introspection:location})
              end if
              deallocate(tableTemporary)
 
@@ -1390,9 +1383,8 @@ contains
                 thisItem => XML_Get_First_Element_By_Tag_Name(doc,"elementYield")
              end select
              dataList => getElementsByTagname(thisItem,"data")
-             if (getLength(dataList) /= metalYieldTableAgeCount*metalYieldTableMetallicityCount) call&
-                  & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'metal yield array in XML file does not&
-                  & match internal expectation')
+             if (getLength(dataList) /= metalYieldTableAgeCount*metalYieldTableMetallicityCount) &
+                  & call Galacticus_Error_Report('metal yield array in XML file does not match internal expectation'//{introspection:location})
              iMetalYield=0
              do iAge=1,metalYieldTableAgeCount
                 do iMetallicity=1,metalYieldTableMetallicityCount
@@ -1774,7 +1766,7 @@ contains
            ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
+          if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse energy input file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
           ! Check the version number.
           if (XML_Path_Exists(doc,"stellarPopulation/fileFormat")) then
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -1795,33 +1787,32 @@ contains
 
           ! Find the ages element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
-          if (XML_Array_Length(thisItem,"data") /= energyInputTableAgeCount) call&
-               & Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','ages array in XML file does not match internal&
-               & expectation')
+          if (XML_Array_Length(thisItem,"data") /= energyInputTableAgeCount) &
+               & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
           call XML_Array_Read(thisItem,"data",tableTemporary)
           if (energyInputIndex(imfSelected) == 1) then
              energyInputTableAge=tableTemporary
           else
              if (any(energyInputTableAge /= tableTemporary)) call&
-                  & Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','mismatch in ages array in XML file')
+                  & Galacticus_Error_Report('mismatch in ages array in XML file'//{introspection:location})
           end if
           deallocate(tableTemporary)
 
           ! Find the metallicities element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"metallicities")
-          if (XML_Array_Length(thisItem,"data") /= energyInputTableMetallicityCount) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','metallicities array in XML file does not match internal expectation')
+          if (XML_Array_Length(thisItem,"data") /= energyInputTableMetallicityCount) call Galacticus_Error_Report('metallicities array in XML file does not match internal expectation'//{introspection:location})
           call XML_Array_Read(thisItem,"data",tableTemporary)
           if (energyInputIndex(imfSelected) == 1) then
              energyInputTableMetallicity=tableTemporary
           else
-             if (any(energyInputTableMetallicity /= tableTemporary)) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','mismatch in metallicities array in XML file')
+             if (any(energyInputTableMetallicity /= tableTemporary)) call Galacticus_Error_Report('mismatch in metallicities array in XML file'//{introspection:location})
           end if
           deallocate(tableTemporary)
 
           ! Find the energyInput element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"energyInput")
           dataList => getElementsByTagname(thisItem,"data"       )
-          if (getLength(dataList) /= energyInputTableAgeCount*energyInputTableMetallicityCount) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','energy input array in XML file does not match internal expectation')
+          if (getLength(dataList) /= energyInputTableAgeCount*energyInputTableMetallicityCount) call Galacticus_Error_Report('energy input array in XML file does not match internal expectation'//{introspection:location})
           iEnergyInput=0
           do iAge=1,energyInputTableAgeCount
              do iMetallicity=1,energyInputTableMetallicityCount

@@ -39,7 +39,7 @@ subroutine Mass_Distribution_NFW_Initialize(self,scaleLength,concentration,densi
        &  ) then
      self%scaleLength=virialRadius/concentration
   else
-     call Galacticus_Error_Report('Mass_Distribution_NFW_Initialize','no means to determine scale length')
+     call Galacticus_Error_Report('no means to determine scale length'//{introspection:location})
   end if
   ! Determine density normalization.
   if      (                                   &
@@ -53,7 +53,7 @@ subroutine Mass_Distribution_NFW_Initialize(self,scaleLength,concentration,densi
      r=virialRadius/self%scaleLength
      self%densityNormalization=mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+r)-r/(1.0d0+r))
   else
-     call Galacticus_Error_Report('Mass_Distribution_NFW_Initialize','either "densityNormalization", or "mass" and "virialRadius" must be specified')
+     call Galacticus_Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
   end if
   ! Determine if profile is dimensionless.
   if      (present(isDimensionless     )) then

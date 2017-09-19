@@ -102,7 +102,7 @@ double precision function likelihoodProjectedCorrelationFunctionEvaluate(self,si
   cosmologyFunctions_ => cosmologyFunctions()     
   ! Construct the conditional mass function object.
   stateVector=simulationState%get()
-  if (size(stateVector) /= 11) call Galacticus_Error_Report('likelihoodProjectedCorrelationFunctionEvaluate','11 parameters are required for this likelihood function')
+  if (size(stateVector) /= 11) call Galacticus_Error_Report('11 parameters are required for this likelihood function'//{introspection:location})
   do i=1,size(stateVector)
      stateVector(i)=parameterMappings(i)%thisMapping%unmap(stateVector(i))
   end do

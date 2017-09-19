@@ -39,18 +39,18 @@ subroutine Mass_Distribution_Exponential_Disk_Initialize(self,scaleRadius,scaleH
   ! If dimensionless, then set scale length and mass to unity.
   if (self%dimensionless) then
      if (present(scaleRadius)) then
-        if (Values_Differ(scaleRadius,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Initialize','scaleRadius should be unity for a dimensionless profile (or simply do not specify a scale length)')
+        if (Values_Differ(scaleRadius,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('scaleRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
      end if
      if (present(mass       )) then
-        if (Values_Differ(mass       ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Initialize','mass should be unity for a dimensionless profile (or simply do not specify a mass)')
+        if (Values_Differ(mass       ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
      end if
      self%scaleRadius                =1.0d0
      self%mass                       =1.0d0
      self%surfaceDensityNormalization=1.0d0/2.0d0/Pi
   else
      ! Set core radius.
-     if (.not.present(scaleRadius)) call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Initialize','scale radius must be specified for dimensionful profiles')
-     if (.not.present(mass       )) call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Initialize','mass must be specified for dimensionful profiles')
+     if (.not.present(scaleRadius)) call Galacticus_Error_Report('scale radius must be specified for dimensionful profiles'//{introspection:location})
+     if (.not.present(mass       )) call Galacticus_Error_Report('mass must be specified for dimensionful profiles'//{introspection:location})
      self%scaleRadius                =scaleRadius
      self%mass                       =mass
      self%surfaceDensityNormalization=self%mass/2.0d0/Pi/self%scaleRadius**2
@@ -131,7 +131,7 @@ double precision function Mass_Distribution_Exponential_Disk_Density(self,coordi
        &                                                              coshTerm
 
   ! If disk is razor thin, density is undefined.
-  if (self%scaleHeight <= 0.0d0) call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Density','density undefined for razor-thin disk')
+  if (self%scaleHeight <= 0.0d0) call Galacticus_Error_Report('density undefined for razor-thin disk'//{introspection:location})
   ! Get position in cylindrical coordinate system.
   position=coordinates
   ! Compute density.
@@ -473,7 +473,7 @@ double precision function Mass_Distribution_Exponential_Disk_Srfc_Dnsty_Rdl_Mmnt
   if (moment <= -1.0d0) then
      Mass_Distribution_Exponential_Disk_Srfc_Dnsty_Rdl_Mmnt=0.0d0
      if (present(isInfinite)) return
-     call Galacticus_Error_Report('Mass_Distribution_Exponential_Disk_Surface_Density_Radial_Moment','moment is infinite')
+     call Galacticus_Error_Report('moment is infinite'//{introspection:location})
   end if
   ! Compute the moment.
   if (present(radiusMinimum)) then

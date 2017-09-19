@@ -168,7 +168,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
        &  .or.                                                              &
        &   (     self%modelSurfaceBrightness .and. size(stateVector) /= 14) &
        & )                                                                  &
-       & call Galacticus_Error_Report('likelihoodMassFunctionEvaluate','11 or 14 parameters are required for this likelihood function')
+       & call Galacticus_Error_Report('11 or 14 parameters are required for this likelihood function'//{introspection:location})
   do i=1,size(stateVector)
      stateVector(i)=parameterMappings(i)%thisMapping%unmap(stateVector(i))
   end do
@@ -342,7 +342,7 @@ contains
           write (label,'(e12.6)') stateVector(i)
           message=message//char(10)//" state ["//i//"] = "//trim(label)
         end do       
-       call Galacticus_Error_Report('likelihoodMassFunctionTimeIntegrand',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     return
   end function likelihoodMassFunctionTimeIntegrand

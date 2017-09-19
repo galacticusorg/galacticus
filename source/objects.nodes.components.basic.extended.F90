@@ -393,11 +393,8 @@ contains
         nodeParent  => node      %parent
         basicParent => nodeParent%basic ()
         ! Ensure the two halos exist at the same time.
-        if (basic%time() /= basicParent%time())                                               &
-             & call Galacticus_Error_Report(                                                  &
-             &                              'Node_Component_Basic_Standard_Extended_Promote', &
-             &                              'node has not been evolved to its parent'         &
-             &                             )
+        if (basic%time() /= basicParent%time())                                                                  &
+             & call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
         ! Adjust the mass to that of the parent node.
         call basic%massBertschingerSet          (basicParent%massBertschinger          ())
         ! Adjust the accretion rate to that of the parent node.

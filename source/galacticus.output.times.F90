@@ -174,7 +174,7 @@ contains
     else
        Galacticus_Output_Time_Index=Search_Array            (outputTimes,time)
        if (Values_Differ(time,outputTimes(Galacticus_Output_Time_Index),relTol=1.0d-6)) &
-            & call Galacticus_Error_Report('Galacticus_Output_Time_Index','time does not correspond to an output')
+            & call Galacticus_Error_Report('time does not correspond to an output'//{introspection:location})
     end if
     return
   end function Galacticus_Output_Time_Index

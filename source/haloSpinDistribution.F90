@@ -146,7 +146,7 @@ program haloSpinDistributions
            class is (haloSpinDistributionNbodyErrors)
               spinDistribution(iOutput,iSpin)=haloSpinDistribution_%distributionAveraged(node,haloMassMinimum)
            class default
-              call Galacticus_Error_Report('haloSpinDistributions','halo spin distribution class does not support averaging over halo mass')
+              call Galacticus_Error_Report('halo spin distribution class does not support averaging over halo mass'//{introspection:location})
            end select
         end if
      end do

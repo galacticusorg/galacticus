@@ -72,7 +72,7 @@ contains
           include 'atomic.rates.excitation.collisional.inc'
           !# </include>
           if (.not.associated(Collisional_Excitation_Rate_Get)) call&
-               & Galacticus_Error_Report('Collisional_Excitation_Rate_Initialize','method '//char(collisionalExcitationMethod)//' is unrecognized')
+               & Galacticus_Error_Report('method '//char(collisionalExcitationMethod)//' is unrecognized'//{introspection:location})
           collisionalExcitationInitialized = .true.
        end if
        !$omp end critical(Atomic_Rate_Excitation_Collisional_Initialization)

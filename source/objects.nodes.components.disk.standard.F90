@@ -285,7 +285,7 @@ contains
        type is (massDistributionMiyamotoNagai  )
           call diskMassDistribution%initialize(b          =heightToRadialScaleDisk,isDimensionless=.true.)
        class default
-          call Galacticus_Error_Report('Node_Component_Disk_Standard_Thread_Initialize','unsupported mass distribution')
+          call Galacticus_Error_Report('unsupported mass distribution'//{introspection:location})
        end select
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
@@ -308,7 +308,7 @@ contains
                   &  )
           end if
        class default
-          call Galacticus_Error_Report('Node_Component_Disk_Standard_Thread_Initialize','only cylcindrically symmetric mass distributions are allowed')
+          call Galacticus_Error_Report('only cylcindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
        ! curves for thin disk and a spherical mass distribution.
@@ -484,10 +484,7 @@ contains
                      &                        *darkMatterHaloScale_%virialVelocity(node) &
                      &                        *spin                %spin          (    )
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
-                call Galacticus_Error_Report(                                                &
-                     &                       'Node_Component_Disk_Standard_Post_Evolve',     &
-                     &                       message                                         &
-                     &                      )
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
           end if
        end if
@@ -948,7 +945,7 @@ contains
                &                                            +disk        %abundancesGas      ()                         &
                &                                           )
        case default
-          call Galacticus_Error_Report('Node_Component_Disk_Standard_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
@@ -1018,7 +1015,7 @@ contains
           call historyNode%destroy(recordMemory=.false.)
           call historyHost%destroy(recordMemory=.false.)
        case default
-          call Galacticus_Error_Report('Node_Component_Disk_Standard_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        call disk%        massStellarSet(                  0.0d0)
        call disk%  abundancesStellarSet(         zeroAbundances)

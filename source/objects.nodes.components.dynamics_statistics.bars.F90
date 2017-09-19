@@ -129,7 +129,7 @@ contains
             &    )
     class default
        ourTimestep=0.0d0
-       call Galacticus_Error_Report('Node_Component_Dynamics_Statistics_Bars_Timestep','unknown class')
+       call Galacticus_Error_Report('unknown class'//{introspection:location})
     end select
     ! Check if our timestep is the limiting factor.
     if (ourTimeStep <= timeStep) then

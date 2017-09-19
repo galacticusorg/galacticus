@@ -68,8 +68,7 @@ contains
           !#  <functionArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</functionArgs>
           include 'stellar_astrophysics.supernovae_type_PopIII.inc'
           !# </include>
-          if (.not.associated(SNePopIII_Cumulative_Energy_Get)) call Galacticus_Error_Report('Supernovae_Population_III_Initialize'&
-               &,'method '//char(supernovaePopIIIMethod)//' is unrecognized')
+          if (.not.associated(SNePopIII_Cumulative_Energy_Get)) call Galacticus_Error_Report('method '//char(supernovaePopIIIMethod)//' is unrecognized'//{introspection:location})
           supernovaePopIIIInitialized=.true.
        end if
        !$omp end critical(Supernovae_Population_III_Initialization)

@@ -101,7 +101,7 @@ contains
        redshiftMinimum=0.80d0
        redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('davidzon2013VIPERSConstructorInternal','0≤redshiftBin≤3 is required')
+       call Galacticus_Error_Report('0≤redshiftBin≤3 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -170,7 +170,7 @@ contains
        davidzon2013VIPERSDistanceMaximum=3.20688538211015d0+logarithmicMass*(0.0273132827274515d0)
     case default
        davidzon2013VIPERSDistanceMaximum=0.0d0
-       call Galacticus_Error_Report('davidzon2013VIPERSDistanceMaximum','invalid redshift bin')
+       call Galacticus_Error_Report('invalid redshift bin'//{introspection:location})
     end select
     ! Limit the maximum distance.
     davidzon2013VIPERSDistanceMaximum=min(10.0d0**davidzon2013VIPERSDistanceMaximum,self%binDistanceMaximum)

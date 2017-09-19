@@ -175,7 +175,7 @@ contains
        self%densityContrastMethod=duttonMaccio2014DensityContrastMethodMean200
        self%densityProfileMethod =duttonMaccio2014DensityProfileMethodEinasto
     case default
-       call Galacticus_Error_Report('duttonMaccio2014ConstructorInternalType','unrecognized fit type [available types are: nfwVirial, nfwMean200, einastoMean200]')
+       call Galacticus_Error_Report('unrecognized fit type [available types are: nfwVirial, nfwMean200, einastoMean200]'//{introspection:location})
     end select
     return
   end function duttonMaccio2014ConstructorInternalType

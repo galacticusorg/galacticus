@@ -85,7 +85,7 @@ contains
     else if (.not.Values_Differ(self%cosmologyParameters_%OmegaMatter()+self%cosmologyParameters_%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) then
        self%fitType=bryanNorman1998FitFlatUniverse
     else
-       call Galacticus_Error_Report('bryanNorman1998ConstructorInternal','no fitting formula available for this cosmology')
+       call Galacticus_Error_Report('no fitting formula available for this cosmology'//{introspection:location})
     end if
     return
   end function bryanNorman1998ConstructorInternal
@@ -121,7 +121,7 @@ contains
        bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
     case default
        bryanNorman1998DensityContrast=0.0d0
-       call Galacticus_Error_Report('bryanNorman1998DensityContrast','invalid fit type')
+       call Galacticus_Error_Report('invalid fit type'//{introspection:location})
     end select
     return
   end function bryanNorman1998DensityContrast
@@ -161,7 +161,7 @@ contains
             & / self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
     case default
        bryanNorman1998DensityContrastRateOfChange=0.0d0
-       call Galacticus_Error_Report('bryanNorman1998DensityContrast','invalid fit type')
+       call Galacticus_Error_Report('invalid fit type'//{introspection:location})
     end select
     return
   end function bryanNorman1998DensityContrastRateOfChange

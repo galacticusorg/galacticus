@@ -64,7 +64,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('kitayamaSuto1996ConstructorParameters','critical overdensity expects a cold dark matter particle')
+       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
     !# <inputParametersValidate source="parameters"/>
     return
@@ -91,7 +91,7 @@ contains
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
-       call Galacticus_Error_Report('kitayamaSuto1996ConstructorInternal','critical overdensity expects a cold dark matter particle')
+       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
     end select
    return
   end function kitayamaSuto1996ConstructorInternal

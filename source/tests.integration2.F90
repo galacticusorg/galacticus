@@ -143,7 +143,7 @@ program Test_Integration2
            call integrator_%initialize  (24               ,integrators(i)%order)
            call integrator_%toleranceSet(toleranceAbsolute,toleranceRelative   )
         class default
-           call Galacticus_Error_Report('Test_Integration2','unknown integrator class [1]')
+           call Galacticus_Error_Report('unknown integrator class [1]'//{introspection:location})
         end select
      end do
      ! Assign functions.
@@ -162,7 +162,7 @@ program Test_Integration2
            end if
 #endif
         class default
-           call Galacticus_Error_Report('Test_Integration2','unknown integrator class [2]')
+           call Galacticus_Error_Report('unknown integrator class [2]'//{introspection:location})
         end select
      end do
      ! Initialize times to zero.
@@ -184,7 +184,7 @@ program Test_Integration2
               call System_Clock(countEnd  ,countRate)
               time(i)=time(i)+(countEnd-countStart)
            class default
-              call Galacticus_Error_Report('Test_Integration2','unknown integrator class [3]')
+              call Galacticus_Error_Report('unknown integrator class [3]'//{introspection:location})
           end select
         end do
         ! Evaluate GSL integrators.

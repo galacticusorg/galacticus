@@ -104,7 +104,7 @@ module Galacticus_Nodes
 
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
-    if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Constructor','unable to allocate node')
+    if (allocErr/=0) call Galacticus_Error_Report('unable to allocate node'//{introspection:location})
     call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
 
     ! Initialize the node.
@@ -136,7 +136,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Index','treeNode of unknown class')
+       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
     end select
     if (associated(workNode)) then
        Tree_Node_Index=workNode%indexValue
@@ -169,7 +169,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Unique_ID','treeNode of unknown class')
+       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
     end select
     if (associated(workNode)) then
        Tree_Node_Unique_ID=workNode%uniqueIdValue
@@ -190,7 +190,7 @@ module Galacticus_Nodes
     else
        !$omp critical(UniqueID_Assign)
        uniqueIDCount=uniqueIDCount+1
-       if (uniqueIDCount <= 0) call Galacticus_Error_Report('Tree_Node_Unique_ID_Set','ran out of unique ID numbers')
+       if (uniqueIDCount <= 0) call Galacticus_Error_Report('ran out of unique ID numbers'//{introspection:location})
        self%uniqueIdValue=uniqueIDCount
        !$omp end critical(UniqueID_Assign)
     end if
@@ -270,7 +270,7 @@ module Galacticus_Nodes
           pairEvent => pairEvent%next
        end if
     end do
-    if (.not.pairMatched) call Galacticus_Error_Report('Tree_Node_Remove_Paired_Event','unable to find paired event')
+    if (.not.pairMatched) call Galacticus_Error_Report('unable to find paired event'//{introspection:location})
     return
   end subroutine Tree_Node_Remove_Paired_Event
 
@@ -289,7 +289,7 @@ module Galacticus_Nodes
        end if
     class default
        Tree_Node_Is_Primary_Progenitor=.false.
-       call Galacticus_Error_Report('Tree_Node_Is_Primary_Progenitor','treeNode is of unknown class')
+       call Galacticus_Error_Report('treeNode is of unknown class'//{introspection:location})
     end select
     return
   end function Tree_Node_Is_Primary_Progenitor
@@ -308,7 +308,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Is_Primary_Progenitor_Of_Index','treeNode of unknown class - this should not happen')
+       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
@@ -335,7 +335,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Is_Primary_Progenitor_Of_Node','treeNode of unknown class - this should not happen')
+       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
@@ -362,7 +362,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Is_Progenitor_Of_Index','treeNode of unknown class')
+       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
     end select
     do while (associated(workNode))
        if (workNode%index() == targetNodeIndex) then
@@ -388,7 +388,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Is_Progenitor_Of_Node','treeNode of unknown class - this should not happen')
+       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode))
        if (associated(workNode,targetNode)) then
@@ -413,7 +413,7 @@ module Galacticus_Nodes
        workNode => self
     class default
        workNode => null()
-       call Galacticus_Error_Report('Tree_Node_Is_On_Main_Branch','treeNode of unknown class - this should not happen')
+       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     do while (associated(workNode%parent))
        if (.not.workNode%isPrimaryProgenitor()) return
@@ -435,7 +435,7 @@ module Galacticus_Nodes
        selfActual => self
     class default
        selfActual => null()
-       call Galacticus_Error_Report('Tree_Node_Is_Satellite','treeNode of unknown class - this should not happen')
+       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     parentNode => selfActual%parent
     select case (associated(parentNode))
@@ -484,7 +484,7 @@ module Galacticus_Nodes
        end do
     class default
        progenitorNode => null()
-       call Galacticus_Error_Report('Tree_Node_Get_Earliest_Progenitor','treeNode of unknown class - this should not happen')
+       call Galacticus_Error_Report('treeNode of unknown class - this should not happen'//{introspection:location})
     end select
     return
   end function Tree_Node_Get_Earliest_Progenitor
@@ -521,7 +521,7 @@ module Galacticus_Nodes
        selfActual => self
     class default
        selfActual => null()
-       call Galacticus_Error_Report('Tree_Node_Remove_From_Host','treeNode of unknown class')
+       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
     end select
 
     ! Remove from the parent node satellite list.
@@ -563,7 +563,7 @@ module Galacticus_Nodes
        selfActual => self
     class default
        selfActual => null()
-       call Galacticus_Error_Report('Tree_Node_Remove_from_Mergee','treeNode of unknown class')
+       call Galacticus_Error_Report('treeNode of unknown class'//{introspection:location})
     end select
 
     ! Remove from the mergee list of any merge target.

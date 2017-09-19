@@ -36,13 +36,13 @@ subroutine Mass_Distribution_Hernquist_Initialize(self,scaleLength,densityNormal
   ! If dimensionless, then set scale length and mass to unity.
   if (self%dimensionless) then
      if (present(scaleLength         )) then
-        if (Values_Differ(scaleLength         ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','scaleLength should be unity for a dimensionless profile (or simply do not specify a scale length)')
+        if (Values_Differ(scaleLength         ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('scaleLength should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
      end if
      if (present(mass                )) then
-        if (Values_Differ(mass                ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','mass should be unity for a dimensionless profile (or simply do not specify a mass)')
+        if (Values_Differ(mass                ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
      end if
      if (present(densityNormalization)) then
-        if (Values_Differ(densityNormalization,0.15915494d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','densityNormalization should be 1/2π for a dimensionless profile (or simply do not specify a densityNormalization)')
+        if (Values_Differ(densityNormalization,0.15915494d0,absTol=1.0d-6)) call Galacticus_Error_Report('densityNormalization should be 1/2π for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
      end if
      self%scaleLength         =1.0d0
      self%mass                =1.0d0
@@ -51,7 +51,7 @@ subroutine Mass_Distribution_Hernquist_Initialize(self,scaleLength,densityNormal
      if      (present(scaleLength         )) then
         self%scaleLength=scaleLength
      else
-        call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','"scaleLength" must be specified')
+        call Galacticus_Error_Report('"scaleLength" must be specified'//{introspection:location})
      end if
      if      (present(densityNormalization)) then
         self%densityNormalization=densityNormalization
@@ -60,7 +60,7 @@ subroutine Mass_Distribution_Hernquist_Initialize(self,scaleLength,densityNormal
         self%densityNormalization=mass/scaleLength**3/2.0d0/Pi
         self%mass                =mass
      else
-        call Galacticus_Error_Report('Mass_Distribution_Hernquist_Initialize','one of "densityNormalization" or "mass" must be specified')
+        call Galacticus_Error_Report('one of "densityNormalization" or "mass" must be specified'//{introspection:location})
      end if
   end if
   return
@@ -95,7 +95,7 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
   logical                                    , intent(  out), optional :: isInfinite
 
   ! Abort on limited ranges.
-  if (present(radiusMinimum).or.present(radiusMaximum)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Density_Radial_Moment','ranges are not supported')
+  if (present(radiusMinimum).or.present(radiusMaximum)) call Galacticus_Error_Report('ranges are not supported'//{introspection:location})
   if (moment <= 0.0d0 .or. moment >= 3.0d0) then
      ! Handle cases where the moment is infinite.
      if (present(isInfinite)) then
@@ -104,7 +104,7 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
         return
      else
         Mass_Distribution_Hernquist_Density_Radial_Moment=0.0d0
-        call Galacticus_Error_Report('Mass_Distribution_Hernquist_Density_Radial_Moment','requested radial density moment is infinite')
+        call Galacticus_Error_Report('requested radial density moment is infinite'//{introspection:location})
      end if
   else if (                                              &
        &   Values_Agree(moment,1.0d0,absTol=1.0d-3) .or. &

@@ -38,7 +38,7 @@ contains
        if (imfSelection == imfNames(IMF_Index_Lookup)) exit
        IMF_Index_Lookup=IMF_Index_Lookup+1
     end do
-    if (IMF_Index_Lookup > size(imfNames)) call Galacticus_Error_Report('IMF_Index_Lookup','unmatched IMF name')
+    if (IMF_Index_Lookup > size(imfNames)) call Galacticus_Error_Report('unmatched IMF name'//{introspection:location})
     return
   end function IMF_Index_Lookup
 

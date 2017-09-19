@@ -65,8 +65,8 @@ contains
           !#  <functionArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</functionArgs>
           include 'star_formation.feedback_expulsive.disks.inc'
           !# </include>
-          if (.not.associated(Star_Formation_Expulsive_Feedback_Disk_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Expulsive_Feedback_Disks'&
-               &,'method ' //char(starFormationExpulsiveFeedbackDisksMethod)//' is unrecognized')
+          if (.not.associated(Star_Formation_Expulsive_Feedback_Disk_Rate_Get)) &
+               & call Galacticus_Error_Report('method '//char(starFormationExpulsiveFeedbackDisksMethod)//' is unrecognized'//{introspection:location})
           starFormationExpulsiveFeedbackDisksInitialized=.true.
        end if
        !$omp end critical(Star_Formation_Expulsive_Feedback_Disks_Initialization)

@@ -542,7 +542,7 @@ contains
              message='Failed to find matching snapshot time for time '//trim(label)//' Gyr.'//char(10)
              write (label,'(f8.5)') self%timeSnapshots(timeIndex)
              message=message//'Closest time was '//trim(label)//' Gyr'
-             call Galacticus_Error_Report('augmentBuildTreeFromNode',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           end if
           if (timeIndex == 1) then
              timeEarliest=timeEarliestIn
@@ -579,7 +579,7 @@ contains
                   &  trim(adjustl(label))                                                                                  // &
                   &  " Gyr."                                                                                     //char(10)// &
                   &  "Consider using the 'regridTimes' operator first to force halos onto a fixed array of times"
-             call Galacticus_Error_Report('augmentBuildTreeFromNode',message)  
+             call Galacticus_Error_Report(message//{introspection:location})  
           end if
           childNode => childNode%sibling
        end do
@@ -612,7 +612,7 @@ contains
        message=message//"   tree root mass = "//trim(label)//char(10)
        write (label,'(e16.8)') self%massCutOff
        message=message//"     cut off mass = "//trim(label)
-       call Galacticus_Error_Report('augmentBuildTreeFromNode',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     ! Sort children of our node by mass, and gather statistics on number of children and number of end-nodes in the new tree.
     call self%sortChildren(node)
@@ -1190,7 +1190,7 @@ contains
        nodeCurrent  => nodeCurrent %sibling
        do while (associated(nodeCurrent))
           basicCurrent => nodeCurrent%basic()
-          if (basicCurrent%mass() > massLargest) call Galacticus_Error_Report('augmentSortChildren','failed to sort child nodes')
+          if (basicCurrent%mass() > massLargest) call Galacticus_Error_Report('failed to sort child nodes'//{introspection:location})
           massLargest =  basicCurrent%mass   ()
           nodeCurrent => nodeCurrent %sibling
        end do
@@ -1291,7 +1291,7 @@ contains
             &                            falseBestTreeNodeAboveCutoff, &
             &                            falseNewRescale               &
             &                           )
-       if (treeStatus /= treeBuildSuccess) call Galacticus_Error_Report('augmentExtendNonOverlapNodes','extension of non-overlap node failed')
+       if (treeStatus /= treeBuildSuccess) call Galacticus_Error_Report('extension of non-overlap node failed'//{introspection:location})
        nodeCurrent => nodeCurrent%sibling
     end do
     return
@@ -1344,7 +1344,7 @@ contains
        augmentTreeStatistics=endNodeCount
     case default
        augmentTreeStatistics=0
-       call Galacticus_Error_Report('augmentTreeStatistics','unknown task requested')
+       call Galacticus_Error_Report('unknown task requested'//{introspection:location})
     end select
     return
   end function augmentTreeStatistics

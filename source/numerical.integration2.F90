@@ -246,10 +246,10 @@ contains
     class           (integrator), intent(inout)           :: self
     double precision            , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
 
-    if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                &
-         &  call Galacticus_Error_Report(                                                               &
-         &                               'toleranceSetGeneric'                                        , &
-         &                               'at least one of absolute and relative tolerance must be set'  &
+    if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                 &
+         &  call Galacticus_Error_Report(                                                                &
+         &                               'at least one of absolute and relative tolerance must be set'// &
+         &                               {introspection:location}                                        &
          &                              )
     self%toleranceAbsolute=0.0d0
     self%toleranceRelative=0.0d0
@@ -277,10 +277,10 @@ contains
     class  (integratorCompositeTrapezoidal1D), intent(inout) :: self
     integer                                  , intent(in   ) :: iterationsMaximum
 
-    if (iterationsMaximum < 3)                                                &
-         & call Galacticus_Error_Report(                                      &
-         &                              'compositeTrapezoidalInitialize1D'  , &
-         &                              'at least 3 iterations are required'  &
+    if (iterationsMaximum < 3)                                                 &
+         & call Galacticus_Error_Report(                                       &
+         &                              'at least 3 iterations are required'// &
+         &                               {introspection:location}              &
          &                             )
     self%iterationsMaximum=iterationsMaximum
     return
@@ -305,10 +305,10 @@ contains
     converged=.false.
     do while (.not.converged)
        iteration=iteration+1
-       if (iteration > self%iterationsMaximum)                               &
-            & call Galacticus_Error_Report(                                  &
-            &                              'compositeTrapezoidalEvaluate1D', &
-            &                              'maximum iterations exceeded'     &
+       if (iteration > self%iterationsMaximum)                             &
+            & call Galacticus_Error_Report(                                &
+            &                              'maximum iterations exceeded'// &
+            &                               {introspection:location}       &
             &                             )
        n   =2**iteration
        step=(b-a)/dble(n)
@@ -344,8 +344,8 @@ contains
 
     if (iterationsMaximum < 3)                                                 &
          & call Galacticus_Error_Report(                                       &
-         &                              'compositeGaussKronrod1DInitialize'  , &
-         &                              'at least 3 iterations are required'   &
+         &                              'at least 3 iterations are required'// &
+         &                               {introspection:location}              &
          &                             )
     self%iterationsMaximum=iterationsMaximum
     ! Choose order.
@@ -468,7 +468,7 @@ contains
             &          0.051494729429451567558340433647099d0  &
             &         ]
     case default
-       call Galacticus_Error_Report('compositeGaussKronrod1DInitialize','unknown order')
+       call Galacticus_Error_Report('unknown order'//{introspection:location})
     end select
     return
   end subroutine compositeGaussKronrod1DInitialize
@@ -670,10 +670,10 @@ contains
     class  (integratorVectorizedCompositeGaussKronrod1D), intent(inout) :: self
     integer                                             , intent(in   ) :: iterationsMaximum, order
 
-    if (iterationsMaximum < 3)                                                         &
-         & call Galacticus_Error_Report(                                               &
-         &                              'vectorizedCompositeGaussKronrod1DInitialize', &
-         &                              'at least 3 iterations are required'           &
+    if (iterationsMaximum < 3)                                                 &
+         & call Galacticus_Error_Report(                                       &
+         &                              'at least 3 iterations are required'// &
+         &                               {introspection:location}              &
          &                             )
     self%iterationsMaximum=iterationsMaximum
     ! Choose order.
@@ -796,7 +796,7 @@ contains
             &          0.051494729429451567558340433647099d0  &
             &         ]
     case default
-       call Galacticus_Error_Report('vectorizedCompositeGaussKronrod1DInitialize','unknown order')
+       call Galacticus_Error_Report('unknown order'//{introspection:location})
     end select
     return
   end subroutine vectorizedCompositeGaussKronrod1DInitialize
@@ -1134,10 +1134,10 @@ contains
          &                                                                         j                , n
     double precision                                                            :: step
 
-    if (iterationsMaximum < 3)                                                        &
-         & call Galacticus_Error_Report(                                              &
-         &                              'vectorizedCompositeTrapezoidalInitialize1D', &
-         &                              'at least 3 iterations are required'          &
+    if (iterationsMaximum < 3)                                                 &
+         & call Galacticus_Error_Report(                                       &
+         &                              'at least 3 iterations are required'// &
+         &                               {introspection:location}              &
          &                             )
     self%iterationsMaximum=iterationsMaximum
     workspaceSize=2**iterationsMaximum
@@ -1180,12 +1180,12 @@ contains
     converged=.false.
     do while (.not.converged)
        iteration=iteration+1
-       if (iteration > self%iterationsMaximum)                                         &
-            & call Galacticus_Error_Report(                                            &
-            &                              'vectorizedCompositeTrapezoidalEvaluate1D', &
-            &                              'maximum iterations exceeded'               &
+       if (iteration > self%iterationsMaximum)                             &
+            & call Galacticus_Error_Report(                                &
+            &                              'maximum iterations exceeded'// &
+            &                               {introspection:location}       &
             &                             )
-        n   =2**iteration
+       n   =2**iteration
         step=(b-a)/dble(n)
         ! Evaluate only every second point, as the others were computed in previous iterations.
 #ifdef YEPPP

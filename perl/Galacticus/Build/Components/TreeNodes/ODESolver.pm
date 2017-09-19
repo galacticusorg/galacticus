@@ -328,7 +328,7 @@ end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (name == 'unknown') call Galacticus_Error_Report('treeNodePropertyNameFromIndex','property index out of range')
+if (name == 'unknown') call Galacticus_Error_Report('property index out of range'//\{introspection:location\})
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

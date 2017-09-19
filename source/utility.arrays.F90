@@ -214,7 +214,7 @@ contains
     do index=1,size(mask)
        if (mask(index)) then
           matchCount=matchCount+1
-          if (matchCount > size(indices)) call Galacticus_Error_Report('Array_Which','indices array is too small')
+          if (matchCount > size(indices)) call Galacticus_Error_Report('indices array is too small'//{introspection:location})
           indices(matchCount)=index
        end if
     end do
@@ -276,7 +276,7 @@ contains
 
     indexOnActual=2
     if (present(indexOn)) then
-       if (indexOn < 1 .or. indexOn > 2) call Galacticus_Error_Report('Array_Index_Double_2D','1≤indexOn≤2')
+       if (indexOn < 1 .or. indexOn > 2) call Galacticus_Error_Report('1≤indexOn≤2'//{introspection:location})
        indexOnActual=indexOn
     end if
     select case (indexOnActual)

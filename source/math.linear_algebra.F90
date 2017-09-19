@@ -367,7 +367,7 @@ contains
     type   (matrix)                :: matrixMatrixMultiply
     class  (matrix), intent(in   ) :: matrix1, matrix2
 
-    if (size(matrix1%elements,dim=2) /= size(matrix2%elements,dim=1)) call Galacticus_Error_Report('matrixMatrixMultiply','dimension mismatch')
+    if (size(matrix1%elements,dim=2) /= size(matrix2%elements,dim=1)) call Galacticus_Error_Report('dimension mismatch'//{introspection:location})
     allocate(matrixMatrixMultiply%elements(size(matrix1%elements,dim=1),size(matrix2%elements,dim=2)))
     matrixMatrixMultiply%elements=matmul(matrix1%elements,matrix2%elements)
     return

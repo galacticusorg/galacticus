@@ -86,7 +86,7 @@ contains
        ! Argument is outside of range - either abort or compute using intrinsic exponentiation function.
        if (self%abortOutsideRange) then
           fastExponentiatorExponentiate=0.0d0
-          call Galacticus_Error_Report('fastExponentiatorExponentiate','argument is outside range')
+          call Galacticus_Error_Report('argument is outside range'//{introspection:location})
        else
           fastExponentiatorExponentiate=x**self%exponent
        end if

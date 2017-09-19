@@ -64,8 +64,7 @@ contains
           !#  <functionArgs>blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get</functionArgs>
           include 'black_holes.binaries.initial_radius.inc'
           !# </include>
-          if (.not.associated(Black_Hole_Binary_Initial_Radius_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Initial_Radius','method ' &
-               &//char(blackHoleBinaryInitialRadiiMethod)//' is unrecognized')
+          if (.not.associated(Black_Hole_Binary_Initial_Radius_Get)) call Galacticus_Error_Report('method '//char(blackHoleBinaryInitialRadiiMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           blackHoleBinaryInitialRadiiInitialized=.true.
        end if

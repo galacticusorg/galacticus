@@ -103,7 +103,7 @@ contains
           end do
        end do
     case default
-       call Galacticus_Error_Report('Meshes_Apply_Point','unrecognized cloud type')
+       call Galacticus_Error_Report('unrecognized cloud type'//{introspection:location})
     end select
 
     return

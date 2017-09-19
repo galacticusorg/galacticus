@@ -67,10 +67,10 @@ contains
           !#  <functionArgs>satelliteTidalStrippingMethod,Satellite_Tidal_Stripping_Rate_Get</functionArgs>
           include 'satellite.tidal.stripping.rate.inc'
           !# </include>
-          if (.not.associated(Satellite_Tidal_Stripping_Rate_Get))                                                &
-               & call Galacticus_Error_Report(                                                                    &
-               &                              'Satellite_Tidal_Stripping_Rate_Initialize'                       , &
-               &                              'method '//char(satelliteTidalStrippingMethod)//' is unrecognized'  &
+          if (.not.associated(Satellite_Tidal_Stripping_Rate_Get))                                                 &
+               & call Galacticus_Error_Report(                                                                     &
+               &                              'method '//char(satelliteTidalStrippingMethod)//' is unrecognized'// &
+               &                              {introspection:location}                                             &
                &                             )
           ! Record that this module is now initialized.
           satelliteTidalStrippingRateInitialized=.true.

@@ -67,7 +67,7 @@ contains
           end forall
        else
           ! Check that the rangeNumber is valid.
-          if (rangeNumber <= 1) call Galacticus_Error_Report('Make_Range','number of points in range must exceed 1')
+          if (rangeNumber <= 1) call Galacticus_Error_Report('number of points in range must exceed 1'//{introspection:location})
           ! Build a linear range.
           forall(iRange=1:rangeNumber)
              rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
@@ -77,7 +77,7 @@ contains
        ! Call ourself with logged limits and then exponentiate the result.
        rangeValues=exp(Make_Range(log(rangeMinimum),log(rangeMaximum),rangeNumber,rangeTypeLinear,rangeBinnedActual))
     case default
-       call Galacticus_Error_Report('Make_Range','range type is unrecognized')
+       call Galacticus_Error_Report('range type is unrecognized'//{introspection:location})
     end select
     return
   end function Make_Range

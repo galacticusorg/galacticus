@@ -63,7 +63,7 @@ contains
        message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
        message=message//'HELP: to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
        message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
-       call Galacticus_Error_Report('Events_Node_Merger_Do_SLH',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     do while (.not.associated(childNode%sibling,thisNode))
        childNode => childNode%sibling

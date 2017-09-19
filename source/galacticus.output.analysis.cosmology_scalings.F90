@@ -41,9 +41,9 @@ contains
     double precision                                                   :: timeModel                     , timeObserved
 
     ! Check optional arguments for consistency.
-    if (present(cosmologyScalingMass        ).neqv.present(cosmologyConversionMass        )) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingMass" and "cosmologyConversionMass" must be either both present or both not-present'                )
-    if (present(cosmologyScalingSize        ).neqv.present(cosmologyConversionSize        )) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingSize" and "cosmologyConversionSize" must be either both present or both not-present'                )
-    if (present(cosmologyScalingMassFunction).neqv.present(cosmologyConversionMassFunction)) call Galacticus_Error_Report('Cosmology_Conversion_Factors','"cosmologyScalingMassFunction" and "cosmologyConversionMassFunction" must be either both present or both not-present')
+    if (present(cosmologyScalingMass        ).neqv.present(cosmologyConversionMass        )) call Galacticus_Error_Report('"cosmologyScalingMass" and "cosmologyConversionMass" must be either both present or both not-present'//{introspection:location})
+    if (present(cosmologyScalingSize        ).neqv.present(cosmologyConversionSize        )) call Galacticus_Error_Report('"cosmologyScalingSize" and "cosmologyConversionSize" must be either both present or both not-present'//{introspection:location})
+    if (present(cosmologyScalingMassFunction).neqv.present(cosmologyConversionMassFunction)) call Galacticus_Error_Report('"cosmologyScalingMassFunction" and "cosmologyConversionMassFunction" must be either both present or both not-present'//{introspection:location})
 
     ! Test for zero or negative redshift (allow for some rounding error).
     if (redshift <= redshiftTiny) then
@@ -65,7 +65,7 @@ contains
              ! Observational data scales as luminosity.
              cosmologyConversionMass=(cosmologyFunctionsObserved%distanceLuminosity(timeObserved)/cosmologyFunctionsModel%distanceLuminosity(timeModel))**2
           case default
-             call Galacticus_Error_Report('Cosmology_Conversion_Factors','unrecognized cosmology scaling')
+             call Galacticus_Error_Report('unrecognized cosmology scaling'//{introspection:location})
           end select
        end if
        ! Compute scaling factor for sizes.
@@ -78,7 +78,7 @@ contains
              ! Observational data scales as angular size.
              cosmologyConversionSize=cosmologyFunctionsObserved%distanceAngular(timeObserved)/cosmologyFunctionsModel%distanceAngular(timeModel)
           case default
-             call Galacticus_Error_Report('Cosmology_Conversion_Factors','unrecognized cosmology scaling')
+             call Galacticus_Error_Report('unrecognized cosmology scaling'//{introspection:location})
           end select
        end if
        ! Compute scaling factor for mass functions.
@@ -92,7 +92,7 @@ contains
              cosmologyConversionMassFunction= (cosmologyFunctionsModel%distanceComoving      (timeModel)/cosmologyFunctionsObserved%distanceComoving      (timeObserved))**2 &
                   &                          /(cosmologyFunctionsModel%hubbleParameterEpochal(timeModel)/cosmologyFunctionsObserved%hubbleParameterEpochal(timeObserved))
           case default
-             call Galacticus_Error_Report('Cosmology_Conversion_Factors','unrecognized cosmology scaling')
+             call Galacticus_Error_Report('unrecognized cosmology scaling'//{introspection:location})
           end select
        end if
     end if

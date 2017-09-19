@@ -739,7 +739,7 @@ contains
           case ( 'binomial' )
              analysisMassFunctionCovarianceModel=analysisMassFunctionCovarianceModelBinomial
           case default
-             call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unrecognized value for "analysisMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+             call Galacticus_Error_Report('unrecognized value for "analysisMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>analysisMassFunctionsHaloMassBinsPerDecade</name>
@@ -1196,7 +1196,7 @@ contains
                       case ('ultravistaStellarMassFunctionZ3.50')
                          call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z3.00_4.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case default
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function "'//trim(massFunctionLabels(j))//'"')
+                         call Galacticus_Error_Report('unknown mass function "'//trim(massFunctionLabels(j))//'"'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
                       call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
@@ -1275,7 +1275,7 @@ contains
                    else
                       message="mass function '"//trim(massFunctions(currentAnalysis)%descriptor%label)//"' bin "
                       message=message//k//" has zero weights"
-                      call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions',message)
+                      call Galacticus_Error_Report(message//{introspection:location})
                    end if
                 end do
              end do

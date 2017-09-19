@@ -422,7 +422,7 @@ CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 case default
-   call Galacticus_Error_Report('nodeEventBuildFromRaw','unknown class type')
+   call Galacticus_Error_Report('unknown class type'//\{introspection:location\})
 end select
 call event%deserializeRaw(fileUnit)
 CODE

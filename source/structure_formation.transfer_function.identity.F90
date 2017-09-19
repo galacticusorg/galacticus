@@ -91,6 +91,6 @@ contains
     !GCC$ attributes unused :: self
 
     identityHalfModeMass=0.0d0
-    call Galacticus_Error_Report('identityHalfModeMass','not supported by this implementation')
+    call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
     return
   end function identityHalfModeMass

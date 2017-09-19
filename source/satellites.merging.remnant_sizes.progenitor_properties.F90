@@ -71,8 +71,7 @@ contains
           !#  <functionArgs>satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get</functionArgs>
           include 'satellites.merging.remnant_sizes.progenitor_properties.inc'
           !# </include>
-          if (.not.associated(Satellite_Merging_Remnant_Progenitor_Properties_Get)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties','method ' &
-               &//char(satelliteMergingRemnantProgenitorPropertiesMethod)//' is unrecognized')
+          if (.not.associated(Satellite_Merging_Remnant_Progenitor_Properties_Get)) call Galacticus_Error_Report('method '//char(satelliteMergingRemnantProgenitorPropertiesMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           satelliteMergingRemnantProgenitorPropertiesInitialized=.true.
        end if

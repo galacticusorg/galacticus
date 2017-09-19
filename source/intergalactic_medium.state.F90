@@ -85,10 +85,10 @@ module Intergalactic_Medium_State
   !#    ! Ensure that the table is initialized.
   !#    call intergalacticMediumStateElectronScatteringTabulate(self,time)
   !#    ! Check for invalid input.
-  !#    if (time > self%electronScatteringTableTimeMaximum)                               &amp;
-  !#       &amp; call Galacticus_Error_Report(                                            &amp;
-  !#       &amp;                              'electronScatteringOpticalDepth'          , &amp;
-  !#       &amp;                              'time exceeds present age of the universe'  &amp;
+  !#    if (time > self%electronScatteringTableTimeMaximum)                                &amp;
+  !#       &amp; call Galacticus_Error_Report(                                             &amp;
+  !#       &amp;                              'time exceeds present age of the universe'// &amp;
+  !#       &amp;                              {introspection:location}                     &amp;
   !#       &amp;                             )
   !#    assumeFullyIonizedActual=.false.
   !#    if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
@@ -111,7 +111,7 @@ module Intergalactic_Medium_State
   !#    logical                                            :: assumeFullyIonizedActual
   !#    double precision                                   :: time
   !#    ! Check for invalid input.
-  !#    if (opticalDepth &lt; 0.0d0) call Galacticus_Error_Report('electronScatteringTime','optical depth must be non-negative')
+  !#    if (opticalDepth &lt; 0.0d0) call Galacticus_Error_Report('optical depth must be non-negative'//{introspection:location})
   !#    ! Determine which optical depth to use.
   !#    assumeFullyIonizedActual=.false.
   !#    if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
@@ -333,7 +333,7 @@ contains
        ! Loop over times and populate tables.
        do iTime=1,self%filteringMassTableNumberPoints
           ! Abort if time is too early.
-          if (self%filteringMassTable%x(iTime) <= timeInitial) call Galacticus_Error_Report('intergalacticMediumStateFilteringMassTabulate','time is too early')
+          if (self%filteringMassTable%x(iTime) <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
           ! Set the composite variables used to solve for filtering mass.
           call Mass_Filtering_ODE_Initial_Conditions(timeInitial,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,massFiltering,massFilteringScales)
           ! Solve the ODE system

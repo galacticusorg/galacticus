@@ -64,8 +64,8 @@ contains
           !#  <functionArgs>tidalStrippingMassLossRateDisksMethod,Tidal_Stripping_Mass_Loss_Rate_Disk_Get</functionArgs>
           include 'tidal_stripping.mass_loss_rate.disks.inc'
           !# </include>
-          if (.not.associated(Tidal_Stripping_Mass_Loss_Rate_Disk_Get)) call Galacticus_Error_Report('Tidal_Stripping_Mass_Loss_Rate_Disk','method ' &
-               &//char(tidalStrippingMassLossRateDisksMethod)//' is unrecognized')
+          if (.not.associated(Tidal_Stripping_Mass_Loss_Rate_Disk_Get)) call Galacticus_Error_Report('method ' &
+               &//char(tidalStrippingMassLossRateDisksMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Tidal_Stripping_Mass_Loss_Rate_Disk_Init)

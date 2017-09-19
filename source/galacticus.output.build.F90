@@ -84,7 +84,7 @@ contains
     Galacticus_Build_String=Galacticus_Build_String//":FoX_version["//Fox_Version//"]"
     ! Write HDF5 library version string.
     call h5get_libversion_f(hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError)
-    if (hdfError /= 0) call Galacticus_Error_Report('Galacticus_Build_String','unable to get HDF5 library version number')
+    if (hdfError /= 0) call Galacticus_Error_Report('unable to get HDF5 library version number'//{introspection:location})
     versionString=''
     versionString=versionString//hdfVersionMajor//"."
     versionString=versionString//hdfVersionMinor//"."
@@ -163,7 +163,7 @@ contains
 
     ! Write HDF5 library version string.
     call h5get_libversion_f(hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError)
-    if (hdfError /= 0) call Galacticus_Error_Report('Galacticus_Build_Output','unable to get HDF5 library version number')
+    if (hdfError /= 0) call Galacticus_Error_Report('unable to get HDF5 library version number'//{introspection:location})
     versionString=''
     versionString=versionString//hdfVersionMajor//"."
     versionString=versionString//hdfVersionMinor//"."

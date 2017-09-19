@@ -140,7 +140,7 @@ contains
             &               *velocityTangentialInternal                          &
             &               *exp(-a (2)*((velocityTangentialInternal-a (9))**2)) &
             &               *exp(-b1   *( velocityRadialInternal    -b2   )**2)
-       if (distributionFunction > pMax) call Galacticus_Error_Report('benson2005Orbit','distribution function exceeds expected peak value')
+       if (distributionFunction > pMax) call Galacticus_Error_Report('distribution function exceeds expected peak value'//{introspection:location})
        uniformRandom=pMax*node%hostTree%randomNumberGenerator%sample()
        if (uniformRandom <= distributionFunction) then
           foundOrbit=.true.

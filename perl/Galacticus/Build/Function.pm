@@ -229,7 +229,7 @@ sub Functions_Generate_Output {
 	$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 	$deepCopyCode .= "destination=self\n";
 	$deepCopyCode .= "class default\n";
-	$deepCopyCode .= "call Galacticus_Error_Report('".$directive."DeepCopy','destination and source types do not match')\n";
+	$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})\n";
 	$deepCopyCode .= "end select\n";
     }
     $deepCopyCode .= "end select\n";
@@ -506,7 +506,7 @@ sub Functions_Generate_Output {
 	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
     }
-    $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."ConstructorNamed',message)\n";
+    $buildData->{'content'} .= "         call Galacticus_Error_Report(message//{introspection:location})\n";
     $buildData->{'content'} .= "      end select\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end function ".$directive."ConstructorNamed\n\n";
@@ -517,7 +517,7 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      use Galacticus_Error\n";
     $buildData->{'content'} .= "      implicit none\n";
     $buildData->{'content'} .= "      type(".$directive."Class), intent(in   ) :: self\n\n";
-    $buildData->{'content'} .= "      if (self%isIndestructible) call Galacticus_Error_Report('".$directive."Destructor','attempt to destroy indestructible object')\n";
+    $buildData->{'content'} .= "      if (self%isIndestructible) call Galacticus_Error_Report('attempt to destroy indestructible object'//{introspection:location})\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end subroutine ".$directive."Destructor\n\n";
 
@@ -575,7 +575,7 @@ sub Functions_Generate_Output {
 	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
     }
-    $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
+    $buildData->{'content'} .= "         call Galacticus_Error_Report(message//{introspection:location})\n";
     $buildData->{'content'} .= "      end select\n";
     $buildData->{'content'} .= "      ".$directive."Default%isIndestructible=.true.\n";
     $buildData->{'content'} .= "      ".$directive."Default%isDefaultValue  =.true.\n";
@@ -722,7 +722,7 @@ sub Functions_Generate_Output {
 		    }
 		}
 	    }
-	    $buildData->{'content'} .= "      call Galacticus_Error_Report('".$method->{'name'}."Null','this is a null method - initialize the ".$directive." object before use')\n";
+	    $buildData->{'content'} .= "      call Galacticus_Error_Report('this is a null method - initialize the ".$directive." object before use'//{introspection:location})\n";
 	}
 	$buildData->{'content'} .= "      return\n";
 	$buildData->{'content'} .= "   end ".$category." ".$directive.ucfirst($method->{'name'}).$extension."\n\n";

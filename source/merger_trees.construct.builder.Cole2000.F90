@@ -196,7 +196,7 @@ contains
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout) :: self
 
-    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('cole2000ValidateParameters','accretionLimit < 1 required')
+    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('accretionLimit < 1 required'//{introspection:location})
     return
   end subroutine cole2000ValidateParameters
 
@@ -316,7 +316,7 @@ contains
                 if      (                                                                             &
                      &    deltaCritical1 <  branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
                      &  ) then
-                   call Galacticus_Error_Report('cole2000Build','truncating to resolution, but resolution node exists after parent')
+                   call Galacticus_Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
                 else if (                                                                             &
                      &    deltaCritical1 >= branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
                      &   .and.                                                                        &
@@ -585,7 +585,7 @@ contains
                 message=message//" ->       tree mass = "//label//" M☉" //char(10)
                 write (label,'(e20.14)') massResolution
                 message=message//" -> mass resolution = "//label//" M☉"
-                call Galacticus_Error_Report('cole2000Build',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
           end if
        end if

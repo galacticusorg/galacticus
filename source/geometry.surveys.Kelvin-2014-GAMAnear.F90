@@ -93,7 +93,7 @@ contains
     double precision                                                            :: logarithmicMass
     
     ! Validate field.
-    if (present(field).and.(field < 1 .or. field > 3)) call Galacticus_Error_Report('kelvin2014GAMAnearDistanceMaximum','1 ≤ field ≤ 3 required')
+    if (present(field).and.(field < 1 .or. field > 3)) call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
     ! Compute the limiting distance. For the GAMAnear sample, all fields are limited to r=19.4
     logarithmicMass=log10(mass)
     kelvin2014GAMAnearDistanceMaximum                      &

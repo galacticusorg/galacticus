@@ -70,7 +70,7 @@ contains
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
        doc => parseFile(char(Galacticus_Input_Path())//'data/stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize','Unable to parse yields file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse yields file'//{introspection:location})
 
        ! Get a list of all isotopes.
        isotopesList => getElementsByTagname(doc,"isotope")
@@ -78,13 +78,11 @@ contains
        ! Loop through isotopes and compute the net metal yield.
        do iIsotope=0,getLength(isotopesList)-1
           thisIsotope  => item(isotopesList,iIsotope)
-          if (XML_Array_Length(thisIsotope,"yield") /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
-               & ,'isotope must have precisely one yield')
+          if (XML_Array_Length(thisIsotope,"yield") /= 1) call Galacticus_Error_Report('isotope must have precisely one yield'//{introspection:location})
           thisYield => XML_Get_First_Element_By_Tag_Name(thisIsotope,"yield")
           call extractDataContent(thisYield,isotopeYield)
           totalYield=totalYield+isotopeYield
-          if (XML_Array_Length(thisIsotope,"atomicNumber") /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
-               & ,'isotope must have precisely one atomic number')
+          if (XML_Array_Length(thisIsotope,"atomicNumber") /= 1) call Galacticus_Error_Report('isotope must have precisely one atomic number'//{introspection:location})
           thisAtom => XML_Get_First_Element_By_Tag_Name(thisIsotope,"atomicNumber")
           call extractDataContent(thisAtom,atomicNumber)
           atomicIndex=Atom_Lookup(atomicNumber=atomicNumber)

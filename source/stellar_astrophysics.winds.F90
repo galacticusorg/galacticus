@@ -69,8 +69,8 @@ contains
           !#  <functionArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</functionArgs>
           include 'stellar_astrophysics.winds.inc'
           !# </include>
-          if (.not.(associated(Stellar_Winds_Mass_Loss_Rate_Get).or.associated(Stellar_Winds_Terminal_Velocity_Get))) call&
-               & Galacticus_Error_Report('Stellar_Winds_Initialize','method '//char(stellarWindsMethod)//' is unrecognized')
+          if (.not.(associated(Stellar_Winds_Mass_Loss_Rate_Get).or.associated(Stellar_Winds_Terminal_Velocity_Get))) &
+               & call Galacticus_Error_Report('method '//char(stellarWindsMethod)//' is unrecognized'//{introspection:location})
           stellarWindsInitialized=.true.
        end if
        !$omp end critical(Stellar_Winds_Initialization)

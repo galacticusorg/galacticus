@@ -62,9 +62,9 @@ contains
                   &   Galacticus_Output_Time(1_c_size_t) <= timeMaximum*(1.0d0+timeTolerance) &
                   & ) outputWeight=1.0d0
           end do
-          if (all(outputWeight == 0.0d0)) call Galacticus_Error_Report('Output_Analysis_Output_Weight_Survey_Volume','zero weights')
+          if (all(outputWeight == 0.0d0)) call Galacticus_Error_Report('zero weights'//{introspection:location})
        else
-          call Galacticus_Error_Report('Output_Analysis_Output_Weight_Survey_Volume','single epoch output not permitted')
+          call Galacticus_Error_Report('single epoch output not permitted'//{introspection:location})
        end if
     else
        do iOutput=1,Galacticus_Output_Time_Count()
@@ -105,7 +105,7 @@ contains
           outputWeight=+    outputWeight  &
                &       /sum(outputWeight)
        else
-          call Galacticus_Error_Report('Output_Analysis_Output_Weight_Survey_Volume','zero weights')
+          call Galacticus_Error_Report('zero weights'//{introspection:location})
        end if
     end if
     return

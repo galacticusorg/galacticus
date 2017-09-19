@@ -176,7 +176,7 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008','error condition detected')
+       if (errorCondition) call Galacticus_Error_Report('error condition detected'//{introspection:location})
        ! Apply the Covington et al. (2008) algorithm to compute the size of the new remnant.
        ! Check that remnant has finite mass.
        if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
@@ -199,7 +199,7 @@ contains
           if (finalEnergy <= 0.0d0) then
              write (dataString,'(e12.6,":",e12.6)') progenitorsEnergy,radiatedEnergy
              message='remnant becomes unbound (progenitorsEnergy:radiatedEnergy='//trim(dataString)//')'
-             call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Covington2008',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           end if
 
           ! Compute the remnant radius.

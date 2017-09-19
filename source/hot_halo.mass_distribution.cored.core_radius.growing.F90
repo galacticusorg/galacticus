@@ -101,15 +101,15 @@ contains
     growingConstructor%coreRadiusOverVirialRadiusMaximum=coreRadiusOverVirialRadiusMaximum
     growingConstructor%coreRadiusTableInitialized       =.false.
     ! Ensure that the dark matter profile supports the scale property.
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                          &
-         & call Galacticus_Error_Report                                                                                    &
-         &      (                                                                                                          &
-         &       'growingConstructor'                                                                                    , &
-         &       'method requires a dark matter profile component that provides a gettable "scale" property.'//            &
-         &       Galacticus_Component_List(                                                                                &
-         &                                 'darkMatterProfile'                                                           , &
-         &                                  defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
-         &                                )                                                                                &
+    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                           &
+         & call Galacticus_Error_Report                                                                                     &
+         &      (                                                                                                           &
+         &       'method requires a dark matter profile component that provides a gettable "scale" property.'//             &
+         &       Galacticus_Component_List(                                                                                 &
+         &                                 'darkMatterProfile'                                                           ,  &
+         &                                  defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
+         &                                )                                                                              // &
+         &       {introspection:location}                                                                                   &
          &      )    
    return
   end function growingConstructor

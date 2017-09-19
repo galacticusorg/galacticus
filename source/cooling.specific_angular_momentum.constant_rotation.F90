@@ -75,7 +75,7 @@ contains
        case ("hotGas"    )
           meanSpecificAngularMomentumFrom=profileHotGas
        case default
-          call Galacticus_Error_Report('Cooling_Specific_AM_Constant_Rotation_Initialize','[coolingMeanAngularMomentumFrom] must be either "darkMatter" or "hotGas"')
+          call Galacticus_Error_Report('[coolingMeanAngularMomentumFrom] must be either "darkMatter" or "hotGas"'//{introspection:location})
        end select
 
        !# <inputParameter>
@@ -94,7 +94,7 @@ contains
        case ("hotGas"    )
           rotationNormalizationFrom=profileHotGas
        case default
-          call Galacticus_Error_Report('Cooling_Specific_AM_Constant_Rotation_Initialize','[coolingRotationVelocityFrom] must be either "darkMatter" or "hotGas"')
+          call Galacticus_Error_Report('[coolingRotationVelocityFrom] must be either "darkMatter" or "hotGas"'//{introspection:location})
        end select
        
        !# <inputParameter>
@@ -168,7 +168,7 @@ contains
                &                      /hotHalo%mass           ()
        case default
           meanSpecificAngularMomentum=0.0d0
-          call Galacticus_Error_Report('Cooling_Specific_Angular_Momentum_Constant_Rotation','unknown profile type')
+          call Galacticus_Error_Report('unknown profile type'//{introspection:location})
        end select
 
        ! Compute the rotation normalization.
@@ -179,7 +179,7 @@ contains
           rotationNormalization=hotHaloMassDistribution_%rotationNormalization(node)
        case default
           rotationNormalization=0.0d0
-          call Galacticus_Error_Report('Cooling_Specific_Angular_Momentum_Constant_Rotation','unknown profile type')
+          call Galacticus_Error_Report('unknown profile type'//{introspection:location})
        end select
 
        ! Compute the specific angular momentum of the cooling gas.

@@ -137,8 +137,7 @@ contains
        darkMatterProfileParent => node%parent%darkMatterProfile()
        basic               => node       %basic            ()
        basicParent             => node%parent%basic            ()
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('Node_Component_Dark_Matter_Profile_Scale_Preset_Promote','node&
-            & has not been evolved to its parent')
+       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
        ! Adjust the scale radius to that of the parent node.
        call darkMatterProfile%scaleSet          (darkMatterProfileParent%scale          ())
        ! Adjust the growth rate to that of the parent node.

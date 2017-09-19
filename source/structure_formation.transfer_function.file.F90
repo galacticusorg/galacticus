@@ -189,11 +189,11 @@ contains
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(fileName,iostat=ioError)
-    if (ioError /= 0) call Galacticus_Error_Report('fileReadFile','Unable to find transfer function file "'//trim(fileName)//'"')
+    if (ioError /= 0) call Galacticus_Error_Report('Unable to find transfer function file "'//trim(fileName)//'"'//{introspection:location})
     ! Check that the file has the correct format version number.
     formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(formatElement,versionNumber)
-    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('fileReadFile','file has the incorrect version number')
+    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
     ! Check that parameters match if any are present.
     parameters => XML_Get_First_Element_By_Tag_Name(doc,"parameters")
     !$omp end critical (FoX_DOM_Access)
@@ -232,7 +232,7 @@ contains
        case ('high')
           extrapolateWavenumberHigh=extrapolationMethod
        case default
-          call Galacticus_Error_Report('fileReadFile','unrecognized extrapolation limit')
+          call Galacticus_Error_Report('unrecognized extrapolation limit'//{introspection:location})
        end select
     end do
     ! Read the transfer function from file.
@@ -298,6 +298,6 @@ contains
     !GCC$ attributes unused :: self
     
     fileHalfModeMass=0.0d0
-    call Galacticus_Error_Report('fileHalfModeMass','not supported by this implementation')
+    call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
     return
   end function fileHalfModeMass

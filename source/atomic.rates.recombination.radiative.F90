@@ -64,8 +64,8 @@ contains
           !#  <functionArgs>atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get</functionArgs>
           include 'atomic.rates.recombination.radiative.inc'
           !# </include>
-          if (.not.associated(Atomic_Rate_Recombination_Radiative_Get)) call&
-               & Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Initialize','method '//char(atomicRadiativeRecombinationMethod)//' is unrecognized')
+          if (.not.associated(Atomic_Rate_Recombination_Radiative_Get)) &
+               & call Galacticus_Error_Report('method '//char(atomicRadiativeRecombinationMethod)//' is unrecognized'//{introspection:location})
           recombinationRateInitialized=.true.
        end if
        !$omp end critical(Atomic_Rate_Recombination_Radiative_Initialization)

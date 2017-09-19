@@ -153,7 +153,7 @@ contains
        message=message//"    orbit pericenter = "//label//" Mpc"//char(10)
        write (label,'(e12.6)') fixedOrbit%radiusApocenter()
        message=message//"     orbit apocenter = "//label//" Mpc"
-       call Galacticus_Error_Report('fixedOrbit',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     return
   end function fixedOrbit

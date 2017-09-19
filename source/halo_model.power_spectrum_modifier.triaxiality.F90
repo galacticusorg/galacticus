@@ -89,7 +89,7 @@ contains
     !GCC$ attributes unused :: self
     
     ! Mass is required.
-    if (.not.present(mass)) call Galacticus_Error_Report('triaxialityModify','mass is required')
+    if (.not.present(mass)) call Galacticus_Error_Report('mass is required'//{introspection:location})
     ! Initialize tables if necessary.
     if (.not.triaxialityInitialized) then
        call triaxialityTable%create(                                          &

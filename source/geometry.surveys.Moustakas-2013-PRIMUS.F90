@@ -112,7 +112,7 @@ contains
        redshiftMinimum=0.80d0
        redshiftMaximum=1.00d0
     case default
-       call Galacticus_Error_Report('moustakas2013PRIMUSConstructorInternal','0≤redshiftBin≤6 is required')
+       call Galacticus_Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -172,8 +172,8 @@ contains
     double precision                                                             :: redshift           , logarithmicMass
     
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','field must be specified')
-    if (field < 1 .or. field > 5) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','1 ≤ field ≤ 5 required')
+    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+    if (field < 1 .or. field > 5) call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
     ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -226,8 +226,8 @@ contains
     integer                                            , intent(in   ), optional :: field
 
     ! Validate field.
-    if (.not.present(field)) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','field must be specified')
-    if (field < 1 .or. field > 5) call Galacticus_Error_Report('moustakas2013PRIMUSDistanceMaximum','1 ≤ field ≤ 5 required')
+    if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
+    if (field < 1 .or. field > 5) call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     ! Compute the volume.
     moustakas2013PRIMUSVolumeMaximum                       &
          & =max(                                           &

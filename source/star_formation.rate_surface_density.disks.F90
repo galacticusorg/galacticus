@@ -66,9 +66,8 @@ contains
           !#  <functionArgs>starFormationRateSurfaceDensityDisksMethod,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get</functionArgs>
           include 'star_formation.rate_surface_density.disks.inc'
           !# </include>
-          if (.not.(associated(Star_Formation_Rate_Surface_Density_Disk_Get).and.associated(Star_Formation_Rate_Surface_Density_Disk_Intervals_Get))) call&
-               & Galacticus_Error_Report('Star_Formation_Rate_Surface_Density_Disks' ,'method '&
-               &//char(starFormationRateSurfaceDensityDisksMethod)//' is unrecognized')
+          if (.not.(associated(Star_Formation_Rate_Surface_Density_Disk_Get).and.associated(Star_Formation_Rate_Surface_Density_Disk_Intervals_Get))) &
+               & call Galacticus_Error_Report('method '//char(starFormationRateSurfaceDensityDisksMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Star_Formation_Rate_Surface_Density_Disks_Initialization)

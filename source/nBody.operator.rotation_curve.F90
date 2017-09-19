@@ -121,9 +121,9 @@ contains
     if (self%selfBoundParticlesOnly) then
        if (simulation%analysis%hasDataset('selfBoundStatus')) then
           call simulation%analysis%readDataset('selfBoundStatus',selfBoundStatus)
-          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('rotationCurveOperate','number of selfBoundStatus samples must equal number of requested bootstrap samples')
+          if (size(selfBoundStatus,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of selfBoundStatus samples must equal number of requested bootstrap samples'//{introspection:location})
        else
-          call Galacticus_Error_Report('rotationCurveOperate','self-bound status not available - apply a self-bound operator first')
+          call Galacticus_Error_Report('self-bound status not available - apply a self-bound operator first'//{introspection:location})
        end if
     else
        call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
@@ -134,9 +134,9 @@ contains
        end do
     end if
     ! Get mean position.
-    if (.not.simulation%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('rotationCurveOperate','mean position not available - apply the mean position operator first')
+    if (.not.simulation%analysis%hasDataset('positionMean')) call Galacticus_Error_Report('mean position not available - apply the mean position operator first'//{introspection:location})
     call simulation%analysis%readDataset('positionMean',positionMean)
-    if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('rotationCurveOperate','number of positionMean samples must equal number of requested bootstrap samples')
+    if (size(positionMean,dim=2) /= self%bootstrapSampleCount) call Galacticus_Error_Report('number of positionMean samples must equal number of requested bootstrap samples'//{introspection:location})
     do i=1,self%bootstrapSampleCount
        !$omp parallel workshare
        ! Compute radial distance from the mean position.

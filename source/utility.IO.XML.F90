@@ -249,7 +249,7 @@ contains
        endif
        elementList => getElementsByTagName(XML_Get_First_Element_By_Tag_Name,currentTagName)
        if (getLength(elementList) < 1) then
-          call Galacticus_Error_Report('XML_Get_First_Element_By_Tag_Name','no elements match tag name "'//trim(currentTagName)//'"')
+          call Galacticus_Error_Report('no elements match tag name "'//trim(currentTagName)//'"'//{introspection:location})
        else
           if (directChildrenOnlyActual) then
              do i=0,getLength(elementList)-1
@@ -329,19 +329,19 @@ contains
 
     ! Extract the limit type.
     elementList => getElementsByTagname(extrapolationElement,"limit")
-    if (getLength(elementList) /= 1) call Galacticus_Error_Report('Extrapolation_Element_Decode','extrapolation element must contain exactly one limit element')
+    if (getLength(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one limit element'//{introspection:location})
     limitElement => item(elementList,0)
     call extractDataContent(limitElement,limitType)
 
     ! Extract the method type.
     elementList => getElementsByTagname(extrapolationElement,"method")
-    if (getLength(elementList) /= 1) call Galacticus_Error_Report('Extrapolation_Element_Decode','extrapolation element must contain exactly one method element')
+    if (getLength(elementList) /= 1) call Galacticus_Error_Report('extrapolation element must contain exactly one method element'//{introspection:location})
     methodElement => item(elementList,0)
     call extractDataContent(methodElement,methodType)
     extrapolationMethod=enumerationExtrapolationTypeEncode(trim(methodType),includesPrefix=.false.)
     ! Validate the method type.
     if (present(allowedMethods)) then
-       if (all(allowedMethods /= extrapolationMethod)) call Galacticus_Error_Report('Extrapolation_Element_Decode','unallowed extrapolation method')
+       if (all(allowedMethods /= extrapolationMethod)) call Galacticus_Error_Report('unallowed extrapolation method'//{introspection:location})
     end if
 
     return

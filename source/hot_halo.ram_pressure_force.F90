@@ -65,8 +65,7 @@ contains
           !#  <functionArgs>hotHaloRamPressureForceMethod,Hot_Halo_Ram_Pressure_Force_Get</functionArgs>
           include 'hot_halo.ram_pressure_force.inc'
           !# </include>
-          if (.not.associated(Hot_Halo_Ram_Pressure_Force_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Force','method ' &
-               &//char(hotHaloRamPressureForceMethod)//' is unrecognized')
+          if (.not.associated(Hot_Halo_Ram_Pressure_Force_Get)) call Galacticus_Error_Report('method '//char(hotHaloRamPressureForceMethod)//' is unrecognized'//{introspection:location})
           hotHaloRamPressureForceInitialized=.true.
        end if
        !$omp end critical(Hot_Halo_Ram_Pressure_Force_Initialization)

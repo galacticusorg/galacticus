@@ -86,7 +86,7 @@ contains
 
     ! Determine which node to use for halo properties.
     if (simpleRadiusSolverUseFormationHalo) then
-       if (.not.associated(node%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Simple','no formation node exists')
+       if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
        haloNode => node%formationNode
     else
        haloNode => node

@@ -55,7 +55,7 @@ double precision function distributionNormalMinimum(self)
      distributionNormalMinimum=self%limitLower
   else
      distributionNormalMinimum=0.0d0
-     call Galacticus_Error_Report('distributionNormalMinimum','no minimum exists')
+     call Galacticus_Error_Report('no minimum exists'//{introspection:location})
   end if
   return
 end function distributionNormalMinimum
@@ -70,7 +70,7 @@ double precision function distributionNormalMaximum(self)
      distributionNormalMaximum=self%limitUpper
   else
      distributionNormalMaximum=0.0d0
-     call Galacticus_Error_Report('distributionNormalMaximum','no maximum exists')
+     call Galacticus_Error_Report('no maximum exists'//{introspection:location})
   end if
   return
 end function distributionNormalMaximum
@@ -140,10 +140,10 @@ double precision function distributionNormalInverse(self,p)
   class           (distributionNormal), intent(in   ) :: self
   double precision                     , intent(in   ) :: p
 
-  if (p < 0.0d0 .or. p > 1.0d0)                                       &
-       & call Galacticus_Error_Report(                                &
-       &                              'distributionNormalCumulative', &
-       &                              'probability out of range'      &
+  if (p < 0.0d0 .or. p > 1.0d0)                                    &
+       & call Galacticus_Error_Report(                             &
+       &                              'probability out of range'// &
+       &                              {introspection:location}     &
        &                             )
   distributionNormalInverse=                                                           &
        &                          self%mean                                            &

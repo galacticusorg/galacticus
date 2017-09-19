@@ -133,7 +133,7 @@ subroutine xermsg(a,b,c,i,j)
   write (0,*) a
   write (0,*) b
   write (0,*) c
-  call Galacticus_Error_Report('xermsg','error thrown by XSpec functions')
+  call Galacticus_Error_Report('error thrown by XSpec functions'//{introspection:location})
   return
 end subroutine xermsg
 
@@ -162,7 +162,7 @@ real function fgabnd(c)
   if (c == 'Fe') fgabnd= 7.43 ! Fe
   if (c == 'Co') fgabnd= 4.92 ! Co
   if (c == 'Ni') fgabnd= 6.05 ! Ni
-  if (fgabnd == 0.0) call Galacticus_Error_Report('fgabnd','unknown element')
+  if (fgabnd == 0.0) call Galacticus_Error_Report('unknown element'//{introspection:location})
   fgabnd=10.0**(fgabnd-12.00)
   return
 end function fgabnd

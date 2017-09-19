@@ -206,7 +206,7 @@ contains
           newState=stateCorrelation(parameterCount,stateAcceptedCount)
        end select
     case default
-       call Galacticus_Error_Report('stateNew','state type is unrecognized')
+       call Galacticus_Error_Report('state type is unrecognized'//{introspection:location})
     end select
     return
   end function stateNew

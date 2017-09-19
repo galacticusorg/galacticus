@@ -99,7 +99,7 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} eq "double precision" ) {
 	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null=0.0d0\n";
 	}
-	$buildData->{'content'} .= "  call Galacticus_Error_Report('".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null','global functions have not been initialized')\n";
+	$buildData->{'content'} .= "  call Galacticus_Error_Report('global functions have not been initialized'//{introspection:location})\n";
 	$buildData->{'content'} .= " end ".$closer." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
     }
 }

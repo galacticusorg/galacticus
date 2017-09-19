@@ -44,21 +44,21 @@ contains
     if (coolingSpecificAngularMomentumMethod == 'mean') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Mean
        ! Check that the required properties are gettable.
-       if     (                                                                                                                 &
-            &  .not.(                                                                                                           &
-            &        defaultHotHaloComponent%           massIsGettable().and.                                                   &
-            &        defaultHotHaloComponent%angularMomentumIsGettable()                                                        &
-            &       )                                                                                                           &
-            & ) call Galacticus_Error_Report                                                                                    &
-            &        (                                                                                                          &
-            &         'Cooling_Specific_AM_Mean_Initialize'                                                                   , &
-            &         'this method requires that the "mass" and "angularMomentum" properties of the hot halo be gettable.'//    &
-            &         Galacticus_Component_List(                                                                                &
-            &                                   'hotHalo'                                                                     , &
-            &                                    defaultHotHaloComponent%           massAttributeMatch(requireGettable=.true.)  &
-            &                                   .intersection.                                                                  &
-            &                                    defaultHotHaloComponent%angularMomentumAttributeMatch(requireGettable=.true.)  &
-            &                                  )                                                                                &
+       if     (                                                                                                                  &
+            &  .not.(                                                                                                            &
+            &        defaultHotHaloComponent%           massIsGettable().and.                                                    &
+            &        defaultHotHaloComponent%angularMomentumIsGettable()                                                         &
+            &       )                                                                                                            &
+            & ) call Galacticus_Error_Report                                                                                     &
+            &        (                                                                                                           &
+            &         'this method requires that the "mass" and "angularMomentum" properties of the hot halo be gettable.'    // &
+            &         Galacticus_Component_List(                                                                                 &
+            &                                   'hotHalo'                                                                     ,  &
+            &                                    defaultHotHaloComponent%           massAttributeMatch(requireGettable=.true.)   &
+            &                                   .intersection.                                                                   &
+            &                                    defaultHotHaloComponent%angularMomentumAttributeMatch(requireGettable=.true.)   &
+            &                                  )                                                                              // &
+            &         {introspection:location}                                                                                   &
             &        )
     end if
     return

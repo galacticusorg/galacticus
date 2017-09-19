@@ -106,7 +106,7 @@ contains
           x1Internal=interruptedAtX
        case default
           ! Some other error condition.
-          call Galacticus_Error_Report('ODE_Solve','ODE integration failed')
+          call Galacticus_Error_Report('ODE integration failed'//{introspection:location})
        end select
     end do
     ! Return the new value of x.

@@ -109,7 +109,7 @@ contains
     ! Find the minimum and maximum separations, and the logarithmic step size.
     separationLimit                 =separationMaximum*sqrt(separation(2)/separation(1))
     if (projectedActual) then
-       if (.not.present(radialSeparationMaximum)) call Galacticus_Error_Report('Statistics_Points_Correlation','maximum radial separation required for projected correlation functions')
+       if (.not.present(radialSeparationMaximum)) call Galacticus_Error_Report('maximum radial separation required for projected correlation functions'//{introspection:location})
        separationLimit=sqrt(separationLimit**2+radialSeparationMaximum**2)
     end if
     separationLogarithmicStepInverse=1.0d0/log(separation(2)/separation(1))

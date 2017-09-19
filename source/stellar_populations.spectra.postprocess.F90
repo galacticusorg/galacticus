@@ -112,7 +112,7 @@ module Stellar_Population_Spectra_Postprocess
     parameterName='stellarPopulationSpectraPostprocess'//String_Upper_Case_First(char(postprocessingChain))//'Methods'
     ! Determine how many methods are to be applied.
     if (postprocessingChain /= "default" .and. .not.globalParameters%isPresent(char(parameterName))) &
-         & call Galacticus_Error_Report('Stellar_Population_Spectrum_Postprocess_Index','parameter ['//parameterName//'] is not present in parameter file')
+         & call Galacticus_Error_Report('parameter ['//parameterName//'] is not present in parameter file'//{introspection:location})
     methodCount=max(globalParameters%count(char(parameterName),zeroIfNotPresent=.true.),1)
     allocate(postprocessingChainNamesTemporary(methodCount))
     ! Note that we specify a default value here, which applies to all post-processing chains, even though we want it to apply only

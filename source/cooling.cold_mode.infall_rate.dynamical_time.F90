@@ -74,10 +74,10 @@ contains
     !# <constructorAssign variables="dynamicalRateFraction, *darkMatterHaloScale_"/>
     
     ! Check that the properties we need are gettable.
-    if (.not.defaultHotHaloComponent%massColdIsGettable())                                 &
-         & call Galacticus_Error_Report(                                                   &
-         &                              'dynamicalTimeConstructorInternal'               , &
-         &                              'hot halo component must have gettable cold mass'  &
+    if (.not.defaultHotHaloComponent%massColdIsGettable())                                  &
+         & call Galacticus_Error_Report(                                                    &
+         &                              'hot halo component must have gettable cold mass'// &
+         &                              {introspection:location}                            &
          &                             )
     return
   end function dynamicalTimeConstructorInternal

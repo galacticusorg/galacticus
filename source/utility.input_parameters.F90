@@ -352,9 +352,9 @@ contains
     parameterNode => parseFile(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
-          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to parse parameter file: "'//trim(fileName)//'"')
+          call Galacticus_Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
        else
-          call Galacticus_Error_Report('inputParametersConstructorFileChar','Unable to find parameter file: "' //trim(fileName)//'"')
+          call Galacticus_Error_Report('Unable to find parameter file: "' //trim(fileName)//'"'//{introspection:location})
        end if
     end if
     !$omp end critical (FoX_DOM_Access)
@@ -412,7 +412,7 @@ contains
           !$omp critical (FoX_DOM_Access)
           ! Parse the file.
           allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
-          if (errorStatus /= 0) call Galacticus_Error_Report('inputParametersConstructorNode','Unable to parse allowed parameters file')
+          if (errorStatus /= 0) call Galacticus_Error_Report('Unable to parse allowed parameters file'//{introspection:location})
           ! Extract allowed parameter names to array.
           allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
           allowedParameterFromFileCount=getLength(allowedParameterList)
@@ -613,7 +613,7 @@ contains
        !$ end if
        inputParameterObjectGet => self%objects(instance)%object
     else
-       call Galacticus_Error_Report('inputParameterObjectGet','object not allocated for this parameter')
+       call Galacticus_Error_Report('object not allocated for this parameter'//{introspection:location})
     end if
     !$omp end critical (inputParameterObjects)
     return
@@ -780,7 +780,7 @@ contains
     end interface
 
     ! Check that global parameters have not yet been assigned.
-    if (associated(globalParameters)) call Galacticus_Error_Report('inputParametersMarkGlobal','global parameters cannot be reassigned')
+    if (associated(globalParameters)) call Galacticus_Error_Report('global parameters cannot be reassigned'//{introspection:location})
     ! Mark as global.
     self%global=.true.
     ! Set global parameters pointer.
@@ -821,7 +821,7 @@ contains
     character(len=*          ), intent(in   ) :: parameterName
     !GCC$ attributes unused :: self
     
-    if (trim(parameterName) == "value") call Galacticus_Error_Report('inputParametersValidateName','"value" is not a valid parameter name')
+    if (trim(parameterName) == "value") call Galacticus_Error_Report('"value" is not a valid parameter name'//{introspection:location})
     return
   end subroutine inputParametersValidateName
 
@@ -857,7 +857,7 @@ contains
        inputParametersNode => inputParametersNode%sibling
     end do
     !$omp end critical (FoX_DOM_Access)
-    if (.not.associated(inputParametersNode)) call Galacticus_Error_Report('inputParametersNode','parameter node ['//trim(parameterName)//'] not found')
+    if (.not.associated(inputParametersNode)) call Galacticus_Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
     return
   end function inputParametersNode
   
@@ -919,7 +919,7 @@ contains
        inputParametersCopiesCount=0
     else
        inputParametersCopiesCount=0
-       call Galacticus_Error_Report('inputParametersCopiesCount','parameter ['//parameterName//'] is not present')  
+       call Galacticus_Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})  
     end if
     return
   end function inputParametersCopiesCount
@@ -942,7 +942,7 @@ contains
           inputParametersCount=0
        else
           inputParametersCount=0
-          call Galacticus_Error_Report('inputParametersCount','parameter ['//parameterName//'] is not present')
+          call Galacticus_Error_Report('parameter ['//parameterName//'] is not present'//{introspection:location})
        end if
     end if
     return
@@ -962,7 +962,7 @@ contains
 
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
-          call Galacticus_Error_Report('inputParametersSubParameters','parameter not found')
+          call Galacticus_Error_Report('parameter not found'//{introspection:location})
        else
           inputParametersSubParameters=inputParameters()
        end if
@@ -1006,7 +1006,7 @@ contains
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
     else
-       call Galacticus_Error_Report('inputParametersValueName{Type¦label}','parameter ['//parameterName//'] not present and no default given')
+       call Galacticus_Error_Report('parameter ['//parameterName//'] not present and no default given'//{introspection:location})
     end if
     return
   end subroutine inputParametersValueName{Type¦label}
@@ -1036,7 +1036,7 @@ contains
        if (present(errorStatus)) then
           errorStatus=inputParameterErrorStatusAmbiguousValue
        else
-          call Galacticus_Error_Report('inputParametersValueNode{Type¦label}','ambiguous value attribute and element')
+          call Galacticus_Error_Report('ambiguous value attribute and element'//{introspection:location})
        end if
     else if (hasValueAttribute .or. hasValueElement) then
        if (hasValueAttribute) then
@@ -1048,11 +1048,11 @@ contains
           if (present(errorStatus)) then
              errorStatus=inputParameterErrorStatusEmptyValue
           else
-             call Galacticus_Error_Report(                                          &
-                  &                       'inputParametersValueNode{Type¦label}' ,  &
-                  &                       'empty value in parameter ['           // &
-                  &                        getNodeName(parameterNode%content)            // &
-                  &                       ']'                                       &
+             call Galacticus_Error_Report(                                       &
+                  &                       'empty value in parameter ['        // &
+                  &                        getNodeName(parameterNode%content) // &
+                  &                       ']'                                 // &
+                  &                       {introspection:location}               &
                   &                      )
           end if
        else
@@ -1065,11 +1065,11 @@ contains
                 errorStatus=inputParameterErrorStatusParse
              else
                 call Galacticus_Error_Report(                                          &
-                     &                       'inputParametersValueNode{Type¦label}' ,  &
                      &                       'unable to parse parameter ['          // &
-                     &                        getNodeName   (parameterNode%content)         // &
+                     &                        getNodeName   (parameterNode%content) // &
                      &                       ']='                                   // &
-                     &                        getTextContent(valueElement )            &
+                     &                        getTextContent(valueElement )         // &
+                     &                        {introspection:location}                 &
                      &                      )
              end if
           else

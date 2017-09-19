@@ -143,9 +143,9 @@ contains
     ! If we have a set of times tabulated already, do some sanity checks.
     if (present(currentTimes)) then
        ! Complain if the beginning time is before the given list of times.
-       if (timeBegin < currentTimes(1                 )) call Galacticus_Error_Report('Star_Formation_History_In_Situ_Make_History','requested begin time is before currently tabulated times')
+       if (timeBegin < currentTimes(1                 )) call Galacticus_Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
        ! Complain if the end time is less than the maximum tabulated time.
-       if (timeEnd   < currentTimes(size(currentTimes))) call Galacticus_Error_Report('Star_Formation_History_In_Situ_Make_History','requested end time is within currently tabulated times')
+       if (timeEnd   < currentTimes(size(currentTimes))) call Galacticus_Error_Report('requested end time is within currently tabulated times'//{introspection:location})
     end if
 
     ! Step through time, creating a set of timesteps as needed.

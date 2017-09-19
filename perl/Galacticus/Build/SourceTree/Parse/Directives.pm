@@ -86,6 +86,7 @@ sub Parse_Directives {
 		    {
 			type       => $directiveName              ,
 			directive  => $directive->{$directiveName},
+			line       => $node     ->{'line'        },
 			processed  => 0
 		    };
 		    $newNode->{'firstChild'} =

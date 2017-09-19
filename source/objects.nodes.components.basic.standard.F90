@@ -241,7 +241,7 @@ contains
            message=message//"    node is at time: "//label//" Gyr"//char(10)
            write (label,'(f12.6)') basicParent%time()
            message=message//"  parent is at time: "//label//" Gyr"
-           call Galacticus_Error_Report('Node_Component_Basic_Standard_Promote',message)
+           call Galacticus_Error_Report(message//{introspection:location})
         end if
         ! Adjust the mass to that of the parent node.
         call basic%massSet         (basicParent%mass         ())

@@ -472,7 +472,7 @@ contains
     call coolingFunctionFile%openFile(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
-    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('cieFileReadFile','file format version is out of date')
+    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
     ! Read datasets.
     call coolingFunctionFile%readDataset('temperature',self%temperatures        )
     call coolingFunctionFile%readDataset('metallicity',self%metallicities       )
@@ -505,28 +505,28 @@ contains
          &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Close the file.
     call coolingFunctionFile%close()
     call Galacticus_Display_Unindent('done',verbosityWorking)
@@ -554,14 +554,14 @@ contains
             &  .or.                                                         &
             &  self%extrapolateTemperatureHigh == extrapolationTypePowerLaw &
             & )                                                             &
-            & call Galacticus_Error_Report('cieFileReadFile','power law extrapolation allowed only in loggable tables')
+            & call Galacticus_Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
     end if
     if     (                                                             &
          &  self%extrapolateMetallicityLow  == extrapolationTypePowerLaw &
          &   .or.                                                        &
          &  self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
          & )                                                             &
-         & call Galacticus_Error_Report('cieFileReadFile','power law extrapolation not allowed in metallicity')
+         & call Galacticus_Error_Report('power law extrapolation not allowed in metallicity'//{introspection:location})
     ! Force interpolation accelerators to be reset.
     self%resetTemperature=.true.
     self%resetMetallicity=.true.

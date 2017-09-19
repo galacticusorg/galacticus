@@ -84,7 +84,7 @@ if (present(index)) call self%indexSet(index)
 ! Assign a unique ID.
 !$omp critical(UniqueID_Assign)
 uniqueIDCount=uniqueIDCount+1
-if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')
+if (uniqueIDCount <= 0) call Galacticus_Error_Report('ran out of unique ID numbers'//\{introspection:location\})
 self%uniqueIdValue=uniqueIDCount
 !$omp end critical(UniqueID_Assign)
 ! Assign a timestep.
@@ -273,7 +273,7 @@ do while (associated(thisEvent))
             pairEvent => pairEvent%next
          end if
       end do 
-      if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')
+      if (.not.pairMatched) call Galacticus_Error_Report('unable to find paired event'//\{introspection:location\})
    end if
    nextEvent => thisEvent%next
    deallocate(thisEvent)
@@ -343,7 +343,7 @@ if (present(template)) then
 else
    select type (default{ucfirst($class->{'name'})}Component)
    type is (nodeComponent{ucfirst($class->{'name'})}Null)
-      call Galacticus_Error_Report('nodeComponent{$class->{'name'}}Create','refusing to create null instance')
+      call Galacticus_Error_Report('refusing to create null instance'//\{introspection:location\})
    class default
       allocate(self%component{ucfirst($class->{'name'})}(1),source=default{ucfirst($class->{'name'})}Component)
    end select

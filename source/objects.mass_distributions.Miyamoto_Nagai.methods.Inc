@@ -36,20 +36,20 @@ subroutine Mass_Distribution_Miyamoto_Nagai_Initialize(self,a,b,mass,isDimension
   end if
   ! If dimensionless, then set scale length and mass to unity.
   if (self%dimensionless) then
-     if (.not.present(b)) call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Initialize','"b" must be specified for dimensionless profiles')
+     if (.not.present(b)) call Galacticus_Error_Report('"b" must be specified for dimensionless profiles'//{introspection:location})
      if (present(a   )) then
-        if (Values_Differ(a   ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Initialize','"a" should be unity for a dimensionless profile (or simply do not specify it)')
+        if (Values_Differ(a   ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('"a" should be unity for a dimensionless profile (or simply do not specify it)'//{introspection:location})
      end if
      if (present(mass)) then
-        if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Initialize','mass should be unity for a dimensionless profile (or simply do not specify a mass)')
+        if (Values_Differ(mass,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('mass should be unity for a dimensionless profile (or simply do not specify a mass)'//{introspection:location})
      end if
      self%a                   =1.0d0
      self%b                   =b
      self%mass                =1.0d0
   else
-     if (.not.present(a   )) call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Initialize','"a" must be specified for dimensionful profiles')
-     if (.not.present(b   )) call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Initialize','"b" must be specified for dimensionful profiles')
-     if (.not.present(mass)) call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Initialize','mass must be specified for dimensionful profiles')
+     if (.not.present(a   )) call Galacticus_Error_Report('"a" must be specified for dimensionful profiles'//{introspection:location})
+     if (.not.present(b   )) call Galacticus_Error_Report('"b" must be specified for dimensionful profiles'//{introspection:location})
+     if (.not.present(mass)) call Galacticus_Error_Report('mass must be specified for dimensionful profiles'//{introspection:location})
      self%a                   =a
      self%b                   =b
      self%mass                =mass
@@ -368,7 +368,7 @@ double precision function Mass_Distribution_Miyamoto_Nagai_Srfc_Dnsty_Rdl_Mmnt(s
         isInfinite=.true.
         return
      else
-        call Galacticus_Error_Report('Mass_Distribution_Miyamoto_Nagai_Srfc_Dnsty_Rdl_Mmnt','-1 < momemnt < 2 is required for finite moment')
+        call Galacticus_Error_Report('-1 < momemnt < 2 is required for finite moment'//{introspection:location})
      end if
   end if
   ! Perform the integration.

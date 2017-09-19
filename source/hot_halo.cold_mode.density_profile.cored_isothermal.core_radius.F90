@@ -64,9 +64,8 @@ contains
           !#  <functionArgs>hotHaloColdModeCoredIsothermalCoreRadiiMethod,Hot_Halo_Cold_Mode_Density_CIso_CoreR_Get</functionArgs>
           include 'hot_halo.cold_mode.density_profile.cored_isothermal.core_radius.inc'
           !# </include>
-          if (.not.associated(Hot_Halo_Cold_Mode_Density_CIso_CoreR_Get)) call&
-               & Galacticus_Error_Report('Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii' ,'method ' &
-               &//char(hotHaloColdModeCoredIsothermalCoreRadiiMethod)//' is unrecognized')
+          if (.not.associated(Hot_Halo_Cold_Mode_Density_CIso_CoreR_Get)) &
+               & call Galacticus_Error_Report('method '//char(hotHaloColdModeCoredIsothermalCoreRadiiMethod)//' is unrecognized'//{introspection:location})
           hotHaloColdModeCoredIsothermalCoreRadiiInitialized=.true.
        end if
        !$omp end critical(Hot_Halo_Cold_Mode_Density_CIso_CoreR_Initialization)

@@ -108,7 +108,7 @@ contains
        passed=(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Real_Scalar','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -157,7 +157,7 @@ contains
        passed=(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_Scalar','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -204,7 +204,7 @@ contains
        passed=(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Integer_Scalar','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -252,7 +252,7 @@ contains
        passed=(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Integer8_Scalar','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -299,7 +299,7 @@ contains
        passed=(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Character_Scalar','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -346,7 +346,7 @@ contains
        passed=(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_VarString_Scalar','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -401,7 +401,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Real_1D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -456,7 +456,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_1D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -516,7 +516,7 @@ contains
        end do
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_Complex_1D_Array','comparison not supported for complex values')
+       call Galacticus_Error_Report('comparison not supported for complex values'//{introspection:location})
     end select
     ! Get an object to store the results in.
     thisResult => Get_New_Assert_Result()
@@ -570,7 +570,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_2D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -629,7 +629,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_3D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -691,7 +691,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_4D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -755,7 +755,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Double_5D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -802,7 +802,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Integer_1D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -841,7 +841,7 @@ contains
        passed=all(value1 .neqv. value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Logical_1D_Array','assertions about logical variables can be equality or non-equality only')
+       call Galacticus_Error_Report('assertions about logical variables can be equality or non-equality only'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -890,7 +890,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Integer8_1D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -929,7 +929,7 @@ contains
        passed=value1 .neqv. value2
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Logical_Scalar','assertions about logical variables can be equality or non-equality only')
+       call Galacticus_Error_Report('assertions about logical variables can be equality or non-equality only'//{introspection:location})
     end select
 
     ! Get an object to store the results in.
@@ -976,7 +976,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_Character_1D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
     
     ! Get an object to store the results in.
@@ -1023,7 +1023,7 @@ contains
        passed=all(value1 >= value2)
     case default
        passed=.false.
-       call Galacticus_Error_Report('Assert_VarString_1D_Array','unknown comparison')
+       call Galacticus_Error_Report('unknown comparison'//{introspection:location})
     end select
 
     ! Get an object to store the results in.

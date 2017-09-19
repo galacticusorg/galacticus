@@ -109,28 +109,28 @@ contains
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Check that required components are gettable.
-    if     (                                                                                                                       &
-         &  .not.(                                                                                                                 &
-         &         defaultHotHaloComponent%       massIsGettable() .and.                                                           &
-         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                           &
-         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                           &
-         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                                 &
-         &       )                                                                                                                 &
-         & ) call Galacticus_Error_Report                                                                                          &
-         & (                                                                                                                       &
-         &  'simpleConstructorInternal'                                                                                          , &
-         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                                &
-         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                                &
-         &  Galacticus_Component_List(                                                                                             &
-         &                            'hotHalo'                                                                                  , &
-         &                             defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )  &
-         &                            .intersection.                                                                               &
-         &                             defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )  &
-         &                            .intersection.                                                                               &
-         &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )  &
-         &                            .intersection.                                                                               &
-         &                             defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)  &
-         &                           )                                                                                             &
+    if     (                                                                                                                        &
+         &  .not.(                                                                                                                  &
+         &         defaultHotHaloComponent%       massIsGettable() .and.                                                            &
+         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                            &
+         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                            &
+         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                                  &
+         &       )                                                                                                                  &
+         & ) call Galacticus_Error_Report                                                                                           &
+         & (                                                                                                                        &
+         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                                 &
+         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                                 &
+         &  Galacticus_Component_List(                                                                                              &
+         &                            'hotHalo'                                                                                  ,  &
+         &                             defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
+         &                            .intersection.                                                                                &
+         &                             defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
+         &                            .intersection.                                                                                &
+         &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
+         &                            .intersection.                                                                                &
+         &                             defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
+         &                           )                                                                                           // &
+         &  {introspection:location}                                                                                                &
          & )
     return
   end function simpleConstructorInternal

@@ -33,7 +33,7 @@ function likelihoodGalacticusConstructor(configFileName,delayInterval)
   likelihoodGalacticusConstructor%storeCountPrevious=0
   ! Find the time command.
   likelihoodGalacticusConstructor%timeCommand       =Executable_Find('time')
-  if (likelihoodGalacticusConstructor%timeCommand == "") call Galacticus_Error_Report('likelihoodGalacticusConstructor','a working GNU time command is required')
+  if (likelihoodGalacticusConstructor%timeCommand == "") call Galacticus_Error_Report('a working GNU time command is required'//{introspection:location})
   return
 end function likelihoodGalacticusConstructor
 
@@ -132,7 +132,7 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState,para
      else
         message=message//" (likelihood file '"//char(likelihoodFileName)//"' DOES NOT exist)"
      end if
-     call Galacticus_Error_Report('likelihoodGalacticusEvaluate',message)
+     call Galacticus_Error_Report(message//{introspection:location})
   end if
   ! Read the likelihood back from file.
   open(newUnit=likelihoodFileUnit,file=char(likelihoodFileName),status='old',form='formatted')

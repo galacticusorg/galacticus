@@ -367,14 +367,14 @@ contains
                                   call Galacticus_Warn(message)
                                else if (stellarPopulationLuminosityIntegrationToleranceDegrade) then
                                   message="integration of stellar populations failed"
-                                  call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                                  call Galacticus_Error_Report(message//{introspection:location})
                                else
                                   write (label,'(e9.3)') 2.0d0*stellarPopulationLuminosityIntegrationToleranceRelative
                                   message=         "integration of stellar populations failed"                                              //char(10)
                                   message=message//"HELP: consider increasing the [stellarPopulationLuminosityIntegrationToleranceRelative]"//char(10)
                                   message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"      //char(10)
                                   message=message//"      required if your can accept this lower accuracy."
-                                  call Galacticus_Error_Report('Stellar_Population_Luminosity',message)
+                                  call Galacticus_Error_Report(message//{introspection:location})
                                end if
                             end if
                          end do
@@ -515,7 +515,7 @@ contains
              ! Check for out of range age.
              if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) then
                 if (stellarPopulationLuminosityMaximumAgeExceededIsFatal) then
-                   call Galacticus_Error_Report('Stellar_Population_Luminosity','age exceeds the maximum tabulated')
+                   call Galacticus_Error_Report('age exceeds the maximum tabulated'//{introspection:location})
                 else
                    iAge=luminosityTables(imfIndex)%agesCount-1
                    hAge=[0.0d0,1.0d0]

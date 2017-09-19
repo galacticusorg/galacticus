@@ -593,11 +593,11 @@ contains
     select case (levelActual)
     case (recombinationCaseA)
        ! Ensure atomic number is in range.
-       if (atomicNumber < 1 .or. atomicNumber > 30) call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','atomic number is out of range')
+       if (atomicNumber < 1 .or. atomicNumber > 30) call Galacticus_Error_Report('atomic number is out of range'//{introspection:location})
        ! Compute number of electrons.
        electronNumber=atomicNumber-ionizationState+1
        ! Ensure electron number is in range.
-       if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','electron number is out of range')
+       if (electronNumber < 1 .or. electronNumber > atomicNumber) call Galacticus_Error_Report('electron number is out of range'//{introspection:location})
        ! Compute rate using the relevant fitting function.
        if (electronNumber <= 3 .or. electronNumber == 11 .or. (atomicNumber > 5 .and. atomicNumber < 9) .or. atomicNumber == 10 .or.&
             & (atomicNumber == 26 .and. electronNumber > 11)) then
@@ -633,7 +633,7 @@ contains
                 Atomic_Rate_Recombination_Radiative_Verner=0.0d0
              end if
           case default
-             call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','ionization state invalid for hydrogen')
+             call Galacticus_Error_Report('ionization state invalid for hydrogen'//{introspection:location})
           end select
        case (2) ! Helium
           select case (ionizationState)
@@ -651,14 +651,14 @@ contains
                 Atomic_Rate_Recombination_Radiative_Verner=0.0d0
              end if
           case default
-             call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','ionization state invalid for helium')
+             call Galacticus_Error_Report('ionization state invalid for helium'//{introspection:location})
           end select
        case default
-          call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','case B coefficients unavailable for requested atomic number')
+          call Galacticus_Error_Report('case B coefficients unavailable for requested atomic number'//{introspection:location})
        end select
     case default
        ! Recombination coefficient for an individual level was requested. We can not compute it, so report an error.
-       call Galacticus_Error_Report('Atomic_Rate_Recombination_Radiative_Verner','coefficients for individual levels are not available')
+       call Galacticus_Error_Report('coefficients for individual levels are not available'//{introspection:location})
     end select    
     return
   end function Atomic_Rate_Recombination_Radiative_Verner

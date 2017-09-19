@@ -198,7 +198,7 @@ contains
             exit
          end if
       end do
-      if (offset == hashTableMax-hash%rowSize-1) call Galacticus_Error_Report('Hash_Perfect_Create','failed to fit row into hash table - this should not happen')
+      if (offset == hashTableMax-hash%rowSize-1) call Galacticus_Error_Report('failed to fit row into hash table - this should not happen'//{introspection:location})
       i=i+1
    end do
 
@@ -256,7 +256,7 @@ contains
    integer(c_size_t   )                :: Hash_Perfect_Size
    class  (hashPerfect), intent(in   ) :: hash
 
-   if (.not.hash%created) call Galacticus_Error_Report('Hash_Perfect_Size','hash has not been created')
+   if (.not.hash%created) call Galacticus_Error_Report('hash has not been created'//{introspection:location})
    Hash_Perfect_Size=hash%hashSize
    return
  end function Hash_Perfect_Size
@@ -270,7 +270,7 @@ contains
    integer(kind=kind_int8), intent(in   ) :: key
    integer(c_size_t      )                :: x                 , y
 
-   if (.not.hash%created) call Galacticus_Error_Report('Hash_Perfect_Index','hash has not been created')
+   if (.not.hash%created) call Galacticus_Error_Report('hash has not been created'//{introspection:location})
    x                 =    key/hash%rowSize
    y                 =mod(key,hash%rowSize)
    Hash_Perfect_Index=hash%r(x)+y
@@ -286,7 +286,7 @@ contains
    integer(c_size_t      )                :: hashIndex
 
    hashIndex=hash%index(key)
-   if (.not.hash%hasInverseTable) call Galacticus_Error_Report('Hash_Perfect_Is_Present','hash does not store inverse table')
+   if (.not.hash%hasInverseTable) call Galacticus_Error_Report('hash does not store inverse table'//{introspection:location})
    Hash_Perfect_Is_Present=(hash%C(hashIndex) == key)
    return
  end function Hash_Perfect_Is_Present
@@ -301,7 +301,7 @@ contains
    integer(c_size_t      )                :: hashIndex
 
    hashIndex=hash%index(key)
-   if (.not.hash%hasValues) call Galacticus_Error_Report('Hash_Perfect_Value','hash does not store values')
+   if (.not.hash%hasValues) call Galacticus_Error_Report('hash does not store values'//{introspection:location})
    Hash_Perfect_Value=hash%v(hashIndex)
    return
  end function Hash_Perfect_Value

@@ -293,7 +293,7 @@ module Merger_Tree_Read_Importers
     class(importerUnits), intent(in   ) :: units1                
     type (importerUnits), intent(in   ) :: units2                
 
-    if (.not.(units1%status.and.units2%status)) call Galacticus_Error_Report('importerUnitsAreEqual','units not defined')
+    if (.not.(units1%status.and.units2%status)) call Galacticus_Error_Report('units not defined'//{introspection:location})
     importerUnitsAreEqual= units1%unitsInSI           ==  units2%unitsInSI           &
          &                .and.                                                      &
          &                 units1%scaleFactorExponent ==  units2%scaleFactorExponent &
@@ -325,7 +325,7 @@ module Merger_Tree_Read_Importers
     class           (cosmologyParametersClass), pointer       :: cosmologyParametersDefault
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
 
-    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvertScalar','units are not defined')
+    if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
     cosmologyParametersDefault => cosmologyParameters()
     importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
@@ -349,7 +349,7 @@ module Merger_Tree_Read_Importers
     class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctionsDefault
     integer                                                                            :: i
 
-    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert1D','units are not defined')
+    if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
     cosmologyParametersDefault => cosmologyParameters()
     importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
@@ -376,7 +376,7 @@ module Merger_Tree_Read_Importers
     class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctionsDefault
     integer                                                                                                     :: i
 
-    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert2D','units are not defined')
+    if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
     cosmologyParametersDefault => cosmologyParameters()
     importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then

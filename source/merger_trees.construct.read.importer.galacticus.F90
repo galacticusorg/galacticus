@@ -215,7 +215,7 @@ contains
        self%forestWeightDatasetName       ='forestWeight'
     case default
        ! Unknown version - abort.
-       call Galacticus_Error_Report('galacticusOpen','unknown file format version number')
+       call Galacticus_Error_Report('unknown file format version number'//{introspection:location})
     end select
     ! Open the merger trees group.
     self%forestHalos=self%file%openGroup(trim(self%forestHalosGroupName))
@@ -230,7 +230,7 @@ contains
           write (valueString,'(e14.8)') localOmegaMatter
           message=message//trim(valueString)//']'
           if (self%fatalMismatches) then
-             call Galacticus_Error_Report('galacticusOpen',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           else
              call Galacticus_Display_Message(message,verbosityWarn)
           end if
@@ -245,7 +245,7 @@ contains
           write (valueString,'(e14.8)') localOmegaBaryon
           message=message//trim(valueString)//']'
           if (self%fatalMismatches) then
-             call Galacticus_Error_Report('galacticusOpen',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           else
              call Galacticus_Display_Message(message,verbosityWarn)
           end if
@@ -260,7 +260,7 @@ contains
           write (valueString,'(e14.8)') localOmegaDE
           message=message//trim(valueString)//']'
           if (self%fatalMismatches) then
-             call Galacticus_Error_Report('galacticusOpen',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           else
              call Galacticus_Display_Message(message,verbosityWarn)
           end if
@@ -275,7 +275,7 @@ contains
           write (valueString,'(e14.8)') localLittleH0
           message=message//trim(valueString)//']'
           if (self%fatalMismatches) then
-             call Galacticus_Error_Report('galacticusOpen',message)
+             call Galacticus_Error_Report(message//{introspection:location})
           else
              call Galacticus_Display_Message(message,verbosityWarn)
           end if
@@ -333,7 +333,7 @@ contains
           self%particleEpochType       =galacticusParticleEpochTypeRedshift
           self%particleEpochDatasetName="redshift"
        else
-          call Galacticus_Error_Report("galacticusOpen","particles group must have one of time, redshift or expansionFactor datasets")
+          call Galacticus_Error_Report("particles group must have one of time, redshift or expansionFactor datasets"//{introspection:location})
        end if
     end if
     ! Check for type of angular momenta data available.
@@ -345,10 +345,10 @@ contains
        case (1)
           self%angularMomentaIsScalar=.true.
        case (2)
-          if (angularMomentumDataset%size(1) /= 3) call Galacticus_Error_Report('galacticusOpen','2nd dimension of rank-2 angularMomentum dataset must be 3')
+          if (angularMomentumDataset%size(1) /= 3) call Galacticus_Error_Report('2nd dimension of rank-2 angularMomentum dataset must be 3'//{introspection:location})
           self%angularMomentaIsVector=.true.
        case default
-          call Galacticus_Error_Report('galacticusOpen','angularMomentum dataset must be rank 1 or 2')
+          call Galacticus_Error_Report('angularMomentum dataset must be rank 1 or 2'//{introspection:location})
        end select
        call angularMomentumDataset%close()
     end if
@@ -361,10 +361,10 @@ contains
        case (1)
           self%spinIsScalar=.true.
        case (2)
-          if (spinDataset%size(1) /= 3) call Galacticus_Error_Report('galacticusOpen','2nd dimension of rank-2 spin dataset must be 3')
+          if (spinDataset%size(1) /= 3) call Galacticus_Error_Report('2nd dimension of rank-2 spin dataset must be 3'//{introspection:location})
           self%spinIsVector=.true.
        case default
-          call Galacticus_Error_Report('galacticusOpen','spin dataset must be rank 1 or 2')
+          call Galacticus_Error_Report('spin dataset must be rank 1 or 2'//{introspection:location})
        end select
        call spinDataset%close()
     end if
@@ -428,7 +428,7 @@ contains
           call self%forestHalos%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger,allowPseudoScalar=.true.)
           self%massesAreInclusive%value=(haloMassesIncludeSubhalosInteger == 1)
        else
-          call Galacticus_Error_Report('galacticusMassesIncludeSubhalos','required attribute "haloMassesIncludeSubhalos" not present')
+          call Galacticus_Error_Report('required attribute "haloMassesIncludeSubhalos" not present'//{introspection:location})
        end if
        !$omp end critical(HDF5_Access)
        self%massesAreInclusive%isSet=.true.
@@ -540,7 +540,7 @@ contains
           simulationGroup=self%file%openGroup("simulation")
           if (simulationGroup%hasAttribute("boxSize")) then
              call simulationGroup%readAttribute("boxSize",self%length%value,allowPseudoScalar=.true.)
-             if (self%length%value <= 0.0d0) call Galacticus_Error_Report('galacticusCubeLength','simulation box length must be positive')
+             if (self%length%value <= 0.0d0) call Galacticus_Error_Report('simulation box length must be positive'//{introspection:location})
              self%lengthStatus%value=booleanTrue
           else
              self%lengthStatus%value=booleanFalse
@@ -561,7 +561,7 @@ contains
     if (present(status)) then
        status=self%lengthStatus%value
     else
-       if (self%lengthStatus%value == booleanFalse) call Galacticus_Error_Report('galacticusCubeLength','the boxSize attribute of the simulation group is required')
+       if (self%lengthStatus%value == booleanFalse) call Galacticus_Error_Report('the boxSize attribute of the simulation group is required'//{introspection:location})
     end if
     return
   end function galacticusCubeLength
@@ -626,7 +626,7 @@ contains
     if (self%forestIndicesRead) return
     !$omp critical(HDF5_Access)
     if (.not.self%file%hasGroup(trim(self%forestIndexGroupName))) &
-         & call Galacticus_Error_Report('galacticusForestIndicesRead','merger tree file must contain the treeIndex group')
+         & call Galacticus_Error_Report('merger tree file must contain the treeIndex group'//{introspection:location})
     treeIndexGroup=self%file%openGroup(trim(self%forestIndexGroupName))
     call treeIndexGroup%readDataset("firstNode"                      ,self%firstNodes   )
     call treeIndexGroup%readDataset("numberOfNodes"                  ,self%nodeCounts   )
@@ -668,9 +668,9 @@ contains
                 nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodeTime(iNode)))
              end do
           else
-             call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
+             call Galacticus_Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})
           end if
-          if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be only only root node')
+          if (count(descendentIndex == -1) /= 1) call Galacticus_Error_Report('reweighting trees requires there to be only only root node'//{introspection:location})
           treeMass(i)=sum(nodeMass,mask=descendentIndex == -1)
           treeTime(i)=sum(nodeTime,mask=descendentIndex == -1)
           deallocate(descendentIndex)
@@ -681,7 +681,7 @@ contains
        ! Sort the trees into mass order.
        sortOrder=Sort_Index_Do(treeMass)
        ! Abort if there is only one tree.
-       if (size(self%firstNodes) <= 1) call Galacticus_Error_Report('galacticusForestIndicesRead','reweighting trees requires there to be at least two forests')
+       if (size(self%firstNodes) <= 1) call Galacticus_Error_Report('reweighting trees requires there to be at least two forests'//{introspection:location})
        ! Compute the weight for each tree.
        do i=1,size(self%firstNodes)
           ! Get the minimum mass of the interval occupied by this tree.
@@ -890,7 +890,7 @@ contains
        position=importerUnitConvert(position,time,self%lengthUnit  ,megaParsec)
        velocity=importerUnitConvert(velocity,time,self%velocityUnit,kilo      )
     class default
-       call Galacticus_Error_Report('galacticusSubhaloTrace','node should be of type nodeDataGalacticus')
+       call Galacticus_Error_Report('node should be of type nodeDataGalacticus'//{introspection:location})
     end select
     return
   end subroutine galacticusSubhaloTrace
@@ -909,7 +909,7 @@ contains
        galacticusSubhaloTraceCount=node%particleIndexCount
     class default
        galacticusSubhaloTraceCount=0
-       call Galacticus_Error_Report('galacticusSubhaloTraceCount','node should be of type nodeDataGalacticus')
+       call Galacticus_Error_Report('node should be of type nodeDataGalacticus'//{introspection:location})
     end select
     return
   end function galacticusSubhaloTraceCount
@@ -953,7 +953,7 @@ contains
     useNodeSubset=present(nodeSubset) .and. .not.nodeSubset(1) < 0
     if (useNodeSubset) then
        ! Check that all nodes are within range.
-       if (any(nodeSubset > nodeCount(1))) call Galacticus_Error_Report('galacticusImport','node subset lies outside of forest')
+       if (any(nodeSubset > nodeCount(1))) call Galacticus_Error_Report('node subset lies outside of forest'//{introspection:location})
        ! Shift node subset to start of this forest.
        nodeSubsetOffset=nodeSubset+firstNodeIndex(1)-1
        ! Reset size of node array to read.
@@ -1007,7 +1007,7 @@ contains
           call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
        ! Validate expansion factors.
-       if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("galacticusImport","expansionFactor dataset values must be >0")
+       if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("expansionFactor dataset values must be >0"//{introspection:location})
        if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
@@ -1021,14 +1021,14 @@ contains
           call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
        end if
        ! Validate redshifts.
-       if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("galacticusImport","redshift dataset values must be >-1")
+       if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("redshift dataset values must be >-1"//{introspection:location})
        if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
        end do
     else
-       call Galacticus_Error_Report("galacticusImport","one of time, redshift or expansionFactor data sets must be present in forestHalos group")
+       call Galacticus_Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})
     end if
     ! nodeMass
     if (useNodeSubset) then
@@ -1100,11 +1100,11 @@ contains
                 call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
           else
-             call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
+             call Galacticus_Error_Report("scalar angular momentum is not available"//{introspection:location})
           end if
        end if
        if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
-          if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
+          if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("vector angular momentum is not available"//{introspection:location})
           if (useNodeSubset) then
              call self%forestHalos%readDataset("angularMomentum",angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
           else
@@ -1131,11 +1131,11 @@ contains
                 call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
           else
-             call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
+             call Galacticus_Error_Report("scalar spin is not available"//{introspection:location})
           end if
        end if
        if (present(requireSpin3D).and.requireSpin3D) then
-          if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
+          if (.not.self%spinIsVector) call Galacticus_Error_Report("vector spin is not available"//{introspection:location})
           if (useNodeSubset) then
              call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
           else
@@ -1188,19 +1188,19 @@ contains
             &      self%velocityUnit%status                                                  &
             &    )                                                                           &
             & ) call Galacticus_Error_Report(                                                &
-            &                                'galacticusImport'                           ,  &
             &                                'length and velocity units must be given if '// &
-            &                                'positions and velocities are to be read'       &
+            &                                'positions and velocities are to be read'    // &
+            &                                {introspection:location}                        &
             &                               )
-       if (self%timeUnit%status.and.self%timeUnit%scaleFactorExponent /= 0)                           &
-            &   call Galacticus_Error_Report(                                                         &
-            &                                'galacticusImport'                                     , &
-            &                                'expect no scaling of time units with expansion factor'  &
+       if (self%timeUnit%status.and.self%timeUnit%scaleFactorExponent /= 0)                            &
+            &   call Galacticus_Error_Report(                                                          &
+            &                                'expect no scaling of time units with expansion factor'// &
+            &                                {introspection:location}                                  &
             &                               )
-       if (self%    massUnit%status.and.self%    massUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for mass'    )
-       if (self%  lengthUnit%status.and.self%  lengthUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for length'  )
-       if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for velocity')
-       if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for time'    )
+       if (self%    massUnit%status.and.self%    massUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('non-positive units for mass'    //{introspection:location})
+       if (self%  lengthUnit%status.and.self%  lengthUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('non-positive units for length'  //{introspection:location})
+       if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('non-positive units for velocity'//{introspection:location})
+       if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('non-positive units for time'    //{introspection:location})
        if (.not.timesAreInternal)                                                                                                                                         &
             & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
        nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)

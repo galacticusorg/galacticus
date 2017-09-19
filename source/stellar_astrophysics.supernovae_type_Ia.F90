@@ -75,8 +75,8 @@ contains
           !#  <functionArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</functionArgs>
           include 'stellar_astrophysics.supernovae_type_Ia.inc'
           !# </include>
-          if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) call Galacticus_Error_Report('Supernovae_Type_Ia_Initialize'&
-               &,'method '//char(supernovaeIaMethod)//' is unrecognized')
+          if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) &
+               & call Galacticus_Error_Report('method '//char(supernovaeIaMethod)//' is unrecognized'//{introspection:location})
           supernovaeIaInitialized=.true.
        end if
        !$omp end critical(Supernovae_Type_Ia_Initialization)

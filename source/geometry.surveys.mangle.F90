@@ -135,7 +135,7 @@ contains
     
     ! Validate field.
     if (.not.present(field)) then
-       if (self%fieldCount() > 1) call Galacticus_Error_Report('mangleDistanceMaximum','field must be specified')
+       if (self%fieldCount() > 1) call Galacticus_Error_Report('field must be specified'//{introspection:location})
        fieldActual=1
     else
        fieldActual=field
@@ -143,7 +143,7 @@ contains
     if (fieldActual < 1 .or. fieldActual > self%fieldCount()) then
        message='1 ≤ field ≤ '
        message=message//self%fieldCount()//' required'
-       call Galacticus_Error_Report('mangleSolidAngle',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     ! Read solid angles for the fields.
     if (.not.self%solidAnglesInitialized) then
@@ -154,7 +154,7 @@ contains
              call self%mangleFiles(mangleFiles)
              call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleSolidAngle.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"solidAngles.hdf5")
              if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) &
-                  & call Galacticus_Error_Report('mangleSolidAngle','unable to generate solid angles from mangle files')
+                  & call Galacticus_Error_Report('unable to generate solid angles from mangle files'//{introspection:location})
           end if
           ! Read the solid angles.
           !$omp critical(HDF5_Access)
@@ -183,7 +183,7 @@ contains
     complex         (c_double_complex    ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
     !GCC$ attributes unused :: self, mass1, mass2, gridCount, boxLength, windowFunction1, windowFunction2
     
-    call Galacticus_Error_Report('mangleWindowFunctions','window function construction is not supported')
+    call Galacticus_Error_Report('window function construction is not supported'//{introspection:location})
     return
   end subroutine mangleWindowFunctions
 
@@ -213,7 +213,7 @@ contains
          & ) then
        message='1 ≤ field ≤ '
        message=message//self%fieldCount()//' required'
-       call Galacticus_Error_Report('mangleAngularPower',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     ! Read angular power spectra.
     if (.not.self%angularPowerInitialized) then
@@ -224,17 +224,14 @@ contains
              call self%mangleFiles(mangleFiles)
              call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleHarmonize.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"angularPower.hdf5 "//self%angularPowerMaximumDegree())
              if (.not.File_Exists(self%mangleDirectory()//"angularPower.hdf5")) &
-                  & call Galacticus_Error_Report('mangleAngularPower','unable to generate angular power spectra from mangle files')
+                  & call Galacticus_Error_Report('unable to generate angular power spectra from mangle files'//{introspection:location})
           end if
           ! Read the angular power spectra.
           !$omp critical(HDF5_Access)
           call angularPowerFile%openFile(char(self%mangleDirectory()//"angularPower.hdf5"))
           call angularPowerFile%readDataset('l',degree)
           if (degree(1) /= 0 .or. degree(size(degree)) /= self%angularPowerMaximumDegree())               &
-               & call Galacticus_Error_Report(                                                       &
-               &                              'mangleAngularPower'                                 , &
-               &                              'power spectra do not span expected range of degrees'  &
-               &                             )
+               & call Galacticus_Error_Report('power spectra do not span expected range of degrees'//{introspection:location})
           call allocateArray(self%angularPowerSpectra,[self%angularPowerMaximumDegree()+1,self%fieldCount()*(self%fieldCount()+1)])
           do m=1,self%fieldCount()
              do n=m,self%fieldCount()
@@ -287,7 +284,7 @@ contains
     if (.not.self%windowInitialized) then
        !$omp critical(manglePointIncludedInitialize)
        if (.not.self%windowInitialized) then
-          if (self%fieldCount() > 1) call Galacticus_Error_Report('manglePointIncluded','only single field surveys are supported')
+          if (self%fieldCount() > 1) call Galacticus_Error_Report('only single field surveys are supported'//{introspection:location})
           call self%mangleFiles(mangleFiles)
           call self%mangleWindow%read(char(mangleFiles(1)))
           self%windowInitialized=.true.

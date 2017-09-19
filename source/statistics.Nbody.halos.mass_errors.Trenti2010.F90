@@ -117,9 +117,9 @@ contains
     ! Set correlation properties.
     if (present(correlationNormalization).or.present(correlationMassExponent).or.present(correlationRedshiftExponent)) then
        if (.not.(present(correlationNormalization).and.present(correlationMassExponent).and.present(correlationRedshiftExponent))) &
-            & call Galacticus_Error_Report('nbodyHaloMassErrorTrenti2010Internal','all parameters of correlation model must be provided'     )
+            & call Galacticus_Error_Report('all parameters of correlation model must be provided'//{introspection:location})
        if (.not.present(cosmologyFunctions_)) &
-            & call Galacticus_Error_Report('nbodyHaloMassErrorTrenti2010Internal','cosmology functions must be provided for correlation model')
+            & call Galacticus_Error_Report('cosmology functions must be provided for correlation model'//{introspection:location})
        self%correlationNormalization    =  correlationNormalization
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent

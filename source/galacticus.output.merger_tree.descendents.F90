@@ -56,18 +56,18 @@ contains
           !#   <type>boolean</type>
           !# </inputParameter>
           ! Ensure that the satellite timeOfMerging property is gettable.
-          if     (                                                                                                                &
-               &   outputDescendentIndices                                                                                        &
-               &  .and.                                                                                                           &
-               &   .not.defaultSatelliteComponent%timeOfMergingIsGettable()                                                       &
-               & ) call Galacticus_Error_Report                                                                                   &
-               &        (                                                                                                         &
-               &         'Galacticus_Output_Tree_Descendents_Initialize'                                                        , &
-               &         'the satellite timeOfMerging property must be gettable to output descendent indices.'//                  &
-               &         Galacticus_Component_List(                                                                               &
-               &                                   'satellite'                                                                  , &
-               &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)  &
-               &                                  )                                                                               &
+          if     (                                                                                                                 &
+               &   outputDescendentIndices                                                                                         &
+               &  .and.                                                                                                            &
+               &   .not.defaultSatelliteComponent%timeOfMergingIsGettable()                                                        &
+               & ) call Galacticus_Error_Report                                                                                    &
+               &        (                                                                                                          &
+               &         'the satellite timeOfMerging property must be gettable to output descendent indices.'//                   &
+               &         Galacticus_Component_List(                                                                                &
+               &                                   'satellite'                                                                  ,  &
+               &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)   &
+               &                                  )                                                                             // &
+               &         {introspection:location}                                                                                  &
                &        )
           ! Flag that module is now initialized.
           outputDescendentsInitialized=.true.

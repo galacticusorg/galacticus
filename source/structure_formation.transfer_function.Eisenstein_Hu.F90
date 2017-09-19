@@ -123,7 +123,7 @@ contains
        class is (darkMatterParticleCDM)
           ! Cold dark matter particle - this is as expected.
        class default
-       call Galacticus_Error_Report('eisensteinHu1999ConstructorInternal','transfer function expects a cold dark matter particle')
+       call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Set cosmological parameters.
     eisensteinHu1999ConstructorInternal%cosmologyParameters_   => cosmologyParameters_
@@ -453,6 +453,6 @@ contains
     !GCC$ attributes unused :: self
 
     eisensteinHu1999HalfModeMass=0.0d0
-    call Galacticus_Error_Report('eisensteinHu1999HalfModeMass','not supported by this implementation')
+    call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
     return
   end function eisensteinHu1999HalfModeMass

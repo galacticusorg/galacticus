@@ -229,7 +229,7 @@ contains
           case ( 'binomial' )
              analysisFractionFunctionCovarianceModel=analysisFractionFunctionCovarianceModelBinomial
           case default
-             call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Fractions','unrecognized value for "analysisFractionFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+             call Galacticus_Error_Report('unrecognized value for "analysisFractionFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"'//{introspection:location})
           end select
           !# <inputParameter>
           !#   <name>analysisFractionFunctionsHaloMassBinsPerDecade</name>
@@ -419,7 +419,7 @@ contains
                          fractionFunctions(currentAnalysis)%mainBranchGalaxyWeights       =0.0d0
                          fractionFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared=0.0d0
                       case default
-                         call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Fractions','unknown size function')
+                         call Galacticus_Error_Report('unknown size function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
                       call allocateArray(fractionFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
@@ -485,7 +485,7 @@ contains
                          else
                             message="fraction function '"//trim(fractionFunctions(currentAnalysis)%descriptor%label)//"' bin "
                             message=message//k//" has zero weights"
-                            call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Dpndnt_Fractions',message)
+                            call Galacticus_Error_Report(message//{introspection:location})
                          end if
                       end do
                       exit

@@ -85,7 +85,7 @@ contains
     if (File_Exists("galacticusConfig.xml")) then
        !$omp critical (FoX_DOM_Access)
        doc => parseFile("galacticusConfig.xml",iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Version_Output','Unable to parse config file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse config file'//{introspection:location})
        if (XML_Path_Exists(doc,"contact")) then
           if (XML_Path_Exists(doc,"contact/name")) then
              nameNode => XML_Get_First_Element_By_Tag_Name(doc,"contact/name")

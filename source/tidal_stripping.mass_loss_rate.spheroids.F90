@@ -64,8 +64,8 @@ contains
           !#  <functionArgs>tidalStrippingMassLossRateSpheroidsMethod,Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get</functionArgs>
           include 'tidal_stripping.mass_loss_rate.spheroids.inc'
           !# </include>
-          if (.not.associated(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get)) call Galacticus_Error_Report('Tidal_Stripping_Mass_Loss_Rate_Spheroid','method ' &
-               &//char(tidalStrippingMassLossRateSpheroidsMethod)//' is unrecognized')
+          if (.not.associated(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get)) call Galacticus_Error_Report('method ' &
+               &//char(tidalStrippingMassLossRateSpheroidsMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init)

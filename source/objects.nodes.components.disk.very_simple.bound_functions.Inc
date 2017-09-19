@@ -26,14 +26,14 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   type (nodeComponentHotHalo       )                :: hotHalo
   !GCC$ attributes unused :: self
   
-  if     (                                                                                                &
-       &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                               &
-       &  .or.                                                                                            &
-       &   hotHalo%hotHaloCoolingAbundancesRateIsAttached()                                               &
-       & )                                                                                                &
-       & call Galacticus_Error_Report(                                                                    &
-       &                              'Node_Component_Disk_Very_Simple_Attach_Pipes'                    , &
-       &                              'expected to find unclaimed hot halo mass/abundances cooling pipe'  &
+  if     (                                                                                                 &
+       &   hotHalo%      hotHaloCoolingMassRateIsAttached()                                                &
+       &  .or.                                                                                             &
+       &   hotHalo%hotHaloCoolingAbundancesRateIsAttached()                                                &
+       & )                                                                                                 &
+       & call Galacticus_Error_Report(                                                                     &
+       &                              'expected to find unclaimed hot halo mass/abundances cooling pipe'// &
+       &                              {introspection:location}                                             &
        &                             )
   call hotHalo%      hotHaloCoolingMassRateFunction(      DiskVerySimpleMassGasRateGeneric)
   call hotHalo%hotHaloCoolingAbundancesRateFunction(DiskVerySimpleAbundancesGasRateGeneric)
@@ -66,13 +66,13 @@ double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,rad
         Node_Component_Disk_Very_Simple_Enclosed_Mass=               self%massStellar()
      end select
   case default
-     call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Enclosed_Mass','this component does not track luminosity')
+     call Galacticus_Error_Report('this component does not track luminosity'//{introspection:location})
   end select
   ! Return if no mass.
   if (Node_Component_Disk_Very_Simple_Enclosed_Mass <=       0.0d0) return
   ! Return if the total mass was requested.
   if (radius                                        >= radiusLarge) return
   ! Otherwise we have an error.
-  call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Enclosed_Mass','this component does not specify a mass profile')
+  call Galacticus_Error_Report('this component does not specify a mass profile'//{introspection:location})
   return
 end function Node_Component_Disk_Very_Simple_Enclosed_Mass

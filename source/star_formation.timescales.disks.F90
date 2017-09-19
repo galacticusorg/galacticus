@@ -97,8 +97,7 @@ contains
                 ! One was, so transfer to the Fortran procedure pointer.
                 call c_f_procpointer(cFunctionPointer,Star_Formation_Timescale_Disk_CGet)
              else
-                call Galacticus_Error_Report('Star_Formation_Timescale_Disks'&
-                     &,'method '//char(starFormationTimescaleDisksMethod)//' is unrecognized')
+                call Galacticus_Error_Report('method '//char(starFormationTimescaleDisksMethod)//' is unrecognized'//{introspection:location})
              end if
           end if
           starFormationTimescaleDisksInitialized=.true.

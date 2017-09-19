@@ -123,7 +123,7 @@ contains
              imfPieceCount        =1
           else
              pieceWiseImfIsDefined=.true.
-             if (imfPieceCount < 1) call Galacticus_Error_Report('Star_Formation_IMF_Initialize_PiecewisePowerLaw','at least 2 mass points are required to define the IMF')
+             if (imfPieceCount < 1) call Galacticus_Error_Report('at least 2 mass points are required to define the IMF'//{introspection:location})
           end if
           call allocateArray(massLower       ,[imfPieceCount])
           call allocateArray(massUpper       ,[imfPieceCount])

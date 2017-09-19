@@ -112,7 +112,7 @@ contains
     if (.not.chemicalDatabaseInitialized) then
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(Galacticus_Input_Path())//'data/abundances/Chemical_Database.cml',iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Chemical_Structure_Initialize','Unable to find chemical database file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to find chemical database file'//{introspection:location})
        ! Get a list of all chemicals.
        chemicalList => getElementsByTagname(doc,"chemical")
        ! Allocate the array of chemicals.
@@ -266,7 +266,7 @@ contains
        end if
     end do
     Chemical_Database_Get_Index=-1
-    call Galacticus_Error_Report('Chemical_Database_Get_Index','chemical was not found in database')
+    call Galacticus_Error_Report('chemical was not found in database'//{introspection:location})
     return
   end function Chemical_Database_Get_Index
 

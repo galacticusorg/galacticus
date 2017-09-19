@@ -112,7 +112,7 @@ contains
 
        ! Determine which node to use for halo properties.
        if (adiabaticContractionUseFormationHalo) then
-          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','no formation node exists')
+          if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
           haloNode => node%formationNode
        else
           haloNode => node
@@ -144,7 +144,7 @@ contains
        if (fitMeasure > adiabaticContractionSolutionTolerance) then
           call Galacticus_Display_Message('dumping node for which radii are currently being sought')
           call node%serializeASCII()
-          call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
+          call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
        end if
 
     end if
@@ -300,7 +300,7 @@ contains
           message=message//'  initial halo mass enclosed:   '//label//char(10)
           write (label,'(e12.6)') haloFraction
           message=message//'  halo fraction:                '//label
-          call Galacticus_Error_Report('Galactic_Structure_Radii_Adiabatic::Solve_For_Radius',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        end if
 
     end if

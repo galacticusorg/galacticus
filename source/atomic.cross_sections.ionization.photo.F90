@@ -70,8 +70,8 @@ contains
           !#  <functionArgs>atomicPhotoIonizationMethod,Atomic_Cross_Section_Ionization_Photo_Get</functionArgs>
           include 'atomic.cross_sections.ionization.photo.inc'
           !# </include>
-          if (.not.associated(Atomic_Cross_Section_Ionization_Photo_Get)) call&
-               & Galacticus_Error_Report('Atomic_Cross_Section_Ionization_Photo_Initialize','method '//char(atomicPhotoIonizationMethod)//' is unrecognized')
+          if (.not.associated(Atomic_Cross_Section_Ionization_Photo_Get)) &
+               & call Galacticus_Error_Report('method '//char(atomicPhotoIonizationMethod)//' is unrecognized'//{introspection:location})
           ionizationCrossSectionInitialized=.true.
        end if
        !$omp end critical(Atomic_Cross_Section_Ionization_Photo_Initialization)

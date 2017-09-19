@@ -314,7 +314,7 @@ contains
        case ("formationNode")
           hotHaloCoolingFromNode=formationNode
        case default
-          call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Initialize','hotHaloCoolingFromNode must be one of "currentNode" or "formationNode"')
+          call Galacticus_Error_Report('hotHaloCoolingFromNode must be one of "currentNode" or "formationNode"'//{introspection:location})
        end select
 
        ! Determine whether excess heating of the halo will drive an outflow.
@@ -608,7 +608,7 @@ contains
     double precision                                                                 :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate
 
      ! Trap cases where an attempt is made to remove energy via this input function.
-     if (rate < 0.0d0) call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Heat_Source','attempt to remove energy via heat source pipe to hot halo')
+     if (rate < 0.0d0) call Galacticus_Error_Report('attempt to remove energy via heat source pipe to hot halo'//{introspection:location})
 
      ! Get the node associated with this hot halo component.
      node => hotHalo%host()
@@ -691,7 +691,7 @@ contains
              coolingFromNode => node%formationNode
           case default
              coolingFromNode => null()
-             call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes','unknown "hotHaloCoolingFromNode" - this should not happen')
+             call Galacticus_Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
           end select
           coolingInfallRadius_       => coolingInfallRadius        (    )
           infallRadius               =  coolingInfallRadius_%radius(node)
@@ -1198,7 +1198,7 @@ contains
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Trap cases where an attempt is made to add gas via this sink function.
-       if (setValue > 0.0d0) call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Mass_Sink','attempt to add mass via sink in hot halo')
+       if (setValue > 0.0d0) call Galacticus_Error_Report('attempt to add mass via sink in hot halo'//{introspection:location})
        ! Proportionally adjust the rates of all components of the hot gas reservoir.
        call Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate(self,setValue,interrupt,interruptProcedure)
     end select

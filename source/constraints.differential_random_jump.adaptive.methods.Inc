@@ -39,7 +39,7 @@ function deRandomJumpAdaptiveSample(self,randomDistributions,simulationState)
      class is (distribution1D)
         deRandomJumpAdaptiveSample(i)=deRandomJumpAdaptiveSample(i)+d%sample()*parameterRange(i)
      class default
-        call Galacticus_Error_Report('deRandomJumpAdaptiveSample','only 1D distributions are supported')
+        call Galacticus_Error_Report('only 1D distributions are supported'//{introspection:location})
      end select
   end do
   return

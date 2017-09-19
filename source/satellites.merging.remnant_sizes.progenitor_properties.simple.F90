@@ -54,14 +54,14 @@ contains
             &  )                                                                                                                                         &
             & ) call Galacticus_Error_Report                                                                                                             &
             &        (                                                                                                                                   &
-            &         'Satellite_Merging_Remnant_Progenitor_Properties_Simple_Init'                                                                   ,  &
             &         'this method requires that massStellar, massGas, and halfMassRadius properties must all be gettable for the disk component.'    // &
             &         Galacticus_Component_List(                                                                                                         &
             &                                   'disk'                                                                                                ,  &
             &                                   defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.             &
             &                                   defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.             &
             &                                   defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.)                           &
-            &                                  )                                                                                                         &
+            &                                  )                                                                                                      // &
+            &         {introspection:location}                                                                                                           &
             &        )
        if     (                                                                                                                                          &
             &  .not.                                                                                                                                     &
@@ -72,14 +72,14 @@ contains
             &  )                                                                                                                                         &
             & ) call Galacticus_Error_Report                                                                                                             &
             &        (                                                                                                                                   &
-            &         'Satellite_Merging_Remnant_Progenitor_Properties_Simple_Init'                                                                   ,  &
             &         'this method requires that massStellar, massGas, and halfMassRadius properties must all be gettable for the spheroid component.'// &
             &         Galacticus_Component_List(                                                                                                         &
             &                                   'spheroid'                                                                                            ,  &
             &                                   defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.             &
             &                                   defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.             &
             &                                   defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.)                           &
-            &                                  )                                                                                                         &
+            &                                  )                                                                                                      // &
+            &         {introspection:location}                                                                                                           &
             &        )
     end if
     return
@@ -137,7 +137,7 @@ contains
        remnantSpheroidMass   =hostSpheroidComponent%massGas()
        hostRadius            =hostSpheroidComponent%massGas()*hostSpheroidComponent%halfMassRadius()
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Simple','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (thisHostStarsMoveTo)
     case (movesToSpheroid)
@@ -152,7 +152,7 @@ contains
        remnantSpheroidMass  =remnantSpheroidMass    +hostSpheroidComponent%massStellar()
        hostRadius           =hostRadius             +hostSpheroidComponent%massStellar()*hostSpheroidComponent%halfMassRadius()
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Simple','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (thisMergerGasMovesTo)
     case (movesToSpheroid)
@@ -169,7 +169,7 @@ contains
        remnantSpheroidMass   =remnantSpheroidMass   +satelliteSpheroidComponent%massGas()
        satelliteRadius       =                      +satelliteSpheroidComponent%massGas()*satelliteSpheroidComponent%halfMassRadius()
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Simple','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
     select case (thisMergerStarsMoveTo)
     case (movesToSpheroid)
@@ -184,7 +184,7 @@ contains
        remnantSpheroidMass  =remnantSpheroidMass  +satelliteSpheroidComponent%massStellar()
        satelliteRadius      =satelliteRadius      +satelliteSpheroidComponent%massStellar()*satelliteSpheroidComponent%halfMassRadius()
     case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Simple','unrecognized moveTo descriptor')
+       call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
 
     ! Compute the half-mass radii of the material that will end up in the remnant spheroid.

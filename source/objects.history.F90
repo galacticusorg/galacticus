@@ -358,14 +358,14 @@ contains
     integer                                            :: rangeTypeActual
 
     if (allocated(thisHistory%time)) then
-       call Galacticus_Error_Report('History_Create','this history appears to have been created already')
+       call Galacticus_Error_Report('this history appears to have been created already'//{introspection:location})
     else
        allocate(thisHistory%time  (timesCount             ))
        allocate(thisHistory%data  (timesCount,historyCount))
        if (timesCount > 0) then
           call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
-             if (.not.present(timeEnd)) call Galacticus_Error_Report('History_Create','an end time must be given if a begin time is given')
+             if (.not.present(timeEnd)) call Galacticus_Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
                 rangeTypeActual=rangeType
              else
@@ -423,14 +423,14 @@ contains
     integer                                                       :: rangeTypeActual
 
     if (allocated(thisHistory%time)) then
-       call Galacticus_Error_Report('History_Long_Integer_Create','this history appears to have been created already')
+       call Galacticus_Error_Report('this history appears to have been created already'//{introspection:location})
     else
        allocate(thisHistory%time  (timesCount             ))
        allocate(thisHistory%data  (timesCount,historyCount))
        if (timesCount > 0) then
           call Memory_Usage_Record(sizeof(thisHistory%time)+sizeof(thisHistory%data),memoryType=memoryTypeNodes,blockCount=3)
           if (present(timeBegin)) then
-             if (.not.present(timeEnd)) call Galacticus_Error_Report('History_Long_Integer_Create','an end time must be given if a begin time is given')
+             if (.not.present(timeEnd)) call Galacticus_Error_Report('an end time must be given if a begin time is given'//{introspection:location})
              if (present(rangeType)) then
                 rangeTypeActual=rangeType
              else
@@ -484,7 +484,7 @@ contains
     type (node   ), pointer       :: historyDefinition
     !GCC$ attributes unused :: self, historyDefinition
 
-    call Galacticus_Error_Report('History_Builder','building of history objects is not yet supported')
+    call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
   end subroutine History_Builder
 
@@ -497,7 +497,7 @@ contains
     type (node              ), pointer       :: historyDefinition
     !GCC$ attributes unused :: self, historyDefinition
     
-    call Galacticus_Error_Report('History_Long_Integer_Builder','building of history objects is not yet supported')
+    call Galacticus_Error_Report('building of history objects is not yet supported'//{introspection:location})
     return
   end subroutine History_Long_Integer_Builder
 
@@ -742,7 +742,7 @@ contains
        type is (history)
           History_Add=history1
           if (present(history2)) then
-             if (any(shape(History_Add%data) /= shape(history2%data))) call Galacticus_Error_Report('History_Add','mismatch in history object shape')
+             if (any(shape(History_Add%data) /= shape(history2%data))) call Galacticus_Error_Report('mismatch in history object shape'//{introspection:location})
              History_Add%data=History_Add%data+history2%data
           end if
        end select
@@ -766,7 +766,7 @@ contains
        type is (history)
           History_Subtract=history1
           if (present(history2)) then
-             if (any(shape(history1%data) /= shape(history2%data))) call Galacticus_Error_Report('History_Subtract','mismatch in history object shape')
+             if (any(shape(history1%data) /= shape(history2%data))) call Galacticus_Error_Report('mismatch in history object shape'//{introspection:location})
              History_Subtract%data= history1%data-history2%data
           else
              History_Subtract%data=-history1%data
@@ -800,7 +800,7 @@ contains
     if (allocated(self%data)) then
        self%data=reshape(historyArray,shape(self%data))
     else if (size(historyArray) > 0) then
-       call Galacticus_Error_Report('History_Deserialize','attempt to deserialize into non-existant history')
+       call Galacticus_Error_Report('attempt to deserialize into non-existant history'//{introspection:location})
     end if
     return
   end subroutine History_Deserialize
@@ -844,7 +844,7 @@ contains
 
     ! Decide on the minimum number of points that we will remove.
     if (present(minimumPointsToRemove)) then
-       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('History_Trim','minimum number of points to remove must be >= 1')
+       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
        minimumPointsToRemoveActual=minimumPointsToRemove
     else
        minimumPointsToRemoveActual=1
@@ -955,7 +955,7 @@ contains
 
     ! Decide on the minimum number of points that we will remove.
     if (present(minimumPointsToRemove)) then
-       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('History_Long_Integer_Trim','minimum number of points to remove must be >= 1')
+       if (minimumPointsToRemove < 1) call Galacticus_Error_Report('minimum number of points to remove must be >= 1'//{introspection:location})
        minimumPointsToRemoveActual=minimumPointsToRemove
     else
        minimumPointsToRemoveActual=1
@@ -1054,8 +1054,8 @@ contains
        self%data=append%data
     else
        ! A history already exists. Validate the provided append history.
-       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('History_Long_Integer_Append_History','history to append starts before end of history to which it is being appended')
-       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('History_Long_Integer_Append_History','histories have different cardinalities')
+       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
        call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
        call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
@@ -1090,8 +1090,8 @@ contains
        self%data(1,:)=append
     else
        ! A history already exists. Validate the provided append history.
-       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
-       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('History_Long_Integer_Append_History','histories have different cardinalities')
+       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
        call allocateArray(timeTmp,[size(self%time)+1                      ])
        call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
@@ -1123,8 +1123,8 @@ contains
        self%data=append%data
     else
        ! A history already exists. Validate the provided append hsitory.
-       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
-       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('History_Append_History','histories have different cardinalities')
+       if (append%time(1) <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append%data,dim=2)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do do the append.
        call allocateArray(timeTmp,[size(self%time)+size(append%time)                      ])
        call allocateArray(dataTmp,[size(self%time)+size(append%time),size(self%data,dim=2)])
@@ -1159,8 +1159,8 @@ contains
        self%data(1,:)=append
     else
        ! A history already exists. Validate the provided append data.
-       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('History_Append_History','history to append starts before end of history to which it is being appended')
-       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('History_Append_History','histories have different cardinalities')
+       if (time <= self%time(size(self%time))) call Galacticus_Error_Report('history to append starts before end of history to which it is being appended'//{introspection:location})
+       if (size(self%data,dim=2) /= size(append)) call Galacticus_Error_Report('histories have different cardinalities'//{introspection:location})
        ! Do the append.
        call allocateArray(timeTmp,[size(self%time)+1                      ])
        call allocateArray(dataTmp,[size(self%time)+1,size(self%data,dim=2)])
@@ -1212,9 +1212,9 @@ contains
            return
         end if
         ! addHistory must have at least two points to permit interpolation.
-        if (addHistoryPointCount  < 2) call Galacticus_Error_Report('History_Add','history to add must have at least two points')
+        if (addHistoryPointCount  < 2) call Galacticus_Error_Report('history to add must have at least two points'//{introspection:location})
         ! The two objects must contain the same number of histories.
-        if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('History_Add','two objects contain differing numbers of histories')
+        if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
         ! Loop over each entry in thisHistory.
         interpolationPoint=1
         do iPoint=1,size(thisHistory%time)
@@ -1285,7 +1285,7 @@ contains
         end if
 
         ! The two objects must contain the same number of histories.
-        if (size(thisHistory%data,dim=2) /= size(combineHistory%data,dim=2)) call Galacticus_Error_Report('History_Combine','two objects contain differing numbers of histories')
+        if (size(thisHistory%data,dim=2) /= size(combineHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
 
         ! Determine if we need to extend the time range in thisHistory.
         combineCount=size(combineHistory%time)
@@ -1393,7 +1393,7 @@ contains
            timeRangeActual(1)=times(1          )
            timeRangeActual(2)=times(size(times))
         else
-           call Galacticus_Error_Report('History_Extend','either timeRange or times must be specified')
+           call Galacticus_Error_Report('either timeRange or times must be specified'//{introspection:location})
         end if
      end if
 
@@ -1418,7 +1418,7 @@ contains
               message=message//thisHistory%rangeType//char(10)
            end if
            message=message//' -> known types are: '//char(10)//' --> linear      : '//rangeTypeLinear//char(10)//' --> logarithmic : '//rangeTypeLogarithmic
-           call Galacticus_Error_Report('History_Extend',message)
+           call Galacticus_Error_Report(message//{introspection:location})
         end select
         if (timeRangeActual(1) < timeBegin) then
            select case (thisHistory%rangeType)
@@ -1430,7 +1430,7 @@ contains
               timeBegin=timeBegin*exp(-dble(addCountStart)*timeDelta)
            case default
               addCountStart=0              
-              call Galacticus_Error_Report('History_Extend','unknown range type')
+              call Galacticus_Error_Report('unknown range type'//{introspection:location})
            end select
            timeBeginIndex=timeBeginIndex+addCountStart
            timeEndIndex  =timeEndIndex  +addCountStart
@@ -1447,7 +1447,7 @@ contains
               timeEnd  =timeEnd  *exp(+dble(addCountEnd)*timeDelta)
            case default
               addCountEnd=0
-              call Galacticus_Error_Report('History_Extend','unknown range type')
+              call Galacticus_Error_Report('unknown range type'//{introspection:location})
            end select
         else
            addCountEnd=0

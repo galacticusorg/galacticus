@@ -73,8 +73,8 @@ contains
           !#  <functionArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</functionArgs>
           include 'stellar_populations.properties.inc'
           !# </include>
-          if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_Scales_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) call Galacticus_Error_Report('Stellar_Population_Properties_Rates'&
-               &,'method '//char(stellarPopulationPropertiesMethod)//' is unrecognized')
+          if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_Scales_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) &
+	  &   call Galacticus_Error_Report('method '//char(stellarPopulationPropertiesMethod)//' is unrecognized'//{introspection:location})
           stellarPopulationPropertiesInitialized=.true.
        end if
        !$omp end critical(Stellar_Population_Properties_Rates_Initialization)

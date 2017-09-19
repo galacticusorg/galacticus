@@ -397,17 +397,17 @@ contains
     conditionalMFConstructorInternal%haloMassError_                    => haloMassError_
     conditionalMFConstructorInternal%primaryProgenitorStatisticsValid  =  conditionalMFConstructorInternal%haloMassError_%errorZeroAlways()
     if (size(progenitorRedshifts) /= conditionalMFConstructorInternal%timeCount) &
-         & call Galacticus_Error_Report('conditionalMFConstructorInternal','mismatch in sizes of parent and progenitor redshift arrays')
+         & call Galacticus_Error_Report('mismatch in sizes of parent and progenitor redshift arrays'//{introspection:location})
     ! Check for required property attributes.
     if (alwaysIsolatedHalosOnly.and..not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                              &
          & call Galacticus_Error_Report                                                                                                                        &
          &      (                                                                                                                                              &
-         &       'conditionalMFConstructorInternal'                                                                                                         ,  &
          &       'statistics of always isolated halos require a merging statistics component that provides a gettable "nodeHierarchyLevelMaximum" property.'// &
          &       Galacticus_Component_List(                                                                                                                    &
          &                                 'mergingStatistics'                                                                                               , &
          &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)                  &
-         &                                )                                                                                                                    &
+         &                                )                                                                                                                 // &
+         &       {introspection:location}                                                                                                                      &
          &      )     
     ! Allocate arrays.
     call allocateArray(conditionalMFConstructorInternal%parentRedshifts    ,[conditionalMFConstructorInternal%timeCount        ])
@@ -1139,7 +1139,7 @@ contains
     type            (fgsl_integration_workspace     )                                   :: integrationWorkspace
 
     ! Validate moment.
-    if (moment < 0 .or. moment > 2) call Galacticus_Error_Report('conditionalMFBinWeights2D','moment must be 0, 1, or 2')
+    if (moment < 0 .or. moment > 2) call Galacticus_Error_Report('moment must be 0, 1, or 2'//{introspection:location})
     ! Construct nodes and find the mass errors and their correlation. Given the correlation coefficient, C₁₂, between the mass
     ! errors, σ₁ and σ₂, then once M₁ is fixed, M₂ is shifted by C₁₂ (σ₂/σ₁) (M₁-<M₁>), and has remaining variance (1-C₁₂²)σ₂²
     node1  => treeNode       (                 )
@@ -1162,7 +1162,7 @@ contains
     ! Handle zero errors.
     if (massError1 <= 0.0d0 .or. massError2 <= 0.0d0) then
        ! We currently do not handle cases where only one error is zero.
-       if (massError1 > 0.0d0 .or. massError2 > 0.0d0) call Galacticus_Error_Report('conditionalMFBinWeights2D','both mass errors must be zero or both must be non-zero')
+       if (massError1 > 0.0d0 .or. massError2 > 0.0d0) call Galacticus_Error_Report('both mass errors must be zero or both must be non-zero'//{introspection:location})
        ! Find the bin contributed to.
        i      =int(                                                      &
             &      +(+log(      mass1)-massLogarithmicMinimumBins1     ) &
@@ -1448,7 +1448,7 @@ contains
               &                              )
       case default
          conditionalMFBinWeights2DIntegrand=0.0d0
-         call Galacticus_Error_Report('conditionalMFBinWeights2DIntegrand','moment not supported')
+         call Galacticus_Error_Report('moment not supported'//{introspection:location})
       end select
       conditionalMFBinWeights2DIntegrand=+conditionalMFBinWeights2DIntegrand &
            &                             *exp(                               &

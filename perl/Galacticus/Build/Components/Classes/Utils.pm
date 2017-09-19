@@ -187,7 +187,7 @@ sub Class_Remove {
 	};    
 	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 instanceCount=self%{$class->{'name'}}count()
-if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('Node_Component_{ucfirst($class->{'name'})}_Remove','instance out of range')
+if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('instance out of range'//\{introspection:location\})
 call self%component{ucfirst($class->{'name'})}(instance)%destroy()
 if (instanceCount == 1) then
   ! Only one instance of this component. Deallocate it and reallocate with generic type.

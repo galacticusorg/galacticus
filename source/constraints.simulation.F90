@@ -348,7 +348,7 @@ contains
                &                             )
        end select
     case default
-       call Galacticus_Error_Report('simulatorNew','simulator type is unrecognized')
+       call Galacticus_Error_Report('simulator type is unrecognized'//{introspection:location})
     end select
     return
   end function simulatorNew

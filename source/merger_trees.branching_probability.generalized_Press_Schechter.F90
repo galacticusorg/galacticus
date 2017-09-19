@@ -201,13 +201,13 @@ contains
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
        if (Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass) >= 0.0d0) then
           ! Check that we are sufficiently close to zero. If we're not, it might indicate a problem.
-          if     (                                                                                     &
-               &   Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass)                        &
-               &  >                                                                                    &
-               &   probability*smallProbabilityFraction                                                &
-               & ) call Galacticus_Error_Report(                                                       &
-               &                                "Generalized_Press_Schechter_Branch_Mass()"          , &
-               &                                "numerical accuracy lost in root finding calculation"  &
+          if     (                                                                                      &
+               &   Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass)                         &
+               &  >                                                                                     &
+               &   probability*smallProbabilityFraction                                                 &
+               & ) call Galacticus_Error_Report(                                                        &
+               &                                "numerical accuracy lost in root finding calculation"// &
+               &                                {introspection:location}                                &
                &                               )
           ! Return a binary split mass.
           Generalized_Press_Schechter_Branch_Mass=0.5d0*haloMass

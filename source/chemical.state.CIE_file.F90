@@ -652,7 +652,7 @@ contains
     call chemicalStateFile%openFile(fileName,readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
-    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('cieFileReadFile','file format version is out of date')
+    if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
     ! Test for presence of hydrogen data.
     self%gotHydrogenAtomic=chemicalStateFile%hasDataset('hiDensity' )
     self%gotHydrogenCation=chemicalStateFile%hasDataset('hiiDensity')
@@ -690,28 +690,28 @@ contains
          &   self%extrapolateMetallicityLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateMetallicityHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureLow  /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     if     (                                                              &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeFix      &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypeZero     &
          &  .and.                                                         &
          &   self%extrapolateTemperatureHigh /= extrapolationTypePowerLaw &
-         & ) call Galacticus_Error_Report('cieFileReadFile','extrapolation type not permitted')
+         & ) call Galacticus_Error_Report('extrapolation type not permitted'//{introspection:location})
     ! Close the file.
     call chemicalStateFile%close()
     call Galacticus_Display_Unindent('done',verbosityDebug)
@@ -749,7 +749,7 @@ contains
             &  .or.                                                          &
             &   self%extrapolateMetallicityHigh == extrapolationTypePowerLaw &
             & )                                                              &
-            & call Galacticus_Error_Report('cieFileReadFile','power law extrapolation allowed only in loggable tables')
+            & call Galacticus_Error_Report('power law extrapolation allowed only in loggable tables'//{introspection:location})
     end if
     ! Force interpolation accelerators to be reset.
     self%resetTemperature=.true.

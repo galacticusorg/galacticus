@@ -186,7 +186,7 @@ contains
                &                                           )
        case (movesToSpheroid)
        case default
-          call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
        ! Zero rates in the secondary,
        call interOutput%    diskStarFormationRateSet(                                             &
@@ -216,7 +216,7 @@ contains
        case (doesNotMove)
           ! Do nothing.
        case default
-          call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merging','unrecognized movesTo descriptor')
+          call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
     end select
     return

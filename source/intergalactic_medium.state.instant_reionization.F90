@@ -64,7 +64,7 @@ contains
     ! Check and read parameters.
     haveReionizationRedshift          =parameters%isPresent('reionizationRedshift'          )
     haveElectronScatteringOpticalDepth=parameters%isPresent('electronScatteringOpticalDepth')
-    if (haveReionizationRedshift.and.haveElectronScatteringOpticalDepth) call Galacticus_Error_Report('instantReionizationIGMConstructorParameters','only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided')
+    if (haveReionizationRedshift.and.haveElectronScatteringOpticalDepth) call Galacticus_Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
     if (haveElectronScatteringOpticalDepth) then
        !# <inputParameter>
        !#   <name>electronScatteringOpticalDepth</name>
@@ -145,9 +145,9 @@ contains
             &                                                                )
     else if (present(electronScatteringOpticalDepth)) then
        ! Assert that we can not also have a reionization redshift specified.
-       if (present(reionizationRedshift)) call Galacticus_Error_Report('instantReionizationIGMConstructorInternal','only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided')
+       if (present(reionizationRedshift)) call Galacticus_Error_Report('only one of [reionizationRedshift] or [electronScatteringOpticalDepth] can be provided'//{introspection:location})
        ! Validate optical depth.
-       if (electronScatteringOpticalDepth < 0.0d0) call Galacticus_Error_Report('instantReionizationIGMConstructorInternal','electron scattering optical depth must be > 0')
+       if (electronScatteringOpticalDepth < 0.0d0) call Galacticus_Error_Report('electron scattering optical depth must be > 0'//{introspection:location})
        ! Solve for the redshift of reionization which gives the desired optical depth.
        timePresent          =cosmologyFunctions_ %cosmicTime                 (                               &
             &                 cosmologyFunctions_%expansionFactorFromRedshift (                              &
@@ -186,7 +186,7 @@ contains
        ! reionization epoch.
        self%electronScatteringTableInitialized=.false.
     else
-       call Galacticus_Error_Report('instantReionizationIGMConstructorInternal','one of [reionizationRedshift] or [electronScatteringOpticalDepth] must be provided')
+       call Galacticus_Error_Report('one of [reionizationRedshift] or [electronScatteringOpticalDepth] must be provided'//{introspection:location})
     end if
     ! Compute the expansion factor at reionization.
     self%expansionFactorReionizationLog=log(cosmologyFunctions_%expansionFactor(self%reionizationTime))

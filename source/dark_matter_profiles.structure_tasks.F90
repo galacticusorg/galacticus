@@ -224,7 +224,7 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
 
     if (present(haloLoaded)) then
-       if (haloLoaded) call Galacticus_Error_Report('Dark_Matter_Profile_Potential_Task','dark matter potential not available for baryon loaded halos')
+       if (haloLoaded) call Galacticus_Error_Report('dark matter potential not available for baryon loaded halos'//{introspection:location})
     end if
 
     darkMatterProfile_   => darkMatterProfile  ()

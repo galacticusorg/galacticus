@@ -272,7 +272,7 @@ contains
        xHigh=rootGuess
     else
        Root_Finder_Find=0.0d0
-       call Galacticus_Error_Report('Root_Finder_Find','either "rootGuess" or "rootRange" must be specified')
+       call Galacticus_Error_Report('either "rootGuess" or "rootRange" must be specified'//{introspection:location})
     end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
@@ -427,7 +427,7 @@ contains
                 return
              else
                 Root_Finder_Find=0.0d0
-                call Galacticus_Error_Report('Root_Finder_Find',message)
+                call Galacticus_Error_Report(message//{introspection:location})
              end if
           end if
        end do
@@ -453,7 +453,7 @@ contains
        if (present(status)) then
           status=statusActual
        else
-          call Galacticus_Error_Report('Root_Finder_Find','failed to initialize solver')
+          call Galacticus_Error_Report('failed to initialize solver'//{introspection:location})
        end if
     else
        iteration=0
@@ -480,7 +480,7 @@ contains
           if (present(status)) then 
              status=statusActual
           else
-             call Galacticus_Error_Report('Root_Finder_Find','failed to find root')
+             call Galacticus_Error_Report('failed to find root'//{introspection:location})
           end if
        else
           if (present(status)) status=FGSL_Success

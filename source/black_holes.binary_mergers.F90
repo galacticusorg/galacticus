@@ -66,8 +66,7 @@ contains
           !#  <functionArgs>blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do</functionArgs>
           include 'black_holes.binary_mergers.inc'
           !# </include>
-          if (.not.associated(Black_Hole_Binary_Merger_Do)) call Galacticus_Error_Report('Black_Hole_Binary_Merger','method ' &
-               &//char(blackHoleBinaryMergersMethod)//' is unrecognized')
+          if (.not.associated(Black_Hole_Binary_Merger_Do)) call Galacticus_Error_Report('method '//char(blackHoleBinaryMergersMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           blackHoleBinaryMergersInitialized=.true.
        end if

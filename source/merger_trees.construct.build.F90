@@ -189,8 +189,8 @@ contains
             &                                )
        if (mergerTreeBuildHaloMassMaximum <= mergerTreeBuildHaloMassMinimum .and. mergerTreeBuildTreesHaloMassDistribution /= "read") &
             & call Galacticus_Error_Report(                                                                                           &
-            &                              'Merger_Tree_Build_Initialize'                                                   ,         &
-            &                              '[mergerTreeBuildHaloMassMaximum] > [mergerTreeBuildHaloMassMinimum] is required'          &
+            &                              '[mergerTreeBuildHaloMassMaximum] > [mergerTreeBuildHaloMassMinimum] is required'//        &
+            &                              {introspection:location}                                                                   &
             &                             )
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions()
@@ -230,7 +230,7 @@ contains
              ! Use a uniform distribution in logarithm of halo mass.
              treeHaloMass=Make_Range(0.0d0,1.0d0,treeCount,rangeType=rangeTypeLinear)
           case default
-             call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
+             call Galacticus_Error_Report('unknown halo mass distribution option'//{introspection:location})
           end select
           ! Create a cumulative probability for sampling halo masses.
           massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*massFunctionSamplePerDecade))
@@ -268,7 +268,7 @@ contains
           end do
           call Integrate_Done(integrandFunction,integrationWorkspace)
           massFunctionSampleCount=jSample
-          if (massFunctionSampleCount < 2) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','tabulated mass function sampling density has fewer than 2 non-zero points')
+          if (massFunctionSampleCount < 2) call Galacticus_Error_Report('tabulated mass function sampling density has fewer than 2 non-zero points'//{introspection:location})
           ! Normalize the cumulative probability distribution.
           massFunctionSampleProbability=massFunctionSampleProbability/massFunctionSampleProbability(massFunctionSampleCount)
           ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
@@ -294,7 +294,7 @@ contains
           if (extract(mergerTreeBuildTreeMassesFile,len(mergerTreeBuildTreeMassesFile)-3,len(mergerTreeBuildTreeMassesFile)) == ".xml") then
              !$omp critical (FoX_DOM_Access)
              doc => parseFile(char(mergerTreeBuildTreeMassesFile),iostat=ioErr)
-             if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unable to read or parse merger tree root mass file')
+             if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse merger tree root mass file'//{introspection:location})
              ! Read all tree masses.
              call XML_Array_Read(doc,"treeRootMass",treeHaloMass)
              ! Allocate array for tree weights.
@@ -324,10 +324,10 @@ contains
              call treeFile%close()
              !$omp end critical (HDF5_Access)
           else
-             call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown file type for halo masses')
+             call Galacticus_Error_Report('unknown file type for halo masses'//{introspection:location})
           end if
        case default
-          call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
+          call Galacticus_Error_Report('unknown halo mass distribution option'//{introspection:location})
        end select
        ! Compute the weight (number of trees per unit volume) for each tree.
        if (computeTreeWeights) then

@@ -695,7 +695,7 @@ contains
             &                   )
     case default
        klypin2015Concentration=0.0d0
-       call Galacticus_Error_Report('klypin2015Concentration','unknown fit type')
+       call Galacticus_Error_Report('unknown fit type'//{introspection:location})
     end select
     return
   end function klypin2015Concentration

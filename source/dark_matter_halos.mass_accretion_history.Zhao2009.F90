@@ -69,7 +69,7 @@ contains
     baseTime=baseBasicComponent%time()
 
     ! Trap cases where the mass occurs in the future.
-    if (mass > baseMass) call Galacticus_Error_Report('zhao2009Time','specified mass is in the future')
+    if (mass > baseMass) call Galacticus_Error_Report('specified mass is in the future'//{introspection:location})
 
     ! Calculate quantities which remain fixed through the ODE.
 

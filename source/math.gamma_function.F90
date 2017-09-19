@@ -94,7 +94,7 @@ contains
        case (-8)
           message='accuracy lost'
        end select
-       call Galacticus_Error_Report('Inverse_Gamma_Function_Incomplete_Complementary',message)
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
     return
   end function Inverse_Gamma_Function_Incomplete_Complementary

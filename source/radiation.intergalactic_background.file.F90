@@ -92,11 +92,11 @@ contains
        !$omp critical (FoX_DOM_Access)
        ! Parse the XML file.
        doc => parseFile(char(radiationIGBFileName),iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Radiation_Initialize_File','Unable to find or parse data file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to find or parse data file'//{introspection:location})
        ! Check the file format version of the file.
        thisDatum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(thisDatum,fileFormatVersion)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Radiation_IGB_File_Initialize','file format version is out of date')
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
        ! Get a list of all spectra.
        spectraList => getElementsByTagname(doc,"spectra")
        ! Get the default cosmology functions object.
@@ -110,7 +110,7 @@ contains
        call allocateArray(spectra     ,[spectraWavelengthsCount,spectraTimesCount])
        call allocateArray(spectraTimes,[                        spectraTimesCount])
        ! Check if the times are monotonically ordered.
-       if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('Radiation_Initialize_File','spectra must be monotonically ordered in time')
+       if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
        timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
        ! Read spectra into arrays.
        do iSpectrum=1,spectraTimesCount
@@ -123,7 +123,7 @@ contains
           ! Get the data.
           thisSpectrum => item(spectraList,iSpectrum-1)
           ! Check that we have the correct number of data.
-          if (XML_Array_Length(thisSpectrum,"datum") /= spectraWavelengthsCount) call Galacticus_Error_Report('Radiation_Initialize_File','all spectra must contain the same number of wavelengths')
+          if (XML_Array_Length(thisSpectrum,"datum") /= spectraWavelengthsCount) call Galacticus_Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
           ! Extract the data.
           call XML_Array_Read_Static(thisSpectrum,"datum",spectra(:,jSpectrum))
           ! Extract the redshift.

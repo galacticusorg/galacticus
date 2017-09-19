@@ -115,22 +115,22 @@ contains
     if (self%includeSpin      .and..not.defaultSpinComponent%spinIsGettable      ())                            &
          & call Galacticus_Error_Report                                                                         &
          &  (                                                                                                   &
-         &   'massAccretionHistoryConstructorInternal'                                                        , &
          &   'the spin property of the spin component must be gettable.'                                     // &
          &   Galacticus_Component_List(                                                                         &
          &                             'spin'                                                                 , &
          &                              defaultSpinComponent%spinAttributeMatch      (requireGettable=.true.)   &
-         &                            )                                                                         &
+         &                            )                                                                      // &
+         &   {introspection:location}                                                                           &
          &  )             
     if (self%includeSpinVector.and..not.defaultSpinComponent%spinVectorIsGettable())                            &
          & call Galacticus_Error_Report                                                                         &
          &  (                                                                                                   &
-         &   'massAccretionHistoryConstructorInternal'                                                        , &
          &   'the spinVector property of the spin component must be gettable.'                               // &
          &   Galacticus_Component_List(                                                                         &
          &                             'spin'                                                                 , &
          &                              defaultSpinComponent%spinVectorAttributeMatch(requireGettable=.true.)   &
-         &                            )                                                                         &
+         &                            )                                                                      // &
+         &   {introspection:location}                                                                           &
          &  )
     return
   end function massAccretionHistoryConstructorInternal
@@ -205,7 +205,7 @@ contains
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
        !$omp critical (HDF5_Access)
-       if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('Merger_Tree_Mass_Accretion_History_Output','duplicate tree index detected - mass accretion history can not be output'//char(10)//'  HELP: This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
+       if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('duplicate tree index detected - mass accretion history can not be output'//char(10)//{introspection:location}//'  HELP: This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
        call                             treeGroup       %writeDataset  (nodeTime           ,'nodeTime'           ,'Time at node [Gyr].'          ,datasetReturned=accretionDataset)

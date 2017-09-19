@@ -100,29 +100,29 @@ contains
     cosmicEmuConstructorInternal%powerSpectrumPrimordial_  => powerSpectrumPrimordial_
     cosmicEmuConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     ! Check that this is a flat cosmology.
-    if     (                                                                                                &
-         &  Values_Differ(                                                                                  &
-         &                +cosmicEmuConstructorInternal%cosmologyParameters_%OmegaMatter    ()              &
-         &                +cosmicEmuConstructorInternal%cosmologyParameters_%OmegaDarkEnergy()            , &
-         &                       1.0d+0                                                                   , &
-         &                absTol=1.0d-3                                                                     &
-         &               )                                                                                  &
-         & )                                                                                                &
-         & call Galacticus_Error_Report(                                                                    &
-         &                              'cosmicEmuConstructorInternal'                                    , &
-         &                              'this method is applicable only to flat matter+dark energy models'  &
+    if     (                                                                                                 &
+         &  Values_Differ(                                                                                   &
+         &                +cosmicEmuConstructorInternal%cosmologyParameters_%OmegaMatter    ()               &
+         &                +cosmicEmuConstructorInternal%cosmologyParameters_%OmegaDarkEnergy()            ,  &
+         &                       1.0d+0                                                                   ,  &
+         &                absTol=1.0d-3                                                                      &
+         &               )                                                                                   &
+         & )                                                                                                 &
+         & call Galacticus_Error_Report(                                                                     &
+         &                              'this method is applicable only to flat matter+dark energy models'// &
+         &                               {introspection:location}                                            &
          &                             )
     ! Check that the primordial power spectrum has no running of the spectral index.
-    if     (                                                                                                                     &
-         &  Values_Differ(                                                                                                       &
-         &                cosmicEmuConstructorInternal%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberShort), &
-         &                cosmicEmuConstructorInternal%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberLong ), &
-         &                relTol=1.0d-3                                                                                          &
-         &               )                                                                                                       &
-         & )                                                                                                                     &
-         & call Galacticus_Error_Report(                                                                                         &
-         &                              'cosmicEmuConstructorInternal'                                                         , &
-         &                              'this method is applicable only to models with no running of the spectral index'         &
+    if     (                                                                                                                      &
+         &  Values_Differ(                                                                                                        &
+         &                cosmicEmuConstructorInternal%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberShort),  &
+         &                cosmicEmuConstructorInternal%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberLong ),  &
+         &                relTol=1.0d-3                                                                                           &
+         &               )                                                                                                        &
+         & )                                                                                                                      &
+         & call Galacticus_Error_Report(                                                                                          &
+         &                              'this method is applicable only to models with no running of the spectral index'       // &
+         &                               {introspection:location}                                                                 &
          &                             )
    return
   end function cosmicEmuConstructorInternal
@@ -209,8 +209,8 @@ contains
                 read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
                 if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
                      & call Galacticus_Error_Report(                                                                           &
-                     &                              'cosmicEmuValue'                                                       ,   &
-                     &                              'values of H_0 in Galacticus and CosmicEmu are significantly different'    &
+                     &                              'values of H_0 in Galacticus and CosmicEmu are significantly different'//  &
+                     &                               {introspection:location}                                                  &
                      &                             )
              end if
           else

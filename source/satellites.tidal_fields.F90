@@ -65,8 +65,7 @@ contains
           !#  <functionArgs>satellitesTidalFieldMethod,Satellites_Tidal_Field_Get</functionArgs>
           include 'satellites.tidal_fields.inc'
           !# </include>
-          if (.not.associated(Satellites_Tidal_Field_Get)) call Galacticus_Error_Report('Satellites_Tidal_Field','method ' &
-               &//char(satellitesTidalFieldMethod)//' is unrecognized')
+          if (.not.associated(Satellites_Tidal_Field_Get)) call Galacticus_Error_Report('method '//char(satellitesTidalFieldMethod)//' is unrecognized'//{introspection:location})
           satellitesTidalFieldInitialized=.true.
        end if
        !$omp end critical(Satellites_Tidal_Field_Initialization) 

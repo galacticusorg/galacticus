@@ -87,12 +87,9 @@ contains
           atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
           atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
           electronIndex            =Chemicals_Index("Electron"            )
-          if (atomicHydrogenIndex       <= 0) call Galacticus_Error_Report('Chemical_Hydrogen_Rates_Initialize','atomic&
-               & hydrogen must be included for fast hydrogen network calculation')
-          if (atomicHydrogenCationIndex <= 0) call Galacticus_Error_Report('Chemical_Hydrogen_Rates_Initialize'&
-               &,'hydrogen cation must be included for fast hydrogen network calculation')
-          if (electronIndex             <= 0) call Galacticus_Error_Report('Chemical_Hydrogen_Rates_Initialize'&
-               &,'electrons must be included for fast hydrogen network calculation'      )
+          if (atomicHydrogenIndex       <= 0) call Galacticus_Error_Report('atomic hydrogen must be included for fast hydrogen network calculation'//{introspection:location})
+          if (atomicHydrogenCationIndex <= 0) call Galacticus_Error_Report('hydrogen cation must be included for fast hydrogen network calculation'//{introspection:location})
+          if (electronIndex             <= 0) call Galacticus_Error_Report('electrons must be included for fast hydrogen network calculation'      //{introspection:location})
        else
           ! Get actual hydrogen anion index.
           atomicHydrogenAnionIndex =Chemicals_Index("AtomicHydrogenAnion")
@@ -131,7 +128,7 @@ contains
        if (destructionTerm /= 0.0d0) then
           densityAtomicHydrogenAnion=creationTerm/destructionTerm
        else
-          if (creationTerm > 0.0d0) call Galacticus_Error_Report('Chemical_Hydrogen_Rates_Compute','hydrogen anion equilibrium density is infinite')
+          if (creationTerm > 0.0d0) call Galacticus_Error_Report('hydrogen anion equilibrium density is infinite'//{introspection:location})
           densityAtomicHydrogenAnion=0.0d0
        end if
     else if (atomicHydrogenAnionIndex > 0) then

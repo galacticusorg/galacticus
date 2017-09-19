@@ -65,8 +65,7 @@ contains
           !#  <functionArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</functionArgs>
           include 'hot_halo.ram_pressure_stripping.inc'
           !# </include>
-          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('Hot_Halo_Ram_Pressure_Stripping_Radius','method ' &
-               &//char(hotHaloRamPressureStrippingMethod)//' is unrecognized')
+          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('method '//char(hotHaloRamPressureStrippingMethod)//' is unrecognized'//{introspection:location})
           hotHaloRamPressureStrippingInitialized=.true.
        end if
        !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)

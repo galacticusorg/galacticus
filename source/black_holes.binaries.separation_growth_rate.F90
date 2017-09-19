@@ -66,8 +66,7 @@ contains
           !#  <functionArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</functionArgs>
           include 'black_holes.binaries.separation_growth_rate.inc'
           !# </include>
-          if (.not.associated(Black_Hole_Binary_Separation_Growth_Rate_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate','method ' &
-               &//char(blackHoleBinarySeparationGrowthRateMethod)//' is unrecognized')
+          if (.not.associated(Black_Hole_Binary_Separation_Growth_Rate_Get)) call Galacticus_Error_Report('method '//char(blackHoleBinarySeparationGrowthRateMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           blackHoleBinarySeparationGrowthRateInitialized=.true.
        end if

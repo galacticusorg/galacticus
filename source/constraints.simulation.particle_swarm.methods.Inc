@@ -414,7 +414,7 @@ subroutine simulatorParticleSwarmPosterior(self,simulationState,logPosterior,log
            end do
            if (processToProcess(timesevaluateorder(i)) >= 0) exit
         end do
-        if (processToProcess(timesevaluateorder(i)) < 0) call Galacticus_Error_Report('simulatorParticleSwarmPosterior','failed to assign task to process')
+        if (processToProcess(timesevaluateorder(i)) < 0) call Galacticus_Error_Report('failed to assign task to process'//{introspection:location})
      end do
      ! Report.
      if (mpiSelf%isMaster() .and. mod(self%simulationState%count(),self%reportCount) == 0) then

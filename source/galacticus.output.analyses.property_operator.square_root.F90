@@ -59,7 +59,7 @@ contains
     integer         (c_size_t                                ), intent(in   ), optional :: outputIndex
     !GCC$ attributes unused :: self, outputIndex, propertyType, node
 
-    if (propertyValue < 0.0d0) call Galacticus_Error_Report('squareRootOperate','domain error: x∈[0,∞)')
+    if (propertyValue < 0.0d0) call Galacticus_Error_Report('domain error: x∈[0,∞)'//{introspection:location})
     squareRootOperate=sqrt(propertyValue)
     return
   end function squareRootOperate

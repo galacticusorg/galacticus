@@ -119,7 +119,7 @@ contains
        ! This is acceptable.
     class default
           ! This is not.
-       call Galacticus_Error_Report('Projected_Correlation_Function','this code expects to use the "scale" dark matter profile component')
+       call Galacticus_Error_Report('this code expects to use the "scale" dark matter profile component'//{introspection:location})
     end select
     ! Generate wavenumber range.
     wavenumberCount=int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumberCountPerDecade))+1

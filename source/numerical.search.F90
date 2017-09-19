@@ -185,7 +185,7 @@ contains
           if (present(status)) then
              status=errorStatusFail
           else
-             call Galacticus_Error_Report('Search_Array_For_Closest','no match found within specified tolerance')
+             call Galacticus_Error_Report('no match found within specified tolerance'//{introspection:location})
           end if
        end if
     end if

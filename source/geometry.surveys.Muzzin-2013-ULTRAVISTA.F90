@@ -111,7 +111,7 @@ contains
        redshiftMinimum=3.00d0
        redshiftMaximum=4.00d0
     case default
-       call Galacticus_Error_Report('muzzin2013ULTRAVISTAConstructorInternal','0≤redshiftBin≤6 is required')
+       call Galacticus_Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &

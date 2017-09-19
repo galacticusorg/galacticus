@@ -176,7 +176,7 @@ contains
        ! Read in the atomic data.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(Galacticus_Input_Path())//"data/abundances/Atomic_Data.xml",iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Atomic_Data_Initialize','Unable to parse data file')
+       if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
 
        ! Get list of all element elements.
        elementList => getElementsByTagname(doc,"element")
@@ -214,7 +214,7 @@ contains
 
           ! Parse the abundance pattern file.
           doc => parseFile(char(Galacticus_Input_Path())//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('Atomic_Data_Initialize','Unable to parse data file')
+          if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
 
           ! Get list of all element elements.
           elementList => getElementsByTagname(doc,"element")
@@ -250,7 +250,7 @@ contains
                      &*atoms(iAtom)%atomicMass/totalMass
              end do
           else
-             call Galacticus_Error_Report("Atomic_Data_Initialize","unrecognized abundance type")
+             call Galacticus_Error_Report("unrecognized abundance type"//{introspection:location})
           end if
 
           ! Compute the normalization for unit metal mass in this abundance pattern.
@@ -315,7 +315,7 @@ contains
 
     ! Element was not found, report an error.
     Atom_Lookup=-1
-    call Galacticus_Error_Report('Atom_Lookup','could not find this element')
+    call Galacticus_Error_Report('could not find this element'//{introspection:location})
     return
   end function Atom_Lookup
 
@@ -351,7 +351,7 @@ contains
 
     ! Abundance pattern was not found, report an error.
     Abundance_Pattern_Lookup=-1
-    call Galacticus_Error_Report('Abundance_Pattern_Lookup','could not find this abundance pattern')
+    call Galacticus_Error_Report('could not find this abundance pattern'//{introspection:location})
     return
   end function Abundance_Pattern_Lookup
 

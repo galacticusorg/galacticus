@@ -68,8 +68,7 @@ contains
           !#  <functionArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</functionArgs>
           include 'satellites.merging.remnant_sizes.inc'
           !# </include>
-          if (.not.associated(Satellite_Merging_Remnant_Size_Do)) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size','method ' &
-               &//char(satelliteMergingRemnantSizeMethod)//' is unrecognized')
+          if (.not.associated(Satellite_Merging_Remnant_Size_Do)) call Galacticus_Error_Report('method '//char(satelliteMergingRemnantSizeMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           satelliteMergingRemnantSizeInitialized=.true.
        end if

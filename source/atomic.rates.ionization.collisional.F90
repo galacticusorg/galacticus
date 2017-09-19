@@ -70,8 +70,8 @@ contains
           !#  <functionArgs>atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get</functionArgs>
           include 'atomic.rates.ionization.collisional.inc'
           !# </include>
-          if (.not.associated(Atomic_Rate_Ionization_Collisional_Get)) call&
-               & Galacticus_Error_Report('Atomic_Rate_Ionization_Collisional_Initialize','method '//char(atomicCollisionalIonizationMethod)//' is unrecognized')
+          if (.not.associated(Atomic_Rate_Ionization_Collisional_Get)) &
+               & call Galacticus_Error_Report('method '//char(atomicCollisionalIonizationMethod)//' is unrecognized'//{introspection:location})
           ionizationRateInitialized=.true.
        end if
        !$omp end critical(Atomic_Rate_Ionization_Collisional_Initialization)

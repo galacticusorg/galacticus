@@ -134,7 +134,7 @@ contains
      class default
         splitForestUniqueID=-1
         pairedNodeID       =-1
-       call Galacticus_Error_Report('Node_Push_From_Tree','unknown event type')
+       call Galacticus_Error_Report('unknown event type'//{introspection:location})
     end select
     call Galacticus_Display_Message(message,verbosityInfo)
     ! This is a subhalo jumping to another in another tree. Remove the node from its host.
@@ -224,7 +224,7 @@ contains
        pairedNodeID       =-1
        timeMatchRequired  =.false.
        isPrimary          =.false.
-       call Galacticus_Error_Report('Node_Pull_From_Tree','unknown event type')
+       call Galacticus_Error_Report('unknown event type'//{introspection:location})
     end select
     call Galacticus_Display_Message(message,verbosityInfo)
     ! Search for the node to be pulled in the inter-tree wait list.
@@ -268,7 +268,7 @@ contains
                 select type (event)
                 type is (nodeEventSubhaloPromotionInterTree)                
                    ! Node being jumped to should not be a satellite in this case.
-                   if (node%isSatellite()) call Galacticus_Error_Report('Node_Pull_From_Tree','inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior')
+                   if (node%isSatellite()) call Galacticus_Error_Report('inter-tree primary subhalo promotion, but jumped-to node is a satellite - unexpected behavior'//{introspection:location})
                    ! Pulled node is the primary progenitor and a subhalo promotion. It is being pulled to a node that is a clone of its parent. Replace the
                    ! clone with the pulled node.                
                    if (associated(node%firstSatellite)) then
@@ -344,7 +344,7 @@ contains
                       message=message//"  node ID="//node%index()//"; time="//label//" Gyr"//char(10)
                       write (label,'(f12.6)')   pullBasic%time()
                       message=message//"  pull ID="//pullNode%index()//"; time="//label//" Gyr"
-                      call Galacticus_Error_Report('Node_Pull_From_Tree',message)
+                      call Galacticus_Error_Report(message//{introspection:location})
                    end if
                    call pullBasic%timeSet(pullBasic%time()*(1.0d0-timeOffsetFractional))
                    ! Destroy the cloned node.
@@ -427,7 +427,7 @@ contains
                       message=message//"  node ID="//attachNode%index()//"; time="//label//" Gyr"//char(10)
                       write (label,'(f12.6)')   pullBasic%time()
                       message=message//"  pull ID="//pullNode  %index()//"; time="//label//" Gyr"
-                      call Galacticus_Error_Report('Node_Pull_From_Tree',message)
+                      call Galacticus_Error_Report(message//{introspection:location})
                    end if
                 end if
                 ! Assign a merging time to the new satellite if possible.
@@ -439,7 +439,7 @@ contains
                    attachBasic => attachNode%basic()                
                    if (associated(event%mergeTimeSet)) call event%mergeTimeSet(pullNode,attachNode)
                 class default
-                   call Galacticus_Error_Report('Node_Pull_From_Tree','non-primary jump should be inter-tree branch jump')
+                   call Galacticus_Error_Report('non-primary jump should be inter-tree branch jump'//{introspection:location})
                 end select
              end if
              ! If the node or its parent are now satellites, and have their own satellites, transfer these satellites to the new
@@ -451,7 +451,7 @@ contains
                    hostNode => pullNode%parent%parent
                 else
                    hostNode => null()
-                   call Galacticus_Error_Report('Node_Pull_From_Tree','neither node nor parent are satellites - this should not happen')
+                   call Galacticus_Error_Report('neither node nor parent are satellites - this should not happen'//{introspection:location})
                 end if
                 satelliteNode          => pullNode%firstSatellite
                 satelliteNode%parent   => hostNode
@@ -506,7 +506,7 @@ contains
           waitListEntry => waitListEntry%next
        end do
        call Galacticus_Display_Unindent('done')
-       call Galacticus_Error_Report('Inter_Tree_Event_Post_Evolve','nodes remain in the inter-tree transfer wait list - see preceeding report')
+       call Galacticus_Error_Report('nodes remain in the inter-tree transfer wait list - see preceeding report'//{introspection:location})
     end if
     return
   end subroutine Inter_Tree_Event_Post_Evolve

@@ -575,9 +575,9 @@ contains
           case (doesNotMove)
              ! Do nothing.
           case default
-             call Galacticus_Error_Report(                                                         &
-                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging', &
-                  &                       'unrecognized movesTo descriptor'                        &
+             call Galacticus_Error_Report(                                    &
+                  &                       'unrecognized movesTo descriptor'// &
+                  &                       {introspection:location}            &
                   &                      )
           end select
           
@@ -644,9 +644,9 @@ contains
           case (doesNotMove)
              ! Do nothing.
           case default
-             call Galacticus_Error_Report(                                                         &
-                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging', &
-                  &                       'unrecognized movesTo descriptor'                        &
+             call Galacticus_Error_Report(                                    &
+                  &                       'unrecognized movesTo descriptor'// &
+                  &                       {introspection:location}            &
                   &                      )
           end select
           
@@ -671,9 +671,9 @@ contains
                   &                                          +spheroid    %abundancesGas() &
                   &                                         )
           case default
-             call Galacticus_Error_Report(                                                         &
-                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging', &
-                  &                       'unrecognized movesTo descriptor'                        &
+             call Galacticus_Error_Report(                                    &
+                  &                       'unrecognized movesTo descriptor'// &
+                  &                       {introspection:location}            &
                   &                      )
           end select
           call    spheroid%massGasSet          (                                           &
@@ -726,9 +726,9 @@ contains
              call diskHost       %stellarPropertiesHistorySet(historyHost    )
              call spheroid       %stellarPropertiesHistorySet(historySpheroid)
           case default
-             call Galacticus_Error_Report(                                                         &
-                  &                       'Node_Component_Spheroid_Very_Simple_Satellite_Merging', &
-                  &                       'unrecognized movesTo descriptor'                        &
+             call Galacticus_Error_Report(                                    &
+                  &                       'unrecognized movesTo descriptor'// &
+                  &                       {introspection:location}            &
                   &                      )
           end select
           call    spheroid%         massStellarSet(                       &

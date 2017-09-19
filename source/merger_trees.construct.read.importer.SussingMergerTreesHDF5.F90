@@ -132,7 +132,7 @@ contains
        write (valueString,'(e14.8)') localOmegaBaryon
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report('sussingHDF5Open',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        else
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
@@ -144,7 +144,7 @@ contains
        write (valueString,'(e14.8)') localOmegaMatter-localOmegaBaryon
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report('sussingHDF5Open',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        else
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
@@ -156,7 +156,7 @@ contains
        write (valueString,'(e14.8)') localOmegaDE
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report('sussingHDF5Open',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        else
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
@@ -168,7 +168,7 @@ contains
        write (valueString,'(e14.8)') localLittleH0
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report('sussingHDF5Open',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        else
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
@@ -180,7 +180,7 @@ contains
        write (valueString,'(e14.8)') localSigma8
        message=message//trim(valueString)//']'
        if (self%fatalMismatches) then
-          call Galacticus_Error_Report('sussingHDF5Open',message)
+          call Galacticus_Error_Report(message//{introspection:location})
        else
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
@@ -240,7 +240,7 @@ contains
        nodeCount=nodeCount+nodeCountSnapshot
     end do
     ! Abort if subvolumes are requested.
-    if (self%subvolumeCount > 1) call Galacticus_Error_Report('sussingHDF5Load','this importer does not yet support subvolumes')
+    if (self%subvolumeCount > 1) call Galacticus_Error_Report('this importer does not yet support subvolumes'//{introspection:location})
     ! Allocate nodes arrays.
     allocate(self%nodes(nodeCount))
     ! Read snapshots.
@@ -265,7 +265,7 @@ contains
                 propertyUnits=decodeUnits(propertyUnitsText(j))
                 if (propertyUnits%status) then
                    if (massUnitsAssigned    ) then
-                      if (propertyUnits /= massUnits    ) call Galacticus_Error_Report('sussingHDF5Load',    'mismatch in mass units')
+                      if (propertyUnits /= massUnits    ) call Galacticus_Error_Report('mismatch in mass units'//{introspection:location})
                    else
                       massUnits            =propertyUnits
                       massUnitsAssigned    =.true.
@@ -275,7 +275,7 @@ contains
                 propertyUnits=decodeUnits(propertyUnitsText(j))
                 if (propertyUnits%status) then
                    if (lengthUnitsAssigned  ) then
-                      if (propertyUnits /= lengthUnits  ) call Galacticus_Error_Report('sussingHDF5Load',  'mismatch in length units')
+                      if (propertyUnits /= lengthUnits  ) call Galacticus_Error_Report('mismatch in length units'//{introspection:location})
                    else
                       lengthUnits          =propertyUnits
                       lengthUnitsAssigned  =.true.
@@ -285,7 +285,7 @@ contains
                 propertyUnits=decodeUnits(propertyUnitsText(j))
                 if (propertyUnits%status) then
                    if (velocityUnitsAssigned) then
-                      if (propertyUnits /= velocityUnits) call Galacticus_Error_Report('sussingHDF5Load','mismatch in velocity units')
+                      if (propertyUnits /= velocityUnits) call Galacticus_Error_Report('mismatch in velocity units'//{introspection:location})
                    else
                       velocityUnits        =propertyUnits
                       velocityUnitsAssigned=.true.
@@ -351,9 +351,9 @@ contains
     call Galacticus_Display_Counter_Clear(       verbosityWorking)
     call Galacticus_Display_Unindent     ('done',verbosityWorking)
     ! Check that units were set.
-    if (.not.    massUnitsAssigned) call Galacticus_Error_Report('sussingHDF5Load',    'mass units were not determined')
-    if (.not.  lengthUnitsAssigned) call Galacticus_Error_Report('sussingHDF5Load',  'length units were not determined')
-    if (.not.velocityUnitsAssigned) call Galacticus_Error_Report('sussingHDF5Load','velocity units were not determined')
+    if (.not.    massUnitsAssigned) call Galacticus_Error_Report('mass units were not determined'    //{introspection:location})
+    if (.not.  lengthUnitsAssigned) call Galacticus_Error_Report('length units were not determined'  //{introspection:location})
+    if (.not.velocityUnitsAssigned) call Galacticus_Error_Report('velocity units were not determined'//{introspection:location})
     ! Check for bad values.
     do j=1,size(self%nodes)
        if     (                                          &
@@ -400,7 +400,7 @@ contains
     do i=1,size(mergerTreeHaloIndices)
        call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(size(mergerTreeHaloIndices))),i==1,verbosityWorking)
        iHalo=Search_Indexed(nodeSelfIndices,nodeIndexRanks,mergerTreeHaloIndices(i))
-       if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Galacticus_Error_Report('sussingHDF5Load','mismatch in halo ID lookup')
+       if (self%nodes(iHalo)%nodeIndex /= mergerTreeHaloIndices(i)) call Galacticus_Error_Report('mismatch in halo ID lookup'//{introspection:location})
        if (mergerTreeDescendentIndices(i) < 0) then
           self%nodes(iHalo)%descendentIndex=-1
        else          
@@ -417,7 +417,7 @@ contains
        if (self%nodes(i)%descendentIndex > 0) then
           iProgenitor=Search_Indexed(nodeSelfIndices,nodeIndexRanks,self%nodes(i)%descendentIndex)
           nodeDescendentLocations(i)=iProgenitor
-          if (self%nodes(nodeDescendentLocations(i))%nodeIndex /= self%nodes(i)%descendentIndex) call Galacticus_Error_Report('sussingHDF5Load','mismatch in descendant ID lookup')
+          if (self%nodes(nodeDescendentLocations(i))%nodeIndex /= self%nodes(i)%descendentIndex) call Galacticus_Error_Report('mismatch in descendant ID lookup'//{introspection:location})
        else
           nodeDescendentLocations(i)=-1
        end if
@@ -464,7 +464,7 @@ contains
          case ('kpc' )
             decodeUnits=importerUnits(.true.,kiloParsec,-1,+1) ! Assume h^-1 and comoving.
          case default
-            call Galacticus_Error_Report('decodeUnits','unknown unit specifier')
+            call Galacticus_Error_Report('unknown unit specifier'//{introspection:location})
          end select
       end if
       return

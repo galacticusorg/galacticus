@@ -108,7 +108,7 @@ contains
           newStateInitializor=stateInitializorResume(char(logFileRoot),stateInitializorRestore)
        end select
     case default
-       call Galacticus_Error_Report('stateInitializorNew','stateInitializor type is unrecognized')
+       call Galacticus_Error_Report('stateInitializor type is unrecognized'//{introspection:location})
     end select
     return
   end function stateInitializorNew

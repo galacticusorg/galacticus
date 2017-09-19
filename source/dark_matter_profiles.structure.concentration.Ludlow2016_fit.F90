@@ -107,7 +107,7 @@ contains
     peakHeight      =  +                                                     criticalOverdensitySphericalCollapse    &
          &             /self%cosmologicalMassVariance_%rootVariance   (basic%mass                                ())
     expansionFactor =   self%cosmologyFunctions_      %expansionFactor(basic%time                                ())
-    if (expansionFactor < 0.1d0) call Galacticus_Error_Report('ludlow2016FitConcentration','redshift out of range of fitting function')
+    if (expansionFactor < 0.1d0) call Galacticus_Error_Report('redshift out of range of fitting function'//{introspection:location})
     c0                        =+3.395d0*expansionFactor**0.215d0
     beta                      =+0.307d0/expansionFactor**0.540d0
     gamma1                    =+0.628d0*expansionFactor**0.047d0

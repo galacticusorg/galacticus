@@ -65,8 +65,7 @@ contains
           !#  <functionArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</functionArgs>
           include 'black_holes.binaries.recoil_velocity.inc'
           !# </include>
-          if (.not.associated(Black_Hole_Binary_Recoil_Velocity_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Recoil_Velocity','method ' &
-               &//char(blackHoleBinaryRecoilVelocityMethod)//' is unrecognized')
+          if (.not.associated(Black_Hole_Binary_Recoil_Velocity_Get)) call Galacticus_Error_Report('method '//char(blackHoleBinaryRecoilVelocityMethod)//' is unrecognized'//{introspection:location})
           ! Flag that the module is now initialized.
           blackHoleBinaryRecoilVelocityInitialized=.true.
        end if

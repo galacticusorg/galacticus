@@ -80,8 +80,8 @@ contains
           !#  <functionArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</functionArgs>
           include 'radiation.intergalactic_background.inc'
           !# </include>
-          if (.not.(associated(Radiation_Set_Intergalactic_Background_Do).and.associated(Radiation_Flux_Intergalactic_Background_Do))) call&
-               & Galacticus_Error_Report('Radiation_Initialize_Intergalactic_Background','method ' //char(radiationIntergalacticBackgroundMethod)//' is unrecognized')
+          if (.not.(associated(Radiation_Set_Intergalactic_Background_Do).and.associated(Radiation_Flux_Intergalactic_Background_Do))) &
+               & call Galacticus_Error_Report('method ' //char(radiationIntergalacticBackgroundMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
        !$omp end critical(Radiation_Initialize_Intergalactic_Background)

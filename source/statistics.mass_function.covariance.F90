@@ -183,7 +183,7 @@ contains
 
     ! Determine which mass function to use.
     if (allocated(massFunctionObserved)) then
-       if (size(massFunctionObserved) /= massBinCount) call Galacticus_Error_Report('Mass_Function_Covariance_Matrix','observed mass function has incorrect number of bins')
+       if (size(massFunctionObserved) /= massBinCount) call Galacticus_Error_Report('observed mass function has incorrect number of bins'//{introspection:location})
        massFunctionUse => massFunctionObserved
     else
        massFunctionUse => massFunction
@@ -192,10 +192,10 @@ contains
     ! Determine if completeness and/or number is available.
     useCompleteness=allocated(completenessObserved)
     if (useCompleteness .and. size(completenessObserved) /= massBinCount) &
-         & call Galacticus_Error_Report('Mass_Function_Covariance_Matrix','observed completeness has incorrect number of bins')
+         & call Galacticus_Error_Report('observed completeness has incorrect number of bins'//{introspection:location})
     useNumber      =allocated(      numberObserved)
     if (useNumber       .and. size(      numberObserved) /= massBinCount) &
-         & call Galacticus_Error_Report('Mass_Function_Covariance_Matrix','observed number has incorrect number of bins'      )
+         & call Galacticus_Error_Report('observed number has incorrect number of bins'//{introspection:location})
 
     ! Compute the mass function and bias averaged over each bin.
     massFunction=0.0d0
@@ -280,7 +280,7 @@ contains
           call Variance_LSS_Window_Function(massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
        ! No method exists to compute the LSS contribution to variance. Abort.
        else
-          call Galacticus_Error_Report('Mass_Function_Covariance_Matrix','no method exists to compute LSS contribution to covariance matrix')
+          call Galacticus_Error_Report('no method exists to compute LSS contribution to covariance matrix'//{introspection:location})
        end if       
     end if
 

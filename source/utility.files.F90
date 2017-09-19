@@ -123,7 +123,7 @@ contains
     !$omp threadprivate(io_status,i_unit)
     open(newunit=i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
     if (io_status /= 0) then
-       call Galacticus_Error_Report('Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file))
+       call Galacticus_Error_Report("cannot open file '"//trim(in_file)//{introspection:location})
     end if
     Count_Lines_in_File_Char=0
     do while (io_status == 0)
@@ -178,7 +178,7 @@ contains
     call funlock_C(lock%lockDescriptorC)
     open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
     if (errorStatus == 0) then
-       if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('File_Unlock','error syncing file at unlock')
+       if (fsync(fnum(fileUnit)) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
        close(fileUnit)
     end if
     ! Then release the per-thread lock.

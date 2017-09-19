@@ -64,10 +64,10 @@ double precision function distributionNegativeExponentialInverse(self,p)
   double precision                                 , intent(in   ) :: p
   double precision                                 , parameter     :: pTiny=1.0d-6
 
-  if (p < 0.0d0 .or. p > 1.0d0)                                                    &
-       & call Galacticus_Error_Report(                                             &
-       &                              'distributionNegativeExponentialCumulative', &
-       &                              'probability out of range'                   &
+  if (p < 0.0d0 .or. p > 1.0d0)                                    &
+       & call Galacticus_Error_Report(                             &
+       &                              'probability out of range'// &
+       &                              {introspection:location}     &
        &                             )
   if (p > pTiny) then
      distributionNegativeExponentialInverse=-log(1.0d0-p)/self%rate

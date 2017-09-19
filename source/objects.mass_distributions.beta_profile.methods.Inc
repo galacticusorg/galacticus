@@ -49,18 +49,18 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
   ! If dimensionless, then set scale length and mass to unity.
   if (self%dimensionless) then
      if (present(coreRadius         )) then
-        if (Values_Differ(coreRadius         ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','coreRadius should be unity for a dimensionless profile (or simply do not specify a scale length)')
+        if (Values_Differ(coreRadius         ,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('coreRadius should be unity for a dimensionless profile (or simply do not specify a scale length)'//{introspection:location})
      end if
      if (present(densityNormalization)) then
-        if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','densityNormalization should be unity for a dimensionless profile (or simply do not specify a densityNormalization)')
+        if (Values_Differ(densityNormalization,1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('densityNormalization should be unity for a dimensionless profile (or simply do not specify a densityNormalization)'//{introspection:location})
      end if
-     if (present(mass                )) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize',        'mass cannot be specified for a dimensionless profile')
-     if (present(outerRadius         )) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','outer radius cannot be specified for a dimensionless profile')
+     if (present(mass                )) call Galacticus_Error_Report('mass cannot be specified for a dimensionless profile'//{introspection:location})
+     if (present(outerRadius         )) call Galacticus_Error_Report('outer radius cannot be specified for a dimensionless profile'//{introspection:location})
      self%coreRadius          =1.0d0
      self%densityNormalization=1.0d0
   else
      ! Set core radius.
-     if (.not.present(coreRadius)) call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','core radius must be specified for dimensionful profiles')
+     if (.not.present(coreRadius)) call Galacticus_Error_Report('core radius must be specified for dimensionful profiles'//{introspection:location})
      self%coreRadius=coreRadius
      ! Determine density normalization.
      if      (                                   &
@@ -89,7 +89,7 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
               self%densityNormalization=3.0d0*mass/4.0d0/Pi/outerRadius**3/Hypergeometric_2F1([1.5d0,1.5d0*beta],[2.5d0],-r**2)
            end if
         else
-           call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','unphysical outer radius')
+           call Galacticus_Error_Report('unphysical outer radius'//{introspection:location})
         end if
         ! Assert that the mass within the outer radius equals that specified.
         if (Galacticus_Verbosity_Level() >= verbosityDebug) then
@@ -106,7 +106,7 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
               write (message,'(a,e12.6)') 'mass(<r_outer): ',self%massEnclosedBySphere(outerRadius)
               call Galacticus_Display_Message(message)
               call Galacticus_Display_Unindent('done')
-              call Galacticus_Error_Report('Mass_Distribution_Beta_Profile_Initialize','profile normalization failed')
+              call Galacticus_Error_Report('profile normalization failed'//{introspection:location})
            end if
         end if
      end if
@@ -425,7 +425,7 @@ contains
        end if
     else
        radialMomentTwoThirds=0.0d0
-       call Galacticus_Error_Report('radialMomentTwoThirds','unsupported moment')
+       call Galacticus_Error_Report('unsupported moment'//{introspection:location})
     end if
     return
   end function radialMomentTwoThirds

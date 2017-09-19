@@ -85,7 +85,7 @@ function stateSimpleMean(self)
   double precision             , dimension(self%parameterCount) :: stateSimpleMean
 
   stateSimpleMean=0.0d0
-  call Galacticus_Error_Report('stateSimpleMean','the "simple" state class does not store history')
+  call Galacticus_Error_Report('the "simple" state class does not store history'//{introspection:location})
   return
 end function stateSimpleMean
 
@@ -97,7 +97,7 @@ function stateSimpleVariance(self)
   double precision             , dimension(self%parameterCount) :: stateSimpleVariance
 
   stateSimpleVariance=0.0d0
-  call Galacticus_Error_Report('stateSimpleVariance','the "simple" state class does not store history')
+  call Galacticus_Error_Report('the "simple" state class does not store history'//{introspection:location})
   return
 end function stateSimpleVariance
 

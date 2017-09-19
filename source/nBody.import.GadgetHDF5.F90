@@ -131,7 +131,7 @@ contains
     call self%file%openFile(fileName,objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
-    if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('gadgetHDF5Import','particle group does not exist')
+    if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('particle group does not exist'//{introspection:location})
     ! Read values from header.
     header=self%file%openGroup('Header')
     call header%readAttributeStatic('MassTable',massParticleType)
