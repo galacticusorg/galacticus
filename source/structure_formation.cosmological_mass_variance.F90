@@ -35,7 +35,7 @@ module Cosmological_Mass_Variance
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="sigma8" >
-  !#   <description>Return the value fo $\sigma_8$.</description>
+  !#   <description>Return the value of $\sigma_8$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#  </method>
