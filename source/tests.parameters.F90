@@ -23,18 +23,20 @@
 program Test_Parameters
   !% Test reading of input parameters.
   use, intrinsic :: ISO_C_Binding
-  use Unit_Tests
-  use IO_HDF5
-  use ISO_Varying_String
-  use Memory_Management
-  use Input_Parameters
-  use Cosmology_Parameters
+  use               Unit_Tests
+  use               IO_HDF5
+  use               ISO_Varying_String
+  use               Memory_Management
+  use               Input_Parameters
+  use               Cosmology_Parameters
+  use               Cosmological_Mass_Variance
   implicit none
-  type   (hdf5Object              )               :: outputFile
-  type   (varying_string          )               :: parameterFile
-  class  (cosmologyParametersClass), pointer      :: cosmologyParameters_
-  type   (inputParameters         ), target       :: testParameters
-  logical(kind=c_bool             ), dimension(3) :: results  
+  type   (hdf5Object                   )               :: outputFile
+  type   (varying_string               )               :: parameterFile
+  class  (cosmologyParametersClass     ), pointer      :: cosmologyParameters_
+  class  (cosmologicalMassVarianceClass), pointer      :: cosmologicalMassVariance_
+  type   (inputParameters              ), target       :: testParameters
+  logical(kind=c_bool                  ), dimension(3) :: results  
   ! Define an interface to the C-based portion of the testing code.
   interface
      subroutine testParametersC(results) bind(c,name='testParametersC')
@@ -67,6 +69,13 @@ program Test_Parameters
   call Assert('Retrieve double'                   ,logical(results(1)),.true.)
   call Assert('Retrieve long'                     ,logical(results(2)),.true.)
   call Assert('Retrieve double from subparameters',logical(results(3)),.true.)
+  call Unit_Tests_End_Group()
+  ! Test retrieval of cosmological mass variance through a reference.
+  cosmologicalMassVariance_ => cosmologicalMassVariance()
+  call Unit_Tests_Begin_Group("Parameter referencing")
+  call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                                ),0.912d0,relTol=1.0d-6)
+  call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVarianceMethod'),.true.               )
+  call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVarianceMethod'),1                    )
   call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
