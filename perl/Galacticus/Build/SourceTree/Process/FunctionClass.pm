@@ -65,7 +65,8 @@ sub Process_FunctionClass {
 		while ( $classNode ) {
 		    # Collect class directives.
 		    if ( $classNode->{'type'} eq $directive->{'name'} ) {
-			$class->{$_} = $classNode->{'directive'}->{$_}
+			$class->{'node'} = $classNode;
+			$class->{$_    } = $classNode->{'directive'}->{$_}
 			    foreach ( keys(%{$classNode->{'directive'}}) );
 		    }
 		    if ( $classNode->{'type'} eq "type" ) {
@@ -410,7 +411,7 @@ sub Process_FunctionClass {
 		$descriptorCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		if ( $hasCustomDescriptor ) {
 		    # The class has its own descriptor function, so we should never arrive at this point in the code.
-		    $descriptorCode .= " call Galacticus_Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    $descriptorCode .= " call Galacticus_Error_Report('custom descriptor exists - this should not happen'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		    $descriptorModules{'Galacticus_Error'} = 1;
 		} else{
 		    # Build an auto-descriptor function.
@@ -464,10 +465,10 @@ sub Process_FunctionClass {
 			    $descriptorCode .= "call self%".$extensionOf."%descriptor(descriptor,includeMethod=.false.)\n";
 			}
 		    } elsif ( ! $declarationMatches     ) {		    
-			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class: parameter-based constructor not found'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 			$descriptorModules{'Galacticus_Error'} = 1;
 		    } elsif (   $supported         != 1 ) {
-			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+			$descriptorCode .= " call Galacticus_Error_Report('auto-descriptor not supported for this class because:'//char(10)//".join("//char(10)// &\n & ",map {"'  --> ".$_."'"} @failureMessage)."//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 			$descriptorModules{'Galacticus_Error'} = 1;
 		    }
 		}
@@ -819,8 +820,10 @@ CODE
 		$deepCopyCode .= $assignments
 		    if ( defined($assignments) );
 		$deepCopyCode .= "class default\n";
-		$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		$deepCopyCode .= "end select\n";
+		# Make the copied object destructible.
+		$deepCopyCode .= "destination%isIndestructible=.false.\n";
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
 	    $deepCopyCode .= "end select\n";
