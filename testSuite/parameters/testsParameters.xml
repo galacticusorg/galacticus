@@ -16,4 +16,10 @@
   <dblFromC value="1.2434"/>
   <longFromC value="12434"/>
 
+  <cosmologicalMassVarianceMethod value="filteredPower" id="myCMV">
+    <sigma_8 value="0.912"/>
+  </cosmologicalMassVarianceMethod>
+  
+  <cosmologicalMassVarianceMethod idRef="myCMV" />
+  
 </parameters>

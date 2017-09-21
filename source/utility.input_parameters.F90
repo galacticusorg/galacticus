@@ -67,7 +67,8 @@ module Input_Parameters
      !% A class to handle input parameters for \glc.
      private
      type   (node             ), pointer                   :: content
-     type   (inputParameter   ), pointer    , public       :: parent       , firstChild, sibling
+     type   (inputParameter   ), pointer    , public       :: parent , firstChild, &
+          &                                                   sibling, referenced
      type   (genericObjectList), allocatable, dimension(:) :: objects
    contains
      !@ <objectMethods>
@@ -120,6 +121,11 @@ module Input_Parameters
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(inputParameter)\textgreater} *parentParameter\arginout, \textcolor{red}{\textless type(node)\textgreater} *parametersNode\argin</arguments>
      !@     <description>Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>resolveReferences</method>
+     !@     <type>\void</type>
+     !@     <description>Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>markGlobal</method>
@@ -214,6 +220,7 @@ module Input_Parameters
      !@ </objectMethods>
      final     ::                        inputParametersFinalize
      procedure :: buildTree           => inputParametersBuildTree
+     procedure :: resolveReferences   => inputParametersResolveReferences
      procedure :: destroy             => inputParametersDestroy
      procedure :: markGlobal          => inputParametersMarkGlobal
      procedure :: isGlobal            => inputParametersIsGlobal
@@ -399,7 +406,8 @@ contains
     !$omp critical (FoX_DOM_Access)
     allocate(inputParametersConstructorNode%parameters)
     inputParametersConstructorNode%parameters%firstChild => null()
-    call inputParametersConstructorNode%buildTree(inputParametersConstructorNode%parameters,parametersNode)    
+    call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
+    call inputParametersConstructorNode%resolveReferences(                                                        )
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) inputParametersConstructorNode%outputParameters=outputParametersGroup%openGroup('Parameters')
@@ -435,7 +443,7 @@ contains
           call Move_Alloc(allowedParameterNamesCombined,allowedParameterNamesTmp)
           allocate(allowedParameterNamesCombined(size(allowedParameterNamesTmp)+size(allowedParameterNames)))
           allowedParameterNamesCombined(                                                     &
-               &                                                      1                     :&
+               &                                                      1                    : &
                &                        allowedParameterFromFileCount                        &
                &                       )=allowedParameterNamesTmp
           allowedParameterNamesCombined(                                                     &
@@ -497,11 +505,76 @@ contains
           currentParameter%parent     => parentParameter
           currentParameter%firstChild => null()
           currentParameter%sibling    => null()
+          currentParameter%referenced => null()
           call self%buildTree(currentParameter,childNode)
        end if
     end do
     return
   end subroutine inputParametersBuildTree
+
+   subroutine inputParametersResolveReferences(self)
+    !% Build a tree representation of the input parameter file.
+    implicit none
+    class(inputParameters), intent(inout) :: self
+    type (inputParameter ), pointer       :: currentParameter, referencedParameter
+    
+    ! Begin walking the parameter tree.
+    currentParameter => walkTree(self%parameters)
+    do while (associated(currentParameter))
+       ! Find parameters which reference another parameter.
+       if     (                                                                &
+            &   getNodeType (currentParameter%content        ) == ELEMENT_NODE &
+            &  .and.                                                           &
+            &   hasAttribute(currentParameter%content,'idRef')                 &
+            & ) then
+          ! Search for a parameter with the referenced ID and the same name.
+          referencedParameter => walkTree(self%parameters)
+          do while (associated(referencedParameter))
+             ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
+             if     (                                                                   &
+                  &   getNodeType (referencedParameter%content        ) == ELEMENT_NODE &
+                  &  .and.                                                              &
+                  &   hasAttribute(referencedParameter%content,'id')                 &
+                  &.and.&
+                  & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content)&
+                  & ) currentParameter%referenced => referencedParameter
+             ! Walk to next node.
+             referencedParameter => walkTree(referencedParameter)
+          end do
+       end if
+       ! Walk to next node.
+       currentParameter => walkTree(currentParameter)
+    end do
+    return
+
+  contains
+
+    function walkTree(currentNode) result(nextNode)
+      !% Perform a depth-first walk of a parameter tree.
+      type(inputParameter), pointer                :: nextNode
+      type(inputParameter), pointer, intent(in   ) :: currentNode
+
+      nextNode => currentNode
+      if (.not.associated(nextNode%parent)) then
+         do while (associated(nextNode%firstChild))
+            nextNode => nextNode%firstChild
+         end do
+         if (associated(nextNode,currentNode)) nullify(nextNode)
+      else
+         if (associated(nextNode%sibling)) then
+            nextNode => nextNode%sibling
+            do while (associated(nextNode%firstChild))
+               nextNode => nextNode%firstChild
+            end do
+         else
+            nextNode => nextNode%parent
+            if (.not.associated(nextNode%parent)) nextNode => null()
+         end if
+      end if
+      return
+    end function walkTree
+
+  end subroutine inputParametersResolveReferences
 
   subroutine inputParametersDestroy(self)
     !% Destructor for the {\normalfont \ttfamily inputParameters} class.
@@ -558,14 +631,20 @@ contains
   logical function inputParameterIsParameter(self)
     !% Return true if this is a valid parameter.
     implicit none
-    class(inputParameter), intent(in   )         :: self
+    class(inputParameter), intent(in   ) :: self
     
     !$omp critical (FoX_DOM_Access)
     if (associated(self%content) .and. getNodeType(self%content) == ELEMENT_NODE) then
-       inputParameterIsParameter=                &
-            &   hasAttribute   (self%content,'value') &
-            &  .or.                               &
-            &   XML_Path_Exists(self%content,'value') 
+       inputParameterIsParameter=                        &
+            &    .not.hasAttribute(self%content,'id'   ) &
+            &   .and.                                    &
+            &    (                                       &
+            &         hasAttribute(self%content,'value') &
+            &     .or.                                   &
+            &      XML_Path_Exists(self%content,'value') &
+            &     .or.                                   &
+            &         hasAttribute(self%content,"idRef") &
+            &    )
     else
        inputParameterIsParameter=.false.
     end if
@@ -846,7 +925,19 @@ contains
     do while (associated(inputParametersNode))
        thisNode => inputParametersNode%content
        if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if (.not.requireValue_ .or. hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
+          if     (                                     &
+               &   .not.hasAttribute(thisNode,'id'   ) &
+               &  .and.                                &
+               &   (                                   &
+               &    .not.requireValue_                 &
+               &    .or.                               &
+               &        hasAttribute(thisNode,'value') &
+               &    .or.                               &
+               &     XML_Path_Exists(thisNode,"value") &
+               &    .or.                               &
+               &        hasAttribute(thisNode,"idRef") &
+               &   )                                   &
+               & ) then
              if (skipInstances > 0) then
                 skipInstances=skipInstances-1
              else
@@ -858,9 +949,10 @@ contains
     end do
     !$omp end critical (FoX_DOM_Access)
     if (.not.associated(inputParametersNode)) call Galacticus_Error_Report('parameter node ['//trim(parameterName)//'] not found'//{introspection:location})
+    if (associated(inputParametersNode%referenced)) inputParametersNode => inputParametersNode%referenced
     return
   end function inputParametersNode
-  
+
   logical function inputParametersIsPresent(self,parameterName,requireValue)
     !% Return true if the specified parameter is present.
     implicit none
@@ -879,7 +971,19 @@ contains
     do while (associated(currentParameter))
        thisNode => currentParameter%content
        if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-          if (.not.requireValue_ .or. hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) then
+          if     (                                     &
+               &   .not.hasAttribute(thisNode,'id'   ) &
+               &  .and.                                &
+               &   (                                   &
+               &    .not.requireValue_                 &
+               &    .or.                               &
+               &        hasAttribute(thisNode,'value') &
+               &    .or.                               &
+               &     XML_Path_Exists(thisNode,"value") &
+               &    .or.                               &
+               &        hasAttribute(thisNode,"idRef") &
+               &   )                                   &
+               & ) then
              inputParametersIsPresent=.true.
              exit
           end if
@@ -909,7 +1013,17 @@ contains
        do while (associated(currentParameter))
           thisNode => currentParameter%content
           if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-             if (hasAttribute(thisNode,'value') .or. XML_Path_Exists(thisNode,"value")) &
+             if     (                                     &
+                  &   .not.hasAttribute(thisNode,'id'   ) &
+                  &  .and.                                &
+                  &   (                                   &
+                  &        hasAttribute(thisNode,'value') &
+                  &    .or.                               &
+                  &     XML_Path_Exists(thisNode,"value") &
+                  &    .or.                               &
+                  &        hasAttribute(thisNode,"idRef") &
+                  &   )                                   &
+                  & )                                     &
                   & inputParametersCopiesCount=inputParametersCopiesCount+1
           end if
           currentParameter => currentParameter%sibling
