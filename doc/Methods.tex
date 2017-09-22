@@ -805,49 +805,6 @@ Currently defined freefall radius methods are:
  \item [\hyperlink{cooling.freefall_radii.dark_matter_halo.F90:freefall_radii_dark_matter_halo:freefall_radius_dark_matter_halo}{{\normalfont \ttfamily darkMatterHalo}}] Computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall.
 \end{description}
 
-\subsubsection{Cooling: Infall Radius}
-
-Additional methods for the infall radius in cooling calculations can be added using the {\normalfont \ttfamily infallRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily coolingRadius} method is described by a directive:
-\begin{verbatim}
- !# <infallRadiusMethod>
- !#  <unitName>Infall_Radius_Cooling_Radius_Initialize</unitName>
- !# </infallRadiusMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Infall\_Radius\_Cooling\_Radius\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: infallRadiusMethod
-    procedure(),          pointer, intent(inout) :: Infall_Radius_Get,Infall_Radius_Growth_Rate_Get
-    
-    if (infallRadiusMethod == 'myMethod') then
-       Infall_Radius_Get             => My_Method_Get_Procedure
-       Infall_Radius_Growth_Rate_Get => My_Method_Growth_Rate_Get_Procedure
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily infallRadiusMethod} input parameter. The procedure pointer {\normalfont \ttfamily Infall\_Radius\_Get} must be set to point to a function which returns the infall radius as described below while {\normalfont \ttfamily Infall\_Radius\_Growth\_Rate\_Get} should be set to point to a function which returns the rate at which the infall radius is growing. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The infall radius function must have the form:
-\begin{verbatim}
- double precision function Infall_Radius_Get(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Infall_Radius_Get
-\end{verbatim}
-The function must return the infall radius (in units of Mpc) for {\normalfont \ttfamily thisNode}, i.e. the radius from which gas in the hot halo that is currently accreting onto the galaxy originated. The infall radius growth rate function should have the same template but return the rate at which the infall radius grows in units of Mpc/Gyr.
-
-Currently defined infall radius methods are:
-\begin{description}
- \item [\hyperlink{cooling.infall_radius.cooling_radius.F90:infall_radii_cooling_radius:infall_radius_cooling_radius}{{\normalfont \ttfamily coolingRadius}}] Assumes that the infall radius equals the cooling radius.
- \item [\hyperlink{cooling.infall_radius.cooling_and_freefall.F90:infall_radii_cooling_freefall:infall_radius_cooling_freefall}{{\normalfont \ttfamily cooling and freefall}}] Assumes that the infall radius is equal to the smaller of the cooling and freefall radii.
-\end{description}
-
 \subsubsection{Cooling Specific Angular Momentum}
 
 Additional methods for calculations of the specific angular momentum of cooling gas can be added using the {\normalfont \ttfamily coolingSpecificAngularMomentumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
