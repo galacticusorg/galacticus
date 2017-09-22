@@ -59,9 +59,9 @@ module Node_Component_Black_Hole_Simple
   double precision :: blackHoleSeedMass
 
   ! Feedback parameters.
-  double precision :: blackHoleHeatingEfficiency                   , blackHoleJetEfficiency , &
-       &              blackHoleToSpheroidStellarGrowthRatio        , blackHoleWindEfficiency
-  logical          :: blackHoleAccretesFromHotHalo                 , blackHoleHeatsHotHalo
+  double precision :: blackHoleHeatingEfficiency                   , blackHoleWindEfficiency , &
+       &              blackHoleToSpheroidStellarGrowthRatio
+  logical          :: blackHoleHeatsHotHalo
 
   ! Output options.
   logical          :: blackHoleOutputAccretion
@@ -108,16 +108,6 @@ contains
           !# </inputParameter>
           if (blackHoleHeatsHotHalo) then
              !# <inputParameter>
-             !#   <name>blackHoleAccretesFromHotHalo</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>.false.</defaultValue>
-             !#   <description>Controls whether the black hole additionally grows via accretion from the hot halo. If it does,
-             !#      this accretion rate is used to determine AGN feedback power.</description>
-             !#   <group>blackHoles</group>
-             !#   <source>globalParameters</source>
-             !#   <type>double</type>
-             !# </inputParameter>
-             !# <inputParameter>
              !#   <name>blackHoleHeatingEfficiency</name>
              !#   <cardinality>1</cardinality>
              !#   <defaultValue>1.0d-3</defaultValue>
@@ -126,18 +116,8 @@ contains
              !#   <source>globalParameters</source>
              !#   <type>double</type>
              !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>blackHoleJetEfficiency</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>1.0d-3</defaultValue>
-             !#   <description>The efficiency with which accretion power onto a black hole is converted into jets.</description>
-             !#   <group>blackHoles</group>
-             !#   <source>globalParameters</source>
-             !#   <type>double</type>
-             !# </inputParameter>
           else
              blackHoleHeatingEfficiency=0.0d0
-             blackHoleJetEfficiency    =0.0d0
           end if
           ! Get options controlling winds.
           !# <inputParameter>
@@ -299,10 +279,10 @@ contains
     ! Check that the simple black hole is active.
     if (defaultBlackHoleComponent%simpleIsActive()) then
        ! Find the node to merge with.
-       hostNode               => thisNode%mergesWith()
+       hostNode               => thisNode%mergesWith(                 )
        ! Get the black holes.
-       thisBlackHoleComponent => thisNode%blackHole ()
-       hostBlackHoleComponent => hostNode%blackHole ()
+       thisBlackHoleComponent => thisNode%blackHole (autoCreate=.true.)
+       hostBlackHoleComponent => hostNode%blackHole (autoCreate=.true.)
        ! Compute the effects of the merger.
        call Black_Hole_Binary_Merger(thisBlackHoleComponent%mass(), &
             &                        hostBlackHoleComponent%mass(), &
