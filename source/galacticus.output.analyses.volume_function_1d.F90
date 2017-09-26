@@ -70,7 +70,7 @@
      !@     <description>Return the results of the volume function operator.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-    final     ::             volumeFunction1DDestructor
+     final     ::             volumeFunction1DDestructor
      procedure :: analyze  => volumeFunction1DAnalyze
      procedure :: finalize => volumeFunction1DFinalize
      procedure :: results  => volumeFunction1DResults
@@ -389,7 +389,7 @@ contains
     integer                                                                         :: propertyType
     integer         (c_size_t                      )                                :: j                     , k          , &
          &                                                                             indexHaloMass
-    
+
     ! If weights for this output are all zero, we can skip analysis.
     if (all(self%outputWeight(:,iOutput) == 0.0d0)) return
     ! Filter this node.
