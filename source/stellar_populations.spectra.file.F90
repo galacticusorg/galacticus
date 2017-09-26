@@ -97,6 +97,7 @@
      procedure :: readFile      => fileReadFile
      procedure :: luminosity    => fileLuminosity
      procedure :: tabulation    => fileTabulation
+     procedure :: wavelengths   => fileWavelengths
      procedure :: imfInitialize => fileIMFInitialize
      procedure :: descriptor    => fileDescriptor
   end type stellarPopulationSpectraFile
@@ -480,6 +481,27 @@ contains
     metallicity       =(10.0d0**self%spectra(imfLookupIndex)%metallicities)*metallicitySolar
     return
   end subroutine fileTabulation
+
+  subroutine fileWavelengths(self,imfIndex,wavelengthsCount,wavelengths)
+    !% Return a tabulation of wavelengths at which stellar spectra for the specified \gls{imf} should be tabulated.
+    use Memory_Management
+    use Numerical_Constants_Astronomical
+    implicit none
+    class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
+    integer                                                                  , intent(in   ) :: imfIndex
+    integer                                                                  , intent(  out) :: wavelengthsCount
+    double precision                              , allocatable, dimension(:), intent(  out) :: wavelengths
+    integer                                                                                  :: imfLookupIndex
+
+    ! Ensure that this IMF is initialized.
+    call self%imfInitialize(imfIndex)
+    ! Return the relevant data.
+    imfLookupIndex  =self%imfLookup(imfIndex      )
+    wavelengthsCount=self%spectra  (imfLookupIndex)%wavelengthsCount
+    call allocateArray(wavelengths,[wavelengthsCount])
+    wavelengths     =self%spectra  (imfLookupIndex)%wavelengths
+    return
+  end subroutine fileWavelengths
 
   subroutine fileDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
