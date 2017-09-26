@@ -70,7 +70,7 @@ contains
   end function stellarMassConstructorInternal
 
   logical function stellarMassPasses(self,node)
-    !% Implement an stellarMass-pass galactic filter.
+    !% Implement a  stellar mass high-pass galactic filter.
     implicit none
     class           (galacticFilterStellarMass), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node
