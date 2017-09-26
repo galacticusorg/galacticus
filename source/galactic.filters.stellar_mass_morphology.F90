@@ -71,7 +71,7 @@ contains
   end function stellarMassMorphologyConstructorInternal
 
   logical function stellarMassMorphologyPasses(self,node)
-    !% Implement an stellarMassMorphology-pass galactic filter.
+    !% Implement a stellar mass-weighted morphology high-pass galactic filter.
     implicit none
     class           (galacticFilterStellarMassMorphology), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
