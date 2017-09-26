@@ -45,6 +45,14 @@ module Stellar_Population_Spectra
   !#   <argument>integer                                    , intent(  out) :: agesCount, metallicitiesCount</argument>
   !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity</argument>
   !#  </method>
+  !#  <method name="wavelengths" >
+  !#   <description>Return a tabulation of at which stellar spectra for the specified \gls{imf} are defined.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer                                    , intent(in   ) :: imfIndex</argument>
+  !#   <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
+  !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
+  !#  </method>
   !# </functionClass>
-
+  
 end module Stellar_Population_Spectra
