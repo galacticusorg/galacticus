@@ -28,7 +28,7 @@ my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 my $baseParameters = exists($arguments{'baseParameters'}) ? $arguments{'baseParameters'} : $config->{'likelihood'}->{'baseParameters'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$config->{'likelihood'}->{'compilation'},$baseParameters);
 
 # Extract the standard reset factor for spins.
 my $resetFactor = $parameters->{'randomSpinResetMassFactor'}->{'value'};

@@ -35,7 +35,7 @@ my $baseParameters = exists($arguments{'baseParameters'})
 	                    $config->{'likelihood'}->{'baseParameters'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$config->{'likelihood'}->{'compilation'},$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Determine the work directory.

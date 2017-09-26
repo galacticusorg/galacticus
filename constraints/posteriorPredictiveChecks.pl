@@ -64,7 +64,7 @@ if ( exists($arguments{'compilationOverride'}) ) {
 } else {
     $compilationFile = $config->{'likelihood'}->{'compilation'};
 }
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$compilationFile,$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Generate a sample of models.
