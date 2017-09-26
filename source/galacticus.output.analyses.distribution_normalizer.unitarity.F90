@@ -59,9 +59,11 @@ contains
 
 
     distributionSum=+sum(distribution   )
-    distribution   =+    distribution       &
-         &          /    distributionSum
-    covariance     =+    covariance         &
-         &          /    distributionSum**2
+    if (distributionSum /= 0.0d0) then
+       distribution   =+    distribution       &
+            &          /    distributionSum
+       covariance     =+    covariance         &
+            &          /    distributionSum**2
+    end if
     return
   end subroutine unitarityNormalize
