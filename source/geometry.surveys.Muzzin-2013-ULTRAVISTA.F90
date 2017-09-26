@@ -180,16 +180,20 @@ contains
     else
        redshift=    4.0d0
     end if
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()    
-    ! Convert from redshift to comoving distance.
-    muzzin2013ULTRAVISTADistanceMaximum                                               &
-         &=cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                             output  =distanceTypeComoving, &
-         &                                             redshift=redshift              &
-         &                                            )
-    ! Limit the maximum distance.
-    muzzin2013ULTRAVISTADistanceMaximum=min(muzzin2013ULTRAVISTADistanceMaximum,self%binDistanceMaximum)
+    if (redshift < 0.0d0) then
+       muzzin2013ULTRAVISTADistanceMaximum=0.0d0
+    else
+       ! Get the default cosmology functions object.
+       cosmologyFunctions_ => cosmologyFunctions()    
+       ! Convert from redshift to comoving distance.
+       muzzin2013ULTRAVISTADistanceMaximum                                               &
+            &=cosmologyFunctions_%distanceComovingConvert(                               &
+            &                                             output  =distanceTypeComoving, &
+            &                                             redshift=redshift              &
+            &                                            )
+       ! Limit the maximum distance.
+       muzzin2013ULTRAVISTADistanceMaximum=min(muzzin2013ULTRAVISTADistanceMaximum,self%binDistanceMaximum)
+    end if
     return
   end function muzzin2013ULTRAVISTADistanceMaximum
 
