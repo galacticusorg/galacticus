@@ -83,8 +83,9 @@ sub Output {
 
 sub Compilation {
     # Process a compilation of constraints, adjusting parameters as necessary and return a parameter hash.
-    my $compilationFileName    = shift;
-    my $baseParametersFileName = shift;
+    my $config                 = shift();
+    my $compilationFileName    = shift();
+    my $baseParametersFileName = shift();
     # Create an XML worker object.
     my $xml = new XML::Simple();
     # Retrieve the compilation file.
@@ -215,18 +216,20 @@ sub Compilation {
     $haloMassResolution = 5.00e09 unless ( defined($haloMassResolution) );
     $haloMassMinimum    = 1.00e10 unless ( defined($haloMassMinimum   ) );
     $haloMassMaximum    = 1.01e10 unless ( defined($haloMassMaximum   ) );
-    $parameters->{'mergerTreeBuildMassResolutionFixed'}->{'value'} = $haloMassResolution;
-    $parameters->{'mergerTreeBuildHaloMassMinimum'    }->{'value'} = $haloMassMinimum   ;
-    $parameters->{'mergerTreeBuildHaloMassMaximum'    }->{'value'} = $haloMassMaximum   ;
-    if ( exists($parameters->{'mergerTreeMassResolutionMethod'}) ) {
-	if ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "fixed" ) {
-	    $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'       }->{'value'} = $haloMassResolution;
-	} elsif ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "scaled" ) {
-	    $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolutionMinimum'}->{'value'} = $haloMassResolution;
+    my $adjustMasses = exists($config->{'likelihood'}->{'adjustMasses'}) ? $config->{'likelihood'}->{'adjustMasses'} : "no";
+    if ( $adjustMasses eq "yes" ) {
+	$parameters->{'mergerTreeBuildHaloMassMinimum'}->{'value'} = $haloMassMinimum;
+	$parameters->{'mergerTreeBuildHaloMassMaximum'}->{'value'} = $haloMassMaximum;
+	if ( exists($parameters->{'mergerTreeMassResolutionMethod'}) ) {
+	    if ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "fixed" ) {
+		$parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'       }->{'value'} = $haloMassResolution;
+	    } elsif ( $parameters->{'mergerTreeMassResolutionMethod'}->{'value'} eq "scaled" ) {
+		$parameters->{'mergerTreeMassResolutionMethod'}->{'massResolutionMinimum'}->{'value'} = $haloMassResolution;
+	    }
+	} else {
+	    $parameters->{'mergerTreeMassResolutionMethod'}                    ->{'value'} = "fixed";
+	    $parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'}->{'value'} = $haloMassResolution;
 	}
-    } else {
-	$parameters->{'mergerTreeMassResolutionMethod'}                    ->{'value'} = "fixed";
-	$parameters->{'mergerTreeMassResolutionMethod'}->{'massResolution'}->{'value'} = $haloMassResolution;
     }
     # Set required options on.
     $parameters->{$_}->{'value'} = "true" 

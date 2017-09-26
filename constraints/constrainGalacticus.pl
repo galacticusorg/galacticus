@@ -157,7 +157,7 @@ my $badLogLikelihoodVariance =  0.0;
 my @temporaryFiles;
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($compilationFile,$baseParameters);
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$compilationFile,$baseParameters);
 my @constraints = @{$constraintsRef};
 
 # Remove any old semaphore file.

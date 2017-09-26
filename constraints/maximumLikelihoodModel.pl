@@ -53,7 +53,7 @@ my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
 my $maximumLikelihoodDirectory  = $mcmcDirectory."/".$arguments{'directory'}."/";
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Set an output file name.

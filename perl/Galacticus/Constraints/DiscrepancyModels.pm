@@ -67,6 +67,7 @@ sub RunModels {
     (my $constraintsRef, my $parameters) = 
 	&Galacticus::Constraints::Parameters::Compilation
 	(
+	 $config                                 ,
 	 $config->{'likelihood'}->{'compilation'},
 	 $baseParameters
 	);
