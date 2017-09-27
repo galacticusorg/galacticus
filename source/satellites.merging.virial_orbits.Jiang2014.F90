@@ -213,9 +213,11 @@ contains
                &                               )
           ! Tabulate the cumulative distribution.
           call self%voightDistributions(i,j)%create(0.0d0,2.0d0,tableCount)
+          !$omp parallel do
           do k=1,tableCount
              call self%voightDistributions(i,j)%populate(voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)),k)
           end do
+          !$omp end parallel do
        end do
     end do
     return
