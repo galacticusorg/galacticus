@@ -612,15 +612,15 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
     integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendentIndex
-    double precision                              , allocatable, dimension(:) :: nodeMass                 , treeMass    , &
-         &                                                                       nodeTime                 , treeTime
-    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex           , nodeCount
+    double precision                              , allocatable, dimension(:) :: nodeMass           , treeMass    , &
+         &                                                                       nodeTime           , treeTime
+    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex     , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
-    class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctions_
     class           (haloMassFunctionClass       ), pointer                   :: haloMassFunction_
     integer                                                                   :: i
     integer         (c_size_t                    )                            :: iNode
-    double precision                                                          :: massMinimum              , massMaximum
+    double precision                                                          :: massMinimum        , massMaximum
     logical                                                                   :: hasForestWeights
     
     if (self%forestIndicesRead) return
@@ -634,8 +634,8 @@ contains
     hasForestWeights=treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))
     !$omp end critical(HDF5_Access)
     if (self%reweightTrees) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       haloMassFunction_         => haloMassFunction  ()
+       cosmologyFunctions_ => cosmologyFunctions()
+       haloMassFunction_   => haloMassFunction  ()
        allocate(self%weights(size(self%firstNodes)))
        allocate(treeMass    (size(self%firstNodes)))
        allocate(treeTime    (size(self%firstNodes)))
@@ -658,14 +658,14 @@ contains
              call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
              ! Convert expansion factors to times.
              do iNode=1,nodeCount(1)
-                nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(nodeTime(iNode))
+                nodeTime(iNode)=cosmologyFunctions_%cosmicTime(nodeTime(iNode))
              end do
           else if (self%forestHalos%hasDataset("redshift"       )) then
              ! Redshift is present, read it instead.
              call self%forestHalos%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
              ! Convert redshifts to times.
              do iNode=1,nodeCount(1)
-                nodeTime(iNode)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodeTime(iNode)))
+                nodeTime(iNode)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(nodeTime(iNode)))
              end do
           else
              call Galacticus_Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})
@@ -728,14 +728,14 @@ contains
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                       , intent(in   ) :: i
-    class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctionsDefault
-    double precision                                              :: lengthSimulationBox      , timePresent
+    class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    double precision                                              :: lengthSimulationBox, timePresent
     integer                                                       :: statusActual
 
     call galacticusForestIndicesRead(self)
     ! Determine the time at present.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-    timePresent=cosmologyFunctionsDefault%cosmicTime(1.0d0)
+    cosmologyFunctions_ => cosmologyFunctions            (     )
+    timePresent         =  cosmologyFunctions_%cosmicTime(1.0d0)
     ! Do we have an array of weights for trees?
     if (allocated(self%weights)) then
        ! We do, so simply return the appropriate weight.
@@ -861,7 +861,7 @@ contains
     class           (nodeData                    ), intent(in   )                 :: node
     double precision                              , intent(  out), dimension(:  ) :: time
     double precision                              , intent(  out), dimension(:,:) :: position, velocity
-    class           (cosmologyFunctionsClass     ), pointer                       :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass     ), pointer                       :: cosmologyFunctions_
     integer                                                                       :: i
     
     select type (node)
@@ -873,17 +873,17 @@ contains
        call self%particles%readDatasetStatic("velocity"                         ,velocity,[1_kind_int8,node%particleIndexStart+1],[3_kind_int8,node%particleIndexCount])
        !$omp end critical(HDF5_Access)
        ! Convert epochs into times.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        select case (self%particleEpochType)
        case (galacticusParticleEpochTypeTime           )
           time=importerUnitConvert(time,time,self%timeUnit,gigaYear)
        case (galacticusParticleEpochTypeExpansionFactor)
           do i=1,size(time)
-             time(i)=cosmologyFunctionsDefault%cosmicTime(                                                      time(i) )
+             time(i)=cosmologyFunctions_%cosmicTime(                                                time(i) )
           end do
        case (galacticusParticleEpochTypeRedshift       )
           do i=1,size(time)
-             time(i)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(time(i)))
+             time(i)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(time(i)))
           end do
        end select
        ! Convert units of position and velocity into Galacticus internal units.
@@ -934,7 +934,7 @@ contains
          &                                                                                        requireParticleCounts     , requireVelocityMaxima, &
          &                                                                                        requireVelocityDispersions, requireSpin          , &
          &                                                                                        requireSpin3D             , structureOnly
-    class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctions_
     integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex            , nodeCount
     integer         (c_size_t                    )                                             :: iNode
     integer         (c_size_t                    )               , allocatable, dimension(:  ) :: nodeSubsetOffset
@@ -943,7 +943,7 @@ contains
     logical                                                                                    :: timesAreInternal          , useNodeSubset
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Ensure tree indices have been read.
     call galacticusForestIndicesRead(self)
     ! Determine the first node index and the node count.
@@ -1011,7 +1011,7 @@ contains
        if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
+          nodes(iNode)%nodeTime=cosmologyFunctions_%cosmicTime(nodes(iNode)%nodeTime)
        end do
     else if (self%forestHalos%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
@@ -1025,7 +1025,7 @@ contains
        if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
+          nodes(iNode)%nodeTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
        end do
     else
        call Galacticus_Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})

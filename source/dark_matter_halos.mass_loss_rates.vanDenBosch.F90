@@ -42,15 +42,15 @@ contains
     implicit none
     type     (varying_string                              ), intent(in   )          :: darkMatterHaloMassLossRateMethod
     procedure(Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch), intent(inout), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get
-    class    (cosmologyFunctionsClass                     )               , pointer :: cosmologyFunctionsDefault
+    class    (cosmologyFunctionsClass                     )               , pointer :: cosmologyFunctions_
     class    (virialDensityContrastClass                  )               , pointer :: virialDensityContrast_
 
     if (darkMatterHaloMassLossRateMethod == 'vanDenBosch2005') then
        ! Set a pointer to our implementation.
        Dark_Matter_Halos_Mass_Loss_Rate_Get => Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch
        ! Get the default objects.
-       cosmologyFunctionsDefault => cosmologyFunctions   ()
-       virialDensityContrast_    => virialDensityContrast()
+       cosmologyFunctions_    => cosmologyFunctions   ()
+       virialDensityContrast_ => virialDensityContrast()
     end if
     return
   end subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize

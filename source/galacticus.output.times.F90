@@ -44,7 +44,7 @@ contains
     use Histories
     use Cosmology_Functions
     implicit none
-    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
     integer         (c_size_t               )          :: iOutput
     double precision                                   :: aExpansion
 
@@ -62,7 +62,7 @@ contains
           call allocateArray(outputRedshifts,[outputCount])
           call allocateArray(outputTimes    ,[outputCount])
           ! Get the default cosmology functions object.
-          cosmologyFunctionsDefault => cosmologyFunctions()
+          cosmologyFunctions_ => cosmologyFunctions()
           if (globalParameters%isPresent('outputTimes')) then
              !# <inputParameter>
              !#   <name>outputTimes</name>
@@ -75,7 +75,7 @@ contains
              call Sort_Do(outputTimes)
              ! Convert times to redshifts.
              do iOutput=1,outputCount
-                outputRedshifts(iOutput)=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(outputTimes(iOutput)))
+                outputRedshifts(iOutput)=cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(outputTimes(iOutput)))
              end do
           else
              !# <inputParameter>
@@ -92,8 +92,8 @@ contains
              outputRedshifts=-outputRedshifts
              ! Convert redshifts to times.
              do iOutput=1,outputCount
-                aExpansion=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputRedshifts(iOutput))
-                outputTimes(iOutput)=cosmologyFunctionsDefault%cosmicTime(aExpansion)
+                aExpansion=cosmologyFunctions_%expansionFactorFromRedshift(outputRedshifts(iOutput))
+                outputTimes(iOutput)=cosmologyFunctions_%cosmicTime(aExpansion)
              end do
           end if
 

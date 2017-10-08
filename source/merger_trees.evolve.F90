@@ -546,7 +546,7 @@ contains
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: thisEvent
     class           (treeEvent                    )                         , pointer :: treeEvent_
-    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
     double precision                                                                  :: expansionFactor              , expansionTimescale, &
          &                                                                               hostTimeLimit                , time              , &
          &                                                                               timeEarliest
@@ -632,10 +632,10 @@ contains
        case (.false.)
           ! Find current expansion timescale. 
           if (timestepHostRelative > 0.0d0) then
-             cosmologyFunctionsDefault => cosmologyFunctions()
-             expansionFactor           =  cosmologyFunctionsDefault%expansionFactor(time)
-             expansionTimescale        =  1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
-             hostTimeLimit             =  max(time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute),basic%time())
+             cosmologyFunctions_ => cosmologyFunctions()
+             expansionFactor     =  cosmologyFunctions_%expansionFactor(time)
+             expansionTimescale  =  1.0d0/cosmologyFunctions_%expansionRate(expansionFactor)
+             hostTimeLimit       =  max(time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute),basic%time())
           else
              ! Avoid use of expansion timescale if host absolute timestep is non-positive. This allows static universe cases to be handled.
              hostTimeLimit=max(time+timestepHostAbsolute,basic%time())

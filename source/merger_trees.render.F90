@@ -89,9 +89,9 @@ contains
        nodeIndex      (iNode) =  node           %index()
        parentIndex    (iNode) =  node%parent    %index()
        childIndex     (iNode) =  node%firstChild%index()
-       time           (iNode) =                                 basic%time()
-       expansionFactor(iNode) =  cosmologyFunctionsDefault%expansionFactor              (basic%time())
-       radiusVirial   (iNode) =  darkMatterHaloScale_%virialRadius(node        )
+       time           (iNode) =                                       basic%time()
+       expansionFactor(iNode) =  cosmologyFunctions_ %expansionFactor(basic%time())
+       radiusVirial   (iNode) =  darkMatterHaloScale_%virialRadius   (node        )
        call Tree_Node_Position(node,position(:,iNode))
        call node%walkTreeWithSatellites(node)
     end do

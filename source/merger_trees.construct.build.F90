@@ -77,7 +77,7 @@ contains
     type            (varying_string                   )             , intent(in   )          :: mergerTreeConstructMethod
     procedure       (Merger_Tree_Build_Do             )             , intent(inout), pointer :: Merger_Tree_Construct
     type            (Node                      )                            , pointer :: doc                                  , rootNode
-    class           (cosmologyFunctionsClass          )                            , pointer :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass          )                            , pointer :: cosmologyFunctions_
     class           (haloMassFunctionClass            )                            , pointer :: haloMassFunction_
     class           (massFunctionSamplingModifierClass)                            , pointer :: massFunctionSamplingModifier_
     integer                                            , parameter                           :: massFunctionSamplePerDecade  =100
@@ -193,10 +193,10 @@ contains
             &                              {introspection:location}                                                                   &
             &                             )
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        ! Find the cosmic time at which the trees are based.
-       expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildTreesBaseRedshift)
-       mergerTreeBuildTreesBaseTime=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
+       expansionFactor             =cosmologyFunctions_%expansionFactorFromRedshift(mergerTreeBuildTreesBaseRedshift)
+       mergerTreeBuildTreesBaseTime=cosmologyFunctions_%cosmicTime                 (expansionFactor                 )
 
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))

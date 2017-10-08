@@ -284,7 +284,7 @@ contains
     use Array_Utilities
     use Sort
     implicit none
-    class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
     integer                                                              :: iLuminosity               , jLuminosity
     double precision                                                     :: expansionFactor
     character       (len=10                 )                            :: redshiftLabel
@@ -422,7 +422,7 @@ contains
              call allocateArray(luminosityCosmicTime              ,[luminosityCount])
              call allocateArray(luminosityTimeIndex               ,[luminosityCount])
              ! Get the default cosmology functions object.
-             cosmologyFunctionsDefault => cosmologyFunctions()
+             cosmologyFunctions_ => cosmologyFunctions()
              ! Process the list of luminosities.
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
@@ -444,8 +444,8 @@ contains
                 ! Get the index of the specified filter.
                 luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
                 ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
-                expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(luminosityRedshift(iLuminosity))
-                luminosityCosmicTime(iLuminosity)=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
+                expansionFactor                  =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift(iLuminosity))
+                luminosityCosmicTime(iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                )
                 ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
                 ! it is set to zero to indicate a rest-frame filter.
                 select case(char(luminosityType(iLuminosity)))
