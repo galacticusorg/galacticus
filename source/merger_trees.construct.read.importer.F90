@@ -322,15 +322,15 @@ module Merger_Tree_Read_Importers
     type            (importerUnits           ), intent(in   ) :: units
     double precision                          , intent(in   ) :: requiredUnits
     double precision                                          :: importerUnitConvertScalar
-    class           (cosmologyParametersClass), pointer       :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
     if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
-    cosmologyParametersDefault => cosmologyParameters()
-    importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
+    cosmologyParameters_ => cosmologyParameters()
+    importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctionsDefault%expansionFactor(times)**units%scaleFactorExponent
+       cosmologyFunctions_ => cosmologyFunctions()
+       importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctions_%expansionFactor(times)**units%scaleFactorExponent
     end if
     return
   end function importerUnitConvertScalar
@@ -341,21 +341,21 @@ module Merger_Tree_Read_Importers
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision                          , intent(in   ), dimension(           :) :: values                    , times
+    double precision                          , intent(in   ), dimension(           :) :: values               , times
     type            (importerUnits           ), intent(in   )                          :: units
     double precision                          , intent(in   )                          :: requiredUnits
     double precision                                         , dimension(size(values)) :: importerUnitConvert1D
-    class           (cosmologyParametersClass), pointer                                :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctionsDefault
+    class           (cosmologyParametersClass), pointer                                :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctions_
     integer                                                                            :: i
 
     if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
-    cosmologyParametersDefault => cosmologyParameters()
-    importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
+    cosmologyParameters_ => cosmologyParameters()
+    importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        do i=1,size(values)
-          importerUnitConvert1D(i)=importerUnitConvert1D(i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
+          importerUnitConvert1D(i)=importerUnitConvert1D(i)*cosmologyFunctions_%expansionFactor(times(i))**units%scaleFactorExponent
        end do
     end if
     return
@@ -372,17 +372,17 @@ module Merger_Tree_Read_Importers
     type            (importerUnits           ), intent(in   )                                                   :: units
     double precision                          , intent(in   )                                                   :: requiredUnits
     double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: importerUnitConvert2D
-    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctionsDefault
+    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctions_
     integer                                                                                                     :: i
 
     if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
-    cosmologyParametersDefault => cosmologyParameters()
-    importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
+    cosmologyParameters_ => cosmologyParameters()
+    importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        do i=1,size(values,dim=2)
-          importerUnitConvert2D(:,i)=importerUnitConvert2D(:,i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
+          importerUnitConvert2D(:,i)=importerUnitConvert2D(:,i)*cosmologyFunctions_%expansionFactor(times(i))**units%scaleFactorExponent
        end do
     end if
     return

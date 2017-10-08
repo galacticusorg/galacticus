@@ -46,7 +46,7 @@ program Optimal_Sampling_SMF
   double precision                            , allocatable, dimension(:) :: stellarMassTableMass,stellarMassTableMassFunction,haloMassTableMass,haloMassTableXi,treeTiming,haloMassFunctionDifferential,samplingDensity
   integer                                                                 :: stellarMassTableCount,haloMassTableCount,iMass,iUnit
   double precision                                                        :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
-  class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctionsDefault
+  class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_
   class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
   type            (fgsl_function             )                            :: integrandFunction
   type            (fgsl_integration_workspace)                            :: integrationWorkspace
@@ -99,10 +99,10 @@ program Optimal_Sampling_SMF
   stellarMassTableMass=Make_Range(stellarMassMinimum,stellarMassMaximum,stellarMassTableCount,rangeType=rangeTypeLogarithmic)
   haloMassTableMass   =Make_Range(   haloMassMinimum,   haloMassMaximum,   haloMassTableCount,rangeType=rangeTypeLogarithmic)
   ! Get required objects.
-  cosmologyFunctionsDefault => cosmologyFunctions()
-  haloMassFunction_         => haloMassFunction  ()
+  cosmologyFunctions_ => cosmologyFunctions()
+  haloMassFunction_   => haloMassFunction  ()
   ! Get the cosmic time at the present day.
-  time=cosmologyFunctionsDefault%cosmicTime(0.93457d0)
+  time=cosmologyFunctions_%cosmicTime(0.93457d0)
 
   ! Open an HDF5 file to write the results to.
   call outputFile%openFile(char(optimalSamplingDensityOutputFileName),overWrite=.true.)

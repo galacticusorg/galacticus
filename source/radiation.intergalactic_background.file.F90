@@ -71,7 +71,7 @@ contains
     type     (Node                   )               , pointer :: doc                                       , thisDatum     , &
          &                                                        thisSpectrum                              , thisWavelength
     type     (NodeList               )               , pointer :: spectraList
-    class    (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    class    (cosmologyFunctionsClass)               , pointer :: cosmologyFunctions_
     integer                                                    :: fileFormatVersion                         , iSpectrum     , &
          &                                                        ioErr                                     , jSpectrum
     logical                                                    :: timesIncreasing
@@ -100,7 +100,7 @@ contains
        ! Get a list of all spectra.
        spectraList => getElementsByTagname(doc,"spectra")
        ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
+       cosmologyFunctions_ => cosmologyFunctions()
        ! Get the wavelengths.
        thisWavelength => XML_Get_First_Element_By_Tag_Name(doc,"wavelengths")
        call XML_Array_Read(thisWavelength,"datum",spectraWavelengths)
@@ -129,7 +129,7 @@ contains
           ! Extract the redshift.
           call extractDataContent(XML_Get_First_Element_By_Tag_Name(thisSpectrum,"redshift"),spectraTimes(iSpectrum))
           ! Convert redshift to a time.
-          spectraTimes(iSpectrum)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
+          spectraTimes(iSpectrum)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
        end do     
        ! Reverse times if necessary.
        if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)

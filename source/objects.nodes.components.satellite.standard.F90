@@ -214,7 +214,7 @@ contains
     class           (nodeComponentSatellite         ), intent(inout) :: self
     type            (keplerOrbit                    ), intent(in   ) :: orbit
     type            (treeNode                       ), pointer       :: selfNode
-    class           (satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescalesDefault
+    class           (satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescales_
     double precision                                                 :: mergeTime
     type            (keplerOrbit                    )                :: virialOrbit
 
@@ -226,8 +226,8 @@ contains
        selfNode => self%host()
        ! Update the stored time until merging to reflect the new orbit.
        virialOrbit=orbit
-       satelliteMergingTimescalesDefault => satelliteMergingTimescales()
-       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(selfNode,virialOrbit)
+       satelliteMergingTimescales_ => satelliteMergingTimescales                  (                    )
+       mergeTime                   =  satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
        if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
@@ -302,7 +302,7 @@ contains
     type            (treeNode                       )               , pointer :: hostNode
     class           (nodeComponentSatellite         )               , pointer :: satellite
     class           (nodeComponentBasic             )               , pointer :: basic
-    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
+    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescales_
     class           (virialOrbitClass               )               , pointer :: virialOrbit_
     logical                                                                   :: isNewSatellite
     double precision                                                          :: mergeTime
@@ -342,8 +342,8 @@ contains
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
-       satelliteMergingTimescalesDefault => satelliteMergingTimescales()
-       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(node,orbit)
+       satelliteMergingTimescales_ => satelliteMergingTimescales                  (          )
+       mergeTime                   =  satelliteMergingTimescales_%timeUntilMerging(node,orbit)
        if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
     end select
     return

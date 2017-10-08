@@ -93,7 +93,7 @@ contains
     use Input_Parameters
     implicit none
     type            (accretionHaloSimple          ), target  :: simpleDefaultConstructor
-    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ 
     double precision                                         :: reionizationSuppressionOpticalDepth
 
@@ -124,8 +124,8 @@ contains
              !#   <type>real</type>
              !#   <variable>simpleReionizationSuppressionRedshift</variable>
              !# </inputParameter>
-             cosmologyFunctionsDefault        => cosmologyFunctions()
-             simpleReionizationSuppressionTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(simpleReionizationSuppressionRedshift))
+             cosmologyFunctions_               => cosmologyFunctions()
+             simpleReionizationSuppressionTime =  cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(simpleReionizationSuppressionRedshift))
           end if
           !# <inputParameter>
           !#   <name>reionizationSuppressionVelocity</name>

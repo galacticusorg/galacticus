@@ -166,7 +166,7 @@ contains
     type            (treeNode                       ), intent(inout), pointer :: thisNode
     type            (treeNode                       )               , pointer :: hostNode
     class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
-    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
+    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescales_
     class           (virialOrbitClass               )               , pointer :: virialOrbit_
     logical                                                                   :: isNewSatellite
     double precision                                                          :: mergeTime
@@ -196,8 +196,8 @@ contains
        virialOrbit_ => virialOrbit()
        thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Compute and store a time until merging.
-       satelliteMergingTimescalesDefault => satelliteMergingTimescales()
-       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(thisNode,thisOrbit)
+       satelliteMergingTimescales_ => satelliteMergingTimescales                  (                  )
+       mergeTime                   =  satelliteMergingTimescales_%timeUntilMerging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
     end select
     return

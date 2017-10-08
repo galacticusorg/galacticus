@@ -98,7 +98,7 @@ contains
     logical                                                           , intent(in   )         :: skipTree
     type            (treeNode                               ), pointer                        :: currentNode                        , newNode
     class           (nodeComponentBasic                     ), pointer                        :: baseBasicComponent                 , newBasicComponent
-    class           (cosmologyFunctionsClass                ), pointer                        :: cosmologyFunctionsDefault
+    class           (cosmologyFunctionsClass                ), pointer                        :: cosmologyFunctions_
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                        :: darkMatterHaloMassAccretionHistory_
     integer         (kind=kind_int8                         )                                 :: nodeIndex
     double precision                                                                          :: expansionFactorBase                , mergerTreeBaseTime, &
@@ -120,11 +120,11 @@ contains
           ! Assign a mass to the base node.
           call baseBasicComponent%massSet(mergerTreeHaloMass)
           ! Get required objects.
-          cosmologyFunctionsDefault           => cosmologyFunctions                ()
+          cosmologyFunctions_                 => cosmologyFunctions                ()
           darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
           ! Find the cosmic time at which the tree is based.
-          expansionFactorBase=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBaseRedshift)
-          mergerTreeBaseTime =cosmologyFunctionsDefault%cosmicTime                 (expansionFactorBase   )
+          expansionFactorBase=cosmologyFunctions_%expansionFactorFromRedshift(mergerTreeBaseRedshift)
+          mergerTreeBaseTime =cosmologyFunctions_%cosmicTime                 (expansionFactorBase   )
           ! Assign a time to the base node.
           call baseBasicComponent%            timeSet(mergerTreeBaseTime)
           call baseBasicComponent%timeLastIsolatedSet(mergerTreeBaseTime)

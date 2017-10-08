@@ -30,7 +30,7 @@ program Tests_Spherical_Collapse_Flat
   use Numerical_Constants_Math
   implicit none
   double precision                            , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctionsDefault
+  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
   class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
   double precision                            , parameter    :: mass                     =1.0d12
   type            (varying_string            )               :: parameterFile
@@ -52,15 +52,15 @@ program Tests_Spherical_Collapse_Flat
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions   ()
-  virialDensityContrast_    => virialDensityContrast()
+  cosmologyFunctions_    => cosmologyFunctions   ()
+  virialDensityContrast_ => virialDensityContrast()
   do iExpansion=1,size(redshift)
-     expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
-     age            =cosmologyFunctionsDefault%cosmicTime(expansionFactor)
+     expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
+     age            =cosmologyFunctions_%cosmicTime(expansionFactor)
      densityContrast=virialDensityContrast_%densityContrast(mass,age)
-     x              =cosmologyFunctionsDefault%omegaMatterEpochal(age)-1.0d0
-     bryanNormanFit =(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(age)
-     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
+     x              =cosmologyFunctions_%omegaMatterEpochal(age)-1.0d0
+     bryanNormanFit =(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctions_%omegaMatterEpochal(age)
+     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),densityContrast,bryanNormanFit,relTol=1.1d-2)
   end do
   ! End unit tests.

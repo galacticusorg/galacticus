@@ -33,7 +33,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   double precision                            , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
   double precision                            , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
   double precision                            , parameter    :: massDummy                    =1.0d0
-  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctionsDefault
+  class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
   class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
   type            (varying_string            )               :: parameterFile
   character       (len=1024                  )               :: message
@@ -53,13 +53,13 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Get the default cosmology functions object.
-  cosmologyFunctionsDefault => cosmologyFunctions   ()
-  virialDensityContrast_    => virialDensityContrast()
+  cosmologyFunctions_    => cosmologyFunctions   ()
+  virialDensityContrast_ => virialDensityContrast()
   do iExpansion=1,size(redshift)
-     expansionFactor            =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift       (iExpansion))
-     age                        =cosmologyFunctionsDefault%cosmicTime                 (expansionFactor            )
+     expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift       (iExpansion))
+     age                        =cosmologyFunctions_%cosmicTime                 (expansionFactor            )
      virialDensityContrastActual=virialDensityContrast_%densityContrast               (massDummy,age              )
-     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
+     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),virialDensityContrastActual,virialDensityContrastExpected(iExpansion),relTol=1.0d-2)
   end do
   ! End unit tests.
