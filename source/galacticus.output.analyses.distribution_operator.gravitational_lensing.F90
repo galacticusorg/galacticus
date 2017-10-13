@@ -199,11 +199,12 @@ contains
          ratioMinimum=10.0d0**(        propertyValueMinimum(k)-propertyValue)
          ratioMaximum=10.0d0**(        propertyValueMaximum(k)-propertyValue)
       case (outputAnalysisPropertyTypeMagnitude)
-         ratioMinimum=10.0d0**(-0.4d0*(propertyValueMinimum(k)-propertyValue))
-         ratioMaximum=10.0d0**(-0.4d0*(propertyValueMaximum(k)-propertyValue))
+         ! Note that ratio min/max is related to property value max/min because magnitudes are brighter when more negative.
+         ratioMinimum=10.0d0**(-0.4d0*(propertyValueMaximum(k)-propertyValue))
+         ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(k)-propertyValue))
       case default
          call Galacticus_Error_Report('unknown property type'//{introspection:location})
-      end select
+      end select      
       ! Compute the lensing CDF across this range of magnifications.
       magnificationCDFIntegrand=                                               &
            & max(                                                              &
