@@ -24,11 +24,19 @@ module Output_Analyses_Options
   
   !# <enumeration>
   !#  <name>outputAnalysisPropertyType</name>
-  !#  <description>Error status codes used by the input parameters module.</description>
+  !#  <description>Property types.</description>
   !#  <entry label="linear"    />
   !#  <entry label="log10"     />
   !#  <entry label="magnitude" />
   !#  <entry label="unknown"   />
+  !# </enumeration>
+  
+  !# <enumeration>
+  !#  <name>outputAnalysisPropertyQuantity</name>
+  !#  <description>Property quantities.</description>
+  !#  <entry label="unknown"   />
+  !#  <entry label="mass"      />
+  !#  <entry label="luminosity"/>
   !# </enumeration>
   
   !# <enumeration>

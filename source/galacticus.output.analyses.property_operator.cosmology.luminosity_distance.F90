@@ -125,10 +125,11 @@ contains
     !# <objectDestructor name="self%cosmologyFunctionsData" />
     return
   end subroutine csmlgyLuminosityDistanceDestructor
-  
+
   double precision function csmlgyLuminosityDistanceOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an csmlgyLuminosityDistance output analysis property operator.
     use Galacticus_Error
+    use Output_Analyses_Options
     implicit none
     class           (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue
@@ -140,7 +141,17 @@ contains
     ! Validate.
     if (.not.present(outputIndex)) call Galacticus_Error_Report('ouputIndex is required'//{introspection:location})
     ! Apply the correction.
-    csmlgyLuminosityDistanceOperate=+propertyValue                      &
-         &                          *self%correctionFactor(outputIndex)
+    select case (propertyType)
+    case (outputAnalysisPropertyTypeLinear   )
+       csmlgyLuminosityDistanceOperate=+propertyValue                             &
+            &                          *      self%correctionFactor(outputIndex)
+    case (outputAnalysisPropertyTypeMagnitude)
+       csmlgyLuminosityDistanceOperate=+propertyValue                             &
+            &                          -2.5d0                                     &
+            &                          *log10(self%correctionFactor(outputIndex))
+    case default
+       csmlgyLuminosityDistanceOperate=+0.0d0
+       call Galacticus_Error_Report('unsupported property type'//{introspection:location})
+    end select
     return
   end function csmlgyLuminosityDistanceOperate

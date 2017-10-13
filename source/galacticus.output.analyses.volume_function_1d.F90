@@ -384,10 +384,10 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: distribution
     double precision                                , allocatable  , dimension(:,:) :: covariance
     class           (nodeComponentBasic            ), pointer                       :: basic
-    double precision                                                                :: propertyValue         , weightValue, &
+    double precision                                                                :: propertyValue         , weightValue  , &
          &                                                                             propertyValueIntrinsic
-    integer                                                                         :: propertyType
-    integer         (c_size_t                      )                                :: j                     , k          , &
+    integer                                                                         :: propertyType          , propertyQuantity
+    integer         (c_size_t                      )                                :: j                     , k            , &
          &                                                                             indexHaloMass
 
     ! If weights for this output are all zero, we can skip analysis.
@@ -398,8 +398,9 @@ contains
     allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount              ))
     allocate(covariance  (                    self%binCount                 ,self%binCount))
     ! Extract the property from the node.
-    propertyType          =self%outputAnalysisPropertyExtractor_%type   (    )
-    propertyValue         =self%outputAnalysisPropertyExtractor_%extract(node)
+    propertyType          =self%outputAnalysisPropertyExtractor_%type    (    )
+    propertyQuantity      =self%outputAnalysisPropertyExtractor_%quantity(    )
+    propertyValue         =self%outputAnalysisPropertyExtractor_%extract (node)
     propertyValueIntrinsic=propertyValue
     ! Apply property operators.
     propertyValue=self%outputAnalysisPropertyOperator_%operate(propertyValue,node,propertyType,iOutput)
@@ -408,7 +409,7 @@ contains
     ! Compute the weight.
     weightValue=node%hostTree%volumeWeight
     ! Apply weight operators.
-    weightValue=self%outputAnalysisWeightOperator_%operate(weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,iOutput)
+    weightValue=self%outputAnalysisWeightOperator_%operate(weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,iOutput)
     ! Apply weights.
     distribution(1:self%binCount)=+distribution              (1:self%binCount        ) &
          &                        *self        %outputWeight ( :             ,iOutput) &
@@ -436,8 +437,9 @@ contains
        ! Construct contribution to the covariance matrix assuming Poisson statistics.
        forall(j=1:self%binCount)
           forall(k=j:self%binCount)
-             covariance(j,k)=distribution(j)*distribution(k)
-             covariance(k,j)=covariance(j,k)
+             covariance(j,k)=+distribution(j  ) &
+                  &          *distribution(  k)
+             covariance(k,j)=+covariance  (j,k)
           end forall
        end forall
        ! Accumulate covariance.

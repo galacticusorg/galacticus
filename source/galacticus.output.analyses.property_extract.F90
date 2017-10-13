@@ -21,6 +21,7 @@
 module Output_Analysis_Property_Extractions
   !% Provides a class that implements extraction of properties for on-the-fly analyses.
   use Galacticus_Nodes
+  use Output_Analyses_Options
   private
   
   !# <functionClass>
@@ -39,6 +40,15 @@ module Output_Analysis_Property_Extractions
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#  </method>
-   !# </functionClass>
+  !#  <method name="quantity" >
+  !#   <description>Return the class of the extracted property.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    outputAnalysisPropertyExtractorQuantity=outputAnalysisPropertyQuantityUnknown
+  !#   </code>
+  !#  </method>
+  !# </functionClass>
 
 end module Output_Analysis_Property_Extractions
