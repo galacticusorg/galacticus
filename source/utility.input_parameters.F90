@@ -112,7 +112,7 @@ module Input_Parameters
      type   (hdf5Object     )                  :: outputParameters
      type   (inputParameter ), pointer         :: parameters       => null()
      type   (inputParameters), pointer, public :: parent           => null()
-     logical                                   :: global                     , isNull
+     logical                                   :: global           =  .false., isNull=.false.
    contains
      !@ <objectMethods>
      !@   <object>inputParameters</object>
