@@ -244,7 +244,10 @@ module Stellar_Luminosities_Structure
      procedure         :: outputCount           => Stellar_Luminosities_Output_Count
      procedure         :: outputNames           => Stellar_Luminosities_Output_Names
      procedure, nopass :: isOutput              => Stellar_Luminosities_Is_Output
-     procedure, nopass :: index                 => Stellar_Luminosities_Index
+     procedure, nopass ::                          Stellar_Luminosities_Index_From_Name
+     procedure, nopass ::                          Stellar_Luminosities_Index_From_Properties
+     generic           :: index                 => Stellar_Luminosities_Index_From_Name      , &
+          &                                        Stellar_Luminosities_Index_From_Properties
      procedure, nopass :: name                  => Stellar_Luminosities_Name
      procedure         :: truncate              => Stellar_Luminosities_Truncate
   end type stellarLuminosities
@@ -426,17 +429,23 @@ contains
              ! Process the list of luminosities.
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
-                write (redshiftLabel,'(f7.4)') luminosityBandRedshift(iLuminosity)
-                luminosityName(iLuminosity)=luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
-                     &//trim(adjustl(redshiftLabel))
-                if (luminosityPostprocessSet(iLuminosity) /= "default") luminosityName(iLuminosity)=luminosityName(iLuminosity)&
-                     &//":"//char(luminosityPostprocessSet(iLuminosity))
+                write (redshiftLabel,'(f7.4)')     luminosityBandRedshift  (iLuminosity)
+                luminosityName       (iLuminosity)=luminosityFilter        (iLuminosity)//":"// &
+                     &                             luminosityType          (iLuminosity)//":"// &
+                     &                             "z"   //trim(adjustl(redshiftLabel))
+                if (globalParameters%isPresent('luminosityBandRedshift')) then
+                   write (redshiftLabel,'(f7.4)')  luminosityRedshift      (iLuminosity)
+                   luminosityName    (iLuminosity)=luminosityName          (iLuminosity)//":"// &
+                        &                          "zOut"//trim(adjustl(redshiftLabel))
+                end if
+                if (luminosityPostprocessSet(iLuminosity) /= "default") &
+                     & luminosityName(iLuminosity)=luminosityName          (iLuminosity)//":"// &
+                     &                             luminosityPostprocessSet(iLuminosity)
                 ! Check for duplicated luminosities.
                 if (iLuminosity > 1) then
                    do jLuminosity=1,iLuminosity-1
-                      if (luminosityName(iLuminosity) == luminosityName(jLuminosity)) then
-                         call Galacticus_Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
-                      end if
+                      if (luminosityName(iLuminosity) == luminosityName(jLuminosity)) &
+                           & call Galacticus_Error_Report('luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file'//{introspection:location})
                    end do
                 end if
                 ! Assign an index for this luminosity.
@@ -467,6 +476,9 @@ contains
              call Sort_By_Index(luminosityName                    ,luminosityTimeIndex)
              call Sort_By_Index(luminosityRedshift                ,luminosityTimeIndex)
              call Sort_By_Index(luminosityBandRedshift            ,luminosityTimeIndex)             
+             call Sort_By_Index(luminosityFilter                  ,luminosityTimeIndex)             
+             call Sort_By_Index(luminosityType                    ,luminosityTimeIndex)             
+             call Sort_By_Index(luminosityPostprocessSet          ,luminosityTimeIndex)             
              ! Allocate unit and zero stellar abundance objects.
              call allocateArray(unitStellarLuminosities%luminosityValue,[luminosityCount])
              call allocateArray(zeroStellarLuminosities%luminosityValue,[luminosityCount])
@@ -511,7 +523,7 @@ contains
     type   (nodeList           )               , pointer :: luminosityList
     integer                                              :: i
 
-    ! Get the metallicity.
+    ! Get the luminosities.
     luminosityList => getElementsByTagName(stellarLuminositiesDefinition,'luminosity')
     if (luminosityCount > 0) then
        do i=0,luminosityCount-1
@@ -1091,23 +1103,73 @@ contains
     return
   end subroutine Stellar_Luminosities_Set
 
-  integer function Stellar_Luminosities_Index(name)
+  integer function Stellar_Luminosities_Index_From_Name(name)
     !% Return the index of and specified entry in the luminosity list given its name.
     use Galacticus_Error
     implicit none
     type   (varying_string), intent(in   ) :: name
     integer                                :: i
 
-    Stellar_Luminosities_Index=-1
+    Stellar_Luminosities_Index_From_Name=-1
     do i=1,luminosityCount
        if (name == luminosityName(i)) then
-          Stellar_Luminosities_Index=i
+          Stellar_Luminosities_Index_From_Name=i
           return
        end if
     end do
     call Galacticus_Error_Report('unmatched name'//{introspection:location})
     return
-  end function Stellar_Luminosities_Index
+  end function Stellar_Luminosities_Index_From_Name
+
+  integer function Stellar_Luminosities_Index_From_Properties(filterName,filterType,redshift,redshiftBand,postprocessChain)
+    !% Return the index of and specified entry in the luminosity list given its properties.
+    use Galacticus_Error
+    use Numerical_Comparison
+    use ISO_Varying_String
+    implicit none
+    character       (len=*         ), intent(in   )           :: filterName      , filterType
+    double precision                , intent(in   )           :: redshift
+    double precision                , intent(in   ), optional :: redshiftBand
+    character       (len=*         ), intent(in   ), optional :: postprocessChain
+    integer                                                   :: i
+    character       (len=7         )                          :: label
+    type            (varying_string)                          :: message
+
+    Stellar_Luminosities_Index_From_Properties=-1
+    do i=1,luminosityCount
+       if     (                                                                                             &
+            &                  filterName       == luminosityFilter        (i)                              &
+            &  .and.                                                                                        &
+            &                  filterType       == luminosityType          (i)                              &
+            &  .and.                                                                                        &
+            &     Values_Agree(redshift    ,       luminosityRedshift      (i),relTol=1.0d-6,absTol=1.0d-6) &
+            &  .and.                                                                                        &
+            &   (                                                                                           &
+            &     .not.present(redshiftBand    )                                                            &
+            &    .or.                                                                                       &
+            &     Values_Agree(redshiftBand,       luminosityBandRedshift  (i),relTol=1.0d-6,absTol=1.0d-6) &
+            &   )                                                                                           &
+            &  .and.                                                                                        &
+            &   (                                                                                           &
+            &     .not.present(postprocessChain)                                                            &
+            &    .or.                                                                                       &
+            &                  postprocessChain == luminosityPostprocessSet(i)                              &
+            &   )                                                                                           &
+            & ) then
+          Stellar_Luminosities_Index_From_Properties=i
+          return
+       end if
+    end do
+    write (label,'(f7.4)') redshift
+    message='unmatched properties ['//filterName//' : '//filterType//' : '//label
+    if (present(redshiftBand)) then
+       write (label,'(f7.4)') redshiftBand
+       message=message//' : '//label
+    end if
+    message=message//']'
+    call Galacticus_Error_Report(message//{introspection:location})
+    return
+  end function Stellar_Luminosities_Index_From_Properties
 
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
