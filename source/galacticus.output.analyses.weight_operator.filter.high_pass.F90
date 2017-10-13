@@ -70,7 +70,7 @@ contains
     return
   end function filterHighPassConstructorInternal
 
-  double precision function filterHighPassOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,outputIndex)
+  double precision function filterHighPassOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an filterHighPass output analysis weight operator.
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -78,9 +78,9 @@ contains
     type            (treeNode                                  ), intent(inout) :: node
     double precision                                            , intent(in   ) :: propertyValue, propertyValueIntrinsic, &
          &                                                                         weightValue
-    integer                                                     , intent(in   ) :: propertyType
+    integer                                                     , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                                  ), intent(in   ) :: outputIndex
-    !GCC$ attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex
+    !GCC$ attributes unused :: node, propertyValueIntrinsic, propertyType, outputIndex, propertyQuantity
 
     if (propertyValue > self%filterThreshold) then
        filterHighPassOperate=weightValue
