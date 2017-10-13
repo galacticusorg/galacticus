@@ -20,7 +20,7 @@
 
   type, public :: propertyOperatorList
      class(outputAnalysisPropertyOperatorClass), pointer :: operator_
-     type (propertyOperatorList               ), pointer :: next     => null()
+     type (propertyOperatorList               ), pointer :: next      => null()
   end type propertyOperatorList
 
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence" defaultThreadPrivate="yes">

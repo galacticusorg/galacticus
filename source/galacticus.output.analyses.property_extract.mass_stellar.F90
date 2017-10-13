@@ -27,6 +27,7 @@
    contains
      procedure :: extract  => massStellarExtract
      procedure :: type     => massStellarType
+     procedure :: quantity => massStellarQuantity
   end type outputAnalysisPropertyExtractorMassStellar
 
   interface outputAnalysisPropertyExtractorMassStellar
@@ -71,3 +72,14 @@ contains
     massStellarType=outputAnalysisPropertyTypeLinear
     return
   end function massStellarType
+
+  integer function massStellarQuantity(self)
+    !% Return the class of the stellar luminosity property.
+    use Output_Analyses_Options
+    implicit none
+    class(outputAnalysisPropertyExtractorMassStellar), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massStellarQuantity=outputAnalysisPropertyQuantityMass
+    return
+  end function massStellarQuantity

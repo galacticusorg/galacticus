@@ -58,7 +58,7 @@ contains
     integer                                              , intent(inout), optional :: propertyType
     integer         (c_size_t                           ), intent(in   ), optional :: outputIndex
     !GCC$ attributes unused :: self, outputIndex, node
-
+    
     if (propertyValue > 0.0d0) then
        log10Operate=log10(propertyValue)
     else
