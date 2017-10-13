@@ -360,6 +360,17 @@ sub Process_FunctionClass {
 					}
 					if ( grep {$_ eq lc($name)} (map {@{$_->{'variables'}}} @{$potentialNames->{'parameters'}}) ) {
 					    push(@{$descriptorParameters->{'parameters'}},{name => $name, inputName => $constructorNode->{'directive'}->{'name'}, source => $constructorNode->{'directive'}->{'source'}});
+					    # Find the matched variable.
+					    my $descriptor;
+					    foreach my $potentialDescriptor ( @{$potentialNames->{'parameters'}} ) {
+						$descriptor = $potentialDescriptor
+						    if ( grep {$_ eq lc($name)} @{$potentialDescriptor->{'variables'}} );
+					    }					    
+					    if ( grep {$_ =~ m/^dimension\s*\([a-z0-9_:,\s]+\)/} @{$descriptor->{'attributes'}} ) {
+						# A non-scalar parameter - currently not supported.
+						$supported = -8;
+						push(@failureMessage,"non-scalar parameters not supported");
+					    }
 					} else {
 					    $supported = -1;
 					    push(@failureMessage,"could not find a matching internal variable for parameter [".$name."]");
