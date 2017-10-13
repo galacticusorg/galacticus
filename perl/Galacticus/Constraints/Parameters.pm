@@ -204,14 +204,17 @@ sub Compilation {
     }
     # Construct a sorted list of redshifts, suitable for output as a parameter. Ensure that we always have at least one output
     # redshift.
-    my @outputRedshiftList = keys(%outputRedshifts);
-    if ( scalar(@outputRedshiftList) == 0 ) {
-	push(@outputRedshiftList,&redshiftPrecision(0.0));
-    } else {
-	@outputRedshiftList = sort(@outputRedshiftList);
+    my $adjustOutputs = exists($config->{'likelihood'}->{'adjustOutputs'}) ? $config->{'likelihood'}->{'adjustOutputs'} : "no";
+    if ( $adjustOutputs eq "yes" ) {
+	my @outputRedshiftList = keys(%outputRedshifts);
+	if ( scalar(@outputRedshiftList) == 0 ) {
+	    push(@outputRedshiftList,&redshiftPrecision(0.0));
+	} else {
+	    @outputRedshiftList = sort(@outputRedshiftList);
+	}
+	# Modify the set of output redshifts.
+	$parameters->{'outputRedshifts'}->{'value'} = join(" ",@outputRedshiftList);
     }
-    # Modify the set of output redshifts.
-    $parameters->{'outputRedshifts'}->{'value'} = join(" ",@outputRedshiftList);
     # Modify the minimum and maximum halo masses.
     $haloMassResolution = 5.00e09 unless ( defined($haloMassResolution) );
     $haloMassMinimum    = 1.00e10 unless ( defined($haloMassMinimum   ) );
