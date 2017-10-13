@@ -63,12 +63,20 @@ contains
     double precision                                                                                                      :: rootVariance
     !GCC$ attributes unused :: outputIndex, propertyType
 
-    rootVariance            =self%rootVariance(propertyValue,node)
-    randomErrorOperateScalar=+0.5d0                                                                &
-         &                   *(                                                                    &
-         &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
-         &                     -erf((propertyValueMinimum-propertyValue)/rootVariance/sqrt(2.0d0)) &
-         &                    )
+    rootVariance=self%rootVariance(propertyValue,node)
+    if     (                               &
+         &   propertyValue == +huge(0.0d0) &
+         &  .or.                           &
+         &   propertyValue == -huge(0.0d0) &
+         & ) then
+       randomErrorOperateScalar=+0.0d0
+    else
+       randomErrorOperateScalar=+0.5d0                                                                &
+            &                   *(                                                                    &
+            &                     +erf((propertyValueMaximum-propertyValue)/rootVariance/sqrt(2.0d0)) &
+            &                     -erf((propertyValueMinimum-propertyValue)/rootVariance/sqrt(2.0d0)) &
+            &                    )
+    end if
     return
   end function randomErrorOperateScalar
 
