@@ -80,7 +80,7 @@ contains
     return
   end subroutine propertyDestructor
   
-  double precision function propertyOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,outputIndex)
+  double precision function propertyOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an property output analysis weight operator.
     use, intrinsic :: ISO_C_Binding
     implicit none
@@ -88,11 +88,11 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: propertyValue      , propertyValueIntrinsic, &
          &                                                                   weightValue
-    integer                                               , intent(in   ) :: propertyType
+    integer                                               , intent(in   ) :: propertyType       , propertyQuantity
     integer         (c_size_t                            ), intent(in   ) :: outputIndex
     double precision                                                      :: weightPropertyValue
     integer                                                               :: weightPropertyType
-    !GCC$ attributes unused :: propertyType, propertyValueIntrinsic, propertyValue
+    !GCC$ attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
 
     weightPropertyValue=+self       %extractor_%extract(node                                                   )
     weightPropertyType = self       %extractor_%type   (                                                       )

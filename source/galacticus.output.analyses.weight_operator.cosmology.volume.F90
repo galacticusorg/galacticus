@@ -85,17 +85,18 @@ contains
     return
   end subroutine csmlgyVolumeDestructor
   
-  double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,outputIndex)
+  double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an csmlgyVolume output analysis weight operator.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Output_Times
     use            :: Galacticus_Error
+    use            :: Output_Analyses_Options
     implicit none
     class           (outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: propertyValue         , propertyValueIntrinsic, &
          &                                                                       weightValue
-    integer                                                   , intent(in   ) :: propertyType
+    integer                                                   , intent(in   ) :: propertyType          , propertyQuantity
     integer         (c_size_t                                ), intent(in   ) :: outputIndex
     double precision                                                          :: distanceModelMinimum  , distanceDataMinimum   , &
          &                                                                       distanceModelMaximum  , distanceDataMaximum   , &
@@ -104,21 +105,72 @@ contains
          &                                                                       correctionFactor
     integer                                                                      field
     !GCC$ attributes unused :: outputIndex, propertyValue, propertyType, node
-    
+
     ! Compute the correction factor - the assumption here is that the volume density was derived from a 1/Vₘₐₓ type approach. To
     ! correct for the distance in model and data cosmological models, we therefore first multiply the weight by Vₘₐₓ for the model
     ! cosmology (which gives the absolute number of galaxies per survey), then divide by the Vₘₐₓ for the data cosmology.    
     volumeData =0.0d0
     volumeModel=0.0d0
     do field=1,self%surveyGeometry_%fieldCount()
-       distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                         &
-            &                                                                      propertyValueIntrinsic, &
-            &                                                                      field                   &
-            &                                                                    )
-       distanceDataMaximum   =+self%surveyGeometry_       %distanceMaximum       (                         &
-            &                                                                      propertyValueIntrinsic, &
-            &                                                                      field                   &
-            &                                                                    )
+       select case (propertyQuantity)
+       case (outputAnalysisPropertyQuantityMass      )
+          select case (propertyType)
+          case (outputAnalysisPropertyTypeLinear   )
+             distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
+                  &                                                                      mass             =propertyValue         , &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+             distanceDataMaximum   =+self%surveyGeometry_       %distanceMaximum       (                                           &
+                  &                                                                      mass             =propertyValue         , &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+          case (outputAnalysisPropertyTypeLog10    )
+             distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
+                  &                                                                      mass             =propertyValueIntrinsic, &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+             distanceDataMaximum   =+self%surveyGeometry_       %distanceMaximum       (                                           &
+                  &                                                                      mass             =propertyValueIntrinsic, &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+          case default
+             call Galacticus_Error_Report('unsupported property type'//{introspection:location})
+          end select
+       case (outputAnalysisPropertyQuantityLuminosity)
+          select case (propertyType)
+          case (outputAnalysisPropertyTypeLinear   )
+             distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
+                  &                                                                      luminosity       =propertyValue         , &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+             distanceDataMaximum   =+self%surveyGeometry_       %distanceMaximum       (                                           &
+                  &                                                                      luminosity       =propertyValue         , &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+          case (outputAnalysisPropertyTypeLog10    )
+             distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
+                  &                                                                      luminosity       =propertyValueIntrinsic, &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+             distanceDataMaximum   =+self%surveyGeometry_       %distanceMaximum       (                                           &
+                  &                                                                      luminosity       =propertyValueIntrinsic, &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+          case (outputAnalysisPropertyTypeMagnitude    )
+             distanceDataMinimum   =+self%surveyGeometry_       %distanceMinimum       (                                           &
+                  &                                                                      magnitudeAbsolute=propertyValue         , &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+             distanceDataMaximum   =+self%surveyGeometry_       %distanceMaximum       (                                           &
+                  &                                                                      magnitudeAbsolute=propertyValue         , &
+                  &                                                                      field            =field                   &
+                  &                                                                    )
+          case default
+             call Galacticus_Error_Report('unsupported property type'//{introspection:location})
+          end select
+       case default
+          call Galacticus_Error_Report('unsupported property class'//{introspection:location})
+       end select
        expansionFactorMinimum=+self%cosmologyFunctionsData%expansionFactor       (                         &
             &                  self%cosmologyFunctionsData%timeAtDistanceComoving (                        &
             &                                                                      distanceDataMinimum     &

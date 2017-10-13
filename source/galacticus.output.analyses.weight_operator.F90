@@ -36,7 +36,7 @@ module Output_Analysis_Weight_Operators
   !#   <argument>double precision          , intent(in   ) :: weightValue</argument>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: propertyValue, propertyValueIntrinsic</argument>
-  !#   <argument>integer                   , intent(in   ) :: propertyType</argument>
+  !#   <argument>integer                   , intent(in   ) :: propertyType , propertyQuantity</argument>
   !#   <argument>integer         (c_size_t), intent(in   ) :: outputIndex</argument>
   !#  </method>
   !# </functionClass>

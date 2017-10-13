@@ -105,21 +105,21 @@ contains
     return
   end subroutine sequenceDestructor
 
-  double precision function sequenceOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,outputIndex)
+  double precision function sequenceOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an sequence output analysis weight operator.
     implicit none
     class           (outputAnalysisWeightOperatorSequence), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: weightValue  , propertyValueIntrinsic, &
          &                                                                   propertyValue
-    integer                                               , intent(in   ) :: propertyType
+    integer                                               , intent(in   ) :: propertyType , propertyQuantity
     integer         (c_size_t                            ), intent(in   ) :: outputIndex
     type            (weightOperatorList                  ), pointer       :: operator_
 
     sequenceOperate =  weightValue
     operator_       => self%operators
     do while (associated(operator_))
-       sequenceOperate =  operator_%operator_%operate(sequenceOperate,node,propertyValue,propertyValueIntrinsic,propertyType,outputIndex)
+       sequenceOperate =  operator_%operator_%operate(sequenceOperate,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
        operator_       => operator_%next
     end do
     return
