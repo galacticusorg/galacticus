@@ -263,12 +263,15 @@ module Abundances_Structure
   !#  <name>metallicityType</name>
   !#  <description>Used to specify the metallicity scale when working with {\normalfont \ttfamily abundances} objects.</description>
   !#  <visibility>public</visibility>
-  !#  <entry label="linearByMass"             />
-  !#  <entry label="linearByNumber"           />
-  !#  <entry label="logarithmicByMassSolar"   />
-  !#  <entry label="logarithmicByNumberSolar" />
-  !#  <entry label="linearByMassSolar"        />
-  !#  <entry label="linearByNumberSolar"      />
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <validator>yes</validator>
+  !#  <entry label="linearByMass"                  />
+  !#  <entry label="linearByNumber"                />
+  !#  <entry label="logarithmicByMassSolar"        />
+  !#  <entry label="logarithmicByNumberSolar"      />
+  !#  <entry label="linearByMassSolar"             />
+  !#  <entry label="linearByNumberSolar"           />
+  !#  <entry label="logarithmicByNumberSolarPlus12"/>
   !# </enumeration>
 
   ! Enumeration used in determining how to update elemental abundances when metallicity is adjusted.
