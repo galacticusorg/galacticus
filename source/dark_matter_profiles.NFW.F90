@@ -786,7 +786,7 @@ contains
     implicit none
     class           (darkMatterProfileNFW), intent(inout) :: self
     double precision                      , intent(in   ) :: concentration                                                   , radius
-    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-7
+    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-6
     ! Precomputed NFW normalization factor for unit radius.
     double precision                      , parameter     :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
 
