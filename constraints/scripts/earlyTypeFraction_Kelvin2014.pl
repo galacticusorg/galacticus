@@ -54,17 +54,15 @@ my $model;
 $model->{'file'}    = $galacticusFileName;
 &Galacticus::HDF5::Open_File     ($model);
 &Galacticus::HDF5::Get_Parameters($model);
-my $analysis        = $model   ->       {'hdf5File'                 }->group ('analysis'                  )
-                                                                     ->group ('gamaEarlyTypeFractionZ0.03');
-my $massModel       = $analysis->dataset('mass'                      )->get  (                            );
-my $fractionModel   = $analysis->dataset('fractionFunction'          )->get  (                            );
-my $covarianceModel = $analysis->dataset('fractionFunctionCovariance')->get  (                            );
+my $analysis        = $model   ->       {'hdf5File'                   }->group ('analyses'                           )
+                                                                       ->group ('morphologicalFractionGAMAKelvin2014');
+my $massModel       = $analysis->dataset('massStellar'                )->get  (                                     );
+my $fractionModel   = $analysis->dataset('earlyTypeFraction'          )->get  (                                     );
+my $covarianceModel = $analysis->dataset('earlyTypeFractionCovariance')->get  (                                     );
 my $errorModel      = sqrt($covarianceModel->diagonal(0,1));
 
-# Extract probability of LBS class being included in early-type class.
+# Specify probability of LBS class being included in early-type class.
 my $lbsInclusionProbability = pdl 0.1;
-$lbsInclusionProbability .= $model->{'parameter'}->{'gamaEarlyTypeLBSProbability'}->{'value'}
-    if ( exists($model->{'parameter'}->{'gamaEarlyTypeLBSProbability'}) );
 
 # Compute confidence intervals on data. (Follows the approach described in Cameron 2011; PASA; 28; 128;
 # http://adsabs.harvard.edu/abs/2011PASA...28..128C)
@@ -98,7 +96,6 @@ $errorUpperLBSObserved->($errorUpperLBSObserved<0.0;?) .= 0.0;
 $errorLowerObserved   ->($errorLowerObserved   <0.0;?) .= 0.0;
 $errorLowerLBSObserved->($errorLowerLBSObserved<0.0;?) .= 0.0;
 
-
 # Output the results to file if requested.
 if ( exists($arguments{'resultFile'}) ) {
     my $resultsFile = new PDL::IO::HDF5(">".$arguments{'resultFile'});
@@ -111,9 +108,12 @@ if ( exists($arguments{'resultFile'}) ) {
 
 # Compute the likelihood:
 if ( exists($arguments{'outputFile'}) ) {
-    # Find a Cholesky decomposition of the model covariance matrix for later construction of
-    # model realizations.
-    my $modelCholesky = mchol($covarianceModel);
+    # Find a Cholesky decomposition of the model covariance matrix for later construction of model realizations. Limit model
+    # covariance to some small value to avoid issues of zero covariance when we have small numbers of model galaxies.
+    my $covarianceModelCopy                        = $covarianceModel->copy();
+    my $small                                      = which($covarianceModelCopy->diagonal(0,1) < 1.0e-6);
+    $covarianceModelCopy->diagonal(0,1)->($small) .= 1.0e-6;
+    my $modelCholesky                              = mchol($covarianceModelCopy);
     # Compute factors needed in likelihood function.
     (my $facA    )    =lgamma(float($a         ));
     (my $facALBS )    =lgamma(float($aLBS      ));
@@ -146,10 +146,10 @@ if ( exists($arguments{'outputFile'}) ) {
 	$probabilitySquared += $probabilityRealization**2;
     }
     # Normalize the probability, convert to log and add the base log-likelihood back in.
-    $probability            /= $realizationCount;
-    my $probabilityVariance  = ($probabilitySquared-$realizationCount*$probability**2)/($realizationCount-1);
-    my $logLikelihood         = log($probability)+sum($logLikelihoodsBase);
-    my $logLikelihoodVariance = $probabilityVariance/$probability**2;
+    $probability              /= $realizationCount;
+    my $probabilityVariance    = ($probabilitySquared-$realizationCount*$probability**2)/($realizationCount-1);
+    my $logLikelihood          = log($probability)+sum($logLikelihoodsBase);
+    my $logLikelihoodVariance  = $probabilityVariance/$probability**2;
     my $constraint;
     $constraint->{'logLikelihood'        } = $logLikelihood        ->sclr();
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
@@ -162,15 +162,15 @@ if ( exists($arguments{'outputFile'}) ) {
  
 # Make a plot if requested.
 if ( exists($arguments{'plotFile'}) ) {
-use GnuPlot::PrettyPlots;
-use GnuPlot::LaTeX;
+    use GnuPlot::PrettyPlots;
+    use GnuPlot::LaTeX;
     # Declare variables for GnuPlot;
-    my ($gnuPlot, $plotFileEPS, $plot);
+    my ($gnuPlot, $plotFileTeX, $plot);
     # Open a pipe to GnuPlot.
-    ($plotFileEPS = $arguments{'plotFile'}) =~ s/\.pdf$/.eps/;
+    ($plotFileTeX = $arguments{'plotFile'}) =~ s/\.pdf$/.tex/;
     open($gnuPlot,"|gnuplot ");
-    print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
-    print $gnuPlot "set output '".$plotFileEPS."'\n";
+    print $gnuPlot "set terminal cairolatex pdf standalone color lw 2\n";
+    print $gnuPlot "set output '".$plotFileTeX."'\n";
     print $gnuPlot "set lmargin screen 0.15\n";
     print $gnuPlot "set rmargin screen 0.95\n";
     print $gnuPlot "set bmargin screen 0.15\n";
@@ -184,9 +184,9 @@ use GnuPlot::LaTeX;
     print $gnuPlot "set format x '\$10^{\%L}\$'\n";
     print $gnuPlot "set xrange [5.0e8:6.0e11]\n";
     print $gnuPlot "set yrange [-0.05:1.05]\n";
-    print $gnuPlot "set title offset 0,-0.5 'Early-type fraction'\n";
-    print $gnuPlot "set xlabel 'Stellar mass; \$M_\\star\\ [{\\rm M}_\\odot]\$'\n";
-    print $gnuPlot "set ylabel 'Early-type fraction; \$f\\ []\$'\n";
+    print $gnuPlot "set title offset 0,-0.9 'Early-type fraction'\n";
+    print $gnuPlot "set xlabel 'Stellar mass; \$M_\\star\\ [\\mathrm{M}_\\odot]\$'\n";
+    print $gnuPlot "set ylabel 'Early-type fraction; \$f\$'\n";
     print $gnuPlot "set pointsize 1.0\n";
     # Plot observations. Areas of points for observations with and without LBS class included
     # are scaled by the probability for LBS inclusion. Error bars showing the 68% confidence
@@ -234,7 +234,7 @@ use GnuPlot::LaTeX;
     	);
     &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
     close($gnuPlot);
-    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX,margin => 1);
 }
 
 exit;
