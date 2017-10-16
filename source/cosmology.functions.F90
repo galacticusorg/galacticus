@@ -168,7 +168,7 @@ module Cosmology_Functions
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer         , intent(in   )           :: output</argument>
-  !#   <argument>double precision, intent(in   ), optional :: distanceModulus, redshift</argument>
+  !#   <argument>double precision, intent(in   ), optional :: distanceLuminosity, distanceModulus, distanceModulusKCorrected, redshift</argument>
   !#  </method>
   !#  <method name="redshiftFromExpansionFactor" >
   !#   <description>Returns redshift for a given expansion factor.</description>
