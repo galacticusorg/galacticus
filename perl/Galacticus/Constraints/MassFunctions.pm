@@ -97,12 +97,12 @@ sub Construct {
 	&Galacticus::HDF5::Open_File($galacticus);
 	my $gotModelMassFunction = 0;
 	my @rootGroups = $galacticus->{'hdf5File'}->groups();
-	if ( grep {$_ eq "analysis"} @rootGroups ) {
-	    my @analysisGroups = $galacticus->{'hdf5File'}->group('analysis')->groups();
+	if ( grep {$_ eq "analyses"} @rootGroups ) {
+	    my @analysisGroups = $galacticus->{'hdf5File'}->group('analyses')->groups();
 	    if ( grep {$_ eq $config->{'analysisLabel'}} @analysisGroups ) {
 		$gotModelMassFunction              = 1;
-		$yGalacticus         [$modelCount] = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('massFunction'          )->get();
-		$covarianceGalacticus[$modelCount] = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('massFunctionCovariance')->get();
+		$yGalacticus         [$modelCount] = $galacticus->{'hdf5File'}->group('analyses')->group($config->{'analysisLabel'})->dataset('massFunction'          )->get();
+		$covarianceGalacticus[$modelCount] = $galacticus->{'hdf5File'}->group('analyses')->group($config->{'analysisLabel'})->dataset('massFunctionCovariance')->get();
 		$errorGalacticus     [$modelCount] = sqrt($covarianceGalacticus[$modelCount]->diagonal(0,1));
 	    }
 	}
