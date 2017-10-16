@@ -373,14 +373,15 @@ contains
     return
   end function staticUniverseDistanceAngular
 
-  double precision function staticUniverseDistanceComovingConvert(self,output,distanceModulus,redshift)
+  double precision function staticUniverseDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert bewteen different measures of distance.
     use Galacticus_Error
     use Cosmology_Functions_Options
     implicit none
     class           (cosmologyFunctionsStaticUniverse), intent(inout)           :: self
     integer                                           , intent(in   )           :: output
-    double precision                                  , intent(in   ), optional :: distanceModulus    , redshift
+    double precision                                  , intent(in   ), optional :: distanceModulus    , distanceModulusKCorrected, &
+         &                                                                         redshift           , distanceLuminosity
     logical                                                                     :: gotComovingDistance
     double precision                                                            :: comovingDistance
     !GCC$ attributes unused :: self
@@ -389,7 +390,13 @@ contains
     gotComovingDistance=.false.
     comovingDistance   =-1.0d0
     if (present(distanceModulus)) then
-       comovingDistance  =10.0d0**((distanceModulus-25.0d0)/5.0d0)
+       comovingDistance  =distanceLuminosity
+       gotComovingDistance=.true.
+    else if (present(distanceModulus)) then
+       comovingDistance  =10.0d0**((distanceModulus          -25.0d0)/5.0d0)
+       gotComovingDistance=.true.
+    else if (present(distanceModulusKCorrected)) then
+       comovingDistance  =10.0d0**((distanceModulusKCorrected-25.0d0)/5.0d0)
        gotComovingDistance=.true.
     end if
     if (present(redshift)) call Galacticus_Error_Report('zero redshift is undefined in static universe'//{introspection:location})

@@ -705,14 +705,15 @@ contains
     return
    end function matterDarkEnergyDistanceComoving
 
-  double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceModulus,redshift)
+  double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert bewteen different measures of distance.
     use Galacticus_Error
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
     integer                                             , intent(in   )           :: output
-    double precision                                    , intent(in   ), optional :: distanceModulus, redshift
-    !GCC$ attributes unused :: self, output, distanceModulus, redshift
+    double precision                                    , intent(in   ), optional :: distanceModulus, distanceModulusKCorrected, &
+         &                                                                           redshift       , distanceLuminosity
+    !GCC$ attributes unused :: self, output, distanceModulus, distanceModulusKCorrected, redshift, distanceLuminosity
 
     matterDarkEnergyDistanceComovingConvert=0.0d0
     call Galacticus_Error_Report('functionality not implemented'//{introspection:location})

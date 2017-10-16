@@ -33,36 +33,37 @@
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
-
+  
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_                      => null()
-     logical                                                               :: collapsingUniverse                        =.false.
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_                            => null()
+     logical                                                               :: collapsingUniverse                              =.false.
      integer                                                               :: iTableTurnaround
-     double precision                                                      :: expansionFactorMaximum                             , expansionFactorPrevious                =-1.0d0, &
-          &                                                                   timeMaximum                                        , timePrevious                           =-1.0d0, &
+     double precision                                                      :: expansionFactorMaximum                                   , expansionFactorPrevious                             =-1.0d0, &
+          &                                                                   timeMaximum                                              , timePrevious                                        =-1.0d0, &
           &                                                                   timeTurnaround
-     logical                                                               :: ageTableInitialized                       =.false.
+     logical                                                               :: ageTableInitialized                             =.false.
      integer                                                               :: ageTableNumberPoints
-     double precision                                                      :: ageTableTimeMaximum                       =20.0d0  , ageTableTimeMinimum                    =1.0d-4
-     double precision                                                      :: ageTableTimeLogarithmicMinimum                     , ageTableInverseDeltaLogTime
-     double precision                          , allocatable, dimension(:) :: ageTableExpansionFactor                            , ageTableTime
+     double precision                                                      :: ageTableTimeMaximum                             =20.0d0  , ageTableTimeMinimum                                 =1.0d-4
+     double precision                                                      :: ageTableTimeLogarithmicMinimum                           , ageTableInverseDeltaLogTime
+     double precision                          , allocatable, dimension(:) :: ageTableExpansionFactor                                  , ageTableTime
      type            (fgsl_interp             )                            :: interpolationObject
      type            (fgsl_interp_accel       )                            :: interpolationAccelerator
-     logical                                                               :: resetInterpolation                        =.true.
-     logical                                                               :: distanceTableInitialized                  =.false.
+     logical                                                               :: resetInterpolation                              =.true.
+     logical                                                               :: distanceTableInitialized                        =.false.
      integer                                                               :: distanceTableNumberPoints
-     double precision                                                      :: distanceTableTimeMaximum                           , distanceTableTimeMinimum               =1.0d-4
-     double precision                          , allocatable, dimension(:) :: distanceTableComovingDistance                      , distanceTableComovingDistanceNegated          , &
-          &                                                                   distanceTableLuminosityDistanceNegated             , distanceTableTime
-     type            (fgsl_interp             )                            :: interpolationObjectDistance                        , interpolationObjectDistanceInverse            , &
-          &                                                                   interpolationObjectLuminosityDistance
-     type            (fgsl_interp_accel       )                            :: interpolationAcceleratorDistance                   , interpolationAcceleratorDistanceInverse       , &
-          &                                                                   interpolationAcceleratorLuminosityDistance
-     logical                                                               :: resetInterpolationDistance                =.true.  , resetInterpolationDistanceInverse      =.true., &
-          &                                                                   resetInterpolationLuminosityDistance      =.true.
-     !$ integer      (omp_lock_kind           )                            :: expansionFactorTableLock                           , distanceTableLock
+     double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d-4
+     double precision                          , allocatable, dimension(:) :: distanceTableComovingDistance                            , distanceTableComovingDistanceNegated                       , &
+          &                                                                   distanceTableLuminosityDistanceNegated                   , distanceTableTime                                          , &
+          &                                                                   distanceTableLuminosityDistanceKCorrectedNegated
+     type            (fgsl_interp             )                            :: interpolationObjectDistance                              , interpolationObjectDistanceInverse                         , &
+          &                                                                   interpolationObjectLuminosityDistance                    , interpolationObjectLuminosityDistanceKCorrected
+     type            (fgsl_interp_accel       )                            :: interpolationAcceleratorDistance                         , interpolationAcceleratorDistanceInverse                    , &
+          &                                                                   interpolationAcceleratorLuminosityDistance               , interpolationAcceleratorLuminosityDistanceKCorrected
+     logical                                                               :: resetInterpolationDistance                      =.true.  , resetInterpolationDistanceInverse                   =.true., &
+          &                                                                   resetInterpolationLuminosityDistance            =.true.  , resetInterpolationLuminosityDistanceKCorrected      =.true.
+     !$ integer      (omp_lock_kind           )                            :: expansionFactorTableLock                                 , distanceTableLock
    contains
      !@ <objectMethods>
      !@   <object>cosmologyFunctionsMatterLambda</object>
@@ -282,12 +283,13 @@ contains
     type(cosmologyFunctionsMatterLambda), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
-    if     ( allocated (self%ageTableExpansionFactor               )) deallocate(self%ageTableExpansionFactor               )
-    if     ( allocated (self%ageTableTime                          )) deallocate(self%ageTableTime                          )
-    if     ( allocated (self%distanceTableComovingDistance         )) deallocate(self%distanceTableComovingDistance         )
-    if     ( allocated (self%distanceTableComovingDistanceNegated  )) deallocate(self%distanceTableComovingDistanceNegated  )
-    if     ( allocated (self%distanceTableLuminosityDistanceNegated)) deallocate(self%distanceTableLuminosityDistanceNegated)
-    if     ( allocated (self%distanceTableTime                     )) deallocate(self%distanceTableTime                     )
+    if     ( allocated (self%ageTableExpansionFactor                         )) deallocate(self%ageTableExpansionFactor                         )
+    if     ( allocated (self%ageTableTime                                    )) deallocate(self%ageTableTime                                    )
+    if     ( allocated (self%distanceTableComovingDistance                   )) deallocate(self%distanceTableComovingDistance                   )
+    if     ( allocated (self%distanceTableComovingDistanceNegated            )) deallocate(self%distanceTableComovingDistanceNegated            )
+    if     ( allocated (self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
+    if     ( allocated (self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
+    if     ( allocated (self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
     call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
     return
   end subroutine matterLambdaDestructor
@@ -425,12 +427,12 @@ contains
     logical                                                         :: remakeTable
     integer                                                         :: i
     
+    ! Get lock on interpolation tables.
+    !$ call OMP_Set_Lock(self%expansionFactorTableLock)
     ! Check if the time differs from the previous time.
     if (time /= self%timePrevious) then
        ! Quit on invalid input.
        if (time < 0.0d0) call Galacticus_Error_Report('cosmological time must be positive'//{introspection:location})
-       ! Get lock on interpolation tables.
-       !$ call OMP_Set_Lock(self%expansionFactorTableLock)
        ! Check if we need to recompute our table.
        if (self%ageTableInitialized) then
           remakeTable=(time < self%ageTableTime(1).or.time > self%ageTableTime(self%ageTableNumberPoints))
@@ -472,11 +474,11 @@ contains
        self%expansionFactorPrevious=+(1.0d0-h)*self%ageTableExpansionFactor(i  ) &
             &                       +       h *self%ageTableExpansionFactor(i+1)
        self%timePrevious           = time
-       ! Release lock on interpolation tables.
-       !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     end if
     ! Return the stored expansion factor.
     matterLambdaExpansionFactor=self%expansionFactorPrevious
+    ! Release lock on interpolation tables.
+    !$ call OMP_Unset_Lock(self%expansionFactorTableLock)
     return
   end function matterLambdaExpansionFactor
 
@@ -813,7 +815,7 @@ contains
     type            (fgsl_odeiv_evolve             )                              :: odeEvolver
     type            (fgsl_odeiv_system             )                              :: odeSystem
     logical                                                                       :: odeReset                           =.true.
-
+    
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call self%densityScalingEarlyTime(matterLambdaDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
     ! Find the corresponding time.
@@ -1049,7 +1051,7 @@ contains
     return
   end function matterLambdaDistanceAngular
 
-  double precision function matterLambdaDistanceComovingConvert(self,output,distanceModulus,redshift)
+  double precision function matterLambdaDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
     !% Convert bewteen different measures of distance.
     use Numerical_Interpolation
     use Galacticus_Error
@@ -1057,7 +1059,8 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     integer                                         , intent(in   )           :: output
-    double precision                                , intent(in   ), optional :: distanceModulus    , redshift
+    double precision                                , intent(in   ), optional :: distanceModulus    , distanceModulusKCorrected, &
+         &                                                                       redshift           , distanceLuminosity
     logical                                                                   :: gotComovingDistance
     double precision                                                          :: comovingDistance   , luminosityDistance
 
@@ -1068,19 +1071,38 @@ contains
     ! Convert to comoving distance from whatever was supplied.
     gotComovingDistance=.false.
     comovingDistance   =-1.0d0
-    if (present(distanceModulus)) then
-       luminosityDistance=10.0d0**((distanceModulus-25.0d0)/5.0d0)
+    if (present(distanceLuminosity).or.present(distanceModulus)) then
+       if (present(distanceLuminosity)) then
+          luminosityDistance=distanceLuminosity
+       else
+          luminosityDistance=10.0d0**((distanceModulus-25.0d0)/5.0d0)
+       end if
        do while (luminosityDistance > -self%distanceTableLuminosityDistanceNegated(1))
           call self%distanceTabulate(0.5d0*self%distanceTableTimeMinimum)
        end do
-       comovingDistance                                                      &
-            & =-Interpolate(                                                 &
-            &               self%distanceTableLuminosityDistanceNegated    , &
-            &               self%distanceTableComovingDistanceNegated      , &
-            &               self%interpolationObjectLuminosityDistance     , &
-            &               self%interpolationAcceleratorLuminosityDistance, &
-            &               -luminosityDistance                            , &
-            &               reset=self%resetInterpolationLuminosityDistance  &
+       comovingDistance                                                                &
+            & =-Interpolate(                                                           &
+            &               self%distanceTableLuminosityDistanceNegated              , &
+            &               self%distanceTableComovingDistanceNegated                , &
+            &               self%interpolationObjectLuminosityDistance               , &
+            &               self%interpolationAcceleratorLuminosityDistance          , &
+            &               -luminosityDistance                                      , &
+            &               reset=self%resetInterpolationLuminosityDistance            &
+            &              )
+       gotComovingDistance=.true.
+    else if (present(distanceModulusKCorrected)) then
+       luminosityDistance=10.0d0**((distanceModulusKCorrected-25.0d0)/5.0d0)
+       do while (luminosityDistance > -self%distanceTableLuminosityDistanceKCorrectedNegated(1))
+          call self%distanceTabulate(0.5d0*self%distanceTableTimeMinimum)
+       end do
+       comovingDistance                                                                &
+            & =-Interpolate(                                                           &
+            &               self%distanceTableLuminosityDistanceKCorrectedNegated    , &
+            &               self%distanceTableComovingDistanceNegated                , &
+            &               self%interpolationObjectLuminosityDistanceKCorrected     , &
+            &               self%interpolationAcceleratorLuminosityDistanceKCorrected, &
+            &               -luminosityDistance                                      , &
+            &               reset=self%resetInterpolationLuminosityDistanceKCorrected  &
             &              )
        gotComovingDistance=.true.
     end if
@@ -1124,15 +1146,17 @@ contains
     ! Determine number of points to tabulate.
     self%distanceTableNumberPoints=int(log10(self%distanceTableTimeMaximum/self%distanceTableTimeMinimum)*dble(matterLambdaDistanceTableNPointsPerDecade))+1
     ! Deallocate arrays if currently allocated.
-    if (allocated(self%distanceTableTime                     )) call deallocateArray(self%distanceTableTime                     )
-    if (allocated(self%distanceTableComovingDistance         )) call deallocateArray(self%distanceTableComovingDistance         )
-    if (allocated(self%distanceTableComovingDistanceNegated  )) call deallocateArray(self%distanceTableComovingDistanceNegated  )
-    if (allocated(self%distanceTableLuminosityDistanceNegated)) call deallocateArray(self%distanceTableLuminosityDistanceNegated)
+    if (allocated(self%distanceTableTime                               )) call deallocateArray(self%distanceTableTime                               )
+    if (allocated(self%distanceTableComovingDistance                   )) call deallocateArray(self%distanceTableComovingDistance                   )
+    if (allocated(self%distanceTableComovingDistanceNegated            )) call deallocateArray(self%distanceTableComovingDistanceNegated            )
+    if (allocated(self%distanceTableLuminosityDistanceNegated          )) call deallocateArray(self%distanceTableLuminosityDistanceNegated          )
+    if (allocated(self%distanceTableLuminosityDistanceKCorrectedNegated)) call deallocateArray(self%distanceTableLuminosityDistanceKCorrectedNegated)
     ! Allocate the arrays to current required size.
-    call allocateArray(self%distanceTableTime                     ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableComovingDistance         ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableComovingDistanceNegated  ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableLuminosityDistanceNegated,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableTime                               ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableComovingDistance                   ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableComovingDistanceNegated            ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableLuminosityDistanceNegated          ,[self%distanceTableNumberPoints])
+    call allocateArray(self%distanceTableLuminosityDistanceKCorrectedNegated,[self%distanceTableNumberPoints])
     ! Create the range of times.
     self% distanceTableTime=Make_Range(self%distanceTableTimeMinimum,self%distanceTableTimeMaximum,self%distanceTableNumberPoints,rangeTypeLogarithmic)
     ! Integrate to get the comoving distance.
@@ -1150,23 +1174,29 @@ contains
             &            toleranceRelative=toleranceRelative                                         , &
             &            reset=resetIntegration                                                        &
             &           )
-       self         %distanceTableLuminosityDistanceNegated              (iTime)  &
-            & = self%distanceTableComovingDistance                       (iTime)  &
-            &  /self%expansionFactor              (self%distanceTableTime(iTime))
+       self              %distanceTableLuminosityDistanceNegated              (iTime)   &
+            & =      self%distanceTableComovingDistance                       (iTime)   &
+            &       /self%expansionFactor              (self%distanceTableTime(iTime))
+       self              %distanceTableLuminosityDistanceKCorrectedNegated    (iTime)   &
+            & =      self%distanceTableComovingDistance                       (iTime)   &
+            &  /sqrt(self%expansionFactor              (self%distanceTableTime(iTime)))
     end do
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Make a negated copy of the distances so that we have an increasing array for use in interpolation routines.
-    self%distanceTableComovingDistanceNegated  =-self%distanceTableComovingDistance
-    self%distanceTableLuminosityDistanceNegated=-self%distanceTableLuminosityDistanceNegated
+    self%distanceTableComovingDistanceNegated            =-self%distanceTableComovingDistance
+    self%distanceTableLuminosityDistanceNegated          =-self%distanceTableLuminosityDistanceNegated
+    self%distanceTableLuminosityDistanceKCorrectedNegated=-self%distanceTableLuminosityDistanceKCorrectedNegated
     ! Reset interpolators.
-    call Interpolate_Done(self%interpolationObjectDistance          ,self%interpolationAcceleratorDistance          ,self%resetInterpolationDistance          )
-    call Interpolate_Done(self%interpolationObjectDistanceInverse   ,self%interpolationAcceleratorDistanceInverse   ,self%resetInterpolationDistanceInverse   )
-    call Interpolate_Done(self%interpolationObjectLuminosityDistance,self%interpolationAcceleratorLuminosityDistance,self%resetInterpolationLuminosityDistance)
-    self%resetInterpolationDistance          =.true.
-    self%resetInterpolationDistanceInverse   =.true.
-    self%resetInterpolationLuminosityDistance=.true.
+    call Interpolate_Done(self%interpolationObjectDistance                    ,self%interpolationAcceleratorDistance                    ,self%resetInterpolationDistance                    )
+    call Interpolate_Done(self%interpolationObjectDistanceInverse             ,self%interpolationAcceleratorDistanceInverse             ,self%resetInterpolationDistanceInverse             )
+    call Interpolate_Done(self%interpolationObjectLuminosityDistance          ,self%interpolationAcceleratorLuminosityDistance          ,self%resetInterpolationLuminosityDistance          )
+    call Interpolate_Done(self%interpolationObjectLuminosityDistanceKCorrected,self%interpolationAcceleratorLuminosityDistanceKCorrected,self%resetInterpolationLuminosityDistanceKCorrected)
+    self%resetInterpolationDistance                    =.true.
+    self%resetInterpolationDistanceInverse             =.true.
+    self%resetInterpolationLuminosityDistance          =.true.
+    self%resetInterpolationLuminosityDistanceKCorrected=.true.
     ! Flag that the table is now initialized.
-    self%distanceTableInitialized=.true.
+    self%distanceTableInitialized                      =.true.
     return
   end subroutine matterLambdaMakeDistanceTable
 
