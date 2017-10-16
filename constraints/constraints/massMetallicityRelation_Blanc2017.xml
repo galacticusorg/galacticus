@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z~0.1 mass-metallicity relation of Blanc et al. (2017). -->
+<constraint>
+  <name>Blanc et al. (2017) mass-metallicity relation</name>
+  <label>massMetallicityRelationZ0.0Blanc2017</label>
+  <outputRedshift>0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.22 0.24 0.25</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>2.0e08</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/massMetallicityRelation_Blanc2017.pl</analysis>
+</constraint>
