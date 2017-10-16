@@ -33,7 +33,7 @@ my %arguments =
 # Specify the properties of this mass function.
 my $entry                                    = 0;
 $massFunctionConfig->{'redshift'           } = pdl 0.000;
-$massFunctionConfig->{'analysisLabel'      } = "alfalfaHiMassFunctionZ0.00";
+$massFunctionConfig->{'analysisLabel'      } = "massFunctionHIMartin2010ALFALFA";
 $massFunctionConfig->{'discrepancyFileName'} = "discrepancyHiMassFunctionZ0.00.hdf5";
 $massFunctionConfig->{'massType'           } = "massColdGas";
 $massFunctionConfig->{'massMap'            } = \&ALFALFA_Mass_Map;
