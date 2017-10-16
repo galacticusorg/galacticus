@@ -21,8 +21,8 @@
   !$ use OMP_Lib
   use    ISO_Varying_String
   use    FGSL
-
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine">
+  
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine" defaultThreadPrivate="yes">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyEmssnLine
@@ -31,12 +31,13 @@
      type            (varying_string  ), allocatable, dimension(:          ) :: lineNames
      double precision                  , allocatable, dimension(:          ) :: metallicity                 , densityHydrogen             , &
           &                                                                     ionizingFluxHydrogen        , ionizingFluxHeliumToHydrogen, &
-          &                                                                     ionizingFluxOxygenToHydrogen
+          &                                                                     ionizingFluxOxygenToHydrogen, wavelength
      double precision                  , allocatable, dimension(:,:,:,:,:,:) :: luminosity
      integer                           , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
      double precision                               , dimension(2,3        ) :: filterExtent
      type            (fgsl_interp_accel)            , dimension(5          ) :: accelerator
      logical                                        , dimension(5          ) :: interpolateReset
+     double precision                                                        :: depthOpticalISMCoefficient
      !$ integer      (omp_lock_kind    )                                     :: interpolateLock
    contains
      final     ::             lmnstyEmssnLineDestructor
@@ -84,10 +85,11 @@ contains
     !% Constructor for the ``lmnstyEmssnLine'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(outputAnalysisPropertyExtractorLmnstyEmssnLine)                              :: self
-    type(inputParameters                               ), intent(inout)               :: parameters
-    type(varying_string                                ), allocatable  , dimension(:) :: lineNames
-
+    type            (outputAnalysisPropertyExtractorLmnstyEmssnLine)                              :: self
+    type            (inputParameters                               ), intent(inout)               :: parameters
+    type            (varying_string                                ), allocatable  , dimension(:) :: lineNames
+    double precision                                                                              :: depthOpticalISMCoefficient
+    
     allocate(lineNames(parameters%count('lineNames')))
     !# <inputParameter>
     !#   <name>lineNames</name>
@@ -96,12 +98,20 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=outputAnalysisPropertyExtractorLmnstyEmssnLine(lineNames)
+    !# <inputParameter>
+    !#   <name>depthOpticalISMCoefficient</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=outputAnalysisPropertyExtractorLmnstyEmssnLine(lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     return
   end function lmnstyEmssnLineConstructorParameters
 
-  function lmnstyEmssnLineConstructorInternal(lineNames,outputMask) result(self)
+  function lmnstyEmssnLineConstructorInternal(lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
     use               Instruments_Filters
@@ -112,12 +122,14 @@ contains
     use               IO_HDF5
     use               Galacticus_Error
     implicit none
-    type     (outputAnalysisPropertyExtractorLmnstyEmssnLine)                                        :: self
-    type     (varying_string                                ), intent(in   ), dimension(:)           :: lineNames
-    logical                                                  , intent(in   ), dimension(:), optional :: outputMask
-    type     (hdf5Object                                    )                                        :: emissionLinesFile, lines
-    integer  (c_size_t                                      )                                        :: i
-    !# <constructorAssign variables="lineNames"/>
+    type            (outputAnalysisPropertyExtractorLmnstyEmssnLine)                                        :: self
+    double precision                                                , intent(in   )                         :: depthOpticalISMCoefficient
+    type            (varying_string                                ), intent(in   ), dimension(:)           :: lineNames
+    logical                                                         , intent(in   ), dimension(:), optional :: outputMask
+    type            (hdf5Object                                    )                                        :: emissionLinesFile             , lines, &
+         &                                                                                                     lineDataset
+    integer         (c_size_t                                      )                                        :: i
+    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient"/>
 
     ! Read the table of emission line luminosities.
     !$omp critical(HDF5_Access)
@@ -142,8 +154,17 @@ contains
          &              size(self%lineNames                   )  &
          &             ]                                         &
          &            )
+    call allocateArray(                                          &
+         &             self%wavelength,                          &
+         &             [                                         &
+         &              size(self%lineNames                   )  &
+         &             ]                                         &
+         &            )
     do i=1,size(lineNames)
-       call lines%readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
+       call lines      %readDatasetStatic(char(self%lineNames(i)),self%luminosity(:,:,:,:,:,i))
+       lineDataset=lines%openDataset(char(self%lineNames(i)))
+       call lineDataset%readAttribute('wavelength',self%wavelength(i))
+       call lineDataset%close        (                               )
     end do
     call lines            %close      (                                                                 )
     call emissionLinesFile%close      (                                                                 )
@@ -199,6 +220,7 @@ contains
     use               Galacticus_Output_Times
     use               Galacticus_Nodes
     use               Stellar_Luminosities_Structure
+    use               Stellar_Spectra_Dust_Attenuations
     use               Numerical_Constants_Physical
     use               Numerical_Constants_Astronomical
     use               Numerical_Constants_Atomic
@@ -211,29 +233,53 @@ contains
     class           (nodeComponentBasic                            ), pointer          :: basic
     class           (nodeComponentDisk                             ), pointer          :: disk
     class           (nodeComponentSpheroid                         ), pointer          :: spheroid
-    double precision                                                , parameter        :: massHIIRegion                  =7.5d+03 ! Mass of gas in HII region; M☉.
-    double precision                                                , parameter        :: massGMC                        =3.7d+07 ! Mass of a giant molecular cloud at critical surface density; M☉.
-    double precision                                                , parameter        :: lifetimeHIIRegion              =1.0d-03 ! Lifetime of HII region; Gyr.
-    double precision                                                , parameter        :: densitySurfaceCritical         =8.5d+13 ! Critical surface density for molecular clouds; M☉ Mpc⁻³
+    class           (stellarSpectraDustAttenuationClass            ), pointer          :: stellarSpectraDustAttenuation_
+    double precision                                                , parameter        :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
+    double precision                                                , parameter        :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
+    double precision                                                , parameter        :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
+    double precision                                                , parameter        :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻³
+    double precision                                                , parameter        :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
+    double precision                                                , parameter        :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
+    double precision                                                , parameter        :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
+    double precision                                                , parameter        :: wavelengthZeroPoint           =+5.50d+03                   ! Angstroms
+    double precision                                                , parameter        :: depthOpticalToMagnitudes      =+2.50d+00                 & ! Conversion factor from optical depth to magnitudes of extinction.
+         &                                                                                                               *log10(                   &
+         &                                                                                                                      +exp(              &
+         &                                                                                                                           +1.0d0        &
+         &                                                                                                                          )              &
+         &                                                                                                                     )
+    double precision                                                , parameter        :: depthOpticalNormalization     =+AVToEBV                  &
+         &                                                                                                               /NHToEBV                  &
+         &                                                                                                               *hydrogenByMassSolar      &
+         &                                                                                                               /atomicMassUnit*massSolar &
+         &                                                                                                               /(                        &
+         &                                                                                                                 +parsec                 &
+         &                                                                                                                 *hecto                  &
+         &                                                                                                               )**2                      &
+         &                                                                                                               /metallicityISMLocal      &
+         &                                                                                                               /depthOpticalToMagnitudes
     type            (stellarLuminosities                           ), dimension(  2  ) :: luminositiesStellar
     type            (abundances                                    ), dimension(  2  ) :: abundancesGas
     double precision                                                , dimension(3,2  ) :: luminosityIonizing
-    double precision                                                , dimension(  2  ) :: massGas                                , radius                         , &
-         &                                                                                rateStarFormation                      , metallicityGas                 , &
-         &                                                                                densityHydrogen                        , luminosityLymanContinuum       , &
-         &                                                                                ratioLuminosityHeliumToHydrogen        , ratioLuminosityOxygenToHydrogen, &
-         &                                                                                countHIIRegion                         , densitySurfaceGas              , &
-         &                                                                                massClouds                             , densitySurfaceClouds
+    double precision                                                , dimension(  2  ) :: massGas                                                 , radius                         , &
+         &                                                                                rateStarFormation                                       , metallicityGas                 , &
+         &                                                                                densityHydrogen                                         , luminosityLymanContinuum       , &
+         &                                                                                ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
+         &                                                                                countHIIRegion                                          , densitySurfaceGas              , &
+         &                                                                                massClouds                                              , densitySurfaceClouds           , &
+         &                                                                                depthOpticalDiffuse                                     , densitySurfaceMetals
     logical                                                         , dimension(  2  ) :: isPhysical
     integer         (c_size_t                                      ), dimension(0:1,5) :: interpolateIndex
     double precision                                                , dimension(0:1,5) :: interpolateFactor
-    double precision                                                                   :: weight                                 , luminosityLinePerHIIRegion
+    double precision                                                                   :: weight                                                  , luminosityLinePerHIIRegion
     integer         (c_size_t                                      )                   :: output
-    integer                                                                            :: component                              , continuum                      , &
-         &                                                                                i                                      , j                              , &
-         &                                                                                k                                      , l                              , &
-         &                                                                                m                                      , line
-    
+    integer                                                                            :: component                                               , continuum                      , &
+         &                                                                                i                                                       , j                              , &
+         &                                                                                k                                                       , l                              , &
+         &                                                                                m                                                       , line
+
+    ! Get dust attenuation object.
+    stellarSpectraDustAttenuation_ => stellarSpectraDustAttenuation()
     ! Retrieve components.
     basic    => node%basic   ()
     disk     => node%disk    ()
@@ -319,6 +365,15 @@ contains
        !  Convert the hydrogen ionizing luminosity to be per HII region.
        luminosityLymanContinuum       =+luminosityLymanContinuum &
             &                          -log10(countHIIRegion)
+       ! Compute surface densities of metals in units of M☉ pc⁻².
+       densitySurfaceMetals           =+10.0d0**metallicityGas       &
+            &                          *        metallicitySolar     &
+            &                          *        densitySurfaceGas    &
+            &                          /        mega             **2
+       ! Compute optical depth of diffuse dust.
+       depthOpticalDiffuse            =+self%depthOpticalISMCoefficient &
+            &                          *     depthOpticalNormalization  &
+            &                          *     densitySurfaceMetals
     end where
     ! Iterate over components.
     lmnstyEmssnLineExtract=0.0d0
@@ -369,9 +424,16 @@ contains
              end do
           end do
           ! Compute the final luminosity in ergs s⁻¹.
-          lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                &
-               &                 +10.0d0**luminosityLinePerHIIRegion            &
-               &                 *        countHIIRegion            (component)          
+          lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                                                                              &
+               &                 +10.0d0**luminosityLinePerHIIRegion                                                                          &
+               &                 *        countHIIRegion                                                                         (component)  &
+               &                 *exp(                                                                                                        &
+               &                      -stellarSpectraDustAttenuation_%attenuation(                                                            &
+               &                                                                  wavelength      =self               %wavelength(     line), &
+               &                                                                  age             =0.0d0                                    , &
+               &                                                                  vBandAttenuation=depthOpticalDiffuse           (component)  &
+               &                                                                 )                                                            &
+               &                     )
        end do
     end do
     return
