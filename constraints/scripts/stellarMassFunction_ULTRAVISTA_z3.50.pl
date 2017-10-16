@@ -30,7 +30,7 @@ my %arguments =
 # Specify the properties of this mass function.
 my $entry                                    = 0;
 $massFunctionConfig->{'redshift'           } = pdl 3.50;
-$massFunctionConfig->{'analysisLabel'      } = "ultravistaStellarMassFunctionZ3.50";
+$massFunctionConfig->{'analysisLabel'      } = "massFunctionStellarMuzzin2013ULTRAVISTAz6";
 $massFunctionConfig->{'discrepancyFileName'} = "discrepancy".ucfirst($massFunctionConfig->{'analysisLabel'}).".hdf5";
 $massFunctionConfig->{'massType'           } = "massStellar";
 $massFunctionConfig->{'massErrorRandomDex' } = 0.2;
