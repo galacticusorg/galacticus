@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z~0.1 mass-metallicity relation of Blanc et al. (2017). -->
+<constraint>
+  <name>Kormedy &amp; Ho (2013) black hole-bulge mass relation</name>
+  <label>blackHoleBulgeMassRelation_KormendyHo2013</label>
+  <outputRedshift>0.0</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>2.0e08</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/blackHoleBulgeMassRelation_KormendyHo2013.pl</analysis>
+</constraint>
