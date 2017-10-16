@@ -1,8 +1,8 @@
-<!-- Defines a constraint to match to the z=0.07 SDSS disk galaxy sizes. -->
+<!-- Defines a constraint to match to the z=0.07 SDSS galaxy sizes, distribution number 04. -->
 <constraint>
-  <name>SDSS $z=0.07$ disk galaxy sizes</name>
-  <label>diskGalaxySizeZ0.07</label>
-  <outputRedshift>0.01</outputRedshift>
+  <name>SDSS $z=0.07$ galaxy sizes - distribution 04</name>
+  <label>galaxySizeZ0.07Distribution04</label>
+  <outputRedshift>0.04</outputRedshift>
   <outputRedshift>0.03</outputRedshift>
   <outputRedshift>0.05</outputRedshift>
   <outputRedshift>0.07</outputRedshift>
@@ -17,5 +17,5 @@
   <haloMassResolution>5.0e7</haloMassResolution>
   <haloMassMinimum>2.0e8</haloMassMinimum>
   <haloMassMaximum>2.0e14</haloMassMaximum>
-  <analysis>constraints/scripts/diskGalaxySizes_SDSS_z0.07.pl</analysis>
+  <analysis>constraints/scripts/galaxySizes_SDSS_z0.07_distribution04.pl</analysis>
 </constraint>

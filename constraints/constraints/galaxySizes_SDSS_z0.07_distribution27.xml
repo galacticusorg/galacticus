@@ -1,0 +1,21 @@
+<!-- Defines a constraint to match to the z=0.07 SDSS galaxy sizes, distribution number 27. -->
+<constraint>
+  <name>SDSS $z=0.07$ galaxy sizes - distribution 27</name>
+  <label>galaxySizeZ0.07Distribution27</label>
+  <outputRedshift>0.27</outputRedshift>
+  <outputRedshift>0.03</outputRedshift>
+  <outputRedshift>0.05</outputRedshift>
+  <outputRedshift>0.07</outputRedshift>
+  <outputRedshift>0.09</outputRedshift>
+  <outputRedshift>0.11</outputRedshift>
+  <outputRedshift>0.13</outputRedshift>
+  <outputRedshift>0.15</outputRedshift>
+  <outputRedshift>0.20</outputRedshift>
+  <outputRedshift>0.25</outputRedshift>
+  <outputRedshift>0.30</outputRedshift>
+  <!-- CAUTION: RESOLUTION AND RANGES ARE UNTESTED -->
+  <haloMassResolution>5.0e7</haloMassResolution>
+  <haloMassMinimum>2.0e8</haloMassMinimum>
+  <haloMassMaximum>2.0e14</haloMassMaximum>
+  <analysis>constraints/scripts/galaxySizes_SDSS_z0.07_distribution27.pl</analysis>
+</constraint>
