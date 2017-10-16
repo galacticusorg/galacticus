@@ -240,7 +240,7 @@ program Conditional_Mass_Function
               if (conditionalMassFunctionUseSurveyLimits) then
                  ! A survey geometry is imposed. Find the maximum distance at which a galaxy of the present
                  ! mass can be detected in this survey.
-                 distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum),iField)
+                 distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(massBinMinimum*massBinMaximum),field=iField)
                  ! Set integration limits appropriately.
                  binTimeMaximum=                                                       timeMaximum
                  binTimeMinimum=min(                                                                 &

@@ -149,30 +149,31 @@ contains
     return
   end function tomczak2014ZFOURGEFieldCount
 
-  double precision function tomczak2014ZFOURGEDistanceMinimum(self,mass,field)
+  double precision function tomczak2014ZFOURGEDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass
+    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     tomczak2014ZFOURGEDistanceMinimum=self%binDistanceMinimum
     return
   end function tomczak2014ZFOURGEDistanceMinimum
 
-  double precision function tomczak2014ZFOURGEDistanceMaximum(self,mass,field)
+  double precision function tomczak2014ZFOURGEDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass
+    double precision                                  , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     class           (cosmologyFunctionsClass         ), pointer                 :: cosmologyFunctions_
     double precision                                                            :: redshift           , logarithmicMass
-    
+    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
     if (field < 1 .or. field > 2) call Galacticus_Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
@@ -207,15 +208,15 @@ contains
     integer                                           , intent(in   ), optional :: field
 
      ! Compute the volume.
-    tomczak2014ZFOURGEVolumeMaximum                        &
-         & =max(                                           &
-         &       0.0d0                                   , &
-         &       self%solidAngle(field)                    &
-         &      *(                                         &
-         &        +self%distanceMaximum   (mass,field)**3  &
-         &        -self%binDistanceMinimum            **3  &
-         &       )                                         &
-         &      /3.0d0                                     &
+    tomczak2014ZFOURGEVolumeMaximum                              &
+         & =max(                                                 &
+         &       0.0d0                                         , &
+         &       self%solidAngle(field)                          &
+         &      *(                                               &
+         &        +self%distanceMaximum   (mass,field=field)**3  &
+         &        -self%binDistanceMinimum                  **3  &
+         &       )                                               &
+         &      /3.0d0                                           &
          &     )
     return
   end function tomczak2014ZFOURGEVolumeMaximum

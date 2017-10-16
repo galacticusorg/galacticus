@@ -574,13 +574,13 @@ contains
                                else
                                   timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
                                end if
-                               distanceMinimum=max(                                                                                                                                  &
-                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                           , &
-                                    &              blackHoleDistributions(currentAnalysis)%descriptor%geometry%distanceMinimum(blackHoleDistributions(currentAnalysis)%masses(k),l)  &
+                               distanceMinimum=max(                                                                                                                                        &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                                 , &
+                                    &              blackHoleDistributions(currentAnalysis)%descriptor%geometry%distanceMinimum(blackHoleDistributions(currentAnalysis)%masses(k),field=l)  &
                                     &             )
-                               distanceMaximum=min(                                                                                                                                  &
-                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                           , &
-                                    &              blackHoleDistributions(currentAnalysis)%descriptor%geometry%distanceMaximum(blackHoleDistributions(currentAnalysis)%masses(k),l)  &
+                               distanceMaximum=min(                                                                                                                                        &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                                 , &
+                                    &              blackHoleDistributions(currentAnalysis)%descriptor%geometry%distanceMaximum(blackHoleDistributions(currentAnalysis)%masses(k),field=l)  &
                                     &             )
                                blackHoleDistributions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
                                     & =blackHoleDistributions(currentAnalysis)%outputWeight                    (k,jOutput)  &

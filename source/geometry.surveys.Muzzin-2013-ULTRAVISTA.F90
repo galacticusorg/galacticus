@@ -146,30 +146,30 @@ contains
     return
   end function muzzin2013ULTRAVISTAFieldCount
 
-  double precision function muzzin2013ULTRAVISTADistanceMinimum(self,mass,field)
+  double precision function muzzin2013ULTRAVISTADistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: mass
+    double precision                                    , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     muzzin2013ULTRAVISTADistanceMinimum=self%binDistanceMinimum
     return
   end function muzzin2013ULTRAVISTADistanceMinimum
 
-  double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,field)
+  double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   )           :: mass
+    double precision                                    , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
     class           (cosmologyFunctionsClass           ), pointer                 :: cosmologyFunctions_
     double precision                                                              :: redshift           , logarithmicMass
-    !GCC$ attributes unused :: field
+    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
     
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/massRedshiftRelation.pl for details.)
@@ -205,16 +205,16 @@ contains
     double precision                                    , intent(in   )           :: mass
     integer                                             , intent(in   ), optional :: field
 
-     ! Compute the volume.
-    muzzin2013ULTRAVISTAVolumeMaximum                      &
-         & =max(                                           &
-         &       0.0d0                                   , &
-         &       self%solidAngle(field)                    &
-         &      *(                                         &
-         &        +self%distanceMaximum   (mass,field)**3  &
-         &        -self%binDistanceMinimum            **3  &
-         &       )                                         &
-         &      /3.0d0                                     &
+    ! Compute the volume.
+    muzzin2013ULTRAVISTAVolumeMaximum                            &
+         & =max(                                                 &
+         &       0.0d0                                         , &
+         &       self%solidAngle(field)                          &
+         &      *(                                               &
+         &        +self%distanceMaximum   (mass,field=field)**3  &
+         &        -self%binDistanceMinimum                  **3  &
+         &       )                                               &
+         &      /3.0d0                                           &
          &     )
     return
   end function muzzin2013ULTRAVISTAVolumeMaximum

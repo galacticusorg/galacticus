@@ -887,8 +887,15 @@ contains
              end select
           end do
           ! Warn on deprecated mass functions.
-          if (any(trim(mergerTreeAnalyses) == "sdssStellarMassFunctionZ0.07")) call Galacticus_Warn('WARNING: SDSS z=0.07 stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead')
-          if (any(trim(mergerTreeAnalyses) == "alfalfaHiMassFunctionZ0.00"  )) call Galacticus_Warn('WARNING: ALFALFA z=0.0 HI mass function support is deprecated in this module - use new on-the-fly-analysis instead')
+          if (any(trim(mergerTreeAnalyses) == "sdssStellarMassFunctionZ0.07"      )) call Galacticus_Warn('WARNING: SDSS z=0.07 stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead')
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ0.35")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ0.75")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ1.25")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ1.75")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ2.25")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ2.75")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "ultravistaStellarMassFunctionZ3.50")) call Galacticus_Warn('WARNING: ULTRAVISTA stellar mass function support is deprecated in this module - use new on-the-fly-analysis instead' )
+          if (any(trim(mergerTreeAnalyses) == "alfalfaHiMassFunctionZ0.00"        )) call Galacticus_Warn('WARNING: ALFALFA z=0.0 HI mass function support is deprecated in this module - use new on-the-fly-analysis instead'   )
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,massFunctionsSupportedCount
@@ -1245,13 +1252,13 @@ contains
                          else
                             timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
                          end if
-                         distanceMinimum=max(                                                                                                                &
-                              &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                         , &
-                              &              massFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(massFunctions(currentAnalysis)%masses(k),j)  &
+                         distanceMinimum=max(                                                                                                                      &
+                              &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                               , &
+                              &              massFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(massFunctions(currentAnalysis)%masses(k),field=j)  &
                               &             )
-                         distanceMaximum=min(                                                                                                                &
-                              &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                         , &
-                              &              massFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(massFunctions(currentAnalysis)%masses(k),j)  &
+                         distanceMaximum=min(                                                                                                                      &
+                              &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                               , &
+                              &              massFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(massFunctions(currentAnalysis)%masses(k),field=j)  &
                               &             )
                          massFunctions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
                               & =massFunctions(currentAnalysis)%outputWeight                    (k,jOutput)  &

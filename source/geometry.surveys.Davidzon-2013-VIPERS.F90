@@ -136,27 +136,27 @@ contains
     return
   end function davidzon2013VIPERSFieldCount
 
-  double precision function davidzon2013VIPERSDistanceMinimum(self,mass,field)
+  double precision function davidzon2013VIPERSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass
+    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     davidzon2013VIPERSDistanceMinimum=self%binDistanceMinimum
     return
   end function davidzon2013VIPERSDistanceMinimum
 
-  double precision function davidzon2013VIPERSDistanceMaximum(self,mass,field)
+  double precision function davidzon2013VIPERSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Galacticus_Error
     implicit none
     class           (surveyGeometryDavidzon2013VIPERS), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass
+    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    !GCC$ attributes unused :: field
+    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
     
     ! Find the limiting distance for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/massDistanceRelation.pl for details.)
@@ -186,15 +186,15 @@ contains
     integer                                           , intent(in   ), optional :: field
 
      ! Compute the volume.
-    davidzon2013VIPERSVolumeMaximum                        &
-         & =max(                                           &
-         &       0.0d0                                   , &
-         &       self%solidAngle()                         &
-         &      *(                                         &
-         &        +self%distanceMaximum   (mass,field)**3  &
-         &        -self%binDistanceMinimum            **3  &
-         &       )                                         &
-         &      /3.0d0                                     &
+    davidzon2013VIPERSVolumeMaximum                              &
+         & =max(                                                 &
+         &       0.0d0                                         , &
+         &       self%solidAngle()                               &
+         &      *(                                               &
+         &        +self%distanceMaximum   (mass,field=field)**3  &
+         &        -self%binDistanceMinimum                  **3  &
+         &       )                                               &
+         &      /3.0d0                                           &
          &     )
     return
   end function davidzon2013VIPERSVolumeMaximum

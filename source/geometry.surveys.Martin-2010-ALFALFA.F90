@@ -80,27 +80,27 @@ contains
     return
   end subroutine martin2010ALFALFADestructor
   
-  double precision function martin2010ALFALFADistanceMaximum(self,mass,field)
+  double precision function martin2010ALFALFADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Galacticus_Error
     use Cosmology_Parameters
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)           :: self
-    double precision                                 , intent(in   )           :: mass
+    double precision                                 , intent(in   ), optional :: mass                                                  , magnitudeAbsolute, luminosity
     integer                                          , intent(in   ), optional :: field
     ! The signal-to-noise limit used by Martin et al. (2010).
     double precision                                 , parameter               :: signalToNoise                    = 6.5d0
     ! Coefficients of the polynomial approximation for log10(lineWidth) vs. log10(HI mass).
     double precision                                 , parameter               :: lineWidthCoefficient0            =-0.769635671616885d0, lineWidthCoefficient1=0.314983275066432d0
     ! Line width characteristic scale.
-    double precision                                 , parameter               :: lineWidthCharacteristic         =200.0d0
+    double precision                                 , parameter               :: lineWidthCharacteristic          =200.0d0
     ! Normalization of the flux limit for unit signal-to-noise at characteristic line width.
     double precision                                 , parameter               :: integratedFluxLimitNormalization=0.15d0
     ! Normalization of the mass-integrated flux-distance relation.
     double precision                                 , parameter               :: massNormalization               =2.356d5
     double precision                                                           :: logarithmicMass                                       , lineWidth                                , &
          &                                                                        integratedFluxLimit
-    !GCC$ attributes unused :: self
+    !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
     
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})

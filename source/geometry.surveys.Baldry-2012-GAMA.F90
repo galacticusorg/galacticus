@@ -25,7 +25,7 @@
   !#  <description>Implements the geometry of the GAMA survey of \cite{baldry_galaxy_2012}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBaldry2012GAMA
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_   => null()
      double precision                                   :: distanceMaximumSurvey
    contains
      final     ::                              baldry2012GAMADestructor
@@ -100,15 +100,16 @@ contains
     return
   end function baldry2012GAMAFieldCount
 
-  double precision function baldry2012GAMADistanceMaximum(self,mass,field)
+  double precision function baldry2012GAMADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Galacticus_Error
     implicit none
     class           (surveyGeometryBaldry2012GAMA), intent(inout)           :: self
-    double precision                              , intent(in   )           :: mass
+    double precision                              , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
     double precision                                                        :: logarithmicMass
-    
+    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
     ! Compute the limiting distance.

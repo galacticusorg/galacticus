@@ -135,8 +135,8 @@ contains
     ! Iterate over survey fields.
     do iField=1,surveyGeometry_%fieldCount()
        ! Find time range for volume-limited sample.
-       timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(projectedCorrelationFunctionMassMinimum,iField))
-       timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(projectedCorrelationFunctionMassMinimum,iField))
+       timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(projectedCorrelationFunctionMassMinimum,field=iField))
+       timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(projectedCorrelationFunctionMassMinimum,field=iField))
        ! Integrate the volume term.
        integrationReset    =.true.
        volume              =                                       &

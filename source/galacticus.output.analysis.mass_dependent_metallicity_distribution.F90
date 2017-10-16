@@ -766,13 +766,13 @@ contains
                                else
                                   timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
                                end if
-                               distanceMinimum=max(                                                                                                                                      &
-                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                               , &
-                                    &              metallicityDistributions(currentAnalysis)%descriptor%geometry%distanceMinimum(metallicityDistributions(currentAnalysis)%masses(k),l)  &
+                               distanceMinimum=max(                                                                                                                                            &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                                     , &
+                                    &              metallicityDistributions(currentAnalysis)%descriptor%geometry%distanceMinimum(metallicityDistributions(currentAnalysis)%masses(k),field=l)  &
                                     &             )
-                               distanceMaximum=min(                                                                                                                                      &
-                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                               , &
-                                    &              metallicityDistributions(currentAnalysis)%descriptor%geometry%distanceMaximum(metallicityDistributions(currentAnalysis)%masses(k),l)  &
+                               distanceMaximum=min(                                                                                                                                            &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                                     , &
+                                    &              metallicityDistributions(currentAnalysis)%descriptor%geometry%distanceMaximum(metallicityDistributions(currentAnalysis)%masses(k),field=l)  &
                                     &             )
                                metallicityDistributions        (currentAnalysis)%outputWeight                    (k,jOutput)  &
                                     & =metallicityDistributions(currentAnalysis)%outputWeight                    (k,jOutput)  &

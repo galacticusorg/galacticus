@@ -211,10 +211,10 @@ contains
        do iField=1,fieldCount
 
           ! Find integration limits for this bin.
-          timeMaximum=    cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum       ))
-          timeMinimum=max(                                                                                                                                 &
-               &          cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum       )), &
-               &          cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum                      (massBinCenterI ,iField))  &
+          timeMaximum=    cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum             ))
+          timeMinimum=max(                                                                                                                           &
+               &          cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum             )), &
+               &          cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (massBinCenterI ,field=iField))  &
                &         )
           ! Get the normalizing volume integral.
           integrationReset=.true.
@@ -330,8 +330,8 @@ contains
                      &          cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum)), &
                      &          cosmologyFunctions_%timeAtDistanceComoving(                                                                   &
                      &                                                     min(                                                               &
-                     &                                                         surveyGeometry_%distanceMaximum(massBinCenterI,iField),        &
-                     &                                                         surveyGeometry_%distanceMaximum(massBinCenterJ,iField)         &
+                     &                                                         surveyGeometry_%distanceMaximum(massBinCenterI,field=iField),  &
+                     &                                                         surveyGeometry_%distanceMaximum(massBinCenterJ,field=iField)   &
                      &                                                        )                                                               &
                      &                                                    )                                                                   &
                      &         )
@@ -501,15 +501,15 @@ contains
        if (surveyRedshiftMinimum <= 0.0d0) then
           x0i=   +0.0d0
        else
-          x0i=                                                                                &
-               & +wavenumberGlobal                                                            &
+          x0i=                                                                                      &
+               & +wavenumberGlobal                                                                  &
                & *    surveyDistanceMinimum  
        end if
-       x1i=                                                                                   &
-            &    +wavenumberGlobal                                                            &
-            &    *min(                                                                        &
-            &         surveyDistanceMaximum                                                 , &
-            &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),iField)  &
+       x1i=                                                                                         &
+            &    +wavenumberGlobal                                                                  &
+            &    *min(                                                                              &
+            &         surveyDistanceMaximum                                                       , &
+            &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),field=iField)  &
             &        )
        do jField=1,surveyGeometry_%fieldCount()
           if (timeMinimumJ(jField) >= timeMaximumJ(jField)) cycle
@@ -522,15 +522,15 @@ contains
           if (surveyRedshiftMinimum <= 0.0d0) then
              x0j=   +0.0d0
           else
-             x0j=                                                                                &
-                  & +wavenumberGlobal                                                            &
+             x0j=                                                                                      &
+                  & +wavenumberGlobal                                                                  &
                   & *    surveyDistanceMinimum
           end if
-          x1j=                                                                                   &
-               &    +wavenumberGlobal                                                            &
-               &    *min(                                                                        &
-               &         surveyDistanceMaximum                                                 , &
-               &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),jField)  &
+          x1j=                                                                                         &
+               &    +wavenumberGlobal                                                                  &
+               &    *min(                                                                              &
+               &         surveyDistanceMaximum                                                       , &
+               &         surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),field=jField)  &
                &       )
           angularFactor=0.0d0
           !$omp parallel do reduction(+:angularFactor)
@@ -813,12 +813,12 @@ contains
     do iField=1,surveyGeometry_%fieldCount() 
        ! Find integration limits for this bin. We want the maximum of the volumes associated with the two bins.
        timeMaximum(iField)=    cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum       ))
-       timeMinimum(iField)=min(                                                                                                                         &
-            &                  max(                                                                                                                     &
-            &                      cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum       )), &
-            &                      cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (10.0d0**logMass,iField))  &
-            &                     )                                                                                                                   , &
-            &                  timeMaximum(iField)                                                                                                      &
+       timeMinimum(iField)=min(                                                                                                                               &
+            &                  max(                                                                                                                           &
+            &                      cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum             )), &
+            &                      cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (10.0d0**logMass,field=iField))  &
+            &                     )                                                                                                                         , &
+            &                  timeMaximum(iField)                                                                                                            &
             &                 )
        ! Get the normalizing volume integral for bin i.
        integrationReset=.true.
@@ -1095,7 +1095,7 @@ contains
                &                            )
           distanceMaximum=huge(1.0d0)
           do iField=1,surveyGeometry_%fieldCount()
-             distanceMaximum=min(distanceMaximum,surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),iField),surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),iField))
+             distanceMaximum=min(distanceMaximum,surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binI),field=iField),surveyGeometry_%distanceMaximum(10.0d0**logMassBinCenter(binJ),field=iField))
           end do
           wavenumberMinimum=0.0d0
           wavenumberMaximum=wavenumberMaximumFactor                                               &
