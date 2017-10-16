@@ -147,30 +147,31 @@ contains
     return
   end function moustakas2013PRIMUSFieldCount
 
-  double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,field)
+  double precision function moustakas2013PRIMUSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: mass
+    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     moustakas2013PRIMUSDistanceMinimum=self%binDistanceMinimum
     return
   end function moustakas2013PRIMUSDistanceMinimum
 
-  double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,field)
+  double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: mass
+    double precision                                   , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     class           (cosmologyFunctionsClass          ), pointer                 :: cosmologyFunctions_
     double precision                                                             :: redshift           , logarithmicMass
-    
+    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
     if (field < 1 .or. field > 5) call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
@@ -229,15 +230,15 @@ contains
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
     if (field < 1 .or. field > 5) call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     ! Compute the volume.
-    moustakas2013PRIMUSVolumeMaximum                       &
-         & =max(                                           &
-         &       0.0d0                                   , &
-         &       self%solidAngle(field)                    &
-         &      *(                                         &
-         &        +self%distanceMaximum   (mass,field)**3  &
-         &        -self%binDistanceMinimum            **3  &
-         &       )                                         &
-         &      /3.0d0                                     &
+    moustakas2013PRIMUSVolumeMaximum                             &
+         & =max(                                                 &
+         &       0.0d0                                         , &
+         &       self%solidAngle(field)                          &
+         &      *(                                               &
+         &        +self%distanceMaximum   (mass,field=field)**3  &
+         &        -self%binDistanceMinimum                  **3  &
+         &       )                                               &
+         &      /3.0d0                                           &
          &     )
     return
   end function moustakas2013PRIMUSVolumeMaximum

@@ -114,30 +114,31 @@ contains
     return
   end subroutine caputi2011UKIDSSUDSDestructor
   
-  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,field)
+  double precision function caputi2011UKIDSSUDSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included.
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: mass
+    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     caputi2011UKIDSSUDSDistanceMinimum=self%binDistanceMinimum
     return
   end function caputi2011UKIDSSUDSDistanceMinimum
 
-  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,field)
+  double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   )           :: mass
+    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
     class           (cosmologyFunctionsClass          ), pointer                 :: cosmologyFunctions_
     double precision                                                             :: redshift           , logarithmicMass
-    
+    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
@@ -168,15 +169,15 @@ contains
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
     ! Compute the volume.
-    caputi2011UKIDSSUDSVolumeMaximum                       &
-         & =max(                                           &
-         &       0.0d0                                   , &
-         &       self%solidAngle(field)                    &
-         &      *(                                         &
-         &        +self%distanceMaximum   (mass,field)**3  &
-         &        -self%binDistanceMinimum            **3  &
-         &       )                                         &
-         &      /3.0d0                                     &
+    caputi2011UKIDSSUDSVolumeMaximum                             &
+         & =max(                                                 &
+         &       0.0d0                                         , &
+         &       self%solidAngle(field)                          &
+         &      *(                                               &
+         &        +self%distanceMaximum   (mass,field=field)**3  &
+         &        -self%binDistanceMinimum                  **3  &
+         &       )                                               &
+         &      /3.0d0                                           &
          &     )
     return
   end function caputi2011UKIDSSUDSVolumeMaximum

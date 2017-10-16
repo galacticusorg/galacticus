@@ -16,12 +16,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the geometry of the PRIMUS survey used by \cite{bernardi_massive_2013}.
+!% Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
   
   use Galacticus_Input_Paths
 
   !# <surveyGeometry name="surveyGeometryBernardi2013SDSS">
-  !#  <description>Implements the geometry of the PRIMUS survey of \cite{bernardi_massive_2013}.</description>
+  !#  <description>Implements the geometry of the SDSS survey of \cite{bernardi_massive_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryBernardi2013SDSS
    contains
@@ -77,15 +77,15 @@ contains
     return
   end function bernardi2013SDSSFieldCount
 
-  double precision function bernardi2013SDSSDistanceMaximum(self,mass,field)
+  double precision function bernardi2013SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Galacticus_Error
     implicit none
     class           (surveyGeometryBernardi2013SDSS), intent(inout)           :: self
-    double precision                                , intent(in   )           :: mass
+    double precision                                , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                         , intent(in   ), optional :: field
     double precision                                                          :: logarithmicMass
-    !GCC$ attributes unused :: self, field
+    !GCC$ attributes unused :: self, field, magnitudeAbsolute, luminosity
 
     ! Find the limiting distance for this mass completeness limits. (See
     ! constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/massDistanceRelation.pl for details.)

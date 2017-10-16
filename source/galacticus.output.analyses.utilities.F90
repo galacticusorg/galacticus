@@ -26,7 +26,7 @@ module Output_Analysis_Utilities
 
 contains
 
-  function Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,massLimit,allowSingleEpoch) result (outputWeight)
+  function Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,massLimit,magnitudeAbsoluteLimit,luminosity,allowSingleEpoch) result (outputWeight)
     !% Compute output weights corresponding to the cosmological volumes associated with the given survey.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Output_Times
@@ -37,13 +37,16 @@ contains
     double precision                         , dimension(:) , allocatable :: outputWeight
     class           (surveyGeometryClass    ), intent(inout)              :: surveyGeometry_
     class           (cosmologyFunctionsClass), intent(inout)              :: cosmologyFunctions_
-    double precision                         , intent(in   )              :: massLimit
+    double precision                         , intent(in   ), optional    :: massLimit                 , magnitudeAbsoluteLimit, &
+         &                                                                   luminosity
     logical                                  , intent(in   ), optional    :: allowSingleEpoch
     double precision                         , parameter                  :: timeTolerance      =1.0d-6
     integer         (c_size_t               )                             :: iOutput
     integer                                                               :: iField
-    double precision                                                      :: timeMinimum               , timeMaximum    , &
-         &                                                                   distanceMinimum           , distanceMaximum
+    double precision                                                      :: timeMinimum               , timeMaximum           , &
+         &                                                                   distanceMinimum           , distanceMaximum       , &
+         &                                                                   redshiftMinimum           , redshiftMaximum       , &
+         &                                                                   time
     !# <optionalArgument name="allowSingleEpoch" defaultsTo=".false." />
     
     allocate(outputWeight(Galacticus_Output_Time_Count()))
@@ -54,12 +57,13 @@ contains
           ! Iterate over all fields.
           do iField=1,surveyGeometry_%fieldCount()
              ! Test whether the output epoch lies within the range of comoving distances for this field.
-             timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(massLimit,iField))
-             timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(massLimit,iField))
-             if     (                                                                         &
-                  &   Galacticus_Output_Time(1_c_size_t) >= timeMinimum*(1.0d0-timeTolerance) &
-                  &  .and.                                                                    &
-                  &   Galacticus_Output_Time(1_c_size_t) <= timeMaximum*(1.0d0+timeTolerance) &
+             time       =cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(Galacticus_Output_Redshift(1_c_size_t)                                                    ))
+             timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
+             timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMinimum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
+             if     (                                           &
+                  &   time >= timeMinimum*(1.0d0-timeTolerance) &
+                  &  .and.                                      &
+                  &   time <= timeMaximum*(1.0d0+timeTolerance) &
                   & ) outputWeight=1.0d0
           end do
           if (all(outputWeight == 0.0d0)) call Galacticus_Error_Report('zero weights'//{introspection:location})
@@ -70,22 +74,24 @@ contains
        do iOutput=1,Galacticus_Output_Time_Count()
           do iField=1,surveyGeometry_%fieldCount()
              if (iOutput == Galacticus_Output_Time_Count()) then
-                timeMaximum=     Galacticus_Output_Time(iOutput)
+                redshiftMinimum=     Galacticus_Output_Redshift(iOutput)
              else
-                timeMaximum=sqrt(Galacticus_Output_Time(iOutput)*Galacticus_Output_Time(iOutput+1))
+                redshiftMinimum=sqrt(Galacticus_Output_Redshift(iOutput)*Galacticus_Output_Redshift(iOutput+1))
              end if
              if (iOutput ==                              1) then
-                timeMinimum=     Galacticus_Output_Time(iOutput)
+                redshiftMaximum=     Galacticus_Output_Redshift(iOutput)
              else
-                timeMinimum=sqrt(Galacticus_Output_Time(iOutput)*Galacticus_Output_Time(iOutput-1))
+                redshiftMaximum=sqrt(Galacticus_Output_Redshift(iOutput)*Galacticus_Output_Redshift(iOutput-1))
              end if
-             distanceMinimum=max(                                                          &
-                  &              cosmologyFunctions_%distanceComoving(timeMaximum       ), &
-                  &              surveyGeometry_    %distanceMinimum (massLimit  ,iField)  &
+             timeMinimum    =    cosmologyFunctions_%cosmicTime      (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
+             timeMaximum    =    cosmologyFunctions_%cosmicTime      (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
+             distanceMinimum=max(                                                                                                                                    &
+                  &              cosmologyFunctions_%distanceComoving(     timeMaximum                                                                            ), &
+                  &              surveyGeometry_    %distanceMinimum (mass=massLimit  ,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField)  &
                   &             )
-             distanceMaximum=min(                                                          &
-                  &              cosmologyFunctions_%distanceComoving(timeMinimum       ), &
-                  &              surveyGeometry_    %distanceMaximum (massLimit  ,iField)  &
+             distanceMaximum=min(                                                                                                                                    &
+                  &              cosmologyFunctions_%distanceComoving(     timeMinimum                                                                            ), &
+                  &              surveyGeometry_    %distanceMaximum (mass=massLimit  ,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField)  &
                   &             )
              outputWeight                      (iOutput)  &
                   & =outputWeight              (iOutput)  &

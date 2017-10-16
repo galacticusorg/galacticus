@@ -70,28 +70,29 @@ contains
     return
   end function kelvin2014GAMAnearConstructorInternal
 
-  double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,field)
+  double precision function kelvin2014GAMAnearDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is included in the survey.
     use Galacticus_Error
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass
+    double precision                                  , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     kelvin2014GAMAnearDistanceMinimum=self%distanceMinimumSurvey
     return
   end function kelvin2014GAMAnearDistanceMinimum
   
-  double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,field)
+  double precision function kelvin2014GAMAnearDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Galacticus_Error
     implicit none
     class           (surveyGeometryKelvin2014GAMAnear), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: mass
+    double precision                                  , intent(in   ), optional :: mass           , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
     double precision                                                            :: logarithmicMass
-    
+    !GCC$ attributes unused :: magnitudeAbsolute, luminosity
+
     ! Validate field.
     if (present(field).and.(field < 1 .or. field > 3)) call Galacticus_Error_Report('1 ≤ field ≤ 3 required'//{introspection:location})
     ! Compute the limiting distance. For the GAMAnear sample, all fields are limited to r=19.4

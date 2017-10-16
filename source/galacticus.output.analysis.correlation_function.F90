@@ -430,13 +430,13 @@ contains
                                else
                                   timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
                                end if
-                               distanceMinimum=max(                                                                                                                            &
-                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                     , &
-                                    &              correlationFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(correlationFunctions(currentAnalysis)%massMinimum(k),m)  &
+                               distanceMinimum=max(                                                                                                                                         &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                                  , &
+                                    &              correlationFunctions(currentAnalysis)%descriptor%geometry%distanceMinimum(correlationFunctions(currentAnalysis)%massMinimum(k),field=m)  &
                                     &             )
-                               distanceMaximum=min(                                                                                                                            &
-                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                     , &
-                                    &              correlationFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(correlationFunctions(currentAnalysis)%massMinimum(k),m)  &
+                               distanceMaximum=min(                                                                                                                                         &
+                                    &              cosmologyFunctionsModel%distanceComoving(timeMinimum)                                                                                  , &
+                                    &              correlationFunctions(currentAnalysis)%descriptor%geometry%distanceMaximum(correlationFunctions(currentAnalysis)%massMinimum(k),field=m)  &
                                     &             )
                                weight=+correlationFunctions(currentAnalysis)%descriptor%geometry%solidAngle(m)  &
                                     & /3.0d0                                                                    &

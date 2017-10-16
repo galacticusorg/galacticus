@@ -97,30 +97,30 @@ contains
     return
   end subroutine hearin2014SDSSDestructor
   
-  double precision function hearin2014SDSSDistanceMinimum(self,mass,field)
+  double precision function hearin2014SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   )           :: mass
+    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     hearin2014SDSSDistanceMinimum=self%distanceMinimumLimit
     return
   end function hearin2014SDSSDistanceMinimum
 
-  double precision function hearin2014SDSSDistanceMaximum(self,mass,field)
+  double precision function hearin2014SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     implicit none
     class           (surveyGeometryHearin2014SDSS), intent(inout)           :: self
-    double precision                              , intent(in   )           :: mass
+    double precision                              , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                       , intent(in   ), optional :: field
-    !GCC$ attributes unused :: field
+    !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
     
-    if (mass /= self%massPrevious)                                                                           &
-         & self%distanceMaximumPrevious=min(                                                                 &
-         &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field), &
-         &                                  self%distanceMaximumLimit                                        &
+    if (mass /= self%massPrevious)                                                                                 &
+         & self%distanceMaximumPrevious=min(                                                                       &
+         &                                  self%surveyGeometryBernardi2013SDSS%distanceMaximum(mass,field=field), &
+         &                                  self%distanceMaximumLimit                                              &
          &                                 )
     hearin2014SDSSDistanceMaximum=self%distanceMaximumPrevious
     return

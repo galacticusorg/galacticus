@@ -208,7 +208,7 @@ double precision function likelihoodMassFunctionEvaluate(self,simulationState,pa
      normalization=0.0d0
      do j=1,surveyGeometry_%fieldCount()
         ! Find the maximum distance at which a galaxy of the present mass can be detected in this survey.
-        distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(self%massMinimum(i)*self%massMaximum(i)),j)
+        distanceMaximum=surveyGeometry_%distanceMaximum(sqrt(self%massMinimum(i)*self%massMaximum(i)),field=j)
         ! Set integration limits appropriately.
         binTimeMaximum=                                                       timeMaximum
         binTimeMinimum=min(                                                                 &

@@ -42,10 +42,10 @@ module Geometry_Surveys
   !#   <description>Returns the minimum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) would be included in the survey.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )           :: mass</argument>
+  !#   <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, mass, field
+  !#    !GCC$ attributes unused :: self, mass, field, magnitudeAbsolute, luminosity
   !#    surveyGeometryDistanceMinimum=0.0d0
   !#   </code>
   !#  </method>
@@ -53,7 +53,7 @@ module Geometry_Surveys
   !#   <description>Returns the maximum distance (in Mpc) at which a galaxy of the specified {\normalfont \ttfamily mass} (in $M_\odot$) could be detected.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )           :: mass</argument>
+  !#   <argument>double precision, intent(in   ), optional :: mass , magnitudeAbsolute, luminosity</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
   !#  </method>
   !#  <method name="solidAngle" >
@@ -68,7 +68,7 @@ module Geometry_Surveys
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>integer         , intent(in   ), optional :: field</argument>
-  !#   <code>surveyGeometryVolumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field)**3/3.0d0</code>
+  !#   <code>surveyGeometryVolumeMaximum=self%solidAngle(field)*self%distanceMaximum(mass,field=field)**3/3.0d0</code>
   !#  </method>
   !#  <method name="windowFunctionAvailable" >
   !#   <description>Returns true if survey 3-D window functions are available.</description>

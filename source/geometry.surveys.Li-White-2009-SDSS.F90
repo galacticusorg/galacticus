@@ -111,30 +111,30 @@ contains
     return
   end subroutine liWhite2009SDSSDestructor
   
-  double precision function liWhite2009SDSSDistanceMinimum(self,mass,field)
+  double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the minimum distance at which a galaxy is visible.
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   )           :: mass
+    double precision                               , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
-    !GCC$ attributes unused :: mass, field
+    !GCC$ attributes unused :: mass, field, magnitudeAbsolute, luminosity
     
     liWhite2009SDSSDistanceMinimum=self%limitDistanceMinimum
     return
   end function liWhite2009SDSSDistanceMinimum
 
-  double precision function liWhite2009SDSSDistanceMaximum(self,mass,field)
+  double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
     use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   )           :: mass
+    double precision                               , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
     class           (cosmologyFunctionsClass      ), pointer                 :: cosmologyFunctions_
     double precision                                                         :: redshift           , logarithmicMass
-    !GCC$ attributes unused :: self
+    !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
     
     ! Validate field.
     if (present(field).and.field /= 1) call Galacticus_Error_Report('field = 1 required'//{introspection:location})
