@@ -2,7 +2,19 @@
 <constraint>
   <name>Blanc et al. (2017) mass-metallicity relation</name>
   <label>massMetallicityRelationZ0.0Blanc2017</label>
-  <outputRedshift>0.02 0.04 0.06 0.08 0.10 0.12 0.14 0.16 0.18 0.20 0.22 0.24 0.25</outputRedshift>
+  <outputRedshift>0.02</outputRedshift>
+  <outputRedshift>0.04</outputRedshift>
+  <outputRedshift>0.06</outputRedshift>
+  <outputRedshift>0.08</outputRedshift>
+  <outputRedshift>0.10</outputRedshift>
+  <outputRedshift>0.12</outputRedshift>
+  <outputRedshift>0.14</outputRedshift>
+  <outputRedshift>0.16</outputRedshift>
+  <outputRedshift>0.18</outputRedshift>
+  <outputRedshift>0.20</outputRedshift>
+  <outputRedshift>0.22</outputRedshift>
+  <outputRedshift>0.24</outputRedshift>
+  <outputRedshift>0.25</outputRedshift>
   <haloMassResolution>1.0e8</haloMassResolution>
   <haloMassMinimum>2.0e08</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
