@@ -56,7 +56,7 @@ contains
   end function charlotFall2000DefaultConstructor
 
   function charlotFall2000Constructor(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds)
-    !% Constructor for the ``charlotFall2000'' stellar spectra dust attenuatio class.
+    !% Constructor for the ``charlotFall2000'' stellar spectra dust attenuation class.
     implicit none
     type            (stellarSpectraDustAttenuationCharlotFall2000)                :: charlotFall2000Constructor
     double precision                                              , intent(in   ) :: opacityExponent           , birthCloudLifetime     , &
