@@ -171,8 +171,6 @@ contains
          &                                                   coolingTimeTemperatureLogSlope  , density                   , &
          &                                                   densityLogSlope                 , outerRadius               , &
          &                                                   temperature                     , temperatureLogSlope
-    type            (abundances          )                :: gasAbundances
-    type            (chemicalAbundances  )                :: chemicalDensities
     type            (radiationStructure  )                :: radiation
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -205,8 +203,8 @@ contains
           coolingTimeAvailable            =self%coolingTimeAvailable_%timeAvailable            (node)
           coolingTimeAvailableIncreaseRate=self%coolingTimeAvailable_%timeAvailableIncreaseRate(node)
           ! Get gradients of cooling time with density and temperature.
-          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (temperature,density,gasAbundances,chemicalDensities,radiation)
-          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(temperature,density,gasAbundances,chemicalDensities,radiation)
+          coolingTimeDensityLogSlope    =self%coolingTime_%gradientDensityLogarithmic    (temperature,density,simpleGasAbundances_,simpleChemicalDensities_,radiation)
+          coolingTimeTemperatureLogSlope=self%coolingTime_%gradientTemperatureLogarithmic(temperature,density,simpleGasAbundances_,simpleChemicalDensities_,radiation)
           ! Compute rate at which cooling radius grows.
           if (coolingRadius > 0.0d0) then
              self%radiusGrowthRateStored=+coolingRadius                                        &
