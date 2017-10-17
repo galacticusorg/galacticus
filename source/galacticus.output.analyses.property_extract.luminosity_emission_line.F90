@@ -100,7 +100,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>depthOpticalISMCoefficient</name>
-    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <defaultValue>0.0d0</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
     !#   <type>string</type>
@@ -234,6 +234,10 @@ contains
     class           (nodeComponentDisk                             ), pointer          :: disk
     class           (nodeComponentSpheroid                         ), pointer          :: spheroid
     class           (stellarSpectraDustAttenuationClass            ), pointer          :: stellarSpectraDustAttenuation_
+    double precision                                                , parameter        :: massMinimum                   =1.0d-06
+    double precision                                                , parameter        :: radiusMinimum                 =1.0d-06
+    double precision                                                , parameter        :: rateStarFormationMinimum      =1.0d-06
+    double precision                                                , parameter        :: luminosityIonizingMinimum     =1.0d-20
     double precision                                                , parameter        :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
     double precision                                                , parameter        :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
     double precision                                                , parameter        :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
@@ -297,16 +301,20 @@ contains
     radius             (galacticComponentSpheroid)=spheroid%radius             ()
     rateStarFormation  (galacticComponentDisk    )=disk    %starFormationRate  ()
     rateStarFormation  (galacticComponentSpheroid)=spheroid%starFormationRate  ()
-    ! Determine if component is physically reasonable.
-    isPhysical= massGas > 0.0d0 &
-         &     .and.            &
-         &      radius  > 0.0d0
     ! Extract ionizing continuum luminosities.
     do component=1,2
        do continuum=1,3
           luminosityIonizing(continuum,component)=luminositiesStellar(component)%luminosity(self%ionizingContinuumIndex(output,continuum))
        end do
     end do
+    ! Determine if component is physically reasonable.
+    isPhysical= massGas                                         > massMinimum               &
+         &     .and.                                                                        &
+         &      radius                                          > radiusMinimum             &
+         &     .and.                                                                        &
+         &      rateStarFormation                               > rateStarFormationMinimum  &
+         &     .and.                                                                        &
+         &      luminosityIonizing(ionizingContinuumHydrogen,:) > luminosityIonizingMinimum
     ! Convert ionizing continuum luminosities from AB units to units of photons s⁻¹.
     forall(continuum=1:3)
        luminosityIonizing(continuum,:)=+luminosityIonizing(continuum,:)     &
@@ -353,11 +361,11 @@ contains
             &                                 /atomicMassHydrogen          &
             &                                )
        ! Compute logarithm of Lyman continuum luminosity.
-       luminosityLymanContinuum       =+log10(                                              luminosityIonizing(ionizingContinuumHydrogen,:))
+       luminosityLymanContinuum       =+log10(                                                                             luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute helium to Lyman continuum luminosity logarithmic ratio.
-       ratioLuminosityHeliumToHydrogen=+log10(luminosityIonizing(ionizingContinuumHelium,:)/luminosityIonizing(ionizingContinuumHydrogen,:))
+       ratioLuminosityHeliumToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumHelium,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute oxygen to Lyman continuum luminosity logarithmic ratio.
-       ratioLuminosityOxygenToHydrogen=+log10(luminosityIonizing(ionizingContinuumOxygen,:)/luminosityIonizing(ionizingContinuumHydrogen,:))
+       ratioLuminosityOxygenToHydrogen=+log10(max(luminosityIonizing(ionizingContinuumOxygen,:),luminosityIonizingMinimum)/luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute number of HII regions.
        countHIIRegion                 =+rateStarFormation &
             &                          *lifetimeHIIRegion &
@@ -365,16 +373,23 @@ contains
        !  Convert the hydrogen ionizing luminosity to be per HII region.
        luminosityLymanContinuum       =+luminosityLymanContinuum &
             &                          -log10(countHIIRegion)
-       ! Compute surface densities of metals in units of M☉ pc⁻².
-       densitySurfaceMetals           =+10.0d0**metallicityGas       &
-            &                          *        metallicitySolar     &
-            &                          *        densitySurfaceGas    &
-            &                          /        mega             **2
-       ! Compute optical depth of diffuse dust.
-       depthOpticalDiffuse            =+self%depthOpticalISMCoefficient &
-            &                          *     depthOpticalNormalization  &
-            &                          *     densitySurfaceMetals
     end where
+    ! Perform dust calculation if necessary.
+    if (self%depthOpticalISMCoefficient > 0.0d0) then
+       where (isPhysical)
+          ! Compute surface densities of metals in units of M☉ pc⁻².
+          densitySurfaceMetals           =+10.0d0**metallicityGas       &
+               &                          *        metallicitySolar     &
+               &                          *        densitySurfaceGas    &
+               &                          /        mega             **2
+          ! Compute optical depth of diffuse dust.
+          depthOpticalDiffuse            =+self%depthOpticalISMCoefficient &
+               &                          *     depthOpticalNormalization  &
+               &                          *     densitySurfaceMetals
+       end where
+    else
+       depthOpticalDiffuse            =+0.0d0
+    end if
     ! Iterate over components.
     lmnstyEmssnLineExtract=0.0d0
     do component=1,2
