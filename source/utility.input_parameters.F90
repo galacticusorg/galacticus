@@ -125,6 +125,7 @@ module Input_Parameters
      !@   <objectMethod>
      !@     <method>resolveReferences</method>
      !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@     <description>Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects.</description>
      !@   </objectMethod>
      !@   <objectMethod>
