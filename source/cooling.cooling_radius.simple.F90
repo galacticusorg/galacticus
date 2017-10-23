@@ -194,6 +194,7 @@ contains
           self%hotHaloMassDistribution_   => hotHaloMassDistribution  ()
           ! Define radiation field.
           call radiation%define([radiationTypeCMB])
+          call radiation%set(node)
           ! Get density and temperature  at the cooling radius, plus their gradients.
           density            =self%hotHaloMassDistribution_  %density            (node,coolingRadius)
           temperature        =self%hotHaloTemperatureProfile_%temperature        (node,coolingRadius)
