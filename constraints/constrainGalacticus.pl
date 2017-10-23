@@ -709,16 +709,18 @@ sub semaphorePost {
     my $semaphoreName = shift();
 
     # Open the semaphore.
-    my $galacticusSemaphore = POSIX::RT::Semaphore->open("/".$semaphoreName, O_CREAT, 0660, $threadCount);
-    # Repeatedly post.
-    print "Posting to semaphore....\n";
-    for(my $i=0;$i<$threadCount;++$i) {
+    if ( -e "/dev/shm/sem.".$semaphoreName ) {
+	my $galacticusSemaphore = POSIX::RT::Semaphore->open("/".$semaphoreName, O_CREAT, 0660, $threadCount);
+	# Repeatedly post.
+	print "Posting to semaphore....\n";
+	for(my $i=0;$i<$threadCount;++$i) {
+	    my $count = $galacticusSemaphore->getvalue();
+	    print "Current semaphore value is: ".$count."\n";
+	    $galacticusSemaphore->post();
+	}
 	my $count = $galacticusSemaphore->getvalue();
-	print "Current semaphore value is: ".$count."\n";
-	$galacticusSemaphore->post();
+	print "Final semaphore value is: ".$count."\n";    
     }
-    my $count = $galacticusSemaphore->getvalue();
-    print "Final semaphore value is: ".$count."\n";    
 }
 
 sub systemThread {
