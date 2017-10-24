@@ -278,7 +278,7 @@ contains
     !% Aborts on attempts to get radial density moment of mass distributions with no density defined.
     use Galacticus_Error
     implicit none
-    class           (massDistribution), intent(in   )           :: self
+    class           (massDistribution), intent(inout)           :: self
     double precision                  , intent(in   )           :: moment 
     double precision                  , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                           , intent(  out), optional :: isInfinite

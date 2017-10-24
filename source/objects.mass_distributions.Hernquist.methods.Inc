@@ -89,7 +89,7 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
-  class           (massDistributionHernquist), intent(in   )           :: self
+  class           (massDistributionHernquist), intent(inout)           :: self
   double precision                           , intent(in   )           :: moment
   double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
   logical                                    , intent(  out), optional :: isInfinite

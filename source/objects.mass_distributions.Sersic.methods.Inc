@@ -103,7 +103,7 @@ double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,mo
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
-  class           (massDistributionSersic), intent(in   )           :: self
+  class           (massDistributionSersic), intent(inout)           :: self
   double precision                        , intent(in   )           :: moment    
   double precision                        , intent(in   ), optional :: radiusMinimum, radiusMaximum
   logical                                 , intent(  out), optional :: isInfinite
