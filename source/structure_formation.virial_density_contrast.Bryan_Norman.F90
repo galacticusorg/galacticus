@@ -116,9 +116,9 @@ contains
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
     case (bryanNorman1998FitZeroLambda)
-       bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
+       bryanNorman1998DensityContrast=(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/(x+1.0d0)
     case (bryanNorman1998FitFlatUniverse)
-       bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)
+       bryanNorman1998DensityContrast=(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/(x+1.0d0)
     case default
        bryanNorman1998DensityContrast=0.0d0
        call Galacticus_Error_Report('invalid fit type'//{introspection:location})
@@ -142,23 +142,23 @@ contains
     x=self%cosmologyFunctions_%omegaMatterEpochal(time,expansionFactor,collapsing)-1.0d0
     select case (self%fitType)
     case (bryanNorman1998FitZeroLambda)
-       bryanNorman1998DensityContrastRateOfChange=                                                &
-            & (                                                                                   &
-            &  +(            +60.0d0  -64.0d0*x   )                                               &
-            &  -(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)                                               &
-            &  /self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
-            & )                                                                                   &
-            & * self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
-            & / self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+       bryanNorman1998DensityContrastRateOfChange=                                               &
+            & (                                                                                  &
+            &  +(            +60.0d0  -64.0d0*x   )                                              &
+            &  -(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)                                              &
+            &  /(x+1.0d0)                                                                        &
+            & )                                                                                  &
+            & *self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
+            & / (x+1.0d0)
     case (bryanNorman1998FitFlatUniverse)
-       bryanNorman1998DensityContrastRateOfChange=                                                &
-            & (                                                                                   &
-            &  +(            +82.0d0  -78.0d0*x   )                                               &
-            &  -(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)                                               &
-            &  /self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing) &
-            & )                                                                                   &
-            & * self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
-            & / self%cosmologyFunctions_%omegaMatterEpochal     (time,expansionFactor,collapsing)
+       bryanNorman1998DensityContrastRateOfChange=                                               &
+            & (                                                                                  &
+            &  +(            +82.0d0  -78.0d0*x   )                                              &
+            &  -(18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)                                              &
+            &  /(x+1.0d0)                                                                        &
+            & )                                                                                  &
+            & *self%cosmologyFunctions_%omegaMatterRateOfChange(time,expansionFactor,collapsing) &
+            & / (x+1.0d0)
     case default
        bryanNorman1998DensityContrastRateOfChange=0.0d0
        call Galacticus_Error_Report('invalid fit type'//{introspection:location})
