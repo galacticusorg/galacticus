@@ -111,6 +111,9 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
         end if
      end if
   end if
+  ! Initialize stored results.
+  self%momentRadial2XPrevious=-1.0d0
+  self%momentRadial3XPrevious=-1.0d0
   return
 end subroutine Mass_Distribution_Beta_Profile_Initialize
 
@@ -322,7 +325,7 @@ double precision function Mass_Distribution_Beta_Profile_Density_Radial_Moment(s
   use Hypergeometric_Functions
   use Numerical_Comparison
   implicit none
-  class           (massDistributionBetaProfile), intent(in   )           :: self
+  class           (massDistributionBetaProfile), intent(inout)           :: self
   double precision                             , intent(in   )           :: moment
   double precision                             , intent(in   ), optional :: radiusMinimum          , radiusMaximum
   logical                                      , intent(  out), optional :: isInfinite
@@ -397,35 +400,49 @@ contains
     double precision, intent(in   ) :: x
     double precision, parameter     :: xSmall=1.0d-6
 
-    if      (moment == 2) then
-       ! 2ⁿᵈ moment.
-       if (x < xSmall) then
-          ! Series solution for small x.
-          radialMomentTwoThirds=x**3*(1.0d0/3.0d0-x**2/5.0d0)
-       else
-          ! General solution.
-          radialMomentTwoThirds=+     x &
-               &                -atan(x)
-       end if
-    else if (moment == 3) then
-       ! 3ʳᵈ moment.
-       if (x < xSmall) then
-          ! Series solution for small x.
-          radialMomentTwoThirds=x**4*(1.0d0/4.0d0-x**2/6.0d0)
-       else
-          ! General solution.
-          radialMomentTwoThirds=+0.5d0        &
-               &                *(            &
-               &                  +x**2       &
-               &                  -log(       &
-               &                       +1.0d0 &
-               &                       +x**2  &
-               &                      )       &
-               &                 )
-       end if
-    else
+    if (x <= 0.0d0) then
+       ! For zero radius the moment is always zero.
        radialMomentTwoThirds=0.0d0
-       call Galacticus_Error_Report('unsupported moment'//{introspection:location})
+    else
+       ! For non-zero radius, compute the moment.
+       if      (moment == 2) then
+          ! 2ⁿᵈ moment.
+          if (x /= self%momentRadial2XPrevious) then
+             self%momentRadial2XPrevious=x
+             if (x < xSmall) then
+                ! Series solution for small x.
+                self%momentRadial2Previous=x**3*(1.0d0/3.0d0-x**2/5.0d0)
+             else
+                ! General solution.
+                self%momentRadial2Previous=+     x &
+                     &                     -atan(x)
+             end if
+          end if
+          radialMomentTwoThirds=self%momentRadial2Previous
+       else if (moment == 3) then
+          ! 3ʳᵈ moment.
+          if (x /= self%momentRadial3XPrevious) then
+             self%momentRadial3XPrevious=x
+             if (x < xSmall) then
+                ! Series solution for small x.
+                self%momentRadial3Previous=x**4*(1.0d0/4.0d0-x**2/6.0d0)
+             else
+                ! General solution.
+                self%momentRadial3Previous=+0.5d0        &
+                     &                     *(            &
+                     &                       +x**2       &
+                     &                       -log(       &
+                     &                            +1.0d0 &
+                     &                            +x**2  &
+                     &                           )       &
+                     &                      )
+             end if
+          end if
+          radialMomentTwoThirds=self%momentRadial3Previous
+       else
+          radialMomentTwoThirds=0.0d0
+          call Galacticus_Error_Report('unsupported moment'//{introspection:location})
+       end if
     end if
     return
   end function radialMomentTwoThirds
