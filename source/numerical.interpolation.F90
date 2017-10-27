@@ -81,7 +81,9 @@ contains
     type            (varying_string   )                                        :: message
     integer         (kind=fgsl_int    )                                        :: errorCode
     double precision                                                           :: gradient                       , xActual
-
+    character       (len =12          )                                        :: labelX                         , labelXMinimum          , &
+         &                                                                        labelXMaximum                  , labelXActual
+    
     ! Detect mismatched array sizes.
     if (size(xArray,kind=c_size_t) /= size(yArray,kind=c_size_t)) call Galacticus_Error_Report('mismatched array sizes'//{introspection:location})
     ! Decide whether to reset.
@@ -155,7 +157,11 @@ contains
        if (errorCode /= 0) then
           select case (errorCode)
           case (FGSL_EDOM)
-             message='requested point is outside of allowed range'
+             write (labelX       ,'(e12.6)') x
+             write (labelXActual ,'(e12.6)') xActual
+             write (labelXMinimum,'(e12.6)') xArray (1       )
+             write (labelXMaximum,'(e12.6)') xArray (nPointsC)
+             message='requested point ['//labelX//' ⟶ '//labelXActual//'] is outside of allowed range ['//labelXMinimum//':'//labelXMaximum//']'
           case default
              message='interpolation failed for unknown reason'
           end select
