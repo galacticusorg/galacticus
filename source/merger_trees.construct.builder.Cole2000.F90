@@ -31,8 +31,6 @@
      ! Variables controlling merger tree accuracy.
      double precision                                           :: accretionLimit                          , timeEarliest             , &
           &                                                        mergeProbability
-     ! Option controlling random number sequences.
-     logical                                                    :: randomSeedsFixed
      ! Random number sequence variables
      logical                                                    :: branchIntervalStep
      ! Interval distribution.
@@ -115,15 +113,6 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>randomSeedsFixed</name>
-    !#   <source>parameters</source>
-    !#   <variable>cole2000ConstructorParameters%randomSeedsFixed</variable>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether the random number sequence should be restarted for each tree using a deterministically derived (from the tree index) seed. This allows the exact same tree to be generated even when running multiple threads.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
     !#   <name>branchIntervalStep</name>
     !#   <source>parameters</source>
     !#   <variable>cole2000ConstructorParameters%branchIntervalStep</variable>
@@ -162,7 +151,7 @@ contains
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,randomSeedsFixed,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
@@ -171,14 +160,13 @@ contains
     double precision                               , intent(in   )         :: mergeProbability           , accretionLimit         , &
          &                                                                    timeEarliest               , toleranceResolutionSelf, &
          &                                                                    toleranceResolutionParent
-    logical                                        , intent(in   )         :: randomSeedsFixed           , branchIntervalStep
+    logical                                        , intent(in   )         :: branchIntervalStep
     class           (mergerTreeMassResolutionClass), intent(in   ), target :: mergerTreeMassResolution_
     
     ! Store options.
     cole2000ConstructorInternal%mergeProbability          =  mergeProbability
     cole2000ConstructorInternal%accretionLimit            =  accretionLimit
     cole2000ConstructorInternal%timeEarliest              =  timeEarliest
-    cole2000ConstructorInternal%randomSeedsFixed          =  randomSeedsFixed
     cole2000ConstructorInternal%branchIntervalStep        =  branchIntervalStep
     cole2000ConstructorInternal%toleranceResolutionSelf   =  toleranceResolutionSelf
     cole2000ConstructorInternal%toleranceResolutionParent =  toleranceResolutionParent
