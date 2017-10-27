@@ -146,7 +146,11 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if (errorCondition) call Galacticus_Error_Report('error condition detected'//{introspection:location})
+       if (errorCondition) then
+          call satelliteNode%serializeASCII()
+          call hostNode     %serializeASCII()
+          call Galacticus_Error_Report('error condition detected'//{introspection:location})
+       end if
        ! Check if host has finite mass.
        if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
           ! Compute masses of dark matter within the host and satellite radii.
