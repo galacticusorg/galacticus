@@ -478,7 +478,7 @@ contains
     double precision                                                                           , intent(in   ) :: age                          (:), redshift                (:)
     type            (abundances                )                                               , intent(in   ) :: abundancesStellar
     double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
-    double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
+    double precision                                         , dimension(0:1                  )                :: hAge                            , hMetallicity
     integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
          &                                                                                                        iMetallicity                    , jAge                       , &
          &                                                                                                        jMetallicity
@@ -502,7 +502,6 @@ contains
             &,luminosityTables(imfIndex)%resetMetallicity)
        hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
     end if
-
     ! Do the interpolation.
     Stellar_Population_Luminosity(:)= 0.0d0
     ageLast                         =-1.0d0
