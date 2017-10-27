@@ -83,7 +83,7 @@ contains
     !% \ttfamily diskOutflowVelocity}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
     !% disk,outflow}$(={\normalfont \ttfamily diskOutflowExponent}) controls the scaling with velocity. Note that the velocity
     !% $V_{\mathrm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to
-    !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
+    !% that adopted by \cite{cole_hierarchical_2000}, except that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
     implicit none
     class           (starFormationFeedbackDisksPowerLaw), intent(inout) :: self
