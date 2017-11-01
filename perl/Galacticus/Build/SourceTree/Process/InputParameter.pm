@@ -227,7 +227,7 @@ sub Process_InputParameters {
 		print $defHndl "\\\\\n";
 	    }
 	    print $defHndl "{\\normalfont \\bfseries Description:} ".$node->{'directive'}->{'description'};
-	    print $defHndl ($node->{'directive'}->{'description'} =~ m/\\end{[a-z]+}\s*$/ ? "" : " \\\\")."\n";	    
+	    print $defHndl ($node->{'directive'}->{'description'} =~ m/\\end\{[a-z]+\}\s*$/ ? "" : " \\\\")."\n";	    
 	    if ( $fileIn =~ m/\.Inc$/ ) {
 		print $defHndl "{\\normalfont \\bfseries Defined in:} {\\normalfont \\ttfamily ".$definedIn."}\\\\\n";
 		print $defHndl "{\\normalfont \\bfseries File:} {\\normalfont \\ttfamily ".latex_encode($fileIn)."}\\\\\n";
