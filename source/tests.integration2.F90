@@ -33,28 +33,33 @@ program Test_Integration2
   use yepLibrary
 #endif
   implicit none
-  double precision                                                         :: timeMean                       , error
-  integer         (kind=kind_int8            )                             :: countStart                     , countEnd                , &
-       &                                                                      countRate
-  character       (len =   3                 )                             :: units
-  character       (len = 128                 )                             :: label                          , formatter               , &
-       &                                                                      status
-  character       (len =1024                 )                             :: message
-  double precision                            , parameter                  :: toleranceRelative       =1.0d-6, toleranceAbsolute=1.0d-6
-  integer                                                                  :: i                              , trial                   , &
-       &                                                                      integrationRule                , iFunction               , &
-       &                                                                      descriptionLengthMaximum
-  type            (fgsl_function             )                             :: integrandFunction
-  type            (fgsl_integration_workspace)                             :: integrationWorkspace
-  integer                                     , parameter                  :: integratorCount         = 10
-  type            (testIntegrator            ), dimension(integratorCount) :: integrators
-  double precision                            , dimension(integratorCount) :: integral
-  double precision                            , dimension(              2) :: integralGSL
-  integer         (kind=kind_int8            ), dimension(integratorCount) :: time
-  integer         (kind=kind_int8            ), dimension(              2) :: timeGSL
-  integer                                     , parameter                  :: trialCount              =10
+  double precision                                                                             :: timeMean                       , error
+  integer         (kind=kind_int8            )                                                 :: countStart                     , countEnd                , &
+       &                                                                                          countRate
+  character       (len =   3                 )                                                 :: units
+  character       (len = 128                 )                                                 :: label                          , formatter               , &
+       &                                                                                          status
+  character       (len =1024                 )                                                 :: message
+  double precision                            , parameter                                      :: toleranceRelative       =1.0d-6, toleranceAbsolute=1.0d-6
+  integer                                                                                      :: i                              , trial                   , &
+       &                                                                                          integrationRule                , iFunction               , &
+       &                                                                                          descriptionLengthMaximum
+  type            (fgsl_function             )                                                 :: integrandFunction
+  type            (fgsl_integration_workspace)                                                 :: integrationWorkspace
+  integer                                     , parameter                                      :: integratorCount         = 10
+  integer                                     , parameter                                      :: integratorMultiCount    = 1
+  type            (testIntegrator            ), dimension(integratorCount       )              :: integrators
+  type            (testIntegratorMulti       ), dimension(integratorMultiCount  )              :: integratorsMulti
+  double precision                            , dimension(integratorCount       )              :: integral
+  double precision                            , dimension(integratorMultiCount,2)              :: integralMulti
+  double precision                            , dimension(                     2)              :: integralGSL
+  double precision                            , dimension(                     :), allocatable :: tolerancesAbsolute, tolerancesRelative
+  integer         (kind=kind_int8            ), dimension(integratorCount       )              :: time
+  integer         (kind=kind_int8            ), dimension(integratorMultiCount  )              :: timeMulti
+  integer         (kind=kind_int8            ), dimension(                     2)              :: timeGSL
+  integer                                     , parameter                                      :: trialCount              =10
 #ifdef YEPPP
-  integer         (c_int                     )                             :: yepppStatus
+  integer         (c_int                     )                                                 :: yepppStatus
 #endif
 
   ! Initialize the YEPPP library.
@@ -82,42 +87,42 @@ program Test_Integration2
           &                                testFunctions(iFunction)%rangeHigh
      call Galacticus_Display_Indent(message)
      ! Allocate integrators.
-     allocate(integratorCompositeTrapezoidal1D            :: integrators( 1)%integrator_)
-     integrators(1)%description="Scalar composite trapezoidal"
-     integrators(1)%useYEPPP=.false.
-     allocate(integratorAdaptiveCompositeTrapezoidal1D    :: integrators( 2)%integrator_)
-     integrators(2)%description="Scalar adaptive composite trapezoidal"
-     integrators(2)%useYEPPP=.false.
-     allocate(integratorVectorizedCompositeTrapezoidal1D  :: integrators( 3)%integrator_)
-     integrators(3)%description="Vector adaptive composite trapezoidal"
-     integrators(3)%useYEPPP=.false.
-     allocate(integratorVectorizedCompositeTrapezoidal1D  :: integrators( 4)%integrator_)
-     integrators(4)%description="Vector YEPPP! adaptive composite trapezoidal"
-     integrators(4)%useYEPPP=.true.
-     allocate(integratorCompositeGaussKronrod1D           :: integrators( 5)%integrator_)
-     integrators(5)%description="Scalar adaptive composite Gauss-Kronrod 15-point"
-     integrators(5)%useYEPPP=.false.
-     integrators(5)%order   =15
-     allocate(integratorCompositeGaussKronrod1D           :: integrators( 6)%integrator_)
-     integrators(6)%description="Scalar adaptive composite Gauss-Kronrod 61-point"
-     integrators(6)%useYEPPP=.false.
-     integrators(6)%order   =61
-     allocate(integratorVectorizedCompositeGaussKronrod1D :: integrators( 7)%integrator_)
-     integrators(7)%description="Vector adaptive composite Gauss-Kronrod 15-point"
-     integrators(7)%useYEPPP=.false.
-     integrators(7)%order   =15
-     allocate(integratorVectorizedCompositeGaussKronrod1D :: integrators( 8)%integrator_)
-     integrators(8)%description="Vector adaptive composite Gauss-Kronrod 61-point"
-     integrators(8)%useYEPPP=.false.
-     integrators(8)%order   =61
-     allocate(integratorVectorizedCompositeGaussKronrod1D :: integrators( 9)%integrator_)
-     integrators(9)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 15-point"
-     integrators(9)%useYEPPP=.true.
-     integrators(9)%order   =15
-     allocate(integratorVectorizedCompositeGaussKronrod1D :: integrators(10)%integrator_)
-     integrators(10)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 61-point"
-     integrators(10)%useYEPPP=.true.
-     integrators(10)%order   =61
+     allocate(integratorCompositeTrapezoidal1D                 :: integrators     ( 1)%integrator_)
+     integrators     ( 1)%description="Scalar composite trapezoidal"
+     integrators     ( 1)%useYEPPP=.false.
+     allocate(integratorAdaptiveCompositeTrapezoidal1D         :: integrators     ( 2)%integrator_)
+     integrators     ( 2)%description="Scalar adaptive composite trapezoidal"
+     integrators     ( 2)%useYEPPP=.false.
+     allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     ( 3)%integrator_)
+     integrators     ( 3)%description="Vector adaptive composite trapezoidal"
+     integrators     ( 3)%useYEPPP=.false.
+     allocate(integratorVectorizedCompositeTrapezoidal1D       :: integrators     ( 4)%integrator_)
+     integrators     ( 4)%description="Vector YEPPP! adaptive composite trapezoidal"
+     integrators     ( 4)%useYEPPP=.true.
+     allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 5)%integrator_)
+     integrators     ( 5)%description="Scalar adaptive com     posite Gauss-Kronrod 15-point"
+     integrators     ( 5)%useYEPPP=.false.
+     integrators     ( 5)%order   =15
+     allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 6)%integrator_)
+     integrators     ( 6)%description="Scalar adaptive composite Gauss-Kronrod 61-point"
+     integrators     ( 6)%useYEPPP=.false.
+     integrators     ( 6)%order   =61
+     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 7)%integrator_)
+     integrators     ( 7)%description="Vector adaptive composite Gauss-Kronrod 15-point"
+     integrators     ( 7)%useYEPPP=.false.
+     integrators     ( 7)%order   =15
+     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 8)%integrator_)
+     integrators     ( 8)%description="Vector adaptive composite Gauss-Kronrod 61-point"
+     integrators     ( 8)%useYEPPP=.false.
+     integrators     ( 8)%order   =61
+     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     ( 9)%integrator_)
+     integrators     ( 9)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 15-point"
+     integrators     ( 9)%useYEPPP=.true.
+     integrators     ( 9)%order   =15
+     allocate(integratorVectorizedCompositeGaussKronrod1D      :: integrators     (10)%integrator_)
+     integrators     (10)%description="Vector YEPPP! adaptive composite Gauss-Kronrod 61-point"
+     integrators     (10)%useYEPPP=.true.
+     integrators     (10)%order   =61
      ! Find the longest description.
      descriptionLengthMaximum=26
      do i=1,integratorCount
@@ -216,7 +221,7 @@ program Test_Integration2
         timeMean=dble(time(i))/dble(trialCount)
         error= +abs(integral(i)-testFunctions(iFunction)%solution) &
              & /abs(            testFunctions(iFunction)%solution)
-        if (error > toleranceAbsolute .or. error > toleranceRelative*abs(testFunctions(iFunction)%solution)) then
+        if (error > toleranceAbsolute/abs(testFunctions(iFunction)%solution) .and. error > toleranceRelative) then
            status="FAIL"
         else
            status="pass"
@@ -239,7 +244,7 @@ program Test_Integration2
         end select
          error= +abs(integralGSL(i)-testFunctions(iFunction)%solution) &
               & /abs(               testFunctions(iFunction)%solution)
-        if (error > toleranceAbsolute .or. error > toleranceRelative*abs(testFunctions(iFunction)%solution)) then
+        if (error > toleranceAbsolute/abs(testFunctions(iFunction)%solution) .and. error > toleranceRelative) then
            status="FAIL"
         else
            status="pass"
@@ -255,6 +260,93 @@ program Test_Integration2
      ! Destroy integrators.
      do i=1,integratorCount
         deallocate(integrators(i)%integrator_)
+     end do
+     call Galacticus_Display_Unindent("done")
+  end do
+  ! Iterate over multi-integrand functions.
+  do iFunction=1,size(testFunctionsMulti)
+     write (message,'(a,a,a,f5.2,a,f5.2)') "Test: ∫ "                                     , &
+          &                                trim(testFunctionsMulti(iFunction)%description), &
+          &                                " dx; from x="                                 , &
+          &                                testFunctionsMulti(iFunction)%rangeLow         , &
+          &                                " to "                                         , &
+          &                                testFunctionsMulti(iFunction)%rangeHigh
+     call Galacticus_Display_Indent(message)
+     ! Allocate integrators.
+     allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integratorsMulti( 1)%integrator_)
+     integratorsMulti( 1)%description="Multi-integrand vector adaptive composite Gauss-Kronrod 61-point"
+     integratorsMulti( 1)%order   =61
+     ! Find the longest description.
+     descriptionLengthMaximum=26
+     do i=1,integratorMultiCount
+        descriptionLengthMaximum=max(descriptionLengthMaximum,len(integratorsMulti(i)%description))
+     end do
+     write (formatter,'(a,i3.3,a)') '(a',descriptionLengthMaximum,',": ⏲=",f14.3,1x,a,1x,"∫=",f14.10,",",f14.10,1x,"ℯ=",e14.8," [",a,"]")'
+     ! Initialize integrators.
+     do i=1,integratorMultiCount
+        select type (integrator_ => integratorsMulti(i)%integrator_)
+        class is (integratorMultiVectorizedCompositeGaussKronrod1D)
+           call integrator_%initialize   (24               ,integratorsMulti(i)%order)
+           allocate(tolerancesAbsolute(size(testFunctionsMulti(iFunction)%solution)))
+           allocate(tolerancesRelative(size(testFunctionsMulti(iFunction)%solution)))
+           tolerancesAbsolute=toleranceAbsolute
+           tolerancesRelative=toleranceRelative
+           call integrator_%tolerancesSet(tolerancesAbsolute,tolerancesRelative)
+           deallocate(tolerancesAbsolute)
+           deallocate(tolerancesRelative)
+        class default
+           call Galacticus_Error_Report('unknown integrator class [1.m]'//{introspection:location})
+        end select
+     end do
+      ! Assign functions.
+      do i=1,integratorMultiCount
+         select type (integrator_ => integratorsMulti(i)%integrator_)
+         class is (integratorMultiVectorized1D)
+            call integrator_%integrandSet(size(testFunctionsMulti(iFunction)%solution),testFunctionsMulti(iFunction)%vector)
+         class default
+            call Galacticus_Error_Report('unknown integrator class [2.m]'//{introspection:location})
+         end select
+      end do
+     ! Initialize times to zero.
+      timeMulti=0
+      ! Iterate over trials.
+      do trial=1,trialCount
+         ! Evaluate internal integrators.
+         do i=1,integratorMultiCount
+            select type (integrator_ => integratorsMulti(i)%integrator_)
+            class is (integratorMultiVectorized1D)
+               call System_Clock(countStart,countRate)
+               integralMulti(i,:)=integrator_%evaluate(testFunctionsMulti(iFunction)%rangeLow,testFunctionsMulti(iFunction)%rangeHigh)
+               call System_Clock(countEnd  ,countRate)
+               timeMulti(i)=timeMulti(i)+(countEnd-countStart)
+               class default
+               call Galacticus_Error_Report('unknown integrator class [3.m]'//{introspection:location})
+            end select
+         end do
+      end do
+      ! Report.
+      do i=1,integratorMultiCount
+         timeMean=+dble(timeMulti(i))/dble(trialCount)
+         error   =+maxval(                                                                &
+              &           +abs(integralMulti(i,:)-testFunctionsMulti(iFunction)%solution) &
+              &           /abs(                  +testFunctionsMulti(iFunction)%solution) &
+             &          )
+        if (error > toleranceAbsolute/abs(testFunctions(iFunction)%solution) .and. error > toleranceRelative) then
+           status="FAIL"
+        else
+           status="pass"
+        end if
+        write (message,formatter) char(integratorsMulti(i)%description), &
+             &                    timeMean                             , &
+             &                    units                                , &
+             &                    integralMulti(i,:)                   , &
+             &                    error                                , &
+             &                    trim(status)
+        call Galacticus_Display_Message(message)
+     end do
+     ! Destroy integrators.
+     do i=1,integratorMultiCount
+        deallocate(integratorsMulti(i)%integrator_)
      end do
      call Galacticus_Display_Unindent("done")
   end do
