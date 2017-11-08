@@ -284,7 +284,7 @@ contains
     basic => node%basic()
     select type (basic)
     class is (nodeComponentBasicStandard)
-       if (basic%mass() <= 0.0d0) then
+       if (basic%mass() <= 0.0d0 .or. basic%time() <= 0.0d0) then
           node%isPhysicallyPlausible=.false.
           node%isSolvable           =.false.
        end if
