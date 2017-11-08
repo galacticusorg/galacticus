@@ -196,7 +196,7 @@ contains
     class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
 
     ! Return immediately if already non-plausible.
-    if (.not.node%isPhysicallyPlausible) return
+    if (.not.(node%isPhysicallyPlausible.and.node%isSolvable)) return
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale class.
