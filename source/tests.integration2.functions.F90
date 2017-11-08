@@ -24,10 +24,12 @@ module Test_Integration2_Functions
   use ISO_Varying_String
   implicit none
   private
-  public :: testIntegrator , testFunctionsInitialize, &
-       &    function1Scalar, function1Vector        , &
-       &    function2Scalar, function2Vector        , &
-       &    function3Scalar, function3Vector        
+  public :: testIntegrator         , testIntegratorMulti, &
+       &    function1Scalar        , function1Vector    , &
+       &    function2Scalar        , function2Vector    , &
+       &    function3Scalar        , function3Vector    , &
+       &    function4Vector        , function14Vector   , &
+       &    testFunctionsInitialize
 #ifdef YEPPP
   public :: function1YEPPP, &
        &    function2YEPPP, &
@@ -44,7 +46,7 @@ module Test_Integration2_Functions
 
   type :: testFunction
      !% Type used for referencing functions.
-     character       (len=16         )                  :: description
+     character       (len=18         )                  :: description
      double precision                                   :: rangeLow   , rangeHigh, solution
      procedure       (function1Scalar), pointer, nopass :: scalar
      procedure       (function1Vector), pointer, nopass :: vector
@@ -53,8 +55,24 @@ module Test_Integration2_Functions
 #endif
   end type testFunction
 
-  ! Array of functions for integration tests.
-  type(testFunction), public, dimension(3) :: testFunctions
+  type :: testIntegratorMulti
+     !% Type used for testing multi-integrand numerical integrators.
+     class  (integratorMulti), allocatable :: integrator_
+     type   (varying_string )              :: description
+     integer                               :: order
+  end type testIntegratorMulti
+
+  type :: testFunctionMulti
+     !% Type used for referencing functions.
+     character       (len=18         )                             :: description
+     double precision                                              :: rangeLow   , rangeHigh
+     double precision                  , allocatable, dimension(:) :: solution
+     procedure       (function14Vector), pointer    , nopass       :: vector
+  end type testFunctionMulti
+
+  ! Arrays of functions for integration tests.
+  type(testFunction     ), public, dimension(4) :: testFunctions
+  type(testFunctionMulti), public, dimension(1) :: testFunctionsMulti
 
 contains
 
@@ -62,18 +80,23 @@ contains
     !% Initalize an array of test functions for integration tests.
     implicit none
 #ifdef YEPPP
-    testFunctions=[                                                                                                                      &
-         &         testFunction('log(x) sin(x)   ',1.0d0,10.0d0, 1.549173238901735869d0,function1Scalar,function1Vector,function1YEPPP), &
-         &         testFunction('1/sqrt(x)       ',1.0d0,10.0d0, 4.324555320336759000d0,function2Scalar,function2Vector,function2YEPPP), &
-         &         testFunction('1/(10⁻³+[x-3]²) ',1.0d0,10.0d0,98.703068147327100000d0,function3Scalar,function3Vector,function3YEPPP)  &
-         &        ]
+    testFunctions     =[                                                                                                                                                      &
+         &              testFunction     ('log(x) sin( x)    ',1.0d0,10.0d0,  1.549173238901735869d0                        ,function1Scalar,function1Vector,function1YEPPP), &
+         &              testFunction     ('1/sqrt(x)         ',1.0d0,10.0d0,  4.324555320336759000d0                        ,function2Scalar,function2Vector,function2YEPPP), &
+         &              testFunction     ('1/(10⁻³+[x-3]²    ',1.0d0,10.0d0, 98.703068147327100000d0                        ,function3Scalar,function3Vector,function3YEPPP)  &
+         &              testFunction     ('log(x) sin(2x)    ',1.0d0,10.0d0, -0.659102340089651400d0                        ,function4Scalar,function4Vector,function4YEPPP), &
+         &             ]
 #else
-    testFunctions=[                                                                                                       &
-         &         testFunction('log(x) sin(x)   ',1.0d0,10.0d0, 1.549173238901735869d0,function1Scalar,function1Vector), &
-         &         testFunction('1/sqrt(x)       ',1.0d0,10.0d0, 4.324555320336759000d0,function2Scalar,function2Vector), &
-         &         testFunction('1/(10⁻³+[x-3]²) ',1.0d0,10.0d0,98.703068147327100000d0,function3Scalar,function3Vector)  &
-         &        ]
+    testFunctions     =[                                                                                                                                                      &
+         &              testFunction     ('log(x) sin( x)    ',1.0d0,10.0d0,  1.549173238901735869d0                        ,function1Scalar,function1Vector               ), &
+         &              testFunction     ('1/sqrt(x)         ',1.0d0,10.0d0,  4.324555320336759000d0                        ,function2Scalar,function2Vector               ), &
+         &              testFunction     ('1/(10⁻³+[x-3]²)   ',1.0d0,10.0d0, 98.703068147327100000d0                        ,function3Scalar,function3Vector               ), &
+         &              testFunction     ('log(x) sin(2x)    ',1.0d0,10.0d0, -0.659102340089651400d0                        ,function4Scalar,function4Vector               )  &
+         &             ]
 #endif
+    testFunctionsMulti=[                                                                                                                                                      &
+         &              testFunctionMulti('log(x) sin({1,2}x)',1.0d0,10.0d0,[ 1.549173238901735869d0, -0.6591023400896514d0]                ,function14Vector              )  &
+         &             ]
     return
   end subroutine testFunctionsInitialize
 
@@ -166,6 +189,7 @@ contains
 
   function function3Vector(x)
     !% Test function number 3 for numerical integration tests: vector version.
+    implicit none
     double precision, intent(in   ), dimension(     : ) :: x
     double precision               , dimension(size(x)) :: function3Vector
 
@@ -194,5 +218,39 @@ contains
     return
   end function function3YEPPP
 #endif
+
+  double precision function function4Scalar(x)
+    !% Test function number 4 for numerical integration tests: scalar version.
+    implicit none
+    double precision, intent(in   ) :: x
+
+    function4Scalar=log(x)*sin(2.0d0*x)
+    return
+  end function function4Scalar
+  
+  function function4Vector(x)
+    !% Test function number 4 for numerical integration tests: vector version.
+    implicit none
+    double precision, intent(in   ), dimension(     : ) :: x
+    double precision               , dimension(size(x)) :: function4Vector
+
+    function4Vector=log(x)*sin(2.0d0*x)
+    return
+  end function function4Vector
+
+  subroutine function14Vector(n,x,e,integrand)
+    !% Combined functions number 1 and 4 for numerical integration tests: vector version.
+    implicit none
+    integer         , intent(in   )                       :: n
+    double precision, intent(in   ), dimension(       : ) :: x
+    logical         , intent(inout), dimension(       : ) :: e
+    double precision, intent(  out), dimension(n,size(x)) :: integrand
+    double precision               , dimension(  size(x)) :: logx
+
+    logx                    =     log(      x)
+    if (e(1)) integrand(1,:)=logx*sin(      x)
+    if (e(2)) integrand(2,:)=logx*sin(2.0d0*x)
+    return
+  end subroutine function14Vector
 
 end module Test_Integration2_Functions

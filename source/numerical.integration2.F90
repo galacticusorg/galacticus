@@ -21,13 +21,16 @@
 module Numerical_Integration2
   !% Implements a variety of numerical integrators.
   private
-  public :: integrand1D                                , integrandVectorized1D                     , &
-       &    integratorCompositeTrapezoidal1D           , integratorVectorizedCompositeTrapezoidal1D, & 
-       &    integratorAdaptiveCompositeTrapezoidal1D   , integratorCompositeGaussKronrod1D         , &
-       &    integratorVectorizedCompositeGaussKronrod1D, integrator                                , &
-       &    integrator1D                               , integratorVectorized1D
+  public :: integrand1D                                     , integrandVectorized1D                     , &
+       &    integratorCompositeTrapezoidal1D                , integratorVectorizedCompositeTrapezoidal1D, & 
+       &    integratorAdaptiveCompositeTrapezoidal1D        , integratorCompositeGaussKronrod1D         , &
+       &    integratorVectorizedCompositeGaussKronrod1D     , integrator                                , &
+       &    integrator1D                                    , integratorVectorized1D                    , &
+       &    integratorMulti1D                               , integratorMultiVectorized1D               , &
+       &    integratorMultiVectorizedCompositeGaussKronrod1D, integrandMulti1D                          , &
+       &    integratorMulti
 
-  ! Interval type.
+  ! Interval types.
   type :: interval
      private
      integer                             :: depth
@@ -36,6 +39,15 @@ module Numerical_Integration2
           &                                 error, integral
      type            (interval), pointer :: next
   end type interval
+
+  type :: intervalMulti
+     private
+     integer                                                    :: depth
+     double precision                                           ::  a   ,  b
+     double precision               , dimension(:), allocatable :: fa   , fb      , &
+          &                                                        error, integral
+     type            (intervalMulti), pointer                   :: next
+  end type intervalMulti
 
   ! Generic integrator.
   type :: integrator
@@ -235,6 +247,134 @@ module Numerical_Integration2
      procedure :: evaluate         => vectorizedCompositeGaussKronrod1DEvaluate
      procedure :: evaluateInterval => vectorizedCompositeGaussKronrod1DEvaluateInterval
   end type integratorVectorizedCompositeGaussKronrod1D
+
+  ! Generic multi-integrand integrator.
+  type :: integratorMulti
+     !% Generic numerical integrator class.
+     double precision, allocatable, dimension(:) :: toleranceAbsolute, toleranceRelative
+   contains
+     !@ <objectMethods>
+     !@   <object>integratorMulti</object>
+     !@   <objectMethod>
+     !@     <method>tolerancesSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ [toleranceAbsolute]\argin, \doubleone\ [toleranceRelative]\argin</arguments>
+     !@     <description>Set tolerances to use in this integrator.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: tolerancesSet => tolerancesSetGeneric
+  end type integratorMulti
+
+  ! Generic one-dimensional multi-integrand integrator.
+  type, abstract, extends(integratorMulti) :: integratorMulti1D
+     !% Generic one-dimensional multi-integrand numerical integrator class.
+     private
+     integer                                      :: integrandCount
+     procedure(integrandMulti1D), pointer, nopass :: integrand
+   contains
+     !@ <objectMethods>
+     !@   <object>integratorMulti1D</object>
+     !@   <objectMethod>
+     !@     <method>integrandSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integrandCount\argin, \textcolor{red}{\textless procedure(\doublezero\ (\doublezero\ x\argin))\textgreater}\ integrand\argin</arguments>
+     !@     <description>Set the integrand function to be integrated.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>evaluate</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>\doublezero\ a\argin, \doublezero\ b,\argin</arguments>
+     !@     <description>Evaluate the integral.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure                            :: integrandSet => integrandMulti1DSet
+     procedure(evaluateMulti1D), deferred :: evaluate
+  end type integratorMulti1D
+  abstract interface
+     function evaluateMulti1D(self,a,b) result(integral)
+       import integratorMulti1D
+       class           (integratorMulti1D), intent(inout)                  :: self
+       double precision                   , intent(in   )                  :: a         , b
+       double precision                   , dimension(self%integrandCount) :: integral
+     end function evaluateMulti1D
+  end interface
+  abstract interface
+     function integrandMulti1D(n,x,e)
+       integer         , intent(in   ) :: n
+       double precision, intent(in   ) :: x
+       logical         , intent(inout) :: e
+       double precision, dimension(n)  :: integrandMulti1D
+     end function integrandMulti1D
+  end interface
+  
+  ! Generic one-dimensional multi-integrand vectorized integrator.
+  type, abstract, extends(integratorMulti) :: integratorMultiVectorized1D
+     !% Generic one-dimensional multi-integrand vectorized numerical integrator class.
+     private
+     integer                                                :: integrandCount
+     procedure(integrandMultiVectorized1D), pointer, nopass :: integrand
+   contains
+     !@ <objectMethods>
+     !@   <object>integratorMultiVectorized1D</object>
+     !@   <objectMethod>
+     !@     <method>integrandSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integrandCount\argin, \textcolor{red}{\textless \doubleone\ function(doubleone\ x\argin)\textgreater}\ integrand\argin</arguments>
+     !@     <description>Set the integrand function to be integrated.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure                                      :: integrandSet => integrandMultiVectorizedSet1D
+     procedure(evaluateMultiVectorized1D), deferred :: evaluate
+  end type integratorMultiVectorized1D
+  abstract interface
+     function evaluateMultiVectorized1D(self,a,b) result(integral)
+       import integratorMultiVectorized1D
+       class           (integratorMultiVectorized1D), intent(inout)                  :: self
+       double precision                             , intent(in   )                  :: a       , b
+       double precision                             , dimension(self%integrandCount) :: integral
+     end function evaluateMultiVectorized1D
+  end interface
+  abstract interface
+     subroutine integrandMultiVectorized1D(n,x,e,integrand)
+       integer         , intent(in   )                       :: n
+       double precision, intent(in   ), dimension(       : ) :: x
+       logical         , intent(inout), dimension(       : ) :: e
+       double precision, intent(  out), dimension(n,size(x)) :: integrand
+     end subroutine integrandMultiVectorized1D
+  end interface
+
+  ! Vectorized composite multi-integrand Gauss-Kronrod 1D integrator.
+  type, extends(integratorMultiVectorized1D) :: integratorMultiVectorizedCompositeGaussKronrod1D
+     !% One-dimensional multi-integrand numerical integrator class using a vectorized composite Gauss-Kronrod rule.
+     private
+     integer                                     :: iterationsMaximum
+     double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
+   contains
+     !@ <objectMethods>
+     !@   <object>integratorMultiVectorizedCompositeGaussKronrod1D</object>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ iterationsMaximum\argin, \intzero\ order\argin</arguments>
+     !@     <description>Set the maximum number of iterations allowed, and the order of the integrator.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>evaluate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integral\argout</arguments>
+     !@     <description>Evaluate the integrals.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>evaluateInterval</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ a\argin, \doublezero\ b\argin, \doubleone\ integralKronrod\argout, \doubleone\ error\argout</arguments>
+     !@     <description>Evaluate the integrals over an interval and also return errors on the integrals.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: initialize       => multiVectorizedCompositeGaussKronrod1DInitialize
+     procedure :: evaluate         => multiVectorizedCompositeGaussKronrod1DEvaluate
+     procedure :: evaluateInterval => multiVectorizedCompositeGaussKronrod1DEvaluateInterval
+  end type integratorMultiVectorizedCompositeGaussKronrod1D
 
 contains
 
@@ -1208,5 +1348,435 @@ contains
     vectorizedCompositeTrapezoidalEvaluate1D=integrand
     return
   end function vectorizedCompositeTrapezoidalEvaluate1D
+ 
+  ! Generic functions.
 
+  subroutine tolerancesSetGeneric(self,toleranceAbsolute,toleranceRelative)
+    !% Initialize the tolerances for multi-integrand numerical integrators.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    class           (integratorMulti), intent(inout)                         :: self
+    double precision                 , intent(in   ), dimension(:), optional :: toleranceAbsolute, toleranceRelative
+    integer                                                                  :: toleranceCount
+
+    if (.not.(present(toleranceAbsolute).or.present(toleranceRelative)))                                 &
+         &  call Galacticus_Error_Report(                                                                &
+         &                               'at least one of absolute and relative tolerance must be set'// &
+         &                               {introspection:location}                                        &
+         &                              )
+    toleranceCount=0
+    if (present(toleranceAbsolute)) then
+       toleranceCount=size(toleranceAbsolute)
+       if (present(toleranceRelative).and.size(toleranceRelative) /= size(toleranceAbsolute))                   &
+         &  call Galacticus_Error_Report(                                                                       &
+         &                               'absolute and relative tolerances must have same number of elements'// &
+         &                               {introspection:location}                                               &
+         &                              )
+    else
+       toleranceCount=size(toleranceRelative)
+    end if
+    call allocateArray(self%toleranceAbsolute,[toleranceCount])
+    call allocateArray(self%toleranceRelative,[toleranceCount])
+    self%toleranceAbsolute=0.0d0
+    self%toleranceRelative=0.0d0
+    if (present(toleranceAbsolute)) self%toleranceAbsolute=toleranceAbsolute
+    if (present(toleranceRelative)) self%toleranceRelative=toleranceRelative
+    return
+  end subroutine tolerancesSetGeneric
+  
+  ! Generic one-dimensional, multi-integrand integrator.
+
+  subroutine integrandMulti1DSet(self,integrandCount,integrand)
+    !% Initialize the integrand for one-dimensional numerical integrators.
+    implicit none
+    class    (integratorMulti1D), intent(inout) :: self
+    integer                     , intent(in   ) :: integrandCount
+    procedure(integrandMulti1D )                :: integrand
+
+    self%integrandCount =  integrandCount
+    self%integrand      => integrand
+    return
+  end subroutine integrandMulti1DSet
+
+  ! Generic one-dimensional, multi-integrand vectorized integrator.
+  
+  subroutine integrandMultiVectorizedSet1D(self,integrandCount,integrand)
+    !% Initialize the integrand for one-dimensional numerical integrators.
+    implicit none
+    class    (integratorMultiVectorized1D), intent(inout) :: self
+    integer                               , intent(in   ) :: integrandCount
+    procedure(integrandMultiVectorized1D )                :: integrand
+
+    self%integrandCount =  integrandCount
+    self%integrand      => integrand
+    return
+  end subroutine integrandMultiVectorizedSet1D
+  
+  ! Vectorized composite Gauss-Kronrod 1D integrator.
+
+  subroutine multiVectorizedCompositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
+    !% Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points
+    !% and weights are taken from those used in the \gls{gsl}.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    class  (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout) :: self
+    integer                                                  , intent(in   ) :: iterationsMaximum, order
+
+    if (iterationsMaximum < 3)                                                 &
+         & call Galacticus_Error_Report(                                       &
+         &                              'at least 3 iterations are required'// &
+         &                               {introspection:location}              &
+         &                             )
+    self%iterationsMaximum=iterationsMaximum
+    ! Choose order.
+    select case (order)
+    case (15) ! 15-point Kronrod rule.
+       call allocateArray(self%xKronrod,[8])
+       call allocateArray(self%wKronrod,[8])
+       call allocateArray(self%wGauss  ,[4])
+       self%xKronrod =[                                       &
+            &          0.991455371120812639206854697526329d0, &
+            &          0.949107912342758524526189684047851d0, &
+            &          0.864864423359769072789712788640926d0, &
+            &          0.741531185599394439863864773280788d0, &
+            &          0.586087235467691130294144838258730d0, &
+            &          0.405845151377397166906606412076961d0, &
+            &          0.207784955007898467600689403773245d0, &
+            &          0.000000000000000000000000000000000d0  &
+            &        ]
+       self%wGauss  =[                                        &
+            &          0.129484966168869693270611432679082d0, &
+            &          0.279705391489276667901467771423780d0, &
+            &          0.381830050505118944950369775488975d0, &
+            &          0.417959183673469387755102040816327d0  &
+            &        ]
+       self%wKronrod=[                                        &
+            &          0.022935322010529224963732008058970d0, &
+            &          0.063092092629978553290700663189204d0, &
+            &          0.104790010322250183839876322541518d0, &
+            &          0.140653259715525918745189590510238d0, &
+            &          0.169004726639267902826583426598550d0, &
+            &          0.190350578064785409913256402421014d0, &
+            &          0.204432940075298892414161999234649d0, &
+            &          0.209482141084727828012999174891714d0  &
+            &        ]
+    case (61) ! 61-point Kronrod rule.
+       call allocateArray(self%xKronrod,[31])
+       call allocateArray(self%wKronrod,[31])
+       call allocateArray(self%wGauss  ,[15])
+       self%xKronrod =[                                       &
+            &          0.999484410050490637571325895705811d0, &
+            &          0.996893484074649540271630050918695d0, &
+            &          0.991630996870404594858628366109486d0, &
+            &          0.983668123279747209970032581605663d0, &
+            &          0.973116322501126268374693868423707d0, &
+            &          0.960021864968307512216871025581798d0, &
+            &          0.944374444748559979415831324037439d0, &
+            &          0.926200047429274325879324277080474d0, &
+            &          0.905573307699907798546522558925958d0, &
+            &          0.882560535792052681543116462530226d0, &
+            &          0.857205233546061098958658510658944d0, &
+            &          0.829565762382768397442898119732502d0, &
+            &          0.799727835821839083013668942322683d0, &
+            &          0.767777432104826194917977340974503d0, &
+            &          0.733790062453226804726171131369528d0, &
+            &          0.697850494793315796932292388026640d0, &
+            &          0.660061064126626961370053668149271d0, &
+            &          0.620526182989242861140477556431189d0, &
+            &          0.579345235826361691756024932172540d0, &
+            &          0.536624148142019899264169793311073d0, &
+            &          0.492480467861778574993693061207709d0, &
+            &          0.447033769538089176780609900322854d0, &
+            &          0.400401254830394392535476211542661d0, &
+            &          0.352704725530878113471037207089374d0, &
+            &          0.304073202273625077372677107199257d0, &
+            &          0.254636926167889846439805129817805d0, &
+            &          0.204525116682309891438957671002025d0, &
+            &          0.153869913608583546963794672743256d0, &
+            &          0.102806937966737030147096751318001d0, &
+            &          0.051471842555317695833025213166723d0, &
+            &          0.000000000000000000000000000000000d0  &
+            &         ]
+       self%wGauss   =[                                       &
+            &          0.007968192496166605615465883474674d0, &
+            &          0.018466468311090959142302131912047d0, &
+            &          0.028784707883323369349719179611292d0, &
+            &          0.038799192569627049596801936446348d0, &
+            &          0.048402672830594052902938140422808d0, &
+            &          0.057493156217619066481721689402056d0, &
+            &          0.065974229882180495128128515115962d0, &
+            &          0.073755974737705206268243850022191d0, &
+            &          0.080755895229420215354694938460530d0, &
+            &          0.086899787201082979802387530715126d0, &
+            &          0.092122522237786128717632707087619d0, &
+            &          0.096368737174644259639468626351810d0, &
+            &          0.099593420586795267062780282103569d0, &
+            &          0.101762389748405504596428952168554d0, &
+            &          0.102852652893558840341285636705415d0  &
+            &         ]
+       self%wKronrod =[                                       &
+            &          0.001389013698677007624551591226760d0, &
+            &          0.003890461127099884051267201844516d0, &
+            &          0.006630703915931292173319826369750d0, &
+            &          0.009273279659517763428441146892024d0, &
+            &          0.011823015253496341742232898853251d0, &
+            &          0.014369729507045804812451432443580d0, &
+            &          0.016920889189053272627572289420322d0, &
+            &          0.019414141193942381173408951050128d0, &
+            &          0.021828035821609192297167485738339d0, &
+            &          0.024191162078080601365686370725232d0, &
+            &          0.026509954882333101610601709335075d0, &
+            &          0.028754048765041292843978785354334d0, &
+            &          0.030907257562387762472884252943092d0, &
+            &          0.032981447057483726031814191016854d0, &
+            &          0.034979338028060024137499670731468d0, &
+            &          0.036882364651821229223911065617136d0, &
+            &          0.038678945624727592950348651532281d0, &
+            &          0.040374538951535959111995279752468d0, &
+            &          0.041969810215164246147147541285970d0, &
+            &          0.043452539701356069316831728117073d0, &
+            &          0.044814800133162663192355551616723d0, &
+            &          0.046059238271006988116271735559374d0, &
+            &          0.047185546569299153945261478181099d0, &
+            &          0.048185861757087129140779492298305d0, &
+            &          0.049055434555029778887528165367238d0, &
+            &          0.049795683427074206357811569379942d0, &
+            &          0.050405921402782346840893085653585d0, &
+            &          0.050881795898749606492297473049805d0, &
+            &          0.051221547849258772170656282604944d0, &
+            &          0.051426128537459025933862879215781d0, &
+            &          0.051494729429451567558340433647099d0  &
+            &         ]
+    case default
+       call Galacticus_Error_Report('unknown order'//{introspection:location})
+    end select
+    return
+  end subroutine multiVectorizedCompositeGaussKronrod1DInitialize
+
+  function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b) result(integral)
+    !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
+    use Numerical_Comparison
+    use Galacticus_Error
+    implicit none
+    class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                  :: self
+    double precision                                                  , intent(in   )                  :: a            , b
+    double precision                                                  , dimension(self%integrandCount) :: integral     , error        , &
+         &                                                                                                errorScale
+    logical                                                           , dimension(self%integrandCount) :: converged    , mustEvaluate
+    integer                                                                                            :: iInterval
+    double precision                                                                                   :: midpoint
+    type            (intervalMulti                                   ), pointer                        :: head         , newInterval1 , &
+         &                                                                                                newInterval2 , current      , &
+         &                                                                                                previous     , newInterval
+
+    ! Create our first estimate of the integral, using a single interval.
+    allocate(head                              )
+    allocate(head%fa      (self%integrandCount))
+    allocate(head%fb      (self%integrandCount))
+    allocate(head%integral(self%integrandCount))
+    allocate(head%error   (self%integrandCount))
+    head%a       =  a
+    head%b       =  b
+    head%next    => null()
+    mustEvaluate =  .true.
+    call self%evaluateInterval(head%a,head%b,head%integral,head%error,mustEvaluate)
+    ! Initialize current integral and error estimates, and flag that we're not converged.
+    integral =head%integral
+    error    =head%error
+    converged=                                                &
+         &  abs(error) < self%toleranceAbsolute               &
+         & .or.                                               &
+         &  abs(error) < self%toleranceRelative*abs(integral)
+    ! Iterate until convergence is reached.
+    do while (.not.all(converged))
+       ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
+       current  => head      ! Pop the head from the list.
+       head     => head%next
+       midpoint =  (current%b+current%a)/2.0d0
+       ! Create two new subintervals.
+       allocate(newInterval1)
+       allocate(newInterval2)
+       allocate(newInterval1%fa      (self%integrandCount))
+       allocate(newInterval1%fb      (self%integrandCount))
+       allocate(newInterval1%integral(self%integrandCount))
+       allocate(newInterval1%error   (self%integrandCount))
+       allocate(newInterval2%fa      (self%integrandCount))
+       allocate(newInterval2%fb      (self%integrandCount))
+       allocate(newInterval2%integral(self%integrandCount))
+       allocate(newInterval2%error   (self%integrandCount))
+       newInterval1%next => null()
+       newInterval2%next => null()
+       newInterval1%a    =  current%a
+       newInterval1%b    =  midpoint
+       newInterval2%a    =  midpoint
+       newInterval2%b    =  current%b
+       ! Compute the integral and error estimate in each new subinterval.
+       mustEvaluate=.not.converged
+       call self%evaluateInterval(newInterval1%a,newInterval1%b,newInterval1%integral,newInterval1%error,mustEvaluate)
+       call self%evaluateInterval(newInterval2%a,newInterval2%b,newInterval2%integral,newInterval2%error,mustEvaluate)
+       ! Update the total integral and error estimate for the new subintervals, for integrands which were evaluated. For other
+       ! integrands, the new interval integrals and errors are set to half of that of the parent interval.
+       where (mustEvaluate)
+          integral                      &
+               & =integral              &
+               & -current     %integral &
+               & +newInterval1%integral &
+               & +newInterval2%integral
+          error                         &
+               & =error                 &
+               & -current     %error    &
+               & +newInterval1%error    &
+               & +newInterval2%error
+          ! Test for convergence.
+          converged=                                                &
+               &  abs(error) < self%toleranceAbsolute               &
+               & .or.                                               &
+               &  abs(error) < self%toleranceRelative*abs(integral)
+       elsewhere
+          newInterval1%integral=current%integral/2.0d0
+          newInterval2%integral=current%integral/2.0d0
+          newInterval1%error   =current%error   /2.0d0
+          newInterval2%error   =current%error   /2.0d0
+       end where
+       ! Destroy the old interval.
+       deallocate(current)
+       ! Insert the new intervals into our stack.
+       do iInterval=1,2
+          if (iInterval == 1) then
+             newInterval => newInterval1
+          else
+             newInterval => newInterval2
+          end if
+          ! Check if the stack is empty.
+          if (associated(head)) then
+             ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
+             ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
+             ! the absolute and relative tolerances) of non-converged integrals is descending.
+             current    => head
+             previous   => head
+             errorScale =  max(                                      &
+                  &            self%toleranceAbsolute              , &
+                  &            self%toleranceRelative*abs(integral)  &
+                  &           )
+             do while (associated(current%next).and.maxval(abs(current%error/errorScale),mask=.not.converged) > maxval(abs(newInterval%error/errorScale),mask=.not.converged))
+                previous => current
+                current  => current%next
+             end do
+             ! Check if we reached the end of the stack.
+             if (.not.associated(current%next)) then
+                ! End of stack reached. Check if new interval goes before or after the final stack entry.
+                if (maxval(abs(current%error/errorScale),mask=.not.converged) > maxval(abs(newInterval%error/errorScale),mask=.not.converged)) then
+                   ! New interval goes at the end of the stack.
+                   current%next => newInterval
+                else
+                   ! New interval goes before the final interval.
+                   newInterval%next => previous   %next
+                   previous   %next => newInterval
+                end if
+             else
+                ! End of stack not reached. Insert new interval after the previous interval.
+                newInterval%next => previous   %next
+                previous   %next => newInterval
+             end if
+          else
+             ! Stack is empty - simply point the head to our new subinterval.
+             head => newInterval
+          end if
+       end do
+    end do
+    ! Destroy the stack.
+    current => head
+    do while (associated(current))
+       previous => current
+       current  => current%next
+       deallocate(previous)
+    end do
+    return
+  end function multiVectorizedCompositeGaussKronrod1DEvaluate
+
+  subroutine multiVectorizedCompositeGaussKronrod1DEvaluateInterval(self,a,b,integralKronrod,error,mustEvaluate)
+    !% Evaluate the integral over an interval using the Gauss-Kronrod method (also estimates the error). Specific implementation
+    !% is based on that in the \gls{gsl}.
+    implicit none
+    class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                                                         :: self
+    double precision                                                  , intent(in   )                                                         :: a                 , b
+    double precision                                                  , intent(  out), dimension(self%integrandCount                        ) :: integralKronrod   , error
+    logical                                                           , intent(inout), dimension(self%integrandCount                        ) :: mustEvaluate
+    double precision                                                                 , dimension(self%integrandCount                        ) :: integralGauss     , integralAbsolute  , &
+         &                                                                                                                                       mean              , integralAsc
+    double precision                                                  , pointer      , dimension(:                  ,:                      ) :: fValue1           , fValue2
+    double precision                                                  , target       , dimension(self%integrandCount,2*size(self%xKronrod)-1) :: fUnion
+    double precision                                                                 , dimension(                    2*size(self%xKronrod)-1) :: xUnion
+    double precision                                                                                                                          :: halfLength        , halfLengthAbsolute, &
+         &                                                                                                                                       xCenter           , scale
+    integer                                                                                                                                   :: pointCountKronrod , pointCountGauss   , &
+         &                                                                                                                                       i
+
+    ! Establish point counts and interval.
+    pointCountKronrod =size(self%wKronrod)
+    pointCountGauss   =size(self%wGauss  )
+    if (mod(pointCountKronrod,2) == 0) pointCountGauss=pointCountGauss-1
+    xCenter           =0.5d0*(b+a)
+    halfLength        =0.5d0*(b-a)
+    halfLengthAbsolute=abs(halfLength)
+    ! Evaluate function at all required points.
+    xUnion(1                                            )=  xCenter
+    xUnion(2                    :2+  pointCountKronrod-2)=  xCenter-self%xKronrod(1:pointCountKronrod-1)*halfLength
+    xUnion(2+pointCountKronrod-1:2+2*pointCountKronrod-3)=  xCenter+self%xKronrod(1:pointCountKronrod-1)*halfLength
+    call self%integrand(self%integrandCount,xUnion,mustEvaluate,fUnion)
+    fValue1                                              => fUnion(:,2                    :2+  pointCountKronrod-2)
+    fValue2                                              => fUnion(:,2+pointCountKronrod-1:2+2*pointCountKronrod-3)
+    ! Evaluate integrals for which the integrand was computed.
+    do i=1,self%integrandCount
+       if (.not.mustEvaluate(i)) cycle
+       integralGauss(i)=sum(                                      &
+            &               +self%wGauss(  1:  pointCountGauss  ) &
+            &               *(                                    &
+            &                 +fValue1  (i,2:2*pointCountGauss:2) &
+            &                 +fValue2  (i,2:2*pointCountGauss:2) &
+            &                )                                    &
+            &              )
+       integralKronrod(i)=+    self%wKronrod  (    pointCountKronrod  )  &
+            &             *            fUnion (i,1                    )  &
+            &             +sum(                                          &
+            &                  +self%wKronrod (  1:pointCountKronrod-1)  &
+            &                  *(                                        &
+            &                    +     fvalue1(i,1:pointCountKronrod-1)  &
+            &                    +     fvalue2(i,1:pointCountKronrod-1)  &
+            &                   )                                        &
+            &                 )
+       integralAbsolute(i)=+self%wKronrod     (    pointCountKronrod  )  &
+            &              *       abs(fUnion (i,1                    )) &
+            &              +sum(                                         &
+            &                   +self%wKronrod(  1:pointCountKronrod-1)  &
+            &                   *(                                       &
+            &                     +abs(fvalue1(i,1:pointCountKronrod-1)) &
+            &                     +abs(fvalue2(i,1:pointCountKronrod-1)) &
+            &                    )                                       &
+            &                  ) 
+       integralAsc(i)=+sum(self%wKronrod                   *(abs(fValue1(i,:)-mean(i))+abs(fValue2(i,:)-mean(i)))) &
+            &         +    self%wKronrod(pointCountKronrod)* abs(fUnion (i,1)-mean(i))
+       if (mod(pointCountKronrod,2) == 0) integralGauss(i)=integralGauss(i)+fUnion(i,1)*self%wGauss(pointCountKronrod/2)
+       mean            (i)=integralKronrod (i)*0.5d0
+       ! Evaluate error.
+       error           (i)=abs((integralKronrod(i)-integralGauss(i))*halfLength)
+       integralKronrod (i)=integralKronrod (i)*halfLength
+       integralAbsolute(i)=integralAbsolute(i)*halfLengthAbsolute
+       integralAsc     (i)=integralAsc     (i)*halfLengthAbsolute
+       ! Compute error.
+       if (integralAsc(i) /= 0.0d0 .and. error(i) /= 0.0d0) then
+          scale=(200.0d0*error(i)/integralAsc(i))**1.5d0
+          if (scale < 1.0d0) then
+             error(i)=integralAsc(i)*scale
+          else
+             error(i)=integralAsc(i)
+          end if
+       end if
+       if (integralAbsolute(i) > tiny(1.0d0)/(50.0d0*epsilon(1.0d0))) error(i)=max(error(i),50.0d0*epsilon(1.0d0)*integralAbsolute(i))
+    end do
+    return
+  end subroutine multiVectorizedCompositeGaussKronrod1DEvaluateInterval
+  
 end module Numerical_Integration2
