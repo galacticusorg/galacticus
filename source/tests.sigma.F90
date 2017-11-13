@@ -26,49 +26,80 @@ program Tests_Sigma
   use Numerical_Ranges
   use Cosmology_Parameters
   use Numerical_Constants_Math
+  use Transfer_Functions
   implicit none
-  type            (varying_string               )                       :: parameterFile
-  integer                                        , parameter            :: massCount              =10
-  double precision                               , parameter            :: massMaximum            =1.0d15, massMinimum  =1.0d6
-  double precision                               , dimension(massCount) :: mass                          , massFromSigma      , &
-       &                                                                   sigma
-  class           (cosmologyParametersClass     ), pointer              :: cosmologyParameters_
-  class           (cosmologicalMassVarianceClass), pointer              :: cosmologicalMassVariance_
-  integer                                                               :: iMass
-  double precision                                                      :: mass8                         , radius8            , &
-       &                                                                   sigma8
-  type            (inputParameters              )                       :: parameters
+  type            (varying_string                          )                       :: parameterFile
+  integer                                                   , parameter            :: massCount                             =10
+  double precision                                          , parameter            :: massMaximum                           =1.0d15, massMinimum  =1.0d6
+  double precision                                          , dimension(massCount) :: mass                                         , massFromSigma      , &
+       &                                                                              sigma
+  class           (cosmologyParametersClass                ), pointer              :: cosmologyParameters_
+  class           (cosmologicalMassVarianceClass           ), pointer              :: cosmologicalMassVariance_
+  type            (cosmologicalMassVarianceFilteredPower   )                       :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionSharpKSpace  )                       :: powerSpectrumWindowFunctionSharpKSpace_
+  type            (powerSpectrumPrimordialPowerLaw         )                       :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionIdentity                )                       :: transferFunctionIdentity_
+  type            (powerSpectrumPrimordialTransferredSimple)                       :: powerSpectrumPrimordialTransferredSimple_
+  integer                                                                          :: iMass
+  double precision                                                                 :: mass8                                        , radius8            , &
+       &                                                                              sigma8
+  type            (inputParameters                         )                       :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.sigma.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectrum: σ(M)")
-
   ! Open the parameter file.
   parameterFile='parameters.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
-
   ! Create an array of masses.
   mass=Make_Range(massMinimum,massMaximum,massCount,rangeType=rangeTypeLogarithmic)
-
   ! Get required objects.
   cosmologyParameters_      => cosmologyParameters     ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
- 
   ! Check that converting from mass to sigma and back to mass gives consistent answers.
   do iMass=1,massCount
      sigma        (iMass)=cosmologicalMassVariance_%rootVariance(mass (iMass))
      massFromSigma(iMass)=cosmologicalMassVariance_%mass        (sigma(iMass))
   end do
   call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3)
-
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
   mass8=4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
   sigma8=cosmologicalMassVariance_%rootVariance(mass8)
   call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVariance_%sigma8(),relTol=2.5d-6)
+  ! Check normalization of sigma(M) when using a non-top-hat filter. Here, we use a simple power-law power spectrum with index
+  ! n=-1, and a sharp k-space filter, and normalize to σ₈=1. For these, the normalization of σ(M₈) can be computed analytically to
+  ! be (π√2/3)^{1/3}.
+  powerSpectrumPrimordialPowerLaw_         =powerSpectrumPrimordialPowerLaw         (                                                                               &
+       &                                                                             index                              =-1.0d0                                   , &
+       &                                                                             running                            =+0.0d0                                   , &
+       &                                                                             wavenumberReference                =+1.0d0                                     &
+       &                                                                            )
+  transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
+       &                                                                            )
+  powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                                               &
+       &                                                                             powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_         , &
+       &                                                                             transferFunction_                  =transferFunctionIdentity_                  &
+       &                                                                            )
+  powerSpectrumWindowFunctionSharpKSpace_  =powerSpectrumWindowFunctionSharpKSpace  (                                                                               &
+       &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
+       &                                                                             normalization                      =0.0d0                                      &
+       &                                                                            )
+  cosmologicalMassVarianceFilteredPower_   =cosmologicalMassVarianceFilteredPower   (                                                                               &
+       &                                                                             sigma8                             =1.0d+0                                   , &
+       &                                                                             tolerance                          =1.0d-4                                   , &
+       &                                                                             toleranceTopHat                    =1.0d-4                                   , &
+       &                                                                             monotonicInterpolation             =.false.                                  , &
+       &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
+       &                                                                             powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple_, &
+       &                                                                             powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionSharpKSpace_    &
+       &                                                                            )
+
+
+  sigma8=cosmologicalMassVarianceFilteredPower_%rootVariance(mass8)
+  call Assert('σ(M₈) amplitude with sharp k-space window function',sigma8,(sqrt(2.0d0)*Pi/3.0d0)**(1.0d0/3.0d0),relTol=1.0d-5)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
