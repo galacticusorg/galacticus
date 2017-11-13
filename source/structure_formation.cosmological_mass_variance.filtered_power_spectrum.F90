@@ -432,9 +432,9 @@ contains
            &             /self%cosmologyParameters_%OmegaMatter    () &
            &             /self%cosmologyParameters_%densityCritical() &
            &            )**(1.0d0/3.0d0)
-      wavenumberMinimum=    0.0d0/topHatRadius
-      wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_%wavenumberMaximum(smoothingMass))
+      wavenumberMinimum=0.0d0
       if (useTopHat) then
+         wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunctionTopHat_%wavenumberMaximum(smoothingMass))
          rootVariance=+Integrate(                                              &
               &                  wavenumberMinimum                           , &
               &                  wavenumberMaximum                           , &
@@ -448,6 +448,7 @@ contains
               &       /2.0d0                                                   &
               &       /Pi**2
       else
+         wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
          rootVariance=+Integrate(                                              &
               &                  wavenumberMinimum                           , &
               &                  wavenumberMaximum                           , &
