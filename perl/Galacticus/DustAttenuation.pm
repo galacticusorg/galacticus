@@ -213,7 +213,12 @@ sub Get_Dust_Attenuated_Luminosity {
     # Central surface density in M_Solar/pc^2.
     my $gasMetalMass                   = pdl $dataSets->{"diskAbundancesGasMetals"};
     my $diskScaleLength                = pdl $dataSets->{"diskRadius"             };
-    my $noDisks                        = which($diskScaleLength <= 0.0);
+    my $noDisks                        = 
+	which(
+	    ($diskScaleLength <= 0.0)
+	    |
+	    ($gasMetalMass    <= 0.0)
+	);
     my $gasMetalsSurfaceDensityCentral = $gasMetalMass/(2.0*$Pi*($mega*$diskScaleLength)**2);
     $gasMetalsSurfaceDensityCentral->index($noDisks) .= 0.0;
     # Compute central optical depths.
