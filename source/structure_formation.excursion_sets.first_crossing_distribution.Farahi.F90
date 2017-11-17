@@ -32,31 +32,31 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingFarahi
      !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
      private
-     class           (cosmologyFunctionsClass ), pointer                       :: cosmologyFunctions_
-     class           (excursionSetBarrierClass), pointer                       :: excursionSetBarrier_
+     class           (cosmologyFunctionsClass ), pointer                       :: cosmologyFunctions_                     => null()
+     class           (excursionSetBarrierClass), pointer                       :: excursionSetBarrier_                    => null()
      ! Variables used in tabulation the first crossing function.
-     double precision                                                          :: timeMaximum                             , timeMinimum                         , &
+     double precision                                                          :: timeMaximum                                      , timeMinimum                         , &
           &                                                                       varianceMaximum                         
-     integer                                                                   :: timeTableCount                          , varianceTableCount
+     integer                                                                   :: timeTableCount                                   , varianceTableCount
      double precision                          , allocatable, dimension(:,:)   :: firstCrossingProbabilityTable
-     double precision                          , allocatable, dimension(:  )   :: timeTable                               , varianceTable
+     double precision                          , allocatable, dimension(:  )   :: timeTable                                        , varianceTable
      double precision                                                          :: varianceTableStep
      logical                                                                   :: tableInitialized                        
-     type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTime            , interpolationAcceleratorVariance
-     logical                                                                   :: interpolationResetTime                  , interpolationResetVariance          
+     type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTime                     , interpolationAcceleratorVariance
+     logical                                                                   :: interpolationResetTime                           , interpolationResetVariance          
      ! Variables used in tabulation the first crossing rate function.
-     double precision                                                          :: timeMaximumRate                         , timeMinimumRate                     , &
+     double precision                                                          :: timeMaximumRate                                  , timeMinimumRate                     , &
           &                                                                       varianceMaximumRate                     
-     integer                                                                   :: timeTableCountRate                      , varianceTableCountRate              , &
+     integer                                                                   :: timeTableCountRate                               , varianceTableCountRate              , &
           &                                                                       varianceTableCountRateBase
      double precision                          , allocatable, dimension(:,:,:) :: firstCrossingTableRate
      double precision                          , allocatable, dimension(:,:  ) :: nonCrossingTableRate
-     double precision                          , allocatable, dimension(:    ) :: timeTableRate                           , varianceTableRate                   , &
+     double precision                          , allocatable, dimension(:    ) :: timeTableRate                                    , varianceTableRate                   , &
           &                                                                       varianceTableRateBase
      logical                                                                   :: tableInitializedRate                    
-     type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTimeRate        , interpolationAcceleratorVarianceRate, &
+     type            (fgsl_interp_accel       )                                :: interpolationAcceleratorTimeRate                 , interpolationAcceleratorVarianceRate, &
           &                                                                       interpolationAcceleratorVarianceRateBase
-     logical                                                                   :: interpolationResetTimeRate              , interpolationResetVarianceRate      , &
+     logical                                                                   :: interpolationResetTimeRate                       , interpolationResetVarianceRate      , &
           &                                                                       interpolationResetVarianceRateBase      
      ! File name used to store tabulations.
      type            (varying_string          )                                :: fileName
@@ -64,9 +64,9 @@
      ! The fractional step in time used to compute barrier crossing rates.
      double precision                                                          :: timeStepFractional
      ! Record of variance and time in previous call to rate functions.
-     double precision                                                          :: timeRatePrevious                        , varianceRatePrevious
-     double precision                                       , dimension(0:1)   :: hTimeRate                               , hVarianceRate
-     integer         (c_size_t                )                                :: iTimeRate                               , iVarianceRate
+     double precision                                                          :: timeRatePrevious                                 , varianceRatePrevious
+     double precision                                       , dimension(0:1)   :: hTimeRate                                        , hVarianceRate
+     integer         (c_size_t                )                                :: iTimeRate                                        , iVarianceRate
    contains
      !@ <objectMethods>
      !@   <object>excursionSetFirstCrossingFarahi</object>
