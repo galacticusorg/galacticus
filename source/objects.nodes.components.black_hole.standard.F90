@@ -56,7 +56,7 @@ module Node_Component_Black_Hole_Standard
   !#     <name>radialPosition</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </property>
   !#   <property>
   !#     <name>tripleInteractionTime</name>
@@ -114,15 +114,6 @@ module Node_Component_Black_Hole_Standard
   logical          :: blackHoleOutputData
   logical          :: blackHoleOutputMergers
 
-  ! Option specifying whether the triple black hole interaction should be used.
-  logical          :: tripleBlackHoleInteraction
-
-  ! Index of black hole instance about to merge.
-  integer          :: mergingInstance
-  !$omp threadprivate(mergingInstance)
-  ! Index of black hole involved in three-body interactions
-  integer          :: binaryInstance                                , tripleInstance
-  !$omp threadprivate(binaryInstance,tripleInstance)
   ! Record of whether this module has been initialized.
   logical          :: moduleInitialized                     =.false.
 
@@ -256,16 +247,6 @@ contains
           !#   <type>boolean</type>
           !# </inputParameter>
 
-          ! Get options controlling three body interactions.
-          !# <inputParameter>
-          !#   <name>tripleBlackHoleInteraction</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
-          !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
           ! Check if cold mode is explicitly tracked.
           coldModeTracked=defaultHotHaloComponent%massColdIsGettable()
           ! Bind deferred functions.
@@ -288,42 +269,35 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use Cosmology_Parameters
-    use Dark_Matter_Halo_Scales
     use Black_Hole_Binary_Separations
     implicit none
     type            (treeNode                ), intent(inout), pointer   :: node
     logical                                   , intent(inout)            :: interrupt
     logical                                   , intent(in   )            :: odeConverged
     procedure       (interruptTask           ), intent(inout), pointer   :: interruptProcedure
-    class           (nodeComponentBlackHole  )               , pointer   :: blackHoleBinary                                                                                                                                   , blackHoleCentral                                      , &
-         &                                                                                           blackHole
+    class           (nodeComponentBlackHole  )               , pointer   ::  blackHoleCentral                                                                                                                                 , blackHole
     class           (nodeComponentSpheroid   )               , pointer   :: spheroid
     class           (nodeComponentHotHalo    )               , pointer   :: hotHalo
     class           (nodeComponentBasic      )               , pointer   :: basic
     class           (cosmologyParametersClass)               , pointer   :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass)               , pointer   :: darkMatterHaloScale_
     class           (accretionDisksClass     )               , pointer   :: accretionDisks_
     double precision                                         , parameter :: windVelocity                =1.0d4                                                                                                                                                     !    Velocity of disk wind.
     double precision                                         , parameter :: ismTemperature              =1.0d4                                                                                                                                                     !    Temperature of the ISM.
     double precision                                         , parameter :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
     integer                                                              :: iInstance                                                                                                                                         , instanceCount
     double precision                                                     :: accretionRateHotHalo                                                                                                                              , accretionRateSpheroid                                          , &
-         &                                                                  binaryRadius, &
          &                                                                  criticalDensityRadius2                                                                                                                            , energyInputRate                                                , &
          &                                                                  heatingRate                                                                                                                                       , jetEfficiency                                                  , &
-         &                                                                  massAccretionRate                                                                                                                                 , radialMigrationRate                                            , &
-         &                                                                  radiativeEfficiency                                                                                                                               , radiusHardBinary                                               , &
+         &                                                                  massAccretionRate                                                                                                                                 , radiativeEfficiency                                            , &
          &                                                                  restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
          &                                                                  spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                  spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
          &                                                                  windFraction                                                                                                                                      , hotModeFraction
-    logical                                                              :: binaryRadiusFound
     !GCC$ attributes unused :: odeConverged
 
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get required objects.
-       accretionDisks_      => accretionDisks     ()     
-       darkMatterHaloScale_ => darkMatterHaloScale()
+       accretionDisks_ => accretionDisks()     
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
        ! Get the central black hole.
@@ -415,98 +389,7 @@ contains
                 end if
              end if
           end if
-          ! Do radial migration for non-central black holes.
-          if (iInstance > 1) then
-             ! Compute the hard binary radius.
-             radiusHardBinary= (                                                 &
-                  &              gravitationalConstantGalacticus                 &
-                  &             *(                                               &
-                  &                blackHoleCentral%mass()              &
-                  &               +   blackHole%mass()              &
-                  &              )                                               &
-                  &            )                                                 &
-                  &           /(                                                 &
-                  &              4.0d0                                           &
-                  &             *  darkMatterHaloScale_%virialVelocity(node)**2 &
-                  &            )
-             ! Places a new black hole in the center of the galaxy in case there is no central one.
-             if     (                                                                        &
-                  &  blackHoleCentral%mass          () == 0.0d0               .and. &
-                  &     blackHole%radialPosition() <= radiusHardBinary          &
-                  & ) then
-                mergingInstance=iInstance
-                interrupt=.true.
-                interruptProcedure => Node_Component_Black_Hole_Standard_Merge_Black_Holes
-                return
-             end if
-             ! Check for a black hole that is about to merge.
-             if (blackHole%radialPosition() <= 0.0d0) then
-                ! Record which instance is merging, then trigger an interrupt.
-                mergingInstance=iInstance
-                interrupt=.true.
-                interruptProcedure => Node_Component_Black_Hole_Standard_Merge_Black_Holes
-                return
-             end if
-             ! Set the rate of radial migration.
-             radialMigrationRate=Black_Hole_Binary_Separation_Growth_Rate(blackHole)
-             call blackHole%radialPositionRate(radialMigrationRate)
-          end if
        end do
-       ! Loop over black holes, testing for triple black hole interactions. Find the three closest black holes then check if a
-       ! three body interaction occurs using the radial condition derived in Hoffman and Loeb (2007).
-       binaryRadiusFound=.false.
-       binaryRadius     =huge(1.0d0)
-       if (tripleBlackHoleInteraction) then
-          if (instanceCount >= 3 .and. blackHoleCentral%mass() > 0.0d0) then
-             do iInstance=2,instanceCount
-                ! Get the black hole.
-                blackHole => node%blackHole(instance=iInstance)
-                if     (                                                                   &
-                     &  (          blackHole%radialPosition() <= binaryRadius &
-                     &   .or. .not.binaryRadiusFound                                       &
-                     &  )                                                                  &
-                     &  .and. .not.blackHole%mass          () <= 0.0d0        &
-                     &  .and. .not.blackHole%radialPosition() <= 0.0d0        &
-                     & ) then
-                   binaryRadius     =blackHole%radialPosition()
-                   binaryInstance   =iInstance
-                   binaryRadiusFound=.true.
-                end if
-             end do
-             if (binaryRadiusFound) then
-                ! Get the binary black hole.
-                blackHoleBinary => node%blackHole(instance=binaryInstance)
-                ! Compute the hard binary radius.
-                radiusHardBinary= (                                               &
-                     &              gravitationalConstantGalacticus               &
-                     &             *(                                             &
-                     &                blackHoleCentral%mass()            &
-                     &               + blackHoleBinary%mass()            &
-                     &              )                                             &
-                     &            )                                               &
-                     &           /(                                               &
-                     &              4.0d0                                         &
-                     &             *darkMatterHaloScale_%virialVelocity(node)**2 &
-                     &            )
-                ! Search for a third black hole.
-                do iInstance=2,instanceCount
-                   ! Get the black hole.
-                   blackHole => node%blackHole(instance=iInstance)
-                   if     (      .not. iInstance                                      == binaryInstance   &
-                        &  .and. .not. blackHole%mass                 () <= 0.0d0            &
-                        &  .and. .not. blackHole%radialPosition       () <= 0.0d0            &
-                        &  .and.       blackHole%radialPosition       () <= radiusHardBinary &
-                        &  .and.       blackHole%tripleInteractionTime() == 0.0d0            &
-                        & ) then
-                      tripleInstance=iInstance
-                      interrupt=.true.
-                      interruptProcedure => Node_Component_Black_Hole_Standard_Triple_Interaction
-                      return
-                   end if
-                end do
-             end if
-          end if
-       end if
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Rate_Compute
@@ -689,153 +572,6 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
   
-  subroutine Node_Component_Black_Hole_Standard_Merge_Black_Holes(node)
-    !% Merge two black holes.
-    use Black_Hole_Binary_Recoil_Velocities
-    use Black_Hole_Binary_Mergers
-    implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentBlackHole)               , pointer :: blackHole1, blackHole2
-    double precision                                                 :: blackHoleMassNew       , blackHoleSpinNew       , &
-         &                                                              massBlackHole1         , massBlackHole2         , &
-         &                                                              recoilVelocity         , spinBlackHole1         , &
-         &                                                              spinBlackHole2
-
-    ! Get the black holes.
-    blackHole1 => node%blackHole(instance=              1)
-    blackHole2 => node%blackHole(instance=mergingInstance)
-    ! Process the merger to get the mass and spin of the merged black hole.
-    call Black_Hole_Binary_Merger(blackHole2%mass(), &
-         &                        blackHole1%mass(), &
-         &                        blackHole2%spin(), &
-         &                        blackHole1%spin(), &
-         &                        blackHoleMassNew              , &
-         &                        blackHoleSpinNew                &
-         &                       )
-    ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
-    if (blackHole1%mass() >= blackHole2%mass()) then
-       massBlackHole1=blackHole1%mass()
-       massBlackHole2=blackHole2%mass()
-       spinBlackHole1=blackHole1%spin()
-       spinBlackHole2=blackHole2%spin()
-    else
-       massBlackHole2=blackHole1%mass()
-       massBlackHole1=blackHole2%mass()
-       spinBlackHole2=blackHole1%spin()
-       spinBlackHole1=blackHole2%spin()
-    end if
-    ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
-    recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
-    ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
-    if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
-       blackHoleMassNew=blackHole1%massSeed()
-       blackHoleSpinNew=blackHole1%spinSeed()
-    end if
-    ! Set the mass and spin of the central black hole.
-    call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-    call blackHole1%massSet(blackHoleMassNew)
-    call blackHole1%spinSet(blackHoleSpinNew)
-    ! Remove the merging black hole from the list.
-    call node%blackHoleRemove(mergingInstance)
-    return
-  end subroutine Node_Component_Black_Hole_Standard_Merge_Black_Holes
-
-  subroutine Node_Component_Black_Hole_Standard_Triple_Interaction(node)
-    !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
-    use Numerical_Constants_Physical
-    implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentBasic    )               , pointer :: basic
-    class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary , blackHoleCentral  , &
-         &                                                              ejectedBlackHoleComponent, newBinaryBlackHoleComponent, &
-         &                                                              tripleBlackHoleComponent
-    integer                                                          :: ejectedInstance          , newBinaryInstance
-    double precision                                                 :: bindingEnergy            , kineticEnergyChange        , &
-         &                                                              massBinary               , massEjected                , &
-         &                                                              massRatioIntruder        , newRadius                  , &
-         &                                                              velocityBinary           , velocityEjected
-    logical                                                          :: removeBinary             , removeEjected
-
-    ! Get the basic component.
-    basic        => node%basic    (                       )
-    ! Get the black holes.
-    blackHoleCentral => node%blackHole(instance=             1)
-    blackHoleBinary  => node%blackHole(instance=binaryInstance)
-    tripleBlackHoleComponent  => node%blackHole(instance=tripleInstance)
-    ! We have to distinguish two cases, where a different black hole is ejected, the one with the lowest mass.
-    massRatioIntruder=   tripleBlackHoleComponent %mass() &
-         &            /( blackHoleCentral%mass() &
-         &              +blackHoleBinary %mass() &
-         &             )
-    ! Set the triple interaction time for the triple black hole.
-    call tripleBlackHoleComponent%tripleInteractionTimeSet(basic%time())
-    ! Branch on intruder mass ratio.
-    if (massRatioIntruder <= 2.0d0) then
-       if (tripleBlackHoleComponent%mass() <= blackHoleBinary%mass()) then
-          newRadius           = blackHoleBinary%radialPosition()/(1.0d0+0.4d0*massRatioIntruder)
-          call blackHoleBinary%radialPositionSet(newRadius)
-          bindingEnergy       = gravitationalConstantGalacticus*( tripleBlackHoleComponent %mass          () &
-               &                                                 *blackHoleCentral%mass          () &
-               &                                                )                                            &
-               &               /                                  tripleBlackHoleComponent %radialPosition()
-          kineticEnergyChange=0.4d0*massRatioIntruder*bindingEnergy
-          ejectedInstance    =tripleInstance
-          newBinaryInstance  =binaryInstance
-          ejectedBlackHoleComponent   => tripleBlackHoleComponent
-          newBinaryBlackHoleComponent => blackHoleBinary
-       else
-          newRadius          = tripleBlackHoleComponent%radialPosition()/(1.0d0+0.4d0*massRatioIntruder )
-          call tripleBlackHoleComponent%radialPositionSet(newRadius)
-          bindingEnergy      = gravitationalConstantGalacticus*( blackHoleBinary %mass          () &
-               &                                                *blackHoleCentral%mass          () &
-               &                                                )                                           &
-               &               /                                 blackHoleBinary %radialPosition()
-          kineticEnergyChange=0.4d0*massRatioIntruder*bindingEnergy
-          ejectedInstance    =binaryInstance
-          newBinaryInstance  =tripleInstance
-          ejectedBlackHoleComponent   => blackHoleBinary
-          newBinaryBlackHoleComponent => tripleBlackHoleComponent
-       end if
-    else
-       ! This latter case can be referred to as head-on collision.
-       newRadius             =0.53d0*tripleBlackHoleComponent%radialPosition()
-       call tripleBlackHoleComponent%radialPositionSet(newRadius)
-       bindingEnergy         = gravitationalConstantGalacticus*(                                            &
-            &                                                    blackHoleBinary %mass          () &
-            &                                                   *blackHoleCentral%mass          () &
-            &                                                  )                                            &
-            &                 /                                  blackHoleBinary %radialPosition()
-       kineticEnergyChange=0.9d0*massRatioIntruder*bindingEnergy
-       ejectedInstance    =binaryInstance
-       newBinaryInstance  =tripleInstance
-       ejectedBlackHoleComponent   => blackHoleBinary
-       newBinaryBlackHoleComponent => tripleBlackHoleComponent
-    end if
-    ! First we find the lightest black hole and tag it as being ejected.
-    massEjected= ejectedBlackHoleComponent  %mass()
-    massBinary = newBinaryBlackHoleComponent%mass() &
-         &      +blackHoleCentral  %mass()
-    velocityEjected=sqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
-    velocityBinary =sqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
-    ! Determine whether the ejected black hole is actualy ejected.
-    removeEjected=Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityEjected,ejectedBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.false.)    
-    ! Determine whether the binary black hole is ejected.
-    removeBinary=Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityBinary,newBinaryBlackHoleComponent%radialPosition(),ignoreCentralBlackHole=.true.)
-    ! Remove the binary black hole from the list if required.
-    if (removeBinary) then
-       ! Set the central black hole as a zero mass component.
-       call blackHoleCentral%massSet(0.0d0)
-       call blackHoleCentral%spinSet(0.0d0)
-       ! Remove the binary black hole.
-       call node%blackHoleRemove(newBinaryInstance)
-       ! If this removal has changed the position of the ejected black hole in the list then update its index.
-       if (ejectedInstance > newBinaryInstance) ejectedInstance=ejectedInstance-1
-    end if
-    ! Remove the ejected black hole from the list if required.
-    if (removeEjected) call node%blackHoleRemove(ejectedInstance)
-    return
-  end subroutine Node_Component_Black_Hole_Standard_Triple_Interaction
-
   subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid&
        &,accretionRateHotHalo)
     !% Returns the rate of mass accretion onto the black hole in {\normalfont \ttfamily node}.
