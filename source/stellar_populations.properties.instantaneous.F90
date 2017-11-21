@@ -69,6 +69,7 @@ contains
   subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,node,propertiesHistory,stellarMassRate&
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
+    use Galactic_Structure_Options
     use Galacticus_Nodes
     use Abundances_Structure
     use Histories
@@ -76,20 +77,25 @@ contains
     use Stellar_Luminosities_Structure
     use Stellar_Feedback
     implicit none
-    double precision                     , intent(  out) :: energyInputRate              , fuelMassRate             , &
-         &                                                  stellarMassRate
-    type            (abundances         ), intent(inout) :: fuelAbundancesRates          , stellarAbundancesRates
-    type            (stellarLuminosities), intent(inout) :: stellarLuminositiesRates
-    double precision                     , intent(in   ) :: starFormationRate
-    type            (abundances         ), intent(in   ) :: fuelAbundances
-    integer                              , intent(in   ) :: component
-    type            (treeNode           ), intent(inout) :: node
-    type            (history            ), intent(inout) :: propertiesHistory
-    class           (nodeComponentBasic ), pointer       :: basic
-    integer                                              :: imfSelected
-    double precision                                     :: fuelMetallicity              , fuelMetalsRateOfChange   , &
-         &                                                  recycledFractionInstantaneous, stellarMetalsRateOfChange, &
-         &                                                  time                         , yieldInstantaneous
+    double precision                     , intent(  out)      :: energyInputRate                              , fuelMassRate                         , &
+         &                                                       stellarMassRate
+    type            (abundances         ), intent(inout)      :: fuelAbundancesRates                          , stellarAbundancesRates
+    type            (stellarLuminosities), intent(inout)      :: stellarLuminositiesRates
+    double precision                     , intent(in   )      :: starFormationRate
+    type            (abundances         ), intent(in   )      :: fuelAbundances
+    integer                              , intent(in   )      :: component
+    type            (treeNode           ), intent(inout)      :: node
+    type            (history            ), intent(inout)      :: propertiesHistory
+    class           (nodeComponentBasic ), pointer            :: basic
+    type            (stellarLuminosities), dimension(2), save :: stellarLuminositiesRatesPrevious
+    double precision                     , dimension(2), save :: starFormationRatePrevious       =-huge(0.0d0), fuelMetallicityPrevious=-huge(0.0d0), &
+         &                                                       timePrevious                    =-huge(0.0d0)
+    integer                              , dimension(2), save :: imfSelectedPrevious             =-1
+    !$omp threadprivate(stellarLuminositiesRatesPrevious,starFormationRatePrevious,fuelMetallicityPrevious,timePrevious,imfSelectedPrevious)
+    integer                                                   :: imfSelected                                  , componentIndex
+    double precision                                          :: fuelMetallicity                              , fuelMetalsRateOfChange              , &
+         &                                                       recycledFractionInstantaneous                , stellarMetalsRateOfChange           , &
+         &                                                       time                                         , yieldInstantaneous
     !GCC$ attributes unused :: propertiesHistory
     
     ! Get the instantaneous recycling rate for the IMF.
@@ -122,7 +128,32 @@ contains
     time=basic%time()
 
     ! Set luminosity rates of change.
-    call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
+    select case (component)
+    case (componentTypeDisk,componentTypeSpheroid)
+       if (component == componentTypeDisk) then
+          componentIndex=1
+       else
+          componentIndex=2
+       end if
+       if     (                                                                &
+            &   imfSelected       /=       imfSelectedPrevious(componentIndex) &
+            &  .or.                                                            &
+            &   starFormationRate /= starFormationRatePrevious(componentIndex) &
+            &  .or.                                                            &
+            &   time              /=              timePrevious(componentIndex) &
+            &  .or.                                                            &
+            &   fuelMetallicity   /=   fuelMetallicityPrevious(componentIndex) &
+            & ) then
+          call stellarLuminositiesRatesPrevious(componentIndex)%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
+          imfSelectedPrevious      (componentIndex)=imfSelected
+          starFormationRatePrevious(componentIndex)=starFormationRate
+          timePrevious             (componentIndex)=time
+          fuelMetallicityPrevious  (componentIndex)=fuelMetallicity
+       end if
+       stellarLuminositiesRates=stellarLuminositiesRatesPrevious(componentIndex)
+    case default
+       call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
+    end select
    return
   end subroutine Stellar_Population_Properties_Rates_Instantaneous
 
