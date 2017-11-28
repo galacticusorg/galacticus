@@ -707,7 +707,8 @@ contains
          &                                                                                                  newTreeFileRequired   , returnSplitForest
     type            (varying_string                )                                                     :: message
     integer                                                                                              :: nextTreeToReadActual
-
+    double precision                                                                                     :: uniformRandom
+    
     ! Obtain a lock on split forest data if necessary.
     !$ if (mergerTreeReadForestSizeMaximum > 0) call OMP_Set_Lock(splitForestLock)
     ! Enter loop which suspends threads when a new tree file is needed.
@@ -804,6 +805,10 @@ contains
              tree%volumeWeight=treeVolumeWeightCurrent
              ! Initialize no events.
              tree%event => null()
+             ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
+             ! the integer type.
+             call tree%randomNumberGenerator%initialize()
+             uniformRandom=tree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index,huge(0))))
              ! Check if the size of this forest exceeds the maximum allowed.
              if     (                                                                                   &
                   &   .not.returnSplitForest                                                            &
