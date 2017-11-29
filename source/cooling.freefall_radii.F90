@@ -16,90 +16,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the freefall radius in cooling calculations.
+!% Contains a module that implements calculations of the freefall radius.
 
 module Freefall_Radii
-  !% Implements calculations of the freefall radius in cooling calculations.
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of the freefall radius.
   use Galacticus_Nodes
-  !# <include directive="freefallRadiusMethod" type="moduleUse">
-  include 'cooling.freefall_radius.modules.inc'
-  !# </include>
   implicit none
   private
-  public :: Freefall_Radius, Freefall_Radius_Growth_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                         :: freefallRadiusInitialized      =.false.
-
-  ! Name of cooling radius available method used.
-  type     (varying_string             )          :: freefallRadiusMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Freefall_Radius            ), pointer :: Freefall_Radius_Get            =>null()
-  procedure(Freefall_Radius_Growth_Rate), pointer :: Freefall_Radius_Growth_Rate_Get=>null()
-
-contains
-
-  subroutine Freefall_Radius_Initialize
-    !% Initialize the cooling radius module.
-    use Galacticus_Error
-    use Input_Parameters
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.freefallRadiusInitialized) then
-       !$omp critical(Freefall_Radius_Initialization)
-       if (.not.freefallRadiusInitialized) then
-          ! Get the cooling radius method parameter.
-          !# <inputParameter>
-          !#   <name>freefallRadiusMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('darkMatterHalo')</defaultValue>
-          !#   <description>The name of the method to be used for calculations of the freefall radius in cooling calculations.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="freefallRadiusMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</functionArgs>
-          include 'cooling.freefall_radius.inc'
-          !# </include>
-          if (.not.(associated(Freefall_Radius_Get).and.associated(Freefall_Radius_Growth_Rate_Get))) &
-               & call Galacticus_Error_Report('method ' //char(freefallRadiusMethod)//' is unrecognized'//{introspection:location})
-          freefallRadiusInitialized=.true.
-       end if
-       !$omp end critical(Freefall_Radius_Initialization)
-    end if
-    return
-  end subroutine Freefall_Radius_Initialize
-
-  double precision function Freefall_Radius(thisNode)
-    !% Return the freefall radius for cooling calculations for {\normalfont \ttfamily thisNode} (in units of Mpc).
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Freefall_Radius_Initialize
-
-    ! Get the cooling radius using the selected method.
-    Freefall_Radius=Freefall_Radius_Get(thisNode)
-
-    return
-  end function Freefall_Radius
-
-  double precision function Freefall_Radius_Growth_Rate(thisNode)
-    !% Return the rate at which the freefall radius for cooling calculations grows for {\normalfont \ttfamily thisNode} (in units of Mpc/Gyr).
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Freefall_Radius_Initialize
-
-    ! Get the cooling radius using the selected method.
-    Freefall_Radius_Growth_Rate=Freefall_Radius_Growth_Rate_Get(thisNode)
-
-    return
-  end function Freefall_Radius_Growth_Rate
+  
+  !# <functionClass>
+  !#  <name>freefallRadius</name>
+  !#  <descriptiveName>Freefall radii.</descriptiveName>
+  !#  <description>Class providing models of the freefall radius for gas in the hot atmosphere surrounding a galaxy.</description>
+  !#  <default>darkMatterHalo</default>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="radius" >
+  !#   <description>Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !#  <method name="radiusGrowthRate" >
+  !#   <description>Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc/Gyr.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Freefall_Radii

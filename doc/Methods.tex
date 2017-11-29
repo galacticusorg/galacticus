@@ -763,48 +763,6 @@ Currently defined tree timing methods are:
  \item [{\normalfont \ttfamily Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
 \end{description}
 
-\subsubsection{Cooling: Freefall Radius}
-
-Additional methods for freefall radius in cooling calculations can be added using the {\normalfont \ttfamily freefallRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
-\begin{verbatim}
- !# <freefallRadiusMethod>
- !#  <unitName>Freefall_Radius_Dark_Matter_Halo_Initialize</unitName>
- !# </freefallRadiusMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Freefall\_Radius\_Dark\_Matter\_Halo\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: freefallRadiusMethod
-    procedure(),          pointer, intent(inout) :: Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get
-    
-    if (freefallRadiusMethod == 'myMethod') then
-       Freefall_Radius_Get             => My_Method_Get_Procedure
-       Freefall_Radius_Growth_Rate_Get => My_Method_Growth_Rate_Get_Procedure
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily freefallRadiusMethod} input parameter. The procedure pointer {\normalfont \ttfamily Freefall\_Radius\_Get} must be set to point to a function which returns the freefall radius as described below while {\normalfont \ttfamily Freefall\_Radius\_Growth\_Rate\_Get} should be set to point to a function which returns the rate at which the freefall radius is growing. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The freefall radius function must have the form:
-\begin{verbatim}
- double precision function Freefall_Radius_Get(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Freefall_Radius_Get
-\end{verbatim}
-The function must return the freefall radius (in units of Mpc) for {\normalfont \ttfamily thisNode}. The freefall radius growth rate function should have the same template but return the rate at which the freefall radius grows in units of Mpc/Gyr.
-
-Currently defined freefall radius methods are:
-\begin{description}
- \item [\hyperlink{cooling.freefall_radii.dark_matter_halo.F90:freefall_radii_dark_matter_halo:freefall_radius_dark_matter_halo}{{\normalfont \ttfamily darkMatterHalo}}] Computes the freefall radius by finding the radius in the dark matter halo profile from which a test particle could have free-fallen to zero radius (assuming it began at rest) in the time available for freefall.
-\end{description}
-
 \subsubsection{Cooling Specific Angular Momentum}
 
 Additional methods for calculations of the specific angular momentum of cooling gas can be added using the {\normalfont \ttfamily coolingSpecificAngularMomentumMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
