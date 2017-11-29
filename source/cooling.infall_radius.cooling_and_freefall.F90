@@ -27,7 +27,8 @@
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
      !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
      private
-     class(coolingRadiusClass), pointer :: coolingRadius_
+     class(coolingRadiusClass ), pointer :: coolingRadius_
+     class(freefallRadiusClass), pointer :: freefallRadius_
    contains
      final     ::                       coolingFreefallDestructor
      procedure :: radius             => coolingFreefallRadius
@@ -49,20 +50,23 @@ contains
     type (coolingInfallRadiusCoolingFreefall)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(coolingRadiusClass                ), pointer       :: coolingRadius_
+    class(freefallRadiusClass               ), pointer       :: freefallRadius_
 
-    !# <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
-    self=coolingInfallRadiusCoolingFreefall(coolingRadius_)
+    !# <objectBuilder class="coolingRadius"  name="coolingRadius_"  source="parameters"/>
+    !# <objectBuilder class="freefallRadius" name="freefallRadius_" source="parameters"/>
+    self=coolingInfallRadiusCoolingFreefall(coolingRadius_,freefallRadius_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function coolingFreefallConstructorParameters
 
-  function coolingFreefallConstructorInternal(coolingRadius_) result(self)
+  function coolingFreefallConstructorInternal(coolingRadius_,freefallRadius_) result(self)
     !% Internal constructor for the cooling radius infall radii class.
     use Galacticus_Error
     implicit none
     type (coolingInfallRadiusCoolingFreefall)                        :: self
     class(coolingRadiusClass                ), intent(in   ), target :: coolingRadius_
-    !# <constructorAssign variables="*coolingRadius_"/>
+    class(freefallRadiusClass               ), intent(in   ), target :: freefallRadius_
+    !# <constructorAssign variables="*coolingRadius_, *freefallRadius_"/>
 
     return
   end function coolingFreefallConstructorInternal
@@ -72,7 +76,8 @@ contains
     implicit none
     type(coolingInfallRadiusCoolingFreefall), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRadius_" />
+    !# <objectDestructor name="self%coolingRadius_"  />
+    !# <objectDestructor name="self%freefallRadius_" />
     return
   end subroutine coolingFreefallDestructor
 
@@ -83,14 +88,9 @@ contains
     type            (treeNode                          ), intent(inout) :: node
     double precision                                                    :: radiusCooling, radiusFreefall
 
- 
-    radiusCooling =self%coolingRadius_%radius(node)
-    radiusFreefall=Freefall_Radius           (node)
-    if (radiusCooling < radiusFreefall) then
-       coolingFreefallRadius=radiusCooling
-    else
-       coolingFreefallRadius=radiusFreefall
-    end if
+    radiusCooling =self%coolingRadius_ %radius(node)
+    radiusFreefall=self%freefallRadius_%radius(node)
+    coolingFreefallRadius=min(radiusCooling,radiusFreefall)
     return
   end function coolingFreefallRadius
 
@@ -101,12 +101,12 @@ contains
     type            (treeNode                          ), intent(inout) :: node
     double precision                                                    :: radiusCooling, radiusFreefall
 
-    radiusCooling =self%coolingRadius_%radius(node)
-    radiusFreefall=Freefall_Radius           (node)
+    radiusCooling =self%coolingRadius_ %radius(node)
+    radiusFreefall=self%freefallRadius_%radius(node)
     if (radiusCooling < radiusFreefall) then
-       coolingFreefallRadiusIncreaseRate=self%coolingRadius_%radiusGrowthRate(node)
+       coolingFreefallRadiusIncreaseRate=self%coolingRadius_ %radiusGrowthRate(node)
     else
-       coolingFreefallRadiusIncreaseRate=Freefall_Radius_Growth_Rate         (node)
+       coolingFreefallRadiusIncreaseRate=self%freefallRadius_%radiusGrowthRate(node)
     end if
     return
   end function coolingFreefallRadiusIncreaseRate
