@@ -296,8 +296,6 @@ sub Construct_Data {
 		    foreach ( keys(%{$parentProperty->{'attributes'}}) ) {
 			die("Galacticus::Build::Components::Properties::Construct_Data: property '".$property->{'name'}."' in component '".$component->{'name'}."' of class '".$component->{'class'}."' lacks '".$_."' attribute which is present in parent implementation")
 			    unless ( exists($property->{'attributes'}->{$_}) );
-			die("Galacticus::Build::Components::Properties::Construct_Data: property '".$property->{'name'}."' in component '".$component->{'name'}."' of class '".$component->{'class'}."' does not match '".$_."' attribute in parent implementation")
-			    unless ( $property->{'attributes'}->{$_} eq $parentProperty->{'attributes'}->{$_} );
 		    }
 		}
 		# Move to the next parent.
