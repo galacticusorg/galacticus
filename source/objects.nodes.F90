@@ -526,9 +526,11 @@ module Galacticus_Nodes
 
     ! Remove from the parent node satellite list.
     hostNode => selfActual%parent
-    message='Satellite node ['
-    message=message//selfActual%index()//'] being removed from host node ['//hostNode%index()//']'
-    call Galacticus_Display_Message(message,verbosityInfo)
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Satellite node ['
+       message=message//selfActual%index()//'] being removed from host node ['//hostNode%index()//']'
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
     if (associated(hostNode%firstSatellite,selfActual)) then
        ! This is the first satellite, unlink it, and link to any sibling.
        hostNode%firstSatellite => selfActual%sibling
