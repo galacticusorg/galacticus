@@ -203,7 +203,7 @@ sub Process_FunctionClass {
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
 		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		    next
+		    last
 			unless ( $node );
 		    # Find the parent class.
 		    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
@@ -712,7 +712,7 @@ CODE
 		    my $node = $class->{'tree'}->{'firstChild'};
 		    $node = $node->{'sibling'}
 		        while ( $node && ( $node->{'type'} ne "type" || ( ! exists($node->{'name'}) || $node->{'name'} ne $class->{'name'} ) ) );
-		    next
+		    last
 			unless ( $node );
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
