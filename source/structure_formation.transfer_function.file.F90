@@ -1,28 +1,28 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
-!!    Andrew Benson <abenson@carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-!% Implements a file-based transfer function class.
-
-  use Tables
+  !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+  !!    Andrew Benson <abenson@carnegiescience.edu>
+  !!
+  !! This file is part of Galacticus.
+  !!
+  !!    Galacticus is free software: you can redistribute it and/or modify
+  !!    it under the terms of the GNU General Public License as published by
+  !!    the Free Software Foundation, either version 3 of the License, or
+  !!    (at your option) any later version.
+  !!
+  !!    Galacticus is distributed in the hope that it will be useful,
+  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  !!    GNU General Public License for more details.
+  !!
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
   
+  !% Implements a file-based transfer function class.
+  
+  use Tables
+
   !# <transferFunction name="transferFunctionFile" defaultThreadPrivate="yes">
   !#  <description>
-  !# Provides a transfer function from a tabulation given in an XML file.The XML file format for transfer functions looks like:
+  !# Provides a transfer function from a tabulation given in an XML or HDF5 file. The XML file format for transfer functions looks like:
   !# \begin{verbatim}
   !#  <data>
   !#   <column>k [Mpc^{-1}] - wavenumber</column>
@@ -83,6 +83,95 @@
   !# elements are optional, but are encouraged to make the file easier to understand. Finally, the {\normalfont \ttfamily
   !# fileFormat} element should currently always contain the value $1$---this may change in future if the format of this file is
   !# modified.
+  !#
+  !# The HDF5 format is similar:
+  !# \begin{verbatim}
+  !# HDF5 "transferFunction.hdf5" {
+  !# GROUP "/" {
+  !#    ATTRIBUTE "description" {
+  !#       DATATYPE  H5T_STRING {
+  !#          STRSIZE 71;
+  !#          STRPAD H5T_STR_NULLTERM;
+  !#          CSET H5T_CSET_ASCII;
+  !#          CTYPE H5T_C_S1;
+  !#       }
+  !#       DATASPACE  SCALAR
+  !#    }
+  !#    ATTRIBUTE "fileFormat" {
+  !#       DATATYPE  H5T_STD_I32LE
+  !#       DATASPACE  SCALAR
+  !#    }
+  !#    GROUP "extrapolation" {
+  !#       GROUP "wavenumber" {
+  !#          ATTRIBUTE "high" {
+  !#             DATATYPE  H5T_STRING {
+  !#                STRSIZE 11;
+  !#                STRPAD H5T_STR_NULLTERM;
+  !#                CSET H5T_CSET_ASCII;
+  !#                CTYPE H5T_C_S1;
+  !#             }
+  !#             DATASPACE  SCALAR
+  !#          }
+  !#          ATTRIBUTE "low" {
+  !#             DATATYPE  H5T_STRING {
+  !#                STRSIZE 3;
+  !#                STRPAD H5T_STR_NULLTERM;
+  !#                CSET H5T_CSET_ASCII;
+  !#                CTYPE H5T_C_S1;
+  !#             }
+  !#             DATASPACE  SCALAR
+  !#          }
+  !#       }
+  !#    }
+  !#    GROUP "parameters" {
+  !#       ATTRIBUTE "HubbleConstant" {
+  !#          DATATYPE  H5T_STRING {
+  !#             STRSIZE 4;
+  !#             STRPAD H5T_STR_NULLTERM;
+  !#             CSET H5T_CSET_ASCII;
+  !#             CTYPE H5T_C_S1;
+  !#          }
+  !#          DATASPACE  SCALAR
+  !#       }
+  !#       ATTRIBUTE "OmegaBaryon" {
+  !#          DATATYPE  H5T_STRING {
+  !#             STRSIZE 6;
+  !#             STRPAD H5T_STR_NULLTERM;
+  !#             CSET H5T_CSET_ASCII;
+  !#             CTYPE H5T_C_S1;
+  !#          }
+  !#          DATASPACE  SCALAR
+  !#       }
+  !#       ATTRIBUTE "OmegaDarkEnergy" {
+  !#          DATATYPE  H5T_STRING {
+  !#             STRSIZE 5;
+  !#             STRPAD H5T_STR_NULLTERM;
+  !#             CSET H5T_CSET_ASCII;
+  !#             CTYPE H5T_C_S1;
+  !#          }
+  !#          DATASPACE  SCALAR
+  !#       }
+  !#       ATTRIBUTE "OmegaMatter" {
+  !#          DATATYPE  H5T_STRING {
+  !#             STRSIZE 5;
+  !#             STRPAD H5T_STR_NULLTERM;
+  !#             CSET H5T_CSET_ASCII;
+  !#             CTYPE H5T_C_S1;
+  !#          }
+  !#          DATASPACE  SCALAR
+  !#       }
+  !#    }
+  !#    DATASET "transferFunction" {
+  !#       DATATYPE  H5T_IEEE_F64LE
+  !#       DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+  !#    }
+  !#    DATASET "wavenumber" {
+  !#       DATATYPE  H5T_IEEE_F64LE
+  !#       DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+  !#    }
+  !# }
+  !# }
+  !# \end{verbatim}
   !# </description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionFile
@@ -136,7 +225,7 @@ contains
     !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
-  
+
   function fileConstructorInternal(fileName)
     !% Internal constructor for the file transfer function class.
     use Input_Parameters
@@ -155,13 +244,14 @@ contains
     call fileConstructorInternal%readFile(fileName)
     return
   end function fileConstructorInternal
-  
+
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
     use Input_Parameters
     use Cosmology_Parameters
     use FoX_DOM
     use IO_XML
+    use IO_HDF5
     use Numerical_Comparison
     use Array_Utilities
     use Galacticus_Error
@@ -178,68 +268,122 @@ contains
          &                                                                   transferLogarithmic             , wavenumberLogarithmic
     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_            , cosmologyParametersFile
     double precision                          , parameter                 :: toleranceUniformity      =1.0d-6
+    double precision                          , parameter                 :: temperatureCMB           =0.0d+0 ! Value irrelevant as not used.
+    double precision                                                      :: HubbleConstant                  , OmegaBaryon                , &
+         &                                                                   OmegaMatter                     , OmegaDarkEnergy
     type            (inputParameters         )                            :: transferFunctionCosmology
     integer                                                               :: extrapolationMethod             , versionNumber              , &
          &                                                                   iExtrapolation                  , ioError                    , &
          &                                                                   extrapolateWavenumberLow        , extrapolateWavenumberHigh
     character       (len=32                  )                            :: limitType
-
+    type            (varying_string          )                            :: limitTypeVar
+    type            (hdf5Object              )                            :: fileObject                      , parametersObject           , &
+         &                                                                   extrapolationObject             , wavenumberObject
+    
     ! Get the default cosmology.
     cosmologyParameters_ => cosmologyParameters()
-    ! Open and parse the data file.
-    !$omp critical (FoX_DOM_Access)
-    doc => parseFile(fileName,iostat=ioError)
-    if (ioError /= 0) call Galacticus_Error_Report('Unable to find transfer function file "'//trim(fileName)//'"'//{introspection:location})
-    ! Check that the file has the correct format version number.
-    formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
-    call extractDataContent(formatElement,versionNumber)
-    if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
-    ! Check that parameters match if any are present.
-    parameters => XML_Get_First_Element_By_Tag_Name(doc,"parameters")
-    !$omp end critical (FoX_DOM_Access)
-    transferFunctionCosmology=inputParameters(parameters)
-    cosmologyParametersFile => cosmologyParameters(transferFunctionCosmology)
-    if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
-         & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
-    if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
-         & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
-    if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
-         & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
-    if (Values_Differ(cosmologyParametersFile%HubbleConstant (),cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
-         & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
-    if (Values_Differ(cosmologyParametersFile%temperatureCMB (),cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
-         & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
-    ! Get extrapolation methods.
-    !$omp critical (FoX_DOM_Access)
-    extrapolationElement        => XML_Get_First_Element_By_Tag_Name(doc                 ,"extrapolation")
-    wavenumberExtrapolationList => getElementsByTagname             (extrapolationElement,"wavenumber"   )
-    extrapolateWavenumberLow    =  extrapolationTypeExtrapolate
-    extrapolateWavenumberHigh   =  extrapolationTypeExtrapolate
-    do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
-       extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
-       call XML_Extrapolation_Element_Decode(                                                   &
-            &                                extrapolation                                    , &
-            &                                limitType                                        , &
-            &                                extrapolationMethod                              , &
-            &                                allowedMethods     =[                              &
-            &                                                     extrapolationTypeFix        , &
-            &                                                     extrapolationTypeExtrapolate  &
-            &                                                    ]                              &
-            &                               )
-       select case (trim(limitType))
-       case ('low' )
-          extrapolateWavenumberLow =extrapolationMethod
-       case ('high')
-          extrapolateWavenumberHigh=extrapolationMethod
-       case default
-          call Galacticus_Error_Report('unrecognized extrapolation limit'//{introspection:location})
+    ! Determine type of file.
+    if (fileName(len_trim(fileName)-3:len_trim(fileName)) == ".xml") then
+       ! Open and read the XML data file.
+       !$omp critical (FoX_DOM_Access)
+       doc => parseFile(fileName,iostat=ioError)
+       if (ioError /= 0) call Galacticus_Error_Report('Unable to find transfer function file "'//trim(fileName)//'"'//{introspection:location})
+       ! Check that the file has the correct format version number.
+       formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
+       call extractDataContent(formatElement,versionNumber)
+       if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
+       ! Check that parameters match if any are present.
+       parameters => XML_Get_First_Element_By_Tag_Name(doc,"parameters")
+       !$omp end critical (FoX_DOM_Access)
+       transferFunctionCosmology=inputParameters(parameters)
+       cosmologyParametersFile => cosmologyParameters(transferFunctionCosmology)
+       if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+            & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
+       if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+            & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
+       if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+            & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
+       if (Values_Differ(cosmologyParametersFile%HubbleConstant (),cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+            & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
+       if (Values_Differ(cosmologyParametersFile%temperatureCMB (),cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+            & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
+       ! Get extrapolation methods.
+       !$omp critical (FoX_DOM_Access)
+       extrapolationElement        => XML_Get_First_Element_By_Tag_Name(doc                 ,"extrapolation")
+       wavenumberExtrapolationList => getElementsByTagname             (extrapolationElement,"wavenumber"   )
+       extrapolateWavenumberLow    =  extrapolationTypeExtrapolate
+       extrapolateWavenumberHigh   =  extrapolationTypeExtrapolate
+       do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
+          extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
+          call XML_Extrapolation_Element_Decode(                                                   &
+               &                                extrapolation                                    , &
+               &                                limitType                                        , &
+               &                                extrapolationMethod                              , &
+               &                                allowedMethods     =[                              &
+               &                                                     extrapolationTypeFix        , &
+               &                                                     extrapolationTypeExtrapolate  &
+               &                                                    ]                              &
+               &                               )
+          select case (trim(limitType))
+          case ('low' )
+             extrapolateWavenumberLow =extrapolationMethod
+          case ('high')
+             extrapolateWavenumberHigh=extrapolationMethod
+          case default
+             call Galacticus_Error_Report('unrecognized extrapolation limit'//{introspection:location})
+          end select
+       end do
+       ! Read the transfer function from file.
+       call XML_Array_Read(doc,"datum",wavenumber,transfer)
+       ! Destroy the document.
+       call destroy(doc)
+       !$omp end critical (FoX_DOM_Access)
+    else
+       ! Open and read the HDF5 data file.
+       !$omp critical (HDF5_Access)
+       call fileObject%openFile(fileName,readOnly=.true.)
+       ! Check that the file has the correct format version number.
+       call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
+       if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})
+       ! Check that parameters match if any are present.
+       parametersObject=fileObject%openGroup('parameters')
+       allocate(cosmologyParametersSimple :: cosmologyParametersFile)
+       select type (cosmologyParametersFile)
+       type is (cosmologyParametersSimple)
+          call parametersObject%readAttribute('OmegaMatter'    ,OmegaMatter    )
+          call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
+          call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
+          call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
+          cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
+          if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+               & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
+          if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+               & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
+          if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+               & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
+          if (Values_Differ(cosmologyParametersFile%HubbleConstant (),cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+               & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
+          if (Values_Differ(cosmologyParametersFile%temperatureCMB (),cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+               & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
        end select
-    end do
-    ! Read the transfer function from file.
-    call XML_Array_Read(doc,"datum",wavenumber,transfer)
-    ! Destroy the document.
-    call destroy(doc)
-    !$omp end critical (FoX_DOM_Access)
+       deallocate(cosmologyParametersFile)
+       call parametersObject%close()
+       ! Get extrapolation methods.
+       extrapolationObject=fileObject         %openGroup('extrapolation')
+       wavenumberObject   =extrapolationObject%openGroup('wavenumber'   )
+       call wavenumberObject%readAttribute('low' ,limitTypeVar)
+       extrapolateWavenumberLow =enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+       call wavenumberObject%readAttribute('high',limitTypeVar)
+       extrapolateWavenumberHigh=enumerationExtrapolationTypeEncode(char(limitTypeVar),includesPrefix=.false.)
+       call wavenumberObject   %close()
+       call extrapolationObject%close()
+       ! Read the transfer function from file.
+       call fileObject%readDataset('wavenumber'      ,wavenumber)
+       call fileObject%readDataset('transferFunction',transfer  )
+       ! Close the file.
+       call fileObject%close()
+       !$omp end critical (HDF5_Access)
+    end if
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
@@ -287,7 +431,7 @@ contains
     fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
     return
   end function fileLogarithmicDerivative
-  
+
   double precision function fileHalfModeMass(self)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is
     !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
@@ -296,7 +440,7 @@ contains
     implicit none
     class(transferFunctionFile), intent(inout) :: self
     !GCC$ attributes unused :: self
-    
+
     fileHalfModeMass=0.0d0
     call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
     return

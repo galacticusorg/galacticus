@@ -220,16 +220,17 @@
     <version>0.9.4</version>
     <transferFunctionMethod>
       <value>file
-      <cosmologyParametersMethod value="simple">
-	<HubbleConstant  value="73.0"  />
-	<OmegaMatter     value="0.25"  />
-	<OmegaDarkEnergy value="0.75"  />
-	<OmegaBaryon     value="0.0455"/>
-      </cosmologyParametersMethod>
-      <cosmologicalMassVarianceMethod value="filteredPower">
-	<tolerance       value="3.0e-4"/>
-	<toleranceTopHat value="3.0e-4"/>
-      </cosmologicalMassVarianceMethod>
+	<fileName                  value="data/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
+	<cosmologyParametersMethod value="simple">
+	  <HubbleConstant  value="73.0"  />
+	  <OmegaMatter     value="0.25"  />
+	  <OmegaDarkEnergy value="0.75"  />
+	  <OmegaBaryon     value="0.0455"/>
+	</cosmologyParametersMethod>
+	<cosmologicalMassVarianceMethod value="filteredPower">
+	  <tolerance       value="3.0e-4"/>
+	  <toleranceTopHat value="3.0e-4"/>
+	</cosmologicalMassVarianceMethod>
       </value>
       <value>BBKS</value>
       <value>CAMB
@@ -239,7 +240,6 @@
       </cosmologicalMassVarianceMethod>
       </value>
       <value>eisensteinHu1999</value>
-      <fileName        value="data/largeScaleStructure/transferFunctionMillenniumSimulation.xml"/>
     </transferFunctionMethod>
   </parameters>
   <parameters>
