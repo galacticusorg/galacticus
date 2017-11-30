@@ -19,87 +19,29 @@
 !% Contains a module that implements calculations of the time available for freefall in cooling calculations.
 
 module Cooling_Freefall_Times_Available
-  !% Implements calculations of the time available for freefall in cooling calculations.
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of the freefall radius.
   use Galacticus_Nodes
-  !# <include directive="freefallTimeAvailableMethod" type="moduleUse">
-  include 'cooling.freefall_time_available.modules.inc'
-  !# </include>
   implicit none
   private
-  public :: Cooling_Freefall_Time_Available, Cooling_Freefall_Time_Available_Increase_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                          :: freefallTimeAvailableInitialized                 =.false.
-
-  ! Name of cooling time available method used.
-  type     (varying_string                              )          :: freefallTimeAvailableMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Freefall_Time_Available              ), pointer :: Cooling_Freefall_Time_Available_Get              =>null()
-  procedure(Cooling_Freefall_Time_Available_Increase_Rate), pointer :: Cooling_Freefall_Time_Available_Increase_Rate_Get=>null()
-
-contains
-
-  subroutine Cooling_Freefall_Time_Available_Initialize
-    !% Initializes the freefall time available in cooling calculations module.
-    use Galacticus_Error
-    use Input_Parameters
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.freefallTimeAvailableInitialized) then
-       !$omp critical(Cooling_Freefall_Time_Available_Initialization)
-       if (.not.freefallTimeAvailableInitialized) then
-          ! Get the cooling time available method parameter.
-          !# <inputParameter>
-          !#   <name>freefallTimeAvailableMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('haloFormation')</defaultValue>
-          !#   <description>The name of the method to be used when computing the time available for freefall in cooling calculations.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="freefallTimeAvailableMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</functionArgs>
-          include 'cooling.freefall_time_available.inc'
-          !# </include>
-          if (.not.(associated(Cooling_Freefall_Time_Available_Get).and.associated(Cooling_Freefall_Time_Available_Increase_Rate_Get))) &
-               & call Galacticus_Error_Report('method ' //char(freefallTimeAvailableMethod)//' is unrecognized'//{introspection:location})
-          freefallTimeAvailableInitialized=.true.
-       end if
-       !$omp end critical(Cooling_Freefall_Time_Available_Initialization)
-    end if
-    return
-  end subroutine Cooling_Freefall_Time_Available_Initialize
-
-  double precision function Cooling_Freefall_Time_Available(thisNode)
-    !% Return the time available for freefall in cooling calculations in {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize if necessary.
-    call Cooling_Freefall_Time_Available_Initialize
-
-    ! Get the cooling time using the selected method.
-    Cooling_Freefall_Time_Available=Cooling_Freefall_Time_Available_Get(thisNode)
-
-    return
-  end function Cooling_Freefall_Time_Available
-
-  double precision function Cooling_Freefall_Time_Available_Increase_Rate(thisNode)
-    !% Return the rate at which the time available for freefall in cooling calculations increases in {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize if necessary.
-    call Cooling_Freefall_Time_Available_Initialize
-
-    ! Get the cooling time using the selected method.
-    Cooling_Freefall_Time_Available_Increase_Rate=Cooling_Freefall_Time_Available_Increase_Rate_Get(thisNode)
-
-    return
-  end function Cooling_Freefall_Time_Available_Increase_Rate
+  
+  !# <functionClass>
+  !#  <name>freefallTimeAvailable</name>
+  !#  <descriptiveName>Freefall time available.</descriptiveName>
+  !#  <description>Class providing models of the time available for freefall in cooling calculations.</description>
+  !#  <default>darkMatterHalo</default>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="timeAvailable" >
+  !#   <description>Returns the time available for freefall in cooling calculations in {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !#  <method name="timeAvailableIncreaseRate" >
+  !#   <description>Returns the rate at which the time available for freefall in cooling calculations increases in {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Cooling_Freefall_Times_Available

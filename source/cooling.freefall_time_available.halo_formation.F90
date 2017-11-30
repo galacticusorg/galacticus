@@ -16,76 +16,80 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{cole_hierarchical_2000} method for computing the time available for freefall in
-!% cooling calculations in hot halos.
+  !% Implementation of the \cite{cole_hierarchical_2000} method for computing the time available for freefall in cooling
+  !% calculations in hot halos.
 
-module Freefall_Times_Available_Halo_Formation
-  !% Implements the \cite{cole_hierarchical_2000} method for computing the time available for freefall in
-  !% cooling calculations in hot halos.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Freefall_Time_Available_Halo_Formation_Initialize
+  !# <freefallTimeAvailable name="freefallTimeAvailableHaloFormation" defaultThreadPrivate="yes">
+  !#  <description>
+  !#   A freefall time available class which computes the freefall time available based on the freefall time in the dark matter halo.
+  !#  </description>
+  !# </freefallTimeAvailable>
+  type, extends(freefallTimeAvailableClass) :: freefallTimeAvailableHaloFormation
+     !% Implementation of freefall time available class in which the time available is determined by the halo formation time.
+     private
+   contains
+     procedure :: timeAvailable             => haloFormationTimeAvailable
+     procedure :: timeAvailableIncreaseRate => haloFormationTimeAvailableIncreaseRate
+  end type freefallTimeAvailableHaloFormation
+
+  interface freefallTimeAvailableHaloFormation
+     !% Constructors for the haloFormation freefall time available class.
+     module procedure haloFormationConstructorParameters
+  end interface freefallTimeAvailableHaloFormation
 
 contains
 
-  !# <freefallTimeAvailableMethod>
-  !#  <unitName>Freefall_Time_Available_Halo_Formation_Initialize</unitName>
-  !# </freefallTimeAvailableMethod>
-  subroutine Freefall_Time_Available_Halo_Formation_Initialize(freefallTimeAvailableMethod,Freefall_Time_Available_Get&
-       &,Freefall_Time_Available_Increase_Rate_Get)
-    !% Initialize the \cite{cole_hierarchical_2000} freefall time available module.
-    use ISO_Varying_String
+  function haloFormationConstructorParameters(parameters) result(self)
+    !% Constructor for the haloFormation freefall time available class which builds the object from a parameter set.
+    use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string                                      ), intent(in   )          :: freefallTimeAvailableMethod
-    procedure(Freefall_Time_Available_Halo_Formation              ), intent(inout), pointer :: Freefall_Time_Available_Get
-    procedure(Freefall_Time_Available_Increase_Rate_Halo_Formation), intent(inout), pointer :: Freefall_Time_Available_Increase_Rate_Get
-
-    if (freefallTimeAvailableMethod == 'haloFormation') then
-       ! Set pointers to our implementation.
-       Freefall_Time_Available_Get               => Freefall_Time_Available_Halo_Formation
-       Freefall_Time_Available_Increase_Rate_Get => Freefall_Time_Available_Increase_Rate_Halo_Formation
-       ! Check that there is a gettable formation time property.
-       if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
-            & call Galacticus_Error_Report                                                                                        &
-            &      (                                                                                                              &
-            &       "'haloFormation' method for time available for freefall requires a formation time component that supports "// &
-            &       "getting of the formationTime property."                                                                   // &
-            &       Galacticus_Component_List(                                                                                    &
-            &                                 'formationTime'                                                                  ,  &
-            &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
-            &                                )                                                                                 // &
-            &       {introspection:location}                                                                                      &
-            &      )
-    end if
+    type(freefallTimeAvailableHaloFormation)                :: self
+    type(inputParameters                   ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    ! Check that there is a gettable formation time property.
+    if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
+         & call Galacticus_Error_Report                                                                                        &
+         &      (                                                                                                              &
+         &       "'haloFormation' method for time available for freefall requires a formation time component that supports "// &
+         &       "getting of the formationTime property."                                                                   // &
+         &       Galacticus_Component_List(                                                                                    &
+         &                                 'formationTime'                                                                  ,  &
+         &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
+         &                                )                                                                                 // &
+         &       {introspection:location}                                                                                      &
+         &      )
+    ! Construct the instance.
+    self=freefallTimeAvailableHaloFormation()
     return
-  end subroutine Freefall_Time_Available_Halo_Formation_Initialize
+  end function haloFormationConstructorParameters
 
-  double precision function Freefall_Time_Available_Halo_Formation(node)
-    !% Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
-    !% assumed to be the time since the halo formation event.
-    implicit none
-    type (treeNode                  ), intent(inout) :: node
-    class(nodeComponentBasic        ), pointer       :: basic
-    class(nodeComponentFormationTime), pointer       :: formationTime
-
-    basic         => node%basic        ()
-    formationTime => node%formationTime()
-    Freefall_Time_Available_Halo_Formation=basic%time()-formationTime%formationTime()
-    return
-  end function Freefall_Time_Available_Halo_Formation
-
-  double precision function Freefall_Time_Available_Increase_Rate_Halo_Formation(node)
+  double precision function haloFormationTimeAvailableIncreaseRate(self,node)
     !% Compute the rate of increase of the time available for freefall using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1.
     implicit none
-    type(treeNode), intent(inout) :: node
-    !GCC$ attributes unused :: node
+    class(freefallTimeAvailableHaloFormation), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
 
     ! Simply return unit rate.
-    Freefall_Time_Available_Increase_Rate_Halo_Formation=1.0d0
+    haloFormationTimeAvailableIncreaseRate=1.0d0
     return
-  end function Freefall_Time_Available_Increase_Rate_Halo_Formation
+  end function haloFormationTimeAvailableIncreaseRate
+  
+  double precision function haloFormationTimeAvailable(self,node)
+    !% Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
+    !% assumed to be the time since the halo formation event.
+    implicit none
+    class(freefallTimeAvailableHaloFormation), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    class(nodeComponentBasic                ), pointer       :: basic
+    class(nodeComponentFormationTime        ), pointer       :: formationTime
 
-end module Freefall_Times_Available_Halo_Formation
+    basic                      =>  node         %basic        ()
+    formationTime              =>  node         %formationTime()
+    haloFormationTimeAvailable =  +basic        %         time() &
+         &                        -formationTime%formationTime()
+    return
+  end function haloFormationTimeAvailable
