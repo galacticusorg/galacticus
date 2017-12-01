@@ -149,7 +149,6 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
     use Galacticus_Error
-    use Cooling_Specific_Angular_Momenta
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
     implicit none

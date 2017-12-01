@@ -470,15 +470,15 @@
     <coolingSpecificAngularMomentumMethod>
       <value>mean</value>
       <value>constantRotation
-      <coolingMeanAngularMomentumFrom>
+      <sourceAngularMomentumSpecificMean>
 	<value>hotGas
-	<coolingAngularMomentumUseInteriorMean>
+	<useInteriorMean>
 	  <value>true</value>
 	  <value>false</value>
-	</coolingAngularMomentumUseInteriorMean>
+	</useInteriorMean>
 	</value>
 	<value>darkMatter</value>
-      </coolingMeanAngularMomentumFrom>
+      </sourceAngularMomentumSpecificMean>
       </value>
     </coolingSpecificAngularMomentumMethod>
   </parameters>
