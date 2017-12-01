@@ -655,16 +655,17 @@ contains
     use Node_Component_Hot_Halo_Standard_Data
     use Galacticus_Error
     implicit none
-    type            (treeNode                    ), intent(inout)          , pointer :: node
-    double precision                              , intent(in   )                    :: massRate
-    logical                                       , intent(inout), optional          :: interrupt
-    procedure       (interruptTask               ), intent(inout), optional, pointer :: interruptProcedure
-    type            (treeNode                    )                         , pointer :: coolingFromNode
-    class           (nodeComponentHotHalo        )                         , pointer :: coolingFromHotHaloComponent, hotHalo
-    class           (coolingInfallRadiusClass    )                         , pointer :: coolingInfallRadius_
-    type            (abundances                  ), save                             :: abundancesCoolingRate
+    type            (treeNode                           ), intent(inout)          , pointer :: node
+    double precision                                     , intent(in   )                    :: massRate
+    logical                                              , intent(inout), optional          :: interrupt
+    procedure       (interruptTask                      ), intent(inout), optional, pointer :: interruptProcedure
+    type            (treeNode                           )                         , pointer :: coolingFromNode
+    class           (nodeComponentHotHalo               )                         , pointer :: coolingFromHotHaloComponent    , hotHalo
+    class           (coolingInfallRadiusClass           )                         , pointer :: coolingInfallRadius_
+    class           (coolingSpecificAngularMomentumClass)                         , pointer :: coolingSpecificAngularMomentum_
+    type            (abundances                         ), save                             :: abundancesCoolingRate
     !$omp threadprivate(abundancesCoolingRate)
-    double precision                                                                 :: angularMomentumCoolingRate , infallRadius
+    double precision                                                                        :: angularMomentumCoolingRate     , infallRadius
     
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -693,11 +694,12 @@ contains
              coolingFromNode => null()
              call Galacticus_Error_Report('unknown "hotHaloCoolingFromNode" - this should not happen'//{introspection:location})
           end select
-          coolingInfallRadius_       => coolingInfallRadius        (    )
-          infallRadius               =  coolingInfallRadius_%radius(node)
-          angularMomentumCoolingRate =  massRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
+          coolingSpecificAngularMomentum_ => coolingSpecificAngularMomentum       (    )
+          coolingInfallRadius_            => coolingInfallRadius                  (    )
+          infallRadius                    =  coolingInfallRadius_          %radius(node)
+          angularMomentumCoolingRate      =  massRate*coolingSpecificAngularMomentum_%angularMomentumSpecific(coolingFromNode,infallRadius)
           if (.not.gotAngularMomentumCoolingRate) then
-             angularMomentumHeatingRateRemaining=rateCooling*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
+             angularMomentumHeatingRateRemaining=rateCooling*coolingSpecificAngularMomentum_%angularMomentumSpecific(coolingFromNode,infallRadius)
              gotAngularMomentumCoolingRate=.true.
           end if
           if (massRate < 0.0d0) then

@@ -87,11 +87,12 @@
   <hotHaloTemperatureProfileMethod value="virial"/>
   <hotHaloCoreRadiusOverVirialRadius value="0.3"/>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
-  <coolingSpecificAngularMomentumMethod value="constantRotation"/>
+  <coolingSpecificAngularMomentumMethod value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation       value="hotGas"/>
+  </coolingSpecificAngularMomentumMethod>
   <hotHaloOutflowReturnRate value="5.0"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
-  <coolingMeanAngularMomentumFrom value="hotGas"/>
-  <coolingRotationVelocityFrom value="hotGas"/>
   <coolingRadiusMethod value="simple"/>
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>

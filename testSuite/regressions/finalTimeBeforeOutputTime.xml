@@ -74,7 +74,10 @@
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/finalTimeBeforeOutputTime.hdf5"/>
   <treeNodeMethodSpheroid value="verySimple"/>
-  <coolingMeanAngularMomentumFrom value="hotGas"/>
+  <coolingSpecificAngularMomentumMethod value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation       value="hotGas"/>
+  </coolingSpecificAngularMomentumMethod>
   <timestepSimpleRelative value="0.1"/>
   <imfChabrierYieldInstantaneous value="0.035"/>
   <treeNodeMethodBasic value="standard"/>
@@ -85,7 +88,6 @@
   <conditionalMassFunctionBehrooziBetaCut value="-1.76747815862"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>
   <timestepHostRelative value="0.1"/>
-  <coolingRotationVelocityFrom value="hotGas"/>
   <randomSeed value="828"/>
   <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
   <coolingTimeAvailableMethod value="whiteFrenk1991">

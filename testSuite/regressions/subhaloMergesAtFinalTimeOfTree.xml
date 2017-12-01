@@ -113,13 +113,15 @@
   <reionizationSuppressionVelocity value="35.0"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/subhaloMergesAtFinalTimeOfTree.hdf5"/>
-  <coolingMeanAngularMomentumFrom value="hotGas"/>
+  <coolingSpecificAngularMomentumMethod value="constantRotation">
+    <sourceAngularMomentumSpecificMean value="hotGas"/>
+    <sourceNormalizationRotation       value="hotGas"/>
+  </coolingSpecificAngularMomentumMethod>
   <imfChabrierYieldInstantaneous value="0.035"/>
   <imfSelectionFixed value="Chabrier"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <conditionalMassFunctionBehrooziBetaCut value="-1.76747815862"/>
   <timestepHostRelative value="0.1"/>
-  <coolingRotationVelocityFrom value="hotGas"/>
   <randomSeed value="828"/>
   <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
