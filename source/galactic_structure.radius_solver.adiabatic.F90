@@ -28,31 +28,35 @@ module Galactic_Structure_Radii_Adiabatic
   public :: Galactic_Structure_Radii_Adiabatic_Initialize
 
   ! Parameter controlling the accuracy of the solutions sought.
-  double precision                    :: adiabaticContractionSolutionTolerance
+  double precision                                      :: adiabaticContractionSolutionTolerance
 
   ! Module variables used to communicate current state of radius solver.
-  integer                             :: activeComponentCount                    , iterationCount
-  double precision                    :: fitMeasure                              , haloFraction
-  type            (treeNode), pointer :: haloNode
-  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction,haloNode)
+  integer                                               :: activeComponentCount                 , iterationCount
+  double precision                                      :: fitMeasure                           , haloFraction
+  type            (treeNode), pointer                   :: haloNode
+  double precision          , allocatable, dimension(:) :: radiusStored                         , velocityStored
+  logical                                               :: revertStructure=.false.
+  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction,haloNode,radiusStored,velocityStored,revertStructure)
   ! Options controlling the solver.
-  logical                             :: adiabaticContractionIncludeBaryonGravity, adiabaticContractionUseFormationHalo
+  logical                                               :: adiabaticContractionIncludeBaryonGravity, adiabaticContractionUseFormationHalo
 
 contains
 
   !# <galacticStructureRadiusSolverMethod>
   !#  <unitName>Galactic_Structure_Radii_Adiabatic_Initialize</unitName>
   !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Adiabatic_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do)
+  subroutine Galactic_Structure_Radii_Adiabatic_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
     !% Initializes the ``adiabatic'' galactic radii solver module.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string                          ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Adiabatic), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    type     (varying_string                           ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Adiabatic ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    procedure(Galactic_Structure_Radii_Revert_Adiabatic), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
 
     if (galacticStructureRadiusSolverMethod == 'adiabatic') then
-       Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Adiabatic
+       Galactic_Structure_Radii_Solve_Do  => Galactic_Structure_Radii_Solve_Adiabatic
+       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Adiabatic
        ! Get parameters of the model.
        !# <inputParameter>
        !#   <name>adiabaticContractionIncludeBaryonGravity</name>
@@ -146,8 +150,9 @@ contains
           call node%serializeASCII()
           call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
        end if
-
     end if
+    ! Unset structure reversion flag.
+    revertStructure=.false.
     return
   end subroutine Galactic_Structure_Radii_Solve_Adiabatic
 
@@ -165,31 +170,37 @@ contains
     implicit none
     type            (treeNode                  ), intent(inout)                     :: node
     double precision                            , intent(in   )                     :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                        , Velocity_Get
-    procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                        , Velocity_Set
+    procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                          , Velocity_Get
+    procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                          , Velocity_Set
     class           (darkMatterProfileClass    )                , pointer           :: darkMatterProfile_
     double precision                            , dimension(:,:), allocatable, save :: radiusHistory
     !$omp threadprivate(radiusHistory)
     double precision                            , dimension(:,:), allocatable       :: radiusHistoryTemporary
-    integer                                     , parameter                         :: iterationsForBisectionMinimum  =10
-    integer                                     , parameter                         :: activeComponentMaximumIncrement= 2
+    double precision                            , dimension(:  ), allocatable       :: radiusStoredTmp                     , velocityStoredTmp
+    integer                                     , dimension(1  ), parameter         :: storeIncrement                 =[10]
+    integer                                     , parameter                         :: iterationsForBisectionMinimum  = 10
+    integer                                     , parameter                         :: activeComponentMaximumIncrement=  2
     integer                                                                         :: activeComponentMaximumCurrent
     character       (len=14                    )                                    :: label
     type            (varying_string            )                                    :: message
-    double precision                                                                :: baryonicVelocitySquared           , darkMatterMassFinal, &
-         &                                                                             darkMatterVelocitySquared         , haloMassInitial    , &
-         &                                                                             radius                            , radiusInitial      , &
-         &                                                                             radiusNew                         , velocity
+    double precision                                                                :: baryonicVelocitySquared             , darkMatterMassFinal, &
+         &                                                                             darkMatterVelocitySquared           , haloMassInitial    , &
+         &                                                                             radius                              , radiusInitial      , &
+         &                                                                             radiusNew                           , velocity
 
     ! Get required objects.
     darkMatterProfile_ => darkMatterProfile()
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
 
-    if (iterationCount == 1 .or. haloFraction <= 0.0d0) then
+    if (iterationCount == 1 .or. haloFraction <= 0.0d0) then       
+       ! If structure is to be reverted, do so now.
+       if (revertStructure) then
+          call   Radius_Set(node,  radiusStored(activeComponentCount))
+          call Velocity_Set(node,velocityStored(activeComponentCount))
+       end if
        ! On first iteration, see if we have a previous radius set for this component.
        radius=Radius_Get(node)
-
        if (radius <= 0.0d0) then
           ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
 
@@ -201,6 +212,25 @@ contains
        else
           ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
           velocity=Velocity_Get(node)
+       end if
+       ! If structure is not being reverted, store the new values of radius and velocity.
+       if (.not.revertStructure .and. iterationCount == 1) then
+          ! Store these quantities.
+          if (.not.allocated(radiusStored)) then
+             call allocateArray(  radiusStored,storeIncrement)
+             call allocateArray(velocityStored,storeIncrement)
+          else if (activeComponentCount > size(radiusStored)) then
+             call move_alloc     (  radiusStored,        radiusStoredTmp                )
+             call move_alloc     (velocityStored,      velocityStoredTmp                )
+             call allocateArray  (  radiusStored,shape(  radiusStoredTmp)+storeIncrement)
+             call allocateArray  (velocityStored,shape(velocityStoredTmp)+storeIncrement)
+             radiusStored  (1:size(  radiusStoredTmp))=  radiusStoredTmp
+             velocityStored(1:size(velocityStoredTmp))=velocityStoredTmp
+             call deallocateArray(  radiusStoredTmp)
+             call deallocateArray(velocityStoredTmp)
+          end if
+          radiusStored  (activeComponentCount)=radius
+          velocityStored(activeComponentCount)=velocity
        end if
 
     else
@@ -238,6 +268,7 @@ contains
        else
           radiusNew=     specificAngularMomentum/velocity
        endif
+       
        ! Ensure that the radius history array is sufficiently sized.
        if (.not.allocated(radiusHistory)) then
           call allocateArray(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
@@ -306,9 +337,20 @@ contains
     end if
 
     ! Set the component size to new radius and velocity.
-    call Radius_Set  (node,radius  )
+    call   Radius_Set(node,radius  )
     call Velocity_Set(node,velocity)
-    return
+     return
   end subroutine Solve_For_Radius
+
+  subroutine Galactic_Structure_Radii_Revert_Adiabatic(node)
+    !% Revert radii for the adiabatic galactic structure solve.
+    implicit none
+    type(treeNode), intent(inout), target :: node
+    !GCC$ attributes unused :: node
+
+    ! Simply record that reversion should be performed on the next call to the solver.
+    revertStructure=.true.
+    return
+  end subroutine Galactic_Structure_Radii_Revert_Adiabatic
 
 end module Galactic_Structure_Radii_Adiabatic

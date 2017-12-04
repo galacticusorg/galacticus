@@ -24,33 +24,29 @@ module Galactic_Structure_Radii
   use Galacticus_Nodes
   implicit none
   private
-  public :: Galactic_Structure_Radii_Solve
+  public :: Galactic_Structure_Radii_Solve, Galactic_Structure_Radii_Revert
 
   ! Flag to indicate if this module has been initialized.
-  logical                                                     :: galacticStructureRadiusSolverInitialized=.false.
+  logical                                             :: galacticStructureRadiusSolverInitialized=.false.
 
   ! Name of cooling rate available method used.
-  type     (varying_string                         )          :: galacticStructureRadiusSolverMethod
+  type     (varying_string                 )          :: galacticStructureRadiusSolverMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Galactic_Structure_Radii_Solve), pointer :: Galactic_Structure_Radii_Solve_Do       =>null()
+  procedure(Galactic_Structure_Radii_Solve ), pointer :: Galactic_Structure_Radii_Solve_Do  => null()
+  procedure(Galactic_Structure_Radii_Revert), pointer :: Galactic_Structure_Radii_Revert_Do => null()
 
 contains
 
-  !# <preDerivativeTask>
-  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
-  !# </preDerivativeTask>
-  subroutine Galactic_Structure_Radii_Solve(thisNode)
-    !% Solve for the radii of galactic components in {\normalfont \ttfamily thisNode}.
+  subroutine Galacticus_Structure_Radii_Initialize()
+    !% Initialize galactic structure radius solver.
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="galacticStructureRadiusSolverMethod" type="moduleUse">
     include 'galactic_structure.radius_solver.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), target :: thisNode
 
-    ! Initialize if necessary.
     if (.not.galacticStructureRadiusSolverInitialized) then
        !$omp critical(Galactic_Structure_Radii_Initialization)
        if (.not.galacticStructureRadiusSolverInitialized) then
@@ -65,20 +61,40 @@ contains
           !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="galacticStructureRadiusSolverMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</functionArgs>
+          !#  <functionArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do</functionArgs>
           include 'galactic_structure.radius_solver.inc'
           !# </include>
-          if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
+          if (.not.(associated(Galactic_Structure_Radii_Solve_Do).and.associated(Galactic_Structure_Radii_Revert_Do))) &
                & call Galacticus_Error_Report('method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized'//{introspection:location})
           galacticStructureRadiusSolverInitialized=.true.
        end if
        !$omp end critical(Galactic_Structure_Radii_Initialization)
     end if
+    return
+  end subroutine Galacticus_Structure_Radii_Initialize
+  
+  !# <preDerivativeTask>
+  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
+  !# </preDerivativeTask>
+  subroutine Galactic_Structure_Radii_Solve(node)
+    !% Solve for the radii of galactic components in {\normalfont \ttfamily node}.
+    implicit none
+    type(treeNode), intent(inout), target :: node
 
-    ! Call the routine to solve for the radii.
-    call Galactic_Structure_Radii_Solve_Do(thisNode)
-
+    call Galacticus_Structure_Radii_Initialize(    )
+    call Galactic_Structure_Radii_Solve_Do    (node)
     return
   end subroutine Galactic_Structure_Radii_Solve
+  
+  subroutine Galactic_Structure_Radii_Revert(node)
+    !% Revert the radii of galactic components in {\normalfont \ttfamily node} (if necessary to ensure that the structure solver
+    !% will give the same result when called consequtively).
+    implicit none
+    type(treeNode), intent(inout), target :: node
+
+    call Galacticus_Structure_Radii_Initialize(    )
+    call Galactic_Structure_Radii_Revert_Do   (node)
+    return
+  end subroutine Galactic_Structure_Radii_Revert
 
 end module Galactic_Structure_Radii

@@ -36,16 +36,18 @@ contains
   !# <galacticStructureRadiusSolverMethod>
   !#  <unitName>Galactic_Structure_Radii_Simple_Initialize</unitName>
   !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Simple_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do)
+  subroutine Galactic_Structure_Radii_Simple_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
     !% Initializes the ``simple'' galactic radii solver module.
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Simple), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    type     (varying_string                        ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Simple ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    procedure(Galactic_Structure_Radii_Revert_Simple), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
 
     if (galacticStructureRadiusSolverMethod == 'simple') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Simple
+       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Simple
        !# <inputParameter>
        !#   <name>simpleRadiusSolverUseFormationHalo</name>
        !#   <cardinality>1</cardinality>
@@ -129,5 +131,14 @@ contains
     call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
+
+  subroutine Galactic_Structure_Radii_Revert_Simple(node)
+    !% Revert radii for the simple galactic structure solve. Not necessary for this algorithm.
+    implicit none
+    type(treeNode), intent(inout), target :: node
+    !GCC$ attributes unused :: node
+    
+    return
+  end subroutine Galactic_Structure_Radii_Revert_Simple
 
 end module Galactic_Structure_Radii_Simple
