@@ -125,7 +125,7 @@ contains
        if (stabilityIsolatedRelative > timescaleDimensionlessMaximum*stabilityEstimatorRelative) then
           timescaleDimensionless=timescaleDimensionlessMaximum
        else
-          timescaleDimensionless=stabilityIsolatedRelative/stabilityEstimatorRelative
+          timescaleDimensionless=(stabilityIsolatedRelative/stabilityEstimatorRelative)**2
        end if
        barInstabilityTimeScale=dynamicalTime*timescaleDimensionless
     end if
