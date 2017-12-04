@@ -161,20 +161,18 @@ contains
     type            (abundances                  ), save                             :: abundancesCoolingRate
     !$omp threadprivate(abundancesCoolingRate)
     double precision                                                                 :: angularMomentumCoolingRate
-
+    
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     select type (hotHalo)
     class is (nodeComponentHotHaloColdMode)
        ! Ignore zero rates.
-       if (massRate /= 0.0d0 .and. hotHalo%massCold() > 0.0d0 .and. hotHalo%angularMomentumCold() > 0.0d0) then
+       if (massRate /= 0.0d0 .and. hotHalo%massCold() > 0.0d0 .and. hotHalo%angularMomentumCold() > 0.0d0) then          
           ! Remove mass from the hot component.
           call hotHalo%massColdRate(-massRate)
           ! Pipe the mass rate to whichever component claimed it.
-          if (hotHalo%hotHaloCoolingMassRateIsAttached()) then
-             call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
+          if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
           ! Find the node to use for cooling calculations.
           select case (hotHaloCoolingFromNode)
           case (currentNode  )
@@ -189,20 +187,16 @@ contains
           angularMomentumCoolingRate=massRate*hotHalo%angularMomentumCold()/hotHalo%massCold()
           call hotHalo%angularMomentumColdRate(-angularMomentumCoolingRate)
           ! Pipe the cooling rate to which ever component claimed it.
-          if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) then
-             call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
+          if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
           ! Get the rate of change of abundances.
           hotHaloCoolingFrom => nodeCoolingFrom   %hotHalo       ()
           abundancesCoolingRate=hotHaloCoolingFrom%abundancesCold()
           abundancesCoolingRate=massRate*abundancesCoolingRate/hotHaloCoolingFrom%massCold()
           call hotHalo%abundancesColdRate(-abundancesCoolingRate)
           ! Pipe the cooling rate to which ever component claimed it.
-          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) then
-             call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
+          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
        end if
     end select
     return
@@ -243,68 +237,65 @@ contains
     if (.not.defaultHotHaloComponent%coldModeIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
-    ! Ensure that the standard hot halo implementation is active.
-    if (defaultHotHaloComponent%coldModeIsActive()) then
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       accretionHalo_       => accretionHalo      ()
-       coldModeInfallRate_  => coldModeInfallRate ()
-       ! Find the rate of gas mass accretion onto the halo.
-       massAccretionRate=accretionHalo_%accretionRate(node,accretionModeCold)
-       ! Get the basic component.
-       basic => node%basic()
-       ! Apply accretion rates.
-       call hotHalo%massColdRate(massAccretionRate,interrupt,interruptProcedure)
-       ! Next compute the cold mode infall rate in this halo.
-       infallRate=coldModeInfallRate_%infallRate(node)
-       ! Pipe the cooling rate to which ever component claimed it.
-       call Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,infallRate,interrupt,interruptProcedure)
-       ! Get the rate at which abundances are accreted onto this halo.
-       call hotHalo%abundancesColdRate(accretionHalo_%accretionRateMetals(node,accretionModeCold),interrupt,interruptProcedure)
-       ! Next block of tasks occur only if the accretion rate is non-zero.
-       if (massAccretionRate > 0.0d0) then
-          ! Compute the rate of accretion of angular momentum.
-          angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node)*(massAccretionRate &
-               &/basic%accretionRate())
-          if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
-          call hotHalo%angularMomentumColdRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
-       end if
-       select type (hotHalo)
-       class is (nodeComponentHotHaloColdMode)
-          ! Test whether this halo is a satellite or not.
-          if (node%isSatellite()) then
-             ! For satellites, get the current ram pressure stripping radius for this hot halo.
-             outerRadiusGrowthRate=hotHalo%outerRadiusGrowthRate()
-             outerRadius          =hotHalo%outerRadius          ()
-             gasMass              =hotHalo%massCold             ()
-             if     (                                                                                                    &
-                  &   outerRadiusGrowthRate /= 0.0d0                                                                     &
-                  &  .and.                                                                                               &
-                  &   gasMass               >  0.0d0                                                                     &
-                  &  .and.                                                                                               &
-                  &   outerRadius           <=                                   darkMatterHaloScale_%virialRadius(node) &
-                  &  .and.                                                                                               &
-                  &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
-                  & ) then
-                ! The ram pressure stripping radius is within the outer radius. Remove mass from the cold mode halo at the appropriate rate.
-                densityAtOuterRadius = Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous,haloLoaded=.true.)
-                ! Compute the mass loss rate.
-                massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
-                ! Adjust the rates.
-                ! Mass.
-                call hotHalo%           massColdRate(+                              massLossRate        ,interrupt,interruptProcedure)
-                ! Angular momentum.
-                call hotHalo%angularMomentumColdRate(+hotHalo%angularMomentumCold()*massLossRate/gasMass,interrupt,interruptProcedure)
-                ! Metal abundances.
-                call hotHalo%     abundancesColdRate(+hotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
-                ! Mass.
-                call hotHalo%       strippedMassRate(-                              massLossRate        ,interrupt,interruptProcedure)
-                ! Metal abundances.
-                call hotHalo% strippedAbundancesRate(-hotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
-             end if
-          end if
-       end select
+    ! Get required objects.
+    darkMatterHaloScale_ => darkMatterHaloScale()
+    accretionHalo_       => accretionHalo      ()
+    coldModeInfallRate_  => coldModeInfallRate ()
+    ! Find the rate of gas mass accretion onto the halo.
+    massAccretionRate=accretionHalo_%accretionRate(node,accretionModeCold)
+    ! Get the basic component.
+    basic => node%basic()
+    ! Apply accretion rates.
+    call hotHalo%massColdRate(massAccretionRate,interrupt,interruptProcedure)
+    ! Next compute the cold mode infall rate in this halo.
+    infallRate=coldModeInfallRate_%infallRate(node)
+    ! Pipe the cooling rate to which ever component claimed it.
+    call Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,infallRate,interrupt,interruptProcedure)
+    ! Get the rate at which abundances are accreted onto this halo.
+    call hotHalo%abundancesColdRate(accretionHalo_%accretionRateMetals(node,accretionModeCold),interrupt,interruptProcedure)
+    ! Next block of tasks occur only if the accretion rate is non-zero.
+    if (massAccretionRate > 0.0d0) then
+       ! Compute the rate of accretion of angular momentum.
+       angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node)*(massAccretionRate &
+            &/basic%accretionRate())
+       if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
+       call hotHalo%angularMomentumColdRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
     end if
+    select type (hotHalo)
+    class is (nodeComponentHotHaloColdMode)
+       ! Test whether this halo is a satellite or not.
+       if (node%isSatellite()) then
+          ! For satellites, get the current ram pressure stripping radius for this hot halo.
+          outerRadiusGrowthRate=hotHalo%outerRadiusGrowthRate()
+          outerRadius          =hotHalo%outerRadius          ()
+          gasMass              =hotHalo%massCold             ()
+          if     (                                                                                                    &
+               &   outerRadiusGrowthRate /= 0.0d0                                                                     &
+               &  .and.                                                                                               &
+               &   gasMass               >  0.0d0                                                                     &
+               &  .and.                                                                                               &
+               &   outerRadius           <=                                   darkMatterHaloScale_%virialRadius(node) &
+               &  .and.                                                                                               &
+               &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
+               & ) then
+             ! The ram pressure stripping radius is within the outer radius. Remove mass from the cold mode halo at the appropriate rate.
+             densityAtOuterRadius = Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous,haloLoaded=.true.)
+             ! Compute the mass loss rate.
+             massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
+             ! Adjust the rates.
+             ! Mass.
+             call hotHalo%           massColdRate(+                              massLossRate        ,interrupt,interruptProcedure)
+             ! Angular momentum.
+             call hotHalo%angularMomentumColdRate(+hotHalo%angularMomentumCold()*massLossRate/gasMass,interrupt,interruptProcedure)
+             ! Metal abundances.
+             call hotHalo%     abundancesColdRate(+hotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
+             ! Mass.
+             call hotHalo%       strippedMassRate(-                              massLossRate        ,interrupt,interruptProcedure)
+             ! Metal abundances.
+             call hotHalo% strippedAbundancesRate(-hotHalo%abundancesCold     ()*massLossRate/gasMass,interrupt,interruptProcedure)
+          end if
+       end if
+    end select
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Rate_Compute
 

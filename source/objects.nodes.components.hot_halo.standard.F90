@@ -30,7 +30,8 @@ module Node_Component_Hot_Halo_Standard
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
        &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
+       &    Node_Component_Hot_Halo_Standard_Post_Step
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -460,6 +461,33 @@ contains
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius
 
+  !# <postStepTask>
+  !#  <unitName>Node_Component_Hot_Halo_Standard_Post_Step</unitName>
+  !# </postStepTask>
+  subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
+    !% Do processing of the node required after evolution.
+    use FGSL
+    implicit none
+    type   (treeNode            ), intent(inout), pointer :: node
+    integer                      , intent(inout)          :: status
+    class  (nodeComponentHotHalo)               , pointer :: hotHalo
+    
+    ! Limit hot gas mass, and outer radius to be non-negative.
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
+    class is (nodeComponentHotHaloStandard)
+       if (hotHalo%       mass() < 0.0d0) then
+          status=FGSL_Failure
+          call hotHalo%       massSet(0.0d0)
+       end if
+       if (hotHalo%outerRadius() < 0.0d0) then
+          status=FGSL_Failure
+          call hotHalo%outerRadiusSet(0.0d0)
+       end if
+    end select
+    return
+  end subroutine Node_Component_Hot_Halo_Standard_Post_Step
+  
   !# <postEvolveTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Post_Evolve</unitName>
   !# </postEvolveTask>
@@ -475,13 +503,6 @@ contains
     class(nodeComponentSpin       )               , pointer :: spinParent
     class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     
-    ! Limit hot gas mass, and outer radius to be non-negative.
-    hotHalo => node%hotHalo()
-    select type (hotHalo)
-    class is (nodeComponentHotHaloStandard)
-       if (hotHalo%       mass() < 0.0d0) call hotHalo%       massSet(0.0d0)
-       if (hotHalo%outerRadius() < 0.0d0) call hotHalo%outerRadiusSet(0.0d0)
-    end select
     ! Process hot gas for satellites.
     if (node%isSatellite()) then
        if (starveSatellites.or.starveSatellitesOutflowed) then
@@ -567,12 +588,12 @@ contains
     !% Add gas stripped from the hot halo to the stripped gas reservoirs under the assumption of uniformly distributed properties
     !% (e.g. fully-mixed metals).
     implicit none
-    type            (treeNode                    ), intent(inout), pointer :: node
-    double precision                              , intent(in   )          :: gasMassRate
-    logical                                       , intent(inout)          :: interrupt          
-    procedure       (interruptTask), intent(inout), pointer :: interruptProcedure 
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    double precision                                                       :: gasMass
+    type            (treeNode            ), intent(inout), pointer :: node
+    double precision                      , intent(in   )          :: gasMassRate
+    logical                               , intent(inout)          :: interrupt          
+    procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedure 
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    double precision                                               :: gasMass
 
     ! Exit immediately for zero rate.
     if (gasMassRate == 0.0d0) return
@@ -586,7 +607,7 @@ contains
        ! If gas is present, adjust the rates.
        if (gasMass > 0.0d0) then
           ! Mass.
-          call hotHalo%      strippedMassRate(                                  gasMassRate        ,interrupt,interruptProcedure)
+          call hotHalo%      strippedMassRate(                     gasMassRate        ,interrupt,interruptProcedure)
           ! Metal abundances.
           call hotHalo%strippedAbundancesRate(hotHalo%abundances()*gasMassRate/gasMass,interrupt,interruptProcedure)
        end if
@@ -599,13 +620,13 @@ contains
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (nodeComponentHotHalo        ), intent(inout)                    :: hotHalo
-    double precision                              , intent(in   )                    :: rate
-    logical                                       , intent(inout), optional          :: interrupt
-    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
-    type            (treeNode                    )                         , pointer :: node
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                                                                 :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate
+    class           (nodeComponentHotHalo    ), intent(inout)                    :: hotHalo
+    double precision                          , intent(in   )                    :: rate
+    logical                                   , intent(inout), optional          :: interrupt
+    procedure       (interruptTask           ), intent(inout), optional, pointer :: interruptProcedure
+    type            (treeNode                )                         , pointer :: node
+    class           (darkMatterHaloScaleClass)                         , pointer :: darkMatterHaloScale_
+    double precision                                                             :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate
 
      ! Trap cases where an attempt is made to remove energy via this input function.
      if (rate < 0.0d0) call Galacticus_Error_Report('attempt to remove energy via heat source pipe to hot halo'//{introspection:location})
@@ -674,16 +695,12 @@ contains
 
        ! Ignore zero rates.
        if (massRate /= 0.0d0 .and. hotHalo%mass() > 0.0d0 .and. hotHalo%angularMomentum() > 0.0d0) then
-
           ! Remove mass from the hot component.
           call    hotHalo%massRate       (-massRate)
           call    hotHalo%massRemovalRate(+massRate)
           ! Pipe the mass rate to whichever component claimed it.
-          if (hotHalo%hotHaloCoolingMassRateIsAttached()) then
-             call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
-
+          if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
           ! Find the node to use for cooling calculations.
           select case (hotHaloCoolingFromNode)
           case (currentNode  )
@@ -713,20 +730,16 @@ contains
           end if
           call    hotHalo%angularMomentumRate       (     -angularMomentumCoolingRate                                                                                  )
           ! Pipe the cooling rate to which ever component claimed it.
-          if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) then
-             call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
+          if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
           ! Get the rate of change of abundances.
           coolingFromHotHaloComponent => coolingFromNode%hotHalo()
           abundancesCoolingRate=coolingFromHotHaloComponent%abundances()
           abundancesCoolingRate=massRate*abundancesCoolingRate/coolingFromHotHaloComponent%mass()
           call    hotHalo%abundancesRate       (-abundancesCoolingRate )
           ! Pipe the cooling rate to which ever component claimed it.
-          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) then
-             call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
+          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
        end if
     end select
     return
@@ -756,7 +769,7 @@ contains
        ! Get the rate of change of abundances, chemicals, and angular momentum.
        abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
        angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
-       chemicalsRates     =hotHalo%chemicals      ()*massRateLimited/hotHalo%mass()
+       chemicalsRates     =hotHalo%chemicals      ()*massRateLimited/hotHalo%mass()      
        call hotHalo%    massRemovalRate(+    massRateLimited)
        call hotHalo%           massRate(-    massRateLimited)
        call hotHalo%     abundancesRate(-    abundancesRates)
@@ -1130,11 +1143,12 @@ contains
        call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
        call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
        ! The outer radius must be increased as the halo fills up with gas.
-       outerRadius =self%outerRadius()
+       outerRadius =self                %outerRadius (    )
        radiusVirial=darkMatterHaloScale_%virialRadius(node)
        if (outerRadius < radiusVirial) then 
-          hotHaloMassDistribution_ => hotHaloMassDistribution()
-          densityAtOuterRadius=hotHaloMassDistribution_%density(node,outerRadius)
+          basic                    => node                    %basic  (                )
+          hotHaloMassDistribution_ => hotHaloMassDistribution         (                )
+          densityAtOuterRadius     =  hotHaloMassDistribution_%density(node,outerRadius)
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
           ! density profile.
           if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
@@ -1142,7 +1156,6 @@ contains
              ! universal baryon fraction) to prevent arbitrarily rapid growth of the outer radius in halos containing almost
              ! no gas.
              cosmologyParameters_ => cosmologyParameters()
-             basic                => node%basic()
              densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*basic%mass()/radiusVirial**3/4.0d0/Pi
              call self%outerRadiusRate(                           &
                   &                     massReturnRate            &
@@ -1154,10 +1167,14 @@ contains
                   &                         densityMinimum        &
                   &                        )                      &
                   &                   )
-          ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
+             ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
           else if (massReturnRate > 0.0d0) then
              ! Force some growth here so the radius is not trapped at zero.
-             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(node)*kilo*gigaYear/megaParsec)
+             call self%outerRadiusRate(                       &
+                  &                    +massReturnRate        &
+                  &                    /basic         %mass() &
+                  &                    *radiusVirial          &
+                  &                   )
           end if
        end if
        ! If we have a non-zero return rate, compute associated chemical rates.
@@ -1192,10 +1209,10 @@ contains
     !% Account for a sink of gaseous material in the standard hot halo hot gas.
     use Galacticus_Error
     implicit none
-    class           (nodeComponentHotHalo        ), intent(inout)                    :: self
-    double precision                              , intent(in   )                    :: setValue
-    logical                                       , intent(inout), optional          :: interrupt          
-    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure 
+    class           (nodeComponentHotHalo), intent(inout)                    :: self
+    double precision                      , intent(in   )                    :: setValue
+    logical                               , intent(inout), optional          :: interrupt          
+    procedure       (interruptTask       ), intent(inout), optional, pointer :: interruptProcedure 
 
     select type (self)
     class is (nodeComponentHotHaloStandard)
@@ -1214,7 +1231,7 @@ contains
     class           (nodeComponentHotHaloStandard), intent(inout)                    :: self
     double precision                              , intent(in   )                    :: gasMassRate
     logical                                       , intent(inout), optional          :: interrupt          
-    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure 
+    procedure       (interruptTask               ), intent(inout), optional, pointer :: interruptProcedure 
     double precision                                                                 :: gasMass
     
     ! Exit immediately for zero rate.
@@ -1398,7 +1415,6 @@ contains
        spinParent    => nodeParent%spin   (                 )
        parentBasic   => nodeParent%basic  (                 )
        basic         => node      %basic  (                 )
-
        ! Any gas that failed to be accreted by this halo is always transferred to the parent.
        call hotHaloParent%unaccretedMassSet(                                &
             &                                hotHaloParent%unaccretedMass() &
@@ -1424,6 +1440,7 @@ contains
             &         *fractionAccreted                  &
             &         *basic           %          mass() &
             &         /parentBasic     %          mass()
+
        !! Reaccrete the gas.
        call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
        call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
@@ -1675,6 +1692,7 @@ contains
        ! Get the parent node of this node and its hot halo component.
        nodeParent             => node  %parent
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
+
        ! Update the outer radius to match the virial radius of the parent halo.
        darkMatterHaloScale_ => darkMatterHaloScale()       
        call hotHalo%outerRadiusSet(                                              &

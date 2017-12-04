@@ -24,7 +24,8 @@ module Node_Component_Age_Statistics_Standard
   implicit none
   private
   public :: Node_Component_Age_Statistics_Standard_Scale_Set        , Node_Component_Age_Statistics_Standard_Rate_Compute, &
-       &    Node_Component_Age_Statistics_Standard_Satellite_Merging
+       &    Node_Component_Age_Statistics_Standard_Satellite_Merging, Node_Component_Age_Statistics_Standard_Inactive    , &
+       &    Node_Component_Age_Statistics_Standard_Initialize
 
   !# <component>
   !#  <class>ageStatistics</class>
@@ -66,8 +67,64 @@ module Node_Component_Age_Statistics_Standard
   !#  </properties>
   !# </component>
 
+  ! Record of whether variables in this component are inactive.
+  logical :: ageStatisticsStandardIsInactive
+  ! Initialization status.
+  logical :: moduleInitialized              =.false.
+
 contains
 
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Age_Statistics_Standard_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Age_Statistics_Standard_Initialize()
+    !% Initializes the tree node standard disk methods module.
+    use Input_Parameters
+    implicit none
+
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Age_Statistics_Standard_Initialize)
+    if (defaultAgeStatisticsComponent%standardIsActive().and..not.moduleInitialized) then
+       !# <inputParameter>
+       !#   <name>ageStatisticsStandardIsInactive</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       ! Record that the module is now initialized.
+       moduleInitialized=.true.
+    end if
+    !$omp end critical (Node_Component_Age_Statistics_Standard_Initialize)
+    return
+  end subroutine Node_Component_Age_Statistics_Standard_Initialize
+
+  !# <inactiveSetTask>
+  !#  <unitName>Node_Component_Age_Statistics_Standard_Inactive</unitName>
+  !# </inactiveSetTask>
+  subroutine Node_Component_Age_Statistics_Standard_Inactive(node)
+    !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    use Stellar_Luminosities_Structure
+    implicit none
+    type (treeNode                  ), intent(inout), pointer :: node
+    class(nodeComponentAgeStatistics)               , pointer :: ageStatistics
+    
+    ! Get the age statistics component.
+    ageStatistics => node%ageStatistics()
+    ! Check if an standard disk component exists.
+    select type (ageStatistics)
+    class is (nodeComponentAgeStatisticsStandard)
+       if (ageStatisticsStandardIsInactive) then
+          call ageStatistics%    diskTimeWeightedIntegratedSFRInactive()
+          call ageStatistics%spheroidTimeWeightedIntegratedSFRInactive()
+          call ageStatistics%                diskIntegratedSFRInactive()
+          call ageStatistics%            spheroidIntegratedSFRInactive()
+       end if
+    end select
+    return
+  end subroutine Node_Component_Age_Statistics_Standard_Inactive
+  
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Scale_Set</unitName>
   !# </scaleSetTask>

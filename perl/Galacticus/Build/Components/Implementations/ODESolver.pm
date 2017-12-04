@@ -592,6 +592,12 @@ sub Implementation_ODE_Rate_Variables {
 	    attributes => [ "allocatable", "dimension(:)" ],
 	    ompPrivate => 1,
 	    variables  => [ "nodeScales", "nodeRates" ]
+	},
+	{
+	    intrinsic  => "logical",
+	    attributes => [ "allocatable", "dimension(:)" ],
+	    ompPrivate => 1,
+	    variables  => [ "nodeInactives" ]
 	}
 	);
 }

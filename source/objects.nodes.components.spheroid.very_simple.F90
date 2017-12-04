@@ -28,7 +28,7 @@ module Node_Component_Spheroid_Very_Simple
        &    Node_Component_Spheroid_Very_Simple_Scale_Set                 , Node_Component_Spheroid_Very_Simple_Satellite_Merging    , &
        &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve           , &
        &    Node_Component_Spheroid_Very_Simple_Rates                     , Node_Component_Spheroid_Very_Simple_Radius_Solver        , &
-       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility
+       &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Post_Step
   
   !# <component>
   !#  <class>spheroid</class>
@@ -223,19 +223,12 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve(node)
     !% Catch rounding errors in the very simple spheroid gas evolution.
-    use Galacticus_Display
-    use String_Handling
     use Histories
     use Stellar_Luminosities_Structure
-    use Abundances_Structure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     class           (nodeComponentBasic    )               , pointer :: basic
-    double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                                 :: spheroidMass                  , fractionalError
-    character       (len=20                )                         :: valueString
-    type            (varying_string        )                         :: message
     type            (history               )                         :: stellarPropertiesHistory
 
     ! Get the spheroid component.
@@ -248,6 +241,34 @@ contains
        stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
        call stellarPropertiesHistory%trim(basic%time())
        call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
+    end select
+    return
+  end subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve
+  
+  !# <postStepTask>
+  !# <unitName>Node_Component_Spheroid_Very_Simple_Post_Step</unitName>
+  !# </postStepTask>
+  subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
+    !% Catch rounding errors in the very simple spheroid gas evolution.
+    use FGSL
+    use Galacticus_Display
+    use String_Handling
+    use Abundances_Structure
+    use Stellar_Luminosities_Structure
+    implicit none
+    type            (treeNode              ), intent(inout), pointer :: node
+    integer, intent(inout) :: status
+    class           (nodeComponentSpheroid )               , pointer :: spheroid
+    double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
+    double precision                                                 :: spheroidMass                  , fractionalError
+    character       (len=20                )                         :: valueString
+    type            (varying_string        )                         :: message
+
+    ! Get the spheroid component.
+    spheroid => node%spheroid()
+    ! Check if a very simple spheroid component exists.
+    select type (spheroid)
+    class is (nodeComponentSpheroidVerySimple)
        ! Trap negative gas masses.
        if (spheroid%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -290,10 +311,11 @@ contains
           ! Reset the gas mass of the spheroid.
           call spheroid%      massGasSet(         0.0d0)
           call spheroid%abundancesGasSet(zeroAbundances)
+          status=FGSL_Failure
        end if
     end select
     return
-  end subroutine Node_Component_Spheroid_Very_Simple_Post_Evolve
+  end subroutine Node_Component_Spheroid_Very_Simple_Post_Step
 
   subroutine Node_Component_Spheroid_Very_Simple_Create(node)
     !% Create properties in a very simple spheroid component.

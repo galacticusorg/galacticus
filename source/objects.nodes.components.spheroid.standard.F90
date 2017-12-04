@@ -32,8 +32,9 @@ module Node_Component_Spheroid_Standard
        &    Node_Component_Spheroid_Standard_Initialize       , Node_Component_Spheroid_Standard_Post_Evolve                  , &
        &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
        &    Node_Component_Spheroid_Standard_Satellite_Merging, Node_Component_Spheroid_Standard_Thread_Initialize            , &
-       &    Node_Component_Spheroid_Standard_State_Store      , Node_Component_Spheroid_Standard_State_Retrieve
-  
+       &    Node_Component_Spheroid_Standard_State_Store      , Node_Component_Spheroid_Standard_State_Retrieve               , &
+       &    Node_Component_Spheroid_Standard_Inactive         , Node_Component_Spheroid_Standard_Post_Step
+
   !# <component>
   !#  <class>spheroid</class>
   !#  <name>standard</name>
@@ -160,7 +161,7 @@ module Node_Component_Spheroid_Standard
   ! Parameters controlling the physical implementation.
   double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum       , &
        &                                         spheroidMassToleranceAbsolute
-  logical                                     :: spheroidStarFormationInSatellites
+  logical                                     :: spheroidStarFormationInSatellites           , spheroidLuminositiesStellarInactive
 
   
   ! Spheroid structural parameters.
@@ -239,6 +240,14 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not star formation occurs in spheroids in satellites.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>spheroidLuminositiesStellarInactive</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
@@ -347,37 +356,56 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Spheroid_Standard_Post_Evolve(node)
     !% Trim histories attached to the spheroid.
+    use Stellar_Luminosities_Structure
+    use Histories
+    implicit none
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentSpheroid )               , pointer :: spheroid
+    class(nodeComponentBasic    )               , pointer :: basic
+    type (history               )                         :: stellarPropertiesHistory
+
+    ! Get the spheroid component.
+    spheroid => node%spheroid()
+    ! Check if an exponential spheroid component exists.
+    select type (spheroid)
+    class is (nodeComponentSpheroidStandard)
+       ! Trim the stellar populations properties future history.
+       basic => node%basic()
+       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
+       call stellarPropertiesHistory%trim(basic%time())
+       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
+    end select
+    return
+  end subroutine Node_Component_Spheroid_Standard_Post_Evolve
+  
+  !# <postStepTask>
+  !# <unitName>Node_Component_Spheroid_Standard_Post_Step</unitName>
+  !# </postStepTask>
+  subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
+    !% Trim histories attached to the spheroid.
+    use FGSL
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentSpheroid )               , pointer :: spheroid
-    class           (nodeComponentBasic    )               , pointer :: basic
-    double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                                 :: fractionalError               , specificAngularMomentum, &
-         &                                                              spheroidMass
-    character       (len=20                )                         :: valueString
-    type            (varying_string        )                         :: message
-    type            (history               )                         :: stellarPropertiesHistory
+    type            (treeNode             ), intent(inout), pointer :: node
+    integer                                , intent(inout)          :: status
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    double precision                       , save                   :: fractionalErrorMaximum=0.0d0
+    double precision                                                :: fractionalError             , specificAngularMomentum, &
+         &                                                             spheroidMass
+    character       (len=20               )                         :: valueString
+    type            (varying_string       )                         :: message
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Check if an exponential spheroid component exists.
     select type (spheroid)
-       class is (nodeComponentSpheroidStandard)
-
-          ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
-
+    class is (nodeComponentSpheroidStandard)
        ! Trap negative gas masses.
        if (spheroid%massGas() < 0.0d0) then
-
           ! Check if this exceeds the maximum previously recorded error.
           fractionalError=   abs(spheroid%massGas    ()) &
                &          /(                             &
@@ -407,7 +435,6 @@ contains
              fractionalErrorMaximum=fractionalError
           end if
           !$omp end critical (Standard_Spheroid_Post_Evolve_Check)
-
           ! Get the specific angular momentum of the spheroid material
           spheroidMass= spheroid%massGas    () &
                &       +spheroid%massStellar()
@@ -419,16 +446,62 @@ contains
           else
              specificAngularMomentum=spheroid%angularMomentum()/spheroidMass
           end if
-
           ! Reset the gas, abundances and angular momentum of the spheroid.
           call spheroid%        massGasSet(                                                      0.0d0)
           call spheroid%  abundancesGasSet(                                             zeroAbundances)
           call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massStellar())
+          status=FGSL_Failure
        end if
-
+       ! Trap negative stellar masses.
+       if (spheroid%massStellar() < 0.0d0) then
+          ! Check if this exceeds the maximum previously recorded error.
+          fractionalError=   abs(spheroid%massStellar()) &
+               &          /(                             &
+               &             abs(spheroid%massGas    ()) &
+               &            +abs(spheroid%massStellar()) &
+               &           )
+          !$omp critical (Standard_Spheroid_Post_Evolve_Check)
+          if (fractionalError > fractionalErrorMaximum) then
+             ! Report a warning.
+             message='Warning: spheroid has negative stellar mass (fractional error exceeds any previously reported):'//char(10)
+             message=message//'  Node index            = '//node%index() //char(10)
+             write (valueString,'(e12.6)') spheroid%massGas    ()
+             message=message//'  Spheroid gas mass     = '//trim(valueString)//char(10)
+             write (valueString,'(e12.6)') spheroid%massStellar()
+             message=message//'  Spheroid stellar mass = '//trim(valueString)//char(10)
+             write (valueString,'(e12.6)') fractionalError
+             message=message//'  Error measure         = '//trim(valueString)//char(10)
+             if (fractionalErrorMaximum == 0.0d0) then
+                ! This is the first time this warning has been issued, so give some extra information.
+                message=message//'  Stellar mass will be reset to zero (in future cases also).'//char(10)
+                message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
+                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
+                message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
+             end if
+             call Galacticus_Display_Message(message,verbosityWarn)
+             ! Store the new maximum fractional error.
+             fractionalErrorMaximum=fractionalError
+          end if
+          !$omp end critical (Standard_Spheroid_Post_Evolve_Check)
+          ! Get the specific angular momentum of the spheroid material
+          spheroidMass= spheroid%massGas    () &
+               &       +spheroid%massStellar()
+          if (spheroidMass == 0.0d0) then
+             specificAngularMomentum=0.0d0
+             call spheroid%      massGasSet(         0.0d0)
+             call spheroid%abundancesGasSet(zeroAbundances)
+          else
+             specificAngularMomentum=spheroid%angularMomentum()/spheroidMass
+          end if
+          ! Reset the stellar, abundances and angular momentum of the spheroid.
+          call spheroid%        massStellarSet(                                 0.0d0)
+          call spheroid%  abundancesStellarSet(                        zeroAbundances)
+          call spheroid%angularMomentumSet(specificAngularMomentum*spheroid%massGas())
+          status=FGSL_Failure
+       end if
     end select
     return
-  end subroutine Node_Component_Spheroid_Standard_Post_Evolve
+  end subroutine Node_Component_Spheroid_Standard_Post_Step
 
   subroutine Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate(self,rate,interrupt,interruptProcedure)
     !% Account for a sink of gaseous material in the standard spheroid.
@@ -767,13 +840,13 @@ contains
        disk => node%disk()
 
        ! Set scale for angular momentum.
-       angularMomentum=disk%angularMomentum()+spheroid%angularMomentum()
+       angularMomentum=abs(spheroid%angularMomentum())
        call spheroid%angularMomentumScale(               max(angularMomentum,angularMomentumMinimum))
 
        ! Set scale for gas mass.
-       mass           =abs(                                           &
-            &              +disk%massGas    ()+spheroid%massGas    () &
-            &              +disk%massStellar()+spheroid%massStellar() &
+       mass           =abs(                        &
+            &              +spheroid%massGas    () &
+            &              +spheroid%massStellar() &
             &             )
        call spheroid%        massGasScale(gasMassScaling*max(           mass,           massMinimum))
        call spheroid%    massStellarScale(               max(           mass,           massMinimum))
@@ -781,40 +854,28 @@ contains
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for gas abundances.
-          call spheroid%abundancesGasScale    (                                                      &
-               &                                            +gasMassScaling                          &
-               &                                            *max(                                    &
-               &                                                 +abs(                               &
-               &                                                      +disk    %abundancesGas    ()  &
-               &                                                      +spheroid%abundancesGas    ()  &
-               &                                                     )                               &
-               &                                                 +abs(                               &
-               &                                                      +disk    %abundancesStellar()  &
-               &                                                      +spheroid%abundancesStellar()  &
-               &                                                     )                             , &
-               &                                                      +massMinimum                   &
-               &                                                      *unitAbundances                &
-               &                                                )                                    &
+          call spheroid%abundancesGasScale    (                                                       &
+               &                                            +gasMassScaling                           &
+               &                                            *max(                                     &
+               &                                                 +abs(+spheroid%abundancesGas    ())  &
+               &                                                 +abs(+spheroid%abundancesStellar()), &
+               &                                                      +massMinimum                    &
+               &                                                      *unitAbundances                 &
+               &                                                )                                     &
                &                                           )
 
           ! Set scale for stellar abundances.
-          call spheroid%abundancesStellarScale(                                                     &
-               &                                            max(                                    &
-               &                                                 abs(                               &
-               &                                                     +disk    %abundancesStellar()  &
-               &                                                     +spheroid%abundancesStellar()  &
-               &                                                    )                             , &
-               &                                                     +massMinimum                   &
-               &                                                     *unitAbundances                &
-               &                                               )                                    &
+          call spheroid%abundancesStellarScale(                                                      &
+               &                                            max(                                     &
+               &                                                 abs(+spheroid%abundancesStellar()), &
+               &                                                     +massMinimum                    &
+               &                                                     *unitAbundances                 &
+               &                                               )                                     &
                &                                           )
        end if
        ! Set scales for stellar luminosities.
        stellarLuminositiesScale=max(                                       &
-            &                       abs(                                   &
-            &                           +disk      %luminositiesStellar()  &
-            &                           +spheroid  %luminositiesStellar()  &
-            &                          )                                 , &
+            &                       abs(spheroid  %luminositiesStellar()), &
             &                           +unitStellarLuminosities           &
             &                           *luminosityMinimum                 &
             &                      )
@@ -834,6 +895,26 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Scale_Set
 
+  !# <inactiveSetTask>
+  !#  <unitName>Node_Component_Spheroid_Standard_Inactive</unitName>
+  !# </inactiveSetTask>
+  subroutine Node_Component_Spheroid_Standard_Inactive(node)
+    !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    use Stellar_Luminosities_Structure
+    implicit none
+    type (treeNode             ), intent(inout), pointer :: node
+    class(nodeComponentSpheroid)               , pointer :: spheroid
+    
+    ! Get the spheroid component.
+    spheroid => node%spheroid()
+    ! Check if an standard spheroid component exists.
+    select type (spheroid)
+    class is (nodeComponentSpheroidStandard)
+       if (spheroidLuminositiesStellarInactive) call spheroid%luminositiesStellarInactive()
+    end select
+    return
+  end subroutine Node_Component_Spheroid_Standard_Inactive
+  
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
@@ -1168,6 +1249,7 @@ contains
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Standard_Radius_Solver_Plausibility</unitName>
+  !#  <after>Node_Component_Basic_Standard_Plausibility</after>
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
@@ -1176,7 +1258,16 @@ contains
     class(nodeComponentSpheroid), pointer       :: spheroid
 
     ! Return immediately if our method is not selected.
-    if (.not.defaultSpheroidComponent%standardIsActive()) return
+    if     (                                                    &
+         &  .not.                                               &
+         &   (                                                  &
+         &     defaultSpheroidComponent%standardIsActive     () &
+         &    .and.                                             &
+         &     node                %isPhysicallyPlausible       &
+         &    .and.                                             &
+         &     node                %isSolvable                  &
+         &   )                                                  &
+         & ) return
 
     ! Determine the plausibility of the current spheroid.
     spheroid => node%spheroid()

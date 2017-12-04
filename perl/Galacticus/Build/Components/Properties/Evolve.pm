@@ -23,7 +23,8 @@ use Text::Template 'fill_in_string';
 	      \&Build_Rate_Functions            ,
 	      \&Build_Generic_Rate_Functions    ,
 	      \&Build_Auto_Create_Rate_Functions,
-	      \&Build_Scale_Functions
+	      \&Build_Scale_Functions           ,
+	      \&Build_Inactive_Functions
 	     ]
      }
     );
@@ -479,6 +480,78 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => $code::property->{'name'}."Scale"
+	}
+	);  
+}
+
+sub Build_Inactive_Functions {
+    # Build functions to indicate variables which are inactive (i.e. do not appear on the right-hand side of any differential equation being solved) for non-virtual, evolvable properties.
+    my $build       = shift();
+    my $class       = shift();
+    my $member      = shift();
+    $code::property = shift();
+    # Skip this property if it is not evolvable, or is virtual.
+    return
+	if
+	(
+	    $code::property->{'attributes' }->{'isVirtual'  }
+	 ||
+	  ! $code::property->{'attributes' }->{'isEvolvable'}
+	);
+    # Build the function.
+    my $implementationTypeName = "nodeComponent".ucfirst($class->{'name'}).ucfirst($member->{'name'});
+    my $function =
+    {
+	type        => "void",
+	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."JcbnZr",
+	description => "Indicate that the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is inactive for differential equation solving.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $implementationTypeName,
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     }
+	    ]
+    };
+    # Add a count variable if necessary.
+    push(
+	@{$function->{'variables'}},
+	{
+	    intrinsic  => "integer",
+	    variables  => [ "count" ]
+	}				
+	)
+	if ( ! &isIntrinsic($code::property->{'data'}->{'type'}) );
+    # Build the function.
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+CODE
+    $code::offsetName = &offsetName($class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
+	if ( $code::property->{'data'}->{'rank'} == 0 ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+nodeInactives({$offsetName})=.true.
+CODE
+	} else {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+nodeInactives({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data))=.true.
+CODE
+	}
+    } else {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+count=self%{$property->{'name'}}Data%serializeCount()
+if (count > 0) nodeInactives({$offsetName}:{$offsetName}+count-1)=.true.
+CODE
+    }
+    # Insert a type-binding for this function into the relevant type.
+    push(
+	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => $code::property->{'name'}."Inactive"
 	}
 	);  
 }
