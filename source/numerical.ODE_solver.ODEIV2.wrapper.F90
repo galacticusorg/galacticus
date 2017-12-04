@@ -27,19 +27,24 @@ module fodeiv2
        fodeiv2_step_reset, fodeiv2_step_free, fodeiv2_step_name, &
        fodeiv2_step_order, fodeiv2_step_apply, fodeiv2_control_standard_new, &
        fodeiv2_control_y_new, fodeiv2_control_yp_new, &
-       fodeiv2_control_scaled_new, fodeiv2_control_init, &
+       fodeiv2_control_scaled_new, fodeiv2_control_scaled2_new, fodeiv2_control_init, &
        fodeiv2_control_free, fodeiv2_control_hadjust, &
        fodeiv2_control_name, fodeiv2_evolve_alloc, fodeiv2_evolve_apply, &
        fodeiv2_evolve_reset, fodeiv2_evolve_free, &
        fodeiv2_driver_apply, fodeiv2_driver_apply_fixed_step, fodeiv2_driver_reset, &
        fodeiv2_driver_free, fodeiv2_driver_alloc_standard_new, &
        fodeiv2_driver_alloc_y_new, fodeiv2_driver_alloc_yp_new, &
-       fodeiv2_driver_alloc_scaled_new, fodeiv2_driver_set_hmin, &
+       fodeiv2_driver_alloc_scaled_new,  fodeiv2_driver_set_hmin, &
        fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status, &
-       fodeiv2_driver_errors, fodeiv2_driver_h
+       fodeiv2_driver_errors, fodeiv2_driver_h, fodeiv2_driver_msbdfactive_context
 
-  ! Specify an explicit dependence on the bivar.o object file.
+  ! Specify an explicit dependence on the C utilities, the Multi-Step Backward Differentiation Formula with Active/Inactive
+  ! variables, and LU decomposition with Active/Inactive variables object files.
   !: $(BUILDPATH)/numerical.ODE_solver.ODEIV2.utils.o
+  !: $(BUILDPATH)/gslODEInitVal2/driver2.o
+  !: $(BUILDPATH)/gslODEInitVal2/cscal2.o
+  !: $(BUILDPATH)/gslODEInitVal2/msbdfactive.o
+  !: $(BUILDPATH)/gslODEInitVal2/lu.o
 
 !
 ! Types: Ordinary Differential Equations
@@ -52,12 +57,12 @@ module fodeiv2
      private
      integer(kind=c_int) :: which=0
   end type fodeiv2_step_type
-  type  (fodeiv2_step_type), parameter, public :: fodeiv2_step_bsimp=fodeiv2_step_type(8) , fodeiv2_step_msadams=fodeiv2_step_type(10), &
-       &                                          fodeiv2_step_msbdf=fodeiv2_step_type(11), fodeiv2_step_rk1imp =fodeiv2_step_type(9) , &
-       &                                          fodeiv2_step_rk2  =fodeiv2_step_type(1) , fodeiv2_step_rk2imp =fodeiv2_step_type(6) , &
-       &                                          fodeiv2_step_rk4  =fodeiv2_step_type(2) , fodeiv2_step_rk4imp =fodeiv2_step_type(7) , &
-       &                                          fodeiv2_step_rk8pd=fodeiv2_step_type(5) , fodeiv2_step_rkck   =fodeiv2_step_type(4) , &
-       &                                          fodeiv2_step_rkf45=fodeiv2_step_type(3)
+  type  (fodeiv2_step_type), parameter, public :: fodeiv2_step_bsimp=fodeiv2_step_type( 8), fodeiv2_step_msadams    =fodeiv2_step_type(10), &
+       &                                          fodeiv2_step_msbdf=fodeiv2_step_type(11), fodeiv2_step_rk1imp     =fodeiv2_step_type( 9), &
+       &                                          fodeiv2_step_rk2  =fodeiv2_step_type( 1), fodeiv2_step_rk2imp     =fodeiv2_step_type( 6), &
+       &                                          fodeiv2_step_rk4  =fodeiv2_step_type( 2), fodeiv2_step_rk4imp     =fodeiv2_step_type( 7), &
+       &                                          fodeiv2_step_rk8pd=fodeiv2_step_type( 5), fodeiv2_step_rkck       =fodeiv2_step_type( 4), &
+       &                                          fodeiv2_step_rkf45=fodeiv2_step_type( 3), fodeiv2_step_msbdfactive=fodeiv2_step_type(12)
 
   type, public :: fodeiv2_step
      type(c_ptr) :: odeiv2_step=c_null_ptr
@@ -96,6 +101,13 @@ module fodeiv2
        import
        type   (c_ptr        ), value         :: d
      end subroutine gsl_odeiv2_driver_init_errors
+     subroutine msbdfactive_context(d,dim,t,y) bind(c)
+       import
+       type   (c_ptr        ), value :: d
+       integer(kind=c_size_t), value :: dim
+       real   (kind=c_double), value :: t
+       real   (kind=c_double), dimension(*), intent(inout) :: y
+     end subroutine msbdfactive_context
      function gsl_odeiv2_step_alloc(t, dim) bind(c)
        import
        type   (c_ptr        ), value :: t
@@ -172,6 +184,15 @@ module fodeiv2
        integer(kind=c_size_t), value                       :: dim
        type   (c_ptr        )                              :: gsl_odeiv2_control_scaled_new
      end function gsl_odeiv2_control_scaled_new
+     function gsl_odeiv2_control_scaled2_new(eps_abs, eps_rel, a_y, a_dydt, &
+          scale_abs, dim) bind(c)
+       import
+       real   (kind=c_double), value                       :: a_dydt                       , a_y    , &
+            &                                                 eps_abs                      , eps_rel
+       real   (kind=c_double), dimension(*), intent(in   ) :: scale_abs
+       integer(kind=c_size_t), value                       :: dim
+       type   (c_ptr        )                              :: gsl_odeiv2_control_scaled2_new
+     end function gsl_odeiv2_control_scaled2_new
 ! odeiv2_control_alloc presently not attached
      function gsl_odeiv2_control_init(c, eps_abs, eps_rel, a_y, a_dydt) bind(c)
        import
@@ -220,21 +241,25 @@ module fodeiv2
        import
        type(c_ptr), value :: s
      end subroutine gsl_odeiv2_evolve_free
-     function gsl_odeiv2_driver_apply(d, t, t1, y &
-#ifdef PROFILE
-          &                           , sa        &
-#endif
-          &                          ) bind(c)
+     function gsl_odeiv2_driver_apply(d, t, t1, y) bind(c)
        import
        type(c_ptr        ), value                       :: d
        real(kind=c_double)                              :: t
        real(kind=c_double), value                       :: t1
        real(kind=c_double), dimension(*), intent(inout) :: y
-#ifdef PROFILE
-       type(c_funptr), value :: sa
-#endif
        integer(kind=c_int) :: gsl_odeiv2_driver_apply
      end function gsl_odeiv2_driver_apply
+     function gsl_odeiv2_driver2_apply(d, t, t1, y, ps, li, sa) bind(c)
+       import
+       type(c_ptr        ), value                       :: d
+       real(kind=c_double)                              :: t
+       real(kind=c_double), value                       :: t1
+       real(kind=c_double), dimension(*), intent(inout) :: y
+       type(c_funptr     ), value                       :: ps
+       type(c_funptr     ), value                       :: li
+       type(c_funptr     ), value                       :: sa
+       integer(kind=c_int) :: gsl_odeiv2_driver2_apply
+     end function gsl_odeiv2_driver2_apply
      function gsl_odeiv2_driver_apply_fixed_step(d, t, h, n, y) bind(c)
        import
        type   (c_ptr        ), value                       :: d
@@ -275,7 +300,7 @@ module fodeiv2
             &                          hstart
        type  (c_ptr        )        :: gsl_odeiv2_driver_alloc_yp_new
      end function gsl_odeiv2_driver_alloc_yp_new
-     function gsl_odeiv2_driver_alloc_scaled_new(sys, t, hstart, eps_abs, eps_rel, a_y, a_dydt, &
+     function gsl_odeiv2_driver_alloc_scaled2_new(sys, t, hstart, eps_abs, eps_rel, a_y, a_dydt, &
           scale_abs) bind(c)
        import
        type  (c_ptr        ), value                       :: sys                               , t
@@ -283,8 +308,8 @@ module fodeiv2
             &                                                eps_abs                           , eps_rel, &
             &                                                hstart
        real  (kind=c_double), dimension(*), intent(in   ) :: scale_abs
-       type  (c_ptr        )                              :: gsl_odeiv2_driver_alloc_scaled_new
-     end function gsl_odeiv2_driver_alloc_scaled_new
+       type  (c_ptr        )                              :: gsl_odeiv2_driver_alloc_scaled2_new
+     end function gsl_odeiv2_driver_alloc_scaled2_new
      function gsl_odeiv2_driver_set_hmin(d, hmin) bind(c)
        import
        type   (c_ptr        ), value :: d
@@ -360,6 +385,13 @@ contains
     real(kind=c_double), intent(inout) :: yerr(:)
     call gsl_odeiv2_driver_errors(d%odeiv2_driver,yerr)
   end subroutine fodeiv2_driver_errors
+  subroutine fodeiv2_driver_msbdfactive_context(d,dim,t,y)
+    type   (fodeiv2_driver), intent(inout) :: d
+    integer(kind=c_size_t), intent(in) :: dim
+    real   (kind=c_double), intent(in) :: t
+    real(kind=c_double), intent(inout) :: y(:)
+    call msbdfactive_context(d%odeiv2_driver,dim,t,y)
+  end subroutine fodeiv2_driver_msbdfactive_context
   function fodeiv2_step_alloc(t, dim)
     type   (fodeiv2_step_type), intent(in   ) :: t
     integer(kind=fgsl_size_t ), intent(in   ) :: dim
@@ -433,6 +465,15 @@ contains
     fodeiv2_control_scaled_new%odeiv2_control = &
          gsl_odeiv2_control_scaled_new(eps_abs, eps_rel, a_y, a_dydt, scale_abs, dim)
   end function fodeiv2_control_scaled_new
+  function fodeiv2_control_scaled2_new(eps_abs, eps_rel, a_y, a_dydt, scale_abs, dim)
+    real   (kind=fgsl_double), intent(in   ) :: a_dydt                       , a_y    , &
+         &                                      eps_abs                      , eps_rel
+    real   (kind=fgsl_double), intent(in   ) :: scale_abs                 (:)
+    integer(kind=fgsl_size_t), intent(in   ) :: dim
+    type   (fodeiv2_control )                :: fodeiv2_control_scaled2_new
+    fodeiv2_control_scaled2_new%odeiv2_control = &
+         gsl_odeiv2_control_scaled2_new(eps_abs, eps_rel, a_y, a_dydt, scale_abs, dim)
+  end function fodeiv2_control_scaled2_new
 ! FIXME (?) fodeiv2_control_alloc is presently not implemented
   function fodeiv2_control_init(c, eps_abs, eps_rel, a_y, a_dydt)
     type   (fodeiv2_control ), intent(in   ) :: c
@@ -520,25 +561,17 @@ contains
     if (.not. c_associated(s%odeiv2_system)) &
          fodeiv2_system_status = .false.
   end function fodeiv2_system_status
-  function fodeiv2_driver_apply(d, t, t1, y &
-#ifdef PROFILE
-       &                        ,sa         &
-#endif
-       &                       )
+  function fodeiv2_driver_apply(d, t, t1, y, ps, li, sa)
     type(fodeiv2_driver  ), intent(in   ) :: d
     real(kind=fgsl_double), intent(inout) :: t
     real(kind=fgsl_double), intent(in   ) :: t1
     real(kind=fgsl_double), intent(inout) :: y (:)
-#ifdef PROFILE
-    type(c_funptr), intent(in   ) :: sa
-#endif
+    type(c_funptr        ), intent(in   ) :: ps
+    type(c_funptr        ), intent(in   ) :: li
+    type(c_funptr        ), intent(in   ) :: sa
     integer(kind=fgsl_int) :: fodeiv2_driver_apply
 
-    fodeiv2_driver_apply = gsl_odeiv2_driver_apply(d%odeiv2_driver, t, t1, y &
-#ifdef PROFILE
-         & ,sa &
-#endif
-         & )
+    fodeiv2_driver_apply = gsl_odeiv2_driver2_apply(d%odeiv2_driver, t, t1, y, ps, li, sa)
   end function fodeiv2_driver_apply
   function fodeiv2_driver_apply_fixed_step(d, t, h, n, y)
     type   (fodeiv2_driver  ), intent(in   ) :: d
@@ -604,7 +637,7 @@ contains
     type  (c_ptr            )                :: step_type
     step_type = gsl_odeiv2_aux_odeiv_step_alloc(t%which)
     fodeiv2_driver_alloc_scaled_new%odeiv2_driver = &
-         gsl_odeiv2_driver_alloc_scaled_new(system%odeiv2_system, step_type, hstart, eps_abs, eps_rel, a_y, a_dydt, scale_abs)
+         gsl_odeiv2_driver_alloc_scaled2_new(system%odeiv2_system, step_type, hstart, eps_abs, eps_rel, a_y, a_dydt, scale_abs)
     call gsl_odeiv2_driver_init_errors(fodeiv2_driver_alloc_scaled_new%odeiv2_driver)
   end function fodeiv2_driver_alloc_scaled_new
   function fodeiv2_driver_set_hmin(d, hmin)
