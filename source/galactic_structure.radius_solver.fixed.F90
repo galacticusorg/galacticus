@@ -40,19 +40,21 @@ contains
   !# <galacticStructureRadiusSolverMethod>
   !#  <unitName>Galactic_Structure_Radii_Fixed_Initialize</unitName>
   !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Fixed_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do)
+  subroutine Galactic_Structure_Radii_Fixed_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
     !% Initializes the ``fixed'' galactic radii solver module.
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Nodes
     use Galacticus_Error
     implicit none
-    type     (varying_string                      ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Fixed), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
-    type     (varying_string                      )                         :: galacticStructureRadiiFixedRadiusText
+    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Fixed ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    procedure(Galactic_Structure_Radii_Revert_Fixed), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
+    type     (varying_string                       )                         :: galacticStructureRadiiFixedRadiusText
 
     if (galacticStructureRadiusSolverMethod == 'fixed') then
-       Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Fixed
+       Galactic_Structure_Radii_Solve_Do  => Galactic_Structure_Radii_Solve_Fixed
+       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Fixed
        !# <inputParameter>
        !#   <name>galacticStructureRadiiFixedFactor</name>
        !#   <cardinality>1</cardinality>
@@ -152,5 +154,14 @@ contains
     call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
+
+  subroutine Galactic_Structure_Radii_Revert_Fixed(node)
+    !% Revert radii for the fixed galactic structure solve. Not necessary for this algorithm.
+    implicit none
+    type(treeNode), intent(inout), target :: node
+    !GCC$ attributes unused :: node
+    
+    return
+  end subroutine Galactic_Structure_Radii_Revert_Fixed
 
 end module Galactic_Structure_Radii_Fixed

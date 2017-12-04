@@ -32,14 +32,18 @@ contains
   !# <galacticStructureRadiusSolverMethod>
   !#  <unitName>Galactic_Structure_Radii_Linear_Initialize</unitName>
   !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Linear_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do)
+  subroutine Galactic_Structure_Radii_Linear_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
     !% Initializes the ``linear'' galactic radii solver module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Linear), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    type     (varying_string                        ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Linear ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    procedure(Galactic_Structure_Radii_Revert_Linear), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
 
-    if (galacticStructureRadiusSolverMethod == 'linear') Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Linear
+    if (galacticStructureRadiusSolverMethod == 'linear') then
+       Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Linear
+       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Linear
+    end if
     return
   end subroutine Galactic_Structure_Radii_Linear_Initialize
 
@@ -90,5 +94,14 @@ contains
     call Velocity_Set(node,velocity)
     return
   end subroutine Solve_For_Radius
+
+  subroutine Galactic_Structure_Radii_Revert_Linear(node)
+    !% Revert radii for the linear galactic structure solve. Not necessary for this algorithm.
+    implicit none
+    type(treeNode), intent(inout), target :: node
+    !GCC$ attributes unused :: node
+    
+    return
+  end subroutine Galactic_Structure_Radii_Revert_Linear
 
 end module Galactic_Structure_Radii_Linear
