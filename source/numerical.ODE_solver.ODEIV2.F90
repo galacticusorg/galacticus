@@ -26,7 +26,7 @@ module ODEIV2_Solver
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
 
-  ! Integrand interface.
+  ! ODE interface.
   abstract interface
      integer function odesTemplate(x,y,dydx)
        double precision, intent(in   )               :: x
@@ -35,56 +35,115 @@ module ODEIV2_Solver
      end function odesTemplate
   end interface
 
-  ! Integrand function.
-  procedure(odesTemplate), pointer :: currentODEs
-  integer  (c_size_t    )          :: currentODENumber       
-  !$omp threadprivate(currentODEs,currentODENumber)
+  ! Jacobian interface.
+  abstract interface
+     integer function jacobianTemplate(x,y,dfdy,dfdx)
+       double precision, intent(in   )               :: x
+       double precision, intent(in   ), dimension(:) :: y
+       double precision, intent(  out), dimension(:) :: dfdy
+       double precision, intent(  out), dimension(:) :: dfdx
+     end function jacobianTemplate
+  end interface
+  
+  ! Integrand interface.
+  abstract interface
+     subroutine integrandTemplate(ny,nz,x,y,e,dzdx)
+       integer         , intent(in   )                        :: ny  , nz
+       double precision, intent(in   ), dimension(        : ) :: x
+       double precision, intent(in   ), dimension(ny,size(x)) :: y
+       logical         , intent(inout), dimension(        : ) :: e
+       double precision, intent(  out), dimension(nz,size(x)) :: dzdx
+     end subroutine integrandTemplate
+  end interface
+
+  ! ODE function.
+  procedure(     odesTemplate), pointer :: currentODEs
+  procedure( jacobianTemplate), pointer :: currentJacobian
+  procedure(integrandTemplate), pointer :: currentIntegrands
+  integer  (c_size_t         )          :: currentODENumber , currentIntegrandsNumber    
+  !$omp threadprivate(currentODEs,currentJacobian,currentIntegrands,currentODENumber,currentIntegrandsNumber)
   
 contains
 
-  subroutine ODEIV2_Solve(odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative&
-#ifdef PROFILE
-       &,Error_Analyzer &
-#endif
-       &,yScale,errorHandler,algorithm,reset,odeStatus,stepSize)
+  subroutine ODEIV2_Solve(                                                                             &
+       &                  odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative, &
+       &                  postStep,Error_Analyzer                                                             , &
+       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,zScale,integrands   &
+       &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
     use ISO_Varying_String
     use String_Handling
+    use Numerical_Integration2
     implicit none
-    double precision                   , intent(in   )                    :: toleranceAbsolute        , toleranceRelative        , x1
-    integer                            , intent(in   )                    :: yCount
-    double precision                   , intent(inout)                    :: x0                       , y                (yCount)
-    double precision                   , intent(in   ), optional          :: yScale           (yCount)
-    type            (fodeiv2_driver   ), intent(inout)                    :: odeDriver
-    type            (fodeiv2_system   ), intent(inout)                    :: odeSystem
-    logical                            , intent(inout), optional          :: reset
-    procedure       (                 )               , optional, pointer :: errorHandler
-    type            (fodeiv2_step_type), intent(in   ), optional          :: algorithm
-    integer                            , intent(  out), optional          :: odeStatus
-    double precision                   , intent(inout), optional          :: stepSize
-#ifdef PROFILE
-    type            (c_funptr         ), intent(in   ), optional          :: Error_Analyzer
-#endif
-    procedure       (odesTemplate     )                                   :: odes
-    procedure       (odesTemplate     ), pointer                          :: previousODEs
-    integer                            , parameter                        :: genericFailureCountMaximum=10
-    double precision                   , parameter                        :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
-    integer                                                               :: status
-    integer         (kind=c_size_t    )                                   :: previousODENumber
-    double precision                                                      :: h                               , x                   , &
-         &                                                                   x1Internal
-    logical                                                               :: forwardEvolve                   , resetActual
-    type            (fodeiv2_step_type)                                   :: algorithmActual
-    type            (varying_string   )                                   :: message
-    type            (c_ptr            )                                   :: parameterPointer
-
-    ! Store the current ODE function (and system size) so that we can restore it on exit. This allows the ODE function to be
-    ! called recursively.
-    previousODEs      => currentODEs
-    previousODENumber =  currentODENumber
-    currentODEs       => ODEs
-    currentODENumber  =  yCount
+    double precision                                                  , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
+    integer                                                           , intent(in   )                         :: yCount
+    double precision                                                  , intent(inout)                         :: x0                       , y                (yCount)
+    double precision                                                  , intent(in   ), optional               :: yScale           (yCount)
+    type            (fodeiv2_driver                                  ), intent(inout)                         :: odeDriver
+    type            (fodeiv2_system                                  ), intent(inout)                         :: odeSystem
+    logical                                                           , intent(inout), optional               :: reset
+    procedure       (                                                )               , optional, pointer      :: errorHandler
+    type            (fodeiv2_step_type                               ), intent(in   ), optional               :: algorithm
+    integer                                                           , intent(  out), optional               :: odeStatus
+    double precision                                                  , intent(inout), optional               :: stepSize
+    type            (c_funptr                                        ), intent(in   ), optional               :: postStep
+    type            (c_funptr                                        ), intent(in   ), optional               :: Error_Analyzer
+    procedure       (odesTemplate                                    )                                        :: odes
+    procedure       (odesTemplate                                    ), pointer                               :: previousODEs
+    procedure       (jacobianTemplate                                ), optional                              :: jacobian
+    procedure       (jacobianTemplate                                ), pointer                               :: previousJacobian
+    integer                                                           , parameter                             :: genericFailureCountMaximum=10
+    procedure       (integrandTemplate                               ), optional                              :: integrands
+    procedure       (integrandTemplate                               ), pointer                               :: previousIntegrands
+    integer                                                           , intent(in   ), optional               :: zCount
+    double precision                                                  , intent(inout), optional, dimension(:) :: z
+    double precision                                                  , intent(in   ), optional, dimension(:) :: zScale
+    double precision                                                  , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
+    double precision                                                  , allocatable            , dimension(:) :: tolerancesAbsolute              , tolerancesRelative
+    integer                                                                                                   :: status
+    integer         (kind=c_size_t                                   )                                        :: previousODENumber               , previousIntegrandsNumber
+    double precision                                                                                          :: h                               , x                   , &
+         &                                                                                                       x1Internal                      , xStepBegin
+    logical                                                                                                   :: forwardEvolve                   , resetActual
+    type            (fodeiv2_step_type                               )                                        :: algorithmActual
+    type            (varying_string                                  )                                        :: message
+    type            (c_ptr                                           )                                        :: parameterPointer
+    type            (integratorMultiVectorizedCompositeGaussKronrod1D)                                        :: integrator_
+    type            (c_funptr                                        )                                        :: latentIntegrator_, postStep_, Error_Analyzer_
+    
+    ! Store the current ODE function (and jacobian, integrands, and system size) so that we can restore it on exit. This allows the ODE
+    ! function to be called recursively.
+    previousODEs        => currentODEs
+    previousODENumber   =  currentODENumber
+    currentODEs         => ODEs
+    currentODENumber    =  yCount
+    if (present(jacobian)) then
+       previousJacobian => currentJacobian
+       currentJacobian  => jacobian
+    end if
+    if (present(integrands)) then
+       previousIntegrands       => currentIntegrands
+       previousIntegrandsNumber =  currentIntegrandsNumber
+       currentIntegrands        => integrands
+       currentIntegrandsNumber  =  zCount
+    end if
+    ! Initialize integrator if required.
+    if (present(zCount)) then
+       allocate(tolerancesAbsolute(zCount))
+       allocate(tolerancesRelative(zCount))
+       tolerancesRelative=toleranceRelative
+       if (present(zScale)) then
+          tolerancesAbsolute=toleranceAbsolute*zScale
+       else
+          tolerancesAbsolute=toleranceAbsolute
+       end if
+       call integrator_%initialize   (24                ,61                )
+       call integrator_%tolerancesSet(tolerancesAbsolute,tolerancesRelative)
+       call integrator_%integrandSet (zCount            ,integrandsWrapper )
+       deallocate(tolerancesAbsolute)
+       deallocate(tolerancesRelative)
+    end if
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -95,7 +154,11 @@ contains
        ! Make initial guess for timestep.
        h=(x1-x0)
        if (present(stepSize).and.stepSize > 0.0d0) h=min(stepSize,h)
-       odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODENumber,parameterPointer)
+       if (present(jacobian)) then
+          odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODENumber,parameterPointer,jacobianWrapperIV2)
+       else
+          odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODENumber,parameterPointer                   )
+       end if
        ! Select the algorithm to use.
        if (present(algorithm)) then
           algorithmActual=algorithm
@@ -119,17 +182,27 @@ contains
     forwardEvolve=x1>x0
     ! Reset the driver.
     status=FODEIV2_Driver_Reset(odeDriver)
+    ! Get a C-pointer to our latent integrator.
+    if (present(zCount)) then
+       latentIntegrator_=C_FunLoc(latentIntegrator)
+    else
+       latentIntegrator_=C_NULL_FUNPTR
+    end if
     ! Evolve the system until the final time is reached.
     do while ((forwardEvolve.and.x<x1Internal).or.(.not.forwardEvolve.and.x>x1Internal))
-#ifdef PROFILE
+       ! Store current time.
+       xStepBegin=x
        if (present(Error_Analyzer)) then
-          status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,Error_Analyzer)
+          Error_Analyzer_=Error_Analyzer
        else
-          status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,C_NULL_FUNPTR )
+          Error_Analyzer_=C_NULL_FUNPTR
        end if
-#else
-       status   =FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y               )
-#endif
+       if (present(postStep)) then
+          postStep_=postStep
+       else
+          postStep_=C_NULL_FUNPTR
+       end if
+       status=FODEIV2_Driver_Apply(odeDriver,x,x1Internal,y,postStep_,latentIntegrator_,Error_Analyzer_)
        select case (status)
        case (FGSL_Success)
           ! Successful completion of the step - do nothing except store the step-size used.
@@ -168,9 +241,48 @@ contains
     x0=x
     if (present(odeStatus)) odeStatus=status
     ! Restore the previous OODEs.
-    currentODEs      => previousODEs
-    currentODENumber =  previousODENumber
+    currentODEs                                => previousODEs
+    currentODENumber                           =  previousODENumber
+    if (present(jacobian  )) currentJacobian   => previousJacobian
+    if (present(integrands)) then
+       currentIntegrands       => previousIntegrands
+       currentIntegrandsNumber =  previousIntegrandsNumber
+    end if
     return
+
+  contains
+    
+    subroutine latentIntegrator(x)
+      !% Wrapper function which performs integration of latent variables.
+      implicit none
+      double precision, intent(in   ) :: x
+
+      ! Evaluate the integrals, and update the stored time ready for the next step.
+      z         =+z                                  &
+           &     +integrator_%evaluate(xStepBegin,x)
+      xStepBegin=+                                x
+      return
+    end subroutine latentIntegrator
+
+    subroutine integrandsWrapper(nz,x,e,dzdx)
+      !% Wrapper function which calls the integrands functions.
+      implicit none
+      integer         , intent(in   )                            :: nz
+      double precision, intent(in   ), dimension(            : ) :: x
+      logical         , intent(inout), dimension(            : ) :: e
+      double precision, intent(  out), dimension(nz    ,size(x)) :: dzdx
+      double precision               , dimension(yCount,size(x)) :: y
+      integer                                                    :: i
+      
+      ! Evaluate the active parameters.
+      do i=1,size(x)         
+         call FODEIV2_Driver_MSBDFActive_Context(odeDriver,currentODENumber,x(i),y(:,i))
+      end do
+      ! Call the integrand function.
+      call currentIntegrands(yCount,nz,x,y,e,dzdx)
+      return
+    end subroutine integrandsWrapper
+    
   end subroutine ODEIV2_Solve
 
   function odesWrapperIV2(x,y,dydx,parameterPointer) bind(c)
@@ -187,6 +299,21 @@ contains
     odesWrapperIV2=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
     return
   end function odesWrapperIV2
+    
+  function jacobianWrapperIV2(x,y,dfdy,dfdx,parameterPointer) bind(c)
+    !% Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    integer(kind=c_int   )                              :: jacobianWrapperIV2
+    real   (kind=c_double), value                       :: x
+    real   (kind=c_double), dimension(*), intent(in   ) :: y
+    real   (kind=c_double), dimension(*)                :: dfdy              , dfdx
+    type   (     c_ptr   ), value                       :: parameterPointer
+    !GCC$ attributes unused :: parameterPointer
+    
+    jacobianWrapperIV2=currentJacobian(x,y(1:currentODENumber),dfdy(1:currentODENumber**2),dfdx(1:currentODENumber))
+    return
+  end function jacobianWrapperIV2
     
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.

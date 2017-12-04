@@ -23,7 +23,9 @@ module Test_ODE_Solver_Functions
   use FGSL
   implicit none
   private
-  public :: ODE_Set_1, ODE_Set_2
+  public :: ODE_Set_1     , ODE_Set_2       , &
+       &    Jacobian_Set_1, Jacobian_Set_2  , &
+       &                    Integrands_Set_2
 
 contains
 
@@ -39,6 +41,19 @@ contains
     return
   end function ODE_Set_1
 
+  integer function Jacobian_Set_1(x,y,dfdy,dfdx)
+    !% Jacobian for a set of ODEs for unit tests.
+    double precision              , intent(in   ) :: x
+    double precision, dimension(:), intent(in   ) :: y
+    double precision, dimension(:), intent(  out) :: dfdy, dfdx
+    !GCC$ attributes unused :: y
+
+    dfdy(1)=0.0d0
+    dfdx(1)=cos(x)
+    Jacobian_Set_1=FGSL_Success
+    return
+  end function Jacobian_Set_1
+
   integer function ODE_Set_2(x,y,dydx)
     !% A set of ODEs for unit tests.
     double precision              , intent(in   ) :: x
@@ -51,5 +66,35 @@ contains
     ODE_Set_2=FGSL_Success
     return
   end function ODE_Set_2
+
+  integer function Jacobian_Set_2(x,y,dfdy,dfdx)
+    !% Jacobian for a set of ODEs for unit tests.
+    double precision              , intent(in   ) :: x
+    double precision, dimension(:), intent(in   ) :: y
+    double precision, dimension(:), intent(  out) :: dfdy, dfdx
+    !GCC$ attributes unused :: x, y
+
+    dfdy(1  )=+0.0d0
+    dfdy(2  )=+1.0d0
+    dfdy(3  )=-1.0d0
+    dfdy(4  )=+0.0d0
+    dfdx(1:2)=+0.0d0
+    Jacobian_Set_2=FGSL_Success
+    return
+  end function Jacobian_Set_2
+
+  subroutine Integrands_Set_2(ny,nz,x,y,e,dzdx)
+    !% A set of integrands for unit tests.
+    integer         , intent(in   )                        :: ny  , nz
+    double precision, intent(in   ), dimension(        : ) :: x
+    double precision, intent(in   ), dimension(ny,size(x)) :: y
+    logical         , intent(inout), dimension(        : ) :: e
+    double precision, intent(  out), dimension(nz,size(x)) :: dzdx
+    !GCC$ attributes unused :: x
+    
+    if (e(1)) dzdx(1,:)=1.0d0/sqrt(1.0d0+y(1,:)**2)   
+    if (e(2)) dzdx(2,:)=1.0d0/sqrt(1.0d0+y(2,:)**2)
+    return
+  end subroutine Integrands_Set_2
 
 end module Test_ODE_Solver_Functions

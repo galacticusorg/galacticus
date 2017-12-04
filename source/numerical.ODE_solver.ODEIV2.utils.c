@@ -1,4 +1,5 @@
 #include <gsl/gsl_odeiv2.h>
+#include <gslODEInitVal2/gsl_odeiv2.h>
 
 gsl_odeiv2_system *fodeiv2_system_cinit( 
 			     int (*func)(double t, const double y[], double dydt[], void * params), 
@@ -65,6 +66,9 @@ const gsl_odeiv2_step_type *gsl_odeiv2_aux_odeiv_step_alloc(int i) {
 	    break;
 	case 11:
 	    res = gsl_odeiv2_step_msbdf;
+	    break;
+	case 12:
+	    res = gsl_odeiv2_step_msbdfactive;
 	    break;
 	default:
 	    res = NULL;
