@@ -3523,6 +3523,50 @@ Extra outputs for output groups (i.e. the groups which hold all merger tree data
 \end{verbatim}
 The subroutine will be called for each output group created, and should perform whatever extra output it requires. The {\normalfont \ttfamily outputGroup} object and the corresponding output {\normalfont \ttfamily time} are provided as input parameters.
 
+
+\subsubsection{Post-evolve Tasks}\index{post-evolve task}\index{task, post-evolve}
+
+Additional methods for post-evolve tasks (i.e. things that should be done after each node is evolved differentially to the next output time, interrupt, or event) can be added using the {\normalfont \ttfamily postEvolveTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+\begin{verbatim}
+  !# <postEvolveTask>
+  !#  <unitName>Tree_Node_Hot_Halo_Postevolve_Standard</unitName>
+  !# </postEvolveTask>
+\end{verbatim}
+Here, {\normalfont \ttfamily Tree\_Node\_Hot\_Halo\_Postevolve\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Post_Evolve_Task(node)
+    implicit none
+    type(treeNode), intent(inout) :: node
+    .
+    .
+    .
+    return
+  end subroutine Post_Evolve_Task
+\end{verbatim}
+where {\normalfont \ttfamily node} is the node for which tasks will be performed. Tasks typically involve cleaning up after differential evolution.
+
+\subsubsection{Post-step Tasks}\index{post-step task}\index{task, post-step}
+
+Additional methods for post-step tasks (i.e. things that should be done after each ODE solver step when evoling a node differentially) can be added using the {\normalfont \ttfamily postStepTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:
+\begin{verbatim}
+  !# <postStepTask>
+  !#  <unitName>Tree_Node_Hot_Halo_Poststep_Standard</unitName>
+  !# </postStepTask>
+\end{verbatim}
+Here, {\normalfont \ttfamily Tree\_Node\_Hot\_Halo\_Poststep\_Standard} is the name of a subroutine which will be called to perform whatever tasks are required. The subroutine must have the following form:
+\begin{verbatim}
+   subroutine Post_Step_Task(node,status)
+    implicit none
+    type   (treeNode), intent(inout) :: node
+    integer          , intent(inout) :: status
+    .
+    .
+    .
+    return
+  end subroutine Post_Step_Task
+\end{verbatim}
+where {\normalfont \ttfamily node} is the node for which tasks should be performed. If any change is made to the state of the node then {\normalfont \ttfamily status} should be set equal to {\normalfont \ttfamily FGSL\_Failure}. Tasks typically involve cleaning up after differential evolution.
+
 \subsubsection{Pre-derivative Tasks}\index{pre-derivative task}\index{task, pre-derivative}
 
 Additional methods for pre-derivative tasks (i.e. things that should be done just prior to the computation of derivatives or properties for a node) can be added using the {\normalfont \ttfamily preDerivativeTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to perform the task. For example, the standard hot halo component adds a task as follows:

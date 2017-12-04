@@ -155,14 +155,10 @@ contains
           call    hotHalo%massRate                    (-massRate                                          )
           call    hotHalo%abundancesRate              (-abundancesCoolingRate                             )
           ! Pipe the mass rate to whatever component claimed it.
-          if (hotHalo%hotHaloCoolingMassRateIsAttached      ()) then
-             call hotHalo%hotHaloCoolingMassRate      (+massRate             ,interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
-          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) then
-             call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
-             if (interrupt) return
-          end if
+          if (hotHalo%hotHaloCoolingMassRateIsAttached      ()) &
+               & call hotHalo%hotHaloCoolingMassRate      (+massRate             ,interrupt,interruptProcedure)
+          if (hotHalo%hotHaloCoolingAbundancesRateIsAttached()) &
+               & call hotHalo%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
        end if
     end select
     return

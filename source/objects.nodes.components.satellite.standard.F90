@@ -25,7 +25,8 @@ module Node_Component_Satellite_Standard
   private
   public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create         , &
        &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize     , &
-       &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize
+       &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize, &
+       &    Node_Component_Satellite_Standard_Inactive
 
   !# <component>
   !#  <class>satellite</class>
@@ -78,6 +79,9 @@ module Node_Component_Satellite_Standard
   ! Option indicating whether or not to reset satellite orbits on halo formation events.
   logical            :: satelliteOrbitResetOnHaloFormation
 
+  ! Record of whether satellite bound mass is an inactive variable.
+  logical            :: satelliteBoundMassIsInactive
+  
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical, parameter :: acceptUnboundOrbits                 =.false.
 
@@ -114,7 +118,16 @@ contains
         !#   <source>globalParameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
-        ! Specify the function to use for setting virial orbits.
+        ! Determine if bound mass is an inactive variable.
+        !# <inputParameter>
+        !#   <name>satelliteBoundMassIsInactive</name>
+        !#   <cardinality>1</cardinality>
+        !#   <defaultValue>.false.</defaultValue>
+        !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
+        !#   <source>globalParameters</source>
+        !#   <type>boolean</type>
+        !# </inputParameter>
+         ! Specify the function to use for setting virial orbits.
         call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
         call satellite%virialOrbitFunction   (Node_Component_Satellite_Standard_Virial_Orbit    )
         ! Record that the module is now initialized.
@@ -125,6 +138,26 @@ contains
      return
    end subroutine Node_Component_Satellite_Standard_Initialize
 
+  !# <inactiveSetTask>
+  !#  <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
+  !# </inactiveSetTask>
+  subroutine Node_Component_Satellite_Standard_Inactive(node)
+    !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    use Stellar_Luminosities_Structure
+    implicit none
+    type (treeNode              ), intent(inout), pointer :: node
+    class(nodeComponentSatellite)               , pointer :: satellite
+    
+    ! Get the satellite component.
+    satellite => node%satellite()
+    ! Check if an standard satellite component exists.
+    select type (satellite)
+    class is (nodeComponentSatelliteStandard)
+       if (satelliteBoundMassIsInactive) call satellite%boundMassInactive()
+    end select
+    return
+  end subroutine Node_Component_Satellite_Standard_Inactive
+  
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
   !# </mergerTreeInitializeTask>

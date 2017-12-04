@@ -24,6 +24,7 @@ use Galacticus::Build::Components::DataTypes;
 	      \&Tree_Node_ODE_Serialize_Values     ,
 	      \&Tree_Node_ODE_Deserialize_Values   ,
 	      \&Tree_Node_ODE_Serialize_RatesScales,
+	      \&Tree_Node_ODE_Serialize_Inactive   ,
 	      \&Tree_Node_ODE_Name_From_Index      ,
 	      \&Tree_Node_ODE_Offsets
 	     ]
@@ -42,6 +43,10 @@ sub Tree_Node_ODE_Step_Initialize {
 	 {
 	     name  => "scale",
 	     value => "1.0d0"
+	 },
+	 {
+	     name  => "inactive",
+	     value => ".false."
 	 }
 	);
     foreach $code::quantity ( @quantities ) {
@@ -281,6 +286,44 @@ CODE
     }
 }
 
+sub Tree_Node_ODE_Serialize_Inactive {
+    # Generate a function to serialize inactive status of evolvable properties of a node into an array for the ODE solver.
+    my $build = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeSerializeInactiveToArray",
+	description => "Serialize inactive statuses of evolvable properties of a node into an array.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "dimension(:)", "intent(  out)" ],
+		 variables  => [ "array" ]
+	     }
+	    ]
+    };    
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+array(1:nodeSerializationCount)=nodeInactives(1:nodeSerializationCount)
+CODE
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "serializeInactives"
+	}
+	);
+}
+
 sub Tree_Node_ODE_Name_From_Index {
     # Generate a function to return the name of a property given the index of that property in the ODE solver array.
     my $build = shift();
@@ -380,11 +423,14 @@ CODE
 if (.not.allocated(nodeScales)) then
    allocate  (nodeScales        (count))
    allocate  (nodeRates         (count))
+   allocate  (nodeInactives (count))
 else if (size(nodeScales) < count) then
    deallocate(nodeScales               )
    deallocate(nodeRates                )
+   deallocate(nodeInactives        )
    allocate  (nodeScales        (count))
    allocate  (nodeRates         (count))
+   allocate  (nodeInactives (count))
 end if
 nodeSerializationCount=count
 CODE

@@ -1095,13 +1095,15 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Radiative_Efficiency
 
-  !# <postEvolveTask>
+  !# <postStepTask>
   !# <unitName>Node_Component_Black_Hole_Standard_Post_Evolve</unitName>
-  !# </postEvolveTask>
-  subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node)
+  !# </postStepTask>
+  subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
     !% Keep black hole spin in physical range.
+    use FGSL
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
+    integer                                 , intent(inout)          :: status
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     double precision                        , parameter              :: spinMaximum=0.9999d0
     integer                                                          :: i                   , instanceCount
@@ -1116,8 +1118,11 @@ contains
           do i=1,instanceCount
              ! Get the black hole component.
              blackHole => node%blackHole(instance=i)
-             spin      =  max(min(blackHole%spin(),spinMaximum),0.0d0)
-             call blackHole%spinSet(spin)
+             if (blackHole%spin() > spinMaximum .or. blackHole%spin() < 0.0d0) then
+                status    =FGSL_Failure
+                spin      =max(min(blackHole%spin(),spinMaximum),0.0d0)
+                call blackHole%spinSet(spin)
+             end if
           end do
        end if
     end if

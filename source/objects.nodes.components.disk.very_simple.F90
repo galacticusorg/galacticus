@@ -28,7 +28,8 @@ module Node_Component_Disk_Very_Simple
   public :: Node_Component_Disk_Very_Simple_Post_Evolve  , Node_Component_Disk_Very_Simple_Rate_Compute         , &
        &    Node_Component_Disk_Very_Simple_Scale_Set    , Node_Component_Disk_Very_Simple_Satellite_Merging    , &
        &    Node_Component_Disk_Very_Simple_Initialize   , Node_Component_Disk_Very_Simple_Pre_Evolve           , &
-       &    Node_Component_Disk_Very_Simple_Rates        , Node_Component_Disk_Very_Simple_Analytic_Solver
+       &    Node_Component_Disk_Very_Simple_Rates        , Node_Component_Disk_Very_Simple_Analytic_Solver      , &
+       &    Node_Component_Disk_Very_Simple_Post_Step
 
   !# <component>
   !#  <class>disk</class>
@@ -266,10 +267,6 @@ contains
     type            (treeNode          ), intent(inout), pointer :: node
     class           (nodeComponentDisk )               , pointer :: disk
     class           (nodeComponentBasic)               , pointer :: basic
-    double precision                    , save                   :: fractionalErrorMaximum=0.0d0
-    double precision                                             :: diskMass                    , fractionalError
-    character       (len=20            )                         :: valueString
-    type            (varying_string    )                         :: message
     type            (history           )                         :: stellarPropertiesHistory
 
     ! Get the disk component.
@@ -282,6 +279,34 @@ contains
        stellarPropertiesHistory=disk%stellarPropertiesHistory()
        call stellarPropertiesHistory%trim(basic%time())
        call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
+    end select
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Post_Evolve
+  
+  !# <postStepTask>
+  !# <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
+  !# </postStepTask>
+  subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
+    !% Catch rounding errors in the very simple disk gas evolution.
+    use FGSL
+    use Galacticus_Display
+    use String_Handling
+    use Abundances_Structure
+    use Stellar_Luminosities_Structure
+    implicit none
+    type            (treeNode          ), intent(inout), pointer :: node
+    integer                             , intent(inout)          :: status
+    class           (nodeComponentDisk )               , pointer :: disk
+    double precision                    , save                   :: fractionalErrorMaximum=0.0d0
+    double precision                                             :: diskMass                    , fractionalError
+    character       (len=20            )                         :: valueString
+    type            (varying_string    )                         :: message
+
+    ! Get the disk component.
+    disk => node%disk()
+    ! Check if a very simple disk component exists.
+    select type (disk)
+    class is (nodeComponentDiskVerySimple)
        ! Trap negative gas masses.
        if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -324,10 +349,12 @@ contains
           ! Reset the gas mass of the disk.
           call disk%      massGasSet(         0.0d0)
           call disk%abundancesGasSet(zeroAbundances)
+          ! Record that state was changed.
+          status=FGSL_Failure
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Very_Simple_Post_Evolve
+  end subroutine Node_Component_Disk_Very_Simple_Post_Step
 
   subroutine Node_Component_Disk_Very_Simple_Create(node)
     !% Create properties in a very simple disk component.

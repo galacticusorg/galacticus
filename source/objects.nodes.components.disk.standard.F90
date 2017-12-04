@@ -30,7 +30,8 @@ module Node_Component_Disk_Standard
        &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Post_Evolve      , &
        &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset, &
        &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve   , &
-       &    Node_Component_Disk_Standard_Thread_Initialize
+       &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive         , &
+       &    Node_Component_Disk_Standard_Post_Step
 
   !# <component>
   !#  <class>disk</class>
@@ -145,7 +146,7 @@ module Node_Component_Disk_Standard
   double precision                            :: diskMassToleranceAbsolute                   , diskOutflowTimescaleMinimum          , &
        &                                         diskStructureSolverRadius
   logical                                     :: diskNegativeAngularMomentumAllowed          , diskRadiusSolverCole2000Method       , &
-       &                                         diskStarFormationInSatellites
+       &                                         diskStarFormationInSatellites               , diskLuminositiesStellarInactive
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -245,6 +246,14 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not star formation occurs in disks in satellites.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>boolean</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>diskLuminositiesStellarInactive</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>.false.</defaultValue>
+       !#   <description>Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
@@ -363,27 +372,13 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Disk_Standard_Post_Evolve(node)
     !% Trim histories attached to the disk.
-    use Galacticus_Display
-    use String_Handling
-    use ISO_Varying_String
-    use Abundances_Structure
     use Histories
-    use Galacticus_Error
-    use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    class           (nodeComponentDisk       )               , pointer :: disk
-    class           (nodeComponentBasic      )               , pointer :: basic
-    class           (nodeComponentSpin       )               , pointer :: spin
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
-    double precision                          , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                                   :: diskMass                       , fractionalError, &
-         &                                                                specificAngularMomentum
-    character       (len=20                  )                         :: valueString
-    type            (varying_string          )                         :: message
-    type            (history                 )                         :: stellarPropertiesHistory
+    type (treeNode          ), intent(inout), pointer :: node
+    class(nodeComponentDisk )               , pointer :: disk
+    class(nodeComponentBasic)               , pointer :: basic
+    type (history           )                         :: stellarPropertiesHistory
 
     ! Get the disk component.
     disk => node%disk()
@@ -395,7 +390,41 @@ contains
        stellarPropertiesHistory=disk%stellarPropertiesHistory()
        call stellarPropertiesHistory%trim(basic%time())
        call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
+    end select
+    return
+  end subroutine Node_Component_Disk_Standard_Post_Evolve
+  
+  !# <postStepTask>
+  !# <unitName>Node_Component_Disk_Standard_Post_Step</unitName>
+  !# </postStepTask>
+  subroutine Node_Component_Disk_Standard_Post_Step(node,status)
+    !% Trim histories attached to the disk.
+    use FGSL
+    use Galacticus_Display
+    use String_Handling
+    use ISO_Varying_String
+    use Abundances_Structure
+    use Galacticus_Error
+    use Dark_Matter_Halo_Scales
+    use Stellar_Luminosities_Structure
+    implicit none
+    type            (treeNode                ), intent(inout), pointer :: node
+    integer                                   , intent(inout)          :: status
+    class           (nodeComponentDisk       )               , pointer :: disk
+    class           (nodeComponentSpin       )               , pointer :: spin
+    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
+    double precision                          , save                   :: fractionalErrorMaximum  =0.0d0
+    double precision                                                   :: diskMass                       , fractionalError, &
+         &                                                                specificAngularMomentum
+    character       (len=20                  )                         :: valueString
+    type            (varying_string          )                         :: message
 
+    ! Get the disk component.
+    disk => node%disk()
+    ! Check if an standard disk component exists.
+    select type (disk)
+    class is (nodeComponentDiskStandard)
        ! Trap negative gas masses.
        if (disk%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
@@ -427,7 +456,6 @@ contains
              fractionalErrorMaximum=fractionalError
           end if
           !$omp end critical (Standard_Disk_Post_Evolve_Check)
-
           ! Get the specific angular momentum of the disk material
           diskMass= disk%massGas    () &
                &   +disk%massStellar()
@@ -440,12 +468,59 @@ contains
              specificAngularMomentum=disk%angularMomentum()/diskMass
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
-
           ! Reset the gas, abundances and angular momentum of the disk.
           call disk%        massGasSet(                                     0.0d0)
           call disk%  abundancesGasSet(                            zeroAbundances)
           call disk%angularMomentumSet(specificAngularMomentum*disk%massStellar())
-
+          status=FGSL_Failure
+       end if
+       ! Trap negative stellar masses.
+       if (disk%massStellar() < 0.0d0) then
+          ! Check if this exceeds the maximum previously recorded error.
+          fractionalError=   abs(disk%massStellar()) &
+               &          /(                         &
+               &             abs(disk%massGas    ()) &
+               &            +abs(disk%massStellar()) &
+               &           )
+          !$omp critical (Standard_Disk_Post_Evolve_Check)
+          if (fractionalError > fractionalErrorMaximum) then
+             ! Report a warning.
+             message='Warning: disk has negative stellar mass (fractional error exceeds any previously reported):'//char(10)
+             message=message//'  Node index        = '//node%index() //char(10)
+             write (valueString,'(e12.6)') disk%massGas    ()
+             message=message//'  Disk gas mass     = '//trim(valueString)//char(10)
+             write (valueString,'(e12.6)') disk%massStellar()
+             message=message//'  Disk stellar mass = '//trim(valueString)//char(10)
+             write (valueString,'(e12.6)') fractionalError
+             message=message//'  Error measure     = '//trim(valueString)//char(10)
+             if (fractionalErrorMaximum == 0.0d0) then
+                ! This is the first time this warning has been issued, so give some extra information.
+                message=message//'  Stellar mass will be reset to zero (in future cases also).'//char(10)
+                message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
+                message=message//'  Negative masses are due to numerically inaccuracy in the ODE solutions.'//char(10)
+                message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
+             end if
+             call Galacticus_Display_Message(message,verbosityWarn)
+             ! Store the new maximum fractional error.
+             fractionalErrorMaximum=fractionalError
+          end if
+          !$omp end critical (Standard_Disk_Post_Evolve_Check)
+          ! Get the specific angular momentum of the disk material
+          diskMass= disk%massGas    () &
+               &   +disk%massStellar()
+          if (diskMass == 0.0d0) then
+             specificAngularMomentum=0.0d0
+             call disk%      massGasSet(         0.0d0)
+             call disk%abundancesGasSet(zeroAbundances)
+          else
+             specificAngularMomentum=disk%angularMomentum()/diskMass
+             if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
+          end if
+          ! Reset the stellar, abundances and angular momentum of the disk.
+          call disk%      massStellarSet(                                 0.0d0)
+          call disk%abundancesStellarSet(                        zeroAbundances)
+          call disk%  angularMomentumSet(specificAngularMomentum*disk%massGas())
+          status=FGSL_Failure
        end if
        ! Trap negative angular momentum.
        darkMatterHaloScale_ => darkMatterHaloScale()
@@ -487,10 +562,11 @@ contains
                 call Galacticus_Error_Report(message//{introspection:location})
              end if
           end if
+          status=FGSL_Failure
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Standard_Post_Evolve
+  end subroutine Node_Component_Disk_Standard_Post_Step
 
   subroutine Node_Component_Disk_Standard_Create(node)
     !% Create properties in an standard disk component.
@@ -691,7 +767,7 @@ contains
           ! case as the disk radius may be unphysical also.
           barInstabilityTimescale=-1.0d0
        end if
-       ! Negative timescale indicates no bar instability.
+       ! Negative timescale indicates no bar instability.      
        if (barInstabilityTimescale >= 0.0d0) then
           ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
           spheroid => node%spheroid()
@@ -826,29 +902,23 @@ contains
        ! Get spheroid component.
        spheroid => node%spheroid()
        ! Set scale for angular momentum.
-       angularMomentum=disk%angularMomentum()+spheroid%angularMomentum()
+       angularMomentum=abs(disk%angularMomentum())
        call disk%angularMomentumScale(max(angularMomentum,angularMomentumMinimum))
        ! Set scale for masses.
-       mass           =abs(                                           &
-            &              +disk%massGas    ()+spheroid%massGas    () &
-            &              +disk%massStellar()+spheroid%massStellar() &
+       mass           =abs(                         &
+            &              +abs(disk%massGas    ()) &
+            &              +abs(disk%massStellar()) &
             &             )
        call disk%massGasScale        (max(           mass,           massMinimum))
        call disk%massStellarScale    (max(           mass,           massMinimum))
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for abundances.
-          abundancesScale=+max(                                    &
-               &               +abs(                               &
-               &                    +disk    %abundancesGas    ()  &
-               &                    +spheroid%abundancesGas    ()  &
-               &                   )                               &
-               &               +abs(                               &
-               &                    +disk    %abundancesStellar()  &
-               &                    +spheroid%abundancesStellar()  &
-               &                   )                             , &
-               &                    +massMinimum                   &
-               &                    *unitAbundances                &
+          abundancesScale=+max(                                     &
+               &               +abs(+disk    %abundancesGas    ())  &
+               &               +abs(+disk    %abundancesStellar()), &
+               &                    +massMinimum                    &
+               &                    *unitAbundances                 &
                &              )
           ! Set scale for gas abundances.
           call disk%abundancesGasScale    (abundancesScale)
@@ -857,13 +927,10 @@ contains
           call disk%abundancesStellarScale(abundancesScale)
        end if
        ! Set scale for stellar luminosities.
-       stellarLuminositiesScale=max(                                       &
-            &                       abs(                                   &
-            &                           +disk      %luminositiesStellar()  &
-            &                           +spheroid  %luminositiesStellar()  &
-            &                          )                                 , &
-            &                           +unitStellarLuminosities           &
-            &                           *luminosityMinimum                 &
+       stellarLuminositiesScale=max(                                        &
+            &                       abs(+disk      %luminositiesStellar()), &
+            &                           +unitStellarLuminosities            &
+            &                           *luminosityMinimum                  &
             &                      )
        call stellarLuminositiesScale%truncate                (disk       %luminositiesStellar())
        call disk       %luminositiesStellarScale(stellarLuminositiesScale                      )
@@ -882,6 +949,26 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Scale_Set
 
+  !# <inactiveSetTask>
+  !#  <unitName>Node_Component_Disk_Standard_Inactive</unitName>
+  !# </inactiveSetTask>
+  subroutine Node_Component_Disk_Standard_Inactive(node)
+    !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    use Stellar_Luminosities_Structure
+    implicit none
+    type (treeNode         ), intent(inout), pointer :: node
+    class(nodeComponentDisk)               , pointer :: disk
+    
+    ! Get the disk component.
+    disk => node%disk()
+    ! Check if an standard disk component exists.
+    select type (disk)
+    class is (nodeComponentDiskStandard)
+       if (diskLuminositiesStellarInactive) call disk%luminositiesStellarInactive()
+    end select
+    return
+  end subroutine Node_Component_Disk_Standard_Inactive
+  
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Disk_Standard_Satellite_Merging</unitName>
   !#  <after>Satellite_Merging_Mass_Movement_Store</after>
@@ -1027,6 +1114,7 @@ contains
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Standard_Radius_Solver_Plausibility</unitName>
+  !#  <after>Node_Component_Basic_Standard_Plausibility</after>
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
@@ -1038,19 +1126,28 @@ contains
     double precision                                          :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
-    if (.not.defaultDiskComponent%standardIsActive()) return
+    if     (                                                &
+         &  .not.                                           &
+         &   (                                              &
+         &     defaultDiskComponent%standardIsActive     () &
+         &    .and.                                         &
+         &     node                %isPhysicallyPlausible   &
+         &    .and.                                         &
+         &     node                %isSolvable              &
+         &   )                                              &
+         & ) return
 
-     ! Determine the plausibility of the current disk.
-     disk => node%disk()
-     select type (disk)
-     class is (nodeComponentDiskStandard)
-        if      (disk%angularMomentum()                             <                       0.0d0) &
-             & node%isPhysicallyPlausible=.false.
-        if      (disk%massStellar    ()+disk%massGas() <  -diskMassToleranceAbsolute) then
-           node%isPhysicallyPlausible=.false.
-        else if (disk%massStellar    ()+disk%massGas() >=                      0.0d0) then
-           if      (                                                                               &
-                &   disk%angularMomentum() < 0.0d0                                                 &
+    ! Determine the plausibility of the current disk.
+    disk => node%disk()
+    select type (disk)
+       class is (nodeComponentDiskStandard)
+       if      (disk%angularMomentum()                             <                       0.0d0) &
+            & node%isPhysicallyPlausible=.false.
+       if      (disk%massStellar    ()+disk%massGas() <  -diskMassToleranceAbsolute) then
+          node%isPhysicallyPlausible=.false.
+       else if (disk%massStellar    ()+disk%massGas() >=                      0.0d0) then
+          if      (                                                                               &
+               &   disk%angularMomentum() < 0.0d0                                                 &
                 &  ) then
               node%isPhysicallyPlausible=.false.
            else
