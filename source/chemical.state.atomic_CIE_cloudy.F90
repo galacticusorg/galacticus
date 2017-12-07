@@ -122,13 +122,12 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     use Galacticus_Display
+    use Interfaces_Cloudy_CIE
     implicit none
-    class    (chemicalStateAtomicCIECloudy), intent(inout) :: self
-    type     (abundances                  ), intent(in   ) :: gasAbundances
-    logical                                                :: makeFile
-    character(len=32                      )                :: metallicityLabel
-    type     (varying_string              )                :: command
-    integer                                                :: status
+    class  (chemicalStateAtomicCIECloudy), intent(inout) :: self
+    type   (abundances                  ), intent(in   ) :: gasAbundances
+    logical                                              :: makeFile
+    type   (varying_string              )                :: command
     
     ! Determine if we need to retabulate the chemical state.
     if (.not.self%initialized) then
@@ -167,19 +166,13 @@ contains
        else
           self%metallicityMaximum=atomicCIECloudyMetallicityMaximumDefault
        end if
-       write (metallicityLabel,'(e12.6)') log10(self%metallicityMaximum)
-       ! Test if we can compile the Cloudy driver script.
-       command='perl -c '//char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl &> /dev/null'
-       call System_Command_Do(command,status)
-       if (status == 0) then       
-          ! Run Atomic_CIE_Cloudy wrapper script.
-          command=char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl'   //' '// &
-               &  metallicityLabel                                                           //' '// &
-               &  char(Galacticus_Input_Path())//trim(atomicCIECloudyCoolingFunctionFileName)//' '// &
-               &  char(Galacticus_Input_Path())//trim(atomicCIECloudyChemicalStateFileName  )
-          command=command//" "//cieFileFormatVersionCurrent
-          call System_Command_Do(command)
-       end if
+       ! Generate the file.
+       call Interface_Cloudy_CIE_Tabulate(                                                                             &
+            &                             log10(self%metallicityMaximum                                             ), &
+            &                                   Galacticus_Input_Path()//trim(atomicCIECloudyCoolingFunctionFileName), &
+            &                                   Galacticus_Input_Path()//trim(atomicCIECloudyChemicalStateFileName  ), &
+            &                                   cieFileFormatVersionCurrent                                            &
+            &                            )
        ! Call routine to read in the tabulated data.
        call self%readFile(char(Galacticus_Input_Path()//trim(atomicCIECloudyChemicalStateFileName)))
        ! Flag that chemical state is now initialized.
