@@ -119,16 +119,19 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
     implicit none
     type     (treeNode                      ), intent(inout), pointer :: node
     logical                                  , intent(in   )          :: odeConverged
     logical                                  , intent(inout)          :: interrupt
     procedure(                              ), intent(inout), pointer :: interruptProcedure
+    integer                                  , intent(in   )          :: propertyType
     class    (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultDarkMatterProfileComponent%scaleShapeIsActive()) return
     ! Get the dark matter profile component.

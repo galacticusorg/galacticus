@@ -117,16 +117,19 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     logical                                 , intent(in   )          :: odeConverged
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
+    integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentSatellite)               , pointer :: satelliteComponent
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
     ! Get the satellite component.

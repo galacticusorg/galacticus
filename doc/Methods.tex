@@ -250,25 +250,27 @@ A ``rate compute'' function should be defined to perform any calculations necess
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Exponential_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Exponential_Rate_Compute(thisNode,interrupt,interruptProcedure)
+  subroutine Node_Component_Disk_Exponential_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     implicit none
-    type     (treeNode             ), pointer, intent(inout) :: thisNode
-    logical                         ,          intent(inout) :: interrupt
+    type     (treeNode             ), pointer, intent(inout) :: node
+    logical                                  , intent(in   ) :: odeConverged
+    logical                                  , intent(inout) :: interrupt
     procedure(                     ), pointer, intent(inout) :: interruptProcedure
-    class    (nodeComponentDisk    ), pointer                :: thisDiskComponent
+    integer                                  , intent(in   ) :: propertyType
+    class    (nodeComponentDisk    ), pointer                :: disk
  
     ! Get the disk and check that it is of our class.
-    thisDiskComponent => thisNode%disk()
-    select type (thisDiskComponent)
+    disk => node%disk()
+    select type (disk)
     class is (nodeComponentDiskExponential)
       ...
-      call thisDiskComponent%massStellarRate(stellarMassRate)
+      call disk%massStellarRate(stellarMassRate)
       ...
     end select
     return
   end subroutine Node_Component_Disk_Exponential_Rate_Comput
 \end{lstlisting}
-Here, we get the disk component and check that it of the {\normalfont \ttfamily exponential} variety. If it is, we compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances of a component are used then the rate compute function should loop over all instances and adjust rates appropriately.
+Here, we get the disk component and check that it of the {\normalfont \ttfamily exponential} variety. If it is, we compute the rates of change for one or more properties and then adjust their rates appropriately. If multiple instances of a component are used then the rate compute function should loop over all instances and adjust rates appropriately. The {\normalfont \ttfamily propertyType} argument will be set either to {\normalfont \ttfamily propertyTypeActive} or {\normalfont \ttfamily propertyTypeInactive}, and indicates if rates should be computed for active or inactive variables. (Rates for active variables can be computed and set even if inactive variables are requested, and vice versa. They will simply be ignored, and so this merely wastes compute time.) The {\normalfont \ttfamily odeConverged} variable indicates if the ODE solver has reached convergence---in some instances it is useful to trigger interrupts only once convergence is reached. If an interrupt occurs, {\normalfont \ttfamily interrupt} should be set to {\normalfont \ttfamily true}, and {\normalfont \ttfamily interruptProcedure} should be set to point to the function to call on interrupt.
 
 When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \begin{equation}
@@ -282,15 +284,15 @@ where $epsilon_{\mathrm abs}=${\normalfont \ttfamily [odeToleranceAbsolute]}, $e
   subroutine Node_Component_Disk_Exponential_Scale_Set(thisNode)
     implicit none
     type (treeNode         ), pointer, intent(inout) :: thisNode
-    class(nodeComponentDisk), pointer                :: thisDiskComponent
+    class(nodeComponentDisk), pointer                :: disk
 
     ! Get the disk component.
-    thisDiskComponent => thisNode%disk()
+    disk => thisNode%disk()
     ! Check if an exponential disk component exists.
-    select type (thisDiskComponent)
+    select type (disk)
     class is (nodeComponentDiskExponential)
       ...
-      call thisDiskComponent%massStellarScale(massScale)
+      call disk%massStellarScale(massScale)
       ...
     end select
     return

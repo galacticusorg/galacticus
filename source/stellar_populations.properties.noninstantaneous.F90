@@ -96,7 +96,7 @@ contains
   end function Stellar_Population_Properties_History_Count_Noninstantaneous
 
   subroutine Stellar_Population_Properties_Rates_Noninstantaneous(starFormationRate,fuelAbundances,component,node,propertiesHistory&
-       &,stellarMassRate ,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+       &,stellarMassRate ,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Galacticus_Nodes
     use Abundances_Structure
@@ -116,6 +116,7 @@ contains
     integer                              , intent(in   )            :: component
     type            (treeNode           ), intent(inout)            :: node
     type            (history            ), intent(inout)            :: propertiesHistory
+    logical                              , intent(in   )            :: stellarLuminositiesRatesCompute
     class           (nodeComponentBasic ), pointer                  :: basic
     double precision                     , dimension(elementsCount) :: fuelMetallicity          , fuelMetalsRateOfChange, &
          &                                                             metalReturnRate          , metalYieldRate        , &
@@ -159,7 +160,7 @@ contains
     imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Set luminosity rates of change.
-    call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,currentTime,fuelAbundances)
+    if (stellarLuminositiesRatesCompute) call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,currentTime,fuelAbundances)
 
     ! Set rates of change in the stellar populations properties future history.
     do iHistory=1,size(propertiesHistory%time)-1

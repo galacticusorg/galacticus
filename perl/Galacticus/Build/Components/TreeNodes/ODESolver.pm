@@ -19,13 +19,14 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 functions =>
 	     [
-	      \&Tree_Node_ODE_Step_Initialize      ,
-	      \&Tree_Node_ODE_Serialize_Count      ,
-	      \&Tree_Node_ODE_Serialize_Values     ,
-	      \&Tree_Node_ODE_Deserialize_Values   ,
-	      \&Tree_Node_ODE_Serialize_RatesScales,
-	      \&Tree_Node_ODE_Serialize_Inactive   ,
-	      \&Tree_Node_ODE_Name_From_Index      ,
+	      \&Tree_Node_ODE_Step_Initialize   ,
+	      \&Tree_Node_ODE_Serialize_Count   ,
+	      \&Tree_Node_ODE_Serialize_Values  ,
+	      \&Tree_Node_ODE_Deserialize_Values,
+	      \&Tree_Node_ODE_Serialize_Rates   ,
+	      \&Tree_Node_ODE_Serialize_Scales  ,
+	      \&Tree_Node_ODE_Serialize_Inactive,
+	      \&Tree_Node_ODE_Name_From_Index   ,
 	      \&Tree_Node_ODE_Offsets
 	     ]
      }
@@ -99,6 +100,11 @@ sub Tree_Node_ODE_Serialize_Count {
 	     },
 	     {
 		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ]
+	     },
+	     {
+		 intrinsic  => "integer",
 		 variables  => [ "i" ],
 	     }
 	    ]
@@ -111,7 +117,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    treeNodeSerializeCount=treeNodeSerializeCount+self%component{ucfirst($class->{'name'})}(i)%serializeCount()
+    treeNodeSerializeCount=treeNodeSerializeCount+self%component{ucfirst($class->{'name'})}(i)%serializeCount(propertyType)
   end do
 end if
 CODE
@@ -148,13 +154,18 @@ sub Tree_Node_ODE_Serialize_Values {
 		 variables  => [ "self" ]
 	     },
 	     {
-		 intrinsic  => "integer",
-		 variables  => [ "count", "offset", "i" ],
-	     },
-	     {
 		 intrinsic  => "double precision",
 		 attributes => [ "dimension(:)", "intent(  out)" ],
 		 variables  => [ "array" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ],
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "count", "offset", "i" ],
 	     }
 	    ]
     };    
@@ -166,8 +177,8 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    count=self%component{ucfirst($class->{'name'})}(i)%serializeCount()
-    if (count > 0) call self%component{ucfirst($class->{'name'})}(i)%serializeValues(array(offset:))
+    count=self%component{ucfirst($class->{'name'})}(i)%serializeCount(propertyType)
+    if (count > 0) call self%component{ucfirst($class->{'name'})}(i)%serializeValues(array(offset:),propertyType)
     offset=offset+count
   end do
 end if
@@ -205,13 +216,18 @@ sub Tree_Node_ODE_Deserialize_Values {
 		 variables  => [ "self" ]
 	     },
 	     {
-		 intrinsic  => "integer",
-		 variables  => [ "count", "offset", "i" ],
-	     },
-	     {
 		 intrinsic  => "double precision",
 		 attributes => [ "dimension(:)", "intent(in   )" ],
 		 variables  => [ "array" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ],
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "count", "offset", "i" ],
 	     }
 	    ]
     };    
@@ -225,9 +241,9 @@ select type (component => self%component{ucfirst($class->{'name'})})
 type is (nodeComponent{ucfirst($class->{'name'})})
 class default
   do i=1,size(component)
-    count=component(i)%serializeCount()
+    count=component(i)%serializeCount(propertyType)
     if (count > 0) then
-       call component(i)%deserializeValues(array(offset:))
+       call component(i)%deserializeValues(array(offset:),propertyType)
        offset=offset+count
     end if
   end do
@@ -245,45 +261,106 @@ CODE
 	);
 }
 
-sub Tree_Node_ODE_Serialize_RatesScales {
-    # Generate a function to serialize rates and scales of evolvable properties of a node into an array for the ODE solver.
+sub Tree_Node_ODE_Serialize_Scales {
+    # Generate a function to serialize scales of evolvable properties of a node into an array for the ODE solver.
     my $build = shift();
-    # Iterate over rates and scales.
-    foreach $code::content ( "scale", "rate" ) {
-	my $function =
-	{
-	    type        => "void",
-	    name        => "treeNodeSerialize".ucfirst($code::content)."ToArray",
-	    description => "Serialize ".$code::content."s of evolvable properties of a node into an array.",
-	    variables   =>
-		[
-		 {
-		     intrinsic  => "class",
-		     type       => "treeNode",
-		     attributes => [ "intent(in   )" ],
-		     variables  => [ "self" ]
-		 },
-		 {
-		     intrinsic  => "double precision",
-		     attributes => [ "dimension(:)", "intent(  out)" ],
-		     variables  => [ "array" ]
-		 }
-		]
-	};    
-	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+    # Define the function.
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeSerializeScaleToArray",
+	description => "Serialize scales of evolvable properties of a node into an array.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "dimension(:)", "intent(  out)" ],
+		 variables  => [ "array" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ],
+	     }
+	    ]
+    };    
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
-array(1:nodeSerializationCount)=node{ucfirst($content)}s(1:nodeSerializationCount)
+select case (propertyType)
+case (propertyTypeAll     )
+ array(1:nodeSerializationCount        )=     nodeScales(1:nodeSerializationCount)
+case (propertyTypeActive  )
+ array(1:nodeSerializationCountActive  )=pack(nodeScales(1:nodeSerializationCount),.not.nodeInactives(1:nodeSerializationCount))
+case (propertyTypeInactive)
+ array(1:nodeSerializationCountInactive)=pack(nodeScales(1:nodeSerializationCount),     nodeInactives(1:nodeSerializationCount))
+end select
 CODE
-	# Insert a type-binding for this function into the treeNode type.
-	push(
-	    @{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {
-		type        => "procedure", 
-		descriptor  => $function,
-		name        => "serialize".ucfirst($code::content)."s"
-	    }
-	    );
-    }
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "serializeScales"
+	}
+	);
+}
+
+sub Tree_Node_ODE_Serialize_Rates {
+    # Generate a function to serialize rates of evolvable properties of a node into an array for the ODE solver.
+    my $build = shift();
+    # Define the function.
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeSerializeRatesToArray",
+	description => "Serialize rates of evolvable properties of a node into an array.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "dimension(:)", "intent(  out)" ],
+		 variables  => [ "array" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ],
+	     }
+	    ]
+    };    
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+select case (propertyType)
+case (propertyTypeAll     )
+ array(1:nodeSerializationCount        )=nodeRates(1:nodeSerializationCount        )
+case (propertyTypeActive  )
+ array(1:nodeSerializationCountActive  )=nodeRates(1:nodeSerializationCountActive  )
+case (propertyTypeInactive)
+ array(1:nodeSerializationCountInactive)=nodeRates(1:nodeSerializationCountInactive)
+end select
+CODE
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "serializeRates"
+	}
+	);
 }
 
 sub Tree_Node_ODE_Serialize_Inactive {
@@ -347,7 +424,7 @@ sub Tree_Node_ODE_Name_From_Index {
 	     {
 		 intrinsic  => "integer",
 		 attributes => [ "intent(in   )" ],
-		 variables  => [ "index" ]
+		 variables  => [ "index", "propertyType" ]
 	     },
 	     {
 		 intrinsic  => "integer",
@@ -357,14 +434,14 @@ sub Tree_Node_ODE_Name_From_Index {
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 name='unknown'
-count=index
+count =index
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    name=self%component{ucfirst($class->{'name'})}(i)%nameFromIndex(count)
+    name=self%component{ucfirst($class->{'name'})}(i)%nameFromIndex(count,propertyType)
     if (count <= 0) return
   end do
 end if
@@ -402,37 +479,49 @@ sub Tree_Node_ODE_Offsets {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => [ "i", "count" ]
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i", "count", "countSubset" ]
 	     }
 	    ]
     };    
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-count=0
+count      =0
+countSubset=0
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated(self%component{ucfirst($class->{'name'})})) then
   do i=1,size(self%component{ucfirst($class->{'name'})})
-    call self%component{ucfirst($class->{'name'})}(i)%serializationOffsets(count)
+    call self%component{ucfirst($class->{'name'})}(i)%serializationOffsets(count,countSubset,propertyType)
   end do
 end if
 CODE
     }
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.allocated(nodeScales)) then
-   allocate  (nodeScales        (count))
-   allocate  (nodeRates         (count))
-   allocate  (nodeInactives (count))
+   allocate  (nodeScales   (count))
+   allocate  (nodeRates    (count))
+   allocate  (nodeInactives(count))
 else if (size(nodeScales) < count) then
-   deallocate(nodeScales               )
-   deallocate(nodeRates                )
-   deallocate(nodeInactives        )
-   allocate  (nodeScales        (count))
-   allocate  (nodeRates         (count))
-   allocate  (nodeInactives (count))
+   deallocate(nodeScales          )
+   deallocate(nodeRates           )
+   deallocate(nodeInactives       )
+   allocate  (nodeScales   (count))
+   allocate  (nodeRates    (count))
+   allocate  (nodeInactives(count))
 end if
-nodeSerializationCount=count
+nodeSerializationCount         =count
+select case (propertyType)
+case (propertyTypeInactive)
+ nodeSerializationCountInactive=countSubset
+case (propertyTypeActive  )
+ nodeSerializationCountActive  =countSubset
+end select
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(

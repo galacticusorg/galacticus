@@ -161,7 +161,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Prefixes
@@ -179,7 +179,8 @@ contains
     type            (treeNode                      ), pointer     , intent(inout) :: thisNode
     logical                                                       , intent(in   ) :: odeConverged
     logical                                                       , intent(inout) :: interrupt
-    procedure       (interruptTask  ), pointer     , intent(inout) :: interruptProcedure
+    procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
+    integer                                                       , intent(in   ) :: propertyType
     class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
     class           (nodeComponentBasic            ), pointer                     :: basicComponent
     type            (treeNode                      ), pointer                     :: hostNode
@@ -195,6 +196,8 @@ contains
     double precision                                                              :: tidalHeatingNormalized,angularFrequency,radialFrequency
     type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
 
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
     ! Get the satellite component.

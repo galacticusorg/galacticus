@@ -388,7 +388,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Disk_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the very simple disk node mass rate of change.
     use Star_Formation_Feedback_Disks
     use Stellar_Feedback
@@ -406,6 +406,7 @@ contains
     logical                               , intent(inout)          :: interrupt
     procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedureReturn
     procedure       (interruptTask       )               , pointer :: interruptProcedure
+    integer                               , intent(in   )          :: propertyType
     double precision                                               :: stellarMassRate         , fuelMassRate         , &
          &                                                            massOutflowRate
     type            (history             )                         :: stellarHistoryRate
@@ -415,6 +416,8 @@ contains
     !$omp threadprivate(fuelAbundancesRate,stellarAbundancesRate,abundancesOutflowRate,luminositiesStellarRates)
     !GCC$ attributes unused :: odeConverged
         
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
     ! Get the disk and check that it is of our class.
@@ -721,7 +724,7 @@ contains
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=disk%stellarPropertiesHistory()
     call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate &
-         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
+         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate,stellarLuminositiesRatesCompute=.true.)
     ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
     massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,energyInputRate,starFormationRate)
     if (massOutflowRate > 0.0d0) then

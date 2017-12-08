@@ -102,7 +102,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     use Cooling_Rates
     implicit none
@@ -110,10 +110,13 @@ contains
     logical                                            , intent(in   ) :: odeConverged
     logical                                   ,          intent(inout) :: interrupt
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
+    integer                                   , intent(in   )          :: propertyType
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
     class    (coolingRateClass               ), pointer                :: coolingRate_
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
     ! Get the massFlowStatistics component.

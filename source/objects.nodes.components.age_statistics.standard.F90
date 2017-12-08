@@ -69,6 +69,7 @@ module Node_Component_Age_Statistics_Standard
 
   ! Record of whether variables in this component are inactive.
   logical :: ageStatisticsStandardIsInactive
+  
   ! Initialization status.
   logical :: moduleInitialized              =.false.
 
@@ -161,7 +162,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use Galacticus_Nodes
     use Galacticus_Output_Times
@@ -170,6 +171,7 @@ contains
     logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
+    integer                                       , intent(in   )          :: propertyType
     class           (nodeComponentAgeStatistics  )               , pointer :: ageStatistics
     class           (nodeComponentDisk           )               , pointer :: disk
     class           (nodeComponentSpheroid       )               , pointer :: spheroid
@@ -180,6 +182,12 @@ contains
     
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
+    ! Return immediately if the wrong property type is required.
+    if     (                                                                                   &
+         &   (propertyType == propertyTypeActive   .and.      ageStatisticsStandardIsInactive) &
+         &  .or.                                                                               &
+         &   (propertyType == propertyTypeInactive .and. .not.ageStatisticsStandardIsInactive) &
+         & ) return
     ! Get the age statistics component.
     ageStatistics => node%ageStatistics()
     ! Get the star formation rates.

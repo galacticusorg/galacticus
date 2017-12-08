@@ -68,6 +68,15 @@ module Galacticus_Nodes
   ! Event ID counter.
   integer         (kind=kind_int8)                                  :: eventID           =0
   
+  ! Enumeration for active/inactive properties.
+  integer, parameter, public :: propertyTypeAll     =0
+  integer, parameter, public :: propertyTypeActive  =1
+  integer, parameter, public :: propertyTypeInactive=2
+
+  ! State for rate computations.
+  integer           , public :: rateComputeState    =propertyTypeActive
+  !$omp threadprivate(rateComputeState)
+  
   ! Define a constructor for treeNodes.
   interface treeNode
      module procedure Tree_Node_Constructor
@@ -984,42 +993,46 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Output_Null
 
-  integer function Node_Component_Serialize_Count_Zero(self)
+  integer function Node_Component_Serialize_Count_Zero(self,propertyType)
     !% Return the serialization count of a generic tree node component.
     implicit none
-    class(nodeComponent), intent(in   ) :: self
-    !GCC$ attributes unused :: self
+    class  (nodeComponent), intent(in   ) :: self
+    integer               , intent(in   ) :: propertyType
+    !GCC$ attributes unused :: self, propertyType
     
     Node_Component_Serialize_Count_Zero=0
     return
   end function Node_Component_Serialize_Count_Zero
 
-  subroutine Node_Component_Serialization_Offsets(self,count)
+  subroutine Node_Component_Serialization_Offsets(self,count,countSubset,propertyType)
     !% Return the serialization count of a generic tree node component.
     implicit none
     class  (nodeComponent), intent(in   ) :: self
-    integer               , intent(inout) :: count
-    !GCC$ attributes unused :: self, count
+    integer               , intent(inout) :: count       , countSubset
+    integer               , intent(in   ) :: propertyType
+    !GCC$ attributes unused :: self, count, countSubset, propertyType
     
     return
   end subroutine Node_Component_Serialization_Offsets
 
-  subroutine Node_Component_Serialize_Null(self,array)
+  subroutine Node_Component_Serialize_Null(self,array,propertyType)
     !% Serialize a generic tree node component.
     implicit none
     class           (nodeComponent)              , intent(in   ) :: self
     double precision               , dimension(:), intent(  out) :: array
-    !GCC$ attributes unused :: self, array
+    integer                                      , intent(in   ) :: propertyType
+    !GCC$ attributes unused :: self, array, propertyType
     
     return
   end subroutine Node_Component_Serialize_Null
 
-  subroutine Node_Component_Deserialize_Null(self,array)
+  subroutine Node_Component_Deserialize_Null(self,array,propertyType)
     !% Deserialize a generic tree node component.
     implicit none
     class           (nodeComponent)              , intent(inout) :: self
     double precision               , dimension(:), intent(in   ) :: array
-    !GCC$ attributes unused :: self, array
+    integer                                      , intent(in   ) :: propertyType
+    !GCC$ attributes unused :: self, array, propertyType
     
     return
   end subroutine Node_Component_Deserialize_Null

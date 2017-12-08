@@ -86,7 +86,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use Galacticus_Output_Times
     implicit none
@@ -94,6 +94,7 @@ contains
     logical                                       , intent(in   )          :: odeConverged
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
+    integer                                       , intent(in   )          :: propertyType
     class           (nodeComponentInterOutput    )               , pointer :: interOutput
     class           (nodeComponentDisk           )               , pointer :: disk
     class           (nodeComponentSpheroid       )               , pointer :: spheroid
@@ -103,6 +104,8 @@ contains
          &                                                                    timeOutputPrevious
     !GCC$ attributes unused :: odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if the standard inter-output component is not active.
     if (.not.defaultInteroutputComponent%standardIsActive()) return
     ! Get the disk and check that it is of our class.

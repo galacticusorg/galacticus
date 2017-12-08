@@ -590,7 +590,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the standard spheroid node mass rate of change.
     use Star_Formation_Feedback_Spheroids
     use Star_Formation_Feedback_Expulsion_Spheroids
@@ -608,6 +608,7 @@ contains
     logical                                              , intent(in   )          :: odeConverged
     logical                                              , intent(inout)          :: interrupt
     procedure       (                                   ), intent(inout), pointer :: interruptProcedure
+    integer                                              , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid              )               , pointer :: spheroid
     class           (nodeComponentHotHalo               )               , pointer :: hotHalo
     class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
@@ -626,6 +627,7 @@ contains
          &                                                                           tidalField                     , tidalTorque
     type            (history                            )                         :: historyTransferRate            , stellarHistoryRate
     type            (stellarLuminosities                ), save                   :: luminositiesStellarRates
+    logical                                                                       :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
@@ -635,36 +637,37 @@ contains
     spheroid => node%spheroid()
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
        if     (    spheroid%angularMomentum() <  0.0d0 &
             & .or. spheroid%radius         () <= 0.0d0 &
             & .or. spheroid%massGas        () <  0.0d0 &
             & ) return
-
        ! Find the star formation timescale.
        starFormationRate=spheroid%starFormationRate()
-
        ! Get the available fuel mass.
        fuelMass         =spheroid%massGas          ()
-
        ! Find the metallicity of the fuel supply.
        fuelAbundances   =spheroid%abundancesGas    ()
        call fuelAbundances%massToMassFraction(fuelMass)
-
+       ! Determine if luminosities must be computed.
+       luminositiesCompute= (propertyType == propertyTypeActive   .and. .not.spheroidLuminositiesStellarInactive) &
+            &              .or.                                                                                   &
+            &               (propertyType == propertyTypeInactive .and.      spheroidLuminositiesStellarInactive)
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=spheroid%stellarPropertiesHistory()
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node    &
             &,stellarHistoryRate,stellarMassRate,stellarAbundancesRates ,luminositiesStellarRates,fuelMassRate &
-            &,fuelAbundancesRates,energyInputRate)
+            &,fuelAbundancesRates,energyInputRate,luminositiesCompute)
        if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
-
        ! Adjust rates.
-       call spheroid%        massStellarRate(         stellarMassRate)
-       call spheroid%            massGasRate(            fuelMassRate)
-       call spheroid%  abundancesStellarRate(  stellarAbundancesRates)
-       call spheroid%      abundancesGasRate(     fuelAbundancesRates)
-       call spheroid%luminositiesStellarRate(luminositiesStellarRates)
+       if (propertyType == propertyTypeActive) then
+          call spheroid%      massStellarRate(       stellarMassRate)
+          call spheroid%          massGasRate(          fuelMassRate)
+          call spheroid%abundancesStellarRate(stellarAbundancesRates)
+          call spheroid%    abundancesGasRate(   fuelAbundancesRates)
+       end if
+       if (luminositiesCompute) call spheroid%luminositiesStellarRate(luminositiesStellarRates)
+       if (propertyType == propertyTypeInactive) return       
 
        ! Record the star formation history.
        stellarHistoryRate=spheroid%starFormationHistory()

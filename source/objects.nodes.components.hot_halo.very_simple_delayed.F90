@@ -126,7 +126,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
     use Hot_Halo_Outflows_Reincorporations
     use Abundances_Structure
@@ -135,6 +135,7 @@ contains
     logical                                             , intent(in   )          :: odeConverged
     logical                                             , intent(inout)          :: interrupt
     procedure       (                                  ), intent(inout), pointer :: interruptProcedure
+    integer                                             , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo              )               , pointer :: hotHalo
     class           (hotHaloOutflowReincorporationClass)               , pointer :: hotHaloOutflowReincorporation_
     type            (abundances                        ), save                   :: abundancesReturnRate
@@ -142,6 +143,8 @@ contains
     double precision                                                             :: outflowReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Don't reincorporate gas for satellites - we don't want it to be able to re-infall back onto the satellite.
     if (node%isSatellite()) return
     ! Get the hot halo component.

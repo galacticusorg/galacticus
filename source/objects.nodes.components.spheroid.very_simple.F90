@@ -349,7 +349,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the very simple spheroid node mass rate of change.
     use Star_Formation_Feedback_Spheroids
     use Stellar_Feedback
@@ -366,6 +366,7 @@ contains
     class           (nodeComponentHotHalo )               , pointer :: hotHalo
     logical                                , intent(inout)          :: interrupt
     procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
+    integer                                , intent(in   )          :: propertyType
     procedure       (interruptTask        )               , pointer :: interruptProcedure
     double precision                                                :: stellarMassRate         , fuelMassRate         , &
          &                                                             massOutflowRate
@@ -376,6 +377,8 @@ contains
     !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: odeConverged
 
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
     ! Get a local copy of the interrupt procedure.
@@ -467,7 +470,7 @@ contains
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=spheroid%stellarPropertiesHistory()
     call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node,stellarHistoryRate &
-         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate)
+         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate,stellarLuminositiesRatesCompute=.true.)
     ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
     starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()
     massOutflowRate=starFormationFeedbackSpheroids_%outflowRate(node,energyInputRate,starFormationRate)

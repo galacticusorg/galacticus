@@ -41,12 +41,13 @@ module Merger_Trees_Evolve_Node
        &                                                         odeJacobianStepSizeRelative
 
   ! Arrays that point to node properties and their derivatives.
-  integer                                                     :: propertyCount                      , propertyCountMaximum      =0
-  double precision                , allocatable, dimension(:) :: propertyScales                     , propertyValues        , &
+  integer                                                     :: propertyCountAll                   , propertyCountMaximum=0, &
+       &                                                         propertyCountInactive              , propertyCountActive
+  double precision                , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive  , &
        &                                                         propertyErrors                     , propertyTolerances    , &
-       &                                                         propertyValuesSaved
-  logical                         , allocatable, dimension(:) :: propertyInactive
-  !$omp threadprivate(propertyCountMaximum,propertyCount,propertyValues,propertyValuesSaved,propertyScales,propertyErrors,propertyTolerances,propertyInactive)
+       &                                                         propertyValuesActiveSaved          , propertyScalesInactive, &
+       &                                                         propertyValuesInactiveSaved        , propertyValuesInactive
+  !$omp threadprivate(propertyCountMaximum,propertyCountAll,propertyCountActive,propertyCountInactive,propertyValuesActive,propertyValuesActiveSaved,propertyValuesInactive,propertyValuesInactiveSaved,propertyScalesActive,propertyScalesInactive,propertyErrors,propertyTolerances)
   logical                                                     :: profileOdeEvolver
 
   ! Module global pointer to the node being processed.
@@ -218,7 +219,7 @@ contains
     type            (varying_string              )                               :: message               , line
     character       (len =12                     )                               :: label
     type            (c_funptr                    )                               :: Error_Analyzer, postStep
-
+    
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
 
@@ -248,93 +249,109 @@ contains
        ! An analytic solution was available. Record that no interrupt therefore occurred.
        interrupted=.false.
     else       
-       ! Find number of variables to evolve for this node.
-       propertyCount=node%serializeCount()
+       ! Compute offsets into serialization arrays for rates and scales.
+       call node%serializationOffsets(propertyTypeAll)
+       ! Find number of all evolvable variables (active and inactive) for this node.
+       propertyCountAll=node%serializeCount(propertyTypeAll)
        ! Allocate pointer arrays if necessary.
-       if (propertyCount > propertyCountMaximum) then
-          if (allocated(propertyValues)) then
-             call Memory_Usage_Record(sizeof(propertyValues        ),addRemove=-1)
-             deallocate(propertyValues        )
-             call Memory_Usage_Record(sizeof(propertyValuesSaved   ),addRemove=-1)
-             deallocate(propertyValuesSaved   )
-             call Memory_Usage_Record(sizeof(propertyScales        ),addRemove=-1)
-             deallocate(propertyScales        )
-             call Memory_Usage_Record(sizeof(propertyInactive      ),addRemove=-1)
-             deallocate(propertyInactive      )
-             call Memory_Usage_Record(sizeof(propertyValuesPrevious),addRemove=-1)
-             deallocate(propertyValuesPrevious)
-             call Memory_Usage_Record(sizeof(propertyRatesPrevious ),addRemove=-1)
-             deallocate(propertyRatesPrevious )
-             call Memory_Usage_Record(sizeof(propertyErrors        ),addRemove=-1)
-             deallocate(propertyErrors        )
-             call Memory_Usage_Record(sizeof(propertyTolerances    ),addRemove=-1)
-             deallocate(propertyTolerances    )
+       if (propertyCountAll > propertyCountMaximum) then
+          if (allocated(propertyValuesActive)) then
+             call Memory_Usage_Record(sizeof(propertyValuesActive       ),addRemove=-1)
+             deallocate(propertyValuesActive       )
+             call Memory_Usage_Record(sizeof(propertyValuesActiveSaved  ),addRemove=-1)
+             deallocate(propertyValuesActiveSaved  )
+             call Memory_Usage_Record(sizeof(propertyValuesInactive     ),addRemove=-1)
+             deallocate(propertyValuesInactive     )
+             call Memory_Usage_Record(sizeof(propertyValuesInactiveSaved),addRemove=-1)
+             deallocate(propertyValuesInactiveSaved)
+             call Memory_Usage_Record(sizeof(propertyScalesActive       ),addRemove=-1)
+             deallocate(propertyScalesActive       )
+             call Memory_Usage_Record(sizeof(propertyScalesInactive     ),addRemove=-1)
+             deallocate(propertyScalesInactive     )
+             call Memory_Usage_Record(sizeof(propertyValuesPrevious     ),addRemove=-1)
+             deallocate(propertyValuesPrevious     )
+             call Memory_Usage_Record(sizeof(propertyRatesPrevious      ),addRemove=-1)
+             deallocate(propertyRatesPrevious      )
+             call Memory_Usage_Record(sizeof(propertyErrors             ),addRemove=-1)
+             deallocate(propertyErrors             )
+             call Memory_Usage_Record(sizeof(propertyTolerances         ),addRemove=-1)
+             deallocate(propertyTolerances         )
           end if
-          allocate(propertyValues        (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyValues        ))
-          allocate(propertyValuesSaved   (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyValuesSaved   ))
-          allocate(propertyScales        (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyScales        ))
-          allocate(propertyInactive       (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyInactive      ))
-          allocate(propertyValuesPrevious(propertyCount))
-          call Memory_Usage_Record(sizeof(propertyValuesPrevious))
-          allocate(propertyRatesPrevious (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyRatesPrevious ))
-          allocate(propertyErrors        (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyErrors        ))
-          allocate(propertyTolerances    (propertyCount))
-          call Memory_Usage_Record(sizeof(propertyTolerances    ))
-          propertyCountMaximum  =propertyCount
+          allocate(propertyValuesActive       (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesActive       ))
+          allocate(propertyValuesActiveSaved  (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesActiveSaved  ))
+          allocate(propertyValuesInactive     (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesInactive     ))
+          allocate(propertyValuesInactiveSaved(propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesInactiveSaved))
+          allocate(propertyScalesActive       (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyScalesActive       ))
+          allocate(propertyScalesInactive     (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyScalesInactive     ))
+          allocate(propertyValuesPrevious     (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesPrevious     ))
+          allocate(propertyRatesPrevious      (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyRatesPrevious      ))
+          allocate(propertyErrors             (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyErrors             ))
+          allocate(propertyTolerances         (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyTolerances         ))
+          propertyCountMaximum  =propertyCountAll
           propertyValuesPrevious=0.0d0
        end if
-       ! Serialize property values to array, and save a copy in case of a need to reset.
-       call node%serializeValues(propertyValues)
-       propertyValuesSaved(1:propertyCount)=propertyValues(1:propertyCount)
+       ! Determine active and inactive properties.
+       call node%odeStepInactivesInitialize()       
+       if (useJacobian) then
+          !# <include directive="inactiveSetTask" type="functionCall" functionType="void">
+          !#  <functionArgs>node</functionArgs>
+          include 'objects.tree_node.set_inactive.inc'
+          !# </include>
+       end if
        ! Compute offsets into serialization arrays for rates and scales.
-       call node%serializationOffsets()
+       call node%serializationOffsets(propertyTypeActive  )
+       call node%serializationOffsets(propertyTypeInactive)
+       ! Find number of active and inactive variables to evolve for this node.
+       propertyCountActive  =node%serializeCount(propertyTypeActive  )
+       propertyCountInactive=node%serializeCount(propertyTypeInactive)
+       ! Serialize property values to array, and save a copy in case of a need to reset.
+       call node%serializeValues(propertyValuesActive  ,propertyTypeActive  )
+       call node%serializeValues(propertyValuesInactive,propertyTypeInactive)
+       propertyValuesActiveSaved  (1:propertyCountActive  )=propertyValuesActive  (1:propertyCountActive  )
+       propertyValuesInactiveSaved(1:propertyCountInactive)=propertyValuesInactive(1:propertyCountInactive)
        ! Compute scales for all properties and extract from the node.
        call node%odeStepScalesInitialize()
        !# <include directive="scaleSetTask" type="functionCall" functionType="void">
        !#  <functionArgs>node</functionArgs>
        include 'objects.tree_node.set_scale.inc'
        !# </include>
-       call node%serializeScales(propertyScales)
-       ! Compute Jacobian zero status for all properties and extract from the node.
-       if (useJacobian) then
-          call node%odeStepInactivesInitialize()       
-          !# <include directive="inactiveSetTask" type="functionCall" functionType="void">
-          !#  <functionArgs>node</functionArgs>
-          include 'objects.tree_node.set_inactive.inc'
-          !# </include>
-          call node%serializeInactives(propertyInactive)
-       end if
+       call node%serializeScales(propertyScalesActive  ,propertyTypeActive  )
+       call node%serializeScales(propertyScalesInactive,propertyTypeInactive)
        ! Check for zero property scales which will cause floating point overflow in the ODE solver.
-       if (any(propertyScales == 0.0d0)) then
+       if (any(propertyScalesActive(1:propertyCountActive) == 0.0d0)) then
           message='WARNING: Zero entry in ODE system scales for node'
           call Galacticus_Warn          (message)
           call Galacticus_Display_Indent(message)
           lengthMaximum=0    
-          do i=1,propertyCount
-             lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(i)))
+          do i=1,propertyCountActive
+             lengthMaximum=max(lengthMaximum,len(node%nameFromIndex(i,propertyTypeActive)))
           end do
           line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",2)
           call Galacticus_Display_Message(line)
           call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : yScale')
           call Galacticus_Display_Message(line)
-          do i=1,propertyCount
-             message=node%nameFromIndex(i)
+          do i=1,propertyCountActive
+             message=node%nameFromIndex(i,propertyTypeActive)
              message=repeat(" ",lengthMaximum-len(message))//message
-             write (label,'(e12.6)') propertyValues(i)
+             write (label,'(e12.6)') propertyValuesActive(i)
              message=message//" : "//label
-             write (label,'(e12.6)') propertyScales(i)
+             write (label,'(e12.6)') propertyScalesActive(i)
              message=message//" : "//label
              call Galacticus_Display_Message(message)
           end do
           call Galacticus_Display_Message(line)
           call node%serializeASCII()
-          call Galacticus_Display_Unindent('done')
+          call Galacticus_Display_Unindent('done')          
        end if
        ! Assign module global pointer to this node.
        activeTreeIndex=  thisTree%index
@@ -352,9 +369,9 @@ contains
        postStep=c_funloc(Tree_Node_Post_Step)
        if (timeStart /= timeEnd) then          
           if (propertyCountPrevious > 0 .and. .not.odeReset) call ODEIV2_Solver_Free(ode2Driver,ode2System)
-          propertyCountPrevious=propertyCount
-          odeStatus          =errorStatusFail
-          trialCount         =0
+          propertyCountPrevious=propertyCountActive
+          odeStatus            =errorStatusFail
+          trialCount           =0
           do while (trialCount < trialCountMaximum .and. .not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt))
              ! Initialize state. Stepsize is reduced by half on each successive trial.
              odeReset    =.true.
@@ -362,45 +379,50 @@ contains
              stepSize    =node%timeStep()/2.0d0**trialCount
              timeStart   =timeStartSaved
              if (useJacobian) then
-                call ODEIV2_Solve(                                                   &
-                     &            ode2Driver                                       , &
-                     &            ode2System                                       , &
-                     &            timeStart                                        , &
-                     &            timeEnd                                          , &
-                     &            propertyCount                                    , &
-                     &            propertyValues                                   , &
-                     &            Tree_Node_ODEs                                   , &
-                     &            odeToleranceAbsolute                             , &
-                     &            odeToleranceRelative                             , &
-                     &            postStep                                         , &
-                     &            Error_Analyzer                                   , &
-                     &            propertyScales                                   , &
-                     &            reset               =odeReset                    , &
-                     &            errorHandler        =Galacticus_ODE_Error_Handler, &
-                     &            odeStatus           =odeStatus                   , &
-                     &            algorithm           =Galacticus_ODE_Algorithm    , &
-                     &            stepSize            =stepSize                    , &
-                     &            jacobian            =Tree_Node_ODEs_Jacobian       &
+                call ODEIV2_Solve(                                                                      &
+                     &            ode2Driver                                                          , &
+                     &            ode2System                                                          , &
+                     &            timeStart                                                           , &
+                     &            timeEnd                                                             , &
+                     &            propertyCountActive                                                 , &
+                     &            propertyValuesActive                                                , &
+                     &            Tree_Node_ODEs                                                      , &
+                     &            odeToleranceAbsolute                                                , &
+                     &            odeToleranceRelative                                                , &
+                     &            postStep                                                            , &
+                     &            Error_Analyzer                                                      , &
+                     &            propertyScalesActive                                                , &
+                     &            reset               =odeReset                                       , &
+                     &            errorHandler        =Galacticus_ODE_Error_Handler                   , &
+                     &            odeStatus           =odeStatus                                      , &
+                     &            algorithm           =Galacticus_ODE_Algorithm                       , &
+                     &            stepSize            =stepSize                                       , &
+                     &            jacobian            =Tree_Node_ODEs_Jacobian                        , &
+                     &            integratorOrder     =15                                             , &
+                     &            zCount              =propertyCountInactive                          , &
+                     &            z                   =propertyValuesInactive(1:propertyCountInactive), &
+                     &            zScale              =propertyScalesInactive(1:propertyCountInactive), &
+                     &            integrands          =Tree_Node_Integrands                             &
                      &           )       
              else
-                call ODEIV2_Solve(                                                   &
-                     &            ode2Driver                                       , &
-                     &            ode2System                                       , &
-                     &            timeStart                                        , &
-                     &            timeEnd                                          , &
-                     &            propertyCount                                    , &
-                     &            propertyValues                                   , &
-                     &            Tree_Node_ODEs                                   , &
-                     &            odeToleranceAbsolute                             , &
-                     &            odeToleranceRelative                             , &
-                     &            postStep                                         , &
-                     &            Error_Analyzer                                   , &
-                     &            propertyScales                                   , &
-                     &            reset               =odeReset                    , &
-                     &            errorHandler        =Galacticus_ODE_Error_Handler, &
-                     &            odeStatus           =odeStatus                   , &
-                     &            algorithm           =Galacticus_ODE_Algorithm    , &
-                     &            stepSize            =stepSize                      &
+                call ODEIV2_Solve(                                                                      &
+                     &            ode2Driver                                                          , &
+                     &            ode2System                                                          , &
+                     &            timeStart                                                           , &
+                     &            timeEnd                                                             , &
+                     &            propertyCountActive                                                 , &
+                     &            propertyValuesActive                                                , &
+                     &            Tree_Node_ODEs                                                      , &
+                     &            odeToleranceAbsolute                                                , &
+                     &            odeToleranceRelative                                                , &
+                     &            postStep                                                            , &
+                     &            Error_Analyzer                                                      , &
+                     &            propertyScalesActive                                                , &
+                     &            reset               =odeReset                                       , &
+                     &            errorHandler        =Galacticus_ODE_Error_Handler                   , &
+                     &            odeStatus           =odeStatus                                      , &
+                     &            algorithm           =Galacticus_ODE_Algorithm                       , &
+                     &            stepSize            =stepSize                                         &
                      &           )
              end if
              ! Check for failure.
@@ -408,15 +430,16 @@ contains
                 ! Increment number of trials.
                 trialCount=trialCount+1
                 ! Restore state of the node.
-                propertyValues(1:propertyCount)=propertyValuesSaved(1:propertyCount)
+                propertyValuesActive  (1:propertyCountActive  )=propertyValuesActiveSaved  (1:propertyCountActive  )
+                propertyValuesInactive(1:propertyCountInactive)=propertyValuesInactiveSaved(1:propertyCountInactive)
              end if
           end do
           if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) call Galacticus_Error_Report('ODE integration failed '//{introspection:location})
        end if
        call node%timeStepSet(stepSize)
        ! Extract values.
-       call node%deserializeValues(propertyValues)
-       
+       call node%deserializeValues(propertyValuesActive  ,propertyTypeActive  )
+       call node%deserializeValues(propertyValuesInactive,propertyTypeInactive)
        ! Flag interruption if one occurred, and ensure that the time is matched precisely to the end or interrupt time (can differ
        ! due to finite precision of the ODE integrator).
        if (timeInterruptFirst /= 0.0d0) then
@@ -454,6 +477,42 @@ contains
     return
   end function Tree_Node_Is_Accurate
 
+  subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
+    !% A set of integrands for unit tests.
+    implicit none
+    integer                        , intent(in   )                                              :: propertyCountActive       , propertyCountInactive
+    double precision               , intent(in   ), dimension(                              : ) :: time
+    double precision               , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues
+    logical                        , intent(inout), dimension(                              : ) :: evaluate
+    double precision               , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
+    logical                        , parameter                                                  :: odeConverged       =.true.
+    procedure       (interruptTask), pointer                                                    :: functionInterrupt
+    logical                                                                                     :: interrupt
+    integer                                                                                     :: iTime
+
+    ! Set state to indicate that rate calculations are for inactive variables.
+    rateComputeState=propertyTypeInactive
+    ! Iterate over times.
+    do iTime=1,size(time)
+       ! Deserialize the active values.
+       call activeNode%deserializeValues(propertyValues(1:propertyCountActive,iTime),propertyTypeActive)
+       ! If past the time of the first interrupt, integrands are set to zero. Otherwise, evaluate integrands.
+       if (interruptFirstFound .and. time(iTime) >= timeInterruptFirst) then
+          integrands(:,iTime)=0.0d0
+       else
+          ! Set derivatives to zero initially.
+          call activeNode%odeStepRatesInitialize()
+          ! Compute derivatives.
+          call Tree_Node_Compute_Derivatives(activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeInactive)      
+          ! Serialize rates into integrand array.
+          call activeNode%serializeRates(integrands(:,iTime),propertyTypeInactive)
+       end if
+    end do
+    ! Set state to indicate that rate calculations are for active variables.
+    rateComputeState=propertyTypeActive
+    return
+  end subroutine Tree_Node_Integrands
+
   integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
@@ -469,19 +528,19 @@ contains
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
     ! Check if we can reuse the previous derivatives.
-    if   (                                                                 &
-       &   time                  == timePrevious                           &
-       &  .and.                                                            &
-       &   all(y(1:propertyCount)  == propertyValuesPrevious(1:propertyCount)) &
+    if   (                                                                                              &
+       &   time                                       == timePrevious                                   &
+       &  .and.                                                                                         &
+       &   all(y(             1:propertyCountActive)  == propertyValuesPrevious(1:propertyCountActive)) &
        & ) then
-       dydt                  (1:propertyCount)=propertyRatesPrevious(1:propertyCount)
+       dydt                  (1:propertyCountActive)  =  propertyRatesPrevious (1:propertyCountActive)
        return
     else
-       timePrevious                         =time
-       propertyValuesPrevious(1:propertyCount)=y                    (1:propertyCount)
+       timePrevious                                   =  time
+       propertyValuesPrevious(1:propertyCountActive)  =  y                     (1:propertyCountActive)
     end if
     ! Extract values.
-    call activeNode%deserializeValues(y(1:propertyCount))
+    call activeNode%deserializeValues(y(1:propertyCountActive),propertyTypeActive)
     ! If the node is significantly inaccurate (as judged by the node time being different from the system time), then set rates to
     ! zero, as the ODE solver is likely just taking a step which is too large.
     basic => activeNode%basic()
@@ -492,26 +551,26 @@ contains
     ! Set derivatives to zero initially.
     call activeNode%odeStepRatesInitialize()
     ! Determine if the ODE evolver has reached sufficiently small errors for this step.
-    call FODEIV2_Driver_Errors(ode2Driver,propertyErrors(1:propertyCount))
-    propertyTolerances(1:propertyCount)=treeNodeODEStepTolerances(y)
-    odeConverged=all(propertyErrors(1:propertyCount) <= propertyTolerances(1:propertyCount))
+    call FODEIV2_Driver_Errors(ode2Driver,propertyErrors(1:propertyCountActive))
+    propertyTolerances(1:propertyCountActive)=treeNodeODEStepTolerances(y)
+    odeConverged=all(propertyErrors(1:propertyCountActive) <= propertyTolerances(1:propertyCountActive))
     if (interruptFirstFound .and. time >= timeInterruptFirst) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
-       dydt                 (1:propertyCount)=0.0d0
-       propertyRatesPrevious(1:propertyCount)=0.0d0
+       dydt                 (1:propertyCountActive)=0.0d0
+       propertyRatesPrevious(1:propertyCountActive)=0.0d0
     else
        ! Compute derivatives.
-       call Tree_Node_Compute_Derivatives(activeNode,odeConverged,interrupt,functionInterrupt)      
+       call Tree_Node_Compute_Derivatives(activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeActive)      
        ! Check whether an interrupt has been requested.
        select case (interrupt)
        case (.false.)
           ! No interrupt - place derivatives into ODE arrays.
-          call activeNode%serializeRates(dydt(1:propertyCount))
-          propertyRatesPrevious(1:propertyCount)=dydt(1:propertyCount)            
+          call activeNode%serializeRates(dydt(1:propertyCountActive),propertyTypeActive)
+          propertyRatesPrevious(1:propertyCountActive)=dydt(1:propertyCountActive)            
        case (.true.)
           ! Interrupt requested - freeze evolution and store the interrupt if it is the earliest one to occur.
-          dydt                 (1:propertyCount)=0.0d0
-          propertyRatesPrevious(1:propertyCount)=0.0d0
+          dydt                 (1:propertyCountActive)=0.0d0
+          propertyRatesPrevious(1:propertyCountActive)=0.0d0
           if (time < timeInterruptFirst .or. .not.interruptFirstFound) then
              interruptFirstFound    =  .true.
              timeInterruptFirst     =  time
@@ -533,16 +592,16 @@ contains
     use Numerical_Comparison
     use Galacticus_Error
     implicit none
-    double precision                                                       , intent(in   ) :: time
-    double precision               , dimension(:                          ), intent(in   ) :: propertyValues0
-    double precision               , dimension(:                          ), intent(  out) :: derivativeRatesValues, derivativeRatesTime
-    double precision               , dimension(propertyCount              )                :: propertyRates0       , propertyRates1     , &
-         &                                                                                    propertyValues1
-    double precision               , dimension(propertyCount,propertyCount)                :: jacobian
-    procedure       (interruptTask), pointer                                               :: functionInterrupt
-    logical                                                                                :: interrupt             , odeConverged
-    integer                                                                                :: i
-    double precision                                                                       :: propertyValueDelta
+    double precision                                                                   , intent(in   ) :: time
+    double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
+    double precision               , dimension(:                                      ), intent(  out) :: derivativeRatesValues, derivativeRatesTime
+    double precision               , dimension(propertyCountActive                    )                :: propertyRates0       , propertyRates1     , &
+         &                                                                                                propertyValues1
+    double precision               , dimension(propertyCountActive,propertyCountActive)                :: jacobian
+    procedure       (interruptTask), pointer                                                           :: functionInterrupt
+    logical                                                                                            :: interrupt             , odeConverged
+    integer                                                                                            :: i
+    double precision                                                                                   :: propertyValueDelta
     
     ! Return success by default.
     Tree_Node_ODEs_Jacobian=FGSL_Success
@@ -551,55 +610,50 @@ contains
     ! Check for interrupts.
     if (interruptFirstFound .and. time >= timeInterruptFirst) then
        ! Already beyond the location of the first interrupt, simply return zero derivatives.
-       jacobian(1:propertyCount,1:propertyCount)=0.0d0
+       jacobian(1:propertyCountActive,1:propertyCountActive)=0.0d0
     else
        ! Compute rates at current parameter values.
-       call activeNode%deserializeValues     (propertyValues0    (1:propertyCount))
-       call activeNode%odeStepRatesInitialize(                                  )
-       call Tree_Node_Compute_Derivatives    (activeNode,odeConverged,interrupt,functionInterrupt)
-       call activeNode%serializeRates        (propertyRates0                    )
+       call activeNode%deserializeValues     (propertyValues0(1:propertyCountActive)             ,propertyTypeActive)
+       call activeNode%odeStepRatesInitialize(                                                                      )
+       call Tree_Node_Compute_Derivatives    (activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeActive)
+       call activeNode%serializeRates        (propertyRates0                                     ,propertyTypeActive)
        ! If an interrupt was triggered, then derivatives will all be zero, so we set the Jacobian to zero here and exit.
        if (interrupt) then
-          jacobian(1:propertyCount,1:propertyCount)=0.0d0
+          jacobian(1:propertyCountActive,1:propertyCountActive)=0.0d0
           return
        end if       
        ! Iterate over parameters, computing Jacobian using finite differences.
-       do i=1,propertyCount
-         ! Skip cases where the Jacobian is known to be zero.
-          if (propertyInactive(i)) then
-             jacobian(i,:)=+0.0d0
+       do i=1,propertyCountActive
+          ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
+          ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
+          ! supplied to the ODE solver.
+          if (propertyValues0(i)==0.0d0) then
+             propertyValueDelta =+propertyScalesActive       (i)
           else
-             ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
-             ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
-             ! supplied to the ODE solver.
-             if (propertyValues0(i)==0.0d0) then
-                propertyValueDelta =+propertyScales             (i)
-             else
-                propertyValueDelta =+odeJacobianStepSizeRelative    &
-                     &              *propertyValues0            (i)
-             end if
-             propertyValues1       =+propertyValues0
-             propertyValues1(i)    =+propertyValues1            (i) &
-                  &                 +propertyValueDelta
-             call activeNode%deserializeValues     (propertyValues1                                          )
-             call activeNode%odeStepRatesInitialize(                                                         )
-             call Galactic_Structure_Radii_Revert  (activeNode                                               )
-             call Tree_Node_Compute_Derivatives    (activeNode     ,odeConverged,interrupt,functionInterrupt)
-             call activeNode%serializeRates        (propertyRates1                                           )
-             jacobian(i,:)=+(                  &
-                  &          +propertyRates1   &
-                  &          -propertyRates0   &
-                  &         )                  &
-                  &        /propertyValueDelta
+             propertyValueDelta =+odeJacobianStepSizeRelative    &
+                  &              *propertyValues0            (i)
           end if
+          propertyValues1       =+propertyValues0
+          propertyValues1(i)    =+propertyValues1            (i) &
+               &                 +propertyValueDelta
+          call activeNode%deserializeValues     (propertyValues1,propertyTypeActive                                         )
+          call activeNode%odeStepRatesInitialize(                                                                           )
+          call Galactic_Structure_Radii_Revert  (activeNode                                                                 )
+          call Tree_Node_Compute_Derivatives    (activeNode     ,odeConverged,interrupt,functionInterrupt,propertyTypeActive)
+          call activeNode%serializeRates        (propertyRates1                                          ,propertyTypeActive)
+          jacobian(i,:)=+(                  &
+               &          +propertyRates1   &
+               &          -propertyRates0   &
+               &         )                  &
+               &        /propertyValueDelta
        end do
     end if
     ! Map Jacobian back to output array.
-    derivativeRatesValues=reshape(jacobian,[propertyCount**2])
+    derivativeRatesValues=reshape(jacobian,[propertyCountActive**2])
     return
   end function Tree_Node_ODEs_Jacobian
   
-  subroutine Tree_Node_Compute_Derivatives(node,odeConverged,interrupt,functionInterruptReturn)
+  subroutine Tree_Node_Compute_Derivatives(node,odeConverged,interrupt,functionInterruptReturn,propertyType)
     !% Call routines to set alls derivatives for {\normalfont \ttfamily node}.
     use Galacticus_Calculations_Resets
     !# <include directive="preDerivativeTask" type="moduleUse">
@@ -613,10 +667,11 @@ contains
     logical            , intent(in   )          :: odeConverged
     logical            , intent(  out)          :: interrupt
     procedure(        ), intent(  out), pointer :: functionInterruptReturn
+    integer            , intent(in   )          :: propertyType
     procedure(        )               , pointer :: functionInterrupt
 
     ! Initialize interrupt status.
-    interrupt          =  .false.
+    interrupt         =  .false.
     functionInterrupt => null()
     ! Call component routines to indicate that derivative calculation is commencing.
     call Galacticus_Calculations_Reset(node)
@@ -629,7 +684,7 @@ contains
     if (.not.node%isSolvable) return   
     ! Call component routines to compute derivatives.
     !# <include directive="rateComputeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node,odeConverged,interrupt,functionInterrupt</functionArgs>
+    !#  <functionArgs>node,odeConverged,interrupt,functionInterrupt,propertyType</functionArgs>
     include 'objects.node.component.derivatives.inc'
     !# </include>
     ! Return the procedure pointer.
@@ -643,15 +698,15 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    real            (kind=c_double     ), intent(in)                           :: time
-    real            (kind=c_double     ), intent(in), dimension(propertyCount) :: y
-    real            (kind=c_double     )            , dimension(propertyCount) :: dydt      , yError       , &
-         &                                                                        yTolerance
-    type            (varying_string    )                                       :: message   , line
-    integer                                                                    :: i         , lengthMaximum
-    character       (len =12           )                                       :: label
-    integer         (kind=c_int        )                                       :: odeStatus
-    double precision                                                           :: stepFactor
+    real            (kind=c_double     ), intent(in)                                 :: time
+    real            (kind=c_double     ), intent(in), dimension(propertyCountActive) :: y
+    real            (kind=c_double     )            , dimension(propertyCountActive) :: dydt      , yError       , &
+         &                                                                              yTolerance
+    type            (varying_string    )                                             :: message   , line
+    integer                                                                          :: i         , lengthMaximum
+    character       (len =12           )                                             :: label
+    integer         (kind=c_int        )                                             :: odeStatus
+    double precision                                                                 :: stepFactor
 
     ! Check if this is the final trial for this node.
     if (trialCount == trialCountMaximum-1) then
@@ -668,24 +723,24 @@ contains
        odeStatus=Tree_Node_ODEs(time,y,dydt)
        call Galacticus_Display_Indent('ODE system parameters')
        lengthMaximum=0    
-       do i=1,propertyCount
-          lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i)))
+       do i=1,propertyCountActive
+          lengthMaximum=max(lengthMaximum,len(activeNode%nameFromIndex(i,propertyTypeActive)))
        end do
        line=repeat("―",lengthMaximum)//repeat("―――――――――――――――",5)
        call Galacticus_Display_Message(line)
        call Galacticus_Display_Message(repeat(" ",lengthMaximum)//' : y            : dy/dt        : yScale       : yError       : yErrorScaled')
        call Galacticus_Display_Message(line)
-       do i=1,propertyCount
+       do i=1,propertyCountActive
           stepFactor=abs(yError(i))/yTolerance(i)
-          message=activeNode%nameFromIndex(i)
+          message=activeNode%nameFromIndex(i,propertyTypeActive)
           message=repeat(" ",lengthMaximum-len(message))//message
-          write (label,'(e12.6)') y             (i)
+          write (label,'(e12.6)') y                   (i)
           message=message//" : "//label
-          write (label,'(e12.6)') dydt          (i)
+          write (label,'(e12.6)') dydt                (i)
           message=message//" : "//label
-          write (label,'(e12.6)') propertyScales(i)
+          write (label,'(e12.6)') propertyScalesActive(i)
           message=message//" : "//label
-          write (label,'(e12.6)') yError        (i)
+          write (label,'(e12.6)') yError              (i)
           message=message//" : "//label
           write (label,'(e12.6)') stepFactor
           message=message//" : "//label
@@ -700,15 +755,15 @@ contains
   function treeNodeODEStepTolerances(propertyValues)
     !% Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
     implicit none
-    double precision               , dimension(propertyCount) :: treeNodeODEStepTolerances
-    double precision, intent(in   ), dimension(propertyCount) :: propertyValues
-    integer                                                   :: i
+    double precision               , dimension(propertyCountActive) :: treeNodeODEStepTolerances
+    double precision, intent(in   ), dimension(propertyCountActive) :: propertyValues
+    integer                                                         :: i
     
-    forall(i=1:propertyCount)
-       treeNodeODEStepTolerances(i)=+odeToleranceRelative   &
-            &                       *abs(propertyValues(i)) &
-            &                       +odeToleranceAbsolute   &
-            &                       *    propertyScales(i)
+    forall(i=1:propertyCountActive)
+       treeNodeODEStepTolerances(i)=+odeToleranceRelative         &
+            &                       *abs(propertyValues      (i)) &
+            &                       +odeToleranceAbsolute         &
+            &                       *    propertyScalesActive(i)
     end forall
     return
   end function treeNodeODEStepTolerances
@@ -721,15 +776,15 @@ contains
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
     implicit none
-    real   (kind=c_double), intent(inout), dimension(propertyCount) :: y
-    integer(kind=c_int   ), intent(inout)                           :: status
+    real   (kind=c_double), intent(inout), dimension(propertyCountActive) :: y
+    integer(kind=c_int   ), intent(inout)                                 :: status
 
-    call activeNode%deserializeValues(y)
+    call activeNode%deserializeValues(y,propertyTypeActive)
     !# <include directive="postStepTask" type="functionCall" functionType="void">
     !#  <functionArgs>activeNode,status</functionArgs>
     include 'objects.tree_node.post_step.inc'
     !# </include>
-    if (status /= FGSL_Success) call activeNode%serializeValues(y)
+    if (status /= FGSL_Success) call activeNode%serializeValues(y,propertyTypeActive)
     return
   end subroutine Tree_Node_Post_Step
   
@@ -739,20 +794,20 @@ contains
     use               FGSL
     use               Galacticus_Meta_Evolver_Profiler
     implicit none
-    real            (kind=c_double ), dimension(propertyCount), intent(in   )        :: currentPropertyValue
-    real            (kind=c_double ), dimension(propertyCount), intent(in   )        :: currentPropertyError
-    real            (kind=c_double )                          , intent(in   ), value :: timeStep
-    integer         (kind=c_int    )                          , intent(in   ), value :: stepStatus
-    double precision                                                                 :: scale               , scaledError     , scaledErrorMaximum
-    integer                                                                          :: iProperty           , limitingProperty
-    type            (varying_string)                                                 :: propertyName
+    real            (kind=c_double ), dimension(propertyCountActive), intent(in   )        :: currentPropertyValue
+    real            (kind=c_double ), dimension(propertyCountActive), intent(in   )        :: currentPropertyError
+    real            (kind=c_double )                                , intent(in   ), value :: timeStep
+    integer         (kind=c_int    )                                , intent(in   ), value :: stepStatus
+    double precision                                                                       :: scale               , scaledError     , scaledErrorMaximum
+    integer                                                                                :: iProperty           , limitingProperty
+    type            (varying_string)                                                       :: propertyName
    
     ! If the step was not good, return immediately.
     if (stepStatus /= FGSL_Success) return    
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
-    do iProperty=1,propertyCount
-       scale=odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative*abs(currentPropertyValue(iProperty))
+    do iProperty=1,propertyCountActive
+       scale=odeToleranceAbsolute*propertyScalesActive(iProperty)+odeToleranceRelative*abs(currentPropertyValue(iProperty))
        scaledError=abs(currentPropertyError(iProperty))/scale
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError
@@ -762,7 +817,7 @@ contains
     ! Check that we found a limiting property.
     if (scaledErrorMaximum > 0.0d0) then
        ! Decode the step limiting property.
-       propertyName=activeNode%nameFromIndex(limitingProperty)
+       propertyName=activeNode%nameFromIndex(limitingProperty,propertyTypeActive)
        ! Record this information.
        call Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
     end if
