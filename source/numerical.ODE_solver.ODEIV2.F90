@@ -68,7 +68,7 @@ contains
   subroutine ODEIV2_Solve(                                                                             &
        &                  odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative, &
        &                  postStep,Error_Analyzer                                                             , &
-       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,zScale,integrands   &
+       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,zScale,integrands,integratorOrder   &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
@@ -96,12 +96,12 @@ contains
     integer                                                           , parameter                             :: genericFailureCountMaximum=10
     procedure       (integrandTemplate                               ), optional                              :: integrands
     procedure       (integrandTemplate                               ), pointer                               :: previousIntegrands
-    integer                                                           , intent(in   ), optional               :: zCount
+    integer                                                           , intent(in   ), optional               :: zCount                          , integratorOrder
     double precision                                                  , intent(inout), optional, dimension(:) :: z
     double precision                                                  , intent(in   ), optional, dimension(:) :: zScale
     double precision                                                  , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
     double precision                                                  , allocatable            , dimension(:) :: tolerancesAbsolute              , tolerancesRelative
-    integer                                                                                                   :: status
+    integer                                                                                                   :: status                          , integratorOrder_
     integer         (kind=c_size_t                                   )                                        :: previousODENumber               , previousIntegrandsNumber
     double precision                                                                                          :: h                               , x                   , &
          &                                                                                                       x1Internal                      , xStepBegin
@@ -129,7 +129,7 @@ contains
        currentIntegrandsNumber  =  zCount
     end if
     ! Initialize integrator if required.
-    if (present(zCount)) then
+    if (present(zCount).and.zCount > 0) then
        allocate(tolerancesAbsolute(zCount))
        allocate(tolerancesRelative(zCount))
        tolerancesRelative=toleranceRelative
@@ -138,7 +138,9 @@ contains
        else
           tolerancesAbsolute=toleranceAbsolute
        end if
-       call integrator_%initialize   (24                ,61                )
+       integratorOrder_=61
+       if (present(integratorOrder)) integratorOrder_=integratorOrder
+       call integrator_%initialize   (24                ,integratorOrder   )
        call integrator_%tolerancesSet(tolerancesAbsolute,tolerancesRelative)
        call integrator_%integrandSet (zCount            ,integrandsWrapper )
        deallocate(tolerancesAbsolute)
@@ -183,7 +185,7 @@ contains
     ! Reset the driver.
     status=FODEIV2_Driver_Reset(odeDriver)
     ! Get a C-pointer to our latent integrator.
-    if (present(zCount)) then
+    if (present(zCount).and.zCount > 0) then
        latentIntegrator_=C_FunLoc(latentIntegrator)
     else
        latentIntegrator_=C_NULL_FUNPTR
