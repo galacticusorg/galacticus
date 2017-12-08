@@ -49,6 +49,10 @@ module Numerical_Integration2
      type            (intervalMulti), pointer                   :: next
   end type intervalMulti
 
+  type :: intervalMultiList
+     type(intervalMulti), pointer :: interval_
+  end type intervalMultiList
+  
   ! Generic integrator.
   type :: integrator
      !% Generic numerical integrator class.
@@ -1557,31 +1561,38 @@ contains
 
   function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
-    use Numerical_Comparison
-    use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
+    use               Numerical_Comparison
+    use               Galacticus_Error
+    use               Sort
     implicit none
-    class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                  :: self
-    double precision                                                  , intent(in   )                  :: a            , b
-    double precision                                                  , dimension(self%integrandCount) :: integral     , error        , &
-         &                                                                                                errorScale
-    logical                                                           , dimension(self%integrandCount) :: converged    , mustEvaluate
-    integer                                                                                            :: iInterval
-    double precision                                                                                   :: midpoint
-    type            (intervalMulti                                   ), pointer                        :: head         , newInterval1 , &
-         &                                                                                                newInterval2 , current      , &
-         &                                                                                                previous     , newInterval
-
+    class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
+    double precision                                                  , intent(in   )                              :: a                , b
+    double precision                                                  , dimension(self%integrandCount)             :: integral         , error       , &
+         &                                                                                                            errorScale
+    logical                                                           , dimension(self%integrandCount)             :: converged        , mustEvaluate, &
+         &                                                                                                            convergedPrevious
+    double precision                                                                                               :: midpoint
+    type            (intervalMultiList                               ), dimension(:)                 , allocatable :: list
+    double precision                                                  , dimension(:)                 , allocatable :: listValue
+    integer         (c_size_t                                        ), dimension(:)                 , allocatable :: listRank
+    type            (intervalMulti                                   ), pointer                                    :: head             , newInterval1, &
+         &                                                                                                            newInterval2     , current     , &
+         &                                                                                                            previous         , newInterval
+    integer         (c_size_t)                                                                                     :: iInterval        , intervalCount
+    
     ! Create our first estimate of the integral, using a single interval.
+    intervalCount=1_c_size_t
     allocate(head                              )
     allocate(head%fa      (self%integrandCount))
     allocate(head%fb      (self%integrandCount))
     allocate(head%integral(self%integrandCount))
     allocate(head%error   (self%integrandCount))
     head%a       =  a
-    head%b       =  b
+    head%b       =  b    
     head%next    => null()
     mustEvaluate =  .true.
-    call self%evaluateInterval(head%a,head%b,head%integral,head%error,mustEvaluate)
+    call self%evaluateInterval(head%a,head%b,head%integral,head%error,mustEvaluate)    
     ! Initialize current integral and error estimates, and flag that we're not converged.
     integral =head%integral
     error    =head%error
@@ -1594,6 +1605,7 @@ contains
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
        current  => head      ! Pop the head from the list.
        head     => head%next
+       intervalCount=intervalCount-1_c_size_t
        midpoint =  (current%b+current%a)/2.0d0
        ! Create two new subintervals.
        allocate(newInterval1)
@@ -1612,12 +1624,19 @@ contains
        newInterval1%b    =  midpoint
        newInterval2%a    =  midpoint
        newInterval2%b    =  current%b
+       ! Check for loss of precision in interval extent.
+       if     (                     &
+            &   midpoint==current%a &
+            &  .or.                 &
+            &   midpoint==current%b &
+            & ) call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
        ! Compute the integral and error estimate in each new subinterval.
        mustEvaluate=.not.converged
        call self%evaluateInterval(newInterval1%a,newInterval1%b,newInterval1%integral,newInterval1%error,mustEvaluate)
        call self%evaluateInterval(newInterval2%a,newInterval2%b,newInterval2%integral,newInterval2%error,mustEvaluate)
        ! Update the total integral and error estimate for the new subintervals, for integrands which were evaluated. For other
        ! integrands, the new interval integrals and errors are set to half of that of the parent interval.
+       convergedPrevious=converged
        where (mustEvaluate)
           integral                      &
                & =integral              &
@@ -1640,6 +1659,38 @@ contains
           newInterval1%error   =current%error   /2.0d0
           newInterval2%error   =current%error   /2.0d0
        end where
+       if (.not.all(converged) .and. any(converged .neqv. convergedPrevious).and.intervalCount > 1_c_size_t) then
+          ! One or more integrals have converged. We must resort the linked list of intervals to ensure that it is in order of
+          ! descending error measure.
+
+          !! AJB HACK: possibly a recursive merge sort would work better/faster here. Only worth implementing if profiling shows
+          !! that this bit of code is a significant time sink though.
+          
+          errorScale=max(                                      &
+               &         self%toleranceAbsolute              , &
+               &         self%toleranceRelative*abs(integral)  &
+               &        )
+          allocate(list     (intervalCount))
+          allocate(listValue(intervalCount))
+          allocate(listRank (intervalCount))
+          newInterval => head
+          do iInterval=1_c_size_t,intervalCount
+             list     (iInterval)%interval_ =>            newInterval
+             listValue(iInterval)           =  maxval(abs(newInterval%error/errorScale),mask=.not.converged)
+             newInterval                    =>            newInterval%next
+          end do
+          listRank    =  Sort_Index_Do(listValue)
+          head        => list(listRank(intervalCount))%interval_
+          newInterval => head
+          do iInterval=2_c_size_t,intervalCount
+             newInterval%next => list(listRank(intervalCount+1_c_size_t-iInterval))%interval_
+             newInterval      => newInterval%next
+          end do
+          newInterval%next => null()
+          deallocate(list     )
+          deallocate(listValue)
+          deallocate(listRank )
+       end if
        ! Destroy the old interval.
        deallocate(current)
        ! Insert the new intervals into our stack.
@@ -1649,6 +1700,10 @@ contains
           else
              newInterval => newInterval2
           end if
+
+          !! AJB HACK: the following linked list insertion stuff looks like it could be done more cleanly - particularly the stuff
+          !! which deals with insertion at the final or penultimate position
+          
           ! Check if the stack is empty.
           if (associated(head)) then
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
@@ -1660,7 +1715,13 @@ contains
                   &            self%toleranceAbsolute              , &
                   &            self%toleranceRelative*abs(integral)  &
                   &           )
-             do while (associated(current%next).and.maxval(abs(current%error/errorScale),mask=.not.converged) > maxval(abs(newInterval%error/errorScale),mask=.not.converged))
+             do while (                                                                &
+                  &     associated(current%next)                                       &
+                  &    .and.                                                           &
+                  &      maxval(abs(current    %error/errorScale),mask=.not.converged) &
+                  &     >                                                              &
+                  &      maxval(abs(newInterval%error/errorScale),mask=.not.converged) &
+                  &   )
                 previous => current
                 current  => current%next
              end do
@@ -1672,19 +1733,30 @@ contains
                    current%next => newInterval
                 else
                    ! New interval goes before the final interval.
-                   newInterval%next => previous   %next
-                   previous   %next => newInterval
+                   if (associated(current,head)) then
+                      newInterval%next => head
+                      head             => newInterval
+                   else
+                      newInterval%next => previous   %next
+                      previous   %next => newInterval
+                   end if
                 end if
              else
                 ! End of stack not reached. Insert new interval after the previous interval.
-                newInterval%next => previous   %next
-                previous   %next => newInterval
+                if (associated(current,head)) then
+                   newInterval%next => head
+                   head             => newInterval
+                else
+                   newInterval%next => previous   %next
+                   previous   %next => newInterval
+                end if
              end if
           else
              ! Stack is empty - simply point the head to our new subinterval.
              head => newInterval
           end if
        end do
+       intervalCount=intervalCount+2_c_size_t
     end do
     ! Destroy the stack.
     current => head
@@ -1756,10 +1828,11 @@ contains
             &                     +abs(fvalue2(i,1:pointCountKronrod-1)) &
             &                    )                                       &
             &                  ) 
-       integralAsc(i)=+sum(self%wKronrod                   *(abs(fValue1(i,:)-mean(i))+abs(fValue2(i,:)-mean(i)))) &
-            &         +    self%wKronrod(pointCountKronrod)* abs(fUnion (i,1)-mean(i))
+       mean       (i)=+0.5d0                                                                                           &
+            &         *integralKronrod(i)
+       integralAsc(i)=+sum(self%wKronrod(1:pointCountKronrod-1)*(abs(fValue1(i,:)-mean(i))+abs(fValue2(i,:)-mean(i)))) &
+            &         +    self%wKronrod(  pointCountKronrod  )* abs(fUnion (i,1)-mean(i))
        if (mod(pointCountKronrod,2) == 0) integralGauss(i)=integralGauss(i)+fUnion(i,1)*self%wGauss(pointCountKronrod/2)
-       mean            (i)=integralKronrod (i)*0.5d0
        ! Evaluate error.
        error           (i)=abs((integralKronrod(i)-integralGauss(i))*halfLength)
        integralKronrod (i)=integralKronrod (i)*halfLength
