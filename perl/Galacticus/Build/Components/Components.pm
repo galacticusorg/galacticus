@@ -57,7 +57,7 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Serialize_Count_Zero"                                                                  ,
 	     description => "Return a count of the number of evolvable quantities to be evolved."                                  ,
 	     returnType  => "\\intzero"                                                                                            ,
-	     arguments   => ""
+	     arguments   => "\\intzero\\ propertyType\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -73,11 +73,11 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Serialize_Null"                                                                        ,
 	     description => "Serialize the evolvable quantities to an array."                                                      ,
 	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argin"
+	     arguments   => "\\doubleone\\ array\\argout, \\intzero\\ propertyType\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
-	     name        => "deserializeRaw"                                                                                              ,
+	     name        => "deserializeRaw"                                                                                       ,
 	     function    => "Node_Component_Read_Raw_Null"                                                                         ,
 	     description => "Read properties from raw file."                                                                       ,
 	     returnType  => "\\void"                                                                                               ,
@@ -89,7 +89,7 @@ sub Build_Node_Component_Class {
 	     function    => "Node_Component_Deserialize_Null"                                                                      ,
 	     description => "Deserialize the evolvable quantities from an array."                                                  ,
 	     returnType  => "\\void"                                                                                               ,
-	     arguments   => "\\doubleone\\ array\\argout"
+	     arguments   => "\\doubleone\\ array\\argin, \\intzero\\ propertyType\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,

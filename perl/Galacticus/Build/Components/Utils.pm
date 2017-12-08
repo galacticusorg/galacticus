@@ -115,15 +115,27 @@ sub isOutputIntrinsic {
 
 sub offsetName {
     # Return the name of the variable used to store the offset of a property into the ODE solver arrays.
-    if ( scalar(@_) == 2 ) {
+    my %shortName =
+	(
+	 all      => "all",
+	 active   => "atv",
+	 inactive => "itv"	 
+	);
+    if ( scalar(@_) == 3 ) {
+	my $status        = shift();
 	my $componentName = shift();
 	my $propertyName  = shift();
-	return "offset".ucfirst($componentName).ucfirst($propertyName);
-    } elsif ( scalar(@_) == 3 ) {
+	die("unrecognized status")
+	    unless ( $status eq "all" || $status eq "active" || $status eq "inactive" );
+	return "offset".ucfirst($shortName{$status}).ucfirst($componentName).ucfirst($propertyName);
+    } elsif ( scalar(@_) == 4 ) {
+	my $status   = shift();
 	my $class    = shift();
 	my $member   = shift();
 	my $property = shift();
-	return "offset".ucfirst($class->{'name'}).ucfirst($member->{'name'}).ucfirst($property->{'name'});
+	die("unrecognized status")
+	    unless ( $status eq "all" || $status eq "active" || $status eq "inactive" );
+	return "offset".ucfirst($shortName{$status}).ucfirst($class->{'name'}).ucfirst($member->{'name'}).ucfirst($property->{'name'});
     } else {
 	die("offsetName(): incorrect number of arguments");
     }

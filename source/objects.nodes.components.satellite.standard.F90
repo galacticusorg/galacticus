@@ -183,7 +183,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Satellite_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
     use Dark_Matter_Halos_Mass_Loss_Rates
     implicit none
@@ -191,10 +191,13 @@ contains
     logical                                 , intent(in   )          :: odeConverged
     logical                                 , intent(inout)          :: interrupt
     procedure       (                      ), intent(inout), pointer :: interruptProcedure
+    integer                                 , intent(in   )          :: propertyType
     class           (nodeComponentSatellite)               , pointer :: satellite
     double precision                                                 :: massLossRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
     ! Get the satellite component.

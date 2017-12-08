@@ -67,7 +67,7 @@ contains
   end function Stellar_Population_Properties_History_Count_Instantaneous
 
   subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,node,propertiesHistory,stellarMassRate&
-       &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
+       &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Galactic_Structure_Options
     use Galacticus_Nodes
@@ -86,6 +86,7 @@ contains
     integer                              , intent(in   )      :: component
     type            (treeNode           ), intent(inout)      :: node
     type            (history            ), intent(inout)      :: propertiesHistory
+    logical                              , intent(in   )      :: stellarLuminositiesRatesCompute
     class           (nodeComponentBasic ), pointer            :: basic
     type            (stellarLuminosities), dimension(2), save :: stellarLuminositiesRatesPrevious
     double precision                     , dimension(2), save :: starFormationRatePrevious       =-huge(0.0d0), fuelMetallicityPrevious=-huge(0.0d0), &
@@ -128,33 +129,35 @@ contains
     time=basic%time()
 
     ! Set luminosity rates of change.
-    select case (component)
-    case (componentTypeDisk,componentTypeSpheroid)
-       if (component == componentTypeDisk) then
-          componentIndex=1
-       else
-          componentIndex=2
-       end if
-       if     (                                                                &
-            &   imfSelected       /=       imfSelectedPrevious(componentIndex) &
-            &  .or.                                                            &
-            &   starFormationRate /= starFormationRatePrevious(componentIndex) &
-            &  .or.                                                            &
-            &   time              /=              timePrevious(componentIndex) &
-            &  .or.                                                            &
-            &   fuelMetallicity   /=   fuelMetallicityPrevious(componentIndex) &
-            & ) then
-          call stellarLuminositiesRatesPrevious(componentIndex)%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
-          imfSelectedPrevious      (componentIndex)=imfSelected
-          starFormationRatePrevious(componentIndex)=starFormationRate
-          timePrevious             (componentIndex)=time
-          fuelMetallicityPrevious  (componentIndex)=fuelMetallicity
-       end if
-       stellarLuminositiesRates=stellarLuminositiesRatesPrevious(componentIndex)
-    case default
-       call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
-    end select
-   return
+    if (stellarLuminositiesRatesCompute) then
+       select case (component)
+       case (componentTypeDisk,componentTypeSpheroid)
+          if (component == componentTypeDisk) then
+             componentIndex=1
+          else
+             componentIndex=2
+          end if
+          if     (                                                                &
+               &   imfSelected       /=       imfSelectedPrevious(componentIndex) &
+               &  .or.                                                            &
+               &   starFormationRate /= starFormationRatePrevious(componentIndex) &
+               &  .or.                                                            &
+               &   time              /=              timePrevious(componentIndex) &
+               &  .or.                                                            &
+               &   fuelMetallicity   /=   fuelMetallicityPrevious(componentIndex) &
+               & ) then
+             call stellarLuminositiesRatesPrevious(componentIndex)%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
+             imfSelectedPrevious      (componentIndex)=imfSelected
+             starFormationRatePrevious(componentIndex)=starFormationRate
+             timePrevious             (componentIndex)=time
+             fuelMetallicityPrevious  (componentIndex)=fuelMetallicity
+          end if
+          stellarLuminositiesRates=stellarLuminositiesRatesPrevious(componentIndex)
+       case default
+          call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
+       end select
+    end if
+    return
   end subroutine Stellar_Population_Properties_Rates_Instantaneous
 
   subroutine Stellar_Population_Properties_Scales_Instantaneous(propertiesHistory,stellarMass,stellarAbundances)

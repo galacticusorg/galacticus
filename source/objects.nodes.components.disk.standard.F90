@@ -621,7 +621,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Disk_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn)
+  subroutine Node_Component_Disk_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the standard disk node mass rate of change.
     use Abundances_Structure
     use Histories
@@ -645,6 +645,7 @@ contains
     class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_
     logical                                          , intent(inout)          :: interrupt
     procedure       (interruptTask                  ), intent(inout), pointer :: interruptProcedureReturn
+    integer                                          , intent(in   )          :: propertyType
     procedure       (interruptTask                  )               , pointer :: interruptProcedure
     class           (starFormationFeedbackDisksClass)               , pointer :: starFormationFeedbackDisks_
     type            (abundances                     ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
@@ -662,6 +663,7 @@ contains
          &                                                                        stellarMassRate             , transferRate
     type            (history                      )                            :: historyTransferRate         , stellarHistoryRate
     type            (stellarLuminosities          ), save                      :: luminositiesStellarRates    , luminositiesTransferRate
+    logical                                                                    :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
     !GCC$ attributes unused :: odeConverged
 
@@ -673,49 +675,47 @@ contains
     disk => node%disk()
     select type (disk)
     class is (nodeComponentDiskStandard)
-
        ! Check for a realistic disk, return immediately if disk is unphysical.
        if     (     disk%angularMomentum() < 0.0d0 &
             &  .or. disk%radius         () < 0.0d0 &
             &  .or. disk%massGas        () < 0.0d0 &
             & ) return
-
        ! Interrupt if the disk is not initialized.
        if (.not.disk%isInitialized()) then
           interrupt=.true.
           interruptProcedureReturn => Node_Component_Disk_Standard_Create
           return
        end if
-
        ! Compute the star formation rate.
        starFormationRate=disk%starFormationRate()
-
        ! Get the available fuel mass.
        fuelMass         =disk%massGas          ()
-
        ! Find the metallicity of the fuel supply.
        fuelAbundances   =disk%abundancesGas    ()
        call fuelAbundances%massToMassFraction(fuelMass)
-
+       ! Determine if luminosities must be computed.
+       luminositiesCompute= (propertyType == propertyTypeActive   .and. .not.diskLuminositiesStellarInactive) &
+            &              .or.                                                                               &
+            &               (propertyType == propertyTypeInactive .and.      diskLuminositiesStellarInactive)
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=disk%stellarPropertiesHistory()
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate&
-            &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
-       if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
-
+            &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate,luminositiesCompute)
        ! Adjust rates.
-       call disk%        massStellarRate(         stellarMassRate)
-       call disk%            massGasRate(            fuelMassRate)
-       call disk%  abundancesStellarRate(  stellarAbundancesRates)
-       call disk%      abundancesGasRate(     fuelAbundancesRates)
-       call disk%luminositiesStellarRate(luminositiesStellarRates)
-
+       if (propertyType == propertyTypeActive) then
+          if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
+          call disk%      massStellarRate(       stellarMassRate)
+          call disk%          massGasRate(          fuelMassRate)
+          call disk%abundancesStellarRate(stellarAbundancesRates)
+          call disk%    abundancesGasRate(   fuelAbundancesRates)
+       end if
+       if (luminositiesCompute) call disk%luminositiesStellarRate(luminositiesStellarRates)
+       if (propertyType == propertyTypeInactive) return       
        ! Record the star formation history.
        stellarHistoryRate=disk%starFormationHistory()
        call stellarHistoryRate%reset()
        call Star_Formation_History_Record(node,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call disk%starFormationHistoryRate(stellarHistoryRate)
-
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
        starFormationFeedbackDisks_ => starFormationFeedbackDisks                         (                                      )
        massOutflowRateToHotHalo    =  starFormationFeedbackDisks_%outflowRate            (node,energyInputRate,starFormationRate)

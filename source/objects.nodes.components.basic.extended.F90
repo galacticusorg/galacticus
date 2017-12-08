@@ -304,16 +304,19 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Basic_Standard_Extended_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
     logical                      , intent(inout)          :: interrupt
     procedure(                  ), intent(inout), pointer :: interruptProcedure
+    integer                      , intent(in   )          :: propertyType
     class    (nodeComponentBasic)               , pointer :: basic
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Get the basic component.
     basic => node%basic()
     ! Ensure that it is of the standard class.

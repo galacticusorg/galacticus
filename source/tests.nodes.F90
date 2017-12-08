@@ -123,16 +123,16 @@ program Test_Nodes
   !
 
   ! Check that total count of properties is correct.
-  call Assert('Total count of properties in tree node',thisNode%serializeCount(),2)
+  call Assert('Total count of properties in tree node',thisNode%serializeCount(propertyTypeActive),2)
 
   ! Serialize values to and from an array - assert consistency between serialized and deserialized values.
   select type  (thisComponent)
   class is (nodeComponentBasic)
      call thisComponent%massSet(1.0d0)
      call thisComponent%timeSet(2.0d0)
-     call thisNode%serializeValues  (serializedArray)
-     serializedArray=Array_Reverse  (serializedArray)
-     call thisNode%deserializeValues(serializedArray)
+     call thisNode%serializeValues  (serializedArray,propertyTypeActive)
+     serializedArray=Array_Reverse  (serializedArray                   )
+     call thisNode%deserializeValues(serializedArray,propertyTypeActive)
      call Assert('Serialize/deserialize values consistency',[thisComponent%mass(),thisComponent%time()],[2.0d0,1.0d0])
   class default
      call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})

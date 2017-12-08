@@ -284,18 +284,21 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the Vitvitska implementation of the spin component.
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     logical                            , intent(in   )          :: odeConverged
     logical                            , intent(inout)          :: interrupt
     procedure       (                 ), intent(inout), pointer :: interruptProcedure
+    integer                            , intent(in   )          :: propertyType
     class           (nodeComponentSpin)               , pointer :: spin
     double precision                                            :: spinMagnitude     , spinGrowthRate
     double precision                   , dimension(3)           :: spinVector
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSpinComponent%vitvitskaIsActive()) return
     ! Get the spin component.

@@ -62,22 +62,25 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
-    type            (treeNode                    )           , intent(inout), pointer :: node
-    logical                                                  , intent(in   )          :: odeConverged
-    logical                                                  , intent(inout)          :: interrupt
-    procedure       (interruptTask               )           , intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentHotHalo        )                          , pointer :: hotHalo
-    class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
-    double precision                                                                  :: massReturnRate
-    type            (abundances                  )                                    :: abundancesReturnRate
+    type            (treeNode                    ), intent(inout), pointer :: node
+    logical                                       , intent(in   )          :: odeConverged
+    logical                                       , intent(inout)          :: interrupt
+    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
+    integer                                       , intent(in   )          :: propertyType
+    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
+    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
+    double precision                                                       :: massReturnRate
+    type            (abundances                  )                         :: abundancesReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%outflowTrackingIsActive()) return
     ! Get the hot halo component.

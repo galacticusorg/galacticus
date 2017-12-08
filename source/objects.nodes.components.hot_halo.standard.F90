@@ -914,7 +914,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Hot_Halo_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Accretion_Halos
@@ -934,6 +934,7 @@ contains
     logical                                                  , intent(in   )          :: odeConverged
     logical                                                  , intent(inout)          :: interrupt
     procedure       (interruptTask               )           , intent(inout), pointer :: interruptProcedure
+    integer                                                  , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo        )                          , pointer :: hotHalo
     class           (nodeComponentBasic          )                          , pointer :: basic
     class           (hotHaloMassDistributionClass)                          , pointer :: hotHaloMassDistribution_
@@ -950,6 +951,8 @@ contains
          &                                                                               massAccretionRate
     !GCC$ attributes unused :: odeConverged
     
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Reset calculations if necessary.

@@ -263,7 +263,7 @@ contains
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
-  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure)
+  subroutine Node_Component_Black_Hole_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
     use Numerical_Constants_Physical
@@ -275,7 +275,8 @@ contains
     logical                                   , intent(inout)            :: interrupt
     logical                                   , intent(in   )            :: odeConverged
     procedure       (interruptTask           ), intent(inout), pointer   :: interruptProcedure
-    class           (nodeComponentBlackHole  )               , pointer   ::  blackHoleCentral                                                                                                                                 , blackHole
+    integer                                  , intent(in   )             :: propertyType
+    class           (nodeComponentBlackHole  )               , pointer   :: blackHoleCentral                                                                                                                                  , blackHole
     class           (nodeComponentSpheroid   )               , pointer   :: spheroid
     class           (nodeComponentHotHalo    )               , pointer   :: hotHalo
     class           (nodeComponentBasic      )               , pointer   :: basic
@@ -295,6 +296,8 @@ contains
          &                                                                  windFraction                                                                                                                                      , hotModeFraction
     !GCC$ attributes unused :: odeConverged
 
+    ! Return immediately if inactive variables are requested.
+    if (propertyType == propertyTypeInactive) return
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get required objects.
        accretionDisks_ => accretionDisks()     

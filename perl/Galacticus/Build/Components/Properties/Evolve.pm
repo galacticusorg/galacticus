@@ -134,6 +134,10 @@ sub Build_Rate_Functions {
 		 type       => "interruptTask",
 		 attributes => [ "optional", "intent(inout)", "pointer" ],
 		 variables  => [ "interruptProcedure" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "offset" ]
 	     }
 	    ]
     };
@@ -168,16 +172,27 @@ sub Build_Rate_Functions {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: {join(",",@argumentsUnused)}
 CODE
-    $code::offsetName = &offsetName($class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (rateComputeState == propertyTypeActive) then
+ if (     nodeInactives({$offsetNameAll})) return
+ offset={$offsetNameActive}
+else
+ if (.not.nodeInactives({$offsetNameAll})) return
+ offset={$offsetNameInactive}
+end if
+CODE
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-nodeRates({$offsetName})=nodeRates({$offsetName})+setValue
+nodeRates(offset)=nodeRates(offset)+setValue
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 count=size(setValue)
-nodeRates({$offsetName}:{$offsetName}+count-1)=nodeRates({$offsetName}:{$offsetName}+count-1)+setValue
+nodeRates(offset:offset+count-1)=nodeRates(offset:offset+count-1)+setValue
 CODE
 	}
     } else {
@@ -185,9 +200,9 @@ CODE
 count=self%{$property->{'name'}}Data%serializeCount()
 if (count > 0) then
    current=self%{$property->{'name'}}Data
-   call current%deserialize(nodeRates({$offsetName}:{$offsetName}+count-1))
+   call current%deserialize(nodeRates(offset:offset+count-1))
    call current%increment(setValue)
-   call current%serialize(nodeRates({$offsetName}:{$offsetName}+count-1))
+   call current%serialize(nodeRates(offset:offset+count-1))
 end if
 CODE
     }
@@ -456,7 +471,7 @@ sub Build_Scale_Functions {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
 CODE
-    $code::offsetName = &offsetName($class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetName = &offsetName('all',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -528,7 +543,7 @@ sub Build_Inactive_Functions {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !GCC$ attributes unused :: self
 CODE
-    $code::offsetName = &offsetName($class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetName = &offsetName('all',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
