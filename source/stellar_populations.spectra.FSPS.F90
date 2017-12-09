@@ -92,21 +92,17 @@ contains
 
   subroutine fspsIMFInitialize(self,imfIndex)
     !% Ensure that the requested IMF has been generated.
-    use Galacticus_Input_Paths
     use IO_HDF5
     use Star_Formation_IMF
     use File_Utilities
-    use String_Handling
     use Tables
-    use System_Command
+    use Interfaces_FSPS
     implicit none
     class  (stellarPopulationSpectraFSPS), intent(inout) :: self
     integer                              , intent(in   ) :: imfIndex
     class  (table1D                     ), allocatable   :: imf
     logical                                              :: readFile         , remakeFile
-    integer                                              :: fileFormatVersion, iIMF      , &
-         &                                                  imfUnit
-    type   (varying_string              )                :: command
+    integer                                              :: fileFormatVersion
     type   (hdf5Object                  )                :: spectraFile
 
     ! Decide if we need to read the file.
@@ -135,17 +131,11 @@ contains
        if (remakeFile) then
           ! Generate the IMF tabulation.
           call IMF_Tabulate(imfIndex,imf)
-          open(newunit=imfUnit,file="galacticus.imf",status="unknown",form="formatted")
-          do iIMF=1,imf%size()
-             write (imfUnit,'(2(1x,e12.6))') imf%x(iIMF),imf%y(iIMF)
-          end do
-          close(imfUnit)
-          call imf%destroy()
-          ! Call the driver script to generate this file.
-          command=char(Galacticus_Input_Path())//'scripts/aux/Conroy_SPS_Driver.pl '//IMF_Descriptor(imfIndex)//' '//self%fileName(imfIndex)
-          command=command//' '//fileFormatVersionCurrent
-          call System_Command_Do(command)
-       end if
+          ! Build the SSPs.
+          !$omp critical (stellarPopulationsFSPS)
+          call Interface_FSPS_SSPs_Tabulate(imf,IMF_Descriptor(imfIndex),fileFormatVersionCurrent,self%fileName(imfIndex))
+          !$omp end critical (stellarPopulationsFSPS)
+      end if
        ! Call the parent IMF initializor to complete initialization.
        call self%stellarPopulationSpectraFile%imfInitialize(imfIndex)
     end if
