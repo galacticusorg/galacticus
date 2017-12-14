@@ -25,6 +25,7 @@ if ( scalar(@ARGV) == 2 ) {
 
 # Read the data file.
 my $data = new PDL::IO::HDF5($coolingFunctionFile);
+(my $description)    = $data->attrGet('description')       ;
 my $coolingFunctions = $data->dataset('coolingRate')->get();
 my $metallicities    = $data->dataset('metallicity')->get();
 my $temperatures     = $data->dataset('temperature')->get();
@@ -52,7 +53,7 @@ my $plotFile = $pdfFile;
 open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
-print $gnuPlot "set title offset 0,-0.5 'Atomic CIE Cooling Function (Cloudy 13.05), colored by \$\\log_{10}(Z/Z_\\odot)\$'\n";
+print $gnuPlot "set title offset 0,-0.5 '".$description.", colored by \$\\log_{10}(Z/Z_\\odot)\$'\n";
 print $gnuPlot "set xlabel 'Temperature [K]'\n";
 print $gnuPlot "set ylabel '\$\\Lambda(T)\$ [erg cm\$^3\$ s\$^{-1}\$]'\n";
 print $gnuPlot "set lmargin screen 0.15\n";

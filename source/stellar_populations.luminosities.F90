@@ -121,7 +121,7 @@ contains
           !# <inputParameter>
           !#   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
           !#   <cardinality>1</cardinality>
-          !#   <defaultValue>2.0d-3</defaultValue>
+          !#   <defaultValue>4.0d-3</defaultValue>
           !#   <description>The relative tolerance used when integrating the flux of stellar populations through filters.</description>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -373,7 +373,7 @@ contains
                                   message=         "integration of stellar populations failed"                                              //char(10)
                                   message=message//"HELP: consider increasing the [stellarPopulationLuminosityIntegrationToleranceRelative]"//char(10)
                                   message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"      //char(10)
-                                  message=message//"      required if your can accept this lower accuracy."
+                                  message=message//"      required if you can accept this lower accuracy."
                                   call Galacticus_Error_Report(message//{introspection:location})
                                end if
                             end if

@@ -27,7 +27,7 @@ module Modified_Press_Schechter_Branching
   private
   public :: Modified_Press_Schechter_Branching_Initialize   , Modified_Press_Schechter_Branching_State_Store, &
        &    Modified_Press_Schechter_Branching_State_Restore
-  
+
   ! Parent halo shared variables.
   double precision            :: branchingProbabilityPreFactor                               , modificationG0Gamma2Factor  , &
        &                         parentDelta                                                 , parentHaloMass              , &
@@ -338,18 +338,16 @@ contains
     else
        ! Initialize our root finder.
        if (.not.finder%isInitialized()) then
-          call finder%rootFunctionDerivative(                                                      &
-               &                             Modified_Press_Schechter_Branch_Mass_Root           , &
-               &                             Modified_Press_Schechter_Branch_Mass_Root_Derivative, &
-               &                             Modified_Press_Schechter_Branch_Mass_Root_Both        &
-               &                            )
-          call finder%tolerance             (                                                      &
-               &                             toleranceAbsolute                                   , &
-               &                             toleranceRelative                                     &
-               &                            )
-          call finder%typeDerivative        (                                                      &
-               &                             FGSL_Root_fdfSolver_Steffenson                        &
-               &                            )
+          call finder%rootFunction(                                           &
+               &                   Modified_Press_Schechter_Branch_Mass_Root  &
+               &                  )
+          call finder%tolerance   (                                           &
+               &                   toleranceAbsolute                        , &
+               &                   toleranceRelative                          &
+               &                  )
+          call finder%type        (                                           &
+               &                   FGSL_Root_fSolver_Brent                    &
+               &                  )
        end if
        ! Split is not binary - seek the actual mass of the smaller progenitor.
        logMassMinimum                              =log(      massResolution)
@@ -371,7 +369,7 @@ contains
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     double precision                                            :: integral            , massMaximum
 
-    if (logMassMaximum < probabilityMinimumMassLog) then
+    if      (logMassMaximum < probabilityMinimumMassLog) then
        Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek   +probabilityGradientMinimum*(logMassMaximum-probabilityMinimumMassLog)
     else if (logMassMaximum > probabilityMaximumMassLog) then
        Modified_Press_Schechter_Branch_Mass_Root=probabilityMaximum+probabilityGradientMaximum*(logMassMaximum-probabilityMaximumMassLog)
@@ -400,39 +398,19 @@ contains
     use Numerical_Integration
     use Galacticus_Error
     implicit none
-    double precision       , intent(in   ) :: logMassMaximum
-    double precision                       :: integral        , massMaximum
+    double precision, intent(in   ) :: logMassMaximum
+    double precision                :: integral
 
-    if (logMassMaximum < probabilityMinimumMassLog) then
-       Modified_Press_Schechter_Branch_Mass_Root_Derivative=probabilityGradientMinimum
-    else if (logMassMaximum > probabilityMaximumMassLog) then
-       Modified_Press_Schechter_Branch_Mass_Root_Derivative=probabilityGradientMaximum
-    else
-       massMaximum=+exp(logMassMaximum)
-       integral   =+branchingProbabilityPreFactor                                              &
-            &      *Branching_Probability_Integrand_Logarithmic(                               &
-            &                                                   max(                           &
-            &                                                       log(massMaximum)         , &
-            &                                                       probabilityMinimumMassLog  &
-            &                                                      )                           &
-            &                                                  )
-       Modified_Press_Schechter_Branch_Mass_Root_Derivative=-integral
-    end if
+    integral=+branchingProbabilityPreFactor                                              &
+         &   *Branching_Probability_Integrand_Logarithmic(                               &
+         &                                                max(                           &
+         &                                                    logMassMaximum           , &
+         &                                                    probabilityMinimumMassLog  &
+         &                                                   )                           &
+         &                                               )
+    Modified_Press_Schechter_Branch_Mass_Root_Derivative=-integral
     return
   end function Modified_Press_Schechter_Branch_Mass_Root_Derivative
-
-  subroutine Modified_Press_Schechter_Branch_Mass_Root_Both(massMaximum,massRoot,massRootDerivative)
-    !% Used to find the mass of a merger tree branching event.
-    use, intrinsic :: ISO_C_Binding
-    use Numerical_Integration
-    implicit none
-    double precision, intent(in   ) :: massMaximum
-    double precision, intent(  out) :: massRoot   , massRootDerivative
-    
-    massRoot          =Modified_Press_Schechter_Branch_Mass_Root           (massMaximum)
-    massRootDerivative=Modified_Press_Schechter_Branch_Mass_Root_Derivative(massMaximum)
-    return
-  end subroutine Modified_Press_Schechter_Branch_Mass_Root_Both
 
   double precision function Modified_Press_Schechter_Branching_Maximum_Step(haloMass,deltaCritical,massResolution)
     !% Return the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
