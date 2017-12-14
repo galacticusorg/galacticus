@@ -37,17 +37,28 @@ module Merger_Trees_Evolve_Node
   logical                                                     :: evolverInitialized         =.false.
 
   ! Parameters controlling the accuracy of ODE solving.
-  double precision                                            :: odeToleranceAbsolute               , odeToleranceRelative  , &
+  double precision                                            :: odeToleranceAbsolute               , odeToleranceRelative           , &
        &                                                         odeJacobianStepSizeRelative
 
+  ! Options for latent variable integrator.
+  !# <enumeration>
+  !#  <name>latentIntegratorType</name>
+  !#  <description>Used to specify the type of latent variable integrator to use.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="gaussKronrod"/>
+  !#  <entry label="trapezoidal" />
+  !# </enumeration>
+  integer                                                     :: odeLatentIntegratorType_           , odeLatentIntegratorOrder
+  
   ! Arrays that point to node properties and their derivatives.
-  integer                                                     :: propertyCountAll                   , propertyCountMaximum=0, &
+  integer                                                     :: propertyCountAll                   , propertyCountMaximum         =0, &
        &                                                         propertyCountInactive              , propertyCountActive
-  double precision                , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive  , &
-       &                                                         propertyErrors                     , propertyTolerances    , &
-       &                                                         propertyValuesActiveSaved          , propertyScalesInactive, &
-       &                                                         propertyValuesInactiveSaved        , propertyValuesInactive
-  !$omp threadprivate(propertyCountMaximum,propertyCountAll,propertyCountActive,propertyCountInactive,propertyValuesActive,propertyValuesActiveSaved,propertyValuesInactive,propertyValuesInactiveSaved,propertyScalesActive,propertyScalesInactive,propertyErrors,propertyTolerances)
+  double precision                , allocatable, dimension(:) :: propertyScalesActive               , propertyValuesActive           , &
+       &                                                         propertyErrors                     , propertyTolerances             , &
+       &                                                         propertyValuesActiveSaved          , propertyScalesInactive         , &
+       &                                                         propertyValuesInactiveSaved        , propertyValuesInactive         , &
+       &                                                         odeTolerancesInactiveRelative      , odeTolerancesInactiveAbsolute
+  !$omp threadprivate(propertyCountMaximum,propertyCountAll,propertyCountActive,propertyCountInactive,propertyValuesActive,propertyValuesActiveSaved,propertyValuesInactive,propertyValuesInactiveSaved,propertyScalesActive,propertyScalesInactive,propertyErrors,propertyTolerances,odeTolerancesInactiveRelative,odeTolerancesInactiveAbsolute)
   logical                                                     :: profileOdeEvolver
 
   ! Module global pointer to the node being processed.
@@ -95,7 +106,7 @@ contains
     !% Initializes the tree evolving routines by reading in parameters
     use Input_Parameters
     use Galacticus_Error
-    type(varying_string) :: odeAlgorithm
+    type(varying_string) :: odeAlgorithm, odeLatentIntegratorType
 
     ! Initialize if necessary.
     if (.not.evolverInitialized) then
@@ -155,12 +166,34 @@ contains
           case ('Bulirsch-Stoer')
              Galacticus_ODE_Algorithm=Fodeiv2_step_BSImp
              useJacobian             =.true.
-         case ('BDF')
-             Galacticus_ODE_Algorithm=Fodeiv2_step_MSBDFActive
+          case ('BDF')
+            Galacticus_ODE_Algorithm=Fodeiv2_step_MSBDFActive
              useJacobian             =.true.
           case default
              call Galacticus_Error_Report('odeAlgorithm is unrecognized'//{introspection:location})
           end select
+          if (useJacobian) then
+             !# <inputParameter>
+             !#   <name>odeLatentIntegratorType</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>var_str('trapezoidal')</defaultValue>
+             !#   <description>The type of integrator to use for latent variables.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>string</type>
+             !# </inputParameter>
+             odeLatentIntegratorType_=enumerationLatentIntegratorTypeEncode(char(odeLatentIntegratorType),includesPrefix=.false.)
+             select case (odeLatentIntegratorType_)
+             case (latentIntegratorTypeGaussKronrod)
+                !# <inputParameter>
+                !#   <name>odeLatentIntegratorOrder</name>
+                !#   <cardinality>1</cardinality>
+                !#   <defaultValue>15</defaultValue>
+                !#   <description>The order of the integrator for latent variables.</description>
+                !#   <source>globalParameters</source>
+                !#   <type>integer</type>
+                !# </inputParameter>
+             end select
+          end if
           !# <inputParameter>
           !#   <name>profileOdeEvolver</name>
           !#   <cardinality>1</cardinality>
@@ -186,6 +219,7 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     use ODE_Solver_Error_Codes
+    use Numerical_Integration2
     use, intrinsic :: ISO_C_Binding
     !# <include directive="preEvolveTask" type="moduleUse">
     include 'objects.tree_node.pre_evolve.modules.inc'
@@ -211,6 +245,7 @@ contains
     class           (nodeComponentBasic          )                     , pointer :: basicComponent
     integer                                       , save                         :: propertyCountPrevious=-1
     !$omp threadprivate(propertyCountPrevious)
+    class          (integratorMultiVectorized1D  ), allocatable                  :: integrator_
     logical                                                                      :: solvedAnalytically
     double precision                                                             :: timeStart     , stepSize, &
          &                                                                          timeStartSaved
@@ -256,47 +291,55 @@ contains
        ! Allocate pointer arrays if necessary.
        if (propertyCountAll > propertyCountMaximum) then
           if (allocated(propertyValuesActive)) then
-             call Memory_Usage_Record(sizeof(propertyValuesActive       ),addRemove=-1)
-             deallocate(propertyValuesActive       )
-             call Memory_Usage_Record(sizeof(propertyValuesActiveSaved  ),addRemove=-1)
-             deallocate(propertyValuesActiveSaved  )
-             call Memory_Usage_Record(sizeof(propertyValuesInactive     ),addRemove=-1)
-             deallocate(propertyValuesInactive     )
-             call Memory_Usage_Record(sizeof(propertyValuesInactiveSaved),addRemove=-1)
-             deallocate(propertyValuesInactiveSaved)
-             call Memory_Usage_Record(sizeof(propertyScalesActive       ),addRemove=-1)
-             deallocate(propertyScalesActive       )
-             call Memory_Usage_Record(sizeof(propertyScalesInactive     ),addRemove=-1)
-             deallocate(propertyScalesInactive     )
-             call Memory_Usage_Record(sizeof(propertyValuesPrevious     ),addRemove=-1)
-             deallocate(propertyValuesPrevious     )
-             call Memory_Usage_Record(sizeof(propertyRatesPrevious      ),addRemove=-1)
-             deallocate(propertyRatesPrevious      )
-             call Memory_Usage_Record(sizeof(propertyErrors             ),addRemove=-1)
-             deallocate(propertyErrors             )
-             call Memory_Usage_Record(sizeof(propertyTolerances         ),addRemove=-1)
-             deallocate(propertyTolerances         )
+             call Memory_Usage_Record(sizeof(propertyValuesActive         ),addRemove=-1)
+             deallocate(propertyValuesActive         )
+             call Memory_Usage_Record(sizeof(propertyValuesActiveSaved    ),addRemove=-1)
+             deallocate(propertyValuesActiveSaved    )
+             call Memory_Usage_Record(sizeof(propertyValuesInactive       ),addRemove=-1)
+             deallocate(propertyValuesInactive       )
+             call Memory_Usage_Record(sizeof(propertyValuesInactiveSaved  ),addRemove=-1)
+             deallocate(propertyValuesInactiveSaved  )
+             call Memory_Usage_Record(sizeof(propertyScalesActive         ),addRemove=-1)
+             deallocate(propertyScalesActive         )
+             call Memory_Usage_Record(sizeof(propertyScalesInactive       ),addRemove=-1)
+             deallocate(propertyScalesInactive       )
+             call Memory_Usage_Record(sizeof(propertyValuesPrevious       ),addRemove=-1)
+             deallocate(propertyValuesPrevious       )
+             call Memory_Usage_Record(sizeof(propertyRatesPrevious        ),addRemove=-1)
+             deallocate(propertyRatesPrevious        )
+             call Memory_Usage_Record(sizeof(propertyErrors               ),addRemove=-1)
+             deallocate(propertyErrors               )
+             call Memory_Usage_Record(sizeof(propertyTolerances           ),addRemove=-1)
+             deallocate(propertyTolerances           )
+             call Memory_Usage_Record(sizeof(odeTolerancesInactiveRelative),addRemove=-1)
+             deallocate(odeTolerancesInactiveRelative)
+             call Memory_Usage_Record(sizeof(odeTolerancesInactiveAbsolute),addRemove=-1)
+             deallocate(odeTolerancesInactiveAbsolute)
           end if
-          allocate(propertyValuesActive       (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyValuesActive       ))
+          allocate(propertyValuesActive         (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesActive         ))
           allocate(propertyValuesActiveSaved  (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyValuesActiveSaved  ))
-          allocate(propertyValuesInactive     (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyValuesInactive     ))
-          allocate(propertyValuesInactiveSaved(propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyValuesInactiveSaved))
-          allocate(propertyScalesActive       (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyScalesActive       ))
-          allocate(propertyScalesInactive     (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyScalesInactive     ))
-          allocate(propertyValuesPrevious     (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyValuesPrevious     ))
-          allocate(propertyRatesPrevious      (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyRatesPrevious      ))
-          allocate(propertyErrors             (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyErrors             ))
-          allocate(propertyTolerances         (propertyCountAll))
-          call Memory_Usage_Record(sizeof(propertyTolerances         ))
+          call Memory_Usage_Record(sizeof(propertyValuesActiveSaved    ))
+          allocate(propertyValuesInactive       (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesInactive       ))
+          allocate(propertyValuesInactiveSaved  (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesInactiveSaved  ))
+          allocate(propertyScalesActive         (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyScalesActive         ))
+          allocate(propertyScalesInactive       (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyScalesInactive       ))
+          allocate(propertyValuesPrevious       (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyValuesPrevious       ))
+          allocate(propertyRatesPrevious        (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyRatesPrevious        ))
+          allocate(propertyErrors               (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyErrors               ))
+          allocate(propertyTolerances           (propertyCountAll))
+          call Memory_Usage_Record(sizeof(propertyTolerances           ))
+          allocate(odeTolerancesInactiveRelative(propertyCountAll))
+          call Memory_Usage_Record(sizeof(odeTolerancesInactiveRelative))
+          allocate(odeTolerancesInactiveAbsolute(propertyCountAll))
+          call Memory_Usage_Record(sizeof(odeTolerancesInactiveAbsolute))
           propertyCountMaximum  =propertyCountAll
           propertyValuesPrevious=0.0d0
        end if
@@ -379,6 +422,26 @@ contains
              stepSize    =node%timeStep()/2.0d0**trialCount
              timeStart   =timeStartSaved
              if (useJacobian) then
+                ! Initialize integrator.
+                if (.not.allocated(integrator_)) then
+                   select case (odeLatentIntegratorType_)
+                   case (latentIntegratorTypeGaussKronrod)
+                      allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
+                      select type (integrator_)
+                      type is (integratorMultiVectorizedCompositeGaussKronrod1D)
+                         call integrator_%initialize(24,odeLatentIntegratorOrder)
+                      end select
+                   case (latentIntegratorTypeTrapezoidal )
+                      allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
+                      select type (integrator_)
+                      type is (integratorMultiVectorizedCompositeTrapezoidal1D )
+                         call integrator_%initialize(24                         )
+                      end select
+                   end select
+                end if
+                odeTolerancesInactiveRelative(1:propertyCountInactive)=odeToleranceRelative
+                odeTolerancesInactiveAbsolute(1:propertyCountInactive)=odeToleranceAbsolute*propertyScalesInactive(1:propertyCountInactive)
+                call integrator_%tolerancesSet(odeTolerancesInactiveAbsolute(1:propertyCountInactive),odeTolerancesInactiveRelative(1:propertyCountInactive))
                 call ODEIV2_Solve(                                                                      &
                      &            ode2Driver                                                          , &
                      &            ode2System                                                          , &
@@ -398,12 +461,11 @@ contains
                      &            algorithm           =Galacticus_ODE_Algorithm                       , &
                      &            stepSize            =stepSize                                       , &
                      &            jacobian            =Tree_Node_ODEs_Jacobian                        , &
-                     &            integratorOrder     =15                                             , &
+                     &            integrator_         =integrator_                                    , &
                      &            zCount              =propertyCountInactive                          , &
                      &            z                   =propertyValuesInactive(1:propertyCountInactive), &
-                     &            zScale              =propertyScalesInactive(1:propertyCountInactive), &
                      &            integrands          =Tree_Node_Integrands                             &
-                     &           )       
+                     &           )
              else
                 call ODEIV2_Solve(                                                                      &
                      &            ode2Driver                                                          , &
@@ -489,7 +551,12 @@ contains
     procedure       (interruptTask), pointer                                                    :: functionInterrupt
     logical                                                                                     :: interrupt
     integer                                                                                     :: iTime
-
+    ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
+    ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
+    ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
+    ! revisited.    
+    !GCC$ attributes unused :: evaluate
+    
     ! Set state to indicate that rate calculations are for inactive variables.
     rateComputeState=propertyTypeInactive
     ! Iterate over times.
@@ -628,10 +695,12 @@ contains
           ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
           ! supplied to the ODE solver.
           if (propertyValues0(i)==0.0d0) then
-             propertyValueDelta =+propertyScalesActive       (i)
+             propertyValueDelta       =+propertyScalesActive       (i)
           else
-             propertyValueDelta =+odeJacobianStepSizeRelative    &
-                  &              *propertyValues0            (i)
+             propertyValueDelta       =+odeJacobianStepSizeRelative    &
+                  &                    *propertyValues0            (i)
+             if (propertyValueDelta == 0.0d0)  &
+                  & propertyValueDelta=+propertyScalesActive       (i)
           end if
           propertyValues1       =+propertyValues0
           propertyValues1(i)    =+propertyValues1            (i) &
