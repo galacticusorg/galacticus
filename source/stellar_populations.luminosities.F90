@@ -508,7 +508,7 @@ contains
     do iLuminosity=1,size(luminosityIndex)
        ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
        ! population observed prior to the formation of this population).
-       if (age(iLuminosity) > 0.0d0) then
+       if (age(iLuminosity) >= 0.0d0) then
           ! Get interpolation in age if the age for this luminosity differs from the previous one.
           if (iLuminosity == 1 .or. age(iLuminosity) /= ageLast) then
              ! Check for out of range age.
