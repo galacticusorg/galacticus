@@ -26,25 +26,27 @@ program Test_ODE_Solver
   use               FODEIV2
   use               ODEIV2_Solver
   use               Test_ODE_Solver_Functions
+  use               Numerical_Integration2
   implicit none
-  double precision                   , dimension(10  ) :: xEnd
-  double precision                   , dimension(   2) :: y            , z
+  double precision                                                  , dimension(10  ) :: xEnd
+  double precision                                                  , dimension(   2) :: y            , z
   ! Solutions of the latent variables integrals. Computed in Mathematica.
-  double precision                   , dimension(10,2) :: latentSolution=reshape(                                                                                                                                                                            &
-       &                                                                         [                                                                                                                                                                           &
-       &                                                                          0.765949925574d0, 1.72843953777d0, 2.52176907333d0, 3.26649435359d0, 4.21693267110d0, 5.04253217602d0, 5.77282469398d0, 6.70065044178d0, 7.56127579166d0, 8.28419598523d0, &
-       &                                                                          0.896393789463d0, 1.61919857807d0, 2.48093194847d0, 3.40790822044d0, 4.13786263655d0, 4.96452886147d0, 5.91440877877d0, 6.65857801213d0, 7.45285084203d0, 8.41514219895d0  &
-       &                                                                         ]                                                                                                                                                                         , &
-       &                                                                         [10,2]                                                                                                                                                                      &
-       &                                                                        )
-  type            (fodeiv2_driver   )                  :: ode2Driver
-  type            (fodeiv2_system   )                  :: ode2System
-  type            (fodeiv2_step_type)                  :: odeAlgorithm
-  logical                                              :: odeReset
-  integer                                              :: i
-  double precision                                     :: xStart
-  character       (len=32           )                  :: message
-
+  double precision                                                  , dimension(10,2) :: latentSolution=reshape(                                                                                                                                                                            &
+       &                                                                                                        [                                                                                                                                                                           &
+       &                                                                                                         0.765949925574d0, 1.72843953777d0, 2.52176907333d0, 3.26649435359d0, 4.21693267110d0, 5.04253217602d0, 5.77282469398d0, 6.70065044178d0, 7.56127579166d0, 8.28419598523d0, &
+       &                                                                                                         0.896393789463d0, 1.61919857807d0, 2.48093194847d0, 3.40790822044d0, 4.13786263655d0, 4.96452886147d0, 5.91440877877d0, 6.65857801213d0, 7.45285084203d0, 8.41514219895d0  &
+       &                                                                                                        ]                                                                                                                                                                         , &
+       &                                                                                                        [10,2]                                                                                                                                                                      &
+       &                                                                                                       )
+  type            (fodeiv2_driver                                  )                  :: ode2Driver
+  type            (fodeiv2_system                                  )                  :: ode2System
+  type            (fodeiv2_step_type                               )                  :: odeAlgorithm
+  logical                                                                             :: odeReset
+  integer                                                                             :: i
+  double precision                                                                    :: xStart
+  character       (len=32                                          )                  :: message
+  type            (integratorMultiVectorizedCompositeGaussKronrod1D)                 :: integrator_
+  
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("ODE-IV2 solver")
 
@@ -83,6 +85,8 @@ program Test_ODE_Solver
   ! Harmonic oscillator.
   call Unit_Tests_Begin_Group("y″=-y; z′=1/√{1+y²}")
   xEnd=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
+  call integrator_%initialize   (24,61)
+  call integrator_%tolerancesSet([1.0d-9,1.0d-9],[1.0d-9,1.0d-9])
   do i=1,size(xEnd)
      odeReset=.true.
      y(1:2)=[1.0d0,0.0d0]
@@ -105,7 +109,7 @@ program Test_ODE_Solver
           &            jacobian         =Jacobian_Set_2  , &
           &            zCount           =2               , &
           &            z                =z(1:2)          , &
-          &            zScale           =[1.0d0,1.0d0]   , &
+          &            integrator_      =integrator_     , &
           &            integrands       =Integrands_Set_2  &
           &           )
      call ODEIV2_Solver_Free(ode2Driver,ode2System)

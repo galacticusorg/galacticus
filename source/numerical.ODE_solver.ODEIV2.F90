@@ -68,7 +68,7 @@ contains
   subroutine ODEIV2_Solve(                                                                             &
        &                  odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative, &
        &                  postStep,Error_Analyzer                                                             , &
-       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,zScale,integrands,integratorOrder   &
+       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,integrator_   &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
@@ -76,41 +76,40 @@ contains
     use String_Handling
     use Numerical_Integration2
     implicit none
-    double precision                                                  , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
-    integer                                                           , intent(in   )                         :: yCount
-    double precision                                                  , intent(inout)                         :: x0                       , y                (yCount)
-    double precision                                                  , intent(in   ), optional               :: yScale           (yCount)
-    type            (fodeiv2_driver                                  ), intent(inout)                         :: odeDriver
-    type            (fodeiv2_system                                  ), intent(inout)                         :: odeSystem
-    logical                                                           , intent(inout), optional               :: reset
-    procedure       (                                                )               , optional, pointer      :: errorHandler
-    type            (fodeiv2_step_type                               ), intent(in   ), optional               :: algorithm
-    integer                                                           , intent(  out), optional               :: odeStatus
-    double precision                                                  , intent(inout), optional               :: stepSize
-    type            (c_funptr                                        ), intent(in   ), optional               :: postStep
-    type            (c_funptr                                        ), intent(in   ), optional               :: Error_Analyzer
-    procedure       (odesTemplate                                    )                                        :: odes
-    procedure       (odesTemplate                                    ), pointer                               :: previousODEs
-    procedure       (jacobianTemplate                                ), optional                              :: jacobian
-    procedure       (jacobianTemplate                                ), pointer                               :: previousJacobian
-    integer                                                           , parameter                             :: genericFailureCountMaximum=10
-    procedure       (integrandTemplate                               ), optional                              :: integrands
-    procedure       (integrandTemplate                               ), pointer                               :: previousIntegrands
-    integer                                                           , intent(in   ), optional               :: zCount                          , integratorOrder
-    double precision                                                  , intent(inout), optional, dimension(:) :: z
-    double precision                                                  , intent(in   ), optional, dimension(:) :: zScale
-    double precision                                                  , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
-    double precision                                                  , allocatable            , dimension(:) :: tolerancesAbsolute              , tolerancesRelative
-    integer                                                                                                   :: status                          , integratorOrder_
-    integer         (kind=c_size_t                                   )                                        :: previousODENumber               , previousIntegrandsNumber
-    double precision                                                                                          :: h                               , x                   , &
-         &                                                                                                       x1Internal                      , xStepBegin
-    logical                                                                                                   :: forwardEvolve                   , resetActual
-    type            (fodeiv2_step_type                               )                                        :: algorithmActual
-    type            (varying_string                                  )                                        :: message
-    type            (c_ptr                                           )                                        :: parameterPointer
-    type            (integratorMultiVectorizedCompositeGaussKronrod1D)                                        :: integrator_
-    type            (c_funptr                                        )                                        :: latentIntegrator_, postStep_, Error_Analyzer_
+    double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
+    integer                                       , intent(in   )                         :: yCount
+    double precision                              , intent(inout)                         :: x0                       , y                (yCount)
+    double precision                              , intent(in   ), optional               :: yScale           (yCount)
+    type            (fodeiv2_driver              ), intent(inout)                         :: odeDriver
+    type            (fodeiv2_system              ), intent(inout)                         :: odeSystem
+    logical                                       , intent(inout), optional               :: reset
+    procedure       (                            )               , optional, pointer      :: errorHandler
+    type            (fodeiv2_step_type           ), intent(in   ), optional               :: algorithm
+    integer                                       , intent(  out), optional               :: odeStatus
+    double precision                              , intent(inout), optional               :: stepSize
+    type            (c_funptr                    ), intent(in   ), optional               :: postStep
+    type            (c_funptr                    ), intent(in   ), optional               :: Error_Analyzer
+    procedure       (odesTemplate                )                                        :: odes
+    procedure       (odesTemplate                ), pointer                               :: previousODEs
+    procedure       (jacobianTemplate            ), optional                              :: jacobian
+    procedure       (jacobianTemplate            ), pointer                               :: previousJacobian
+    integer                                       , parameter                             :: genericFailureCountMaximum=10
+    procedure       (integrandTemplate           ), optional                              :: integrands
+    procedure       (integrandTemplate           ), pointer                               :: previousIntegrands
+    integer                                       , intent(in   ), optional               :: zCount
+    double precision                              , intent(inout), optional, dimension(:) :: z
+    class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
+    double precision                              , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
+    integer                                                                               :: status
+    integer         (kind=c_size_t               )                                        :: previousODENumber               , previousIntegrandsNumber
+    double precision                                                                      :: h                               , x                       , &
+         &                                                                                   x1Internal                      , xStepBegin
+    logical                                                                               :: forwardEvolve                   , resetActual
+    type            (fodeiv2_step_type           )                                        :: algorithmActual
+    type            (varying_string              )                                        :: message
+    type            (c_ptr                       )                                        :: parameterPointer
+    type            (c_funptr                    )                                        :: latentIntegrator_               , postStep_               , &
+         &                                                                                   Error_Analyzer_
     
     ! Store the current ODE function (and jacobian, integrands, and system size) so that we can restore it on exit. This allows the ODE
     ! function to be called recursively.
@@ -129,23 +128,7 @@ contains
        currentIntegrandsNumber  =  zCount
     end if
     ! Initialize integrator if required.
-    if (present(zCount).and.zCount > 0) then
-       allocate(tolerancesAbsolute(zCount))
-       allocate(tolerancesRelative(zCount))
-       tolerancesRelative=toleranceRelative
-       if (present(zScale)) then
-          tolerancesAbsolute=toleranceAbsolute*zScale
-       else
-          tolerancesAbsolute=toleranceAbsolute
-       end if
-       integratorOrder_=61
-       if (present(integratorOrder)) integratorOrder_=integratorOrder
-       call integrator_%initialize   (24                ,integratorOrder   )
-       call integrator_%tolerancesSet(tolerancesAbsolute,tolerancesRelative)
-       call integrator_%integrandSet (zCount            ,integrandsWrapper )
-       deallocate(tolerancesAbsolute)
-       deallocate(tolerancesRelative)
-    end if
+    if (present(zCount).and.zCount > 0) call integrator_%integrandSet (zCount,integrandsWrapper )
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
