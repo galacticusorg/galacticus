@@ -1,7 +1,7 @@
 <!-- Defines a constraint to match to the z=1.47 HiZELS Halpha luminosity function. -->
 <constraint>
   <name>HiZELS $$z=1.47 H$$\\alpha$$ luminosity function</name>
-  <label>luminosityFunctionHalphaSobral2013HiZELS</label>
+  <label>luminosityFunctionHalphaSobral2013HiZELSZ1.47</label>
   <outputRedshift>1.466</outputRedshift>
   <haloMassResolution>1.0e8</haloMassResolution>
   <haloMassMinimum>2.0e08</haloMassMinimum>
