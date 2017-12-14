@@ -47,7 +47,7 @@ program Test_Integration2
   type            (fgsl_function             )                                                 :: integrandFunction
   type            (fgsl_integration_workspace)                                                 :: integrationWorkspace
   integer                                     , parameter                                      :: integratorCount         = 10
-  integer                                     , parameter                                      :: integratorMultiCount    = 1
+  integer                                     , parameter                                      :: integratorMultiCount    =  2
   type            (testIntegrator            ), dimension(integratorCount       )              :: integrators
   type            (testIntegratorMulti       ), dimension(integratorMultiCount  )              :: integratorsMulti
   double precision                            , dimension(integratorCount       )              :: integral
@@ -128,7 +128,7 @@ program Test_Integration2
      do i=1,integratorCount
         descriptionLengthMaximum=max(descriptionLengthMaximum,len(integrators(i)%description))
      end do
-     write (formatter,'(a,i3.3,a)') '(a',descriptionLengthMaximum,',": ⏲=",f14.3,1x,a,1x,"∫=",f14.10,1x,"ℯ=",e14.8," [",a,"]")'
+     write (formatter,'(a,i3.3,a)') '(a',descriptionLengthMaximum,',": ⏲=",f16.3,1x,a,1x,"∫=",f14.10,1x,"ℯ=",e14.8," [",a,"]")'
      ! Initialize integrators.
      do i=1,integratorCount
         select type (integrator_ => integrators(i)%integrator_)
@@ -273,18 +273,29 @@ program Test_Integration2
           &                                testFunctionsMulti(iFunction)%rangeHigh
      call Galacticus_Display_Indent(message)
      ! Allocate integrators.
-     allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integratorsMulti( 1)%integrator_)
-     integratorsMulti( 1)%description="Multi-integrand vector adaptive composite Gauss-Kronrod 61-point"
-     integratorsMulti( 1)%order   =61
+     allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integratorsMulti( 1)%integrator_)
+     integratorsMulti( 1)%description="Multi-integrand vector adaptive composite trapezoidal"
+     allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integratorsMulti( 2)%integrator_)
+     integratorsMulti( 2)%description="Multi-integrand vector adaptive composite Gauss-Kronrod 61-point"
+     integratorsMulti( 2)%order   =61
      ! Find the longest description.
      descriptionLengthMaximum=26
      do i=1,integratorMultiCount
         descriptionLengthMaximum=max(descriptionLengthMaximum,len(integratorsMulti(i)%description))
      end do
-     write (formatter,'(a,i3.3,a)') '(a',descriptionLengthMaximum,',": ⏲=",f14.3,1x,a,1x,"∫=",f14.10,",",f14.10,1x,"ℯ=",e14.8," [",a,"]")'
+     write (formatter,'(a,i3.3,a)') '(a',descriptionLengthMaximum,',": ⏲=",f16.3,1x,a,1x,"∫=",f14.10,",",f14.10,1x,"ℯ=",e14.8," [",a,"]")'
      ! Initialize integrators.
      do i=1,integratorMultiCount
         select type (integrator_ => integratorsMulti(i)%integrator_)
+        class is (integratorMultiVectorizedCompositeTrapezoidal1D)
+           call integrator_%initialize   (24                                         )
+           allocate(tolerancesAbsolute(size(testFunctionsMulti(iFunction)%solution)))
+           allocate(tolerancesRelative(size(testFunctionsMulti(iFunction)%solution)))
+           tolerancesAbsolute=toleranceAbsolute
+           tolerancesRelative=toleranceRelative
+           call integrator_%tolerancesSet(tolerancesAbsolute,tolerancesRelative)
+           deallocate(tolerancesAbsolute)
+           deallocate(tolerancesRelative)
         class is (integratorMultiVectorizedCompositeGaussKronrod1D)
            call integrator_%initialize   (24               ,integratorsMulti(i)%order)
            allocate(tolerancesAbsolute(size(testFunctionsMulti(iFunction)%solution)))
@@ -307,7 +318,7 @@ program Test_Integration2
             call Galacticus_Error_Report('unknown integrator class [2.m]'//{introspection:location})
          end select
       end do
-     ! Initialize times to zero.
+      ! Initialize times to zero.
       timeMulti=0
       ! Iterate over trials.
       do trial=1,trialCount
