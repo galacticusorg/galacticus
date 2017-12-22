@@ -1015,6 +1015,9 @@ contains
 
           ! Now build child and sibling links.
           call Build_Child_and_Sibling_Links(nodes,nodeList,childIsSubhalo)
+
+          ! (Re)assign host tree pointers.
+          call Assign_Host_Tree_Pointers(tree)
           
           ! Assign split forest events.
           call Assign_Split_Forest_Events(nodes,nodeList)
@@ -1761,6 +1764,25 @@ contains
     call deallocateArray(childIsSubhalo)
     return
   end subroutine Build_Child_and_Sibling_Links
+
+  subroutine Assign_Host_Tree_Pointers(tree)
+    !% After tree base nodes have been assigned, walk each tree and set the host tree pointer for each node.
+    implicit none
+    type(mergerTree), intent(inout), target  :: tree
+    type(mergerTree)               , pointer :: treeCurrent
+    type(treeNode  )               , pointer :: node
+
+    treeCurrent => tree
+    do while(associated(treeCurrent))
+       node => treeCurrent%baseNode
+       do while (associated(node))
+          node%hostTree => treeCurrent
+          node          => node       %walkTreeWithSatellites()
+       end do
+       treeCurrent => treeCurrent%nextTree
+    end do
+    return
+  end subroutine Assign_Host_Tree_Pointers
 
   subroutine Assign_Scale_Radii(nodes,nodeList)
     !% Assign scale radii to nodes.
