@@ -1615,17 +1615,18 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target :: tree
-    type     (nodeData          )         , dimension(:), intent(inout)          :: nodes
-    type     (treeNodeList      )         , dimension(:), intent(inout)          :: nodeList
-    class    (nodeComponentBasic), pointer                                       :: basic
-    type     (mergerTree        ), pointer                                       :: treeCurrent
-    type     (nodeData          ), pointer                                       :: parentNode
-    integer                                                                      :: iNode
-    integer  (c_size_t          )                                                :: iIsolatedNode                  
-    type     (varying_string    )                                                :: message
-    character(len=12            )                                                :: label
-    logical                                                                      :: assignLastIsolatedTime
+    type            (mergerTree        )                       , intent(inout) , target :: tree
+    type            (nodeData          )         , dimension(:), intent(inout)          :: nodes
+    type            (treeNodeList      )         , dimension(:), intent(inout)          :: nodeList
+    class           (nodeComponentBasic), pointer                                       :: basic
+    type            (mergerTree        ), pointer                                       :: treeCurrent
+    type            (nodeData          ), pointer                                       :: parentNode
+    integer                                                                             :: iNode
+    integer         (c_size_t          )                                                :: iIsolatedNode                  
+    type            (varying_string    )                                                :: message
+    character       (len=12            )                                                :: label
+    logical                                                                             :: assignLastIsolatedTime
+    double precision                                                                    :: uniformRandom
     
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
@@ -1643,7 +1644,10 @@ contains
                 ! Check if its baseNode is already assigned.
                 do while (associated(treeCurrent%baseNode))
                    ! While it is, create the next tree (unless it already exists), then step to it.
-                   if (.not.associated(treeCurrent%nextTree)) allocate(treeCurrent%nextTree)
+                   if (.not.associated(treeCurrent%nextTree)) then
+                      allocate(treeCurrent%nextTree)
+                      call treeCurrent%nextTree%randomNumberGenerator%initialize()                      
+                   end if
                    treeCurrent => treeCurrent%nextTree
                 end do
                 ! Assign this node as the base node of the current tree.
@@ -1654,8 +1658,10 @@ contains
                    treeCurrent%index            =  tree                %index
                 end if                
                 treeCurrent   %volumeWeight     =  treeVolumeWeightCurrent
-                treeCurrent   %initializedUntil =  0.0d0
+                treeCurrent   %initializedUntil =  0.0d0                
                 treeCurrent   %event            => null()
+                ! Initialize a new random number sequence for this tree, using the sum of the tree index and base node index as the seed increment.
+                if (.not.associated(treeCurrent,tree)) uniformRandom=treeCurrent%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index+nodes(iNode)%nodeIndex,huge(0))))
              end if
           else
              ! Node is not isolated, so must be an initial satellite.
