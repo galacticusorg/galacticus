@@ -164,16 +164,18 @@ contains
     return
   end function bbksWDMLogarithmicDerivative
   
-  double precision function bbksWDMHalfModeMass(self)
+  double precision function bbksWDMHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function.
     use Numerical_Constants_Math
+    use Galacticus_Error
     implicit none
-    class           (transferFunctionBBKSWDM), intent(inout) :: self
-    double precision                         , parameter     :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
-    double precision                                         :: matterDensity                                                  , wavenumberHalfMode
-    
-    wavenumberHalfMode =+wavenumberHalfModeScaleFree &
+    class           (transferFunctionBBKSWDM), intent(inout)           :: self
+    integer                                  , intent(  out), optional :: status
+    double precision                         , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
+    double precision                                                   :: matterDensity                                                  , wavenumberHalfMode
+
+    wavenumberHalfMode =+wavenumberHalfModeScaleFree                 &
          &              /self%lengthFreeStreaming
     matterDensity      =+self%cosmologyParameters_%OmegaMatter    () &
          &              *self%cosmologyParameters_%densityCritical()
@@ -185,5 +187,6 @@ contains
          &                +Pi                 &
          &                /wavenumberHalfMode &
          &              )**3
+    if (present(status)) status=errorStatusSuccess
     return
   end function bbksWDMHalfModeMass

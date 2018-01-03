@@ -118,13 +118,14 @@ contains
     return
   end function acceleratorLogarithmicDerivative
   
-  double precision function acceleratorHalfModeMass(self)
+  double precision function acceleratorHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is
     !% suppressed by a factor of two relative to a \gls{cdm} transfer function
     implicit none
-    class(transferFunctionAccelerator), intent(inout) :: self
-    
-    acceleratorHalfModeMass=self%transferFunction_%halfModeMass()
+    class  (transferFunctionAccelerator), intent(inout)           :: self
+    integer                             , intent(  out), optional :: status
+
+    acceleratorHalfModeMass=self%transferFunction_%halfModeMass(status)
     return
   end function acceleratorHalfModeMass
 

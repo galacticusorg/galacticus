@@ -432,16 +432,21 @@ contains
     return
   end function fileLogarithmicDerivative
 
-  double precision function fileHalfModeMass(self)
+  double precision function fileHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is
     !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
     !% this implementation.
     use Galacticus_Error
     implicit none
-    class(transferFunctionFile), intent(inout) :: self
+    class  (transferFunctionFile), intent(inout)           :: self
+    integer                      , intent(  out), optional :: status
     !GCC$ attributes unused :: self
-
+    
     fileHalfModeMass=0.0d0
-    call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
     return
   end function fileHalfModeMass

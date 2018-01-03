@@ -65,7 +65,7 @@ module Halo_Mass_Functions
   !#        &amp;                            integrandFunction                      , &amp;
   !#        &amp;                            integrationWorkspace                   , &amp;
   !#        &amp;                            toleranceAbsolute   =0.0d+0            , &amp;
-  !#        &amp;                            toleranceRelative   =1.0d-4            , &amp;
+  !#        &amp;                            toleranceRelative   =1.0d-3            , &amp;
   !#        &amp;                            integrationRule     =FGSL_Integ_Gauss15  &amp;
   !#        &amp;                           )
   !#    call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -94,7 +94,7 @@ module Halo_Mass_Functions
   !#         &amp;                             integrandFunction                       , &amp;
   !#         &amp;                             integrationWorkspace                    , &amp;
   !#         &amp;                             toleranceAbsolute    =0.0d+0            , &amp;
-  !#         &amp;                             toleranceRelative    =1.0d-4            , &amp;
+  !#         &amp;                             toleranceRelative    =1.0d-3            , &amp;
   !#         &amp;                             integrationRule      =FGSL_Integ_Gauss15  &amp;
   !#         &amp;                            )
   !#    call Integrate_Done(integrandFunction,integrationWorkspace)

@@ -203,15 +203,20 @@ contains
     return
   end function bbksLogarithmicDerivative
 
-  double precision function bbksHalfModeMass(self)
+  double precision function bbksHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
     use Galacticus_Error
     implicit none
-    class(transferFunctionBBKS), intent(inout) :: self
+    class  (transferFunctionBBKS), intent(inout)           :: self
+    integer                      , intent(  out), optional :: status
     !GCC$ attributes unused :: self
 
     bbksHalfModeMass=0.0d0
-    call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
     return
   end function bbksHalfModeMass
