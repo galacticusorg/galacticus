@@ -32,6 +32,8 @@ module Galacticus_Display
   character(len=10), allocatable, dimension(:) :: indentationFormat
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
+  character(len=20)                            :: threadFormat                      , masterFormat
+  
   logical                                      :: displayInitialized        =.false.
   integer                                      :: verbosityLevel            =1
   integer          , parameter  , public       :: verbosityDebug            =5      , verbosityInfo   =4, &
@@ -74,11 +76,12 @@ contains
   subroutine Initialize_Display
     !% Initialize the module by determining the requested verbosity level.
     implicit none
+    integer :: digitsMaximum
 
     if (.not.displayInitialized) then
        !$omp critical (Initialize_Display)
        if (.not.displayInitialized) then
-          ! For OpenMP runs, create an array of indentation levels.
+          ! For OpenMP runs, create an array of indentation levels, and formats.
           maxThreads=1
           !$ maxThreads=omp_get_max_threads()
           ! Do not use allocateArray() routines here as they may trigger recursive calls to this module which can lead to unbreakable
@@ -86,10 +89,12 @@ contains
           allocate(indentationLevel          (maxThreads))
           allocate(indentationFormat         (maxThreads))
           allocate(indentationFormatNoNewLine(maxThreads))
-          indentationLevel=0
-          indentationFormat='(a)'
+          indentationLevel          =0
+          indentationFormat         ='(a)'
           indentationFormatNoNewLine='(a,$)'
-
+          digitsMaximum             =int(log10(float(maxThreads)))+1
+          write (threadFormat,'(a,i1,a)') '(i',digitsMaximum,',a2,$)'
+          write (masterFormat,'(a,a ,a)') '("',repeat("M",digitsMaximum),'",a2,$)'
           displayInitialized=.true.
        end if
        !$omp end critical (Initialize_Display)
@@ -128,9 +133,9 @@ contains
     end if
     if (showMessage) then
        !$ if (omp_in_parallel()) then
-       !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
+       !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,'(a2,a2,$)') "MM",": "
+       !$    write (0,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
@@ -170,9 +175,9 @@ contains
        !$ end if
        call Create_Indentation_Format
        !$ if (omp_in_parallel()) then
-       !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
+       !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,'(a2,a2,$)') "MM",": "
+       !$    write (0,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
@@ -201,9 +206,9 @@ contains
     if (showMessage) then
        if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
-       !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
+       !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,'(a2,a2,$)') "MM",": "
+       !$    write (0,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
@@ -232,9 +237,9 @@ contains
     if (showMessage) then
        if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
-       !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
+       !$    write (0,threadFormat) omp_get_thread_num(),": "
        !$ else
-       !$    write (0,'(a2,a2,$)') "MM",": "
+       !$    write (0,masterFormat)                      ": "
        !$ end if
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
