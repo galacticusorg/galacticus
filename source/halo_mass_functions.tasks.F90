@@ -165,7 +165,7 @@ contains
     unevolvedSubhaloMassFunction_ => unevolvedSubhaloMassFunction()
     darkMatterHaloScale_          => darkMatterHaloScale         ()
     cosmologicalMassVariance_     => cosmologicalMassVariance    ()
-
+    
     ! Find the mass range and increment size.
     !# <inputParameter>
     !#   <name>haloMassFunctionsMassMinimum</name>
@@ -197,12 +197,12 @@ contains
 
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctions_   %expansionFactorFromRedshift(                             outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctions_   %cosmicTime                 (                             outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=linearGrowth_         %value                      (                             outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                      (                             outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast            (haloMassFunctionsMassMinimum,outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=criticalOverdensity_  %collapsingMass             (                             outputTimes           (iOutput))
+       outputExpansionFactors     (iOutput)=cosmologyFunctions_   %expansionFactorFromRedshift(                                                outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctions_   %cosmicTime                 (                                                outputExpansionFactors(iOutput))
+       outputGrowthFactors        (iOutput)=linearGrowth_         %value                      (                                                outputTimes           (iOutput))
+       outputCharacteristicMass   (iOutput)=criticalOverdensity_  %collapsingMass             (                                                outputTimes           (iOutput))
+       outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                      (mass=outputCharacteristicMass    (iOutput),time=outputTimes           (iOutput))
+       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast            (     haloMassFunctionsMassMinimum         ,     outputTimes           (iOutput))
     end do
 
     ! Allocate arrays for halo mass functions.
@@ -285,7 +285,7 @@ contains
                &                                                      integrandFunction                       , &
                &                                                      integrationWorkspace                    , &
                &                                                      toleranceAbsolute    =0.0d+0            , &
-               &                                                      toleranceRelative    =1.0d-4            , &
+               &                                                      toleranceRelative    =1.0d-3            , &
                &                                                      integrationRule      =FGSL_Integ_Gauss15  &
                &                                                     )
           call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -317,13 +317,23 @@ contains
   subroutine Halo_Mass_Function_Output
     !% Outputs halo mass function data.
     use Cosmology_Parameters
+    use Transfer_Functions
     use Numerical_Constants_Astronomical
+    use Galacticus_Error
     implicit none
-    class(cosmologyParametersClass), pointer :: cosmologyParameters_
-    type (hdf5Object              )          :: massFunctionGroup   , outputsGroup, dataset
+    class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+    class           (transferFunctionClass   ), pointer :: transferFunction_
+    type            (hdf5Object              )          :: massFunctionGroup   , outputsGroup, dataset
+    integer                                             :: status
+    double precision                                    :: massHalfMode
 
     ! Get required objects.
     cosmologyParameters_ => cosmologyParameters()
+    transferFunction_    => transferFunction   ()
+
+    ! Store half-mode mass if possible.
+    massHalfMode=transferFunction_%halfModeMass(status)
+    if (status == errorStatusSuccess) call haloMassFunctionOutputFile%writeAttribute(massHalfMode,'massHalfMode')
     
     ! Open the group for output time information.
     outputsGroup=haloMassFunctionOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')

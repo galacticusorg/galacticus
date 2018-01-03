@@ -444,15 +444,20 @@ contains
     return
   end function eisensteinHu1999LogarithmicDerivative
 
-  double precision function eisensteinHu1999HalfModeMass(self)
+  double precision function eisensteinHu1999HalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
     !% to a \gls{cdm} transfer function. Not supported in this implementation.
     use Galacticus_Error
     implicit none
-    class(transferFunctionEisensteinHu1999), intent(inout) :: self
+    class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
+    integer                                  , intent(  out), optional :: status
     !GCC$ attributes unused :: self
 
     eisensteinHu1999HalfModeMass=0.0d0
-    call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
     return
   end function eisensteinHu1999HalfModeMass
