@@ -189,14 +189,7 @@ sub Get_Line_Luminosity {
 	    }
 	    # Load the filter transmission curve.
 	    my $filterFile = "./data/filters/".$filterName.".xml";
-	    (my $wavelengths, my $response) = &Galacticus::Filters::Load($filterName);
-	    foreach my $datum ( @{$filter->{'response'}->{'datum'}} ) {
-		$datum =~ s/^\s*//;
-		$datum =~ s/\s*$//;
-		my @columns = split(/\s+/,$datum);
-		$wavelengths = append($wavelengths,$columns[0]);
-		$response    = append($response   ,$columns[1]);
-	    }
+	    (my $wavelengths, my $response) = &Galacticus::Filters::Load($filterName);	  
 	    # Check if the line lies within the extent of the filter.
 	    my $observedWavelength = $emissionLines->{'lines'}->{$lineLabel}->{'wavelength'}->copy();
 	    $observedWavelength *= (1.0+$redshift) if ( $frame eq "observed" );
@@ -344,7 +337,7 @@ sub Generate_Tables {
     # Initialize PBS job stack.
     my @pbsStack;
     # Specify ranges of metallicity, density, and ionizing fluxes.
-    my $metallicities           = pdl [ 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1, 1.0, 2.0 ];
+    my $metallicities           = pdl [ 0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1, 0.5, 1.0, 2.0 ];
     my $logHydrogenDensities    = pdl sequence(6)        + 1.00;
     my $logHydrogenLuminosities = pdl sequence(9)*4.0/8.0+48.00;
     my $heliumToHydrogenRatios  = pdl sequence(5)*0.05   + 0.05;
