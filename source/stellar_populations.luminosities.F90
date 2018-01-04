@@ -39,7 +39,7 @@ module Stellar_Population_Luminosities
      ! Interpolation structures.
      logical                                                            :: resetAge                   =.true. , resetMetallicity                   =.true.
      type            (fgsl_interp_accel)                                :: interpolationAcceleratorAge        , interpolationAcceleratorMetallicity
-    end type luminosityTable
+  end type luminosityTable
 
   ! Array of simple stellar population luminosity tables.
   type            (luminosityTable), allocatable, dimension(:) :: luminosityTables
