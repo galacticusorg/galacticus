@@ -488,7 +488,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <darkMatterHaloMassLossRateMethod>
-      <value>null</value>
+      <value>zero</value>
       <value>vanDenBosch2005</value>
     </darkMatterHaloMassLossRateMethod>
   </parameters>
