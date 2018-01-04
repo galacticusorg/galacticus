@@ -178,18 +178,29 @@ contains
     class           (nodeComponentBasic          )               , pointer :: basic
     double precision                                                       :: time                     , diskStarFormationRate, &
          &                                                                    spheroidStarFormationRate
+    logical                                                                :: isGeneric
     !GCC$ attributes unused :: odeConverged
     
     ! Return immediately if the standard age statistics component is not active.
     if (.not.defaultAgeStatisticsComponent%standardIsActive()) return
-    ! Return immediately if the wrong property type is required.
-    if     (                                                                                   &
-         &   (propertyType == propertyTypeActive   .and.      ageStatisticsStandardIsInactive) &
-         &  .or.                                                                               &
-         &   (propertyType == propertyTypeInactive .and. .not.ageStatisticsStandardIsInactive) &
-         & ) return
     ! Get the age statistics component.
     ageStatistics => node%ageStatistics()
+    select type (ageStatistics)
+    type is (nodeComponentAgeStatistics)
+       isGeneric=.true.
+    class default
+       isGeneric=.false.
+    end select
+    ! Return immediately if the wrong property type is required.
+    if     (                                                                                     &
+         &   (                                                                                   &
+         &     (propertyType == propertyTypeActive   .and.      ageStatisticsStandardIsInactive) &
+         &    .or.                                                                               &
+         &     (propertyType == propertyTypeInactive .and. .not.ageStatisticsStandardIsInactive) &
+         &   )                                                                                   &
+         &  .and.                                                                                &
+         &                                                 .not.isGeneric                        &
+         & ) return
     ! Get the star formation rates.
     disk                      => node    %disk             ()
     spheroid                  => node    %spheroid         ()
