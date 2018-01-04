@@ -68,7 +68,7 @@ contains
   subroutine ODEIV2_Solve(                                                                             &
        &                  odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative, &
        &                  postStep,Error_Analyzer                                                             , &
-       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,integrator_   &
+       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
@@ -99,6 +99,7 @@ contains
     integer                                       , intent(in   ), optional               :: zCount
     double precision                              , intent(inout), optional, dimension(:) :: z
     class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
+    logical                                       , intent(in   ), optional               :: integratorErrorTolerate
     double precision                              , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
     integer                                                                               :: status
     integer         (kind=c_size_t               )                                        :: previousODENumber               , previousIntegrandsNumber
@@ -110,6 +111,7 @@ contains
     type            (c_ptr                       )                                        :: parameterPointer
     type            (c_funptr                    )                                        :: latentIntegrator_               , postStep_               , &
          &                                                                                   Error_Analyzer_
+    !# <optionalArgument name="integratorErrorTolerate" defaultsTo=".false." />
     
     ! Store the current ODE function (and jacobian, integrands, and system size) so that we can restore it on exit. This allows the ODE
     ! function to be called recursively.
@@ -239,13 +241,23 @@ contains
     
     subroutine latentIntegrator(x)
       !% Wrapper function which performs integration of latent variables.
+      use Galacticus_Error
+      use Galacticus_Display
       implicit none
       double precision, intent(in   ) :: x
+      integer                         :: status
 
       ! Evaluate the integrals, and update the stored time ready for the next step.
-      z         =+z                                  &
-           &     +integrator_%evaluate(xStepBegin,x)
+      z         =+z                                         &
+           &     +integrator_%evaluate(xStepBegin,x,status)
       xStepBegin=+                                x
+      if (status /= errorStatusSuccess) then
+         if (integratorErrorTolerate_) then
+            call Galacticus_Display_Message('integration of latent variables failed - ignoring'                          )
+         else
+            call Galacticus_Error_Report   ('integration of latent variables failed'           //{introspection:location})
+         end if
+      end if
       return
     end subroutine latentIntegrator
 

@@ -48,7 +48,8 @@ module Merger_Trees_Evolve_Node
   !#  <entry label="gaussKronrod"/>
   !#  <entry label="trapezoidal" />
   !# </enumeration>
-  integer                                                     :: odeLatentIntegratorType_           , odeLatentIntegratorOrder
+  integer                                                     :: odeLatentIntegratorType_           , odeLatentIntegratorOrder       , &
+       &                                                         odeLatentIntegratorIntervalsMaximum
   
   ! Arrays that point to node properties and their derivatives.
   integer                                                     :: propertyCountAll                   , propertyCountMaximum         =0, &
@@ -193,6 +194,14 @@ contains
                 !#   <type>integer</type>
                 !# </inputParameter>
              end select
+             !# <inputParameter>
+             !#   <name>odeLatentIntegratorIntervalsMaximum</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>1000</defaultValue>
+             !#   <description>The maxium number of intervals allowed in the integrator for latent variables.</description>
+             !#   <source>globalParameters</source>
+             !#   <type>integer</type>
+             !# </inputParameter>
           end if
           !# <inputParameter>
           !#   <name>profileOdeEvolver</name>
@@ -429,62 +438,63 @@ contains
                       allocate(integratorMultiVectorizedCompositeGaussKronrod1D :: integrator_)
                       select type (integrator_)
                       type is (integratorMultiVectorizedCompositeGaussKronrod1D)
-                         call integrator_%initialize(24,odeLatentIntegratorOrder)
+                         call integrator_%initialize(odeLatentIntegratorIntervalsMaximum,odeLatentIntegratorOrder)
                       end select
                    case (latentIntegratorTypeTrapezoidal )
                       allocate(integratorMultiVectorizedCompositeTrapezoidal1D  :: integrator_)
                       select type (integrator_)
                       type is (integratorMultiVectorizedCompositeTrapezoidal1D )
-                         call integrator_%initialize(24                         )
+                         call integrator_%initialize(odeLatentIntegratorIntervalsMaximum                         )
                       end select
                    end select
                 end if
                 odeTolerancesInactiveRelative(1:propertyCountInactive)=odeToleranceRelative
                 odeTolerancesInactiveAbsolute(1:propertyCountInactive)=odeToleranceAbsolute*propertyScalesInactive(1:propertyCountInactive)
                 call integrator_%tolerancesSet(odeTolerancesInactiveAbsolute(1:propertyCountInactive),odeTolerancesInactiveRelative(1:propertyCountInactive))
-                call ODEIV2_Solve(                                                                      &
-                     &            ode2Driver                                                          , &
-                     &            ode2System                                                          , &
-                     &            timeStart                                                           , &
-                     &            timeEnd                                                             , &
-                     &            propertyCountActive                                                 , &
-                     &            propertyValuesActive                                                , &
-                     &            Tree_Node_ODEs                                                      , &
-                     &            odeToleranceAbsolute                                                , &
-                     &            odeToleranceRelative                                                , &
-                     &            postStep                                                            , &
-                     &            Error_Analyzer                                                      , &
-                     &            propertyScalesActive                                                , &
-                     &            reset               =odeReset                                       , &
-                     &            errorHandler        =Galacticus_ODE_Error_Handler                   , &
-                     &            odeStatus           =odeStatus                                      , &
-                     &            algorithm           =Galacticus_ODE_Algorithm                       , &
-                     &            stepSize            =stepSize                                       , &
-                     &            jacobian            =Tree_Node_ODEs_Jacobian                        , &
-                     &            integrator_         =integrator_                                    , &
-                     &            zCount              =propertyCountInactive                          , &
-                     &            z                   =propertyValuesInactive(1:propertyCountInactive), &
-                     &            integrands          =Tree_Node_Integrands                             &
+                call ODEIV2_Solve(                                                                         &
+                     &            ode2Driver                                                             , &
+                     &            ode2System                                                             , &
+                     &            timeStart                                                              , &
+                     &            timeEnd                                                                , &
+                     &            propertyCountActive                                                    , &
+                     &            propertyValuesActive                                                   , &
+                     &            Tree_Node_ODEs                                                         , &
+                     &            odeToleranceAbsolute                                                   , &
+                     &            odeToleranceRelative                                                   , &
+                     &            postStep                                                               , &
+                     &            Error_Analyzer                                                         , &
+                     &            propertyScalesActive                                                   , &
+                     &            reset                  =odeReset                                       , &
+                     &            errorHandler           =Galacticus_ODE_Error_Handler                   , &
+                     &            odeStatus              =odeStatus                                      , &
+                     &            algorithm              =Galacticus_ODE_Algorithm                       , &
+                     &            stepSize               =stepSize                                       , &
+                     &            jacobian               =Tree_Node_ODEs_Jacobian                        , &
+                     &            integrator_            =integrator_                                    , &
+                     &            integratorErrorTolerate=.true.                                         , &
+                     &            zCount                 =propertyCountInactive                          , &
+                     &            z                      =propertyValuesInactive(1:propertyCountInactive), &
+                     &            integrands             =Tree_Node_Integrands                             &
                      &           )
              else
-                call ODEIV2_Solve(                                                                      &
-                     &            ode2Driver                                                          , &
-                     &            ode2System                                                          , &
-                     &            timeStart                                                           , &
-                     &            timeEnd                                                             , &
-                     &            propertyCountActive                                                 , &
-                     &            propertyValuesActive                                                , &
-                     &            Tree_Node_ODEs                                                      , &
-                     &            odeToleranceAbsolute                                                , &
-                     &            odeToleranceRelative                                                , &
-                     &            postStep                                                            , &
-                     &            Error_Analyzer                                                      , &
-                     &            propertyScalesActive                                                , &
-                     &            reset               =odeReset                                       , &
-                     &            errorHandler        =Galacticus_ODE_Error_Handler                   , &
-                     &            odeStatus           =odeStatus                                      , &
-                     &            algorithm           =Galacticus_ODE_Algorithm                       , &
-                     &            stepSize            =stepSize                                         &
+                call ODEIV2_Solve(                                                                         &
+                     &            ode2Driver                                                             , &
+                     &            ode2System                                                             , &
+                     &            timeStart                                                              , &
+                     &            timeEnd                                                                , &
+                     &            propertyCountActive                                                    , &
+                     &            propertyValuesActive                                                   , &
+                     &            Tree_Node_ODEs                                                         , &
+                     &            odeToleranceAbsolute                                                   , &
+                     &            odeToleranceRelative                                                   , &
+                     &            postStep                                                               , &
+                     &            Error_Analyzer                                                         , &
+                     &            propertyScalesActive                                                   , &
+                     &            reset                  =odeReset                                       , &
+                     &            errorHandler           =Galacticus_ODE_Error_Handler                   , &
+                     &            odeStatus              =odeStatus                                      , &
+                     &            algorithm              =Galacticus_ODE_Algorithm                       , &
+                     &            stepSize               =stepSize                                         &
                      &           )
              end if
              ! Check for failure.
@@ -513,7 +523,6 @@ contains
           call basicComponent%timeSet(           timeEnd)          
        end if
     endif
-
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
        !# <include directive="postEvolveTask" type="functionCall" functionType="void">
@@ -701,7 +710,7 @@ contains
                   &                    *propertyValues0            (i)
              if (propertyValueDelta == 0.0d0)  &
                   & propertyValueDelta=+propertyScalesActive       (i)
-          end if
+          end if          
           propertyValues1       =+propertyValues0
           propertyValues1(i)    =+propertyValues1            (i) &
                &                 +propertyValueDelta
