@@ -43,7 +43,7 @@ die("maximumLikelihoodModel.pl: compilation must be specified in config file"   
 my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
 # Perform processing of the model, accumulating likelihood as we go.
@@ -69,7 +69,7 @@ foreach my $constraint ( @constraints ) {
     # Read the likelihood.
     my $likelihood = $xml->XMLin("/dev/shm/likelihood.tmp.".ucfirst($constraintDefinition->{'label'}).".xml");
     die("maximumLikelihoodModel.pl: likelihood calculation failed")
-	if ( $likelihood->{'logLikelihood'} eq "nan" );
+	if ( $likelihood->{'logLikelihood'} =~ m/nan/ );
     print $constraintDefinition->{'label'}."\t".$likelihood->{'logLikelihood'}."\n";
     # Extract the likelihood and weight it.
     my $thisLogLikelihood = $likelihood->{'logLikelihood'};
