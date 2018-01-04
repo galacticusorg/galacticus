@@ -16,78 +16,118 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a calculation of dark matter halo mass loss rates using the method of
-!% \cite{van_den_bosch_mass_2005}.
+  !% Implementation of mass loss rates from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
 
-module Dark_Matter_Halos_Mass_Loss_Rates_vanDenBosch
-  !% Implements a calculation of dark matter halo mass loss rates using the method of \cite{van_den_bosch_mass_2005}.
-  implicit none
-  private
-  public :: Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
+  use Virial_Density_Contrast
+  use Cosmology_Functions
 
-  ! Parameters of the mass loss model.
-  double precision, parameter :: massLossTimescaleNormalization=0.13d0 !    Mass loss timescale normalization [Gyr].
-  double precision, parameter :: zeta                          =0.36d0 !    Mass loss scaling with halo mass.
+  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch" defaultThreadPrivate="yes">
+  !#  <description>
+  !#   A dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
+  !#  </description>
+  !# </darkMatterHaloMassLossRate>
+  type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateVanDenBosch
+     !% Implementation of a dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
+     private
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_
+     double precision                                      :: timescaleNormalization
+     double precision                                      :: zeta
+   contains
+     final     ::         vanDenBoschDestructor
+     procedure :: rate => vanDenBoschRate
+  end type darkMatterHaloMassLossRateVanDenBosch
+
+  interface darkMatterHaloMassLossRateVanDenBosch
+     !% Constructors for the vanDenBosch dark matter halo mass loss rate class.
+     module procedure vanDenBoschConstructorParameters
+     module procedure vanDenBoschConstructorInternal
+  end interface darkMatterHaloMassLossRateVanDenBosch
 
 contains
 
-  !# <darkMatterHaloMassLossRateMethod>
-  !#  <unitName>Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize</unitName>
-  !# </darkMatterHaloMassLossRateMethod>
-  subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize(darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get)
-    !% Initializes the ``vanDenBosch2005'' dark matter halo mass loss rate method.
-    use ISO_Varying_String
-    use Virial_Density_Contrast
-    use Cosmology_Functions
+  function vanDenBoschConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type     (varying_string                              ), intent(in   )          :: darkMatterHaloMassLossRateMethod
-    procedure(Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch), intent(inout), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get
-    class    (cosmologyFunctionsClass                     )               , pointer :: cosmologyFunctions_
-    class    (virialDensityContrastClass                  )               , pointer :: virialDensityContrast_
+    type            (darkMatterHaloMassLossRateVanDenBosch)                :: self
+    type            (inputParameters                      ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
+    class           (virialDensityContrastClass           ), pointer       :: virialDensityContrast_
+    double precision                                                       :: timescaleNormalization, zeta
 
-    if (darkMatterHaloMassLossRateMethod == 'vanDenBosch2005') then
-       ! Set a pointer to our implementation.
-       Dark_Matter_Halos_Mass_Loss_Rate_Get => Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch
-       ! Get the default objects.
-       cosmologyFunctions_    => cosmologyFunctions   ()
-       virialDensityContrast_ => virialDensityContrast()
-    end if
+    !# <inputParameter>
+    !#   <name>timescaleNormalization</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.13d0</defaultValue>
+    !#   <description>The mass loss timescale normalization (in Gyr) for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>zeta</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.36d0</defaultValue>
+    !#   <description>The mass loss scaling with halo mass for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    self=darkMatterHaloMassLossRateVanDenBosch(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
+  end function vanDenBoschConstructorParameters
 
-  double precision function Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch(node)
-    !% Returns the rate of mass loss from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
-    use Galacticus_Nodes
-    use Virial_Density_Contrast
-    use Cosmology_Functions
+  function vanDenBoschConstructorInternal(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class.
     implicit none
-    type            (treeNode                  ), intent(inout) :: node
-    class           (nodeComponentBasic        ), pointer       :: basicParent              , basic
-    class           (nodeComponentSatellite    ), pointer       :: satellite
-    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
-    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
-    double precision                                            :: massLossTimescale        , satelliteBoundMass, &
-         &                                                         satelliteHostMassRatio   , satelliteTime
+    type            (darkMatterHaloMassLossRateVanDenBosch)                        :: self
+    double precision                                       , intent(in   )         :: timescaleNormalization, zeta
+    class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
+    class           (virialDensityContrastClass           ), intent(in   ), target :: virialDensityContrast_
+    !# <constructorAssign variables="timescaleNormalization, zeta, *cosmologyFunctions_, *virialDensityContrast_"/>
 
+    return
+  end function vanDenBoschConstructorInternal
+
+  subroutine vanDenBoschDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class.
+    implicit none
+    type(darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"    />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
+    return
+  end subroutine vanDenBoschDestructor
+
+  double precision function vanDenBoschRate(self,node)
+    !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    implicit none
+    class           (darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
+    type            (treeNode                             ), intent(inout) :: node
+    class           (nodeComponentBasic                   ), pointer       :: basicParent           , basic
+    class           (nodeComponentSatellite               ), pointer       :: satellite
+    double precision                                                       :: timescaleMassLoss     , massSatelliteBound, &
+         &                                                                    ratioMassSatelliteHost, timeSatellite
+    
     satellite          => node     %satellite()
-    satelliteBoundMass =  satellite%boundMass()
-    if (satelliteBoundMass > 0.0d0) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_    => cosmologyFunctions   ()
-       virialDensityContrast_ => virialDensityContrast()
-       basic                  => node %basic()
-       satelliteTime          =  basic%time ()
-       massLossTimescale      =   massLossTimescaleNormalization                                                                          &
-            &                    *sqrt(virialDensityContrast_%densityContrast(basic%mass(),cosmologyFunctions_%cosmicTime(1.0d0)))        &
-            &                    *     cosmologyFunctions_   %expansionFactor(                                     satelliteTime) **1.5d0 &
-            &                    /sqrt(virialDensityContrast_%densityContrast(basic%mass(),                        satelliteTime))
-       basicParent            => node%parent%basic()
-       satelliteHostMassRatio =  satelliteBoundMass/basicParent%mass()
-       Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=-satelliteBoundMass*satelliteHostMassRatio**zeta/massLossTimescale
+    massSatelliteBound =  satellite%boundMass()
+    if (massSatelliteBound > 0.0d0) then
+       basic                  =>  node        %basic()
+       basicParent            =>  node %parent%basic()
+       timeSatellite          =   basic       %time ()
+       timescaleMassLoss      =  +     self%timescaleNormalization                                                                                          &
+            &                    *sqrt(self%virialDensityContrast_%densityContrast(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0        )))        &
+            &                    *     self%cosmologyFunctions_   %expansionFactor(                                                 timeSatellite ) **1.5d0 &
+            &                    /sqrt(self%virialDensityContrast_%densityContrast(basic%mass(),                                    timeSatellite ))
+       ratioMassSatelliteHost =  +massSatelliteBound        &
+            &                    /basicParent       %mass()
+       vanDenBoschRate        =  -massSatelliteBound                &
+            &                    *ratioMassSatelliteHost**self%zeta &
+            &                    /timescaleMassLoss
     else
-       Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=0.0d0
+       vanDenBoschRate        =  +0.0d0
     end if
     return
-  end function Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch
-
-end module Dark_Matter_Halos_Mass_Loss_Rates_vanDenBosch
+  end function vanDenBoschRate

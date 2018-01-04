@@ -187,13 +187,14 @@ contains
     !% Compute the time until satellite merging rate of change.
     use Dark_Matter_Halos_Mass_Loss_Rates
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    logical                                 , intent(in   )          :: odeConverged
-    logical                                 , intent(inout)          :: interrupt
-    procedure       (                      ), intent(inout), pointer :: interruptProcedure
-    integer                                 , intent(in   )          :: propertyType
-    class           (nodeComponentSatellite)               , pointer :: satellite
-    double precision                                                 :: massLossRate
+    type            (treeNode                       ), intent(inout), pointer :: node
+    logical                                          , intent(in   )          :: odeConverged
+    logical                                          , intent(inout)          :: interrupt
+    procedure       (                               ), intent(inout), pointer :: interruptProcedure
+    integer                                          , intent(in   )          :: propertyType
+    class           (nodeComponentSatellite         )               , pointer :: satellite
+    class           (darkMatterHaloMassLossRateClass)               , pointer :: darkMatterHaloMassLossRate_
+    double precision                                                          :: massLossRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Return immediately if inactive variables are requested.
@@ -206,7 +207,8 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        if (node%isSatellite()) then
-          massLossRate=Dark_Matter_Halos_Mass_Loss_Rate(node)
+          darkMatterHaloMassLossRate_ => darkMatterHaloMassLossRate()
+          massLossRate=darkMatterHaloMassLossRate_%rate(node)
           call satellite%mergeTimeRate(-1.0d0      )
           call satellite%boundMassRate(massLossRate)
        end if
