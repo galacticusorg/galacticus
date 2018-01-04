@@ -197,8 +197,6 @@ contains
     double precision                                                          :: massLossRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
     ! Get the satellite component.
@@ -207,10 +205,17 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        if (node%isSatellite()) then
-          darkMatterHaloMassLossRate_ => darkMatterHaloMassLossRate()
-          massLossRate=darkMatterHaloMassLossRate_%rate(node)
           call satellite%mergeTimeRate(-1.0d0      )
-          call satellite%boundMassRate(massLossRate)
+          ! Compute mass loss rate if necessary.
+          if     (                                                                                &
+               &   (propertyType == propertyTypeActive   .and. .not.satelliteBoundMassIsInactive) &
+               &  .or.                                                                            &
+               &   (propertyType == propertyTypeInactive .and.      satelliteBoundMassIsInactive) &
+               & ) then
+             darkMatterHaloMassLossRate_ => darkMatterHaloMassLossRate      (    )
+             massLossRate                =  darkMatterHaloMassLossRate_%rate(node)
+             call satellite%boundMassRate(massLossRate)
+          end if
        end if
     end select
     return
