@@ -20,68 +20,21 @@
 
 module Dark_Matter_Halos_Mass_Loss_Rates
   !% Implements calculations of mass loss rates from dark matter halos.
-  use ISO_Varying_String
   use Galacticus_Nodes
   implicit none
   private
-  public :: Dark_Matter_Halos_Mass_Loss_Rate
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                      :: darkMatterHaloMassLossRateInitialized=.false.
-
-  ! Name of mass loss rate method used.
-  type     (varying_string                  )          :: darkMatterHaloMassLossRateMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Halos_Mass_Loss_Rate), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get =>null()
-
-contains
-
-  subroutine Dark_Matter_Halo_Mass_Loss_Rates_Initialize
-    !% Initialize the dark matter halos mass loss rate module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="darkMatterHaloMassLossRateMethod" type="moduleUse">
-    include 'dark_matter_halos.mass_loss_rates.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.darkMatterHaloMassLossRateInitialized) then
-       !$omp critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization)
-       if (.not.darkMatterHaloMassLossRateInitialized) then
-          ! Get the dark matter halo mass loss rate method parameter.
-          !# <inputParameter>
-          !#   <name>darkMatterHaloMassLossRateMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used for computing mass loss rates from dark matter halos.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterHaloMassLossRateMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>darkMatterHaloMassLossRateMethod,Dark_Matter_Halos_Mass_Loss_Rate_Get</functionArgs>
-          include 'dark_matter_halos.mass_loss_rates.inc'
-          !# </include>
-          if (.not.associated(Dark_Matter_Halos_Mass_Loss_Rate_Get)) call Galacticus_Error_Report('method '//char(darkMatterHaloMassLossRateMethod)//' is unrecognized'//{introspection:location})
-          darkMatterHaloMassLossRateInitialized=.true.
-       end if
-       !$omp end critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization)
-    end if
-    return
-  end subroutine Dark_Matter_Halo_Mass_Loss_Rates_Initialize
-
-  double precision function Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
-    !% Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Dark_Matter_Halo_Mass_Loss_Rates_Initialize()
-    ! Get the energy using the selected method.
-    Dark_Matter_Halos_Mass_Loss_Rate=Dark_Matter_Halos_Mass_Loss_Rate_Get(thisNode)
-    return
-  end function Dark_Matter_Halos_Mass_Loss_Rate
+  !# <functionClass>
+  !#  <name>darkMatterHaloMassLossRate</name>
+  !#  <descriptiveName>Dark matter halo mass loss rates.</descriptiveName>
+  !#  <description>Class providing models of the mass loss rate from dark matter halos.</description>
+  !#  <default>zero</default>
+  !#  <method name="rate" >
+  !#   <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Dark_Matter_Halos_Mass_Loss_Rates
