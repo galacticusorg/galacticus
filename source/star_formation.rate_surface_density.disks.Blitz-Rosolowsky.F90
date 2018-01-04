@@ -62,7 +62,7 @@ contains
   !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_BR_Initialize</unitName>
   !# </starFormationRateSurfaceDensityDisksMethod>
   subroutine Star_Formation_Rate_Surface_Density_Disks_BR_Initialize(starFormationRateSurfaceDensityDisksMethod&
-       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get)
+       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get,Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get)
     !% Initializes the ``extended Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
@@ -73,10 +73,12 @@ contains
     type     (varying_string                                       ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
     procedure(Star_Formation_Rate_Surface_Density_Disk_BR          ), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
     procedure(Star_Formation_Rate_Surface_Density_Disk_Intervals_BR), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Intervals_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_Unchanged_BR), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get
 
     if (starFormationRateSurfaceDensityDisksMethod == 'Blitz-Rosolowsky2006') then
        Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_BR
        Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_BR
+       Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get => Star_Formation_Rate_Surface_Density_Disk_Unchanged_BR
        ! Get parameters of for the timescale calculation.
        !# <inputParameter>
        !#   <name>velocityDispersionDiskGas</name>
@@ -232,4 +234,14 @@ contains
     return
   end function Star_Formation_Rate_Surface_Density_Disk_Intervals_BR
   
+  logical function Star_Formation_Rate_Surface_Density_Disk_Unchanged_BR(thisNode)
+    !% Claim that the surface rate density of star formation is unchanged so that it is always re-evaluated.
+    implicit none
+    type(treeNode), intent(inout) :: thisNode
+    !GCC$ attributes unused :: thisNode
+
+    Star_Formation_Rate_Surface_Density_Disk_Unchanged_BR=.false.
+    return
+  end function Star_Formation_Rate_Surface_Density_Disk_Unchanged_BR
+
 end module Star_Formation_Rate_Surface_Density_Disks_BR

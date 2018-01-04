@@ -61,7 +61,7 @@ contains
   !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_KS_Initialize</unitName>
   !# </starFormationRateSurfaceDensityDisksMethod>
   subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize(starFormationRateSurfaceDensityDisksMethod&
-       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get)
+       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get,Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get)
     !% Initializes the ``Kennicutt-Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
@@ -70,10 +70,12 @@ contains
     type     (varying_string                                       ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
     procedure(Star_Formation_Rate_Surface_Density_Disk_KS          ), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
     procedure(Star_Formation_Rate_Surface_Density_Disk_Intervals_KS), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Intervals_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get
 
     if (starFormationRateSurfaceDensityDisksMethod == 'Kennicutt-Schmidt') then
        Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_KS
        Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
+       Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get => Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS
        ! Get parameters of for the timescale calculation.
        !# <inputParameter>
        !#   <name>starFormationKennicuttSchmidtNormalization</name>
@@ -221,5 +223,15 @@ contains
     Star_Formation_Rate_Surface_Density_Disk_Intervals_KS=reshape([radiusInner,radiusOuter],[2,1])
     return
   end function Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
+
+  logical function Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS(thisNode)
+    !% Claim that the surface rate density of star formation is unchanged so that it is always re-evaluated.
+    implicit none
+    type(treeNode), intent(inout) :: thisNode
+    !GCC$ attributes unused :: thisNode
+
+    Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS=.false.
+    return
+  end function Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS
 
 end module Star_Formation_Rate_Surface_Density_Disks_KS

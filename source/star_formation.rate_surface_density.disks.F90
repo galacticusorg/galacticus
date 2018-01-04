@@ -24,7 +24,8 @@ module Star_Formation_Rate_Surface_Density_Disks
   use Galacticus_Nodes
   implicit none
   private
-  public :: Star_Formation_Rate_Surface_Density_Disk, Star_Formation_Rate_Surface_Density_Disk_Intervals
+  public :: Star_Formation_Rate_Surface_Density_Disk          , Star_Formation_Rate_Surface_Density_Disk_Intervals, &
+       &    Star_Formation_Rate_Surface_Density_Disk_Unchanged
 
   ! Flag to indicate if this module has been initialized.
   logical                                                                :: moduleInitialized                                     =.false.
@@ -35,6 +36,7 @@ module Star_Formation_Rate_Surface_Density_Disks
   ! Pointer to the function that actually does the calculation.
   procedure(Star_Formation_Rate_Surface_Density_Disk          ), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get          =>null()
   procedure(Star_Formation_Rate_Surface_Density_Disk_Intervals), pointer :: Star_Formation_Rate_Surface_Density_Disk_Intervals_Get=>null()
+  procedure(Star_Formation_Rate_Surface_Density_Disk_Unchanged), pointer :: Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get=>null()
 
 contains
 
@@ -63,10 +65,10 @@ contains
           !# </inputParameter>
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="starFormationRateSurfaceDensityDisksMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>starFormationRateSurfaceDensityDisksMethod,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get</functionArgs>
+          !#  <functionArgs>starFormationRateSurfaceDensityDisksMethod,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get,Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get</functionArgs>
           include 'star_formation.rate_surface_density.disks.inc'
           !# </include>
-          if (.not.(associated(Star_Formation_Rate_Surface_Density_Disk_Get).and.associated(Star_Formation_Rate_Surface_Density_Disk_Intervals_Get))) &
+          if (.not.(associated(Star_Formation_Rate_Surface_Density_Disk_Get).and.associated(Star_Formation_Rate_Surface_Density_Disk_Intervals_Get).and.associated(Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get))) &
                & call Galacticus_Error_Report('method '//char(starFormationRateSurfaceDensityDisksMethod)//' is unrecognized'//{introspection:location})
           moduleInitialized=.true.
        end if
@@ -88,6 +90,18 @@ contains
     Star_Formation_Rate_Surface_Density_Disk_Intervals=Star_Formation_Rate_Surface_Density_Disk_Intervals_Get(thisNode,radiusInner,radiusOuter)
     return
   end function Star_Formation_Rate_Surface_Density_Disk_Intervals
+
+  logical function Star_Formation_Rate_Surface_Density_Disk_Unchanged(thisNode)
+    !% Return true if the surface density rate of star formation is unchanged since the previous evaluation.
+    implicit none
+    type(treeNode), intent(inout) :: thisNode
+
+    ! Initialize the module.
+    call Star_Formation_Rate_Surface_Density_Disks_Initialize()
+    ! Get the star formation rate surface density.
+    Star_Formation_Rate_Surface_Density_Disk_Unchanged=Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get(thisNode)
+    return
+  end function Star_Formation_Rate_Surface_Density_Disk_Unchanged
 
   double precision function Star_Formation_Rate_Surface_Density_Disk(thisNode,radius)
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of
