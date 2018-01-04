@@ -295,11 +295,12 @@ module Numerical_Integration2
      procedure(evaluateMulti1D), deferred :: evaluate
   end type integratorMulti1D
   abstract interface
-     function evaluateMulti1D(self,a,b) result(integral)
+     function evaluateMulti1D(self,a,b,status) result(integral)
        import integratorMulti1D
-       class           (integratorMulti1D), intent(inout)                  :: self
-       double precision                   , intent(in   )                  :: a         , b
-       double precision                   , dimension(self%integrandCount) :: integral
+       class           (integratorMulti1D), intent(inout)                            :: self
+       double precision                   , intent(in   )                            :: a         , b
+       integer                            , intent(  out)                 , optional :: status
+       double precision                   , dimension(self%integrandCount)           :: integral
      end function evaluateMulti1D
   end interface
   abstract interface
@@ -331,11 +332,12 @@ module Numerical_Integration2
      procedure(evaluateMultiVectorized1D), deferred :: evaluate
   end type integratorMultiVectorized1D
   abstract interface
-     function evaluateMultiVectorized1D(self,a,b) result(integral)
+     function evaluateMultiVectorized1D(self,a,b,status) result(integral)
        import integratorMultiVectorized1D
-       class           (integratorMultiVectorized1D), intent(inout)                  :: self
-       double precision                             , intent(in   )                  :: a       , b
-       double precision                             , dimension(self%integrandCount) :: integral
+       class           (integratorMultiVectorized1D), intent(inout)                            :: self
+       double precision                             , intent(in   )                            :: a       , b
+       integer                                      , intent(  out)                 , optional :: status
+       double precision                             , dimension(self%integrandCount)           :: integral
      end function evaluateMultiVectorized1D
   end interface
   abstract interface
@@ -351,7 +353,7 @@ module Numerical_Integration2
   type, extends(integratorMultiVectorized1D) :: integratorMultiVectorizedCompositeGaussKronrod1D
      !% One-dimensional multi-integrand numerical integrator class using a vectorized composite Gauss-Kronrod rule.
      private
-     integer                                     :: iterationsMaximum
+     integer                                     :: intervalsMaximum
      double precision, allocatable, dimension(:) :: xKronrod         , wGauss, wKronrod
    contains
      !@ <objectMethods>
@@ -359,8 +361,8 @@ module Numerical_Integration2
      !@   <objectMethod>
      !@     <method>initialize</method>
      !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin, \intzero\ order\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed, and the order of the integrator.</description>
+     !@     <arguments>\intzero\ intervalsMaximum\argin, \intzero\ order\argin</arguments>
+     !@     <description>Set the maximum number of intervals allowed, and the order of the integrator.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>evaluate</method>
@@ -384,15 +386,15 @@ module Numerical_Integration2
   type, extends(integratorMultiVectorized1D) :: integratorMultiVectorizedCompositeTrapezoidal1D
      !% One-dimensional multi-integrand numerical integrator class using a vectorized composite trapezoidal rule.
      private
-     integer :: iterationsMaximum
+     integer :: intervalsMaximum
    contains
      !@ <objectMethods>
      !@   <object>integratorMultiVectorizedCompositeTrapezoidal1D</object>
      !@   <objectMethod>
      !@     <method>initialize</method>
      !@     <type>\void</type>
-     !@     <arguments>\intzero\ iterationsMaximum\argin</arguments>
-     !@     <description>Set the maximum number of iterations allowed.</description>
+     !@     <arguments>\intzero\ intervalsMaximum\argin</arguments>
+     !@     <description>Set the maximum number of intervals allowed.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>evaluate</method>
@@ -1343,7 +1345,7 @@ contains
     double precision                                                                                   :: summand
     double precision                                            , dimension(2**self%iterationsMaximum) :: functionValues
 #endif
-
+    
     cumulant =0.5d0*sum(self%integrand([b,a]))
     iteration=1
     converged=.false.
@@ -1355,23 +1357,23 @@ contains
             &                               {introspection:location}       &
             &                             )
        n   =2**iteration
-        step=(b-a)/dble(n)
-        ! Evaluate only every second point, as the others were computed in previous iterations.
+       step=(b-a)/dble(n)
+       ! Evaluate only every second point, as the others were computed in previous iterations.
 #ifdef YEPPP
-        functionValues(1:n/2)=self%integrand(self%d(n/2+1:n)*(b-a)+a)
-        s                    =yepCore_Sum_V64f_S64f(functionValues,summand,int(n/2,kind=c_size_t))
-        cumulant             =cumulant+summand
+       functionValues(1:n/2)=self%integrand(self%d(n/2+1:n)*(b-a)+a)
+       s                    =yepCore_Sum_V64f_S64f(functionValues,summand,int(n/2,kind=c_size_t))
+       cumulant             =cumulant+summand
 #else
-        cumulant             =cumulant+sum(self%integrand(self%d(n/2+1:n)*(b-a)+a))
+       cumulant             =cumulant+sum(self%integrand(self%d(n/2+1:n)*(b-a)+a))
 #endif
-        integrand=step*cumulant
-        if (iteration > 2)                                    &
-             & converged=Values_Agree(                        &
-             &                        integrand             , &
-             &                        integrandPrevious     , &
-             &                        self%toleranceAbsolute, &
-             &                        self%toleranceRelative  &
-             &                       )
+       integrand=step*cumulant
+       if (iteration > 2)                                    &
+            & converged=Values_Agree(                        &
+            &                        integrand             , &
+            &                        integrandPrevious     , &
+            &                        self%toleranceAbsolute, &
+            &                        self%toleranceRelative  &
+            &                       )
        integrandPrevious=integrand
     end do
     vectorizedCompositeTrapezoidalEvaluate1D=integrand
@@ -1444,21 +1446,21 @@ contains
   
   ! Vectorized composite Gauss-Kronrod 1D integrator.
 
-  subroutine multiVectorizedCompositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
+  subroutine multiVectorizedCompositeGaussKronrod1DInitialize(self,intervalsMaximum,order)
     !% Initialize a one-dimensional, multi-integrand, vectorized composite Gauss-Kronrod numerical integrator. Evaluation points
     !% and weights are taken from those used in the \gls{gsl}.
     use Galacticus_Error
     use Memory_Management
     implicit none
     class  (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout) :: self
-    integer                                                  , intent(in   ) :: iterationsMaximum, order
+    integer                                                  , intent(in   ) :: intervalsMaximum, order
 
-    if (iterationsMaximum < 3)                                                 &
-         & call Galacticus_Error_Report(                                       &
-         &                              'at least 3 iterations are required'// &
-         &                               {introspection:location}              &
+    if (intervalsMaximum < 1)                                               &
+         & call Galacticus_Error_Report(                                    &
+         &                              'at least 1 interval is required'// &
+         &                               {introspection:location}           &
          &                             )
-    self%iterationsMaximum=iterationsMaximum
+    self%intervalsMaximum=intervalsMaximum
     ! Choose order.
     select case (order)
     case (15) ! 15-point Kronrod rule.
@@ -1584,7 +1586,7 @@ contains
     return
   end subroutine multiVectorizedCompositeGaussKronrod1DInitialize
 
-  function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b) result(integral)
+  function multiVectorizedCompositeGaussKronrod1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite Gauss-Kronrod rule.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Comparison
@@ -1593,11 +1595,12 @@ contains
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
     double precision                                                  , intent(in   )                              :: a                , b
+    integer                                                           , intent(  out)                 , optional   :: status
     double precision                                                  , dimension(self%integrandCount)             :: integral         , error       , &
          &                                                                                                            errorScale
     logical                                                           , dimension(self%integrandCount)             :: converged        , mustEvaluate, &
          &                                                                                                            convergedPrevious
-    double precision                                                                                               :: midpoint
+    double precision                                                                                               :: midpoint         , errorMaximum
     type            (intervalMultiList                               ), dimension(:)                 , allocatable :: list
     double precision                                                  , dimension(:)                 , allocatable :: listValue
     integer         (c_size_t                                        ), dimension(:)                 , allocatable :: listRank
@@ -1626,7 +1629,7 @@ contains
          & .or.                                               &
          &  abs(error) < self%toleranceRelative*abs(integral)
     ! Iterate until convergence is reached.
-    do while (.not.all(converged))
+    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
        current  => head      ! Pop the head from the list.
        head     => head%next
@@ -1726,18 +1729,19 @@ contains
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
              ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
              ! the absolute and relative tolerances) of non-converged integrals is descending.
-             current    => head
-             previous   => head
-             errorScale =  max(                                      &
+             current      => head
+             previous     => head
+             errorScale   =  max(                                    &
                   &            self%toleranceAbsolute              , &
                   &            self%toleranceRelative*abs(integral)  &
                   &           )
+             errorMaximum =  maxval(abs(newInterval%error/errorScale),mask=.not.converged)
              do while (                                                                &
-                  &     associated(current%next)                                       &
+                  &      associated(    current%next            )                      &
                   &    .and.                                                           &
-                  &      maxval(abs(current    %error/errorScale),mask=.not.converged) &
+                  &      maxval    (abs(current%error/errorScale),mask=.not.converged) &
                   &     >                                                              &
-                  &      maxval(abs(newInterval%error/errorScale),mask=.not.converged) &
+                  &      errorMaximum                                                  &
                   &   )
                 previous => current
                 current  => current%next
@@ -1745,7 +1749,7 @@ contains
              ! Check if we reached the end of the stack.
              if (.not.associated(current%next)) then
                 ! End of stack reached. Check if new interval goes before or after the final stack entry.
-                if (maxval(abs(current%error/errorScale),mask=.not.converged) > maxval(abs(newInterval%error/errorScale),mask=.not.converged)) then
+                if (maxval(abs(current%error/errorScale),mask=.not.converged) > errorMaximum) then
                    ! New interval goes at the end of the stack.
                    current%next => newInterval
                 else
@@ -1782,6 +1786,15 @@ contains
        current  => current%next
        deallocate(previous)
     end do
+    ! Report error if number of intervals was exceeded.
+    if (present(status)) status=errorStatusSuccess
+    if (intervalCount > self%intervalsMaximum .and. .not.all(converged)) then
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report('maximum number of intervals exceeded'//{introspection:location})
+       end if
+    end if
     return
   end function multiVectorizedCompositeGaussKronrod1DEvaluate
 
@@ -1871,48 +1884,51 @@ contains
 
   ! Vectorized composite trapezoidal 1D integrator.
 
-  subroutine multiVectorizedCompositeTrapezoidal1DInitialize(self,iterationsMaximum)
+  subroutine multiVectorizedCompositeTrapezoidal1DInitialize(self,intervalsMaximum)
     !% Initialize a one-dimensional, multi-integrand, vectorized composite trapezoidal numerical integrator.
     use Galacticus_Error
     use Memory_Management
     implicit none
     class  (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout) :: self
-    integer                                                 , intent(in   ) :: iterationsMaximum
+    integer                                                 , intent(in   ) :: intervalsMaximum
 
-    if (iterationsMaximum < 3)                                                 &
-         & call Galacticus_Error_Report(                                       &
-         &                              'at least 3 iterations are required'// &
-         &                               {introspection:location}              &
+    if (intervalsMaximum < 1)                                               &
+         & call Galacticus_Error_Report(                                    &
+         &                              'at least 1 intevals is required'// &
+         &                               {introspection:location}           &
          &                             )
-    self%iterationsMaximum=iterationsMaximum
+    self%intervalsMaximum=intervalsMaximum
     return
   end subroutine multiVectorizedCompositeTrapezoidal1DInitialize
 
-  function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b) result(integral)
+  function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Comparison
     use               Galacticus_Error
     use               Sort
     implicit none
-    class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                              :: self
-    double precision                                                  , intent(in   )                              :: a                , b
-    double precision                                                  , dimension(self%integrandCount)             :: integral         , error       , &
-         &                                                                                                            errorScale
-    logical                                                           , dimension(self%integrandCount)             :: converged        , mustEvaluate, &
-         &                                                                                                            convergedPrevious
-    double precision, dimension(2) :: xUnion
-    double precision, dimension(self%integrandCount,2) :: fUnion
-    double precision, dimension(self%integrandCount) :: fa, fb, fm
-    double precision                                                                                               :: midpoint, width
-    type            (intervalMultiList                               ), dimension(:)                 , allocatable :: list
-    double precision                                                  , dimension(:)                 , allocatable :: listValue
-    integer         (c_size_t                                        ), dimension(:)                 , allocatable :: listRank
-    type            (intervalMulti                                   ), pointer                                    :: head             , newInterval1, &
-         &                                                                                                            newInterval2     , current     , &
-         &                                                                                                            previous         , newInterval
-    integer         (c_size_t)                                                                                     :: iInterval        , intervalCount
-    
+    class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
+    double precision                                                 , intent(in   )                                :: a                , b
+    integer                                                          , intent(  out)                   , optional   :: status
+    double precision                                                 , dimension(self%integrandCount  )             :: integral         , error       , &
+         &                                                                                                             errorScale
+    logical                                                          , dimension(self%integrandCount  )             :: converged        , mustEvaluate, &
+         &                                                                                                             convergedPrevious
+    double precision                                                 , dimension(                    2)             :: xUnion
+    double precision                                                 , dimension(self%integrandCount,2)             :: fUnion
+    double precision                                                 , dimension(self%integrandCount  )             :: fa               , fb          , &
+         &                                                                                                             fm
+    double precision                                                                                                :: midpoint         , width       , &
+         &                                                                                                             errorMaximum
+    type            (intervalMultiList                              ), dimension(:)                   , allocatable :: list
+    double precision                                                 , dimension(:)                   , allocatable :: listValue
+    integer         (c_size_t                                       ), dimension(:)                   , allocatable :: listRank
+    type            (intervalMulti                                  ), pointer                                      :: head             , newInterval1, &
+         &                                                                                                             newInterval2     , current     , &
+         &                                                                                                             previous         , newInterval
+    integer         (c_size_t)                                                                                      :: iInterval        , intervalCount
+
     ! Create our first estimate of the integral, using a single interval.
     intervalCount=1_c_size_t
     allocate(head                              )
@@ -1926,12 +1942,12 @@ contains
     mustEvaluate =  .true.
     xUnion=[head%a,head%b]
     call self%integrand(self%integrandCount,xUnion,mustEvaluate,fUnion)
-    head%fa=fUnion(:,1)
-    head%fb=fUnion(:,2)
-    head%integral=0.5d0             &
-         &           *(head%fb+head%fa) &
-         &           *(head% b-head% a)
-    head%error    =   head%integral
+    head%fa      =fUnion(:,1)
+    head%fb      =fUnion(:,2)
+    head%integral=+0.5d0             &
+         &        *(head%fb+head%fa) &
+         &        *(head% b-head% a)
+    head%error   =head%integral
     ! Initialize current integral and error estimates, and flag that we're not converged.
     integral =head%integral
     error    =head%error
@@ -1940,7 +1956,7 @@ contains
          & .or.                                               &
          &  abs(error) < self%toleranceRelative*abs(integral)
     ! Iterate until convergence is reached.
-    do while (.not.all(converged))
+    do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
        current  => head      ! Pop the head from the list.
        head     => head%next
@@ -2005,7 +2021,7 @@ contains
                & .or.                                               &
                &  abs(error) < self%toleranceRelative*abs(integral)
        elsewhere
-          ! In cases where the integrand was not evaluated at the midpoint (i.e. the integral is alreeady converged), estimate the
+          ! In cases where the integrand was not evaluated at the midpoint (i.e. the integral is already converged), estimate the
           ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
           ! integration rule.
           newInterval1%fa      =fa
@@ -2048,64 +2064,60 @@ contains
        ! Destroy the old interval.
        deallocate(current)
        ! Insert the new intervals into our stack.
-       do iInterval=1,2
-          if (iInterval == 1) then
-             newInterval => newInterval1
-          else
-             newInterval => newInterval2
-          end if
-          ! Check if the stack is empty.
-          if (associated(head)) then
-             ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
-             ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
-             ! the absolute and relative tolerances) of non-converged integrals is descending.
-             current    => head
-             previous   => head
-             errorScale =  max(                                      &
-                  &            self%toleranceAbsolute              , &
-                  &            self%toleranceRelative*abs(integral)  &
-                  &           )
-             do while (                                                                &
-                  &     associated(current%next)                                       &
-                  &    .and.                                                           &
-                  &      maxval(abs(current    %error/errorScale),mask=.not.converged) &
-                  &     >                                                              &
-                  &      maxval(abs(newInterval%error/errorScale),mask=.not.converged) &
-                  &   )
-                previous => current
-                current  => current%next
-             end do
-             ! Check if we reached the end of the stack.
-             if (.not.associated(current%next)) then
-                ! End of stack reached. Check if new interval goes before or after the final stack entry.
-                if (maxval(abs(current%error/errorScale),mask=.not.converged) > maxval(abs(newInterval%error/errorScale),mask=.not.converged)) then
-                   ! New interval goes at the end of the stack.
-                   current%next => newInterval
-                else
-                   ! New interval goes before the final interval.
-                   if (associated(current,head)) then
-                      newInterval%next => head
-                      head             => newInterval
-                   else
-                      newInterval%next => previous   %next
-                      previous   %next => newInterval
-                   end if
-                end if
+       ! First, link the two subintervals - they will always be consecutive in the list as they have the same error estimate.
+       newInterval1%next => newInterval2
+       ! Check if the stack is empty.
+       if (associated(head)) then
+          ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
+          ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
+          ! the absolute and relative tolerances) of non-converged integrals is descending.
+          current      => head
+          previous     => head
+          errorScale   =  max(                                    &
+               &            self%toleranceAbsolute              , &
+               &            self%toleranceRelative*abs(integral)  &
+               &           )
+          errorMaximum =  maxval(abs(newInterval1%error/errorScale),mask=.not.converged)
+          do while (                                                                &
+               &      associated(    current%next            )                      &
+               &    .and.                                                           &
+               &      maxval    (abs(current%error/errorScale),mask=.not.converged) &
+               &     >                                                              &
+               &      errorMaximum                                                  &
+               &   )
+             previous => current
+             current  => current%next
+          end do
+          ! Check if we reached the end of the stack.
+          if (.not.associated(current%next)) then
+             ! End of stack reached. Check if new interval goes before or after the final stack entry.
+             if (maxval(abs(current%error/errorScale),mask=.not.converged) > errorMaximum) then
+                ! New intervals goes at the end of the stack.
+                current%next => newInterval1
              else
-                ! End of stack not reached. Insert new interval after the previous interval.
+                ! New interval goes before the final interval.
                 if (associated(current,head)) then
-                   newInterval%next => head
-                   head             => newInterval
+                   newInterval2%next => head
+                   head              => newInterval1
                 else
-                   newInterval%next => previous   %next
-                   previous   %next => newInterval
+                   newInterval2%next => previous    %next
+                   previous    %next => newInterval1
                 end if
              end if
           else
-             ! Stack is empty - simply point the head to our new subinterval.
-             head => newInterval
+             ! End of stack not reached. Insert new interval after the previous interval.
+             if (associated(current,head)) then
+                newInterval2%next => head
+                head              => newInterval1
+             else
+                newInterval2%next => previous    %next
+                previous    %next => newInterval1
+             end if
           end if
-       end do
+       else
+          ! Stack is empty - simply point the head to our new subinterval.
+          head => newInterval1
+       end if
        intervalCount=intervalCount+2_c_size_t
     end do
     ! Destroy the stack.
@@ -2115,6 +2127,15 @@ contains
        current  => current%next
        deallocate(previous)
     end do
+    ! Report error if number of intervals was exceeded.
+    if (present(status)) status=errorStatusSuccess
+    if (intervalCount > self%intervalsMaximum .and. .not.all(converged)) then
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report('maximum number of intervals exceeded'//{introspection:location})
+       end if
+    end if
     return
   end function multiVectorizedCompositeTrapezoidal1DEvaluate
   
