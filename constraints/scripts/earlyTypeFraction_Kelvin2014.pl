@@ -122,6 +122,8 @@ if ( exists($arguments{'outputFile'}) ) {
     (my $facAB   )    =lgamma(float($a   +$b   ));
     (my $facABLBS)    =lgamma(float($aLBS+$bLBS));
     # Compute a base model likelihood.
+    $fractionModel->($fractionModel < 0.001;?) .= 0.001;
+    $fractionModel->($fractionModel > 0.999;?) .= 0.999;
     my $logLikelihoodsBase = &logLikelihood($a,$b,$facA,$facB,$facAB,$fractionModel);
     # Compute model realizations.
     my $realizationCount   =     100000;
@@ -137,7 +139,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	$fractionModelRealization->($fractionModelRealization > 0.999;?) .= 0.999;
 	# Evaluate likelihood with and without LBS class included.
 	my $logLikelihoods     = &logLikelihood($a   ,$b   ,$facA   ,$facB   ,$facAB   ,$fractionModelRealization)-$logLikelihoodsBase;
-	my $logLikelihoodsLBS  = &logLikelihood($aLBS,$bLBS,$facALBS,$facBLBS,$facABLBS,$fractionModelRealization)-$logLikelihoodsBase;	
+	my $logLikelihoodsLBS  = &logLikelihood($aLBS,$bLBS,$facALBS,$facBLBS,$facABLBS,$fractionModelRealization)-$logLikelihoodsBase;
 	# Compute the net probability.
 	my $probabilityRealization = 
 	    +     $lbsInclusionProbability *exp(sum($logLikelihoodsLBS))
@@ -247,5 +249,6 @@ sub logLikelihood {
     my $facB     = shift();
     my $facAB    = shift();
     my $fraction = shift();
-    return ($a-1.0)*log($fraction)+($b-1.0)*log(1.0-$fraction)+$facAB-$facA-$facB;
+    my $logLikelihood = ($a-1.0)*log($fraction)+($b-1.0)*log(1.0-$fraction)+$facAB-$facA-$facB;
+    return $logLikelihood;
 }
