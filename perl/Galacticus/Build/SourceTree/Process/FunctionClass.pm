@@ -980,7 +980,29 @@ CODE
 		    if ( exists($method->{'code'}) );
 		$methodTable->add("",$_,$directive->{'name'}.ucfirst($_).$extension);
 	    }
-	    $preContains->[0]->{'content'} .= $methodTable->table();
+            $preContains->[0]->{'content'} .= $methodTable->table();
+            if ( exists($directive->{'generic'}) ) {
+		my $genericTable = Text::Table->new(
+		    {
+			is_sep => 1,
+			body   => "    generic :: "
+		    },
+		    {
+			align  => "left"
+		    },
+		    {
+			is_sep => 1,
+			body   => " => ",
+		    },
+		    {
+			align  => "left"
+		    }
+		    );    
+		foreach ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
+		    $genericTable->add($_->{'name'},join(", ",&List::ExtraUtils::as_array($_->{'method'})));
+		}
+		$preContains->[0]->{'content'} .= $genericTable->table();
+            }
 	    $preContains->[0]->{'content'} .= "   end type ".$directive->{'name'}."Class\n\n";
 	    # Insert any module-scope class content.
 	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
