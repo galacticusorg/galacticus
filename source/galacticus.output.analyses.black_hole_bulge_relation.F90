@@ -121,21 +121,21 @@ contains
     type            (galacticFilterSpheroidStellarMass                  ), pointer                       :: galacticFilter_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity               ), pointer                       :: outputAnalysisWeightOperator_
-    type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisPropertyOperatorLog10_
+    type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: outputAnalysisPropertyOperator_                         , outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisPropertyOperatorLog10_                    , outputAnalysisWeightPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyOperatorMinMax               ), pointer                       :: outputAnalysisWeightPropertyOperatorMinMax_
     type            (outputAnalysisPropertyExtractorMassStellarSpheroid ), pointer                       :: outputAnalysisPropertyExtractor_
     type            (outputAnalysisPropertyExtractorMassBlackHole       ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (cosmologyParametersSimple                          ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                     ), pointer                       :: cosmologyFunctionsData
-    type            (propertyOperatorList                               ), pointer                       :: propertyOperators_
+    type            (propertyOperatorList                               ), pointer                       :: propertyOperators_                                      , weightPropertyOperators_
     double precision                                                     , parameter                     :: errorPolynomialZeroPoint                        =11.3d00
     integer         (c_size_t                                           ), parameter                     :: bufferCount                                     =10
-    double precision                                                     , parameter                     :: massStellarMinimum                                       = 3.0d09, massStellarMaximum                  =3.0d11
-    integer         (c_size_t                                           ), parameter                     :: massStellarCount                                         =5
+    double precision                                                     , parameter                     :: massStellarMinimum                              = 3.0d09, massStellarMaximum                  =3.0d11
+    integer         (c_size_t                                           ), parameter                     :: massStellarCount                                =5
     integer         (c_size_t                                           )                                :: iOutput
 
     ! Specify mass bins.
@@ -189,9 +189,17 @@ contains
          &                                                                                                  errorPolynomialZeroPoint        , &
          &                                                                                                  randomErrorPolynomialCoefficient  &
          &                                                                                                 )
-    ! Build a metallicity weight property operator.
+    ! Build weight property operatosr.
+    allocate(outputAnalysisWeightPropertyOperatorLog10_            )
+    outputAnalysisWeightPropertyOperatorLog10_       =  outputAnalysisPropertyOperatorLog10                (                                                             )
+    allocate(outputAnalysisWeightPropertyOperatorMinMax_           )
+    outputAnalysisWeightPropertyOperatorMinMax_      =  outputAnalysisPropertyOperatorMinMax               (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)          )
+    allocate(weightPropertyOperators_                              )
+    allocate(weightPropertyOperators_%next                         )
+    weightPropertyOperators_         %operator_      => outputAnalysisWeightPropertyOperatorMinMax_
+    weightPropertyOperators_%next    %operator_      => outputAnalysisWeightPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    outputAnalysisWeightPropertyOperator_            =  outputAnalysisPropertyOperatorLog10                (                                                             )
+    outputAnalysisWeightPropertyOperator_            =  outputAnalysisPropertyOperatorSequence             (weightPropertyOperators_                                     )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     outputAnalysisPropertyUnoperator_                =  outputAnalysisPropertyOperatorAntiLog10            (                                                             )
@@ -244,6 +252,7 @@ contains
     nullify(cosmologyParametersData                         )
     nullify(cosmologyFunctionsData                          )
     nullify(propertyOperators_                              )
+    nullify(weightPropertyOperators_                        )
     return
   end function blackHoleBulgeRelationConstructorInternal
 
