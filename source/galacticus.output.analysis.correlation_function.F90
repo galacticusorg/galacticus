@@ -559,6 +559,7 @@ contains
     class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctions_    
     class           (nodeComponentBasic     )               , pointer        :: basic                    , basicRoot
     class           (darkMatterProfileClass )               , pointer        :: darkMatterProfile_
+    class           (darkMatterHaloBiasClass)               , pointer        :: darkMatterHaloBias_
     double precision                         , allocatable  , dimension(:,:) :: satelliteProbabilityTmp
     integer                                  , parameter                     :: satelliteCountMinimum=100
     integer         (kind=kind_int8        )                                 :: hostIndex    
@@ -639,6 +640,9 @@ contains
           haloWork%centralProbability(j)=  galaxyInclusionProbability
        end if
        if (galaxyInclusionProbability > 0.0d0 .and. .not.haloWork%propertiesSet) then
+          cosmologyFunctions_           => cosmologyFunctions      (        )
+          darkMatterProfile_            => darkMatterProfile       (        )
+          darkMatterHaloBias_           => darkMatterHaloBias      (        )
           haloWork%propertiesSet        =  .true.
           haloWork%isMainBranch         =  hostNode %isOnMainBranch(        )
           basic                     => hostNode          %basic(        )
@@ -648,9 +652,7 @@ contains
           haloWork%haloWeight           =  tree     %volumeWeight
           haloWork%outputNumber         =  iOutput
           haloWork%haloTime             =  basic%time          (        )
-          haloWork%haloBias             =  Dark_Matter_Halo_Bias   (hostNode)
-          cosmologyFunctions_           => cosmologyFunctions      (        )
-          darkMatterProfile_            => darkMatterProfile       (        )
+          haloWork%haloBias             =  darkMatterHaloBias_%bias(hostNode)
           expansionFactor               =  cosmologyFunctions_%expansionFactor(basic%time())
           do i=1,size(correlationFunction_%wavenumber)
              ! Note that wavenumbers must be converted from comoving to physical units for the dark matter profile k-space function.

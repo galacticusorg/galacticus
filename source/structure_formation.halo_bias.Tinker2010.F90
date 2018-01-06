@@ -16,93 +16,120 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of halo bias using the fitting function of \cite{tinker_large_2010}.
+  !% Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
 
-module Dark_Matter_Halo_Biases_Tinker2010
-  !% Implements calculations of halo bias using the fitting function of \cite{tinker_large_2010}.
-  implicit none
-  private
-  public :: Dark_Matter_Halo_Bias_Tinker2010_Initialize
+  use Critical_Overdensities
+  use Cosmological_Mass_Variance
+  use Virial_Density_Contrast
+
+  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010" defaultThreadPrivate="yes">
+  !#  <description>
+  !#   A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}.
+  !#  </description>
+  !# </darkMatterHaloBias>
+  type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
+     !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
+     private
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_
+     double precision                                         :: timePrevious             , massPrevious, &
+          &                                                      lowerA                   , upperA      , &
+          &                                                      upperC
+   contains
+     final     ::               tinker2010Destructor
+     procedure :: biasByMass => tinker2010BiasByMass
+  end type darkMatterHaloBiasTinker2010
+
+  interface darkMatterHaloBiasTinker2010
+     !% Constructors for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+     module procedure tinker2010ConstructorParameters
+     module procedure tinker2010ConstructorInternal
+  end interface darkMatterHaloBiasTinker2010
 
 contains
 
-  !# <darkMatterHaloBiasMethod>
-  !#  <unitName>Dark_Matter_Halo_Bias_Tinker2010_Initialize</unitName>
-  !# </darkMatterHaloBiasMethod>
-  subroutine Dark_Matter_Halo_Bias_Tinker2010_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function tinker2010ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily tinker2010} dark matter halo mass bias which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type     (varying_string                       ), intent(in   )          :: darkMatterHaloBiasMethod
-    procedure(Dark_Matter_Halo_Bias_Tinker2010     ), intent(inout), pointer :: Dark_Matter_Halo_Bias_Get
-    procedure(Dark_Matter_Halo_Bias_Node_Tinker2010), intent(inout), pointer :: Dark_Matter_Halo_Bias_Node_Get
+    type(darkMatterHaloBiasTinker2010  )                :: self
+    type(inputParameters               ), intent(inout) :: parameters
+    class(criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
 
-    if (darkMatterHaloBiasMethod == 'Tinker2010') then
-       Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_Tinker2010
-       Dark_Matter_Halo_Bias_Get      => Dark_Matter_Halo_Bias_Tinker2010
-    end if
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"   source="parameters"/>
+    self=darkMatterHaloBiasTinker2010(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Dark_Matter_Halo_Bias_Tinker2010_Initialize
+  end function tinker2010ConstructorParameters
 
-  double precision function Dark_Matter_Halo_Bias_Node_Tinker2010(node)
-    !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
-    use Galacticus_Nodes
+  function tinker2010ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)               , pointer :: basic
+    type (darkMatterHaloBiasTinker2010 )                        :: self
+    class(criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
+    class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_
+    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
 
-    ! Compute halo bias.
-    basic => node%basic()
-    Dark_Matter_Halo_Bias_Node_Tinker2010=Dark_Matter_Halo_Bias_Tinker2010(basic%mass(),basic%time())
+    self%timePrevious=-1.0d0
+    self%massPrevious=-1.0d0
     return
-  end function Dark_Matter_Halo_Bias_Node_Tinker2010
+  end function tinker2010ConstructorInternal
 
-  double precision function Dark_Matter_Halo_Bias_Tinker2010(mass,time)
-    !% Computes the bias for a dark matter halo using the method of \cite{tinker_large_2010}.
-    use Critical_Overdensities
-    use Cosmological_Mass_Variance
-    use Virial_Density_Contrast
+  subroutine tinker2010Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
     implicit none
-    double precision                               , intent(in   ) :: mass                        , time
-    double precision                               , parameter     :: lowerB                =1.5d0, lowerC             =2.4d0 , upperB=0.183d0
-    class           (virialDensityContrastClass   ), pointer       :: virialDensityContrast_
-    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: deltaCritical               , haloDensityContrast       , nu            , &
-         &                                                            sigma                       , y
-    double precision, save                                         :: lowerA                      , timePrevious       =-1.0d0, upperA        , &
-         &                                                            upperC                      , massPrevious       =-1.0d0
-    !$omp threadprivate(timePrevious,massPrevious,lowerA,upperA,upperC)
+    type(darkMatterHaloBiasTinker2010), intent(inout) :: self
 
-    ! Get default objects.
-    criticalOverdensity_      => criticalOverdensity     ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%virialDensityContrast_"   />
+    return
+  end subroutine tinker2010Destructor
+
+  double precision function tinker2010BiasByMass(self,mass,time)
+    !% Returns the bias of a dark matter halo given the mass and time.
+    implicit none
+    class           (darkMatterHaloBiasTinker2010 ), intent(inout) :: self
+    double precision                               , intent(in   ) :: mass                 , time
+    double precision                               , parameter     :: lowerB       =1.500d0, lowerC=2.400d0, &
+         &                                                            upperB       =0.183d0
+    double precision                                               :: deltaCritical        , nu            , &
+         &                                                            sigma                , y
+
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=criticalOverdensity_     %value       (time=time,mass=mass)
-    sigma        =cosmologicalMassVariance_%rootVariance(               mass)
-    nu           =deltaCritical/sigma
-
+    deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
+    sigma        =self%cosmologicalMassVariance_%rootVariance(               mass)
+    nu           =+deltaCritical                                                   &
+         &        /sigma
     ! Update fitting parameters if the time has changed.
-    if (time /= timePrevious .or. mass /= massPrevious) then
+    if (time /= self%timePrevious .or. mass /= self%massPrevious) then
        ! Store the new time and mass.
-       timePrevious=time
-       massPrevious=mass
-
-       ! Compute halo density contrast and logarithm.
-       virialDensityContrast_    => virialDensityContrast()
-       haloDensityContrast=virialDensityContrast_%densityContrast(mass,time)
-       y=log10(haloDensityContrast)
-
+       self%timePrevious=time
+       self%massPrevious=mass
+       ! Compute logarithm of halo density contrast
+       y     =log10(self%virialDensityContrast_%densityContrast(mass,time))
        ! Compute parameters as a function of halo overdensity (from Table 2 of Tinker et al. 2010)
-       upperA=1.0d0+0.24d0*y*exp(-(4.0d0/y)**4)
-       lowerA=0.44d0*y-0.88d0
-       upperC=0.019d0+0.107d0*y+0.19d0*exp(-(4.0d0/y)**4)
+       self%upperA=+1.000d0          +0.24d0*y*exp(-(4.0d0/y)**4)
+       self%lowerA=-0.880d0+0.440d0*y
+       self%upperC=+0.019d0+0.107d0*y+0.19d0  *exp(-(4.0d0/y)**4)
     end if
-
     ! Compute halo bias (equation 6 of Tinker et al. 2010).
-    Dark_Matter_Halo_Bias_Tinker2010=1.0d0-upperA*nu**lowerA/(nu**lowerA+deltaCritical**lowerA)+upperB*nu**lowerB+upperC*nu&
-         &**lowerC
+    tinker2010BiasByMass=+1.0d0                        &
+         &               -                 self%upperA &
+         &               *  nu           **self%lowerA &
+         &               /(                            &
+         &                 +nu           **self%lowerA &
+         &                 +deltaCritical**self%lowerA &
+         &                )                            &
+         &               +                      upperB &
+         &               *  nu           **     lowerB &
+         &               +                 self%upperC &
+         &               *  nu           **     lowerC
     return
-  end function Dark_Matter_Halo_Bias_Tinker2010
-
-end module Dark_Matter_Halo_Biases_Tinker2010
+  end function tinker2010BiasByMass

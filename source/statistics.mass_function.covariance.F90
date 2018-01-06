@@ -728,12 +728,14 @@ contains
     !% Integral for bias.
     use Dark_Matter_Halo_Biases
     implicit none
-    double precision, intent(in   ) :: logMass
-    double precision                :: mass
-
-    mass=10.0d0**logMass
-    Bias_Integrand_I=Mass_Function_Integrand_I(logMass)*Dark_Matter_Halo_Bias(mass,time)
-  return
+    double precision                         , intent(in   ) :: logMass
+    double precision                                         :: mass
+    class           (darkMatterHaloBiasClass), pointer       :: darkMatterHaloBias_
+    
+    darkMatterHaloBias_ => darkMatterHaloBias()
+    mass            =10.0d0**logMass
+    Bias_Integrand_I=Mass_Function_Integrand_I(logMass)*darkMatterHaloBias_%bias(mass,time)
+    return
   end function Bias_Integrand_I
 
   double precision function Halo_Occupancy_Time_Integrand(timePrime)

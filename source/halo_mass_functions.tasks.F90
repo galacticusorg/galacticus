@@ -114,6 +114,7 @@ contains
     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_
     class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_
+    class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_
     type            (fgsl_function                    )          :: integrandFunction
     type            (fgsl_integration_workspace       )          :: integrationWorkspace
     integer                                                      :: haloMassFunctionsCount       , haloMassFunctionsPointsPerDecade, &
@@ -165,7 +166,8 @@ contains
     unevolvedSubhaloMassFunction_ => unevolvedSubhaloMassFunction()
     darkMatterHaloScale_          => darkMatterHaloScale         ()
     cosmologicalMassVariance_     => cosmologicalMassVariance    ()
-    
+    darkMatterHaloBias_           => darkMatterHaloBias          ()
+
     ! Find the mass range and increment size.
     !# <inputParameter>
     !#   <name>haloMassFunctionsMassMinimum</name>
@@ -271,7 +273,7 @@ contains
                &                                                                                                           haloMassFunction_Mass(iMass,iOutput)    &
                &                                                                                                          )                                        &
                &                                                )
-          haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias                        (node)
+          haloMassFunction_bias             (iMass,iOutput)=darkMatterHaloBias_  %bias                   (node)
           haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (node)
           haloMassFunction_virialTemperature(iMass,iOutput)=darkMatterHaloScale_ %virialTemperature      (node)
           haloMassFunction_virialRadius     (iMass,iOutput)=darkMatterHaloScale_ %virialRadius           (node)

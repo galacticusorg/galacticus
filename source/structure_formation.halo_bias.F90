@@ -16,106 +16,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of dark matter halo bias.
+!% Contains a module which implements a dark matter halo bias class.
 
 module Dark_Matter_Halo_Biases
-  !% Implements calculations of dark matter halo bias.
+  !% Implements a dark matter halo bias class.
   use Galacticus_Nodes
-  use ISO_Varying_String
   implicit none
   private
-  public :: Dark_Matter_Halo_Bias
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                     :: haloBiasInitialized           =.false.
-
-  ! Name of halo bias method used.
-  type     (varying_string         )          :: darkMatterHaloBiasMethod
-
-  ! Pointer to the function that returns halo bias.
-  procedure(Halo_Bias_Node_Template), pointer :: Dark_Matter_Halo_Bias_Node_Get=>null()
-  procedure(Halo_Bias_Template     ), pointer :: Dark_Matter_Halo_Bias_Get     =>null()
-  abstract interface
-     double precision function Halo_Bias_Node_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Halo_Bias_Node_Template
-  end interface
-  abstract interface
-     double precision function Halo_Bias_Template(mass,time)
-       double precision, intent(in   ) :: mass, time
-     end function Halo_Bias_Template
-  end interface
-
-  interface Dark_Matter_Halo_Bias
-     module procedure Dark_Matter_Halo_Bias_By_Node
-     module procedure Dark_Matter_Halo_Bias_By_Mass
-  end interface Dark_Matter_Halo_Bias
-
-contains
-
-  subroutine Dark_Matter_Halo_Bias_Initialize
-    !% Initalize the dark matter halo bias module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="darkMatterHaloBiasMethod" type="moduleUse">
-    include 'structure_formation.halo_bias.modules.inc'
-    !# </include>
-    implicit none
-
-    if (.not.haloBiasInitialized) then
-       !$omp critical(haloBiasInitialize)
-       if (.not.haloBiasInitialized) then
-          ! Get the halo bias method parameter.
-          !# <inputParameter>
-          !#   <name>darkMatterHaloBiasMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Tinker2010')</defaultValue>
-          !#   <description>Selects which dark matter halo bias method to use.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterHaloBiasMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get</functionArgs>
-          include 'structure_formation.halo_bias.inc'
-          !# </include>
-          if (.not.(associated(Dark_Matter_Halo_Bias_Get).and.associated(Dark_Matter_Halo_Bias_Node_Get))) call&
-               & Galacticus_Error_Report('method '//char(darkMatterHaloBiasMethod)//' is unrecognized'//{introspection:location})
-          ! Flag that the module is now initialized.
-          haloBiasInitialized=.true.
-       end if
-       !$omp end critical(haloBiasInitialize)
-    end if
-    return
-  end subroutine Dark_Matter_Halo_Bias_Initialize
-
-  double precision function Dark_Matter_Halo_Bias_By_Node(thisNode)
-    !% Computes the bias for a dark matter halo.
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Ensure the module is initalized.
-    call Dark_Matter_Halo_Bias_Initialize
-
-    ! Get the dark matter halo bias.
-    Dark_Matter_Halo_Bias_By_Node=Dark_Matter_Halo_Bias_Node_Get(thisNode)
-
-    return
-  end function Dark_Matter_Halo_Bias_By_Node
-
-  double precision function Dark_Matter_Halo_Bias_By_Mass(mass,time)
-    !% Computes the bias for a dark matter halo.
-    implicit none
-    double precision, intent(in   ) :: mass, time
-
-    ! Ensure the module is initalized.
-    call Dark_Matter_Halo_Bias_Initialize
-
-    ! Get the dark matter halo bias.
-    Dark_Matter_Halo_Bias_By_Mass=Dark_Matter_Halo_Bias_Get(mass,time)
-
-    return
-  end function Dark_Matter_Halo_Bias_By_Mass
+  !# <functionClass>
+  !#  <name>darkMatterHaloBias</name>
+  !#  <descriptiveName>Dark matter halo biases.</descriptiveName>
+  !#  <description>Class providing models of the bias of dark matter halos.</description>
+  !#  <default>tinker2010</default>
+  !#  <method name="biasByMass" >
+  !#   <description>Returns the bias of a halo specified by a mass (in $M_\odot$) and time (in Gyr).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#  </method>
+  !#  <method name="biasByNode" >
+  !#   <description>Returns the bias of the halo in the supplied \gls{node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <code>
+  !#    class(nodeComponentBasic), pointer :: basic
+  !#    basic                        => node%basic     (                         )
+  !#    darkMatterHaloBiasBiasByNode =  self%biasByMass(basic%mass(),basic%time())
+  !#   </code>
+  !#  </method>
+  !#  <generic name="bias">
+  !#   <method>biasByMass</method>
+  !#   <method>biasByNode</method>
+  !#  </generic>
+  !# </functionClass>
 
 end module Dark_Matter_Halo_Biases

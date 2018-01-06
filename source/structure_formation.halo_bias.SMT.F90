@@ -16,72 +16,104 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of halo bias using the fitting function of \cite{sheth_ellipsoidal_2001}.
+  !% Implementation of halo bias using the algorithm of \cite{sheth_ellipsoidal_2001}.
 
-module Dark_Matter_Halo_Biases_SMT
-  !% Implements calculations of halo bias using the fitting function of \cite{sheth_ellipsoidal_2001}.
-  implicit none
-  private
-  public :: Dark_Matter_Halo_Bias_SMT_Initialize
+  use Critical_Overdensities
+  use Cosmological_Mass_Variance
+  
+  !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001" defaultThreadPrivate="yes">
+  !#  <description>
+  !#   A dark matter halo mass bias class utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
+  !#  </description>
+  !# </darkMatterHaloBias>
+  type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasSheth2001
+     !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
+     private
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+   contains
+     final     ::               sheth2001Destructor
+     procedure :: biasByMass => sheth2001BiasByMass
+  end type darkMatterHaloBiasSheth2001
+  
+  interface darkMatterHaloBiasSheth2001
+     !% Constructors for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
+     module procedure sheth2001ConstructorParameters
+     module procedure sheth2001ConstructorInternal
+  end interface darkMatterHaloBiasSheth2001
 
 contains
 
-  !# <darkMatterHaloBiasMethod>
-  !#  <unitName>Dark_Matter_Halo_Bias_SMT_Initialize</unitName>
-  !# </darkMatterHaloBiasMethod>
-  subroutine Dark_Matter_Halo_Bias_SMT_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function sheth2001ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sheth2001} dark matter halo mass bias which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type     (varying_string                ), intent(in   )          :: darkMatterHaloBiasMethod
-    procedure(Dark_Matter_Halo_Bias_SMT     ), intent(inout), pointer :: Dark_Matter_Halo_Bias_Get
-    procedure(Dark_Matter_Halo_Bias_Node_SMT), intent(inout), pointer :: Dark_Matter_Halo_Bias_Node_Get
+    type(darkMatterHaloBiasSheth2001)                :: self
+    type(inputParameters                 ), intent(inout) :: parameters
+    class(criticalOverdensityClass       ), pointer       :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass  ), pointer       :: cosmologicalMassVariance_
 
-    if (darkMatterHaloBiasMethod == 'SMT') then
-       Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_SMT
-       Dark_Matter_Halo_Bias_Get      => Dark_Matter_Halo_Bias_SMT
-    end if
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=darkMatterHaloBiasSheth2001(criticalOverdensity_,cosmologicalMassVariance_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Dark_Matter_Halo_Bias_SMT_Initialize
+  end function sheth2001ConstructorParameters
 
-  double precision function Dark_Matter_Halo_Bias_Node_SMT(node)
-    !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
-    use Galacticus_Nodes
+  function sheth2001ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
     implicit none
-    type (treeNode          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)               , pointer :: basic
+    type (darkMatterHaloBiasSheth2001)                        :: self
+    class(criticalOverdensityClass        ), intent(in   ), target :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
 
-    ! Compute halo bias.
-    basic => node%basic()
-    Dark_Matter_Halo_Bias_Node_SMT=Dark_Matter_Halo_Bias_SMT(basic%mass(),basic%time())
     return
-  end function Dark_Matter_Halo_Bias_Node_SMT
+  end function sheth2001ConstructorInternal
 
-  double precision function Dark_Matter_Halo_Bias_SMT(mass,time)
-    !% Computes the bias for a dark matter halo using the method of \cite{sheth_ellipsoidal_2001}.
-    use Critical_Overdensities
-    use Cosmological_Mass_Variance
+  subroutine sheth2001Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily sheth2001} dark matter halo bias class.
     implicit none
-    double precision                               , intent(in   ) :: mass                        , time
-    double precision                               , parameter     :: a                   =0.707d0, b   =0.5d0, &
-         &                                                            c                   =0.600d0
-    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: deltaCritical               , nu        , &
-         &                                                            sigma
+    type(darkMatterHaloBiasSheth2001), intent(inout) :: self
 
-    ! Get default objects.
-    criticalOverdensity_      => criticalOverdensity     ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    return
+  end subroutine sheth2001Destructor
+
+  double precision function sheth2001BiasByMass(self,mass,time)
+    !% Returns the bias of a dark matter halo given the mass and time.
+    implicit none
+    class           (darkMatterHaloBiasSheth2001), intent(inout) :: self
+    double precision                             , intent(in   ) :: mass                 , time
+    double precision                             , parameter     :: a            =0.707d0, b    =0.5d0, &
+         &                                                          c            =0.600d0
+    double precision                                             :: deltaCritical        , sigma      , &
+         &                                                          nu
+
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
-    deltaCritical=criticalOverdensity_     %value       (time=time,mass=mass)
-    sigma        =cosmologicalMassVariance_%rootVariance(               mass)
-    nu           =deltaCritical/sigma
-
+    deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
+    sigma        =self%cosmologicalMassVariance_%rootVariance(               mass)
+    nu           =+deltaCritical                                                   &
+         &        /sigma
     ! Compute halo bias.
-    Dark_Matter_Halo_Bias_SMT=1.0d0+(sqrt(a)*(a*nu**2)+sqrt(a)*b*(a*nu**2)**(1.0d0-c)-(a*nu**2)**c/((a*nu**2)**c+b*(1.0d0-c)&
-         &*(1.0d0-c/2.0d0)))/sqrt(a)/deltaCritical
+    sheth2001BiasByMass=+1.0d0                    &
+         &              +(                        &
+         &                +sqrt(a)                &
+         &                *     a                 &
+         &                *   nu**2               &
+         &                +sqrt(a)                &
+         &                *  b                    &
+         &                *  (a*nu**2)**(1.0d0-c) &
+         &                -  (a*nu**2)**(     +c) &
+         &                /(                      &
+         &                  +(a*nu**2)**(     +c) &
+         &                  +b                    &
+         &                  *(1.0d0-c      )      &
+         &                  *(1.0d0-c/2.0d0)      &
+         &                 )                      &
+         &               )                        &
+         &              /sqrt(a)                  &
+         &              /deltaCritical
     return
-  end function Dark_Matter_Halo_Bias_SMT
-
-end module Dark_Matter_Halo_Biases_SMT
+  end function sheth2001BiasByMass
