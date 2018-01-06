@@ -185,27 +185,29 @@ contains
     use Kind_Numbers
     use Multi_Counters
     implicit none
-    double precision                , intent(in   )         :: time
-    type            (treeNode      ), intent(inout), target :: node
-    integer                         , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                     integerProperty
-    integer         (kind=kind_int8), intent(inout)         :: integerBuffer    (:,:)
-    double precision                , intent(inout)         :: doubleBuffer     (:,:)
-    type            (multiCounter  ), intent(inout)         :: instance
-    type            (treeNode      ), pointer               :: isolatedNode
+    double precision                         , intent(in   )         :: time
+    type            (treeNode               ), intent(inout), target :: node
+    integer                                  , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                              integerProperty
+    integer         (kind=kind_int8         ), intent(inout)         :: integerBuffer    (:,:)
+    double precision                         , intent(inout)         :: doubleBuffer     (:,:)
+    type            (multiCounter           ), intent(inout)         :: instance
+    type            (treeNode               ), pointer               :: isolatedNode
+    class           (darkMatterHaloBiasClass), pointer               :: darkMatterHaloBias_
     !GCC$ attributes unused :: time, instance
     
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
-
+    
     ! Store property data if we are outputting halo model data.
     if (outputHaloModelData) then
-       isolatedNode => node
+       darkMatterHaloBias_ => darkMatterHaloBias()
+       isolatedNode        => node
        do while (isolatedNode%isSatellite())
           isolatedNode => isolatedNode%parent
        end do
        doubleProperty =doubleProperty +1
-       doubleBuffer(doubleBufferCount  ,doubleProperty )=Dark_Matter_Halo_Bias(isolatedNode)
+       doubleBuffer(doubleBufferCount  ,doubleProperty )=darkMatterHaloBias_%bias(isolatedNode)
        integerProperty=integerProperty+1
        integerBuffer(integerBufferCount,integerProperty)=isolatedNode%index()
     end if

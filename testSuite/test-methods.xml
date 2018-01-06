@@ -38,9 +38,9 @@
     <version>0.9.4</version>
     <outputHaloModelData value="true"/>
     <darkMatterHaloBiasMethod>
-      <value>SMT</value>
-      <value>Press-Schechter</value>
-      <value>Tinker2010</value>
+      <value>sheth2001</value>
+      <value>pressSchechter</value>
+      <value>tinker2010</value>
     </darkMatterHaloBiasMethod>
   </parameters>
   <parameters>

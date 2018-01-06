@@ -1242,61 +1242,6 @@ Currently defined hot halo ram pressure stripping timescale methods are:
  \item [\hyperlink{hot_halo.ram_pressure_stripping.timescale.ram_pressure_acceleration.F90:hot_halo_ram_pressure_timescales_ram_pressure_accel:hot_halo_ram_pressure_timescale_ram_pressure_accel}{{\normalfont \ttfamily ramPressureAcceleration}}] Computes the timescale from the ram pressure acceleration following \cite{roediger_ram_2007}.
 \end{description}
 
-\subsubsection{Halo Bias}
-
-Additional methods for the halo bias (i.e. the linear theory bias) can be added using the {\normalfont \ttfamily darkMatterHaloBiasMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Press-Schechter} method is described by a directive:
-\begin{verbatim}
- !# <darkMatterHaloBiasMethod>
- !#  <unitName>Dark_Matter_Halo_Bias_Press_Schechter_Initialize</unitName>
- !# </darkMatterHaloBiasMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Dark\_Matter\_Halo\_Bias\_Press\_Schechter\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: darkMatterHaloBiasMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
-    
-    if (darkMatterHaloBiasMethod == 'myMethod') then
-       Dark_Matter_Halo_Bias_Node_Get => My_Method_Node_Get
-       Dark_Matter_Halo_Bias_Get      => My_Method_Get
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily darkMatterHaloBiasMethod} input parameter. The procedure pointers {\normalfont \ttfamily Dark\_Matter\_Halo\_Bias\_Node\_Get} and {\normalfont \ttfamily Dark\_Matter\_Halo\_Bias\_Get} must be set to point to functions which return the bias of the specified halo. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The halo bias functions must have the following forms.
-\begin{verbatim}
- double precision function Dark_Matter_Halo_Bias_Node(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
- end function Dark_Matter_Halo_Bias_Node
-\end{verbatim}
-The function should return the linear theory bias for {\normalfont \ttfamily thisNode}.
-\begin{verbatim}
- double precision function Dark_Matter_Halo_Bias(mass,time)
-    implicit none
-    double precision, intent(in   ) :: mass,time
-    .
-    .
-    .
-    return
- end function Dark_Matter_Halo_Bias
-\end{verbatim}
-The function should return the linear theory bias for the given {\normalfont \ttfamily mass} and {\normalfont \ttfamily time}. Two versions of these functions are provided because a common assumption is that the bias depends only on mass and time, while in reality it may depend on other properties of the halo (environment, formation time etc.). The first version of the function allows for arbitrary dependence on properties of the node.
-
-Currently defined halo bias methods are:
-\begin{description}
- \item [\hyperlink{structure_formation.halo_bias.Press-Schechter.F90:dark_matter_halo_biases_press_schechter:dark_matter_halo_bias_press_schechter}{{\normalfont \ttfamily Press-Schechter}}] Implements the bias resulting from the Press-Schechter \citep{press_formation_1974} mass function \citep{mo_analytic_1996}.
- \item [\hyperlink{structure_formation.halo_bias.SMT.F90:dark_matter_halo_biases_smt:dark_matter_halo_bias_smt}{{\normalfont \ttfamily SMT}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} bias.
- \item [\hyperlink{structure_formation.halo_bias.Tinker2010.F90:dark_matter_halo_biases_tinker2010:dark_matter_halo_bias_tinker2010}{{\normalfont \ttfamily Tinker2010}}] Implements the bias described by \cite{tinker_large_2010}.
-\end{description}
-
 \subsubsection{Halo Mass Sampling Density Functions}
 
 Additional methods for halo mass sampling density functions can be added using the {\normalfont \ttfamily haloMassFunctionSamplingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily powerLaw} method is described by a directive:
