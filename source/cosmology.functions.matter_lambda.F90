@@ -1052,7 +1052,7 @@ contains
   end function matterLambdaDistanceAngular
 
   double precision function matterLambdaDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
-    !% Convert bewteen different measures of distance.
+    !% Convert between different measures of distance.
     use Numerical_Interpolation
     use Galacticus_Error
     use Cosmology_Functions_Options
