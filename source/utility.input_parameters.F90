@@ -433,7 +433,7 @@ contains
           ! Destroy the allowed parameter names document.
           call destroy(allowedParameterDoc)
           !$omp end critical (FoX_DOM_Access)
-      else
+       else
           call Galacticus_Display_Message("Allowed parameter file '"//allowedParametersFile//"' is missing - incorrect parameters will not be detected",verbosityWarn)
        end if
     end if
