@@ -107,6 +107,12 @@ module Linear_Algebra
      !@     <arguments></arguments>
      !@     <description>Make the matrix symmetric using $A_{ij} \rightarrow (A_{ij}+A_{ji})/2$.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>choleskyDecompose</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute the Cholesky decomposition of the matrix in place.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                             matrixDestroy
      procedure :: invert                   => matrixInvert
@@ -117,6 +123,7 @@ module Linear_Algebra
      procedure :: eigenSystem              => matrixEigensystem
      procedure :: symmetrize               => matrixSymmetrize
      procedure :: makeSemiPositiveDefinite => matrixMakeSemiPositiveDefinite
+     procedure :: choleskyDecompose        => matrixCholeskyDecompose
   end type matrix
   
   ! Assignment interfaces.
@@ -461,5 +468,21 @@ contains
     self%elements=0.5d0*(self%elements+transpose(self%elements))
     return
   end subroutine matrixSymmetrize
+
+  subroutine matrixCholeskyDecompose(self)
+    !% Find the Cholesky decomposition of a matrix.
+    implicit none
+    class  (matrix          ), intent(inout) :: self
+    type   (fgsl_matrix     )                :: selfMatrix
+    integer(kind=fgsl_int   )                :: status
+    integer(kind=fgsl_size_t)                :: selfMatrixSize
+
+    selfMatrixSize=size(self%elements,dim=1)
+    selfMatrix    =FGSL_Matrix_Init           (type=1.0_fgsl_double)
+    status        =FGSL_Matrix_Align          (self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
+    status        =FGSL_LinAlg_Cholesky_Decomp(selfMatrix)
+    call FGSL_Matrix_Free(selfMatrix)
+    return
+  end subroutine matrixCholeskyDecompose
   
 end module Linear_Algebra
