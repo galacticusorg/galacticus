@@ -77,10 +77,10 @@ contains
     parameterFile         =char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
     ! Construct a parameter list containing all relevant values.
     parameters=inputParameterList()
-    write (parameterLabel,'(f5.3)') cosmologyParameters_%OmegaMatter    (                   )
+    write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
     call parameters%add("OmegaMatter"    ,parameterLabel)
-    write (parameterLabel,'(f5.3)') cosmologyParameters_%OmegaDarkEnergy(                   )
+    write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaDarkEnergy(                   )
     self%fileName=self%fileName//'_OmegaDarkEnergy'//trim(parameterLabel)
     call parameters%add("OmegaDarkEnergy",parameterLabel)
     write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaBaryon    (                   )
@@ -89,7 +89,7 @@ contains
     write (parameterLabel,'(f4.1)') cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
     self%fileName=self%fileName//'_HubbleConstant' //trim(parameterLabel)
     call parameters%add("HubbleConstant" ,parameterLabel)
-    write (parameterLabel,'(f5.3)') cosmologyParameters_%temperatureCMB (                   )
+    write (parameterLabel,'(f6.4)') cosmologyParameters_%temperatureCMB (                   )
     self%fileName=self%fileName//'_temperatureCMB' //trim(parameterLabel)
     call parameters%add("temperatureCMB" ,parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
