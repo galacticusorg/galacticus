@@ -139,7 +139,7 @@
   <!-- Orbit model options -->
   <satelliteOrbitingDestructionMass value="0.0"/>
   <satelliteOrbitingDestructionMassIsFractional value="true"/>
-  <satelliteDynamicalFrictionMethod value="Chandrasekhar1943"/>
+  <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
   <satelliteTidalStrippingMethod value="Zentner2005"/>
   <satelliteTidalHeatingMethod value="Gnedin1999"/>
   <satelliteTidalStrippingZentner2005Rate value="1.0"/>

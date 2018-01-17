@@ -176,25 +176,26 @@ contains
     use Satellite_Tidal_Stripping
     use Satellite_Tidal_Heating
     implicit none
-    type            (treeNode                      ), pointer     , intent(inout) :: thisNode
-    logical                                                       , intent(in   ) :: odeConverged
-    logical                                                       , intent(inout) :: interrupt
-    procedure       (interruptTask                 ), pointer     , intent(inout) :: interruptProcedure
-    integer                                                       , intent(in   ) :: propertyType
-    class           (nodeComponentSatellite        ), pointer                     :: satelliteComponent
-    class           (nodeComponentBasic            ), pointer                     :: basicComponent
-    type            (treeNode                      ), pointer                     :: hostNode
-    class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_
-    double precision                                , dimension(3)                :: position,velocity
-    double precision                                , parameter                   :: radiusVirialFraction = 1.0d-2
-    double precision                                                              :: radius,halfMassRadiusSatellite
-    double precision                                                              :: halfMassRadiusCentral,orbitalRadiusTest
-    double precision                                                              :: radiusVirial
-    double precision                                                              :: orbitalPeriod
-    double precision                                                              :: parentDensity
-    double precision                                                              :: parentEnclosedMass,satelliteMass,basicMass,massDestruction
-    double precision                                                              :: tidalHeatingNormalized,angularFrequency,radialFrequency
-    type            (tensorRank2Dimension3Symmetric)                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
+    type            (treeNode                       ), pointer     , intent(inout) :: thisNode
+    logical                                                        , intent(in   ) :: odeConverged
+    logical                                                        , intent(inout) :: interrupt
+    procedure       (interruptTask                  ), pointer     , intent(inout) :: interruptProcedure
+    integer                                                        , intent(in   ) :: propertyType
+    class           (nodeComponentSatellite         ), pointer                     :: satelliteComponent
+    class           (nodeComponentBasic             ), pointer                     :: basicComponent
+    type            (treeNode                       ), pointer                     :: hostNode
+    class           (darkMatterHaloScaleClass       ), pointer                     :: darkMatterHaloScale_
+    class           (satelliteDynamicalFrictionClass), pointer                     :: satelliteDynamicalFriction_
+    double precision                                 , dimension(3)                :: position,velocity
+    double precision                                 , parameter                   :: radiusVirialFraction = 1.0d-2
+    double precision                                                               :: radius,halfMassRadiusSatellite
+    double precision                                                               :: halfMassRadiusCentral,orbitalRadiusTest
+    double precision                                                               :: radiusVirial
+    double precision                                                               :: orbitalPeriod
+    double precision                                                               :: parentDensity
+    double precision                                                               :: parentEnclosedMass,satelliteMass,basicMass,massDestruction
+    double precision                                                               :: tidalHeatingNormalized,angularFrequency,radialFrequency
+    type            (tensorRank2Dimension3Symmetric )                              :: tidalTensor,tidalTensorPathIntegrated,positionTensor
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -246,6 +247,7 @@ contains
              ! friction) acceleration we include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert
              ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
              ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
+             satelliteDynamicalFriction_ => satelliteDynamicalFriction()
              call satelliteComponent%velocityRate                 (                                                     &
                   &                                                -(kilo*gigaYear/megaParsec)                          &
                   &                                                *gravitationalConstantGalacticus                     &
@@ -257,7 +259,7 @@ contains
                   &                                                  +satelliteComponent%boundMass()                    &
                   &                                                  /parentEnclosedMass                                &
                   &                                                )                                                    &
-                  &                                                +Satellite_Dynamical_Friction_Acceleration(thisNode) &
+                  &                                                +satelliteDynamicalFriction_%acceleration (thisNode) &
                   &                                               )
              call satelliteComponent%boundMassRate                (                                                     &
                   &                                                +Satellite_Tidal_Stripping_Rate           (thisNode) &

@@ -16,50 +16,78 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+  !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+  
+  !% Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
+  
+  use Dark_Matter_Halo_Scales
+  
+  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943" defaultThreadPrivate="yes">
+  !#  <description>A satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.</description>
+  !# </satelliteDynamicalFriction>
+  type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionChandrasekhar1943
+     !% Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
+     private
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: logarithmCoulomb
+   contains
+     final     ::         chandrasekhar1943Destructor
+     procedure :: rate => chandrasekhar1943Acceleration
+  end type satelliteDynamicalFrictionChandrasekhar1943
 
-!% Contains a module with a \cite{chandrasekhar_dynamical_1943} implementation of calculations of satellite acceleration due to dynamical friction.
-
-module Dynamical_Friction_Acceleration_Chandrasekhar
-  !% Implements \cite{chandrasekhar_dynamical_1943} value of calculations of satellite acceleration due to dynamical friction.
-  implicit none
-  private
-  public :: Satellite_Dynamical_Friction_Chandrasekhar_Initialize
-
-  ! Coulomb logarithm parameter.
-  double precision :: satelliteDynamicalFrictionChandrasekharCoulombLogarithm
+  interface satelliteDynamicalFrictionChandrasekhar1943
+     !% Constructors for the chandrasekhar1943 satellite dynamical friction class.
+     module procedure chandrasekhar1943ConstructorParameters
+     module procedure chandrasekhar1943ConstructorInternal
+  end interface satelliteDynamicalFrictionChandrasekhar1943
 
 contains
-
-  !# <satelliteDynamicalFrictionMethod>
-  !#  <unitName>Satellite_Dynamical_Friction_Chandrasekhar_Initialize</unitName>
-  !# </satelliteDynamicalFrictionMethod>
-  subroutine Satellite_Dynamical_Friction_Chandrasekhar_Initialize(satelliteDynamicalFrictionMethod,Satellite_Dynamical_Friction_Acceleration)
-    !% Determine if this method is to be used and set pointer appropriately.
+  
+  function chandrasekhar1943ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class which builds the object from a parameter set.
     use Input_Parameters
-    use ISO_Varying_String
     implicit none
-    type     (varying_string                                         ),          intent(in   ) :: satelliteDynamicalFrictionMethod
-    procedure(Satellite_Dynamical_Friction_Acceleration_Chandrasekhar), pointer, intent(inout) :: Satellite_Dynamical_Friction_Acceleration
+    type            (satelliteDynamicalFrictionChandrasekhar1943)                :: self
+    type            (inputParameters                            ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
+    double precision                                                             :: logarithmCoulomb
 
-    if (satelliteDynamicalFrictionMethod == 'Chandrasekhar1943') then
-       Satellite_Dynamical_Friction_Acceleration => Satellite_Dynamical_Friction_Acceleration_Chandrasekhar
-       !# <inputParameter>
-       !#   <name>satelliteDynamicalFrictionChandrasekharCoulombLogarithm</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>2.0d0</defaultValue>
-       !#   <description>The Coulomb logarithm, $\ln \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} formulation of the acceleration due to dynamical friction.</description>
-       !#   <group></group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-   end if
+    !# <inputParameter>
+    !#   <name>logarithmCoulomb</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The Coulomb logarithm, $\ln \Lambda$, appearing in the \cite{chandrasekhar_dynamical_1943} formulation of the acceleration due to dynamical friction.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Satellite_Dynamical_Friction_Chandrasekhar_Initialize
+  end function chandrasekhar1943ConstructorParameters
 
-  function Satellite_Dynamical_Friction_Acceleration_Chandrasekhar(thisNode)
-    !% Return the \cite{chandrasekhar_dynamical_1943} acceleration for satellites due to dynamical friction.
-    use Galacticus_Nodes
+  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily chandrasekhar1943} satellite dynamical friction class.
+    implicit none
+    type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self
+    class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
+    double precision                                             , intent(in)            :: logarithmCoulomb
+    !# <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_"/>
+    
+    return
+  end function chandrasekhar1943ConstructorInternal
+  
+  subroutine chandrasekhar1943Destructor(self)
+    !% Destructor for the simple cooling radius class.
+    implicit none
+    type(satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine chandrasekhar1943Destructor
+
+  function chandrasekhar1943Acceleration(self,node)
+    !% Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
@@ -68,44 +96,46 @@ contains
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
     use Vectors
-    use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
-    double precision                          , dimension(3)  :: Satellite_Dynamical_Friction_Acceleration_Chandrasekhar
-    class           (nodeComponentSatellite  ), pointer       :: thisSatellite
-    type            (treeNode                ), pointer       :: hostNode
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    double precision                          , dimension(3)  :: position,velocity
-    double precision                                          :: satelliteMass,parentDensity,velocityMagnitude,velocityDispersion,Xv
+    double precision                                             , dimension(3)  :: chandrasekhar1943Acceleration
+    class           (satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
+    type            (treeNode                                   ), intent(inout) :: node
+    class           (nodeComponentSatellite                     ), pointer       :: satellite
+    type            (treeNode                                   ), pointer       :: nodeHost
+    double precision                                             , dimension(3)  :: position                     , velocity
+    double precision                                                             :: massSatellite                , densityHost       , &
+         &                                                                          velocityMagnitude            , velocityDispersion, &
+         &                                                                          Xv
 
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    hostNode             => thisNode     %mergesWith()
-    thisSatellite        => thisNode     %satellite ()
-    satelliteMass        =  thisSatellite%boundMass ()
-    position             =  thisSatellite%position  ()
-    velocity             =  thisSatellite%velocity  ()
-    velocityMagnitude    =  Vector_Magnitude                   (velocity)
-    velocityDispersion   =  darkMatterHaloScale_%virialVelocity(hostNode)
-    Xv                   =  velocityMagnitude/velocityDispersion/sqrt(2.0d0)
-    parentDensity        =  Galactic_Structure_Density(hostNode,position,coordinateSystemCartesian)
-    Satellite_Dynamical_Friction_Acceleration_Chandrasekhar=        &
-         & -4.0d0                                                   &
-         & *Pi                                                      &
-         & *satelliteDynamicalFrictionChandrasekharCoulombLogarithm &
-         & *gravitationalConstantGalacticus**2                      &
-         & *satelliteMass                                           &
-         & *parentDensity                                           &
-         & /velocityMagnitude**3                                    &
-         & *(                                                       &
-         &   Error_Function(Xv)                                     &
-         &   -2.0d0                                                 &
-         &   *Xv                                                    &
-         &   *exp(-Xv**2)                                           &
-         &   /sqrt(Pi)                                              &
-         &  )                                                       &
-         & *velocity                                                &
-         & *kilo*gigaYear/megaParsec
+    nodeHost                     =>  node     %mergesWith                         (        )
+    satellite                    =>  node     %satellite                          (        )
+    massSatellite                =   satellite%boundMass                          (        )
+    position                     =   satellite%position                           (        )
+    velocity                     =   satellite%velocity                           (        )
+    velocityDispersion           =   self     %darkMatterHaloScale_%virialVelocity(nodeHost)
+    velocityMagnitude            =   Vector_Magnitude          (         velocity                          )
+    densityHost                  =   Galactic_Structure_Density(nodeHost,position,coordinateSystemCartesian)
+    Xv                           =  +velocityMagnitude                  &
+         &                          /velocityDispersion                 &
+         &                          /sqrt(2.0d0)
+    chandrasekhar1943Acceleration=  -4.0d0                              &
+         &                          *Pi                                 &
+         &                          *self%logarithmCoulomb              &
+         &                          *gravitationalConstantGalacticus**2 &
+         &                          *massSatellite                      &
+         &                          *densityHost                        &
+         &                          /velocityMagnitude**3               &
+         &                          *(                                  &
+         &                            +Error_Function(Xv)               &
+         &                            -2.0d0                            &
+         &                            *Xv                               &
+         &                            *exp(-Xv**2)                      &
+         &                            /sqrt(Pi)                         &
+         &                           )                                  &
+         &                          *velocity                           &
+         &                          *kilo                               &
+         &                          *gigaYear                           &
+         &                          /megaParsec
     return
-  end function Satellite_Dynamical_Friction_Acceleration_Chandrasekhar
+  end function chandrasekhar1943Acceleration
 
-end module Dynamical_Friction_Acceleration_Chandrasekhar
