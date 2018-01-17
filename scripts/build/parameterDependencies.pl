@@ -46,9 +46,9 @@ while ( my $fileName = readdir($sourceDirectory) ) {
     # Galacticus::Build::SourceTree::Process::FunctionClass.
     (my $rootFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/./;
     if ( $fileName =~ m/\.F90$/ ) {
-	push(@{$output->{'parameters'}},read_file($rootFileName."p", chomp => 1, err_mode => 'quiet'))
-	    if ( grep {$_ eq $rootFileName."o"} @objectFiles );
-    }
+	push(@{$output->{'parameter'}},read_file($rootFileName."p", chomp => 1, err_mode => 'quiet'))
+	    if ( grep {$_ eq $objectFileName} @objectFiles );
+    }    
     # Process Fortran and C++ files.
     # Create a stack of files to process.
     my @fileStack;
@@ -71,7 +71,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	# Find all "inputParameter" directives, extract names from them, and push to the list of parameters.
 	push
 	    (
-	     @{$output->{'parameters'}},
+	     @{$output->{'parameter'}},
 	     map 
 	     {
 		 (! exists($_->{'source'}) || $_->{'source'} eq "globalParameters")
@@ -99,7 +99,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 close($sourceDirectory);
 
 # Remove duplicated parameters.
-@{$output->{'parameters'}} = uniq({sort => 1}, @{$output->{'parameters'}});
+@{$output->{'parameter'}} = uniq({sort => 1}, @{$output->{'parameter'}});
 
 # Serialize to XML.
 my $xmlOutput        = new XML::Simple (NoAttr=>1, RootName=>"parameters");
