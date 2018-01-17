@@ -288,7 +288,7 @@ program Test_Integration2
      do i=1,integratorMultiCount
         select type (integrator_ => integratorsMulti(i)%integrator_)
         class is (integratorMultiVectorizedCompositeTrapezoidal1D)
-           call integrator_%initialize   (24                                         )
+           call integrator_%initialize   (1000000                                    )
            allocate(tolerancesAbsolute(size(testFunctionsMulti(iFunction)%solution)))
            allocate(tolerancesRelative(size(testFunctionsMulti(iFunction)%solution)))
            tolerancesAbsolute=toleranceAbsolute
@@ -297,7 +297,7 @@ program Test_Integration2
            deallocate(tolerancesAbsolute)
            deallocate(tolerancesRelative)
         class is (integratorMultiVectorizedCompositeGaussKronrod1D)
-           call integrator_%initialize   (24               ,integratorsMulti(i)%order)
+           call integrator_%initialize   (1000000          ,integratorsMulti(i)%order)
            allocate(tolerancesAbsolute(size(testFunctionsMulti(iFunction)%solution)))
            allocate(tolerancesRelative(size(testFunctionsMulti(iFunction)%solution)))
            tolerancesAbsolute=toleranceAbsolute
