@@ -1996,43 +1996,39 @@ contains
        fm=fUnion(:,1)
        ! Compute the integral and error estimate at the midpoint.       
        convergedPrevious=converged
+       ! In cases where the integrand was not evaluated at the midpoint (i.e. the integral is already converged), estimate the
+       ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
+       ! integration rule.
        where (mustEvaluate)
-          newInterval1%integral=(fm+fa)*0.5d0*width
-          newInterval2%integral=(fm+fb)*0.5d0*width
-          newInterval1%error   =abs(0.5d0*width*fm-0.25d0*current%integral)
-          newInterval2%error   =newInterval1%error
-          newInterval1%fa      =fa
-          newInterval1%fb      =fm
-          newInterval2%fa      =fm
-          newInterval2%fb      =fb
-          integral                      &
-               & =integral              &
-               & -current     %integral &
-               & +newInterval1%integral &
-               & +newInterval2%integral
-          error                         &
-               & =error                 &
-               & -current     %error    &
-               & +newInterval1%error    &
-               & +newInterval2%error
-          ! Test for convergence.
-          converged=                                                &
-               &  abs(error) < self%toleranceAbsolute               &
-               & .or.                                               &
-               &  abs(error) < self%toleranceRelative*abs(integral)
+          newInterval1%error=abs(0.5d0*width*fm-0.25d0*current%integral)
        elsewhere
-          ! In cases where the integrand was not evaluated at the midpoint (i.e. the integral is already converged), estimate the
-          ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
-          ! integration rule.
-          newInterval1%fa      =fa
-          newInterval1%fb      =0.5d0*(fa+fb)
-          newInterval2%fa      =0.5d0*(fa+fb)
-          newInterval2%fb      =fb
-          newInterval1%integral=current%integral/2.0d0+width*(fa-fb)/4.0d0
-          newInterval2%integral=current%integral/2.0d0-width*(fa-fb)/4.0d0
-          newInterval1%error   =current%error   /2.0d0
-          newInterval2%error   =current%error   /2.0d0
+          newInterval1%error=                  +0.50d0*current%error
+          fm                =0.5d0*(fa+fb)
        end where
+       ! Set new intervals.
+       newInterval1%fa      =    fa
+       newInterval2%fb      =    fb
+       newInterval1%fb      = fm
+       newInterval2%fa      = fm
+       newInterval1%integral=(fm+fa)*0.5d0*width
+       newInterval2%integral=(fm+fb)*0.5d0*width
+       ! Error on second integral is identical to that on the first.
+       newInterval2%error=newInterval1%error
+       ! Updated integrals and error estimates.
+       integral =+integral              &
+            &    -current     %integral &
+            &    +newInterval1%integral &
+            &    +newInterval2%integral
+       error    =+error                 &
+            &    -current     %error    &
+            &    +newInterval1%error    &
+            &    +newInterval2%error
+       ! Test for convergence.
+       converged= converged                                         &
+            &    .or.                                               &
+            &     abs(error) < self%toleranceAbsolute               &
+            &    .or.                                               &
+            &     abs(error) < self%toleranceRelative*abs(integral)
        if (.not.all(converged) .and. any(converged .neqv. convergedPrevious).and.intervalCount > 1_c_size_t) then
           ! One or more integrals have converged. We must resort the linked list of intervals to ensure that it is in order of
           ! descending error measure.
@@ -2129,7 +2125,7 @@ contains
     end do
     ! Report error if number of intervals was exceeded.
     if (present(status)) status=errorStatusSuccess
-    if (intervalCount > self%intervalsMaximum .and. .not.all(converged)) then
+    if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
        if (present(status)) then
           status=errorStatusFail
        else
