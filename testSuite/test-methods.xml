@@ -841,7 +841,7 @@
     <treeNodeMethodSpheroid value="null"/>
     <spheroidMassDistribution value="hernquist"/>
     <treeNodeMethodSpin value="random"/>
-    <satelliteDynamicalFrictionMethod value="Chandrasekhar1943"/>    
+    <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>    
     <cosmologyFunctionsMethod value="matterLambda"/>
     <cosmologyParametersMethod value="simple">
       <HubbleConstant value="70.2"/>
