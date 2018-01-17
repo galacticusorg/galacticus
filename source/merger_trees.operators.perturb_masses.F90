@@ -83,14 +83,26 @@ contains
   end subroutine perturbMassesDestructor
   
   subroutine perturbMassesOperate(self,tree)
-    !% Perform a mass perturbing operation on a merger tree.
+    !% Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are
+    !% independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
+    !% log-normal distribution with variance and correlation specified by the selected N-body statistics class.
+    use, intrinsic :: ISO_C_Binding
+    use            :: Linear_Algebra
     implicit none
-    class           (mergerTreeOperatorPerturbMasses), intent(inout)         :: self
-    type            (mergerTree                     ), intent(inout), target :: tree
-    type            (treeNode                       ), pointer               :: node
-    class           (nodeComponentBasic             ), pointer               :: basic
-    type            (mergerTree                     ), pointer               :: treeCurrent
-    double precision                                                         :: rootVarianceMassFractional, perturbationMassFractional
+    class           (mergerTreeOperatorPerturbMasses), intent(inout)                 :: self
+    type            (mergerTree                     ), intent(inout), target         :: tree
+    type            (treeNode                       ), pointer                       :: node                      , nodeChild1                  , &
+         &                                                                              nodeChild2
+    class           (nodeComponentBasic             ), pointer                       :: basic
+    type            (mergerTree                     ), pointer                       :: treeCurrent
+    double precision                                 , allocatable  , dimension(:  ) :: deviates                  , perturbations
+    double precision                                 , allocatable  , dimension(:,:) :: covariance
+    type            (matrix                         )                                :: cholesky
+    type            (vector                         )                                :: deviateVector             , perturbationVector
+    integer         (c_size_t                       )                                :: nodeCount                 , iNode1                      , &
+         &                                                                              iNode2
+    double precision                                                                 :: rootVarianceMassFractional1, rootVarianceMassFractional2, &
+         &                                                                              correlation
     
     ! Iterate over trees.
     treeCurrent => tree
@@ -99,17 +111,69 @@ contains
        node => treeCurrent%baseNode
        ! Walk the tree.
        do while (associated(node))
-          ! Determine the fractional error in the mass of this node.
-          rootVarianceMassFractional=+self%nbodyHaloMassError_%errorFractional(node                                                   )
-          ! Draw a fractional error at random from a normal distribution with this root-variance.
-          perturbationMassFractional=+rootVarianceMassFractional                                                                        &
-               &                     *self%standardNormal     %sample         (randomNumberGenerator=treeCurrent%randomNumberGenerator)
-          ! Perturb the mass of the halo.
-          basic => node%basic()
-          call basic%massSet(                                        &
-               &             +basic%mass(                          ) &
-               &             *exp       (perturbationMassFractional) &
-               &            )
+          ! Identify nodes which are at the end (i.e. latest time) of their branch.
+          if (.not.associated(node%parent).or..not.node%isPrimaryProgenitor()) then
+             ! Count nodes in this branch.
+             nodeCount  =  0_c_size_t
+             nodeChild1 => node
+             do while (associated(nodeChild1))
+                nodeCount  =  nodeCount           +1_c_size_t
+                nodeChild1 => nodeChild1%firstChild
+             end do
+             ! Allocate storage for the correlation matrix.
+             allocate(covariance   (nodeCount,nodeCount))
+             allocate(deviates     (nodeCount          ))
+             allocate(perturbations(nodeCount          ))
+             ! Walk the branch, populating the covariance matrix.
+             iNode1     =  0_c_size_t
+             nodeChild1 => node
+             do while (associated(nodeChild1))
+                iNode1=iNode1+1_c_size_t
+                ! Determine the fractional error in the mass of this node.
+                rootVarianceMassFractional1=+self%nbodyHaloMassError_%errorFractional(nodeChild1)
+                ! Generate a random deviate.
+                deviates(iNode1)=self%standardNormal%sample(randomNumberGenerator=treeCurrent%randomNumberGenerator)
+                ! Walk the remainder of the branch to build the covariance matrix.
+                iNode2     =  iNode1-1_c_size_t
+                nodeChild2 => nodeChild1
+                do while (associated(nodeChild2))
+                   iNode2=iNode2+1_c_size_t
+                   ! Determine the fractional error in the mass of this node.
+                   rootVarianceMassFractional2=+self%nbodyHaloMassError_%errorFractional(           nodeChild2)
+                   ! Determine the correlation
+                   correlation                =+self%nbodyHaloMassError_%correlation    (nodeChild1,nodeChild2)
+                   ! Populate the covariance matrix.
+                   covariance       (iNode1,iNode2)=+rootVarianceMassFractional1 &
+                        &                           *rootVarianceMassFractional2 &
+                        &                           *correlation
+                   covariance       (iNode2,iNode1)=                             &
+                        & covariance(iNode1,iNode2)
+                   nodeChild2 => nodeChild2%firstChild
+                end do
+                nodeChild1 => nodeChild1%firstChild
+             end do
+             ! Get Cholesky decomposition of the covariance matrix.
+             cholesky=covariance
+             call cholesky%choleskyDecompose()
+             ! Construct realization of fractional mass perturbations.
+             deviateVector     =deviates
+             perturbationVector=cholesky          *deviateVector
+             perturbations     =perturbationVector             
+             ! Perturb the masses of the halos.
+             iNode1     =  0_c_size_t
+             nodeChild1 => node
+             do while (associated(nodeChild1))
+                basic => nodeChild1%basic()
+                call basic%massSet(                                   &
+                     &             +basic%mass(                     ) &
+                     &             *exp       (perturbations(iNode1)) &
+                     &            )
+                nodeChild1 => nodeChild1%firstChild
+             end do
+             deallocate(covariance   )
+             deallocate(deviates     )
+             deallocate(perturbations)
+          end if
           ! Walk to the next node in the tree.
           node => node%walkTree()
        end do
