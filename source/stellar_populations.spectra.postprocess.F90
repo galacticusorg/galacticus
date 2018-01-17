@@ -120,6 +120,7 @@ module Stellar_Population_Spectra_Postprocess
     ! present, and so the default will be ignored.    
     !# <inputParameter>
     !#   <name>char(parameterName)</name>
+    !#   <regEx>stellarPopulationSpectraPostprocess[A-Za-z0-9]+Methods</regEx>
     !#   <variable>postprocessingChainNamesTemporary</variable>
     !#   <defaultValue>[var_str('inoue2014')]</defaultValue>
     !#   <source>globalParameters</source>
