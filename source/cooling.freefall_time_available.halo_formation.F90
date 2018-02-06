@@ -86,7 +86,7 @@ contains
     type (treeNode                          ), intent(inout) :: node
     class(nodeComponentBasic                ), pointer       :: basic
     class(nodeComponentFormationTime        ), pointer       :: formationTime
-    !GCC$ attributes unused :: node
+    !GCC$ attributes unused :: self, node
 
     basic                      =>  node         %basic        ()
     formationTime              =>  node         %formationTime()
