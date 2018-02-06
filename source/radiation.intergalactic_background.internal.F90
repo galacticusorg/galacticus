@@ -62,10 +62,11 @@ contains
     use Cosmology_Functions
     use Atomic_Cross_Sections_Ionization_Photo
     implicit none
-    type   (universe               ), intent(inout) :: universe_
-    type   (universeEvent          ), pointer       :: event
-    class  (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
-    integer                                         :: iWavelength        , iTime
+    type   (universe                              ), intent(inout) :: universe_
+    type   (universeEvent                         ), pointer       :: event
+    class  (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class  (atomicCrossSectionIonizationPhotoClass), pointer       :: atomicCrossSectionIonizationPhoto_
+    integer                                                        :: iWavelength                       , iTime
 
     ! Get parameter controlling background radiation spectral and time resolution.
     !# <inputParameter>
@@ -126,7 +127,8 @@ contains
        !#   <type>real</type>
        !# </inputParameter>
        ! Build tables of wavelength and time for cosmic background radiation.
-       cosmologyFunctions_       => cosmologyFunctions      ()
+       cosmologyFunctions_                => cosmologyFunctions               ()
+       atomicCrossSectionIonizationPhoto_ => atomicCrossSectionIonizationPhoto()
        backgroundRadiationTimeMaximum                                                              &
             & =cosmologyFunctions_%cosmicTime                 (                                    &
             &  cosmologyFunctions_%expansionFactorFromRedshift (                                   &
@@ -197,9 +199,9 @@ contains
        call allocateArray(crossSectionNeutralHelium      ,[backgroundRadiationWavelengthCount])
        call allocateArray(crossSectionSinglyIonizedHelium,[backgroundRadiationWavelengthCount])
        do iWavelength=1,backgroundRadiationWavelengthCount
-          crossSectionNeutralHydrogen    (iWavelength)=Atomic_Cross_Section_Ionization_Photo(1,1,1,backgroundRadiationWavelength(iWavelength))
-          crossSectionNeutralHelium      (iWavelength)=Atomic_Cross_Section_Ionization_Photo(2,1,1,backgroundRadiationWavelength(iWavelength))
-          crossSectionSinglyIonizedHelium(iWavelength)=Atomic_Cross_Section_Ionization_Photo(2,2,1,backgroundRadiationWavelength(iWavelength))
+          crossSectionNeutralHydrogen    (iWavelength)=atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,backgroundRadiationWavelength(iWavelength))
+          crossSectionNeutralHelium      (iWavelength)=atomicCrossSectionIonizationPhoto_%crossSection(2,1,1,backgroundRadiationWavelength(iWavelength))
+          crossSectionSinglyIonizedHelium(iWavelength)=atomicCrossSectionIonizationPhoto_%crossSection(2,2,1,backgroundRadiationWavelength(iWavelength))
        end do
        ! Create the first interrupt event in the universe object.
        backgroundTimePrevious=  0.0d0

@@ -487,37 +487,38 @@
      use Numerical_Integration
      use FGSL
      implicit none
-     double precision                               , intent(in  )                :: time
-     double precision                               , intent(in   ), dimension(:) :: properties
-     double precision                               , intent(  out), dimension(:) :: propertiesRateOfChange
-     class           (gauntFactorClass             ), pointer                     :: gauntFactor_
-     class           (linearGrowthClass            ), pointer                     :: linearGrowth_
-     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_
-     double precision                               , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
-     double precision                               , parameter                   :: massFilteringMinimum                      =1.0d2
-     double precision                                              , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
-          &                                                                          massFilteringCompositeRateOfChange
-     double precision                                              , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
-     type            (radiationStructure           ), save                        :: radiation  
-     type            (fgsl_function                )                              :: integrationFunction
-     type            (fgsl_integration_workspace   )                              :: integrationWorkspace
-     logical                                                                      :: integrationReset
-     integer                                                                      :: electronNumber                                    , atomicNumber                       , &
-          &                                                                          ionizationState                                   , shellNumber                        , &
-          &                                                                          photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
-          &                                                                          iProperty
-     double precision                                                             :: temperature                                       , clumpingFactor                     , &
-          &                                                                          electronDensityRateOfChange                       , densityElectron                    , &
-          &                                                                          densityTotal                                      , ionizationPhotoRateFrom            , &
-          &                                                                          ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
-          &                                                                          massFilteringRateOfChange                         , opticalDepth                       , &
-          &                                                                          collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
-          &                                                                          densityLowerIon                                   , densityUpperIon                    , &
-          &                                                                          densityThisIon                                    , recombinationDielectronicRateTo    , &
-          &                                                                          recombinationDielectronicRateFrom                 , recombinationRateTo                , &
-          &                                                                          recombinationRateFrom                             , wavelengthMinimum                  , &
-          &                                                                          wavelengthMaximum                                 , heatingRate                        , &
-          &                                                                          massParticleMean                                  , massFiltering_
+     double precision                                        , intent(in  )                :: time
+     double precision                                        , intent(in   ), dimension(:) :: properties
+     double precision                                        , intent(  out), dimension(:) :: propertiesRateOfChange
+     class           (gauntFactorClass                      ), pointer                     :: gauntFactor_
+     class           (linearGrowthClass                     ), pointer                     :: linearGrowth_
+     class           (cosmologicalMassVarianceClass         ), pointer                     :: cosmologicalMassVariance_
+     class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ 
+     double precision                                        , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
+     double precision                                        , parameter                   :: massFilteringMinimum                      =1.0d2
+     double precision                                                       , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
+          &                                                                                   massFilteringCompositeRateOfChange
+     double precision                                                       , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
+     type            (radiationStructure                    ), save                        :: radiation  
+     type            (fgsl_function                         )                              :: integrationFunction
+     type            (fgsl_integration_workspace            )                              :: integrationWorkspace
+     logical                                                                               :: integrationReset
+     integer                                                                               :: electronNumber                                    , atomicNumber                       , &
+          &                                                                                   ionizationState                                   , shellNumber                        , &
+          &                                                                                   photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
+          &                                                                                   iProperty
+     double precision                                                                      :: temperature                                       , clumpingFactor                     , &
+          &                                                                                   electronDensityRateOfChange                       , densityElectron                    , &
+          &                                                                                   densityTotal                                      , ionizationPhotoRateFrom            , &
+          &                                                                                   ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
+          &                                                                                   massFilteringRateOfChange                         , opticalDepth                       , &
+          &                                                                                   collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
+          &                                                                                   densityLowerIon                                   , densityUpperIon                    , &
+          &                                                                                   densityThisIon                                    , recombinationDielectronicRateTo    , &
+          &                                                                                   recombinationDielectronicRateFrom                 , recombinationRateTo                , &
+          &                                                                                   recombinationRateFrom                             , wavelengthMinimum                  , &
+          &                                                                                   wavelengthMaximum                                 , heatingRate                        , &
+          &                                                                                   massParticleMean                                  , massFiltering_
 
      ! Extract properties from the contiguous array.
      temperature            =max(properties( 1   ),0.0d0               )
@@ -534,10 +535,11 @@
           &                  +sum(max(      densityHelium_     ,0.0d0)) &
           &                  +densityElectron
      ! Get required objects.
-     cosmologyParameters_      => cosmologyParameters     ()
-     cosmologyFunctions_       => cosmologyFunctions      ()
-     linearGrowth_             => linearGrowth            ()
-     cosmologicalMassVariance_ => cosmologicalMassVariance()
+     cosmologyParameters_               => cosmologyParameters              ()
+     cosmologyFunctions_                => cosmologyFunctions               ()
+     linearGrowth_                      => linearGrowth                     ()
+     cosmologicalMassVariance_          => cosmologicalMassVariance         ()
+     atomicCrossSectionIonizationPhoto_ => atomicCrossSectionIonizationPhoto()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute rates of change of filtering mass composite parameters and optical depth.
@@ -877,14 +879,14 @@
                &        /plancksConstant            & 
                &        /speedLight                 &
                &        /wavelength
-          Photoionization_Rate_Integrand=+speedLight                                                        &
-               &                         *Atomic_Cross_Section_Ionization_Photo(                            &
-               &                                                                atomicNumber              , &
-               &                                                                photoionizationGroundIonizationState, &
-               &                                                                shellNumber               , &
-               &                                                                wavelength                  &
-               &                                                               )                            &
-               &                         *centi**2                                                          &
+          Photoionization_Rate_Integrand=+speedLight                                                                            &
+               &                         *atomicCrossSectionIonizationPhoto_%crossSection(                                      &
+               &                                                                          atomicNumber                        , &
+               &                                                                          photoionizationGroundIonizationState, &
+               &                                                                          shellNumber                         , &
+               &                                                                          wavelength                            &
+               &                                                                         )                                      &
+               &                         *centi**2                                                                              &
                &                         *photonDensity
        end if
        return
@@ -908,25 +910,25 @@
                &        /plancksConstant            & 
                &        /speedLight                 &
                &        /wavelength
-          Photoionization_Heating_Rate_Integrand=+speedLight                                                                  &
-               &                                 *Atomic_Cross_Section_Ionization_Photo(                                      &
-               &                                                                        atomicNumber                        , &
-               &                                                                        photoionizationGroundIonizationState, &
-               &                                                                        shellNumber                         , &
-               &                                                                        wavelength                            &
-               &                                                                       )                                      &
-               &                                 *centi**2                                                                    &
-               &                                 *photonDensity                                                               &
-               &                                 *(                                                                           &
-               &                                   +plancksConstant                                                           &
-               &                                   *speedLight                                                                &
-               &                                   *angstromsPerMeter                                                         &
-               &                                   /wavelength                                                                &
-               &                                   -Atomic_Ionization_Potential        (                                      &
-               &                                                                        atomicNumber                        , &
-               &                                                                        photoionizationGroundElectronNumber   &
-               &                                                                       )                                      &
-               &                                   *electronVolt                                                              &
+          Photoionization_Heating_Rate_Integrand=+speedLight                                                                            &
+               &                                 *atomicCrossSectionIonizationPhoto_%crossSection(                                      &
+               &                                                                                  atomicNumber                        , &
+               &                                                                                  photoionizationGroundIonizationState, &
+               &                                                                                  shellNumber                         , &
+               &                                                                                  wavelength                            &
+               &                                                                                 )                                      &
+               &                                 *centi**2                                                                              &
+               &                                 *photonDensity                                                                         &
+               &                                 *(                                                                                     &
+               &                                   +plancksConstant                                                                     &
+               &                                   *speedLight                                                                          &
+               &                                   *angstromsPerMeter                                                                   &
+               &                                   /wavelength                                                                          &
+               &                                   -Atomic_Ionization_Potential        (                                                &
+               &                                                                        atomicNumber                                  , &
+               &                                                                        photoionizationGroundElectronNumber             &
+               &                                                                       )                                                &
+               &                                   *electronVolt                                                                        &
                &                                  )
        end if
        return

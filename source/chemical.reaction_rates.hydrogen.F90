@@ -1776,11 +1776,12 @@ contains
     !% \cite{abel_modeling_1997}.
     use Atomic_Cross_Sections_Ionization_Photo
     implicit none
-    double precision, intent(in   ) :: wavelength
+    double precision                                        , intent(in   ) :: wavelength
+    class           (atomicCrossSectionIonizationPhotoClass), pointer       :: atomicCrossSectionIonizationPhoto_
 
     ! Use the hydrogen photoionization cross section method.
-    Cross_Section_H_Gamma_to_Hplus_Electron=Atomic_Cross_Section_Ionization_Photo(1,1,1,wavelength)
-
+    atomicCrossSectionIonizationPhoto_ => atomicCrossSectionIonizationPhoto()
+    Cross_Section_H_Gamma_to_Hplus_Electron=atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,wavelength)
     return
   end function Cross_Section_H_Gamma_to_Hplus_Electron
 
