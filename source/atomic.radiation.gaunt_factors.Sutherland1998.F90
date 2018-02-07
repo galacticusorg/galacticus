@@ -109,11 +109,12 @@ contains
     use Atomic_Ionization_Potentials
     use Galacticus_Error
     implicit none
-    class           (gauntFactorSutherland1998), intent(inout) :: self
-    integer                                    , intent(in   ) :: atomicNumber     , electronNumber
-    double precision                           , intent(in   ) :: temperature                     
-    integer         (c_size_t                 )                :: iTable
-    double precision                                           :: energyScaleOffset, energyScaleLogarithmic
+    class           (gauntFactorSutherland1998     ), intent(inout) :: self
+    integer                                         , intent(in   ) :: atomicNumber              , electronNumber
+    double precision                                , intent(in   ) :: temperature
+    class           (atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
+    integer         (c_size_t                      )                :: iTable
+    double precision                                                :: energyScaleOffset         , energyScaleLogarithmic
     !GCC$ attributes unused :: self
     
     ! Return zero for unphysical temperatures
@@ -124,10 +125,11 @@ contains
     ! Validate input.
     if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
-    if (Atomic_Ionization_Potential(atomicNumber,electronNumber) == 0.0d0) then
+    atomicIonizationPotential_ => atomicIonizationPotential()
+    if (atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        sutherland1998Total=0.0d0
     else
-       energyScaleLogarithmic=log10(Atomic_Ionization_Potential(atomicNumber,electronNumber)*electronVolt/temperature)-log10(boltzmannsConstant)
+       energyScaleLogarithmic=log10(atomicIonizationPotential_%potential(atomicNumber,electronNumber)*electronVolt/temperature)-log10(boltzmannsConstant)
        iTable=Search_Array(sutherland1998EnergyScalesLogarithmic,energyScaleLogarithmic)
        if (iTable <=                0) iTable=               1
        if (iTable >= sutherland1998CoefficientCount) iTable=sutherland1998CoefficientCount
