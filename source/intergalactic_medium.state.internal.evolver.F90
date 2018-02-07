@@ -494,6 +494,7 @@
      class           (linearGrowthClass                     ), pointer                     :: linearGrowth_
      class           (cosmologicalMassVarianceClass         ), pointer                     :: cosmologicalMassVariance_
      class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ 
+     class           (atomicIonizationPotentialClass        ), pointer                     :: atomicIonizationPotential_
      double precision                                        , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
      double precision                                        , parameter                   :: massFilteringMinimum                      =1.0d2
      double precision                                                       , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
@@ -540,6 +541,7 @@
      linearGrowth_                      => linearGrowth                     ()
      cosmologicalMassVariance_          => cosmologicalMassVariance         ()
      atomicCrossSectionIonizationPhoto_ => atomicCrossSectionIonizationPhoto()
+     atomicIonizationPotential_         => atomicIonizationPotential        ()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute rates of change of filtering mass composite parameters and optical depth.
@@ -598,15 +600,15 @@
            shellNumber=1          
            ! Compute collisional ionization rates from this ion.
            if (electronNumber  > 0) then
-              collisionIonizationRateFrom=-Atomic_Rate_Ionization_Collisional(atomicNumber,ionizationState  ,temperature                   ) &
-                   &                      *densityThisIon                                                                                    &
+              collisionIonizationRateFrom=-Atomic_Rate_Ionization_Collisional  (atomicNumber,ionizationState  ,temperature                   ) &
+                   &                      *densityThisIon                                                                                      &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                       &
-                   &                      -Atomic_Ionization_Potential       (atomicNumber,electronNumber +1                               ) &
-                   &                      *electronVolt                                                                                      &
-                   &                      *collisionIonizationRateFrom                                                                       &
-                   &                      *gigaYear                                                                                          &
-                   &                      *centi**3                                                                                          &
+              heatingRate                =+heatingRate                                                                                         &
+                   &                      -atomicIonizationPotential_%potential(atomicNumber,electronNumber +1                               ) &
+                   &                      *electronVolt                                                                                        &
+                   &                      *collisionIonizationRateFrom                                                                         &
+                   &                      *gigaYear                                                                                            &
+                   &                      *centi**3                                                                                            &
                    &                      *clumpingFactor
             else
               collisionIonizationRateFrom=+0.0d0
@@ -675,10 +677,10 @@
               photoionizationGroundIonizationState=ionizationState
               ! Set the minimum and maximum wavelengths for photoionization.
               wavelengthMinimum=+0.0d0
-              wavelengthMaximum=+plancksConstant                                          &
-                   &            *speedLight                                               &
-                   &            /Atomic_Ionization_Potential(atomicNumber,electronNumber) &
-                   &            /electronVolt                                             &
+              wavelengthMaximum=+plancksConstant                                                   &
+                   &            *speedLight                                                        &
+                   &            /atomicIonizationPotential_%potential(atomicNumber,electronNumber) &
+                   &            /electronVolt                                                      &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               integrationReset       =.true.
@@ -703,10 +705,10 @@
               photoionizationGroundElectronNumber =electronNumber +1
               ! Set the minimum and maximum wavelengths for photoionization.
               wavelengthMinimum=0.0d0
-              wavelengthMaximum=+plancksConstant                                            &
-                   &            *speedLight                                                 &
-                   &            /Atomic_Ionization_Potential(atomicNumber,electronNumber+1) &
-                   &            /electronVolt                                               &
+              wavelengthMaximum=+plancksConstant                                                     &
+                   &            *speedLight                                                          &
+                   &            /atomicIonizationPotential_%potential(atomicNumber,electronNumber+1) &
+                   &            /electronVolt                                                        &
                    &            *angstromsPerMeter
               ! Integrate photoionizations over wavelength.
               integrationReset       =.true.
@@ -924,10 +926,10 @@
                &                                   *speedLight                                                                          &
                &                                   *angstromsPerMeter                                                                   &
                &                                   /wavelength                                                                          &
-               &                                   -Atomic_Ionization_Potential        (                                                &
-               &                                                                        atomicNumber                                  , &
-               &                                                                        photoionizationGroundElectronNumber             &
-               &                                                                       )                                                &
+               &                                   -atomicIonizationPotential_      %potential   (                                      &
+               &                                                                                  atomicNumber                        , &
+               &                                                                                  photoionizationGroundElectronNumber   &
+               &                                                                                 )                                      &
                &                                   *electronVolt                                                                        &
                &                                  )
        end if

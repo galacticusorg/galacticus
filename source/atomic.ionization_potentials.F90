@@ -16,74 +16,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+ Contributions to this file made by: Daniel McAndrew.
+!+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-!% Contains a module that implements calculations of atomic ionization potentials.
+!% Contains a module that implements an atomic ionization potential class.
 
 module Atomic_Ionization_Potentials
-  !% Implements calculations of atomic photo-ionization cross-sections.
-  use ISO_Varying_String 
-  implicit none
-  private
-  public :: Atomic_Ionization_Potential
+  !% Implements an atomic ionization potential class.
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                         :: moduleInitialized               =  .false.
+  !# <functionClass>
+  !#  <name>atomicIonizationPotential</name>
+  !#  <descriptiveName>Atomic ionization potentials.</descriptiveName>
+  !#  <description>Class providing atomic ionization potentials.</description>
+  !#  <default>verner</default>
+  !#  <method name="potential" >
+  !#   <description>Returns the ionization potential (in units of eV) for a given atom in a given ionization state.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: atomicNumber, electronNumber</argument>
+  !#  </method>
+  !# </functionClass>
 
-  ! Name of ionization state method used.
-  type     (varying_string             )          :: atomicIonizationPotentialMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Ionization_Potential), pointer :: Atomic_Ionization_Potential_Get => null()
-  
-contains
-
-  subroutine Atomic_Ionization_Potential_Initialize()
-    !% Initialize the atomic ionization potential module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="atomicIonizationPotentialMethod" type="moduleUse">
-    include 'atomic.ionization_potentials.modules.inc'
-    !# </include>
-    implicit none
-    
-    ! Initialize if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical(Atomic_Ionization_Potential_Initialize)  
-       if (.not.moduleInitialized) then
-          ! Get the ionization potential method parameter.
-          !# <inputParameter>
-          !#   <name>atomicIonizationPotentialMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Verner')</defaultValue>
-          !#   <description>The name of the method to be used for computing atomic ionization potentials.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-                    ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="atomicIonizationPotentialMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>atomicIonizationPotentialMethod,Atomic_Ionization_Potential_Get</functionArgs>
-          include 'atomic.ionization_potentials.inc'
-          !# </include>
-          if (.not.associated(Atomic_Ionization_Potential_Get)) &
-               & call Galacticus_Error_Report('method '//char(atomicIonizationPotentialMethod)//' is unrecognized'//{introspection:location})
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(Atomic_Ionization_Potential_Initialize) 
-    end if
-    return
-  end subroutine Atomic_Ionization_Potential_Initialize
-
-  double precision function Atomic_Ionization_Potential(atomicNumber,electronNumber)
-    !% Return the ionization potential (in units of eV) for a given atom in a given ionization state.
-    implicit none
-    integer, intent(in   ) :: atomicNumber,electronNumber
-
-    ! Initialize the module.
-    call Atomic_Ionization_Potential_Initialize()
-    ! Call the routine to do the calculation.
-    Atomic_Ionization_Potential=Atomic_Ionization_Potential_Get(atomicNumber,electronNumber)
-    return
-  end function Atomic_Ionization_Potential
-  
 end module Atomic_Ionization_Potentials
