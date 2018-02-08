@@ -487,39 +487,40 @@
      use Numerical_Integration
      use FGSL
      implicit none
-     double precision                                        , intent(in  )                :: time
-     double precision                                        , intent(in   ), dimension(:) :: properties
-     double precision                                        , intent(  out), dimension(:) :: propertiesRateOfChange
-     class           (gauntFactorClass                      ), pointer                     :: gauntFactor_
-     class           (linearGrowthClass                     ), pointer                     :: linearGrowth_
-     class           (cosmologicalMassVarianceClass         ), pointer                     :: cosmologicalMassVariance_
-     class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ 
-     class           (atomicIonizationPotentialClass        ), pointer                     :: atomicIonizationPotential_
-     double precision                                        , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
-     double precision                                        , parameter                   :: massFilteringMinimum                      =1.0d2
-     double precision                                                       , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
-          &                                                                                   massFilteringCompositeRateOfChange
-     double precision                                                       , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
-     type            (radiationStructure                    ), save                        :: radiation  
-     type            (fgsl_function                         )                              :: integrationFunction
-     type            (fgsl_integration_workspace            )                              :: integrationWorkspace
-     logical                                                                               :: integrationReset
-     integer                                                                               :: electronNumber                                    , atomicNumber                       , &
-          &                                                                                   ionizationState                                   , shellNumber                        , &
-          &                                                                                   photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
-          &                                                                                   iProperty
-     double precision                                                                      :: temperature                                       , clumpingFactor                     , &
-          &                                                                                   electronDensityRateOfChange                       , densityElectron                    , &
-          &                                                                                   densityTotal                                      , ionizationPhotoRateFrom            , &
-          &                                                                                   ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
-          &                                                                                   massFilteringRateOfChange                         , opticalDepth                       , &
-          &                                                                                   collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
-          &                                                                                   densityLowerIon                                   , densityUpperIon                    , &
-          &                                                                                   densityThisIon                                    , recombinationDielectronicRateTo    , &
-          &                                                                                   recombinationDielectronicRateFrom                 , recombinationRateTo                , &
-          &                                                                                   recombinationRateFrom                             , wavelengthMinimum                  , &
-          &                                                                                   wavelengthMaximum                                 , heatingRate                        , &
-          &                                                                                   massParticleMean                                  , massFiltering_
+     double precision                                          , intent(in  )                :: time
+     double precision                                          , intent(in   ), dimension(:) :: properties
+     double precision                                          , intent(  out), dimension(:) :: propertiesRateOfChange
+     class           (gauntFactorClass                        ), pointer                     :: gauntFactor_
+     class           (linearGrowthClass                       ), pointer                     :: linearGrowth_
+     class           (cosmologicalMassVarianceClass           ), pointer                     :: cosmologicalMassVariance_
+     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ 
+     class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_
+     class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_
+     double precision                                          , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
+     double precision                                          , parameter                   :: massFilteringMinimum                      =1.0d2
+     double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
+          &                                                                                     massFilteringCompositeRateOfChange
+     double precision                                                         , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
+     type            (radiationStructure                      ), save                        :: radiation  
+     type            (fgsl_function                           )                              :: integrationFunction
+     type            (fgsl_integration_workspace              )                              :: integrationWorkspace
+     logical                                                                                 :: integrationReset
+     integer                                                                                 :: electronNumber                                    , atomicNumber                       , &
+          &                                                                                     ionizationState                                   , shellNumber                        , &
+          &                                                                                     photoionizationGroundIonizationState              , photoionizationGroundElectronNumber, &
+          &                                                                                     iProperty
+     double precision                                                                        :: temperature                                       , clumpingFactor                     , &
+          &                                                                                     electronDensityRateOfChange                       , densityElectron                    , &
+          &                                                                                     densityTotal                                      , ionizationPhotoRateFrom            , &
+          &                                                                                     ionizationPhotoRateTo                             , opticalDepthRateOfChange           , &
+          &                                                                                     massFilteringRateOfChange                         , opticalDepth                       , &
+          &                                                                                     collisionIonizationRateFrom                       , collisionIonizationRateTo          , &
+          &                                                                                     densityLowerIon                                   , densityUpperIon                    , &
+          &                                                                                     densityThisIon                                    , recombinationDielectronicRateTo    , &
+          &                                                                                     recombinationDielectronicRateFrom                 , recombinationRateTo                , &
+          &                                                                                     recombinationRateFrom                             , wavelengthMinimum                  , &
+          &                                                                                     wavelengthMaximum                                 , heatingRate                        , &
+          &                                                                                     massParticleMean                                  , massFiltering_
 
      ! Extract properties from the contiguous array.
      temperature            =max(properties( 1   ),0.0d0               )
@@ -536,12 +537,13 @@
           &                  +sum(max(      densityHelium_     ,0.0d0)) &
           &                  +densityElectron
      ! Get required objects.
-     cosmologyParameters_               => cosmologyParameters              ()
-     cosmologyFunctions_                => cosmologyFunctions               ()
-     linearGrowth_                      => linearGrowth                     ()
-     cosmologicalMassVariance_          => cosmologicalMassVariance         ()
-     atomicCrossSectionIonizationPhoto_ => atomicCrossSectionIonizationPhoto()
-     atomicIonizationPotential_         => atomicIonizationPotential        ()
+     cosmologyParameters_                 => cosmologyParameters                ()
+     cosmologyFunctions_                  => cosmologyFunctions                 ()
+     linearGrowth_                        => linearGrowth                       ()
+     cosmologicalMassVariance_            => cosmologicalMassVariance           ()
+     atomicCrossSectionIonizationPhoto_   => atomicCrossSectionIonizationPhoto  ()
+     atomicIonizationPotential_           => atomicIonizationPotential          ()
+     atomicRecombinationRateDielectronic_ => atomicRecombinationRateDielectronic()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute rates of change of filtering mass composite parameters and optical depth.
@@ -647,23 +649,23 @@
            end if
            ! Compute dielectronic recombination rates from this ion.
            if (ionizationState > 1) then
-              recombinationDielectronicRateFrom=-Dielectronic_Recombination_Rate(atomicNumber,electronNumber+1,temperature) &
-                   &                            *densityThisIon                                                             &
+              recombinationDielectronicRateFrom=-atomicRecombinationRateDielectronic_%rate(atomicNumber,electronNumber+1,temperature) &
+                   &                            *densityThisIon                                                                       &
                    &                            *densityElectron
            else
               recombinationDielectronicRateFrom=+0.0d0
            end if
            ! Compute dielectronic recombination rates to this ion.
            if (electronNumber  > 0) then
-              recombinationDielectronicRateTo  =+Dielectronic_Recombination_Rate(atomicNumber,electronNumber  ,temperature) &
-                   &                            *densityUpperIon                                                            &
+              recombinationDielectronicRateTo  =+atomicRecombinationRateDielectronic_%rate(atomicNumber,electronNumber  ,temperature) &
+                   &                            *densityUpperIon                                                                      &
                    &                            *densityElectron
-              heatingRate                      =+heatingRate                                                   &
-                   &                            -dielectronicRecombinationRateHeIEnergyLoss                    &
-                   &                            *electronVolt                                                  &
-                   &                            *recombinationDielectronicRateFrom                             &
-                   &                            *gigaYear                                                      &
-                   &                            *centi**3                                                      &
+              heatingRate                      =+heatingRate                                                                          &
+                   &                            -dielectronicRecombinationRateHeIEnergyLoss                                           &
+                   &                            *electronVolt                                                                         &
+                   &                            *recombinationDielectronicRateFrom                                                    &
+                   &                            *gigaYear                                                                             &
+                   &                            *centi**3                                                                             &
                    &                            *clumpingFactor
            else
               recombinationDielectronicRateTo  =+0.0d0
