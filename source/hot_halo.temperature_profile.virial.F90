@@ -17,32 +17,72 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% An implementation of the hot halo temperature class which uses an isothermal virial temperature.
-  
+
+  use Dark_Matter_Halo_Scales
+
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileVirial">
   !#  <description>Provides an implementation of the hot halo temperature profile class which uses an isothermal virial temperature.</description>
   !# </hotHaloTemperatureProfile>
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileVirial
      !% An implementation of the hot halo temperature profile class which uses an isothermal virial temperature.
      private
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
    contains
+     final     ::                        virialDestructor
      procedure :: temperature         => virialTemperature
      procedure :: temperatureLogSlope => virialTemperatureLogSlope
   end type hotHaloTemperatureProfileVirial
 
+  interface hotHaloTemperatureProfileVirial
+     !% Constructors for the virial hot halo temperature profile class.
+     module procedure virialConstructorParameters
+     module procedure virialConstructorInternal
+  end interface hotHaloTemperatureProfileVirial
+
 contains
+
+  function virialConstructorParameters(parameters) result(self)
+    !% Constructor for the virial cooling rate class which builds the object from a parameter set.
+    use Input_Parameters
+    implicit none
+    type (hotHaloTemperatureProfileVirial)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
+
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=hotHaloTemperatureProfileVirial(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function virialConstructorParameters
+
+  function virialConstructorInternal(darkMatterHaloScale_) result(self)
+    !% Internal constructor for the virial cooling rate class.
+    implicit none
+    type (hotHaloTemperatureProfileVirial)                        :: self
+    class(darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+
+    return
+  end function virialConstructorInternal
+
+  subroutine virialDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily virial} hot halo temperature profile class.
+    implicit none
+    type(hotHaloTemperatureProfileVirial), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine virialDestructor
 
   double precision function virialTemperature(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily virial} hot halo mass distribution.
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (hotHaloTemperatureProfileVirial), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     double precision                                 , intent(in   ) :: radius
-    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_ 
-    !GCC$ attributes unused :: self, radius
+    !GCC$ attributes unused :: radius
     
-    darkMatterHaloScale_ => darkMatterHaloScale                   (    )
-    virialTemperature    =  darkMatterHaloScale_%virialTemperature(node)
+    virialTemperature=self%darkMatterHaloScale_%virialTemperature(node)
     return
   end function virialTemperature
   

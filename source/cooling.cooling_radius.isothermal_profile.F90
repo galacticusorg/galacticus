@@ -23,6 +23,7 @@
   use Dark_Matter_Halo_Scales
   use Cooling_Times_Available
   use Cooling_Times
+  use Hot_Halo_Temperature_Profiles    
 
   !# <coolingRadius name="coolingRadiusIsothermal" defaultThreadPrivate="yes">
   !#  <description>
@@ -36,14 +37,15 @@
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
-     class           (coolingTimeAvailableClass), pointer :: coolingTimeAvailable_
-     class           (coolingTimeClass         ), pointer :: coolingTime_
-     integer         (kind=kind_int8           )          :: lastUniqueID                  =-1
-     integer                                              :: abundancesCount                  , chemicalsCount
+     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
+     class           (coolingTimeAvailableClass     ), pointer :: coolingTimeAvailable_
+     class           (coolingTimeClass              ), pointer :: coolingTime_
+     class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_
+     integer         (kind=kind_int8                )          :: lastUniqueID              =-1
+     integer                                                   :: abundancesCount              , chemicalsCount
      ! Stored values of cooling radius.
-     logical                                              :: radiusComputed                   , radiusGrowthRateComputed
-     double precision                                     :: radiusGrowthRateStored           , radiusStored
+     logical                                                   :: radiusComputed               , radiusGrowthRateComputed
+     double precision                                          :: radiusGrowthRateStored       , radiusStored
    contains
      final     ::                     isothermalDestructor
      procedure :: radius           => isothermalRadius
@@ -63,21 +65,23 @@ contains
     !% Constructor for the isothermal cooling radius class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type (coolingRadiusIsothermal  )                :: self
-    type (inputParameters          ), intent(inout) :: parameters
-    class(coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
-    class(coolingTimeClass         ), pointer       :: coolingTime_
-    class(darkMatterHaloScaleClass ), pointer       :: darkMatterHaloScale_
+    type (coolingRadiusIsothermal       )                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(coolingTimeAvailableClass     ), pointer       :: coolingTimeAvailable_
+    class(coolingTimeClass              ), pointer       :: coolingTime_
+    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class(hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
 
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
-    !# <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
-    self=coolingRadiusIsothermal(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_)
+    !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    !# <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
+    !# <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
+    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    self=coolingRadiusIsothermal(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function isothermalConstructorParameters
 
-  function isothermalConstructorInternal(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_) result(self)
+  function isothermalConstructorInternal(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_) result(self)
     !% Internal constructor for the isothermal cooling radius class.
     use ISO_Varying_String
     use Galacticus_Error
@@ -86,11 +90,12 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type (coolingRadiusIsothermal  )                        :: self
-    class(darkMatterHaloScaleClass ), intent(in   ), target :: darkMatterHaloScale_
-    class(coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
-    class(coolingTimeClass         ), intent(in   ), target :: coolingTime_
-    !# <constructorAssign variables="*darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_"/>
+    type (coolingRadiusIsothermal       )                        :: self
+    class(darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
+    class(coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
+    class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
+    class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
+    !# <constructorAssign variables="*darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_"/>
     
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
@@ -130,9 +135,10 @@ contains
     implicit none
     type(coolingRadiusIsothermal), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%coolingTimeAvailable_"/> 
-    !# <objectDestructor name="self%coolingTime_"         />
+    !# <objectDestructor name="self%darkMatterHaloScale_"      />
+    !# <objectDestructor name="self%coolingTimeAvailable_"     /> 
+    !# <objectDestructor name="self%coolingTime_"              />
+    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
    return
   end subroutine isothermalDestructor
 
@@ -190,13 +196,11 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     use Hot_Halo_Mass_Distributions
-    use Hot_Halo_Temperature_Profiles    
     implicit none
     class           (coolingRadiusIsothermal       ), intent(inout), target  :: self
     type            (treeNode                      ), intent(inout), target  :: node
     class           (nodeComponentHotHalo          )               , pointer :: hotHalo
     class           (hotHaloMassDistributionClass  )               , pointer :: hotHaloMassDistribution_
-    class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
     double precision                                                         :: coolingTime               , timeAvailable          , &
          &                                                                      density                   , massToDensityConversion, &
          &                                                                      temperature               , radiusVirial
@@ -209,7 +213,6 @@ contains
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
        ! Get required objects.
-       hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
        hotHaloMassDistribution_   => hotHaloMassDistribution  ()
        ! Get the time available for cooling in node.
        timeAvailable                   =  self%coolingTimeAvailable_%timeAvailable(node)
@@ -232,8 +235,8 @@ contains
        ! Get the virial radius.
        radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
        ! Compute density, temperature and abundances.
-       density     =     hotHaloMassDistribution_  %density    (node,radiusVirial)
-       temperature =     hotHaloTemperatureProfile_%temperature(node,radiusVirial)
+       density     =          hotHaloMassDistribution_  %density    (node,radiusVirial)
+       temperature =     self%hotHaloTemperatureProfile_%temperature(node,radiusVirial)
        ! Compute the cooling time at the virial radius.
        coolingTime =self%coolingTime_              %time       (temperature,density,hotAbundances,chemicalDensities,radiation)
        if (coolingTime < timeAvailable) then

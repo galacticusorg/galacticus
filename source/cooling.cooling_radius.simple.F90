@@ -76,19 +76,21 @@ contains
     !% Constructor for the simple cooling radius class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type (coolingRadiusSimple      )                :: self
-    type (inputParameters          ), intent(inout) :: parameters
-    class(coolingTimeAvailableClass), pointer       :: coolingTimeAvailable_
-    class(coolingTimeClass         ), pointer       :: coolingTime_
+    type (coolingRadiusSimple           )                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(coolingTimeAvailableClass     ), pointer       :: coolingTimeAvailable_
+    class(coolingTimeClass              ), pointer       :: coolingTime_
+    class(hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
 
-    !# <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
-    !# <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
-    self=coolingRadiusSimple(coolingTimeAvailable_,coolingTime_)
+    !# <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
+    !# <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
+    !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
+    self=coolingRadiusSimple(coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(coolingTimeAvailable_,coolingTime_) result(self)
+  function simpleConstructorInternal(coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_) result(self)
     !% Internal constructor for the simple cooling radius class.
     use ISO_Varying_String
     use Galacticus_Error
@@ -97,10 +99,11 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type (coolingRadiusSimple      )                        :: self
-    class(coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
-    class(coolingTimeClass         ), intent(in   ), target :: coolingTime_
-    !# <constructorAssign variables="*coolingTimeAvailable_, *coolingTime_"/>
+    type (coolingRadiusSimple           )                        :: self
+    class(coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
+    class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
+    class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
+    !# <constructorAssign variables="*coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_"/>
     
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
@@ -140,8 +143,9 @@ contains
     implicit none
     type(coolingRadiusSimple), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingTimeAvailable_"/>
-    !# <objectDestructor name="self%coolingTime_"         />
+    !# <objectDestructor name="self%coolingTimeAvailable_"     />
+    !# <objectDestructor name="self%coolingTime_"              />
+    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     return
   end subroutine simpleDestructor
 
@@ -190,7 +194,6 @@ contains
           self%radiusGrowthRateStored=0.0d0
        else
           ! Get required objects.
-          self%hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
           self%hotHaloMassDistribution_   => hotHaloMassDistribution  ()
           ! Define radiation field.
           call radiation%define([radiationTypeCMB])
@@ -227,7 +230,7 @@ contains
 
   double precision function simpleRadius(self,node)
     !% Return the cooling radius in the simple model.
-   use Chemical_Reaction_Rates_Utilities
+    use Chemical_Reaction_Rates_Utilities
     use Root_Finder
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
@@ -252,7 +255,6 @@ contains
        hotHalo => node%hotHalo()
        ! Get required objects.
        self%hotHaloMassDistribution_   => hotHaloMassDistribution  ()
-       self%hotHaloTemperatureProfile_ => hotHaloTemperatureProfile()
        ! Get the abundances for this node.
        simpleGasAbundances_=hotHalo%abundances()
        call simpleGasAbundances_%massToMassFraction(hotHalo%mass())
