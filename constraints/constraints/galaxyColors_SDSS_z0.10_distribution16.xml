@@ -1,6 +1,6 @@
-<!-- Defines a constraint to match to the z=0.10 SDSS galaxy color distribution number XX. -->
+<!-- Defines a constraint to match to the z=0.10 SDSS galaxy color distribution number 16. -->
 <constraint>
-  <name>SDSS $z=0.10$ galaxy colors - distribution XX</name>
+  <name>SDSS $z=0.10$ galaxy colors - distribution 16</name>
   <label>galaxyColorZ0.10Distribution16</label>
   <outputRedshift>0.01</outputRedshift>
   <outputRedshift>0.03</outputRedshift>
