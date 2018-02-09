@@ -19,15 +19,17 @@
   !% Implementation of a cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
 
   use Cooling_Infall_Radii
+  use Hot_Halo_Mass_Distributions
 
-  !# <coolingRate name="coolingRateCole2000">
+  !# <coolingRate name="coolingRateCole2000" defaultThreadPrivate="yes">
   !#  <description>Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
   !# properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCole2000
      !% Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
      private
-      class(coolingInfallRadiusClass), pointer :: coolingInfallRadius_
+     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
    contains
      final     ::         cole2000Destructor
      procedure :: rate => cole2000Rate
@@ -45,21 +47,25 @@ contains
     !% Constructor for the \cite{cole_hierarchical_2000} cooling rate class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type (coolingRateCole2000     )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(coolingInfallRadiusClass), pointer       :: coolingInfallRadius_
-    !GCC$ attributes unused :: parameters
+    type (coolingRateCole2000         )                :: self
+    type (inputParameters             ), intent(inout) :: parameters
+    class(coolingInfallRadiusClass    ), pointer       :: coolingInfallRadius_
+    class(hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
     
-    self=coolingRateCole2000(coolingInfallRadius_)
+    !# <objectBuilder class="coolingInfallRadius"     name="coolingInfallRadius_"     source="parameters"/>
+    !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    self=coolingRateCole2000(coolingInfallRadius_,hotHaloMassDistribution_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cole2000ConstructorParameters
-  
-  function cole2000ConstructorInternal(coolingInfallRadius_) result(self)
+
+  function cole2000ConstructorInternal(coolingInfallRadius_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} cooling rate class.
     implicit none
-    type (coolingRateCole2000     )                        :: self
-    class(coolingInfallRadiusClass), intent(in   ), target :: coolingInfallRadius_
-    !# <constructorAssign variables="*coolingInfallRadius_"/>
+    type (coolingRateCole2000         )                        :: self
+    class(coolingInfallRadiusClass    ), intent(in   ), target :: coolingInfallRadius_
+    class(hotHaloMassDistributionClass), intent(in   ), target :: hotHaloMassDistribution_
+    !# <constructorAssign variables="*coolingInfallRadius_, *hotHaloMassDistribution_"/>
 
     return
   end function cole2000ConstructorInternal
@@ -69,7 +75,8 @@ contains
     implicit none
     type(coolingRateCole2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingInfallRadius_" />
+    !# <objectDestructor name="self%coolingInfallRadius_"    />
+    !# <objectDestructor name="self%hotHaloMassDistribution_"/>
     return
   end subroutine cole2000Destructor
 
@@ -77,15 +84,13 @@ contains
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
     use Numerical_Constants_Math
-    use Hot_Halo_Mass_Distributions
     implicit none
-    class           (coolingRateCole2000         ), intent(inout) :: self
-    type            (treeNode                    ), intent(inout) :: node    
-    class           (nodeComponentBasic          ), pointer       :: basicFormation
-    class           (nodeComponentHotHalo        ), pointer       :: hotHaloFormation
-    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
-    double precision                                              :: densityInfall            , radiusInfall, &
-         &                                                           radiusInfallGrowthRate   , radiusOuter
+    class           (coolingRateCole2000 ), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node    
+    class           (nodeComponentBasic  ), pointer       :: basicFormation
+    class           (nodeComponentHotHalo), pointer       :: hotHaloFormation
+    double precision                                      :: densityInfall            , radiusInfall, &
+         &                                                   radiusInfallGrowthRate   , radiusOuter
     !GCC$ attributes unused :: self
 
     ! Get formation node components.
@@ -104,10 +109,8 @@ contains
        ! Infall radius exceeds the outer radius - zero infall rate.
        cole2000Rate=0.0d0
     else
-       ! Get the hot halo mass distribution.
-       hotHaloMassDistribution_ =>      hotHaloMassDistribution                    (                               )
        ! Find the density at the infall radius.
-       densityInfall            =       hotHaloMassDistribution_%density           (node%formationNode,radiusInfall)
+       densityInfall            =  self%hotHaloMassDistribution_%density           (node%formationNode,radiusInfall)
        ! Find infall radius growth rate.
        radiusInfallGrowthRate   =  self%coolingInfallRadius_    %radiusIncreaseRate(node%formationNode             )
        ! Compute the infall rate.
