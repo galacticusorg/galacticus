@@ -140,7 +140,7 @@ contains
     !  * β=2/3;
     !  * Cooling function is always proportional to ρ².
     hotHaloMassDistribution_   => hotHaloMassDistribution  ()
-    select type (self%hotHaloTemperatureProfile_)
+    select type (hotHaloTemperatureProfile_ => self%hotHaloTemperatureProfile_)
     class is (hotHaloTemperatureProfileVirial)
        ! An isothermal profile - this is acceptable.
     class default
