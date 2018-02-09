@@ -36,7 +36,7 @@ $massFunctionConfig->{'massErrorRandomDex'          } = 0.24;
 $massFunctionConfig->{'xRange'                      } = "3.0e8:1.0e12";
 $massFunctionConfig->{'yRange'                      } = "1.0e-6:3.0e-1";
 $massFunctionConfig->{'xLabel'                      } = "\$M_\\star\$ [\$M_\\odot\$]";
-$massFunctionConfig->{'yLabel'                      } = "\${\\rm d}n/{\\rm d}\\log M_\\star\$ [Mpc\$^{-3}\$]";
+$massFunctionConfig->{'yLabel'                      } = "\$\\mathrm{d}n/\\mathrm{d}\\log M_\\star\$ [Mpc\$^{-3}\$]";
 $massFunctionConfig->{'title'                       } = "Stellar mass function at \$z=2\$";
 
 # Read the observed data.
