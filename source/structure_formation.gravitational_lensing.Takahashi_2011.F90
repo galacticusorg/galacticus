@@ -18,11 +18,15 @@
 
 !% Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.
 
+  !$ use OMP_Lib
+  use Locks
+
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
-  type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011
-     logical                                    :: tableInitialized         , cdfInitialized
+  type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011     
+     logical                                    :: tableInitialized        , cdfInitialized
+     !$ type         (ompReadWriteLock        ) :: lock
      type            (table1DGeneric          ) :: convergencePDF
      type            (table1DLogarithmicLinear) :: magnificationCDFTable
      double precision                           :: redshiftPrevious         , convergenceEmptyBeam                , &
@@ -64,6 +68,10 @@
   ! Smallest redshift for which to compute lensing.
   double precision, parameter :: takahashi2011RedshiftTiny            =1.5d-2
 
+  ! CDF tabulation range.
+  double precision, parameter :: takahashi2011MagnificationMinimum    =   1.0d-2
+  double precision, parameter :: takahashi2011MagnificationMaximum    =1000.0d+0
+
 contains
 
   function takahashi2011ConstructorParameters(parameters) result(self)
@@ -83,10 +91,11 @@ contains
     implicit none
     type(gravitationalLensingTakahashi2011) :: self
 
-    self%tableInitialized=.false.
-    self%cdfInitialized  =.false.
-    self%redshiftPrevious=-2.0d0
-    return
+    self   %tableInitialized=.false.
+    self   %cdfInitialized  =.false.
+    self   %redshiftPrevious=-2.0d0
+    !$ self%lock            =ompReadWriteLock()
+   return
   end function takahashi2011ConstructorInternal
 
   double precision function takahashi2011MagnificationPDF(self,magnification,redshift,scaleSource)
@@ -106,6 +115,7 @@ contains
        end if
        return
     else
+       !$ call self%lock%setRead()
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
        ! Approximate a delta function for small redshifts.
@@ -115,10 +125,12 @@ contains
           else
              takahashi2011MagnificationPDF=1.0d0
           end if
+          !$ call self%lock%unsetRead()
           return
        end if
        ! Evaluate the magnification PDF (eqn. 11 of Takahashi et al.).
        takahashi2011MagnificationPDF=takahashi2011MagnificationDistribution(self,magnification)
+       !$ call self%lock%unsetRead()
     end if
     return
   end function takahashi2011MagnificationPDF
@@ -126,21 +138,10 @@ contains
   double precision function takahashi2011MagnificationCDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
     !% \cite{takahashi_probability_2011} formalism.
-    use FGSL
-    use Numerical_Integration
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout) :: self
-    double precision                                   , intent(in   ) :: magnification, redshift       , &
+    double precision                                   , intent(in   ) :: magnification, redshift, &
          &                                                                scaleSource
-    double precision                                   , parameter     :: magnificationMinimum=   1.0d-2
-    double precision                                   , parameter     :: magnificationMaximum=1000.0d0
-    integer                                            , parameter     :: magnificationCount   =1000
-    integer                                                            :: i
-    type            (fgsl_function                    )                :: integrandFunction
-    type            (fgsl_integration_workspace       )                :: integrationWorkspace
-    logical                                                            :: integrationReset
-    double precision                                                   :: magnificationLower             , magnificationUpper, &
-         &                                                                cdf                            , cdfPrevious
 
     ! Handle redshift zero case.
     if (redshift <= takahashi2011RedshiftTiny) then
@@ -151,6 +152,7 @@ contains
        end if
        return
     else
+       !$ call self%lock%setRead()
        ! Construct the distribution.
        call self%lensingDistributionConstruct(redshift,scaleSource)
        ! Approximate a delta function for small redshifts.
@@ -160,43 +162,18 @@ contains
           else
              takahashi2011MagnificationCDF=1.0d0
           end if
+          !$ call self%lock%unsetRead()
           return
        end if
-       ! Tabulate the cumulative distribution function if table does not yet exist.
-       if (.not.self%cdfInitialized) then
-          call self%magnificationCDFTable%create(magnificationMinimum,magnificationMaximum,magnificationCount,tableCount=1)
-          do i=1,magnificationCount
-             integrationReset=.true.
-             if (i == 1 ) then
-                magnificationLower=0.0d0
-                cdfPrevious       =0.0d0
-             else
-                magnificationLower=self%magnificationCDFTable%x(i-1)
-                cdfPrevious       =self%magnificationCDFTable%y(i-1)
-             end if
-             magnificationUpper   =self%magnificationCDFTable%x(i  )
-             cdf=Integrate(                           &
-                  &        magnificationLower       , &
-                  &        magnificationUpper       , &
-                  &        magnificationPDFIntegrand, &
-                  &        integrandFunction        , &
-                  &        integrationWorkspace     , &
-                  &        toleranceRelative=1.0d-6 , &
-                  &        reset=integrationReset     &
-                  &       )
-             call self%magnificationCDFTable%populate(cdf+cdfPrevious,i)
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-          end do
-          self%cdfInitialized=.true.
-       end if
        ! Interpolate in the tabulated cumulative distribution function.
-       if      (magnification < magnificationMinimum) then
+       if      (magnification < takahashi2011MagnificationMinimum) then
           takahashi2011MagnificationCDF=0.0d0
-       else if (magnification > magnificationMaximum) then
+       else if (magnification > takahashi2011MagnificationMaximum) then
           takahashi2011MagnificationCDF=1.0d0
        else
           takahashi2011MagnificationCDF=self%magnificationCDFTable%interpolate(magnification)/self%magnificationCDFTable%y(-1)
        end if
+       !$ call self%lock%unsetRead()
     end if
     return
 
@@ -208,7 +185,7 @@ contains
       double precision, intent(in   ) :: magnification
       
       magnificationPDFIntegrand=takahashi2011MagnificationDistribution(self,magnification)
-     return
+      return
     end function magnificationPDFIntegrand
     
   end function takahashi2011MagnificationCDF
@@ -331,6 +308,7 @@ contains
     double precision                                   , parameter                   :: magnificationMinimum                  =   0.0d0
     double precision                                   , parameter                   :: magnificationMaximum                  =1000.0d0
     integer                                            , parameter                   :: omegaKappaCount                       =1000
+    integer                                            , parameter                   :: cdfMagnificationCount                 =1000
     double precision                                   , allocatable  , dimension(:) :: tableOmegaKappa                           , tableAKappa, &
          &                                                                              tableNKappa                               , tableConvergenceVariance
     integer                                                                          :: i
@@ -341,198 +319,230 @@ contains
     double precision                                                                 :: distanceComovingSource                    , timeLens               , &
          &                                                                              convergencePdfMoment0                     , convergencePdfMoment1  , &
          &                                                                              convergencePdfMoment2                     , convergenceMinimum     , &
-         &                                                                              convergenceMaximum                        , magnificationPdfMoment0
+         &                                                                              convergenceMaximum                        , magnificationPdfMoment0, &
+         &                                                                              magnificationLower                        , magnificationUpper     , &
+         &                                                                              cdfPrevious                               , cdf
     type            (hdf5Object                       )                              :: parametersFile
 
     ! Construct tabulation of convergence distribution function parameters if necessary.
     if (.not.self%tableInitialized) then
-       ! Determine the paramters, A_kappa and omega_kappa, of the convergence distribution (eq. 8
-       ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
-       ! Check if a precomputed file exists.
-       if (File_Exists(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
-          ! Read the results from file.
-          !$omp critical(HDF5_Access)
-          call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
-          call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
-          call parametersFile%readDataset(             "NKappa",tableNKappa             )
-          call parametersFile%readDataset(             "AKappa",tableAKappa             )
-          call parametersFile%readDataset(         "omegaKappa",tableOmegaKappa         )
-          call parametersFile%close      (                                              )
-          !$omp end critical(HDF5_Access)
-       else
-          ! Create a root-finder to solve the parameters.
-          call finder%rootFunction(convergencePdfParameterSolver)
-          call finder%tolerance   (                                        &
-               &                   convergenceParametersToleranceAbsolute, &
-               &                   convergenceParametersToleranceRelative  &
-               &                  )
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          ! Construct a range of omega_kappa values.
-          tableOmegaKappa=Make_Range(                      &
-               &                     omegaKappaMinimum   , &
-               &                     omegaKappaMaximum   , &
-               &                     omegaKappaCount     , &
-               &                     rangeTypeLogarithmic  &
-               &                    )
-          allocate(tableAKappa             (omegaKappaCount))
-          allocate(tableNKappa             (omegaKappaCount))
-          allocate(tableConvergenceVariance(omegaKappaCount))
-          ! Iterate over values of omega_k
-          do i=1,omegaKappaCount
-             ! Set omega_kappa parameter.
-             self%omegaConvergence                    =tableOmegaKappa(i)
-             ! Set convergence scale to unity for table building. This implies a minimum convegence of -1.
-             self%convergenceScale                    =+1.0d0
-             convergenceMinimum                       =-self%convergenceScale
-             convergenceMaximum                       =+convergenceMaximumFactor*sqrt(self%omegaConvergence)
-             ! Set normalization to unity.
-             self%convergenceDistributionNormalization=1.0d0
-             ! Solve for a value of A_k that gives consistent first and second moments of the
-             ! convergence distribution (eq. 9 of Takahashi et al.).
-             self%aConvergence                        =finder%find(rootGuess=1.0d0)
-             ! Evaluate zeroth and second moments of the convergence distribution.
-             integrationReset     =.true.
-             convergencePdfMoment0=Integrate(                                         &
-                  &                          convergenceMinimum                     , &
-                  &                          convergenceMaximum                     , &
-                  &                          convergenceDistributionMoment0Integrand, &
-                  &                          integrandFunction                      , &
-                  &                          integrationWorkspace                   , &
-                  &                          toleranceRelative=1.0d-4               , &
-                  &                          reset=integrationReset                   &
-                  &                         )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-             integrationReset     =.true.
-             convergencePdfMoment1=Integrate(                                         &
-                  &                          convergenceMinimum                     , &
-                  &                          convergenceMaximum                     , &
-                  &                          convergenceDistributionMoment1Integrand, &
-                  &                          integrandFunction                      , &
-                  &                          integrationWorkspace                   , &
-                  &                          toleranceRelative=1.0d-4               , &
-                  &                          reset=integrationReset                   &
-                  &                         )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-             integrationReset     =.true.
-             convergencePdfMoment2=Integrate(                                         &
-                  &                          convergenceMinimum                     , &
-                  &                          convergenceMaximum                     , &
-                  &                          convergenceDistributionMoment2Integrand, &
-                  &                          integrandFunction                      , &
-                  &                          integrationWorkspace                   , &
-                  &                          toleranceRelative=1.0d-4               , &
-                  &                          reset=integrationReset                   &
-                  &                         )
-             call Integrate_Done(integrandFunction,integrationWorkspace)
-             ! Store the A parameter.
-             tableAKappa             (i)=self%aConvergence
-             ! Compute the normalization of the convergence distribution.
-             tableNKappa             (i)=1.0d0                /convergencePdfMoment0
-             ! Determine what convergence variance this parameter combination corresponds to.
-             tableConvergenceVariance(i)=convergencePdfMoment2/convergencePdfMoment0
-             ! Check that the ratio of first to second moments equals -2.
-             if (Values_Differ(convergencePdfMoment1/convergencePdfMoment2,-2.0d0,absTol=2.0d-3)) &
-                  & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
-          end do
-          ! Store the results to file.
-          !$omp critical(HDF5_Access)
-          call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
-          call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
-          call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
-          call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )
-          call parametersFile%writeDataset(tableOmegaKappa         ,"omegaKappa"         ,"Parameter omega_kappa from Takahashi et al. (2011)")
-          call parametersFile%close()
-          !$omp end critical(HDF5_Access)
+       !$ call self%lock%setWrite(haveReadLock=.true.)
+       if (.not.self%tableInitialized) then
+          ! Determine the parameters, A_kappa and omega_kappa, of the convergence distribution (eq. 8
+          ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
+          ! Check if a precomputed file exists.
+          if (File_Exists(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
+             ! Read the results from file.
+             !$omp critical(HDF5_Access)
+             call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
+             call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
+             call parametersFile%readDataset(             "NKappa",tableNKappa             )
+             call parametersFile%readDataset(             "AKappa",tableAKappa             )
+             call parametersFile%readDataset(         "omegaKappa",tableOmegaKappa         )
+             call parametersFile%close      (                                              )
+             !$omp end critical(HDF5_Access)
+          else
+             ! Create a root-finder to solve the parameters.
+             call finder%rootFunction(convergencePdfParameterSolver)
+             call finder%tolerance   (                                        &
+                  &                   convergenceParametersToleranceAbsolute, &
+                  &                   convergenceParametersToleranceRelative  &
+                  &                  )
+             call finder%rangeExpand (                                                             &
+                  &                   rangeExpandUpward            =2.0d0                        , &
+                  &                   rangeExpandDownward          =0.5d0                        , &
+                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+                  &                   rangeExpandType              =rangeExpandMultiplicative      &
+                  &                  )
+             ! Construct a range of omega_kappa values.
+             tableOmegaKappa=Make_Range(                      &
+                  &                     omegaKappaMinimum   , &
+                  &                     omegaKappaMaximum   , &
+                  &                     omegaKappaCount     , &
+                  &                     rangeTypeLogarithmic  &
+                  &                    )
+             allocate(tableAKappa             (omegaKappaCount))
+             allocate(tableNKappa             (omegaKappaCount))
+             allocate(tableConvergenceVariance(omegaKappaCount))
+             ! Iterate over values of omega_k
+             do i=1,omegaKappaCount
+                ! Set omega_kappa parameter.
+                self%omegaConvergence                    =tableOmegaKappa(i)
+                ! Set convergence scale to unity for table building. This implies a minimum convegence of -1.
+                self%convergenceScale                    =+1.0d0
+                convergenceMinimum                       =-self%convergenceScale
+                convergenceMaximum                       =+convergenceMaximumFactor*sqrt(self%omegaConvergence)
+                ! Set normalization to unity.
+                self%convergenceDistributionNormalization=1.0d0
+                ! Solve for a value of A_k that gives consistent first and second moments of the
+                ! convergence distribution (eq. 9 of Takahashi et al.).
+                self%aConvergence                        =finder%find(rootGuess=1.0d0)
+                ! Evaluate zeroth and second moments of the convergence distribution.
+                integrationReset     =.true.
+                convergencePdfMoment0=Integrate(                                         &
+                     &                          convergenceMinimum                     , &
+                     &                          convergenceMaximum                     , &
+                     &                          convergenceDistributionMoment0Integrand, &
+                     &                          integrandFunction                      , &
+                     &                          integrationWorkspace                   , &
+                     &                          toleranceRelative=1.0d-4               , &
+                     &                          reset=integrationReset                   &
+                     &                         )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+                integrationReset     =.true.
+                convergencePdfMoment1=Integrate(                                         &
+                     &                          convergenceMinimum                     , &
+                     &                          convergenceMaximum                     , &
+                     &                          convergenceDistributionMoment1Integrand, &
+                     &                          integrandFunction                      , &
+                     &                          integrationWorkspace                   , &
+                     &                          toleranceRelative=1.0d-4               , &
+                     &                          reset=integrationReset                   &
+                     &                         )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+                integrationReset     =.true.
+                convergencePdfMoment2=Integrate(                                         &
+                     &                          convergenceMinimum                     , &
+                     &                          convergenceMaximum                     , &
+                     &                          convergenceDistributionMoment2Integrand, &
+                     &                          integrandFunction                      , &
+                     &                          integrationWorkspace                   , &
+                     &                          toleranceRelative=1.0d-4               , &
+                     &                          reset=integrationReset                   &
+                     &                         )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+                ! Store the A parameter.
+                tableAKappa             (i)=self%aConvergence
+                ! Compute the normalization of the convergence distribution.
+                tableNKappa             (i)=1.0d0                /convergencePdfMoment0
+                ! Determine what convergence variance this parameter combination corresponds to.
+                tableConvergenceVariance(i)=convergencePdfMoment2/convergencePdfMoment0
+                ! Check that the ratio of first to second moments equals -2.
+                if (Values_Differ(convergencePdfMoment1/convergencePdfMoment2,-2.0d0,absTol=2.0d-3)) &
+                     & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
+             end do
+             ! Store the results to file.
+             !$omp critical(HDF5_Access)
+             call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
+             call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
+             call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
+             call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )
+             call parametersFile%writeDataset(tableOmegaKappa         ,"omegaKappa"         ,"Parameter omega_kappa from Takahashi et al. (2011)")
+             call parametersFile%close()
+             !$omp end critical(HDF5_Access)
+          end if
+          ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
+          ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the
+          ! values obtained for the parameter result in convergence distributions which have secondary peaks at κ≅2, which results in
+          ! unrealistic magnification distributions.
+          call self%convergencePDF%create  (tableConvergenceVariance,tableCount=3,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeFix])
+          call self%convergencePDF%populate(tableNKappa             ,           1                                                                      )
+          call self%convergencePDF%populate(tableAKappa             ,           2                                                                      )
+          call self%convergencePDF%populate(tableOmegaKappa         ,           3                                                                      )
+          deallocate(tableConvergenceVariance)
+          deallocate(tableNKappa             )
+          deallocate(tableAKappa             )
+          deallocate(tableOmegaKappa         )
+          ! Record that the table is now initialized.
+          self%tableInitialized=.true.
        end if
-       ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
-       ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the
-       ! values obtained for the parameter result in convergence distributions which have secondary peaks at κ≅2, which results in
-       ! unrealistic magnification distributions.
-       call self%convergencePDF%create  (tableConvergenceVariance,tableCount=3,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeFix])
-       call self%convergencePDF%populate(tableNKappa             ,           1                                                                      )
-       call self%convergencePDF%populate(tableAKappa             ,           2                                                                      )
-       call self%convergencePDF%populate(tableOmegaKappa         ,           3                                                                      )
-       deallocate(tableConvergenceVariance)
-       deallocate(tableNKappa             )
-       deallocate(tableAKappa             )
-       deallocate(tableOmegaKappa         )
-       ! Record that the table is now initialized.
-       self%tableInitialized=.true.
+       !$ call self%lock%unsetWrite(haveReadLock=.true.)
     end if
     ! Check if redshift has changed since previous call.
     if (redshift /= self%redshiftPrevious .or. scaleSource /= self%scaleSourcePrevious) then
-       ! Update convergences.
-       self%redshiftPrevious   =redshift
-       self%scaleSourcePrevious=scaleSource
-       if (self%cdfInitialized) then
-          self%cdfInitialized  =.false.
-          call self%magnificationCDFTable%destroy()
+       !$ call self%lock%setWrite(haveReadLock=.true.)
+       if (redshift /= self%redshiftPrevious .or. scaleSource /= self%scaleSourcePrevious) then
+          ! Update convergences.
+          self%redshiftPrevious   =redshift
+          self%scaleSourcePrevious=scaleSource
+          ! Get cosmology functions.
+          cosmologyFunctions_  => cosmologyFunctions ()
+          cosmologyParameters_ => cosmologyParameters()
+          ! Find the comoving distance to the source.
+          distanceComovingSource=cosmologyFunctions_  %distanceComoving           (           &
+               &                  cosmologyFunctions_ %cosmicTime                  (          &
+               &                   cosmologyFunctions_%expansionFactorFromRedshift  (         &
+               &                                                                     redshift &
+               &                                                                    )         &
+               &                                                                   )          &
+               &                                                                  )
+          ! Find the convergence of an empty beam.
+          integrationReset         =.true.
+          self%convergenceEmptyBeam=Integrate(                               &
+               &                              redshiftZero                 , &
+               &                              redshift                     , &
+               &                              emptyBeamConvergenceIntegrand, &
+               &                              integrandFunction            , &
+               &                              integrationWorkspace         , &
+               &                              toleranceRelative=1.0d-3     , &
+               &                              reset=integrationReset         &
+               &                            )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          ! Find the variance of the convergence.
+          integrationReset         =.true.
+          self%convergenceVariance =Integrate(                               &
+               &                              redshiftZero                 , &
+               &                              redshift                     , &
+               &                              convergenceVarianceIntegrand , &
+               &                              integrandFunction            , &
+               &                              integrationWorkspace         , &
+               &                              toleranceRelative=1.0d-3     , &
+               &                              reset=integrationReset         &
+               &                             )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          ! Determine the parameters of the convergence distribution.
+          self%convergenceScale                    =abs(self%convergenceEmptyBeam)
+          self%convergenceVarianceScaled           =self%convergenceVariance/self%convergenceScale**2
+          self%convergenceDistributionNormalization=self%convergencePDF%interpolate(self%convergenceVarianceScaled,1)
+          self%aConvergence                        =self%convergencePDF%interpolate(self%convergenceVarianceScaled,2)
+          self%omegaConvergence                    =self%convergencePDF%interpolate(self%convergenceVarianceScaled,3)
+          ! Integrate the modified magnification distribution in order to find the normalization.
+          integrationReset        =.true.
+          magnificationPdfMoment0=Integrate(                           &
+               &                            magnificationMinimum     , &
+               &                            magnificationMaximum     , &
+               &                            magnificationPDFIntegrand, &
+               &                            integrandFunction        , &
+               &                            integrationWorkspace     , &
+               &                            toleranceRelative=1.0d-3 , &
+               &                            reset=integrationReset     &
+               &                           )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+          self%convergenceDistributionNormalization         &
+               & =self%convergenceDistributionNormalization &
+               & /magnificationPdfMoment0
+          ! Tabulate the cumulative distribution function if table does not yet exist.
+          if (self%cdfInitialized) call self%magnificationCDFTable%destroy()
+          call self%magnificationCDFTable%create(takahashi2011MagnificationMinimum,takahashi2011MagnificationMaximum,cdfMagnificationCount,tableCount=1)
+          do i=1,cdfMagnificationCount
+             integrationReset=.true.
+             if (i == 1 ) then
+                magnificationLower=0.0d0
+                cdfPrevious       =0.0d0
+             else
+                magnificationLower=self%magnificationCDFTable%x(i-1)
+                cdfPrevious       =self%magnificationCDFTable%y(i-1)
+             end if
+             magnificationUpper   =self%magnificationCDFTable%x(i  )
+             cdf=Integrate(                           &
+                  &        magnificationLower       , &
+                  &        magnificationUpper       , &
+                  &        magnificationPDFIntegrand, &
+                  &        integrandFunction        , &
+                  &        integrationWorkspace     , &
+                  &        toleranceRelative=1.0d-6 , &
+                  &        reset=integrationReset     &
+                  &       )
+             call self%magnificationCDFTable%populate(cdf+cdfPrevious,i)
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+          end do
+          self%cdfInitialized=.true.
        end if
-       ! Get cosmology functions.
-       cosmologyFunctions_  => cosmologyFunctions ()
-       cosmologyParameters_ => cosmologyParameters()
-       ! Find the comoving distance to the source.
-       distanceComovingSource=cosmologyFunctions_  %distanceComoving           (           &
-            &                  cosmologyFunctions_ %cosmicTime                  (          &
-            &                   cosmologyFunctions_%expansionFactorFromRedshift  (         &
-            &                                                                     redshift &
-            &                                                                    )         &
-            &                                                                   )          &
-            &                                                                  )
-       ! Find the convergence of an empty beam.
-       integrationReset         =.true.
-       self%convergenceEmptyBeam=Integrate(                               &
-            &                              redshiftZero                 , &
-            &                              redshift                     , &
-            &                              emptyBeamConvergenceIntegrand, &
-            &                              integrandFunction            , &
-            &                              integrationWorkspace         , &
-            &                              toleranceRelative=1.0d-3     , &
-            &                              reset=integrationReset         &
-            &                            )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-       ! Find the variance of the convergence.
-       integrationReset         =.true.
-       self%convergenceVariance =Integrate(                               &
-            &                              redshiftZero                 , &
-            &                              redshift                     , &
-            &                              convergenceVarianceIntegrand , &
-            &                              integrandFunction            , &
-            &                              integrationWorkspace         , &
-            &                              toleranceRelative=1.0d-3     , &
-            &                              reset=integrationReset         &
-            &                             )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-       ! Determine the parameters of the convergence distribution.
-       self%convergenceScale                    =abs(self%convergenceEmptyBeam)
-       self%convergenceVarianceScaled           =self%convergenceVariance/self%convergenceScale**2
-       self%convergenceDistributionNormalization=self%convergencePDF%interpolate(self%convergenceVarianceScaled,1)
-       self%aConvergence                        =self%convergencePDF%interpolate(self%convergenceVarianceScaled,2)
-       self%omegaConvergence                    =self%convergencePDF%interpolate(self%convergenceVarianceScaled,3)
-       ! Integrate the modified magnification distribution in order to find the normalization.
-       integrationReset        =.true.
-       magnificationPdfMoment0=Integrate(                           &
-            &                            magnificationMinimum     , &
-            &                            magnificationMaximum     , &
-            &                            magnificationPDFIntegrand, &
-            &                            integrandFunction        , &
-            &                            integrationWorkspace     , &
-            &                            toleranceRelative=1.0d-3 , &
-            &                            reset=integrationReset     &
-            &                           )
-       call Integrate_Done(integrandFunction,integrationWorkspace)
-       self%convergenceDistributionNormalization         &
-            & =self%convergenceDistributionNormalization &
-            & /magnificationPdfMoment0
+       !$ call self%lock%unsetWrite(haveReadLock=.true.)
     end if
     return
-    
+
   contains
 
     double precision function magnificationPDFIntegrand(magnification)
