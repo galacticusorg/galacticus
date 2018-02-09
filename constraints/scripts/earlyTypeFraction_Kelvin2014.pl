@@ -113,45 +113,55 @@ if ( exists($arguments{'outputFile'}) ) {
     my $covarianceModelCopy                        = $covarianceModel->copy();
     my $small                                      = which($covarianceModelCopy->diagonal(0,1) < 1.0e-6);
     $covarianceModelCopy->diagonal(0,1)->($small) .= 1.0e-6;
-    my $modelCholesky                              = mchol($covarianceModelCopy);
-    # Compute factors needed in likelihood function.
-    (my $facA    )    =lgamma(float($a         ));
-    (my $facALBS )    =lgamma(float($aLBS      ));
-    (my $facB    )    =lgamma(float(      $b   ));
-    (my $facBLBS )    =lgamma(float(      $bLBS));
-    (my $facAB   )    =lgamma(float($a   +$b   ));
-    (my $facABLBS)    =lgamma(float($aLBS+$bLBS));
-    # Compute a base model likelihood.
-    $fractionModel->($fractionModel < 0.001;?) .= 0.001;
-    $fractionModel->($fractionModel > 0.999;?) .= 0.999;
-    my $logLikelihoodsBase = &logLikelihood($a,$b,$facA,$facB,$facAB,$fractionModel);
-    # Compute model realizations.
-    my $realizationCount   =     100000;
-    my $probability        = pdl      0.0;
-    my $probabilitySquared = pdl      0.0;
-    srand(10);
-    for(my $i=0;$i<$realizationCount;++$i) {
-	# Construct model realization.
-	my $normalDeviates           = grandom(nelem($fractionModel));
-	my $offsets                  = $normalDeviates x $modelCholesky;
-	my $fractionModelRealization = $fractionModel+$offsets->clump(2);
-	$fractionModelRealization->($fractionModelRealization < 0.001;?) .= 0.001;
-	$fractionModelRealization->($fractionModelRealization > 0.999;?) .= 0.999;
-	# Evaluate likelihood with and without LBS class included.
-	my $logLikelihoods     = &logLikelihood($a   ,$b   ,$facA   ,$facB   ,$facAB   ,$fractionModelRealization)-$logLikelihoodsBase;
-	my $logLikelihoodsLBS  = &logLikelihood($aLBS,$bLBS,$facALBS,$facBLBS,$facABLBS,$fractionModelRealization)-$logLikelihoodsBase;
-	# Compute the net probability.
-	my $probabilityRealization = 
-	    +     $lbsInclusionProbability *exp(sum($logLikelihoodsLBS))
-	    +(1.0-$lbsInclusionProbability)*exp(sum($logLikelihoods   ));
-	$probability        += $probabilityRealization   ;
-	$probabilitySquared += $probabilityRealization**2;
+    my $modelCholesky;
+    my $logLikelihood;
+    my $logLikelihoodVariance;
+    eval {
+	$modelCholesky                             = mchol($covarianceModelCopy);
+    };
+    if ($@) {
+	$logLikelihood           = pdl -1.0e30;
+	$logLikelihoodVariance   = pdl 0.0;
+    } else {
+	# Compute factors needed in likelihood function.
+	(my $facA    )    =lgamma(float($a         ));
+	(my $facALBS )    =lgamma(float($aLBS      ));
+	(my $facB    )    =lgamma(float(      $b   ));
+	(my $facBLBS )    =lgamma(float(      $bLBS));
+	(my $facAB   )    =lgamma(float($a   +$b   ));
+	(my $facABLBS)    =lgamma(float($aLBS+$bLBS));
+	# Compute a base model likelihood.
+	$fractionModel->($fractionModel < 0.001;?) .= 0.001;
+	$fractionModel->($fractionModel > 0.999;?) .= 0.999;
+	my $logLikelihoodsBase = &logLikelihood($a,$b,$facA,$facB,$facAB,$fractionModel);
+	# Compute model realizations.
+	my $realizationCount   =     100000;
+	my $probability        = pdl      0.0;
+	my $probabilitySquared = pdl      0.0;
+	srand(10);
+	for(my $i=0;$i<$realizationCount;++$i) {
+	    # Construct model realization.
+	    my $normalDeviates           = grandom(nelem($fractionModel));
+	    my $offsets                  = $normalDeviates x $modelCholesky;
+	    my $fractionModelRealization = $fractionModel+$offsets->clump(2);
+	    $fractionModelRealization->($fractionModelRealization < 0.001;?) .= 0.001;
+	    $fractionModelRealization->($fractionModelRealization > 0.999;?) .= 0.999;
+	    # Evaluate likelihood with and without LBS class included.
+	    my $logLikelihoods     = &logLikelihood($a   ,$b   ,$facA   ,$facB   ,$facAB   ,$fractionModelRealization)-$logLikelihoodsBase;
+	    my $logLikelihoodsLBS  = &logLikelihood($aLBS,$bLBS,$facALBS,$facBLBS,$facABLBS,$fractionModelRealization)-$logLikelihoodsBase;
+	    # Compute the net probability.
+	    my $probabilityRealization = 
+		+     $lbsInclusionProbability *exp(sum($logLikelihoodsLBS))
+		+(1.0-$lbsInclusionProbability)*exp(sum($logLikelihoods   ));
+	    $probability        += $probabilityRealization   ;
+	    $probabilitySquared += $probabilityRealization**2;
+	}
+	# Normalize the probability, convert to log and add the base log-likelihood back in.
+	$probability            /= $realizationCount;
+	my $probabilityVariance  = ($probabilitySquared-$realizationCount*$probability**2)/($realizationCount-1);
+	$logLikelihood           = log($probability)+sum($logLikelihoodsBase);
+	$logLikelihoodVariance   = $probabilityVariance/$probability**2;
     }
-    # Normalize the probability, convert to log and add the base log-likelihood back in.
-    $probability              /= $realizationCount;
-    my $probabilityVariance    = ($probabilitySquared-$realizationCount*$probability**2)/($realizationCount-1);
-    my $logLikelihood          = log($probability)+sum($logLikelihoodsBase);
-    my $logLikelihoodVariance  = $probabilityVariance/$probability**2;
     my $constraint;
     $constraint->{'logLikelihood'        } = $logLikelihood        ->sclr();
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
