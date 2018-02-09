@@ -18,14 +18,20 @@
 
 !% An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
 
+  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
+  
   !# <hotHaloMassDistribution name="hotHaloMassDistributionPatejLoeb2015">
   !#  <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.</description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionPatejLoeb2015
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
      private
-     double precision :: gamma, shockRadius
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: gamma               , shockRadius
    contains
+     final     ::                          patejLoeb2015Destructor
      procedure :: density               => patejLoeb2015Density
      procedure :: densityLogSlope       => patejLoeb2015DensityLogSlope
      procedure :: enclosedMass          => patejLoeb2015EnclosedMass
@@ -35,222 +41,212 @@
 
   interface hotHaloMassDistributionPatejLoeb2015
      !% Constructors for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
-     module procedure patejLoeb2015DefaultConstructor
-     module procedure patejLoeb2015Constructor
+     module procedure patejLoeb2015ConstructorParameters
+     module procedure patejLoeb2015ConstructorInternal
   end interface hotHaloMassDistributionPatejLoeb2015
 
-  ! Initialization state.
-  logical          :: patejLoeb2015Initialized             =.false.
-
-  ! Default parameters.
-  double precision :: patejLoebHotHaloMassDistributionGamma        , patejLoebHotHaloMassDistributionShockRadius
-  
 contains
-
-  function patejLoeb2015DefaultConstructor()
+  
+  function patejLoeb2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
     use Input_Parameters
     implicit none
-    type(hotHaloMassDistributionPatejLoeb2015) :: patejLoeb2015DefaultConstructor
+    type            (hotHaloMassDistributionPatejLoeb2015)                :: self
+    type            (inputParameters                     ), intent(inout) :: parameters
+    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
+    double precision                                                      :: gamma               , radiusShock
 
-    if (.not.patejLoeb2015Initialized) then
-       !$omp critical(patejLoeb2015Initialized)
-       if (.not.patejLoeb2015Initialized) then
-          ! Get default parameters.
-          !# <inputParameter>
-          !#   <name>patejLoebHotHaloMassDistributionGamma</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.15d0</defaultValue>
-          !#   <description>The parameter $\Gamma$ in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>patejLoebHotHaloMassDistributionShockRadius</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.0d0</defaultValue>
-          !#   <description>The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          ! Record that implementation is now initialized.
-          patejLoeb2015Initialized=.true.
-       end if
-       !$omp end critical(patejLoeb2015Initialized)
-    end if
-    patejLoeb2015DefaultConstructor=patejLoeb2015Constructor(patejLoebHotHaloMassDistributionGamma,patejLoebHotHaloMassDistributionShockRadius)
+    !# <inputParameter>
+    !#   <name>gamma</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.15d0</defaultValue>
+    !#   <description>The parameter $\Gamma$ in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>radiusShock</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The shock radius, $s$, (in units of the halo virial radius) in the \cite{patej_simple_2015} hot halo gas mass distribution model.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>    
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=hotHaloMassDistributionPatejLoeb2015(gamma,radiusShock,darkMatterProfile_,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function patejLoeb2015DefaultConstructor
+  end function patejLoeb2015ConstructorParameters
 
-  function patejLoeb2015Constructor(gamma,shockRadius)
+  function patejLoeb2015ConstructorInternal(gamma,shockRadius,darkMatterProfile_,darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type            (hotHaloMassDistributionPatejLoeb2015)                :: patejLoeb2015Constructor
-    double precision                                      , intent(in   ) :: gamma                   , shockRadius
+    type            (hotHaloMassDistributionPatejLoeb2015)                        :: self
+    double precision                                      , intent(in   )         :: gamma                       , shockRadius
+    class           (darkMatterProfileClass              ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterHaloScaleClass            ), intent(in   ), target :: darkMatterHaloScale_
+    logical                                               , save                  :: initialized         =.false.
+    !# <constructorAssign variables="gamma, shockRadius, *darkMatterProfile_, *darkMatterHaloScale_"/>
 
     ! Check that required properties are gettable.
-    if     (                                                                                                                 &
-         &  .not.(                                                                                                           &
-         &         defaultHotHaloComponent          %       massIsGettable()                                                 &
-         &        .and.                                                                                                      &
-         &         defaultHotHaloComponent          %outerRadiusIsGettable()                                                 &
-         &       )                                                                                                           &
-         & ) call Galacticus_Error_Report                                                                                    &
-         & (                                                                                                                 &
-         &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//              &
-         &  Galacticus_Component_List(                                                                                       &
-         &                            'hotHalo'                                                                           ,  &
-         &                             defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)   &
-         &                            .intersection.                                                                         &
-         &                             defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)   &
-         &                           )                                                                                    // &
-         &  {introspection:location}                                                                                         &
-         & )
-    if     (                                                                                                                 &
-         &  .not.(                                                                                                           &
-         &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                                 &
-         &       )                                                                                                           &
-         & ) call Galacticus_Error_Report                                                                                    &
-         & (                                                                                                                 &
-         &  'This method requires that the "scale" property of the dark matter profile is gettable.'//                       &
-         &  Galacticus_Component_List(                                                                                       &
-         &                            'darkMatterProfile'                                                                 ,  &
-         &                             defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)   &
-         &                           )                                                                                    // &
-         &  {introspection:location}                                                                                         &
-         & )
-    patejLoeb2015Constructor%gamma      =gamma
-    patejLoeb2015Constructor%shockRadius=shockRadius
+    if (.not.initialized) then
+       !$omp critical(patejLoeb2015Initialized)
+       if (.not.initialized) then
+          if     (                                                                                                                 &
+               &  .not.(                                                                                                           &
+               &         defaultHotHaloComponent          %       massIsGettable()                                                 &
+               &        .and.                                                                                                      &
+               &         defaultHotHaloComponent          %outerRadiusIsGettable()                                                 &
+               &       )                                                                                                           &
+               & ) call Galacticus_Error_Report                                                                                    &
+               & (                                                                                                                 &
+               &  'This method requires that the "mass" and "outerRadius" properties of the hot halo are gettable.'//              &
+               &  Galacticus_Component_List(                                                                                       &
+               &                            'hotHalo'                                                                           ,  &
+               &                             defaultHotHaloComponent          %       massAttributeMatch(requireGettable=.true.)   &
+               &                            .intersection.                                                                         &
+               &                             defaultHotHaloComponent          %outerRadiusAttributeMatch(requireGettable=.true.)   &
+               &                           )                                                                                    // &
+               &  {introspection:location}                                                                                         &
+               & )
+          if     (                                                                                                                 &
+               &  .not.(                                                                                                           &
+               &         defaultDarkMatterProfileComponent%      scaleIsGettable()                                                 &
+               &       )                                                                                                           &
+               & ) call Galacticus_Error_Report                                                                                    &
+               & (                                                                                                                 &
+               &  'This method requires that the "scale" property of the dark matter profile is gettable.'//                       &
+               &  Galacticus_Component_List(                                                                                       &
+               &                            'darkMatterProfile'                                                                 ,  &
+               &                             defaultDarkMatterProfileComponent%      scaleAttributeMatch(requireGettable=.true.)   &
+               &                           )                                                                                    // &
+               &  {introspection:location}                                                                                         &
+               & )
+          initialized=.true.
+       end if
+       !$omp end critical(patejLoeb2015Initialized)
+    end if
     return
-  end function patejLoeb2015Constructor
+  end function patejLoeb2015ConstructorInternal
+
+  subroutine patejLoeb2015Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
+    implicit none
+    type(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterProfile_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine patejLoeb2015Destructor
 
   double precision function patejLoeb2015Density(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
     class           (nodeComponentHotHalo                ), pointer       :: hotHalo
     class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterHaloProfile
     double precision                                                      :: radiusShock          , densityNormalization, &
          &                                                                   radiusOuter          , radiusDarkMatter
 
-    ! Get required objects.
-    darkMatterHaloScale_  => darkMatterHaloScale                  ()
-    darkMatterProfile_    => darkMatterProfile                    ()
     ! Get the hot halo and dark matter profile components.
-    hotHalo               => node               %hotHalo          ()
-    darkMatterHaloProfile => node               %darkMatterprofile()
+    hotHalo               => node%hotHalo          ()
+    darkMatterHaloProfile => node%darkMatterprofile()
     ! Find the shock and outer radii.
-    radiusShock         =+self                %shockRadius                         &
-         &               *darkMatterHaloScale_%virialRadius(node                 )
-    radiusOuter         =hotHalo              %outerRadius (                     )
+    radiusShock         =+self                        %shockRadius                         &
+         &               *self   %darkMatterHaloScale_%virialRadius(node                 )
+    radiusOuter         =+hotHalo                     %outerRadius (                     )
     ! Find the density normalization.
-    radiusDarkMatter    =+radiusShock                                              &
+    radiusDarkMatter    =+radiusShock                                                      &
          &               *(radiusOuter/radiusShock)**self%gamma
-    densityNormalization=+hotHalo             %mass        (                     ) &
-         &               /darkMatterProfile_  %enclosedMass(node,radiusDarkMatter)
+    densityNormalization=+hotHalo                     %mass        (                     ) &
+         &               /self   %darkMatterProfile_  %enclosedMass(node,radiusDarkMatter)
     ! Compute the density.
-    patejLoeb2015Density=+self%gamma                                                 &
-         &               *densityNormalization                                       &
-         &               *(                                                          &
-         &                 +radius                                                   &
-         &                 /radiusShock                                              &
-         &                )**(3.0d0*self%gamma-3.0d0)                                &
-         &               *darkMatterProfile_%density(                                &
-         &                                           node                          , &
-         &                                           +radiusShock                    &
-         &                                           *(                              &
-         &                                             +radius                       &
-         &                                             /radiusShock                  &
-         &                                           )**self%gamma                   &
-         &               )
+    patejLoeb2015Density=+self%gamma                                                      &
+         &               *densityNormalization                                            &
+         &               *(                                                               &
+         &                 +radius                                                        &
+         &                 /radiusShock                                                   &
+         &                )**(3.0d0*self%gamma-3.0d0)                                     &
+         &               *self%darkMatterProfile_%density(                                &
+         &                                                node                          , &
+         &                                                +radiusShock                    &
+         &                                                *(                              &
+         &                                                  +radius                       &
+         &                                                  /radiusShock                  &
+         &                                                )**self%gamma                   &
+         &                                               )
     return
   end function patejLoeb2015Density
 
   double precision function patejLoeb2015DensityLogSlope(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
-    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
     class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterHaloProfile
     double precision                                                      :: radiusShock
 
-    ! Get required objects.
-    darkMatterHaloScale_  => darkMatterHaloScale                  ()
-    darkMatterProfile_    => darkMatterProfile                    ()
     ! Get the dark matter profile component.
-    darkMatterHaloProfile => node               %darkMatterProfile()
+    darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock radius.
-    radiusShock         =+self                %shockRadius                    &
-         &               *darkMatterHaloScale_%virialRadius(node            )
+    radiusShock         =+self                     %shockRadius                    &
+         &               *self%darkMatterHaloScale_%virialRadius(node            )
     ! Compute the log slope of density.
-    patejLoeb2015DensityLogSlope=+3.0d0                                              &
-         &                       *(self%gamma-1.0d0)                                 &
-         &                       + self%gamma                                        &
-         &                       *darkMatterProfile_%densityLogSlope(                &
-         &                                                           node          , &
-         &                                                           +radiusShock    &
-         &                                                           *(              &
-         &                                                             +radius       &
-         &                                                             /radiusShock  &
-         &                                                           )**self%gamma   &
-         &                                                          )
+    patejLoeb2015DensityLogSlope=+3.0d0                                                    &
+         &                       *(self%gamma-1.0d0)                                       &
+         &                       + self%gamma                                              &
+         &                       * self%darkMatterProfile_%densityLogSlope(                &
+         &                                                                 node          , &
+         &                                                                 +radiusShock    &
+         &                                                                 *(              &
+         &                                                                   +radius       &
+         &                                                                   /radiusShock  &
+         &                                                                  )**self%gamma  &
+         &                                                                )
     return
   end function patejLoeb2015DensityLogSlope
   
   double precision function patejLoeb2015EnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
     type            (treeNode                            ), intent(inout), target  :: node
     double precision                                      , intent(in   )          :: radius
-    class           (darkMatterHaloScaleClass            )               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              )               , pointer :: darkMatterProfile_
     class           (nodeComponentHotHalo                )               , pointer :: hotHalo
     class           (nodeComponentDarkMatterProfile      )               , pointer :: darkMatterHaloProfile
     double precision                                                               :: radiusShock          , densityNormalization, &
          &                                                                            radiusOuter          , radiusScale         , &
          &                                                                            radiusDarkMatter
 
-    ! Get required objects.
-    darkMatterHaloScale_  => darkMatterHaloScale                  ()
-    darkMatterProfile_    => darkMatterProfile                    ()
     ! Get the hot halo and dark matter profile components.
-    hotHalo               => node               %hotHalo          ()
-    darkMatterHaloProfile => node               %darkMatterprofile()
+    hotHalo               => node%hotHalo          ()
+    darkMatterHaloProfile => node%darkMatterprofile()
     ! Find the shock, outer, and scale radii.
-    radiusShock         =+self                %shockRadius                         &
-         &               *darkMatterHaloScale_%virialRadius(node                 )
-    radiusOuter         =hotHalo              %outerRadius (                     )
-    radiusScale         =darkMatterHaloProfile%scale       (                     )
+    radiusShock              =+self                     %shockRadius                         &
+         &                    *self%darkMatterHaloScale_%virialRadius(node                 )
+    radiusOuter              =     hotHalo              %outerRadius (                     )
+    radiusScale              =     darkMatterHaloProfile%scale       (                     )
     ! Find the density normalization.
-    radiusDarkMatter    =+radiusShock                                              &
-         &               *(radiusOuter/radiusShock)**self%gamma
-    densityNormalization=+hotHalo             %mass        (                     ) &
-         &               /darkMatterProfile_  %enclosedMass(node,radiusDarkMatter)
+    radiusDarkMatter         =+radiusShock                                                   &
+         &                    *(radiusOuter/radiusShock)**self%gamma
+    densityNormalization     =+     hotHalo             %mass        (                     ) &
+         &                    /self%darkMatterProfile_  %enclosedMass(node,radiusDarkMatter)
     ! Compute the corresponding radius in the dark matter halo.
-    radiusDarkMatter    =+radiusShock                                              &
-         &               *(radius     /radiusShock)**self%gamma
+    radiusDarkMatter         =+radiusShock                                                   &
+         &                    *(radius     /radiusShock)**self%gamma
     ! Compute the enclosed mass (eqn. 4 of Patej & Loeb 2015).
-    patejLoeb2015EnclosedMass=+densityNormalization                              &
-         &                    *darkMatterProfile_%enclosedMass(                  &
-         &                                                     node            , &
-         &                                                     radiusDarkMatter  &
-         &                                                    )
+    patejLoeb2015EnclosedMass=+densityNormalization                                   &
+         &                    *self%darkMatterProfile_%enclosedMass(                  &
+         &                                                          node            , &
+         &                                                          radiusDarkMatter  &
+         &                                                         )
     return
   end function patejLoeb2015EnclosedMass
   
@@ -269,47 +265,42 @@ contains
     !% \mathcal{R}_{\mathrm g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_{\mathrm DM}(r;(2\Gamma-2+m)/\Gamma),
     !% \end{equation}
     !% where $\mathcal{R}(r;m)$ is the $m^{\mathrm th}$ radial moment of the density profile.
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: moment               , radius
-    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass              ), pointer       :: darkMatterProfile_
     class           (nodeComponentHotHalo                ), pointer       :: hotHalo
     class           (nodeComponentDarkMatterProfile      ), pointer       :: darkMatterHaloProfile
     double precision                                                      :: radiusShock          , densityNormalization, &
          &                                                                   radiusOuter          , radiusScale         , &
          &                                                                   radiusDarkMatter
 
-    ! Get required objects.
-    darkMatterHaloScale_  => darkMatterHaloScale                  ()
-    darkMatterProfile_    => darkMatterProfile                    ()
-    ! Get the hot halo and dark matter profile components.
-    hotHalo               => node               %hotHalo          ()
-    darkMatterHaloProfile => node               %darkMatterprofile()
+   ! Get the hot halo and dark matter profile components.
+    hotHalo               => node%hotHalo          ()
+    darkMatterHaloProfile => node%darkMatterprofile()
     ! Find the shock, outer, and scale radii.
-    radiusShock         =+self                %shockRadius                         &
-         &               *darkMatterHaloScale_%virialRadius(node                 )
-    radiusOuter         =hotHalo              %outerRadius (                     )
-    radiusScale         =darkMatterHaloProfile%scale       (                     )
+    radiusShock         =+self                     %shockRadius                         &
+         &               *self%darkMatterHaloScale_%virialRadius(node                 )
+    radiusOuter         =     hotHalo              %outerRadius (                     )
+    radiusScale         =     darkMatterHaloProfile%scale       (                     )
     ! Find the density normalization.
-    radiusDarkMatter    =+radiusShock                                              &
+    radiusDarkMatter    =+radiusShock                                                   &
          &               *(radiusOuter/radiusShock)**self%gamma
-    densityNormalization=+hotHalo             %mass        (                     ) &
-         &               /darkMatterProfile_  %enclosedMass(node,radiusDarkMatter)
+    densityNormalization=+     hotHalo             %mass        (                     ) &
+         &               /self%darkMatterProfile_  %enclosedMass(node,radiusDarkMatter)
     ! Compute the corresponding radius in the dark matter halo.
-    radiusDarkMatter=+(                     &
-         &             +radiusShock         &
-         &             /radiusScale         &
-         &            )**(1.0d0-self%gamma) &
-         &            *(                    &
-         &             +min(radius,hotHalo%outerRadius())              &
-         &             /radiusScale         &
+    radiusDarkMatter=+(                                   &
+         &             +radiusShock                       &
+         &             /radiusScale                       &
+         &            )**(1.0d0-self%gamma)               &
+         &            *(                                  &
+         &             +min(radius,hotHalo%outerRadius()) &
+         &             /radiusScale                       &
          &            )**       self%gamma
     ! Compute the radial moment.
-    patejLoeb2015RadialMoment=densityNormalization*radiusShock**((self%gamma-1.0d0)*(moment-2.0d0)/self%gamma)*darkMatterProfile_%radialMoment(node,moment,radiusDarkMatter)
+    patejLoeb2015RadialMoment=+densityNormalization                                               &
+         &                    *radiusShock**((self%gamma-1.0d0)*(moment-2.0d0)/self%gamma)        &
+         &                    *self%darkMatterProfile_%radialMoment(node,moment,radiusDarkMatter)
     return
   end function patejLoeb2015RadialMoment
 
@@ -322,9 +313,8 @@ contains
     type (treeNode                            ), intent(inout) :: node
     class(nodeComponentHotHalo                ), pointer       :: hotHalo
 
-    hotHalo                           => node%hotHalo()
-    patejLoeb2015RotationNormalization=                         &
-         &  self%radialMoment(node,2.0d0,hotHalo%outerRadius()) &
-         & /self%radialMoment(node,3.0d0,hotHalo%outerRadius())
+    hotHalo                            =>  node%hotHalo     (                                )
+    patejLoeb2015RotationNormalization =  +self%radialMoment(node,2.0d0,hotHalo%outerRadius()) &
+         &                                /self%radialMoment(node,3.0d0,hotHalo%outerRadius())
     return
   end function patejLoeb2015RotationNormalization

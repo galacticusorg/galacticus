@@ -81,16 +81,18 @@ contains
     class(coolingTimeAvailableClass     ), pointer       :: coolingTimeAvailable_
     class(coolingTimeClass              ), pointer       :: coolingTime_
     class(hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
+    class(hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
 
     !# <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
     !# <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
     !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    self=coolingRadiusSimple(coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_)
+    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    self=coolingRadiusSimple(coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_) result(self)
+  function simpleConstructorInternal(coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the simple cooling radius class.
     use ISO_Varying_String
     use Galacticus_Error
@@ -103,8 +105,9 @@ contains
     class(coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
     class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
     class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
-    !# <constructorAssign variables="*coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_"/>
-    
+    class(hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
+    !# <constructorAssign variables="*coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
+
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
     self%radiusGrowthRateComputed=.false.
@@ -146,6 +149,7 @@ contains
     !# <objectDestructor name="self%coolingTimeAvailable_"     />
     !# <objectDestructor name="self%coolingTime_"              />
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     return
   end subroutine simpleDestructor
 
@@ -193,8 +197,6 @@ contains
        if (coolingRadius >= outerRadius) then
           self%radiusGrowthRateStored=0.0d0
        else
-          ! Get required objects.
-          self%hotHaloMassDistribution_   => hotHaloMassDistribution  ()
           ! Define radiation field.
           call radiation%define([radiationTypeCMB])
           call radiation%set(node)
@@ -253,8 +255,6 @@ contains
        simpleCoolingTimeAvailable_=self%coolingTimeAvailable_%timeAvailable(node)
        ! Get node components.
        hotHalo => node%hotHalo()
-       ! Get required objects.
-       self%hotHaloMassDistribution_   => hotHaloMassDistribution  ()
        ! Get the abundances for this node.
        simpleGasAbundances_=hotHalo%abundances()
        call simpleGasAbundances_%massToMassFraction(hotHalo%mass())

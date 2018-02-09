@@ -19,7 +19,7 @@
 !% A null implementation of the hot halo mass distribution class.
 
   !# <hotHaloMassDistribution name="hotHaloMassDistributionNull">
-  !#  <description>Provides a null implementation of the hot halo mass dsitribution class.</description>
+  !#  <description>Provides a null implementation of the hot halo mass distribution class.</description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionNull
      !% A null implementation of the hot halo mass distribution class.
@@ -32,7 +32,24 @@
      procedure :: rotationNormalization => nullRotationNormalization
   end type hotHaloMassDistributionNull
 
+  interface hotHaloMassDistributionNull
+     !% Constructors for the null hot halo mass distribution class.
+     module procedure nullConstructorParameters
+  end interface hotHaloMassDistributionNull
+
 contains
+
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the null hot halo mass distribution class which builds the object from a parameter set.
+    use Input_Parameters
+    implicit none
+    type(hotHaloMassDistributionNull)                :: self
+    type(inputParameters            ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=hotHaloMassDistributionNull()
+    return
+  end function nullConstructorParameters
 
   double precision function nullDensity(self,node,radius)
     !% Return the density in a null hot halo mass distribution.
@@ -83,7 +100,9 @@ contains
   end function nullRadialMoment
 
   double precision function nullRotationNormalization(self,node)
-    !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
+    !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant
+    !% in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} =
+    !% A J/M$.
     implicit none
     class(hotHaloMassDistributionNull), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node

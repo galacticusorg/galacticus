@@ -24,6 +24,7 @@
   use Cooling_Times_Available
   use Cooling_Times
   use Hot_Halo_Temperature_Profiles    
+  use Hot_Halo_Mass_Distributions
 
   !# <coolingRadius name="coolingRadiusBetaProfile" defaultThreadPrivate="yes">
   !#  <description>
@@ -44,6 +45,7 @@
      class           (coolingTimeAvailableClass     ), pointer :: coolingTimeAvailable_
      class           (coolingTimeClass              ), pointer :: coolingTime_
      class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_
+     class           (hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_
      integer         (kind=kind_int8                )          :: lastUniqueID              =-1
      integer                                                   :: abundancesCount              , chemicalsCount
      ! Stored values of cooling radius.
@@ -74,17 +76,19 @@ contains
     class(coolingTimeClass              ), pointer       :: coolingTime_
     class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
     class(hotHaloTemperatureProfileClass), pointer       :: hotHaloTemperatureProfile_
+    class(hotHaloMassDistributionClass  ), pointer       :: hotHaloMassDistribution_
 
     !# <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
     !# <objectBuilder class="coolingTimeAvailable"      name="coolingTimeAvailable_"      source="parameters"/>
     !# <objectBuilder class="coolingTime"               name="coolingTime_"               source="parameters"/>
     !# <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
-    self=coolingRadiusBetaProfile(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_)
+    !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    self=coolingRadiusBetaProfile(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function betaProfileConstructorParameters
 
-  function betaProfileConstructorInternal(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_) result(self)
+  function betaProfileConstructorInternal(darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the $\beta$-profile cooling radius class.
     use ISO_Varying_String
     use Galacticus_Error
@@ -92,16 +96,14 @@ contains
     use String_Handling
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Hot_Halo_Mass_Distributions
-    use Hot_Halo_Temperature_Profiles    
     implicit none
-    type (coolingRadiusBetaProfile      )                         :: self
-    class(darkMatterHaloScaleClass      ), intent(in   ), target  :: darkMatterHaloScale_
-    class(coolingTimeAvailableClass     ), intent(in   ), target  :: coolingTimeAvailable_
-    class(coolingTimeClass              ), intent(in   ), target  :: coolingTime_
-    class(hotHaloTemperatureProfileClass), intent(in   ), target  :: hotHaloTemperatureProfile_
-    class(hotHaloMassDistributionClass  )               , pointer :: hotHaloMassDistribution_
-    !# <constructorAssign variables="*darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_"/>
+    type (coolingRadiusBetaProfile      )                        :: self
+    class(darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
+    class(coolingTimeAvailableClass     ), intent(in   ), target :: coolingTimeAvailable_
+    class(coolingTimeClass              ), intent(in   ), target :: coolingTime_
+    class(hotHaloTemperatureProfileClass), intent(in   ), target :: hotHaloTemperatureProfile_
+    class(hotHaloMassDistributionClass  ), intent(in   ), target :: hotHaloMassDistribution_
+    !# <constructorAssign variables="*darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_, *hotHaloTemperatureProfile_, *hotHaloMassDistribution_"/>
 
     ! Initial state of stored solutions.
     self%radiusComputed          =.false.
@@ -139,14 +141,13 @@ contains
     ! We do not check that:
     !  * β=2/3;
     !  * Cooling function is always proportional to ρ².
-    hotHaloMassDistribution_   => hotHaloMassDistribution  ()
     select type (hotHaloTemperatureProfile_ => self%hotHaloTemperatureProfile_)
     class is (hotHaloTemperatureProfileVirial)
        ! An isothermal profile - this is acceptable.
     class default
        call Galacticus_Error_Report('assumption of isothermal hot halo temperature profile is not met'//{introspection:location})
     end select
-    select type (hotHaloMassDistribution_)
+    select type (hotHaloMassDistribution_   => self%hotHaloMassDistribution_  )
     class is (hotHaloMassDistributionBetaProfile)
        ! An beta-model profile - this is acceptable.
     class default
@@ -160,9 +161,11 @@ contains
     implicit none
     type(coolingRadiusBetaProfile), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%coolingTimeAvailable_"/> 
-    !# <objectDestructor name="self%coolingTime_"         />
+    !# <objectDestructor name="self%darkMatterHaloScale_"      />
+    !# <objectDestructor name="self%coolingTimeAvailable_"     /> 
+    !# <objectDestructor name="self%coolingTime_"              />
+    !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
+    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
    return
   end subroutine betaProfileDestructor
 
@@ -186,24 +189,22 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Hot_Halo_Mass_Distributions
     implicit none
-    class           (coolingRadiusBetaProfile    ), intent(inout)          :: self
-    type            (treeNode                    ), intent(inout)          :: node
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    class           (hotHaloMassDistributionClass)               , pointer :: hotHaloMassDistribution_
-    double precision                                                       :: coolingTimeZero         , timeAvailable          , &
-         &                                                                    densityZero             , massToDensityConversion, &
-         &                                                                    temperature             , outerRadius            , &
-         &                                                                    densityOuter            , coolingTimeOuter
-    type            (abundances                  )                         :: hotAbundances
-    type            (chemicalAbundances          )                         :: chemicalDensities       , chemicalMasses
-    type            (radiationStructure          )                         :: radiation
+    class           (coolingRadiusBetaProfile), intent(inout)          :: self
+    type            (treeNode                ), intent(inout)          :: node
+    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
+    double precision                                                   :: coolingTimeZero  , timeAvailable          , &
+         &                                                                densityZero      , massToDensityConversion, &
+         &                                                                temperature      , outerRadius            , &
+         &                                                                densityOuter     , coolingTimeOuter
+    type            (abundances              )                         :: hotAbundances
+    type            (chemicalAbundances      )                         :: chemicalDensities, chemicalMasses
+    type            (radiationStructure      )                         :: radiation
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
 
     ! Check if cooling radius growth rate is already computed.
     if (.not.self%radiusGrowthRateComputed) then
-       hotHaloMassDistribution_   => hotHaloMassDistribution  ()
        ! Get the time available for cooling in node.
        timeAvailable              =  self%coolingTimeAvailable_%timeAvailable(node)
        ! Get the abundances for this node.
@@ -231,8 +232,8 @@ contains
        ! Get the temperature.
        temperature=self%hotHaloTemperatureProfile_%temperature(node,outerRadius)
        ! Compute density and cooling time at outer radius and zero radius.
-       densityZero     =     hotHaloMassDistribution_  %density(node,0.0d0      )
-       densityOuter    =     hotHaloMassDistribution_  %density(node,outerRadius)
+       densityZero     =self%hotHaloMassDistribution_  %density(node,0.0d0      )
+       densityOuter    =self%hotHaloMassDistribution_  %density(node,outerRadius)
        coolingTimeZero =self%coolingTime_              %time   (temperature,densityZero ,hotAbundances,chemicalDensities,radiation)
        coolingTimeOuter=self%coolingTime_              %time   (temperature,densityOuter,hotAbundances,chemicalDensities,radiation)
        if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then 
@@ -265,24 +266,21 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Hot_Halo_Mass_Distributions
     implicit none
-    class           (coolingRadiusBetaProfile    ), intent(inout), target  :: self
-    type            (treeNode                    ), intent(inout), target  :: node
-    class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    class           (hotHaloMassDistributionClass)               , pointer :: hotHaloMassDistribution_
-    double precision                                                       :: coolingTimeZero         , timeAvailable          , &
-         &                                                                    densityZero             , massToDensityConversion, &
-         &                                                                    temperature             , outerRadius            , &
-         &                                                                    densityOuter            , coolingTimeOuter
-    type            (abundances                  )                         :: hotAbundances
-    type            (chemicalAbundances          )                         :: chemicalDensities       , chemicalMasses
-    type            (radiationStructure          )                         :: radiation
+    class           (coolingRadiusBetaProfile), intent(inout), target  :: self
+    type            (treeNode                ), intent(inout), target  :: node
+    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
+    double precision                                                   :: coolingTimeZero  , timeAvailable          , &
+         &                                                                densityZero      , massToDensityConversion, &
+         &                                                                temperature      , outerRadius            , &
+         &                                                                densityOuter     , coolingTimeOuter
+    type            (abundances              )                         :: hotAbundances
+    type            (chemicalAbundances      )                         :: chemicalDensities, chemicalMasses
+    type            (radiationStructure      )                         :: radiation
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
-       ! Get required objects.
-       hotHaloMassDistribution_   => hotHaloMassDistribution  ()
        ! Get the time available for cooling in node.
        timeAvailable              =  self%coolingTimeAvailable_%timeAvailable(node)
        ! Get the abundances for this node.
@@ -310,8 +308,8 @@ contains
        ! Get the temperature.
        temperature=self%hotHaloTemperatureProfile_%temperature(node,outerRadius)
        ! Compute density and cooling time at outer radius and zero radius.
-       densityZero     =     hotHaloMassDistribution_  %density(node       ,0.0d0                                                 )
-       densityOuter    =     hotHaloMassDistribution_  %density(node       ,outerRadius                                           )
+       densityZero     =self%hotHaloMassDistribution_  %density(node       ,0.0d0                                                 )
+       densityOuter    =self%hotHaloMassDistribution_  %density(node       ,outerRadius                                           )
        coolingTimeZero =self%coolingTime_              %time   (temperature,densityZero ,hotAbundances,chemicalDensities,radiation)
        coolingTimeOuter=self%coolingTime_              %time   (temperature,densityOuter,hotAbundances,chemicalDensities,radiation)
        if (coolingTimeOuter < timeAvailable) then

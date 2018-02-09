@@ -18,9 +18,8 @@
 
 !% An implementation of the hot halo mass distribution class for $\beta$-profile distributions.
 
-  double precision :: betaProfileBeta
-  logical          :: betaProfileInitialized=.false.
-
+  use Mass_Distributions
+  
   !# <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
   !#  <description>Provides a $\beta$-profile implementation of the hot halo mass distribution class.</description>
   !# </hotHaloMassDistribution>
@@ -49,23 +48,27 @@
 
   interface hotHaloMassDistributionBetaProfile
      !% Constructors for the $\beta$-profile hot halo mass distribution class.
-     module procedure betaProfileConstructor
-     module procedure betaProfileDefaultConstructor
+     module procedure betaProfileConstructorParameters
+     module procedure betaProfileConstructorInternal
   end interface hotHaloMassDistributionBetaProfile
 
 contains
 
-  function betaProfileDefaultConstructor()
-    !% Default constructor for the betaProfile hot halo mass distribution class.
+  function betaProfileConstructorParameters(parameters) result(self)
+    !% Constructor for the null {\normalfont \ttfamily betaProfile} hot halo mass distributionclass which builds the object from a
+    !% parameter set.
     use Galacticus_Error
     use Array_Utilities
     use Input_Parameters
     implicit none
-    type(hotHaloMassDistributionBetaProfile) :: betaProfileDefaultConstructor
+    type            (hotHaloMassDistributionBetaProfile)                :: self
+    type            (inputParameters                   ), intent(inout) :: parameters
+    logical                                             , save          :: initialized=.false.
+    double precision                                                    :: beta
 
-    if (.not.betaProfileInitialized) then
+    if (.not.initialized) then
        !$omp critical(betaProfileInitialized)
-       if (.not.betaProfileInitialized) then
+       if (.not.initialized) then
           ! Check that required propert is gettable.
           if     (                                                                                                       &
                &  .not.(                                                                                                 &
@@ -84,34 +87,32 @@ contains
                &                           )                                                                          // &
                &  {introspection:location}                                                                               &
                & )
-          !# <inputParameter>
-          !#   <name>hotHaloMassDistributionBeta</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>2.0d0/3.0d0</defaultValue>
-          !#   <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !#   <variable>betaProfileBeta</variable>
-          !# </inputParameter>
-          ! Record that implementation is now initialized.
-          betaProfileInitialized=.true.
+          initialized=.true.
        end if
        !$omp end critical(betaProfileInitialized)
     end if
-    betaProfileDefaultConstructor=betaProfileConstructor(betaProfileBeta)
-    return
-  end function betaProfileDefaultConstructor
-  
-  function betaProfileConstructor(beta)
-    !% Default constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
-    use Input_Parameters
-    implicit none
-    type            (hotHaloMassDistributionBetaProfile)                :: betaProfileConstructor
-    double precision                                    , intent(in   ) :: beta
     
-    betaProfileConstructor%beta=beta
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.0d0/3.0d0</defaultValue>
+    !#   <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=hotHaloMassDistributionBetaProfile(beta)
     return
-  end function betaProfileConstructor
+  end function betaProfileConstructorParameters
+  
+  function betaProfileConstructorInternal(beta) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    implicit none
+    type            (hotHaloMassDistributionBetaProfile)                :: self
+    double precision                                    , intent(in   ) :: beta
+    !# <constructorAssign variables="beta"/>
+
+    return
+  end function betaProfileConstructorInternal
   
   subroutine betaProfileInitialize(self,node)
     !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
@@ -121,7 +122,7 @@ contains
     type            (treeNode                              ), intent(inout) :: node
     class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
     class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
-    double precision                                                        :: radiusScale, radiusOuter, &
+    double precision                                                        :: radiusScale                       , radiusOuter, &
          &                                                                     mass
 
     hotHaloMassDistributionCoreRadius_ => hotHaloMassDistributionCoreRadius             (    )

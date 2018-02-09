@@ -18,35 +18,60 @@
 
 !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
 
+  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
+  
   !# <hotHaloMassDistribution name="hotHaloMassDistributionRicotti2000">
   !#  <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.</description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionBetaProfile) :: hotHaloMassDistributionRicotti2000
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
      private
+     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
    contains
+     final     ::               ricotti2000Destructor
      procedure :: initialize => ricotti2000Initialize
   end type hotHaloMassDistributionRicotti2000
 
   interface hotHaloMassDistributionRicotti2000
      !% Constructors for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
-     module procedure ricotti2000DefaultConstructor
+     module procedure ricotti2000ConstructorParameters
+     module procedure ricotti2000ConstructorInternal
   end interface hotHaloMassDistributionRicotti2000
-
-  logical :: ricotti2000Initialized=.false.
 
 contains
   
-  function ricotti2000DefaultConstructor()
-    !% Default constructor for the ricotti2000 hot halo mass distribution class.
+  function ricotti2000ConstructorParameters(parameters) result(self)
+    !% Default constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
+    use Input_Parameters
+    implicit none
+    type (hotHaloMassDistributionRicotti2000)                :: self
+    type (inputParameters                   ), intent(inout) :: parameters
+    class(darkMatterProfileClass            ), pointer       :: darkMatterProfile_
+    class(darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
+
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=hotHaloMassDistributionRicotti2000(darkMatterProfile_,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function ricotti2000ConstructorParameters
+
+  function ricotti2000ConstructorInternal(darkMatterProfile_,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
     use Galacticus_Error
     use Array_Utilities
     implicit none
-    type(hotHaloMassDistributionRicotti2000) :: ricotti2000DefaultConstructor
+    type   (hotHaloMassDistributionRicotti2000)                        :: self
+    class  (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
+    class  (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
+    logical                                    , save                  :: initialized         =.false.
+    !# <constructorAssign variables="*darkMatterProfile_, *darkMatterHaloScale_"/>
 
-    if (.not.ricotti2000Initialized) then
+    if (.not.initialized) then
        !$omp critical(ricotti2000Initialized)
-       if (.not.ricotti2000Initialized) then
+       if (.not.initialized) then
           ! Check that required properties are gettable.
           if     (                                                                                                                 &
                &  .not.(                                                                                                           &
@@ -79,26 +104,34 @@ contains
                &  {introspection:location}                                                                                         &
                & )
           ! Record that implementation is now initialized.
-          ricotti2000Initialized=.true.
+          initialized=.true.
        end if
        !$omp end critical(ricotti2000Initialized)
     end if
     ! Set the value of beta. This is arbitrary as it will be computed as needed, but avoids compiler complaints that this
     ! constructor is not initialized
-    ricotti2000DefaultConstructor%beta=-1.0d0
+    self%beta=-1.0d0
     return
-  end function ricotti2000DefaultConstructor
+  end function ricotti2000ConstructorInternal
+
+  subroutine ricotti2000Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
+    implicit none
+    type(hotHaloMassDistributionRicotti2000), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterProfile_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine ricotti2000Destructor
 
   subroutine ricotti2000Initialize(self,node)
-    !% Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily node}. Parameterizations of $\beta$ and core
-    !% radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
-    use Dark_Matter_Halo_Scales
+    !% Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily
+    !% node}. Parameterizations of $\beta$ and core radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
     implicit none
     class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
     class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
     class           (nodeComponentDarkMatterProfile        ), pointer       :: darkMatterProfile
-    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
     double precision                                        , parameter     :: virialToGasTemperatureRatio=1.0d0
     double precision                                                        :: mass                             , radiusOuter  , &
          &                                                                     radiusScale                      , radiusVirial , &
@@ -106,30 +139,32 @@ contains
          &                                                                     b                                , beta
     
     ! Compute parameters of the profile.
-    darkMatterHaloScale_ => darkMatterHaloScale                   (    )
-    hotHalo              => node                %hotHalo          (    )
-    darkMatterProfile    => node                %darkMatterProfile(    )
-    radiusOuter          =  hotHalo             %outerRadius      (    )
-    mass                 =  hotHalo             %mass             (    )
-    radiusScale          =  darkMatterProfile   %scale            (    )
-    radiusVirial         =  darkMatterHaloScale_%virialRadius     (node)
-    concentration        =  radiusVirial/radiusScale
-    b                    =   (                             &
-         &                     2.0d0                       &
-         &                    *concentration               &
-         &                    /9.0d0                       &
-         &                    /virialToGasTemperatureRatio &
-         &                   )                             &
-         &                  /(                             &
-         &                     log(1.0d0+concentration)    &
-         &                    -concentration               &
-         &                    /(                           &
-         &                       1.0d0                     &
-         &                      +concentration             &
-         &                     )                           &
-         &                   )
-    beta                 =  0.90d0*b
-    radiusCore           =  0.22d0*radiusScale
+    hotHalo           =>  node                        %hotHalo          (    )
+    darkMatterProfile =>  node                        %darkMatterProfile(    )
+    radiusOuter       =   hotHalo                     %outerRadius      (    )
+    mass              =   hotHalo                     %mass             (    )
+    radiusScale       =           darkMatterProfile   %scale            (    )
+    radiusVirial      =   self   %darkMatterHaloScale_%virialRadius     (node)
+    concentration     =  +radiusVirial              &
+         &               /radiusScale
+    b                 =  +(                             &
+         &                 +2.0d0                       &
+         &                 *concentration               &
+         &                 /9.0d0                       &
+         &                 /virialToGasTemperatureRatio &
+         &                )                             &
+         &               /(                             &
+         &                 +log(1.0d0+concentration)    &
+         &                 -          concentration     &
+         &                 /(                           &
+         &                   +1.0d0                     &
+         &                   +concentration             &
+         &                  )                           &
+         &                )
+    beta              =  +0.90d0      &
+         &               *b
+    radiusCore        =  +0.22d0      &
+         &               *radiusScale
     ! Construct the mass distribution.
     if (radiusOuter <= 0.0d0) then
        ! If outer radius is non-positive, set mass to zero and outer radius to an arbitrary value.
