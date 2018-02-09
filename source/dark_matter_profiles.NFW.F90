@@ -359,7 +359,7 @@ contains
                &                                        iRadius                                                                            &
                &                                       )
        end do
-       call self%nfwSpecificAngularMomentum%reverse(self%nfwSpecificAngularMomentumInverse)
+       call self%nfwSpecificAngularMomentum%reverse(self%nfwSpecificAngularMomentumInverse)       
        ! Specify that tabulation has been made.
        self%nfwInverseTableInitialized=.true.
     end if
@@ -774,9 +774,40 @@ contains
     implicit none
     class           (darkMatterProfileNFW), intent(inout) :: self
     double precision                      , intent(in   ) :: radius
+    double precision                      , parameter     :: radiusSmall=1.0d-9
     !GCC$ attributes unused :: self
     
-    nfwSpecificAngularMomentumScaleFree=sqrt(radius*self%enclosedMassScaleFree(radius,1.0d0))
+    if (radius < radiusSmall) then
+       ! Use a series expenasion solution for accuracy.
+       nfwSpecificAngularMomentumScaleFree=+radius**1.5d0                &
+            &                              /sqrt(                        &
+            &                                    +    2.0d0              &
+            &                                    *log(2.0d0)             &
+            &                                    -    1.0d0              &
+            &                                   )                        &
+            &                              *(                            &
+            &                                        +   1.0d0           &
+            &                                -      radius               &
+            &                                *(                          &
+            &                                        -   2.0d0/    3.0d0 &
+            &                                  +    radius               &
+            &                                  *(                        &
+            &                                        +  19.0d0/   36.0d0 &
+            &                                    +  radius               &
+            &                                    *(                      &
+            &                                        - 121.0d0/  270.0d0 &
+            &                                      +radius               &
+            &                                      *(                    &
+            &                                        +5123.0d0/12960.0d0 &
+            &                                       )                    &
+            &                                     )                      &
+            &                                   )                        &
+            &                                 )                          &
+            &                               )
+    else
+       ! Use the full solution.
+       nfwSpecificAngularMomentumScaleFree=sqrt(radius*self%enclosedMassScaleFree(radius,1.0d0))
+    end if
     return
   end function nfwSpecificAngularMomentumScaleFree
 
