@@ -35,7 +35,7 @@
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_
      type            (grvtnlLnsngTransferMatrix), allocatable, dimension(:) :: transfer_
      double precision                                                       :: sizeSource
-     !$ type         (ompReadWriteLock         )                            :: tabulateLock
+     !$ type         (ompReadWriteLock         ), allocatable, dimension(:) :: tabulateLock
    contains
      final     ::                        grvtnlLnsngDestructor
      procedure :: operateScalar       => grvtnlLnsngOperateScalar
@@ -47,6 +47,11 @@
      module procedure grvtnlLnsngConstructorParameters
      module procedure grvtnlLnsngConstructorInternal
   end interface outputAnalysisDistributionOperatorGrvtnlLnsng
+
+  ! Module scope lensing object used in parallel evaluation of the lensing matrix.
+  integer(c_size_t                 )              :: grvtnLnsngK
+  class  (gravitationalLensingClass), allocatable :: grvtnlLnsngGravitationalLensing_
+  !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
 
 contains
 
@@ -77,16 +82,21 @@ contains
 
   function grvtnlLnsngConstructorInternal(gravitationalLensing_,sizeSource) result(self)
     !% Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
-    use Galacticus_Output_Times
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Output_Times
     implicit none
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                        :: self
     class           (gravitationalLensingClass                    ), intent(in   ), target :: gravitationalLensing_
     double precision                                               , intent(in   )         :: sizeSource
+    !$ integer      (c_size_t                                     )                        :: i
     !# <constructorAssign variables="*gravitationalLensing_, sizeSource"/>
 
     ! Allocate transfer matrices for all outputs.
-    allocate(self%transfer_(Galacticus_Output_Time_Count()))
-    !$ self%tabulateLock=ompReadWriteLock()
+    allocate   (self%transfer_   (Galacticus_Output_Time_Count()))
+    !$ allocate(self%tabulateLock(Galacticus_Output_Time_Count()))
+    !$ do i=1,Galacticus_Output_Time_Count()
+    !$    self%tabulateLock(i)=ompReadWriteLock()
+    !$ end do
     return
   end function grvtnlLnsngConstructorInternal
 
@@ -128,56 +138,69 @@ contains
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
     double precision                                               , intent(in   ), dimension(:)                          :: distribution
     integer                                                        , intent(in   )                                        :: propertyType
-    double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum, propertyValueMaximum
+    double precision                                               , intent(in   ), dimension(:)                          :: propertyValueMinimum , propertyValueMaximum
     integer         (c_size_t                                     ), intent(in   )                                        :: outputIndex
     type            (treeNode                                     ), intent(inout)                                        :: node
     double precision                                                              , dimension(size(propertyValueMinimum)) :: distributionNew
     double precision                                                                                                      :: redshift
-    integer         (c_size_t                                     )                                                       :: j                   , k
+    integer         (c_size_t                                     )                                                       :: j                    , k                   , &
+         &                                                                                                                   i                    , l
     type            (fgsl_function                                )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                   )                                                       :: integrationWorkspace
     logical                                                                                                               :: integrationReset
     !GCC$ attributes unused :: node
 
     ! Construct the lensing transfer matrix if not already done.
-    !$ call self%tabulateLock%setRead()
+    !$ call self%tabulateLock(outputIndex)%setRead()
     if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
-       !$ call self%tabulateLock%setWrite(haveReadLock=.true.)
+       !$ call self%tabulateLock(outputIndex)%setWrite(haveReadLock=.true.)
        if (.not.allocated(self%transfer_(outputIndex)%matrix)) then
           call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
-          redshift=Galacticus_Output_Redshift(outputIndex)
-          do j=1,size(propertyValueMinimum)
-             do k=1,size(propertyValueMinimum)
-                if (j > 1 .and. k > 1) then
-                   ! Transfer matrix elements are identical along diagonals of the matrix.
-                   self       %transfer_(outputIndex)%matrix(j  ,k  )=                &
-                        & self%transfer_(outputIndex)%matrix(j-1,k-1)
+          !$omp parallel private (i,j,k,l,integrationReset,integrandFunction,integrationWorkspace)
+          allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
+          call self%gravitationalLensing_%deepCopy(grvtnlLnsngGravitationalLensing_)
+          !$omp do schedule(dynamic)
+          do l=1,size(propertyValueMinimum)
+             do i=1,2
+                if (i == 1) then
+                   j=l; grvtnLnsngK=1
                 else
-                   integrationReset=.true.                               
-                   self       %transfer_(outputIndex)%matrix(j  ,k  )=                &
-                        & +Integrate(                                                 &
-                        &                               propertyValueMinimum     (j), &
-                        &                               propertyValueMaximum     (j), &
-                        &                               magnificationCDFIntegrand   , &
-                        &                               integrandFunction           , &
-                        &                               integrationWorkspace        , &
-                        &             toleranceRelative=1.0d-3                      , &
-                        &             reset            =integrationReset              &
-                        &            )                                                &
-                        & /(                                                          &
-                        &   +propertyValueMaximum(j)                                  &
-                        &   -propertyValueMinimum(j)                                  &
-                        &  )
-                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                   j=1; grvtnLnsngK=l
                 end if
+                integrationReset=.true.                               
+                self       %transfer_(outputIndex)%matrix(j,grvtnLnsngK)=          &
+                     & +Integrate(                                                 &
+                     &                               propertyValueMinimum     (j), &
+                     &                               propertyValueMaximum     (j), &
+                     &                               magnificationCDFIntegrand   , &
+                     &                               integrandFunction           , &
+                     &                               integrationWorkspace        , &
+                     &             toleranceRelative=1.0d-3                      , &
+                     &             reset            =integrationReset              &
+                     &            )                                                &
+                     & /(                                                          &
+                     &   +propertyValueMaximum(j)                                  &
+                     &   -propertyValueMinimum(j)                                  &
+                     &  )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+             end do
+          end do
+          !$omp end do
+          deallocate(grvtnlLnsngGravitationalLensing_)
+          !$omp end parallel
+          do j=2,size(propertyValueMinimum)
+             do k=2,size(propertyValueMinimum)
+                ! Transfer matrix elements are identical along diagonals of the matrix.
+                self       %transfer_(outputIndex)%matrix(j  ,k  )= &
+                     & self%transfer_(outputIndex)%matrix(j-1,k-1)
              end do
           end do
        end if
-       !$ call self%tabulateLock%unsetWrite(haveReadLock=.true.)
+       !$ call self%tabulateLock(outputIndex)%unsetWrite(haveReadLock=.true.)
     end if
     ! Apply the lensing transfer matrix.
     distributionNew=matmul(distribution,self%transfer_(outputIndex)%matrix)
-    !$ call self%tabulateLock%unsetRead()
+    !$ call self%tabulateLock(outputIndex)%unsetRead()
     return
 
   contains
@@ -193,32 +216,32 @@ contains
       ! Find the minimum and maximum magnification ratios.
       select case (propertyType)
       case (outputAnalysisPropertyTypeLinear   )
-         ratioMinimum=                 propertyValueMaximum(k)/propertyValue
-         ratioMaximum=                 propertyValueMinimum(k)/propertyValue
+         ratioMinimum=                 propertyValueMaximum(grvtnLnsngK)/propertyValue
+         ratioMaximum=                 propertyValueMinimum(grvtnLnsngK)/propertyValue
       case (outputAnalysisPropertyTypeLog10    )
-         ratioMinimum=10.0d0**(        propertyValueMinimum(k)-propertyValue)
-         ratioMaximum=10.0d0**(        propertyValueMaximum(k)-propertyValue)
+         ratioMinimum=10.0d0**(        propertyValueMinimum(grvtnLnsngK)-propertyValue)
+         ratioMaximum=10.0d0**(        propertyValueMaximum(grvtnLnsngK)-propertyValue)
       case (outputAnalysisPropertyTypeMagnitude)
          ! Note that ratio min/max is related to property value max/min because magnitudes are brighter when more negative.
-         ratioMinimum=10.0d0**(-0.4d0*(propertyValueMaximum(k)-propertyValue))
-         ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(k)-propertyValue))
+         ratioMinimum=10.0d0**(-0.4d0*(propertyValueMaximum(grvtnLnsngK)-propertyValue))
+         ratioMaximum=10.0d0**(-0.4d0*(propertyValueMinimum(grvtnLnsngK)-propertyValue))
       case default
          call Galacticus_Error_Report('unknown property type'//{introspection:location})
       end select      
       ! Compute the lensing CDF across this range of magnifications.
-      magnificationCDFIntegrand=                                               &
-           & max(                                                              &
-           &     +0.0d0                                                      , &
-           &     +self%gravitationalLensing_%magnificationCDF(                 &
-           &                                                  ratioMaximum   , &
-           &                                                  redshift       , &
-           &                                                  self%sizeSource  &
-           &                                                 )                 &
-           &     -self%gravitationalLensing_%magnificationCDF(                 &
-           &                                                  ratioMinimum   , &
-           &                                                  redshift       , &
-           &                                                  self%sizeSource  &
-           &                                                 )                 &
+      magnificationCDFIntegrand=                                                     &
+           & max(                                                                    &
+           &     +0.0d0                                                            , &
+           &     +grvtnlLnsngGravitationalLensing_%magnificationCDF(                 &
+           &                                                        ratioMaximum   , &
+           &                                                        redshift       , &
+           &                                                        self%sizeSource  &
+           &                                                       )                 &
+           &     -grvtnlLnsngGravitationalLensing_%magnificationCDF(                 &
+           &                                                        ratioMinimum   , &
+           &                                                        redshift       , &
+           &                                                        self%sizeSource  &
+           &                                                       )                 &
            &    )
       return
     end function magnificationCDFIntegrand
