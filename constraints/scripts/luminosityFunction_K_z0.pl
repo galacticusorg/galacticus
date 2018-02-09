@@ -117,7 +117,7 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set yrange [1.0e-8:1.0e-2]\n";
     print $gnuPlot "set title 'K-band luminosity function at \$z=0\$'\n";
     print $gnuPlot "set xlabel '\$M_{\\rm K,Vega}\$ [dust-extinguished]'\n";
-    print $gnuPlot "set ylabel '\${\\rm d}n/{\\rm d}M_{\\rm K,Vega}\$'\n";
+    print $gnuPlot "set ylabel '\$\\mathrm{d}n/\\mathrm{d}M_{\\rm K,Vega}\$'\n";
     &GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				  $x,$y,
 				  errorUp   => $error,

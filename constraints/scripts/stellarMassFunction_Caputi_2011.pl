@@ -136,7 +136,7 @@ foreach my $dataset ( @{$data->{'dataset'}} ) {
 	print $gnuPlot "set yrange [1.0e-7:1.0e-3]\n";
 	print $gnuPlot "set title 'Stellar mass function at \$z=".$redshift."\$'\n";
 	print $gnuPlot "set xlabel '\$M_\\star\$ [\$M_\\odot\$]'\n";
-	print $gnuPlot "set ylabel '\${\\rm d}n/{\\rm d}\\log_{10}M_\\star\$'\n";
+	print $gnuPlot "set ylabel '\$\\mathrm{d}n/\\mathrm{d}\\log_{10}M_\\star\$'\n";
 	&GnuPlot::PrettyPlots::Prepare_Dataset(\$plot,
 				      $x,$y,
 				      errorUp   => $errorUp,
