@@ -20,21 +20,21 @@
   
   use Dark_Matter_Halo_Scales
   use Cooling_Infall_Radii
-
+  
   !# <coolingRate name="coolingRateWhiteFrenk1991" defaultThreadPrivate="yes">
   !#  <description>A cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
      !% Implementation of cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
      private
-      class         (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-      class         (coolingInfallRadiusClass), pointer :: coolingInfallRadius_
-    double precision                                    :: velocityCutOff
-  contains
-    final      ::         whiteFrenk1991Destructor
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (coolingInfallRadiusClass), pointer :: coolingInfallRadius_
+     double precision                                    :: velocityCutOff
+   contains
+     final     ::         whiteFrenk1991Destructor
      procedure :: rate => whiteFrenk1991Rate
   end type coolingRateWhiteFrenk1991
-
+   
   interface coolingRateWhiteFrenk1991
      !% Constructors for the \cite{white_galaxy_1991} cooling rate class.
      module procedure whiteFrenk1991ConstructorParameters
