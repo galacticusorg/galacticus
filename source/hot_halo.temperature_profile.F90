@@ -16,17 +16,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements hot halo temperature profiles.
+!% Contains a module which provides a hot halo temperature profile class.
 
 module Hot_Halo_Temperature_Profiles
-  !% Provides an object that implements hot halo temperature profiles.
-  use ISO_Varying_String
-  use Mass_Distributions
+  !% Provides a hot halo temperature profile class.
   use Galacticus_Nodes
-  private
 
-  !# <include directive="hotHaloTemperatureProfile" type="function" >
-  !#  <descriptiveName>Hot Halo Temperature profiles</descriptiveName>
+  !# <functionClass>
+  !#  <name>hotHaloTemperatureProfile</name>
+  !#  <descriptiveName>Hot halo temperature profiles</descriptiveName>
   !#  <description>Class implementing hot halo temperarture profiles.</description>
   !#  <default>virial</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
@@ -44,7 +42,6 @@ module Hot_Halo_Temperature_Profiles
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
-  include 'hotHaloTemperatureProfile.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Hot_Halo_Temperature_Profiles
