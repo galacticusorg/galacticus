@@ -189,15 +189,15 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: diskSizeInclinationOperateScalar
-    double precision                                                                                                          :: ratioLogarithmicMinmium         , ratioLogarithmicMaxmium
+    double precision                                                                                                          :: ratioLogarithmicMinimum         , ratioLogarithmicMaximum
     integer                                                                                                                   :: i
     !GCC$ attributes unused :: outputIndex, propertyType, node
     
     do i=1,size(propertyValueMinimum)
-       ratioLogarithmicMinmium            =min(0.0d0,propertyValueMinimum(i)-propertyValue)
-       ratioLogarithmicMaxmium            =min(0.0d0,propertyValueMaximum(i)-propertyValue)
-       diskSizeInclinationOperateScalar(i)=+self%sizeTable%interpolate(ratioLogarithmicMaxmium) &
-            &                              -self%sizeTable%interpolate(ratioLogarithmicMinmium)
+       ratioLogarithmicMinimum            =min(0.0d0,propertyValueMinimum(i)-propertyValue)
+       ratioLogarithmicMaximum            =min(0.0d0,propertyValueMaximum(i)-propertyValue)
+       diskSizeInclinationOperateScalar(i)=+self%sizeTable%interpolate(ratioLogarithmicMaximum) &
+            &                              -self%sizeTable%interpolate(ratioLogarithmicMinimum)
     end do
     return
   end function diskSizeInclinationOperateScalar
