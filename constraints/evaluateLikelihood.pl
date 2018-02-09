@@ -52,6 +52,7 @@ foreach my $constraint ( @constraints ) {
     # Parse the definition file.
     my $xml = new XML::Simple;
     my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+    print "Processing constraint: ".$constraintDefinition->{'name'}."\n";
     # Run the analysis code.
     my $analysisCode = $constraintDefinition->{'analysis'};
     my $options = "";
