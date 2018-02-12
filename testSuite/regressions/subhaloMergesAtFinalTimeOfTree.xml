@@ -54,7 +54,7 @@
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <odeToleranceRelative value="0.01"/>
   <intergalacticMediumStateMethod value="file"/>
-  <haloMassFunctionSamplingMethod value="stellarMassFunction"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="stellarMassFunction"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMstar value="5.5e10"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <conditionalMassFunctionBehrooziBeta value="0.403618413165"/>

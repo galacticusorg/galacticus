@@ -16,65 +16,85 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements halo mass function sampling using a Gaussian in halo mass.
+  !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
 
-module Merger_Trees_Mass_Function_Sampling_Gaussian
-  !% Implements halo mass function sampling using a Gaussian in halo mass.
-  private
-  public :: Merger_Trees_Mass_Function_Sampling_Gaussian_Initialize
+  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingGaussian" defaultThreadPrivate="yes">
+  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.</description>
+  !# </mergerTreeHaloMassFunctionSampling>
+  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingGaussian
+     !% Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a Gaussian distribution in halo mass.
+     private
+     double precision :: mean, rootVariance
+   contains
+     procedure :: sample => gaussianSample
+  end type mergerTreeHaloMassFunctionSamplingGaussian
 
-  ! The mass of the halo to simulate.
-  double precision :: mergerTreeBuildTreesHaloMassGaussianMean, mergerTreeBuildTreesHaloMassGaussianSigma
+  interface mergerTreeHaloMassFunctionSamplingGaussian
+     !% Constructors for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+     module procedure gaussianConstructorParameters
+     module procedure gaussianConstructorInternal
+  end interface mergerTreeHaloMassFunctionSamplingGaussian
 
 contains
 
-  !# <haloMassFunctionSamplingMethod>
-  !#  <unitName>Merger_Trees_Mass_Function_Sampling_Gaussian_Initialize</unitName>
-  !# </haloMassFunctionSamplingMethod>
-  subroutine Merger_Trees_Mass_Function_Sampling_Gaussian_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
-    !% Initializes the ``gaussian'' halo mass function sampling method.
-    use ISO_Varying_String
+  function gaussianConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Gaussian), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
-
-    if (haloMassFunctionSamplingMethod == 'gaussian') then
-       Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Gaussian
-
-       !# <inputParameter>
-       !#   <name>mergerTreeBuildTreesHaloMassGaussianMean</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-
-       !# <inputParameter>
-       !#   <name>mergerTreeBuildTreesHaloMassGaussianSigma</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-
-    end if
-    return
-  end subroutine Merger_Trees_Mass_Function_Sampling_Gaussian_Initialize
-
-  double precision function Merger_Tree_Construct_Mass_Function_Sampling_Gaussian(mass,time,massMinimum,massMaximum)
-    !% Computes the halo mass function sampling rate using a Gaussian distribution.
-    implicit none
-    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
-    !GCC$ attributes unused :: time
+    type            (mergerTreeHaloMassFunctionSamplingGaussian)                :: self
+    type            (inputParameters                           ), intent(inout) :: parameters
+    double precision                                                            :: mean      , rootVariance
     
+    !# <inputParameter>
+    !#   <name>mean</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The mean mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>rootVariance</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The dispersion in mass of halo to simulate when using a Gaussian sampling of the halo mass function.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=mergerTreeHaloMassFunctionSamplingGaussian(mean,rootVariance)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function gaussianConstructorParameters
+
+  function gaussianConstructorInternal(mean,rootVariance) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily gaussian} merger tree halo mass function sampling class.
+    implicit none
+    type            (mergerTreeHaloMassFunctionSamplingGaussian)                :: self
+    double precision                                            , intent(in   ) :: mean, rootVariance
+    !# <constructorAssign variables="mean, rootVariance"/>
+    
+    return
+  end function gaussianConstructorInternal
+
+  double precision function gaussianSample(self,mass,time,massMinimum,massMaximum)
+    !% Computes the halo mass function sampling rate using a volume-limited sampling.
+    implicit none
+    class           (mergerTreeHaloMassFunctionSamplingGaussian), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass       , massMaximum, &
+         &                                                                         massMinimum, time
+    !GCC$ attributes unused :: time
+
     if (mass <= massMinimum .or. mass > massMaximum) then
-       Merger_Tree_Construct_Mass_Function_Sampling_Gaussian=0.0d0
+       gaussianSample=0.0d0
     else
-       Merger_Tree_Construct_Mass_Function_Sampling_Gaussian=exp(-0.5d0*((mass-mergerTreeBuildTreesHaloMassGaussianMean)&
-            &/mergerTreeBuildTreesHaloMassGaussianSigma)**2)
+       gaussianSample=+exp(                     &
+            &              -0.5d0               &
+            &              *(                   &
+            &                +(                 &
+            &                  +     mass       &
+            &                  -self%mean       &
+            &                 )                 &
+            &                /self%rootVariance &
+            &               )**2                &
+            &             )
     end if
     return
-  end function Merger_Tree_Construct_Mass_Function_Sampling_Gaussian
-
-end module Merger_Trees_Mass_Function_Sampling_Gaussian
+  end function gaussianSample

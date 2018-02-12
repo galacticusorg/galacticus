@@ -93,7 +93,7 @@
   <modifiedPressSchechterHypergeometricPrecision value="1.0e-6"/>
   <modifiedPressSchechterTabulateHypergeometricFactors value="true"/>
   <modifiedPressSchechterUseCDMAssumptions value="true"/>
-  <haloMassFunctionSamplingMethod value="haloMassFunction"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction"/>
   <haloMassFunctionSamplingAbundanceMaximum value="1.0e-1"/>
   <haloMassFunctionSamplingAbundanceMinimum value="1.0e-8"/>
   

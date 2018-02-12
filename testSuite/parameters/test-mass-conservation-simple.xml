@@ -95,7 +95,7 @@
     </haloMassFunctionMethod>
     <haloMassFunctionSamplingAbundanceMaximum value="1.0e-1" />
     <haloMassFunctionSamplingAbundanceMinimum value="1.0e-8" />
-    <haloMassFunctionSamplingMethod value="haloMassFunction" />
+    <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction" />
     <haloMassFunctionSamplingModifier1 value="0.5" />
     <haloMassFunctionSamplingModifier2 value="0.0" />
     <haloModelPowerSpectrumModifierMethod value="triaxiality" />

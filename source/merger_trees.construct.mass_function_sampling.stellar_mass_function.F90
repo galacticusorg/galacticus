@@ -16,168 +16,203 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements halo mass function sampling optimized to minimize variance in the model stellar mass function.
+  !% Implementation of a merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
 
-module Merger_Trees_Mass_Function_Sampling_Stellar_MF
-  !% Implements halo mass function sampling optimized to minimize variance in the model stellar mass function.
-  private
-  public :: Merger_Trees_Mass_Function_Sampling_Stellar_MF_Initialize
+  use Halo_Mass_Functions
 
-  ! Global halo mass used in integrand function.
-  double precision :: massHalo
+  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingStllrMssFnctn" defaultThreadPrivate="yes">
+  !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
+  !# </mergerTreeHaloMassFunctionSampling>
+  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingStllrMssFnctn
+     !% Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
+     private
+     class           (haloMassFunctionClass), pointer :: haloMassFunction_
+     double precision                                 :: alpha             , beta               , &
+          &                                              constant          , binWidthLogarithmic, &
+          &                                              massMinimum       , massMaximum        , &
+          &                                              massCharacteristic, normalization
+   contains
+     final     ::           stellarMassFunctionDestructor
+     procedure :: sample => stellarMassFunctionSample
+  end type mergerTreeHaloMassFunctionSamplingStllrMssFnctn
 
-  ! Parameters of the mass function error model.
-  double precision :: haloMassFunctionSamplingStellarMassFunctionErrorAlpha      , haloMassFunctionSamplingStellarMassFunctionErrorBeta       , &
-       &              haloMassFunctionSamplingStellarMassFunctionErrorConstant   , haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth, &
-       &              haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum, haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum, &
-       &              haloMassFunctionSamplingStellarMassFunctionErrorMstar      , haloMassFunctionSamplingStellarMassFunctionErrorPhi0
+  interface mergerTreeHaloMassFunctionSamplingStllrMssFnctn
+     !% Constructors for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class.
+     module procedure stellarMassFunctionConstructorParameters
+     module procedure stellarMassFunctionConstructorInternal
+  end interface mergerTreeHaloMassFunctionSamplingStllrMssFnctn
 
 contains
 
-  !# <haloMassFunctionSamplingMethod>
-  !#  <unitName>Merger_Trees_Mass_Function_Sampling_Stellar_MF_Initialize</unitName>
-  !# </haloMassFunctionSamplingMethod>
-  subroutine Merger_Trees_Mass_Function_Sampling_Stellar_MF_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
-    !% Initializes the ``stellarMassFunction'' halo mass function sampling method.
-    use ISO_Varying_String
+  function stellarMassFunctionConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
-
-    if (haloMassFunctionSamplingMethod == 'stellarMassFunction') then
-       ! Set the pointer to point to our function.
-       Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF
-       ! Read parameters of the assumed error model.
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorPhi0</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The value $\phi_0$ in a Schechter function, $\sigma(M) = \phi_0 (M/M_\star)^\alpha \exp(-[M/M_\star]^\beta)$, describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorAlpha</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The value $\alpha$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorBeta</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The value $\beta$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorMstar</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The value $M_\star$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorConstant</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The constant error contribution to the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The logarithmic width of bins in the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The minimum stellar mass to consider when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <description>The minimum stellar mass to consider when computing the optimal sampling density function for tree masses.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    type            (mergerTreeHaloMassFunctionSamplingStllrMssFnctn)                :: self
+    type            (inputParameters                                      ), intent(inout) :: parameters
+    class           (haloMassFunctionClass                                ), pointer       :: haloMassFunction_
+    double precision                                                                       :: alpha             , beta               , &
+          &                                                                                   constant          , binWidthLogarithmic, &
+          &                                                                                   massMinimum       , massMaximum        , &
+          &                                                                                   massCharacteristic, normalization
+    
+    !# <inputParameter>
+    !#   <name>normalization</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The value $\phi_0$ in a Schechter function, $\sigma(M) = \phi_0 (M/M_\star)^\alpha \exp(-[M/M_\star]^\beta)$, describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>alpha</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The value $\alpha$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The value $\beta$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massCharacteristic</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The value $M_\star$ in a Schechter function describing the errors on the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>constant</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The constant error contribution to the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>binWidthLogarithmic</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The logarithmic width of bins in the stellar mass function to be assumed when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The minimum stellar mass to consider when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The minimum stellar mass to consider when computing the optimal sampling density function for tree masses.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
+    self=mergerTreeHaloMassFunctionSamplingStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Merger_Trees_Mass_Function_Sampling_Stellar_MF_Initialize
+  end function stellarMassFunctionConstructorParameters
 
-  double precision function Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF(mass,time,massMinimum,massMaximum)
-    !% Computes the halo mass function sampling rate using a power-law distribution.
+  function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class.
+   implicit none
+    type            (mergerTreeHaloMassFunctionSamplingStllrMssFnctn)                        :: self
+    class           (haloMassFunctionClass                          ), intent(in   ), target :: haloMassFunction_
+    double precision                                                 , intent(in   )         :: alpha             , beta               , &
+         &                                                                                      constant          , binWidthLogarithmic, &
+         &                                                                                      massMinimum       , massMaximum        , &
+         &                                                                                      massCharacteristic, normalization
+    !# <constructorAssign variables="alpha, beta, constant, binWidthLogarithmic, massMinimum, massMaximum, massCharacteristic, normalization, *haloMassFunction_"/>
+    
+    return
+  end function stellarMassFunctionConstructorInternal
+
+  subroutine stellarMassFunctionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass sampling class.
+    implicit none
+    type(mergerTreeHaloMassFunctionSamplingStllrMssFnctn), intent(inout) :: self
+
+    !# <objectDestructor name="self%haloMassFunction_"/>
+    return
+  end subroutine stellarMassFunctionDestructor
+
+  double precision function stellarMassFunctionSample(self,mass,time,massMinimum,massMaximum)
+    !% Computes the halo mass function sampling rate optimized to minimize errors in the stellar mass function.
     use FGSL
-    use Halo_Mass_Functions
     use Galacticus_Meta_Compute_Times
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: mass                               , massMaximum                 , &
-         &                                                         massMinimum                        , time
-    double precision                            , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2
-    class           (haloMassFunctionClass     ), pointer       :: haloMassFunction_
-    double precision                                            :: haloMassFunctionDifferential       , logStellarMassMaximum       , &
-         &                                                         logStellarMassMinimum              , treeComputeTime             , &
-         &                                                         xi                                 , xiIntegral
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    class           (mergerTreeHaloMassFunctionSamplingStllrMssFnctn), intent(inout) :: self
+    double precision                                                 , intent(in   ) :: mass                               , massMaximum                 , &
+         &                                                                              massMinimum                        , time
+    double precision                                                 , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2
+    double precision                                                                 :: haloMassFunctionDifferential       , logStellarMassMaximum       , &
+         &                                                                              logStellarMassMinimum              , treeComputeTime             , &
+         &                                                                              xi                                 , xiIntegral                  , &
+         &                                                                              massHalo
+    type            (fgsl_function                                  )                :: integrandFunction
+    type            (fgsl_integration_workspace                     )                :: integrationWorkspace
     !GCC$ attributes unused :: massMinimum, massMaximum
-    
-    ! Get the halo mass function, defined per logarithmic interval in halo mass.
-    haloMassFunction_            => haloMassFunction()
-    haloMassFunctionDifferential =  mass*haloMassFunction_%differential(time,mass)
 
+    ! Get the halo mass function, defined per logarithmic interval in halo mass.
+    haloMassFunctionDifferential=+                                         mass  &
+         &                       *self%haloMassFunction_%differential(time,mass)
     ! Compute the integral that appears in the "xi" function.
     massHalo             =mass
-    logStellarMassMinimum=log10(haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum)
-    logStellarMassMaximum=log10(haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum)
-    xiIntegral           =Integrate(logStellarMassMinimum,logStellarMassMaximum,Xi_Integrand,integrandFunction &
-         &,integrationWorkspace,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
+    logStellarMassMinimum=log10(self%massMinimum)
+    logStellarMassMaximum=log10(self%massMaximum)
+    xiIntegral           =Integrate(                                         &
+         &                                            logStellarMassMinimum, &
+         &                                            logStellarMassMaximum, &
+         &                                            xiIntegrand          , &
+         &                                            integrandFunction    , &
+         &                                            integrationWorkspace , &
+         &                          toleranceAbsolute=toleranceAbsolute    , &
+         &                          toleranceRelative=toleranceRelative      &
+         &                         )
     call Integrate_Done(integrandFunction,integrationWorkspace)
-
     ! Compute the "xi" function.
-    xi              =haloMassFunctionDifferential**2*xiIntegral
-
+    xi              =+haloMassFunctionDifferential**2 &
+         &           *xiIntegral
     ! Get the time taken to compute a tree of this mass.
     treeComputeTime =Galacticus_Time_Per_Tree(mass)
-
     ! Compute the optimal weighting for trees of this mass.
-    Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF=sqrt(xi/treeComputeTime)
+    stellarMassFunctionSample=sqrt(xi/treeComputeTime)
     return
-  end function Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF
 
-  double precision function Xi_Integrand(logStellarMass)
-    !% The integrand appearing in the $\xi$ function.
-    use Conditional_Mass_Functions
-    implicit none
-    double precision                              , intent(in   ) :: logStellarMass
-    class           (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
-    double precision                                              :: conditionalMassFunctionVariance , stellarMass       , &
-         &                                                           stellarMassFunctionObservedError, stellarMassMaximum, &
-         &                                                           stellarMassMinimum
+  contains
 
-    ! Compute the stellar mass and range corresponding to data bins.
-    stellarMass       =10.0d0** logStellarMass
-    stellarMassMinimum=10.0d0**(logStellarMass-0.5d0*haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth)
-    stellarMassMaximum=10.0d0**(logStellarMass+0.5d0*haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth)
+    double precision function xiIntegrand(logStellarMass)
+      !% The integrand appearing in the $\xi$ function.
+      use Conditional_Mass_Functions
+      implicit none
+      double precision                              , intent(in   ) :: logStellarMass
+      class           (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
+      double precision                                              :: conditionalMassFunctionVariance , stellarMass       , &
+           &                                                           stellarMassFunctionObservedError, stellarMassMaximum, &
+           &                                                           stellarMassMinimum
 
-    ! Compute the variance in the model conditional stellar mass function.
-    conditionalMassFunction_        => conditionalMassFunction()
-    conditionalMassFunctionVariance =  conditionalMassFunction_%massFunctionVariance(massHalo,stellarMassMinimum,stellarMassMaximum)
+      ! Compute the stellar mass and range corresponding to data bins.
+      stellarMass       =10.0d0** logStellarMass
+      stellarMassMinimum=10.0d0**(logStellarMass-0.5d0*self%binWidthLogarithmic)
+      stellarMassMaximum=10.0d0**(logStellarMass+0.5d0*self%binWidthLogarithmic)
+      ! Compute the variance in the model conditional stellar mass function.
+      conditionalMassFunction_        => conditionalMassFunction()
+      conditionalMassFunctionVariance =  conditionalMassFunction_%massFunctionVariance(massHalo,stellarMassMinimum,stellarMassMaximum)
+      ! Compute the error in the observed stellar mass. We use a simple Schechter function (plus minimum error) fit.
+      stellarMassFunctionObservedError=+self%normalization                                      &
+           &                           *exp(-(stellarMass/self%massCharacteristic)**self%beta ) &
+           &                           *     (stellarMass/self%massCharacteristic)**self%alpha  &
+           &                           +self%constant
 
-    ! Compute the error in the observed stellar mass. We use a simple Schechter function (plus minimum error) fit.
-    stellarMassFunctionObservedError= haloMassFunctionSamplingStellarMassFunctionErrorPhi0                                                                             &
-         &                           *exp(-(stellarMass/haloMassFunctionSamplingStellarMassFunctionErrorMstar)**haloMassFunctionSamplingStellarMassFunctionErrorBeta ) &
-         &                           *     (stellarMass/haloMassFunctionSamplingStellarMassFunctionErrorMstar)**haloMassFunctionSamplingStellarMassFunctionErrorAlpha  &
-         &                           +haloMassFunctionSamplingStellarMassFunctionErrorConstant
+      ! Compute the integrand for the xi function integral.
+      xiIntegrand=conditionalMassFunctionVariance/stellarMassFunctionObservedError**2
+      return
+    end function xiIntegrand
 
-    ! Compute the integrand for the xi function integral.
-    Xi_Integrand=conditionalMassFunctionVariance/stellarMassFunctionObservedError**2
-    return
-  end function Xi_Integrand
-
-end module Merger_Trees_Mass_Function_Sampling_Stellar_MF
+  end function stellarMassFunctionSample

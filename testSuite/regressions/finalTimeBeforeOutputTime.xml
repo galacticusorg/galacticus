@@ -97,7 +97,7 @@
   <odeToleranceRelative value="0.01"/>
   <haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum value="7.5857758e11"/>
   <intergalacticMediumStateMethod value="file"/>
-  <haloMassFunctionSamplingMethod value="stellarMassFunction"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="stellarMassFunction"/>
   <starFormationFeedbackDisksMethod value="haloScaling">
     <fraction value="1.0"/>
     <exponentVelocity value="-3.0"/>
