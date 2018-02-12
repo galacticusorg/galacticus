@@ -2,7 +2,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <haloMassFunctionSamplingMethod value="powerLaw"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="powerLaw"/>
   <mergerTreeBuildTreesProcessDescending value="false"/>
   <stateRetrieveFileRoot value="testSuite/outputs/state"/>
   <galacticusOutputFileName value="testSuite/outputs/stateRetrieve.hdf5"/>

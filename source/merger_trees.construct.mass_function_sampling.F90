@@ -16,82 +16,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements methods for sampling the halo mass function when constructing merger trees.
+!% Contains a module which implements a class for sampling the halo mass function when constructing merger trees.
 
 module Merger_Trees_Mass_Function_Sampling
-  !% Implements methods for sampling the halo mass function when constructing merger trees.
-  use ISO_Varying_String
-  implicit none
+  !% Implements a class for sampling the halo mass function when constructing merger trees.
   private
-  public :: Merger_Tree_Construct_Mass_Function_Sampling
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                                   :: haloMassFunctionSamplingInitialized             =.false.
-
-  ! Name of conditional stellar mass function method used.
-  type     (varying_string                                       )          :: haloMassFunctionSamplingMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Merger_Tree_Construct_Mass_Function_Sampling_Template), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get=>null()
-  abstract interface
-     double precision function Merger_Tree_Construct_Mass_Function_Sampling_Template(mass,time,massMinimum,massMaximum)
-       double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
-     end function Merger_Tree_Construct_Mass_Function_Sampling_Template
-  end interface
-
-contains
-
-  subroutine Merger_Trees_Mass_Function_Sampling_Initialize
-    !% Initialize the halo mass function sampling module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="haloMassFunctionSamplingMethod" type="moduleUse">
-    include 'merger_trees.construct.mass_function_sampling.modules.inc'
-    !# </include>
-    implicit none
-    
-    ! Initialize if necessary.
-    if (.not.haloMassFunctionSamplingInitialized) then
-       !$omp critical(Merger_Trees_Mass_Function_Sampling_Initialization)
-       if (.not.haloMassFunctionSamplingInitialized) then
-          ! Get the conditional stellar mass function method parameter.
-          !# <inputParameter>
-          !#   <name>haloMassFunctionSamplingMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('haloMassFunction')</defaultValue>
-          !#   <description>The name of the method to be used for sampling the halo mass function when constructing merger trees.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="haloMassFunctionSamplingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get</functionArgs>
-          include 'merger_trees.construct.mass_function_sampling.inc'
-          !# </include>
-          if     (                                                                   &
-               &  .not.(                                                             &
-               &        associated(Merger_Tree_Construct_Mass_Function_Sampling_Get) &
-               &       )                                                             &
-               & ) call Galacticus_Error_Report('method '//char(haloMassFunctionSamplingMethod)//' is unrecognized'//{introspection:location})
-          haloMassFunctionSamplingInitialized=.true.
-       end if
-       !$omp end critical(Merger_Trees_Mass_Function_Sampling_Initialization)
-    end if
-    return
-  end subroutine Merger_Trees_Mass_Function_Sampling_Initialize
-
-  double precision function Merger_Tree_Construct_Mass_Function_Sampling(mass,time,massMinimum,massMaximum)
-    !% Returns the sampling rate for merger trees of the given {\normalfont \ttfamily mass}, per decade of halo mass.
-    implicit none
-    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
-
-    ! Initialize the module.
-    call Merger_Trees_Mass_Function_Sampling_Initialize
-
-    ! Get the sampling rate using the selected method.
-    Merger_Tree_Construct_Mass_Function_Sampling=Merger_Tree_Construct_Mass_Function_Sampling_Get(mass,time,massMinimum,massMaximum)
-
-    return
-  end function Merger_Tree_Construct_Mass_Function_Sampling
+  
+  !# <functionClass>
+  !#  <name>mergerTreeHaloMassFunctionSampling</name>
+  !#  <descriptiveName>Merger Tree Halo Mass Function Sampling</descriptiveName>
+  !#  <description>Class providing methods for sampling from the halo mass function when building merger trees.</description>
+  !#  <default>haloMassFunction</default>
+  !#  <method name="sample" >
+  !#   <description>Returns the sampling rate for merger trees of the given {\normalfont \ttfamily mass}, per decade of halo mass.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass,time,massMinimum,massMaximum</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Merger_Trees_Mass_Function_Sampling

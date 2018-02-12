@@ -62,7 +62,7 @@
   <mergerTreeBuildHaloMassMinimum value="2.0e08"/>
   <mergerTreeBuildHaloMassMaximum value="1.0e15"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
-  <haloMassFunctionSamplingMethod value="haloMassFunction"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction"/>
   <haloMassFunctionSamplingAbundanceMaximum value="1.0e-4"/>
   <haloMassFunctionSamplingAbundanceMinimum value="1.0e-7"/>
   <haloMassFunctionSimpleSystematicAlpha value="-0.127240525851282"/>

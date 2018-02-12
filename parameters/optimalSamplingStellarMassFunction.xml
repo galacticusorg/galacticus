@@ -40,6 +40,6 @@
   <conditionalStellarMassFunctionBehrooziBetaSatellite value="0.8590"/>
 
   <!-- The halo mass function sampling method to use -->
-  <haloMassFunctionSamplingMethod value="stellarMassFunction"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="stellarMassFunction"/>
 
 </parameters>

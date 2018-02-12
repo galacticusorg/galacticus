@@ -394,9 +394,11 @@ contains
     !% The integrand over the mass function sampling density function.
     use Merger_Trees_Mass_Function_Sampling
     implicit none
-    double precision, intent(in   ) :: logMass
+    double precision                                         , intent(in   ) :: logMass
+    class           (mergerTreeHaloMassFunctionSamplingClass), pointer       :: mergerTreeHaloMassFunctionSampling_
 
-    Mass_Function_Sampling_Integrand=Merger_Tree_Construct_Mass_Function_Sampling(10.0d0**logMass,mergerTreeBuildTreesBaseTime,mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum)
+    mergerTreeHaloMassFunctionSampling_ => mergerTreeHaloMassFunctionSampling()
+    Mass_Function_Sampling_Integrand=mergerTreeHaloMassFunctionSampling_%sample(10.0d0**logMass,mergerTreeBuildTreesBaseTime,mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum)
     return
   end function Mass_Function_Sampling_Integrand
 

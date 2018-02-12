@@ -16,58 +16,81 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements halo mass function sampling using a power-law in halo mass.
+  !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
 
-module Merger_Trees_Mass_Function_Sampling_Power_Law
-  !% Implements halo mass function sampling using a power-law in halo mass.
-  private
-  public :: Merger_Trees_Mass_Function_Sampling_Power_Law_Initialize
+  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingPowerLaw" defaultThreadPrivate="yes">
+  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.</description>
+  !# </mergerTreeHaloMassFunctionSampling>
+  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingPowerLaw
+     !% Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
+     private
+     double precision :: exponent
+   contains
+     procedure :: sample => powerLawSample
+  end type mergerTreeHaloMassFunctionSamplingPowerLaw
 
-  ! The exponent in the halo mass function sampling power law.
-  double precision :: mergerTreeBuildTreesHaloMassExponent
+  interface mergerTreeHaloMassFunctionSamplingPowerLaw
+     !% Constructors for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class.
+     module procedure powerLawConstructorParameters
+     module procedure powerLawConstructorInternal
+  end interface mergerTreeHaloMassFunctionSamplingPowerLaw
 
 contains
 
-  !# <haloMassFunctionSamplingMethod>
-  !#  <unitName>Merger_Trees_Mass_Function_Sampling_Power_Law_Initialize</unitName>
-  !# </haloMassFunctionSamplingMethod>
-  subroutine Merger_Trees_Mass_Function_Sampling_Power_Law_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
-    !% Initializes the ``powerLaw'' halo mass function sampling method.
-    use ISO_Varying_String
+  function powerLawConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Power_Law), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+    type            (mergerTreeHaloMassFunctionSamplingPowerLaw)                :: self
+    type            (inputParameters                           ), intent(inout) :: parameters
+    double precision                                                            :: exponent
 
-    if (haloMassFunctionSamplingMethod == 'powerLaw') then
-       Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Power_Law
-
-       !# <inputParameter>
-       !#   <name>mergerTreeBuildTreesHaloMassExponent</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d0</defaultValue>
-       !#   <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\normalfont \ttfamily mergerTreeBuildTreesHaloMassExponent}.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-
-    end if
+    !# <inputParameter>
+    !#   <name>exponent</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\normalfont \ttfamily exponent}.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=mergerTreeHaloMassFunctionSamplingPowerLaw(exponent)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Merger_Trees_Mass_Function_Sampling_Power_Law_Initialize
+  end function powerLawConstructorParameters
 
-  double precision function Merger_Tree_Construct_Mass_Function_Sampling_Power_Law(mass,time,massMinimum,massMaximum)
-    !% Computes the halo mass function sampling rate using a power-law distribution.
+  function powerLawConstructorInternal(exponent) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class.
     implicit none
-    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
-    !GCC$ attributes unused :: time
+    type            (mergerTreeHaloMassFunctionSamplingPowerLaw)                :: self
+    double precision                                            , intent(in   ) :: exponent
+    !# <constructorAssign variables="exponent"/>
     
+    return
+  end function powerLawConstructorInternal
+
+  double precision function powerLawSample(self,mass,time,massMinimum,massMaximum)
+    !% Computes the halo mass function sampling rate using a volume-limited sampling.
+    implicit none
+    class           (mergerTreeHaloMassFunctionSamplingPowerLaw), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass       , massMaximum, &
+         &                                                                         massMinimum, time
+    !GCC$ attributes unused :: time
+
     ! Sampling rate is simply a power-law in the logarithm of halo mass.
     if (mass <= massMinimum .or. mass > massMaximum) then
-       Merger_Tree_Construct_Mass_Function_Sampling_Power_Law=0.0d0
+       powerLawSample=0.0d0
     else
-       Merger_Tree_Construct_Mass_Function_Sampling_Power_Law=1.0d0/log10(mass/massMinimum)**(mergerTreeBuildTreesHaloMassExponent/(1.0d0+mergerTreeBuildTreesHaloMassExponent))
+       powerLawSample=+log10(              &
+            &                +mass         &
+            &                /massMinimum  &
+            &               )              &
+            &          **(                 &
+            &             -  self%exponent &
+            &             /(               &
+            &               +1.0d0         &
+            &               +self%exponent &
+            &              )               &
+            &            )
     end if
     return
-  end function Merger_Tree_Construct_Mass_Function_Sampling_Power_Law
-
-end module Merger_Trees_Mass_Function_Sampling_Power_Law
+  end function powerLawSample

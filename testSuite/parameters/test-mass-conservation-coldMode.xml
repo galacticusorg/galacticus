@@ -77,7 +77,7 @@
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="1.0e9"/>
     </mergerTreeMassResolutionMethod> 
-    <haloMassFunctionSamplingMethod value="haloMassFunction"/>
+    <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction"/>
     <haloMassFunctionSamplingAbundanceMaximum value="1.0e-1"/>
     <haloMassFunctionSamplingAbundanceMinimum value="1.0e-8"/>
     <mergerTreesBuildFixedThreadAssignment value="true" />

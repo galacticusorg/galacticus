@@ -16,103 +16,129 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements halo mass function sampling proportional to halo abundance (i.e. a volume-limited sample of halos).
+  !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
 
-module Merger_Trees_Mass_Function_Sampling_Halo_MF
-  !% Implements halo mass function sampling proportional to halo abundance (i.e. a volume-limited sample of halos).
-  private
-  public :: Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
+  use Halo_Mass_Functions
 
-  ! Limits on abundance.
-  double precision            :: haloMassFunctionSamplingAbundanceMinimum       , haloMassFunctionSamplingAbundanceMaximum
+  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingHaloMassFunction" defaultThreadPrivate="yes">
+  !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
+  !# </mergerTreeHaloMassFunctionSampling>
+  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingHaloMassFunction
+     !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
+     private
+     class           (haloMassFunctionClass), pointer :: haloMassFunction_
+     double precision                                 :: abundanceMinimum, abundanceMaximum, &
+          &                                              modifier1       , modifier2
+   contains
+     final     ::           haloMassFunctionDestructor
+     procedure :: sample => haloMassFunctionSample
+  end type mergerTreeHaloMassFunctionSamplingHaloMassFunction
 
-  ! Coefficients of power-law modification.
-  double precision            :: haloMassFunctionSamplingModifier1              , haloMassFunctionSamplingModifier2
-  double precision, parameter :: haloMassFunctionSamplingZeroPoint       =1.0d13
+  interface mergerTreeHaloMassFunctionSamplingHaloMassFunction
+     !% Constructors for the {\normalfont \ttfamily haloMassFunction} merger tree halo mass function sampling class.
+     module procedure haloMassFunctionConstructorParameters
+     module procedure haloMassFunctionConstructorInternal
+  end interface mergerTreeHaloMassFunctionSamplingHaloMassFunction
 
 contains
 
-  !# <haloMassFunctionSamplingMethod>
-  !#  <unitName>Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize</unitName>
-  !# </haloMassFunctionSamplingMethod>
-  subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
-    !% Initializes the ``haloMassFunction'' halo mass function sampling method.
-    use ISO_Varying_String
+  function haloMassFunctionConstructorParameters(parameters) result(self)
+    !% Constructor for the haloMassFunction merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string                                      ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+    type            (mergerTreeHaloMassFunctionSamplingHaloMassFunction)                :: self
+    type            (inputParameters                                   ), intent(inout) :: parameters
+    class           (haloMassFunctionClass                             ), pointer       :: haloMassFunction_
+    double precision                                                                    :: abundanceMinimum , abundanceMaximum, &
+         &                                                                                 modifier1        , modifier2
 
-    if (haloMassFunctionSamplingMethod == 'haloMassFunction') then
-       Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingAbundanceMinimum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>-1.0d0</defaultValue>
-       !#   <description>The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingAbundanceMaximum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>-1.0d0</defaultValue>
-       !#   <description>The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingModifier1</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>haloMassFunctionSamplingModifier2</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>abundanceMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <description>The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>abundanceMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-1.0d0</defaultValue>
+    !#   <description>The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>modifier1</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>modifier2</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Coefficient of the polynomial modifier applied to the halo mass function when sampling halo masses for tree construction.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
+    self=mergerTreeHaloMassFunctionSamplingHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
+  end function haloMassFunctionConstructorParameters
 
-  double precision function Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF(mass,time,massMinimum,massMaximum)
-    !% Computes the halo mass function sampling rate using a volume-limited sampling.
-    use Halo_Mass_Functions
+  function haloMassFunctionConstructorInternal(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_) result(self)
+    !% Internal constructor for the haloMassFunction merger tree halo mass function sampling class.
     implicit none
-    double precision                       , intent(in   ) :: mass             , massMaximum, &
-         &                                                    massMinimum      , time
-    class           (haloMassFunctionClass), pointer       :: haloMassFunction_
-    !GCC$ attributes unused :: massMinimum, massMaximum
+    type            (mergerTreeHaloMassFunctionSamplingHaloMassFunction)                        :: self
+    double precision                                                    , intent(in   )         :: abundanceMinimum, abundanceMaximum, &
+         &                                                                                         modifier1       , modifier2
+    class           (haloMassFunctionClass                             ), intent(in   ), target :: haloMassFunction_
+    !# <constructorAssign variables="abundanceMinimum, abundanceMaximum, modifier1, modifier2, *haloMassFunction_"/>
     
-    ! Construct sampling rate.
-    haloMassFunction_ => haloMassFunction()
-    Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=                                                                                              &
-         &                                               +                                    mass                                                     &
-         &                                               *haloMassFunction_%differential(time,mass)                                                    &
-         &                                               *10.0d0**(                                                                                    &
-         &                                                         +haloMassFunctionSamplingModifier1*log10(mass/haloMassFunctionSamplingZeroPoint)    &
-         &                                                         +haloMassFunctionSamplingModifier2*log10(mass/haloMassFunctionSamplingZeroPoint)**2 &
-         &                                                        )
-    ! Limit sampling rate.
-    if (haloMassFunctionSamplingAbundanceMinimum > 0.0d0)             &
-         & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
-         & =max(                                                      &
-         &      Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF, &
-         &      haloMassFunctionSamplingAbundanceMinimum              &
-         &     )
-    if (haloMassFunctionSamplingAbundanceMaximum > 0.0d0)             &
-         & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
-         & =min(                                                      &
-         &      Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF, &
-         &      haloMassFunctionSamplingAbundanceMaximum              &
-         &     )
-   return
-  end function Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
+    return
+  end function haloMassFunctionConstructorInternal
 
-end module Merger_Trees_Mass_Function_Sampling_Halo_MF
+  subroutine haloMassFunctionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily haloMassFunction} merger tree halo mass sampling class.
+    implicit none
+    type(mergerTreeHaloMassFunctionSamplingHaloMassFunction), intent(inout) :: self
+
+    !# <objectDestructor name="self%haloMassFunction_"/>
+    return
+  end subroutine haloMassFunctionDestructor
+
+  double precision function haloMassFunctionSample(self,mass,time,massMinimum,massMaximum)
+    !% Computes the halo mass function sampling rate using a volume-limited sampling.
+    implicit none
+    class           (mergerTreeHaloMassFunctionSamplingHaloMassFunction), intent(inout) :: self
+    double precision                                                    , intent(in   ) :: mass                , massMaximum, &
+         &                                                                                 massMinimum         , time
+    double precision                                                    , parameter     :: massZeroPoint=1.0d13
+    !GCC$ attributes unused :: massMinimum, massMaximum
+
+    ! Construct sampling rate.
+    haloMassFunctionSample=+                                         mass         &
+         &                 *self%haloMassFunction_%differential(time,mass)        &
+         &                 *10.0d0**(                                             &
+         &                           +self%modifier1*log10(mass/massZeroPoint)    &
+         &                           +self%modifier2*log10(mass/massZeroPoint)**2 &
+         &                          )
+    ! Limit sampling rate.
+    if (self%abundanceMinimum > 0.0d0)  &
+         & haloMassFunctionSample       &
+         & =max(                        &
+         &      haloMassFunctionSample, &
+         &      self%abundanceMinimum   &
+         &     )
+    if (self%abundanceMaximum > 0.0d0)  &
+         & haloMassFunctionSample       &
+         & =min(                        &
+         &      haloMassFunctionSample, &
+         &      self%abundanceMaximum   &
+         &     )
+    return
+  end function haloMassFunctionSample
