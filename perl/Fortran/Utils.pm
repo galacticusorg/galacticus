@@ -691,7 +691,7 @@ sub Extract_Variables {
 	unless ( exists($options{'keepQualifiers'}) );
     $options{'removeSpaces'} = 1
 	unless ( exists($options{'removeSpaces'}) );
-    die("Fortran::Utils::Extract_Variables: variable list '".$variableList."' contains '::' - most likely regex matching failed"
+    die("Fortran::Utils::Extract_Variables: variable list '".$variableList."' contains '::' - most likely regex matching failed")
 	if ( $variableList =~ m/::/ );
     # Convert to lower case.
     $variableList = lc($variableList)
