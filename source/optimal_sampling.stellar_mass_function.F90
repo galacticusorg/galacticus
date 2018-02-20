@@ -35,24 +35,25 @@ program Optimal_Sampling_SMF
   use Merger_Trees_Mass_Function_Sampling
   use IO_HDF5
   implicit none
-  integer                                     , parameter                 :: fileNameLengthMaximum=1024
-  character       (len=fileNameLengthMaximum )                            :: parameterFileCharacter
-  type            (varying_string            )                            :: parameterFile,optimalSamplingDensityOutputFileName
-  integer                                     , parameter                 :: stellarMassPointsPerDecade=100
-  integer                                     , parameter                 :: haloMassPointsPerDecade   =100
-  double precision                            , parameter                 :: stellarMassMinimum=1.0d8 , stellarMassMaximum=1.0d13
-  double precision                            , parameter                 :: haloMassMinimum   =1.0d10, haloMassMaximum   =1.0d15
-  double precision                            , parameter                 :: toleranceAbsolute =1.0d-16,  toleranceRelative =1.0d-3
-  double precision                            , allocatable, dimension(:) :: stellarMassTableMass,stellarMassTableMassFunction,haloMassTableMass,haloMassTableXi,treeTiming,haloMassFunctionDifferential,samplingDensity
-  integer                                                                 :: stellarMassTableCount,haloMassTableCount,iMass,iUnit
-  double precision                                                        :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
-  class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_
-  class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
-  type            (fgsl_function             )                            :: integrandFunction
-  type            (fgsl_integration_workspace)                            :: integrationWorkspace
-  logical                                                                 :: integrationReset=.true.
-  type            (hdf5Object                )                            :: outputFile,thisDataset
-  type            (inputParameters           )                            :: parameters
+  integer                                                  , parameter                 :: fileNameLengthMaximum=1024
+  character       (len=fileNameLengthMaximum              )                            :: parameterFileCharacter
+  type            (varying_string                         )                            :: parameterFile,optimalSamplingDensityOutputFileName
+  integer                                                  , parameter                 :: stellarMassPointsPerDecade=100
+  integer                                                  , parameter                 :: haloMassPointsPerDecade   =100
+  double precision                                         , parameter                 :: stellarMassMinimum=1.0d8 , stellarMassMaximum=1.0d13
+  double precision                                         , parameter                 :: haloMassMinimum   =1.0d10, haloMassMaximum   =1.0d15
+  double precision                                         , parameter                 :: toleranceAbsolute =1.0d-16,  toleranceRelative =1.0d-3
+  double precision                                         , allocatable, dimension(:) :: stellarMassTableMass,stellarMassTableMassFunction,haloMassTableMass,haloMassTableXi,treeTiming,haloMassFunctionDifferential,samplingDensity
+  integer                                                                              :: stellarMassTableCount,haloMassTableCount,iMass,iUnit
+  double precision                                                                     :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
+  class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_
+  class           (haloMassFunctionClass                  ), pointer                   :: haloMassFunction_
+  class           (mergerTreeHaloMassFunctionSamplingClass), pointer                   :: mergerTreeHaloMassFunctionSampling_
+  type            (fgsl_function                          )                            :: integrandFunction
+  type            (fgsl_integration_workspace             )                            :: integrationWorkspace
+  logical                                                                              :: integrationReset=.true.
+  type            (hdf5Object                             )                            :: outputFile,thisDataset
+  type            (inputParameters                        )                            :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('optimal_sampling.stellar_mass_function.size')
@@ -99,8 +100,9 @@ program Optimal_Sampling_SMF
   stellarMassTableMass=Make_Range(stellarMassMinimum,stellarMassMaximum,stellarMassTableCount,rangeType=rangeTypeLogarithmic)
   haloMassTableMass   =Make_Range(   haloMassMinimum,   haloMassMaximum,   haloMassTableCount,rangeType=rangeTypeLogarithmic)
   ! Get required objects.
-  cosmologyFunctions_ => cosmologyFunctions()
-  haloMassFunction_   => haloMassFunction  ()
+  cosmologyFunctions_                 => cosmologyFunctions                ()
+  haloMassFunction_                   => haloMassFunction                  ()
+  mergerTreeHaloMassFunctionSampling_ => mergerTreeHaloMassFunctionSampling()
   ! Get the cosmic time at the present day.
   time=cosmologyFunctions_%cosmicTime(0.93457d0)
 
@@ -140,7 +142,7 @@ program Optimal_Sampling_SMF
       haloMass=haloMassTableMass(iMass)
 
       ! Get the sampling density function.
-      samplingDensity(iMass)=Merger_Tree_Construct_Mass_Function_Sampling(haloMass,time,haloMassMinimum,haloMassMaximum)
+      samplingDensity(iMass)=mergerTreeHaloMassFunctionSampling_%sample(haloMass,time,haloMassMinimum,haloMassMaximum)
 
       ! Get the halo mass function.
       haloMassFunctionDifferential(iMass)=haloMassFunction_%differential(time,haloMass)*haloMass
