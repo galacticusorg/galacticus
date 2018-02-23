@@ -87,12 +87,13 @@ module Critical_Overdensities
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
-  !#   <modules>Root_Finder</modules>
+  !#   <modules>Root_Finder Galacticus_Error</modules>
   !#   <code>
-  !#    double precision                               , parameter :: massGuess           =1.0d+13, toleranceAbsolute=0.0d0, &amp;
-  !#         &amp;                                                    toleranceRelative   =1.0d-06
+  !#    double precision                               , parameter :: massGuess           =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
+  !#         &amp;                                                    toleranceRelative   =1.0d-06, massTiny         =1.0d-30
   !#    type            (rootFinder                   ), save      :: finder
   !#    !$omp threadprivate(finder)
+  !#    integer                                                    :: status
   !#    double precision                                           :: collapseTime
   !#    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
   !#    if (.not.finder%isInitialized()) then
@@ -103,12 +104,14 @@ module Critical_Overdensities
   !#            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
   !#            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
   !#            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &amp;
+  !#            &amp;                   rangeDownwardLimit           =massTiny                     , &amp;
   !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
   !#            &amp;                  )
   !#    end if
   !#    globalSelf => self
-  !#    self%time  =collapseTime
-  !#    criticalOverdensityCollapsingMass=finder%find(rootGuess=massGuess)
+  !#    self%time  =  collapseTime
+  !#    criticalOverdensityCollapsingMass=finder%find(rootGuess=massGuess,status=status)
+  !#    if (status == errorStatusOutOfRange) criticalOverdensityCollapsingMass=0.0d0
   !#    return
   !#   </code>
   !#  </method>
