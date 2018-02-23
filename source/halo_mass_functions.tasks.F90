@@ -199,12 +199,16 @@ contains
 
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=cosmologyFunctions_   %expansionFactorFromRedshift(                                                outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=cosmologyFunctions_   %cosmicTime                 (                                                outputExpansionFactors(iOutput))
-       outputGrowthFactors        (iOutput)=linearGrowth_         %value                      (                                                outputTimes           (iOutput))
-       outputCharacteristicMass   (iOutput)=criticalOverdensity_  %collapsingMass             (                                                outputTimes           (iOutput))
-       outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                      (mass=outputCharacteristicMass    (iOutput),time=outputTimes           (iOutput))
-       outputVirialDensityContrast(iOutput)=virialDensityContrast_%densityContrast            (     haloMassFunctionsMassMinimum         ,     outputTimes           (iOutput))
+       outputExpansionFactors        (iOutput)=cosmologyFunctions_   %expansionFactorFromRedshift(                                                outputRedshifts       (iOutput))
+       outputTimes                   (iOutput)=cosmologyFunctions_   %cosmicTime                 (                                                outputExpansionFactors(iOutput))
+       outputGrowthFactors           (iOutput)=linearGrowth_         %value                      (                                                outputTimes           (iOutput))
+       outputCharacteristicMass      (iOutput)=criticalOverdensity_  %collapsingMass             (                                                outputTimes           (iOutput))
+       if (outputCharacteristicMass(iOutput) > 0.0d0) then
+          outputCriticalOverdensities(iOutput)=criticalOverdensity_  %value                      (mass=outputCharacteristicMass    (iOutput),time=outputTimes           (iOutput))
+       else
+          outputCriticalOverdensities(iOutput)=0.0d0
+       end if
+       outputVirialDensityContrast   (iOutput)=virialDensityContrast_%densityContrast            (     haloMassFunctionsMassMinimum         ,     outputTimes           (iOutput))
     end do
 
     ! Allocate arrays for halo mass functions.
