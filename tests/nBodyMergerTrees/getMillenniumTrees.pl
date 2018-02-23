@@ -49,7 +49,7 @@ switch ( $dbConfig->{'passwordFrom'} ) {
 system("scripts/aux/Millennium_Trees_Grab.pl --user ".$dbConfig->{'user'}." --password ".$dbPassword." --select \"root.m_tophat > 1.0e2 and root.m_tophat < 10.0e2\" --output tests/nBodyMergerTrees/Millennium_Trees.csv");
 
 # Process into Galacticus format.
-system("make Millennium_Merger_Tree_File_Maker.exe; Millennium_Merger_Tree_File_Maker.exe tests/nBodyMergerTrees/Millennium_Trees.csv tests/nBodyMergerTrees/Millennium_Trees_Particles.csv tests/nBodyMergerTrees/Millennium_Trees.hdf5");
+system("make Millennium_Merger_Tree_File_Maker.exe; ./Millennium_Merger_Tree_File_Maker.exe tests/nBodyMergerTrees/Millennium_Trees.csv tests/nBodyMergerTrees/Millennium_Trees_Particles.csv tests/nBodyMergerTrees/Millennium_Trees.hdf5 galacticus 1");
 
 exit;
 
