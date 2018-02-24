@@ -101,6 +101,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	 productMethod         => "linearSolver" 
 	);
     $constraint->{'logLikelihood'} = $logLikelihood;
+    $constraint->{'label'        } = "blackHoleBulgeMassRelation_KormendyHo2013";
     # Compute the variance in the log-likelihood due to errors in the model.
     my $logLikelihoodVariance = transpose($jacobian) x $massBlackHoleCovarianceModel x $jacobian;
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();

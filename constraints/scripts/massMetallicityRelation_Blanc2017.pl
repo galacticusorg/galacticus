@@ -84,6 +84,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	 quiet                 => $arguments{'quiet'},
 	 productMethod         => "linearSolver" 
 	);
+    $constraint->{'label'} = "massMetallicityRelationZ0.0Blanc2017";
     $constraint->{'logLikelihood'} = $logLikelihood;
     # Compute the variance in the log-likelihood due to errors in the model.
     my $logLikelihoodVariance = transpose($jacobian) x $covarianceModel x $jacobian;
