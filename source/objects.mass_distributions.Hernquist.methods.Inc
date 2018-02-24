@@ -129,10 +129,16 @@ double precision function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere(self,ra
   implicit none
   class           (massDistributionHernquist), intent(inout), target :: self
   double precision                           , intent(in   )         :: radius
+  double precision                           , parameter             :: fractionalRadiusLarge=1.0d6
   double precision                                                   :: fractionalRadius
 
   fractionalRadius=radius/self%scaleLength
-  Mass_Distribution_Hernquist_Mass_Enc_By_Sphere=2.0d0*Pi*self%densityNormalization*fractionalRadius**2/(1.0d0+fractionalRadius)**2
+  if (fractionalRadius > fractionalRadiusLarge) then
+     ! For very large radius approximate the mass enclosed as the total mass.
+     Mass_Distribution_Hernquist_Mass_Enc_By_Sphere=2.0d0*Pi*self%densityNormalization
+  else
+     Mass_Distribution_Hernquist_Mass_Enc_By_Sphere=2.0d0*Pi*self%densityNormalization*fractionalRadius**2/(1.0d0+fractionalRadius)**2
+  end if
   return
 end function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere
 
