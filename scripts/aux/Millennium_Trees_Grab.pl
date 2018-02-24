@@ -97,7 +97,7 @@ my $velocityDispersion;
 if ( exists($arguments{"velocityDispersion"}) ) {
     $velocityDispersion = $arguments{"velocityDispersion"};
 } else {
-    $velocityDispersion = "vDisp";
+    $velocityDispersion = "velDisp";
 }
 
 # Specify the output file.
