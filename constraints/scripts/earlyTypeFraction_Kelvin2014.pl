@@ -163,6 +163,7 @@ if ( exists($arguments{'outputFile'}) ) {
 	$logLikelihoodVariance   = $probabilityVariance/$probability**2;
     }
     my $constraint;
+    $constraint->{'label'                } = "gamaEarlyTypeFractionZ0.03";
     $constraint->{'logLikelihood'        } = $logLikelihood        ->sclr();
     $constraint->{'logLikelihoodVariance'} = $logLikelihoodVariance->sclr();
     # Output the constraint.

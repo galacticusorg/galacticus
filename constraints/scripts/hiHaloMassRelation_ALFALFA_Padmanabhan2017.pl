@@ -102,6 +102,7 @@ if ( exists($options{'outputFile'}) ) {
 	$constraint->{'logLikelihood'} = -1.0e30;
     }
     $constraint->{'logLikelihoodVariance'} = 0.0;
+    $constraint->{'label'                } = "alfalfaHIHaloMassRelationZ0.00";
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$options{'outputFile'});
