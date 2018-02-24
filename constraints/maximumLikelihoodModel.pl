@@ -50,11 +50,14 @@ my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
 (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;
 
 # Determine the maximum likelihood model directory.
-my $maximumLikelihoodDirectory  = $mcmcDirectory."/".$arguments{'directory'}."/";
+my $maximumLikelihoodDirectory  = ($arguments{'directory'} =~ m/^\// ? $arguments{'directory'} : $mcmcDirectory."/".$arguments{'directory'})."/";
 
 # Get a hash of the parameter values.
 (my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
 my @constraints = @{$constraintsRef};
+
+# Apply any command line parameters.
+&Galacticus::Constraints::Parameters::Apply_Command_Line_Parameters($parameters,\%arguments);
 
 # Set an output file name.
 system("mkdir -p ".$maximumLikelihoodDirectory);
@@ -193,6 +196,8 @@ exit
 
 # Run the Galacticus model.
 my $executable = exists($config->{'likelihood'}->{'executable'}) ? $config->{'likelihood'}->{'executable'} : "Galacticus.exe";
+$executable = $arguments{'executable'}
+    if ( exists($arguments{'executable'}) );
 system("make Galacticus.exe")
     unless ( -e "Galacticus.exe" || $executable ne "Galacticus.exe" );
 die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
@@ -228,7 +233,7 @@ foreach my $constraint ( @constraints ) {
     # Read the likelihood.
     my $likelihood = $xml->XMLin($maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml");
     die("maximumLikelihoodModel.pl: likelihood calculation failed")
-	if ( $likelihood->{'logLikelihood'} eq "nan" );
+    	if ( $likelihood->{'logLikelihood'} eq "nan" );
     # Extract the likelihood and weight it.
     my $thisLogLikelihood = $likelihood->{'logLikelihood'};
     $thisLogLikelihood *= $constraintDefinition->{'weight'}
