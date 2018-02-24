@@ -117,7 +117,7 @@ sub Construct {
 	# large).
 	my $zeroModel                              = which($yGalacticus <= 1.0e-30);
 	my $modelCovarianceScale                   = pdl ones($yGalacticus);
-	$modelCovarianceScale->($nonZeroObserved) .= $yGalacticus->($nonZeroObserved)/$config->{'y'}->($nonZeroObserved);
+	$modelCovarianceScale->($nonZeroObserved) .= sqrt($yGalacticus->($nonZeroObserved)/$config->{'y'}->($nonZeroObserved));
 	$modelCovarianceScale->($zeroModel      ) .= 1.0;
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model (scaled).
