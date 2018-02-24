@@ -492,7 +492,8 @@ contains
     !% Compute final covariances and normalize.
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout) :: self
-    integer         (c_size_t                      )                :: i                    , j, &
+    double precision                                , parameter     :: weightFractionMaximum=0.99d0
+    integer         (c_size_t                      )                :: i                           , j, &
          &                                                             m
     double precision                                                :: weightMainBranchTotal
 
@@ -504,8 +505,8 @@ contains
        do m=1,self%covarianceModelBinomialBinCount
           weightMainBranchTotal=sum(self%weightMainBranch(:,m))
           if (weightMainBranchTotal > 0.0d0) then
-             do i=1,self%binCount                
-                if (self%weightMainBranch(i,m) < weightMainBranchTotal) then
+             do i=1,self%binCount
+                if (self%weightMainBranch(i,m) < weightFractionMaximum*weightMainBranchTotal) then
                    ! General case - multiple halo mass bins contributed to this bin of the volume function.
                    self               %functionCovariance     (i,i)=                       &
                         &         self%functionCovariance     (i,i)                        &
