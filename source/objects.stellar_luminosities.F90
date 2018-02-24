@@ -1110,6 +1110,7 @@ contains
     type   (varying_string), intent(in   ) :: name
     integer                                :: i
 
+    call Stellar_Luminosities_Initialize()
     Stellar_Luminosities_Index_From_Name=-1
     do i=1,luminosityCount
        if (name == luminosityName(i)) then
@@ -1126,6 +1127,7 @@ contains
     use Galacticus_Error
     use Numerical_Comparison
     use ISO_Varying_String
+    use String_Handling
     implicit none
     character       (len=*         ), intent(in   )           :: filterName      , filterType
     double precision                , intent(in   )           :: redshift
@@ -1135,6 +1137,7 @@ contains
     character       (len=7         )                          :: label
     type            (varying_string)                          :: message
 
+    call Stellar_Luminosities_Initialize()
     Stellar_Luminosities_Index_From_Properties=-1
     do i=1,luminosityCount
        if     (                                                                                             &
@@ -1167,6 +1170,20 @@ contains
        message=message//' : '//label
     end if
     message=message//']'
+    do i=1,luminosityCount
+       message=message//char(10)//i//" of "//luminosityCount
+       message=message//" : "//luminosityFilter(i)
+       message=message//" : "//luminosityType  (i)
+       write (label,'(f6.3)') luminosityRedshift(i)
+       message=message//" : "//trim(adjustl(label))
+       if (present(redshiftBand)) then
+          write (label,'(f6.3)') luminosityBandRedshift   (i)
+          message=message//" : "//label
+       end if
+       if (present(postprocessChain)) then
+          message=message//" : "//luminosityPostprocessSet(i)
+       end if
+    end do
     call Galacticus_Error_Report(message//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Properties
