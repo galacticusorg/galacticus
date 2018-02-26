@@ -18,8 +18,8 @@ if ( -e "galacticusConfig.xml" ) {
 
 # Identify e-mail options for this host.
 my $dbConfig;
-if ( exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}}) ) {
-    $dbConfig = $config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}};
+if ( exists($ENV{'HOSTNAME'}) && exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOSTNAME'}}) ) {
+    $dbConfig = $config->{'millenniumDB'}->{'host'}->{$ENV{'HOSTNAME'}};
 } elsif ( exists($config->{'millenniumDB'}->{'host'}->{'default'}) ) {
     $dbConfig = $config->{'millenniumDB'}->{'host'}->{'default'};
 } else {
@@ -32,7 +32,7 @@ if ( exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}}) ) {
 	last if $c eq "\n";
 	$dbConfig->{'user'} .= $c;
     }
-    $dbConfig->{'method'} = "input";
+    $dbConfig->{'passwordFrom'} = "input";
 }
 
 # Get any password now.
