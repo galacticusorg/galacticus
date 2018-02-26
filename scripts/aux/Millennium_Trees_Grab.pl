@@ -216,7 +216,6 @@ if ( $traceParticles eq "yes" ) {
     my $sqlQuery = $databaseURL."select ".$indexNode.".".$descendantId.", count(*) as num into countTable from ".$indexTable." ".$indexNode.", ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
     $sqlQuery   .= ", ".$indexTable." indexNode"
     unless ( $indexNode eq "node" );
-    $sqlQuery   .= " where root.haloId = node.treeId";
     $sqlQuery   .= " and node.haloId = indexNode.".$haloId
 	unless ( $indexNode eq "node" );
     # Append any required selection.
