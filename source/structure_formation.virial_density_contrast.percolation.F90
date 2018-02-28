@@ -29,8 +29,6 @@
      !% A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}.
      private
      double precision                                   :: linkingLength
-     logical                                            :: solving
-     double precision                         , pointer :: densityContrastCurrent
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
      ! Tabulation of density contrast vs. time and mass.
      double precision                                   :: densityContrastTableTimeMinimum, densityContrastTableTimeMaximum                    
@@ -55,6 +53,11 @@
      procedure :: isMassDependent             => percolationIsMassDepdendent
      procedure :: tabulate                    => percolationTabulate
   end type virialDensityContrastPercolation
+
+  ! Module-scope variables used to indicate if the current thread is actively solving for percolation density contrasts.
+  logical          :: percolationSolving               =.false.
+  double precision :: percolationDensityContrastCurrent=-1.0d0
+  !$omp threadprivate(percolationSolving,percolationDensityContrastCurrent)
 
   ! A global percolation object used to avoid each thread having to compute the tabulations for
   ! the default case. Note that we can only do this here as this class depends only on default
@@ -106,9 +109,6 @@ contains
     class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="linkingLength, *cosmologyFunctions_"/>
 
-    allocate(self%densityContrastCurrent)
-    self%densityContrastCurrent=-1.0d0
-    self%solving               =.false.
     ! Initialize tabulations.
     self%densityContrastTableTimeMinimum= 1.0d-03
     self%densityContrastTableTimeMaximum=20.0d+00
@@ -197,7 +197,7 @@ contains
              self%densityContrastTableTimeMaximum=percolation_%densityContrastTableTimeMaximum
              self%densityContrastTableMassCount  =percolation_%densityContrastTableMassCount
              self%densityContrastTableTimeCount  =percolation_%densityContrastTableTimeCount
-             self%densityContrastTable             =percolation_%densityContrastTable
+             self%densityContrastTable           =percolation_%densityContrastTable
              ! Flag that the table is now initialized.
              self%densityContrastTableInitialized=.true.             
           else
@@ -214,7 +214,7 @@ contains
        ! Remake the table is necessary.
        if (makeTable) then
           ! Record that we are in the solving phase of calculation, so we will avoid recursive calls to this function.
-          self%solving=.true.       
+          percolationSolving=.true.       
           ! Allocate arrays to the appropriate sizes.
           self%densityContrastTableMassCount=int(log10(self%densityContrastTableMassMaximum/self%densityContrastTableMassMinimum)*dble(percolationDensityContrastTableMassPointsPerDecade))+1
           self%densityContrastTableTimeCount=int(log10(self%densityContrastTableTimeMaximum/self%densityContrastTableTimeMinimum)*dble(percolationDensityContrastTableTimePointsPerDecade))+1
@@ -236,7 +236,7 @@ contains
                 tableTime=self%densityContrastTable%y(iTime)
                 iCount=iCount+1
                 call Galacticus_Display_Counter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityWorking)
-                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,self%densityContrastCurrent),iMass,iTime)
+                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,percolationDensityContrastCurrent),iMass,iTime)
              end do
           end do
           call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
@@ -244,23 +244,20 @@ contains
           ! Flag that the table is now initialized.
           self%densityContrastTableInitialized=.true.
           ! Solving phase is finished.
-          self%solving=.false.
+          percolationSolving=.false.         
           ! Check if we should copy our table to the global table.
           !$omp critical(virialDensityContrastPercolationGlobal)
-          globalIsSufficient=                                                                                 &
-               &  self                             %isDefault    ()                                           &
-               & .and.                                                                                        &
-               &  percolation_%densityContrastTable%isInitialized()                                           &
-               & .and.                                                                                        &
-               &  .not.(                                                                                      &
-               &         self%densityContrastTableTimeMinimum <= percolation_%densityContrastTableTimeMinimum &
-               &        .and.                                                                                 &
-               &         self%densityContrastTableTimeMaximum >= percolation_%densityContrastTableTimeMaximum &
-               &        .and.                                                                                 &
-               &         self%densityContrastTableMassMinimum <= percolation_%densityContrastTableMassMinimum &
-               &        .and.                                                                                 &
-               &         self%densityContrastTableMassMaximum >= percolation_%densityContrastTableMassMaximum &
-               &       )
+          globalIsSufficient= self%isDefault                      ()                                                      &
+               &             .and.                                                                                        &
+               &                                                        percolation_%densityContrastTable%isInitialized() &
+               &             .and.                                                                                        &
+               &              self%densityContrastTableTimeMinimum   >= percolation_%densityContrastTableTimeMinimum      &
+               &             .and.                                                                                        &
+               &              self%densityContrastTableTimeMaximum   <= percolation_%densityContrastTableTimeMaximum      &
+               &             .and.                                                                                        &
+               &              self%densityContrastTableMassMinimum   >= percolation_%densityContrastTableMassMinimum      &
+               &             .and.                                                                                        &
+               &              self%densityContrastTableMassMaximum   <= percolation_%densityContrastTableMassMaximum
           if (.not.globalIsSufficient) then
              ! Copy to global.
              percolation_%densityContrastTableMassMinimum=self%densityContrastTableMassMinimum
@@ -288,8 +285,8 @@ contains
     logical                                           , intent(in   ) , optional :: collapsing
     double precision                                                             :: timeActual
 
-    if (self%solving) then
-       percolationDensityContrast=self%densityContrastCurrent
+    if (percolationSolving) then
+       percolationDensityContrast=percolationDensityContrastCurrent
     else
        ! Get the time to use.
        timeActual=self%cosmologyFunctions_%epochTime(time,expansionFactor,collapsing)

@@ -37,8 +37,8 @@ contains
   !# <functionGlobal>
   !#  <unitName>Virial_Density_Contrast_Percolation_Solver</unitName>
   !#  <type>double precision</type>
-  !#  <arguments>double precision , intent(in   )          :: mass, time, linkingLength</arguments>
-  !#  <arguments>double precision , intent(in   ), pointer :: densityContrastCurrent</arguments>
+  !#  <arguments>double precision , intent(in   )         :: mass, time, linkingLength</arguments>
+  !#  <arguments>double precision , intent(in   ), target :: densityContrastCurrent</arguments>
   !# </functionGlobal>
   double precision function Virial_Density_Contrast_Percolation_Solver(mass,time,linkingLength,densityContrastCurrent)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
@@ -49,16 +49,16 @@ contains
     use Numerical_Constants_Math
     use Galacticus_Calculations_Resets
     implicit none
-    double precision                          , intent(in   )          :: mass                             , time, &
-         &                                                                linkingLength
-    double precision                          , intent(in   ), pointer :: densityContrastCurrent
-    double precision                          , parameter              :: percolationThreshold  =0.652960d0
-    class           (cosmologyParametersClass), pointer                :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                :: cosmologyFunctions_
-    class           (nodeComponentBasic      ), pointer                :: workBasic
-    type            (rootFinder              ), save                   :: finder
+    double precision                          , intent(in   )         :: mass                             , time, &
+         &                                                               linkingLength
+    double precision                          , intent(in   ), target :: densityContrastCurrent
+    double precision                          , parameter             :: percolationThreshold  =0.652960d0
+    class           (cosmologyParametersClass), pointer               :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctions_
+    class           (nodeComponentBasic      ), pointer               :: workBasic
+    type            (rootFinder              ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                                   :: radiusHalo
+    double precision                                                  :: radiusHalo
 
     ! Initialize module-scope variables.
     massHalo        =  mass
