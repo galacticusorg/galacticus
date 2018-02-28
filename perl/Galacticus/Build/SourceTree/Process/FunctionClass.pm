@@ -165,7 +165,7 @@ sub Process_FunctionClass {
 		description => "Return true if this is the default object of this class.",
 		type        => "logical",
 		pass        => "yes",
-		code        => $directive->{'name'}."isDefault=.not.self%isDefaultOfClass\n"
+		code        => $directive->{'name'}."isDefault=self%isDefaultOfClass\n"
 	    };
 	    # Add "isFinalizable" method.
 	    $methods{'isFinalizable'} = 
@@ -768,7 +768,20 @@ CODE
 					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
 					    foreach ( @{$declaration->{'variables'}} );
 				}
-
+				# Reinitialize OpenMP read/write locks.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     exists ($declaration->{'type'})
+				     &&
+				     defined($declaration->{'type'})
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
+				    ) {
+					$assignments .= "!\$ call destination\%".$_."%initialize()\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}				    
 			    }
 			}
 			$node = $node->{'sibling'};
