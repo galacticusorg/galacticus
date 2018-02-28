@@ -771,7 +771,7 @@ msbdfactive_corrector (void *vstate, const gsl_odeiv2_system * sys,
    */
 
   size_t mi, i;
-  const size_t max_iter = 3;    /* Maximum number of iterations */
+  const size_t max_iter = 9;    /* Maximum number of iterations - increased from the GSL value of 3 */
   double convrate = 1.0;        /* convergence rate */
   double stepnorm = 0.0;        /* norm of correction step */
   double stepnormprev = 0.0;    /* previous norm value */
@@ -816,7 +816,7 @@ msbdfactive_corrector (void *vstate, const gsl_odeiv2_system * sys,
                                 gamma, gammaprev,
 				      h , hprev0);
 
-	  /* AJB: Check for singular LU matrix. For singular matrices, return failure status. */
+	  /* Check for singular LU matrix. For singular matrices, return failure status. */
 	  if (singular (M))
 	    {
 	      return GSL_FAILURE;
