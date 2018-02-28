@@ -57,6 +57,7 @@ module Locks
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::               ompReadWriteLockDestructor
+     procedure :: initialize => ompReadWriteLockInitialize
      procedure :: setRead    => ompReadWriteLockSetRead
      procedure :: unsetRead  => ompReadWriteLockUnsetRead
      procedure :: setWrite   => ompReadWriteLockSetWrite
@@ -73,15 +74,11 @@ contains
   function ompReadWriteLockConstructor() result (self)
     !% Constructor for OpenMP read/write lock objects.
     implicit none
-    type   (ompReadWriteLock) :: self
-    integer                   :: i
+    type(ompReadWriteLock) :: self
 
     ! Allocate a lock for each thread in the current scope.
-    !$ allocate(self%locks(0:omp_get_num_threads()-1))
-    ! Initialize each lock.
-    !$ do i=0,ubound(self%locks,dim=1)
-    !$    call OMP_Init_Lock(self%locks(i))
-    !$ end do
+    !$ allocate(self%locks(0:omp_get_max_threads()-1))
+    call self%initialize()
     return
   end function ompReadWriteLockConstructor
 
@@ -102,11 +99,24 @@ contains
     return
   end subroutine ompReadWriteLockDestructor
 
+  subroutine ompReadWriteLockInitialize(self)
+    !% (Re)initialize an OpenMP read/write lock object.
+    implicit none
+    class  (ompReadWriteLock), intent(inout) :: self
+    integer                                  :: i
+
+    ! Initialize each lock.
+    !$ do i=0,ubound(self%locks,dim=1)
+    !$    call OMP_Init_Lock(self%locks(i))
+    !$ end do
+    return
+  end subroutine ompReadWriteLockInitialize
+
   subroutine ompReadWriteLockSetRead(self)
     !% Get a read lock on an OpenMP read/write lock objects.
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
-
+    
     !$ call OMP_Set_Lock(self%locks(omp_get_thread_num()))
     return
    end subroutine ompReadWriteLockSetRead
