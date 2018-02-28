@@ -670,12 +670,13 @@ contains
     implicit none
     double precision                                                                   , intent(in   ) :: time
     double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
-    double precision               , dimension(:                                      ), intent(  out) :: derivativeRatesValues, derivativeRatesTime
-    double precision               , dimension(propertyCountActive                    )                :: propertyRates0       , propertyRates1     , &
+    double precision               , dimension(:                                      ), intent(  out) :: derivativeRatesValues        , derivativeRatesTime
+    double precision               , dimension(propertyCountActive                    )                :: propertyRates0               , propertyRates1     , &
          &                                                                                                propertyValues1
     double precision               , dimension(propertyCountActive,propertyCountActive)                :: jacobian
     procedure       (interruptTask), pointer                                                           :: functionInterrupt
-    logical                                                                                            :: interrupt             , odeConverged
+    double precision               , parameter                                                         :: deltaTiny            =1.0d-10
+    logical                                                                                            :: interrupt                    , odeConverged
     integer                                                                                            :: i
     double precision                                                                                   :: propertyValueDelta
     
@@ -708,7 +709,7 @@ contains
           else
              propertyValueDelta       =+odeJacobianStepSizeRelative    &
                   &                    *propertyValues0            (i)
-             if (propertyValueDelta == 0.0d0)  &
+             if (abs(propertyValueDelta) < deltaTiny*propertyScalesActive(i)) &
                   & propertyValueDelta=+propertyScalesActive       (i)
           end if          
           propertyValues1       =+propertyValues0
@@ -770,21 +771,22 @@ contains
     return
   end subroutine Tree_Node_Compute_Derivatives
 
-  subroutine Tree_Node_ODEs_Error_Handler(time,y)
+  subroutine Tree_Node_ODEs_Error_Handler(status,time,y)
     !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
     use, intrinsic :: ISO_C_Binding
     use String_Handling
     use Galacticus_Display
     implicit none
-    real            (kind=c_double     ), intent(in)                                 :: time
-    real            (kind=c_double     ), intent(in), dimension(propertyCountActive) :: y
-    real            (kind=c_double     )            , dimension(propertyCountActive) :: dydt      , yError       , &
-         &                                                                              yTolerance
-    type            (varying_string    )                                             :: message   , line
-    integer                                                                          :: i         , lengthMaximum
-    character       (len =12           )                                             :: label
-    integer         (kind=c_int        )                                             :: odeStatus
-    double precision                                                                 :: stepFactor
+    integer         (kind=c_int    ), intent(in   )                                 :: status
+    real            (kind=c_double ), intent(in   )                                 :: time
+    real            (kind=c_double ), intent(in   ), dimension(propertyCountActive) :: y
+    real            (kind=c_double )               , dimension(propertyCountActive) :: dydt      , yError       , &
+         &                                                                             yTolerance
+    type            (varying_string)                                                :: message   , line
+    integer                                                                         :: i         , lengthMaximum
+    character       (len =12       )                                                :: label
+    integer         (kind=c_int    )                                                :: odeStatus
+    double precision                                                                :: stepFactor
 
     ! Check if this is the final trial for this node.
     if (trialCount == trialCountMaximum-1) then
@@ -792,8 +794,8 @@ contains
        call FODEIV2_Driver_Errors(ode2Driver,yError)
        yTolerance=treeNodeODEStepTolerances(y)
        ! Report the failure message.
-       message="ODE solver failed in tree #"
-       message=message//activeTreeIndex
+       message="ODE solver failed with error code "
+       message=message//status//" in tree #"//activeTreeIndex
        call Galacticus_Display_Message(message)
        ! Dump all node properties.
        call activeNode%serializeASCII()

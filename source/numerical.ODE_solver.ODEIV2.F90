@@ -196,7 +196,7 @@ contains
           if (present(stepSize)) stepSize=FODEIV2_Driver_h(odeDriver)          
        case (FGSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
-          if (present(errorHandler)) call errorHandler(x,y)
+          if (present(errorHandler)) call errorHandler(status,x,y)
           ! If ODE status was requested, then return it instead of aborting.
           if (present(odeStatus)) then
              x0=x
@@ -212,7 +212,7 @@ contains
           x1Internal=interruptedAtX
        case default
           ! Some other error condition.
-          if (present(errorHandler)) call errorHandler()
+          if (present(errorHandler)) call errorHandler(status,x,y)
           ! If ODE status was requested, then return it instead of aborting.
           if (present(odeStatus)) then
              x0=x
