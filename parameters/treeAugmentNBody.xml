@@ -29,7 +29,6 @@
   </cosmologyParametersMethod>
 
   <!-- Power spectrum options -->
-  <sigma_8 value="0.9"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
@@ -40,11 +39,14 @@
     <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <powerSpectrumPrimordialTransferredMethod value="simple"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.9"/>
+  </cosmologicalMassVarianceMethod>
 
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
-  <haloMassFunctionMethod value="Tinker2008"/>
-  <criticalOverdensityMethod value="sphericalTopHat"/>
+  <haloMassFunctionMethod value="tinker2008"/>
+  <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
@@ -143,7 +145,6 @@
       <mergerTreeBuilderMethod value="cole2000">
 	<accretionLimit   value="0.1"  />
 	<mergeProbability value="0.1"  />
-	<randomSeedsFixed value="false"/>
 	<mergerTreeMassResolutionMethod value="fixed">
 	  <massResolution value="2.36e9" />
 	</mergerTreeMassResolutionMethod>
