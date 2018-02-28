@@ -174,16 +174,21 @@ contains
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     implicit none
-    type            (virialOrbitJiang2014    )                        :: self
-    double precision                          , dimension(3)          :: bRatioLow                , bRatioIntermediate    , bRatioHigh    , &
-         &                                                               gammaRatioLow            , gammaRatioIntermediate, gammaRatioHigh, &
-         &                                                               sigmaRatioLow            , sigmaRatioIntermediate, sigmaRatioHigh, &
-         &                                                               muRatioLow               , muRatioIntermediate   , muRatioHigh
-    class           (darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
-    class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    integer                                   , parameter             :: tableCount          =1000
-    integer                                                           :: i                        , j                     , k
-    type            (distributionVoight      )                        :: voightDistribution
+    type            (virialOrbitJiang2014    )                         :: self
+    double precision                          , dimension(3)           :: bRatioLow                          , bRatioIntermediate    , bRatioHigh    , &
+         &                                                                gammaRatioLow                      , gammaRatioIntermediate, gammaRatioHigh, &
+         &                                                                sigmaRatioLow                      , sigmaRatioIntermediate, sigmaRatioHigh, &
+         &                                                                muRatioLow                         , muRatioIntermediate   , muRatioHigh
+    class           (darkMatterHaloScaleClass), intent(in   ) , target :: darkMatterHaloScale_
+    class           (cosmologyFunctionsClass ), intent(in   ) , target :: cosmologyFunctions_
+    integer                                   , parameter              :: tableCount                 =1000
+    integer                                                            :: i                                  , j                     , k
+    type            (distributionVoight      )                         :: voightDistribution
+    logical                                   , dimension(3,3), save   :: previousInitialized        =.false.
+    double precision                          , dimension(3,3), save   :: previousB                          , previousGamma         , previousSigma , &
+         &                                                                previousMu
+    type            (table1DLinearLinear     ), dimension(3,3), save   :: previousVoightDistributions
+    logical                                                            :: reUse
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
@@ -203,21 +208,46 @@ contains
     ! Build the distribution function for total velocity.
     do i=1,3
        do j=1,3
+          ! Check if this distribution was built previously.
+          !$omp critical(virialOrbitJiang2014ReUse)
+          reuse  =                                             &
+               &                      previousInitialized(i,j) &
+               &  .and.                                        &
+               &   self%B    (i,j) == previousB          (i,j) &
+               &  .and.                                        &
+               &   self%gamma(i,j) == previousGamma      (i,j) &
+               &  .and.                                        &
+               &   self%sigma(i,j) == previousSigma      (i,j) &
+               &  .and.                                        &
+               &   self%mu   (i,j) == previousMu         (i,j)
+          if (reuse) self%voightDistributions(i,j)=previousVoightDistributions(i,j)
+          !$omp end critical(virialOrbitJiang2014ReUse)
           ! Build the distribution.
-          voightDistribution=distributionVoight(                       &
-               &                                self%gamma(i,j)      , &
-               &                                self%mu   (i,j)      , &
-               &                                self%sigma(i,j)      , &
-               &                                limitLower     =0.0d0, &
-               &                                limitUpper     =2.0d0  &
-               &                               )
-          ! Tabulate the cumulative distribution.
-          call self%voightDistributions(i,j)%create(0.0d0,2.0d0,tableCount)
-          !$omp parallel do
-          do k=1,tableCount
-             call self%voightDistributions(i,j)%populate(voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)),k)
-          end do
-          !$omp end parallel do
+          if (.not.reuse) then
+             voightDistribution=distributionVoight(                       &
+                  &                                self%gamma(i,j)      , &
+                  &                                self%mu   (i,j)      , &
+                  &                                self%sigma(i,j)      , &
+                  &                                limitLower     =0.0d0, &
+                  &                                limitUpper     =2.0d0  &
+                  &                               )
+             ! Tabulate the cumulative distribution.
+             call self%voightDistributions(i,j)%create(0.0d0,2.0d0,tableCount)
+             !$omp parallel do
+             do k=1,tableCount
+                call self%voightDistributions(i,j)%populate(voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)),k)
+             end do
+             !$omp end parallel do
+             ! Store this table for later reuse.
+             !$omp critical(virialOrbitJiang2014ReUse)
+             previousInitialized(i,j)=.true.
+             previousB                  (i,j)=self%B                  (i,j) 
+             previousGamma              (i,j)=self%gamma              (i,j) 
+             previousSigma              (i,j)=self%sigma              (i,j) 
+             previousMu                 (i,j)=self%mu                 (i,j) 
+             previousVoightDistributions(i,j)=self%voightDistributions(i,j)
+             !$omp end critical(virialOrbitJiang2014ReUse)
+          end if
        end do
     end do
     return
