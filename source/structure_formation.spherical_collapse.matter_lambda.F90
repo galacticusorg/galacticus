@@ -24,9 +24,9 @@ module Spherical_Collapse_Matter_Lambda
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate,&
-       & Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate,&
-       & Spherical_Collapse_Matter_Lambda_State_Store, Spherical_Collapse_Matter_Lambda_State_Retrieve
+  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate, Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate, &
+       &    Spherical_Collapse_Matter_Lambda_State_Store                  , Spherical_Collapse_Matter_Lambda_State_Retrieve      , &
+       &    Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
 
   ! Variables to hold the tabulated critical overdensity data.
   double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0
@@ -35,11 +35,11 @@ module Spherical_Collapse_Matter_Lambda
   ! Variables used in root finding.
   double precision            :: OmegaDE                          , OmegaM                      , &
        &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
-       &                         tNow
-  !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow)
+       &                         tNow                             , timeTarget, radiusMaximum
+  !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow,timeTarget,radiusMaximum)
   
   ! Calculation types.
-  integer         , parameter :: calculationDeltaCrit      =0     , calculationDeltaVirial=1
+  integer         , parameter :: calculationDeltaCrit          =0     , calculationDeltaVirial=1
 
 contains
 
@@ -83,17 +83,20 @@ contains
     class           (table1D                ), allocatable, intent(inout)           :: deltaTable
     class           (cosmologyFunctionsClass), target     , intent(in   ), optional :: cosmologyFunctions_    
     class           (linearGrowthClass      ), target     , intent(in   ), optional :: linearGrowth_    
-    double precision                         , parameter                            :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
+    double precision                         , parameter                            :: toleranceAbsolute         =0.0d+0, toleranceRelative         =1.0d-9
     type            (rootFinder             ), save                                 :: finder
     !$omp threadprivate(finder)
     class           (cosmologyFunctionsClass), pointer                              :: cosmologyFunctions__
     class           (linearGrowthClass      ), pointer                              :: linearGrowth__
-    integer                                                                         :: deltaTableNumberPoints          , iTime
-    double precision                                                                :: aExpansionNow                   , epsilonPerturbation              , &
-         &                                                                             epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
-         &                                                                             eta                             , normalization                    , &
-         &                                                                             radiiRatio                      , radiusMaximum
-    double complex                                                                  :: a,b,c,d,Delta
+    integer                                                                         :: deltaTableNumberPoints           , iTime
+    double precision                                                                :: aExpansionNow                    , epsilonPerturbation              , &
+         &                                                                             epsilonPerturbationMaximum       , epsilonPerturbationMinimum       , &
+         &                                                                             eta                              , normalization                    , &
+         &                                                                             radiiRatio                       , radiusMaximum                    , &
+         &                                                                             timeBigCrunch
+    double complex                                                                  :: a                                , b                                , &
+         &                                                                             c                                , d                                , &
+         &                                                                             Delta
 
     ! Get required objects.
     if (present(cosmologyFunctions_)) then
@@ -109,11 +112,15 @@ contains
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-
+    timeBigCrunch=cosmologyFunctions__%timeBigCrunch()
+    if (timeBigCrunch > 0.0d0) then
+       ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
+       if (deltaTableTimeMinimum > timeBigCrunch) deltaTableTimeMinimum= 0.5d0                       *timeBigCrunch
+       if (deltaTableTimeMaximum > timeBigCrunch) deltaTableTimeMaximum=(1.0d0-timeToleranceRelativeBigCrunch)*timeBigCrunch
+    end if
     ! Determine number of points to tabulate.
     deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
-
     ! Deallocate table if currently allocated.
     if (allocated(deltaTable)) then
        call deltaTable%destroy()
@@ -126,9 +133,10 @@ contains
        call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Solve ODE to get corresponding overdensities.
        do iTime=1,deltaTableNumberPoints
+          tNow=deltaTable%x(iTime)
 
           ! Get the current expansion factor.
-          aExpansionNow=cosmologyFunctions__%expansionFactor(deltaTable%x(iTime))
+          aExpansionNow=cosmologyFunctions__%expansionFactor(tNow)
           ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
           if (cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)>0.0d0) then
              epsilonPerturbationMaximum=-(27.0d0*cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)*(cosmologyFunctions__%omegaMatterEpochal(expansionFactor=aExpansionNow)&
@@ -140,19 +148,20 @@ contains
           ! Estimate a suitably negative minimum value for epsilon.
           epsilonPerturbationMinimum=-10.0d0
 
-          OmegaM               =cosmologyFunctions__%omegaMatterEpochal    (expansionFactor=aExpansionNow)
-          OmegaDE              =cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
-          hubbleParameterInvGyr=cosmologyFunctions__%expansionRate         (                aExpansionNow)
-          tNow                 =deltaTable%x(iTime)
+          OmegaM               =    cosmologyFunctions__%omegaMatterEpochal    (expansionFactor=aExpansionNow)
+          OmegaDE              =    cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
+          hubbleParameterInvGyr=abs(cosmologyFunctions__%expansionRate         (                aExpansionNow))
 
           ! Find the value of epsilon for which the perturbation just collapses at this time.
           if (.not.finder%isInitialized()) then
              call finder%rootFunction(collapseRoot                       )
              call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-             call finder%rangeExpand (                                                           &
-                  &                   rangeExpandUpward          =0.5d0                        , &
-                  &                   rangeExpandType            =rangeExpandMultiplicative    , &
-                  &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive  &
+             call finder%rangeExpand (                                                             &
+                  &                   rangeExpandUpward            =0.5d0                        , &
+                  &                   rangeExpandDownward          =2.0d0                        , &
+                  &                   rangeExpandType              =rangeExpandMultiplicative    , &
+                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
                   &                  )
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
@@ -205,6 +214,7 @@ contains
 
     ! Evaluate the root function.
     collapseRoot=tCollapse(epsilonPerturbation)-tNow
+    return
   end function collapseRoot
 
   double precision function Perturbation_Maximum_Radius(epsilonPerturbation)
@@ -295,7 +305,7 @@ contains
 
     ! Compute the integrand.
     sqrtArgument=OmegaM+epsilonPerturbationShared*a+OmegaDE*a**3
-    if (sqrtArgument>0.0d0) then
+    if (sqrtArgument > 0.0d0) then
        Perturbation_Integrand=sqrt(a/sqrtArgument)
     else
        Perturbation_Integrand=0.0d0
@@ -303,6 +313,279 @@ contains
     return
   end function Perturbation_Integrand
 
+  subroutine Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(time,deltaTable,linearGrowth_,cosmologyFunctions_)
+    !% Tabulate the critical overdensity for collapse for the spherical collapse model.
+    use Tables
+    use Cosmology_Functions
+    use Linear_Growth
+    use Table_Labels
+    use Root_Finder
+    use FGSL
+    use Numerical_Integration
+    use Numerical_Ranges
+    use Array_Utilities
+    use Arrays_Search
+    implicit none
+    double precision                                         , intent(in   ) :: time
+    class           (table2DLinLinLin          )             , intent(inout) :: deltaTable
+    class           (cosmologyFunctionsClass   ), target     , intent(inout) :: cosmologyFunctions_    
+    class           (linearGrowthClass         ), target     , intent(inout) :: linearGrowth_
+    integer                                     , parameter                  :: tableIncrement          =100
+    integer                                     , parameter                  :: timesPerDecade          = 10
+    integer                                     , parameter                  :: overdensityLinearCount  =500
+    double precision                            , parameter                  :: numericalLimitEpsilon   =  1.0d-4
+    double precision                            , parameter                  :: toleranceAbsolute       =  0.0d+0, toleranceRelative         =1.0d-9
+    double precision                            , parameter                  :: expansionFactorMinimum  =  1.0d-2, expansionFactorMaximum    =1.0d+0
+    double precision                            , parameter                  :: overdensityLinearMinimum= -5.0d+0, overdensityLinearMaximum  =2.0d+0
+    double precision                            , allocatable, dimension(:)  :: overdensityLinear                , overdensityNonlinear             , &
+         &                                                                      overdensityLinearTmp             , overdensityNonLinearTmp          , &
+         &                                                                      times                            , overdensitiesLinear
+    double precision                                                         :: expansionFactor                  , epsilonPerturbationMaximum       , &
+         &                                                                      epsilonPerturbationCollapsed     , radiusNow                        , &
+         &                                                                      epsilonPerturbation              , epsilonPerturbationMinimum       , &
+         &                                                                      timeMaximum                      , radiusUpperLimit                 , &
+         &                                                                      normalization                    , overdensityNonlinear_            , &
+         &                                                                      timesMinimum                     , timesMaximum
+    type            (fgsl_function             )                             :: integrandFunction
+    type            (fgsl_integration_workspace)                             :: integrationWorkspace
+    type            (rootFinder                )                             :: finderPerturbation               , finderRadius
+    logical                                                                  :: integrationReset
+    integer                                                                  :: i                                , timeCount                        , &
+         &                                                                      iOverdensityLinear               , iOverdensity                     , &
+         &                                                                      iTime
+
+
+    ! Find a suitable range of times to tabulate, and generate an array of times.
+    timesMinimum      =min(0.5d0*time,cosmologyFunctions_%cosmicTime(expansionFactorMinimum))
+    timesMaximum      =max(2.0d0*time,cosmologyFunctions_%cosmicTime(expansionFactorMaximum))
+    timeCount         =int(log10(timesMaximum/timesMinimum)*dble(timesPerDecade))+1
+    times             =Make_Range(timesMinimum,timesMaximum,timeCount,rangeTypeLogarithmic)
+    ! Generate a range of linear overdensities.
+    overdensitiesLinear=Make_Range(overdensityLinearMinimum,overdensityLinearMaximum,overdensityLinearCount,rangeTypeLinear)
+    ! Create the table.
+    call deltaTable%create(overdensitiesLinear,times)
+    ! Iterate over times.
+    do iTime=1,timeCount
+       ! Get the current expansion factor.
+       tNow           =times(iTime)
+       expansionFactor=cosmologyFunctions_%expansionFactor(tNow)
+       ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
+       if (cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor) > 0.0d0) then
+          epsilonPerturbationMaximum=-(                                                                                &
+               &                       +27.0d0                                                                         &
+               &                       / 4.0d0                                                                         &
+               &                       *cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)    &
+               &                       *cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)**2 &
+               &                      )**(1.0d0/3.0d0)
+       else
+          epsilonPerturbationMaximum=-1.0d-6
+       end if
+       ! Estimate a suitably negative minimum value for epsilon.
+       epsilonPerturbationMinimum=-10.0d0
+       ! Compute cosmological parametrers at this epoch.
+       OmegaM               =cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor)
+       OmegaDE              =cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
+       hubbleParameterInvGyr=cosmologyFunctions_%expansionRate         (                expansionFactor)
+       ! Find the value of epsilon for which the perturbation just collapses at this time.
+       if (.not.finderPerturbation%isInitialized()) then
+          call finderPerturbation%rootFunction(collapseRoot                       )
+          call finderPerturbation%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finderPerturbation%rangeExpand (                                                             &
+               &                               rangeExpandUpward            =0.5d0                        , &
+               &                               rangeExpandDownward          =2.0d0                        , &
+               &                               rangeExpandType              =rangeExpandMultiplicative    , &
+               &                               rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+               &                              )
+       end if
+       epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
+       ! For non-collapsed regions, epsilon will be greater then that for a collapsed perturbation. Step through values until
+       ! sufficiently low non-linear overdensity is reached.
+       epsilonPerturbation=epsilonPerturbationCollapsed
+       i=0
+       do while (.true.)
+          i                  =i                  +1
+          epsilonPerturbation=epsilonPerturbation+1.0d-2*abs(epsilonPerturbationCollapsed)
+          ! Share the epsilon parameter.
+          epsilonPerturbationShared=epsilonPerturbation
+          ! For collapsing perturbations, find the time of maximum radius.
+          if (epsilonPerturbation > epsilonPerturbationMaximum) then
+             ! This perturbation will not collapse. Maximum radius is reached at infinite time.
+             radiusMaximum=huge(1.0d0)
+             timeTarget   =     tNow
+          else
+             ! This perturbation will collapse. Find the maximum radius.
+             radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
+             ! Compute maximum value of a for numerical integration.
+             radiusUpperLimit=(1.0d0-numericalLimitEpsilon)*radiusMaximum
+             ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion, adding on the
+             ! analytic correction for the region close to maximum expansion.
+             integrationReset=.true.
+             timeMaximum     =+Integrate(                                          &
+                  &                                        0.0d0                 , &
+                  &                                        radiusUpperLimit      , &
+                  &                                        Perturbation_Integrand, &
+                  &                                        integrandFunction     , &
+                  &                                        integrationWorkspace  , &
+                  &                      toleranceAbsolute=0.0d0                 , &
+                  &                      toleranceRelative=1.0d-6                , &
+                  &                      hasSingularities =.true.                , &
+                  &                      reset            =integrationReset        &
+                  &                     )                                          &
+                  &           /hubbleParameterInvGyr                               &
+                  &           -2.0d0                                               &
+                  &           *sqrt(                                               &
+                  &                 +OmegaM                                        &
+                  &                 /radiusUpperLimit                              &
+                  &                 +epsilonPerturbation                           &
+                  &                 +OmegaDE                                       &
+                  &                 *radiusUpperLimit   **2                        &
+                  &                )                                               &
+                  &           /(                                                   &
+                  &             +2.0d0                                             &
+                  &             *OmegaDE                                           &
+                  &             *radiusUpperLimit                                  &
+                  &             -OmegaM                                            &
+                  &             /radiusUpperLimit**2                               &
+                  &            )&
+                  &           /hubbleParameterInvGyr
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             ! Set the target time
+             if (timeMaximum > tNow) then
+                ! Expanding phase.
+                timeTarget=+      tNow
+             else
+                ! Collapsing phase.
+                timeTarget=+2.0d0*timeMaximum &
+                     &     -      tNow
+             end if
+          end if
+          ! Solve for the radius at the present time.
+          if (.not.finderRadius%isInitialized()) then
+             call finderRadius%rootFunction(Radius_Root                       )
+             call finderRadius%tolerance   (toleranceAbsolute,toleranceRelative)
+             call finderRadius%rangeExpand (                                                             &
+                  &                         rangeExpandDownward          =0.5d0                        , &
+                  &                         rangeExpandUpward            =2.0d0                        , &
+                  &                         rangeExpandType              =rangeExpandMultiplicative    , &
+                  &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+                  &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+                  &                        )
+          end if
+          if (epsilonPerturbation <= epsilonPerturbationMaximum .and. Radius_Root(radiusMaximum) < 0.0d0) then
+             ! Perturbation is close to maximum radius. Adopt this as the solution.
+             radiusNow=radiusMaximum
+          else
+             ! Find the current radius.
+             radiusNow=finderRadius%find(rootGuess=1.0d0)
+          end if
+          normalization=+linearGrowth_%value(tNow           ,normalize=normalizeMatterDominated) &
+               &        /                    expansionFactor
+          if (.not.allocated(overdensityLinear)) then
+             allocate(overdensityLinear   (tableIncrement))
+             allocate(overdensityNonLinear(tableIncrement))
+          else if (i > size(overdensityLinear)) then
+             call move_alloc(overdensityLinear   ,overdensityLinearTmp   )
+             call move_alloc(overdensityNonLinear,overdensityNonLinearTmp)
+             allocate(overdensityLinear   (size(overdensityLinearTmp   )+tableIncrement))
+             allocate(overdensityNonLinear(size(overdensityNonLinearTmp)+tableIncrement))
+             overdensityLinear   (1:size(overdensityLinearTmp   ))=overdensityLinearTmp
+             overdensityNonLinear(1:size(overdensityNonLinearTmp))=overdensityNonLinearTmp
+          end if
+          overdensityLinear   (i)=+normalization         &
+               &                  *0.6d0                 &
+               &                  *(                     &
+               &                    +1.0d0               &
+               &                    -OmegaM              &
+               &                    -OmegaDE             &
+               &                    -epsilonPerturbation &
+               &                   )                     &
+               &                  /OmegaM
+          overdensityNonLinear(i)=+1.0d0                 &
+               &                  /radiusNow**3          &
+               &                  -1.0d0
+          if (overdensityNonLinear(i) <= -0.99d0) exit
+       end do
+       ! Reverse the arrays such that we have overdensity increasing.
+       overdensityLinearTmp   =Array_Reverse(overdensityLinear   (1:i))
+       overdensityNonLinearTmp=Array_Reverse(overdensityNonLinear(1:i))
+       deallocate(overdensityLinear   )
+       deallocate(overdensityNonLinear)
+       call move_alloc(overdensityLinearTmp   ,overdensityLinear   )
+       call move_alloc(overdensityNonLinearTmp,overdensityNonLinear)
+       ! Populate the table.
+       do iOverdensity=1,overdensityLinearCount
+          ! Test for out of range overdensity.
+          if      (overdensitiesLinear(iOverdensity) < overdensityLinear(1)) then
+             ! Tabulated overdensity is lower than any we've computed. Use the lowest nonlinear overdensity.
+             overdensityNonLinear_=overdensityNonLinear(1)
+          else if (overdensitiesLinear(iOverdensity) > overdensityLinear(i)) then
+             ! Tabulated overdensity exceeds any we've computed, so this overdensity is already collapsed. Use highest nonlinear overdensity.
+             overdensityNonLinear_=overdensityNonLinear(i)
+          else
+             ! Find the tabulated in those computed and interpolate.
+             iOverdensityLinear=int(Search_Array(overdensityLinear,overdensitiesLinear(iOverdensity)))
+             overdensityNonLinear_=+  overdensityNonLinear(iOverdensityLinear  ) &
+                  &                +(                                            &
+                  &                  +overdensityNonLinear(iOverdensityLinear+1) &
+                  &                  -overdensityNonLinear(iOverdensityLinear  ) &
+                  &                 )                                            &
+                  &                *(                                            &
+                  &                  +overdensitiesLinear (iOverdensity        ) &
+                  &                  -overdensityLinear   (iOverdensityLinear  ) &
+                  &                 )                                            &
+                  &                /(                                            &
+                  &                  +overdensityLinear   (iOverdensityLinear+1) &
+                  &                  -overdensityLinear   (iOverdensityLinear  ) &
+                  &                 )
+          end if
+          ! Populate this point in the table.
+          call deltaTable%populate(overdensityNonLinear_,iOverdensity,iTime)
+       end do
+    end do
+    return
+  end subroutine Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
+
+  double precision function Radius_Root(radiusNow)
+    use FGSL
+    use Numerical_Integration
+    implicit none
+    double precision                            , intent(in   ) :: radiusNow
+    double precision                            , parameter     :: numericalLimitEpsilon=1.0d-4
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    logical                                                     :: integrationReset 
+    double precision                                            :: radiusUpperLimit
+
+    radiusUpperLimit=min(                                              &
+         &               +(1.0d0-numericalLimitEpsilon)*radiusMaximum, &
+         &               +                              radiusNow      &
+         &              )
+    integrationReset=.true.
+    Radius_Root     =+Integrate(                                          &
+         &                                        0.0d0                 , &
+         &                                        radiusUpperLimit      , &
+         &                                        Perturbation_Integrand, &
+         &                                        integrandFunction     , &
+         &                                        integrationWorkspace  , &
+         &                      toleranceAbsolute=0.0d+0                , &
+         &                      toleranceRelative=1.0d-6                , &
+         &                      hasSingularities =.true.                , &
+         &                      reset            =integrationReset        &
+         &                      )                                         &
+         &           /hubbleParameterInvGyr                               &
+         &           -timeTarget
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+    if (radiusUpperLimit < radiusNow) then
+       Radius_Root       =+Radius_Root                                                                                                                                                                 &
+            &             -2.0d0*sqrt(OmegaM/radiusUpperLimit+epsilonPerturbationShared+OmegaDE*radiusUpperLimit**2)/(2.0d0*OmegaDE*radiusUpperLimit-OmegaM/radiusUpperLimit**2)/hubbleParameterInvGyr
+       if (radiusNow < radiusMaximum)                                                                                                                                                                  &
+            & Radius_Root=+Radius_Root                                                                                                                                                                 &
+            &             +2.0d0*sqrt(OmegaM/radiusNow       +epsilonPerturbationShared+OmegaDE*radiusNow       **2)/(2.0d0*OmegaDE*radiusNow       -OmegaM/radiusNow       **2)/hubbleParameterInvGyr 
+    end if
+    return
+  end function Radius_Root
+  
   !# <galacticusStateStoreTask>
   !#  <unitName>Spherical_Collapse_Matter_Lambda_State_Store</unitName>
   !# </galacticusStateStoreTask>
