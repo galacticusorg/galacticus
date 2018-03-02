@@ -30,7 +30,7 @@
      !% A linear growth of cosmological structure contrast class in simple cosomologies.
      private
      logical                                                 :: tableInitialized
-     double precision                                        :: tableTimeMinimum            , tableTimeMaximum, &
+     double precision                                        :: tableTimeMinimum            , tableTimeMaximum       , &
           &                                                     normalizationMatterDominated
      class           (table1D                 ), allocatable :: growthFactor
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_
@@ -59,6 +59,9 @@
      module procedure simpleConstructorInternal
   end interface linearGrowthSimple
 
+  ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
+  double precision, parameter :: simpleTimeToleranceRelative=1.0d-4
+
 contains
 
   function simpleConstructorParameters(parameters) result(self)
@@ -68,7 +71,7 @@ contains
     type (linearGrowthSimple      )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_    
+    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -80,14 +83,21 @@ contains
   function simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simple} linear growth class.
     implicit none
-    type (linearGrowthSimple      )                        :: self
-    class(cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
-    class(cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_    
+    type            (linearGrowthSimple      )                           :: self
+    class           (cosmologyParametersClass), target   , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyFunctionsClass ), target   , intent(in   ) :: cosmologyFunctions_
+    double precision                                                     :: timeBigCrunch
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     self%tableInitialized=.false.
     self%tableTimeMinimum= 1.0d0
     self%tableTimeMaximum=20.0d0
+    timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
+    if (timeBigCrunch > 0.0d0) then
+       ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
+       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
+       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-simpleTimeToleranceRelative)*timeBigCrunch
+    end if
     return
   end function simpleConstructorInternal
 
@@ -122,7 +132,8 @@ contains
     integer                                                   :: i
     double precision                                          :: expansionFactorMatterDominant           , growthFactorDerivative           , &
          &                                                       timeNow                                 , linearGrowthFactorPresent        , &
-         &                                                       timeMatterDominant                      , timePresent
+         &                                                       timeMatterDominant                      , timePresent                      , &
+         &                                                       timeBigCrunch
     integer                                                   :: growthTableNumberPoints    
     type            (fgsl_odeiv_step         )                :: odeStepper
     type            (fgsl_odeiv_control      )                :: odeController
@@ -142,7 +153,7 @@ contains
     end if
     if (remakeTable) then
        ! Find the present-day epoch.
-       timePresent                 =     self%cosmologyFunctions_%cosmicTime           (                        1.0d0)
+       timePresent                 =     self%cosmologyFunctions_%cosmicTime           (                        1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
        ! Find epoch of matter-dark energy equality.
        expansionFactorMatterDominant=min(                                                                               &
             &                            self%cosmologyFunctions_%expansionFactor      (        self%tableTimeMinimum), &
@@ -152,6 +163,12 @@ contains
        ! Find minimum and maximum times to tabulate.
        self%tableTimeMinimum=min(self%tableTimeMinimum,min(timePresent,min(time/2.0,timeMatterDominant)      ))
        self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,max(time    ,timeMatterDominant)*2.0d0))
+       timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
+       if (timeBigCrunch > 0.0d0) then
+          ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
+          if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                             *timeBigCrunch
+          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-simpleTimeToleranceRelative)*timeBigCrunch
+       end if
        ! Determine number of points to tabulate.
        growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecade))       
        ! Destroy current table.
@@ -166,11 +183,13 @@ contains
           call growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints)
           ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
           call growthFactor%populate(1.0d0,1)
-          growthFactorDerivative=self%cosmologyFunctions_ %expansionRate  (                   &
-               &                  self%cosmologyFunctions_%expansionFactor (                  &
-               &                                                            growthFactor%x(1) &
-               &                                                           )                  &
-               &                                                          )
+          growthFactorDerivative=abs(                                                             &
+               &                     self %cosmologyFunctions_%expansionRate  (                   &
+               &                      self%cosmologyFunctions_%expansionFactor (                  &
+               &                                                                growthFactor%x(1) &
+               &                                                               )                  &
+               &                                                              )                   &
+               &                    )
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
@@ -197,16 +216,16 @@ contains
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
           ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
-          self%normalizationMatterDominated=+(                                                           &
-               &                              +9.0d0                                                     &
-               &                              *self%cosmologyParameters_%OmegaMatter   (               ) &
-               &                              /4.0d0                                                     &
-               &                             )**(1.0d0/3.0d0)                                            &
-               &                            *(                                                           &
-               &                              +self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
-               &                              *growthFactor             %x             (              1) &
-               &                             )**(2.0d0/3.0d0)                                            &
-               &                            /  growthFactor             %y             (              1)
+          self%normalizationMatterDominated=+(                                                                &
+               &                              +9.0d0                                                          &
+               &                              *    self%cosmologyParameters_%OmegaMatter   (               )  &
+               &                              /4.0d0                                                          &
+               &                             )**(1.0d0/3.0d0)                                                 &
+               &                            *(                                                                &
+               &                              +abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
+               &                              *    growthFactor             %x             (              1)  &
+               &                             )**(2.0d0/3.0d0)                                                 &
+               &                            /      growthFactor             %y             (              1)          
           self%tableInitialized=.true.
        end select
     end if
@@ -221,15 +240,15 @@ contains
       double precision, dimension(:), intent(  out) :: derivatives
       double precision                              :: expansionFactor
       
-      expansionFactor   =+self%cosmologyFunctions_%expansionFactor   (                           time)
-      derivatives    (1)=+values                                     (                              2)
-      derivatives    (2)=+1.5d0                                                                           &
-           &             *self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
-           &             *self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
-           &             *values                                     (                              1)    &
-           &             -2.0d0                                                                           &
-           &             *self%cosmologyFunctions_%expansionRate     (                expansionFactor)    &
-           &             *values                                     (                              2)
+      expansionFactor   =+    self%cosmologyFunctions_%expansionFactor   (                           time)
+      derivatives    (1)=+    values                                     (                              2)
+      derivatives    (2)=+    1.5d0                                                                           &
+           &             *    self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &             *    self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &             *    values                                     (                              1)    &
+           &             -    2.0d0                                                                           &
+           &             *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
+           &             *    values                                     (                              2)
       growthFactorODEs  = FGSL_Success
     end function growthFactorODEs
 
