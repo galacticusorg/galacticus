@@ -84,6 +84,7 @@ contains
     call Memory_Usage_Record(sizeof(thisTree))
     thisTree%baseNode => null()
     thisTree%event    => null()
+    call thisTree%properties%initialize()
 
     ! Flag that the tree is uninitialized. Some construction methods may opt to fully initialize the tree, in which case they will
     ! reset this to true.
