@@ -37,8 +37,7 @@ contains
     use FGSL
     use ODE_Solver
     use Galacticus_Error
-    use Cosmological_Mass_Variance
-    use Critical_Overdensities
+    use Cosmological_Density_Field
     implicit none
     class           (darkMatterHaloMassAccretionHistoryZhao2009), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node
@@ -104,7 +103,7 @@ contains
     
     integer function growthRateODEs(mass,nowTime,dNowTimedMass)
       !% System of differential equations to solve for the growth rate.
-      use Critical_Overdensities
+      use Cosmological_Density_Field
       implicit none
       double precision              , intent(in   ) :: mass
       double precision, dimension(:), intent(in   ) :: nowTime

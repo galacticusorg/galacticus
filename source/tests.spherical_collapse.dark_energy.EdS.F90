@@ -29,7 +29,7 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   use Memory_Management
   use Virial_Density_Contrast
   use Numerical_Constants_Math
-  use Critical_Overdensities
+  use Cosmological_Density_Field
   implicit none
   double precision                            , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_

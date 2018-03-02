@@ -19,7 +19,7 @@
 !% Contains a module which implements a linear theory power spectrum class in which the power spectrum is just the transferred
 !% primordial power spectrum correctly normalized to $z=0$.
 
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Power_Spectra_Primordial_Transferred
   
   !# <powerSpectrum name="powerSpectrumStandard">

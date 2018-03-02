@@ -21,7 +21,7 @@
   
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
   !#  <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>

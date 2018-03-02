@@ -22,7 +22,7 @@
   use FGSL
   use Cosmology_Parameters
   use Cosmology_Functions
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Power_Spectra_Primordial
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">

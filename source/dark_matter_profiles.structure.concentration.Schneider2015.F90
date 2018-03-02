@@ -18,8 +18,7 @@
 
   !% An implementation of halo profile concentrations using the algorithm of \cite{schneider_structure_2015}.
 
-  use Cosmological_Mass_Variance
-  use Critical_Overdensities
+  use Cosmological_Density_Field
   use Cosmology_Functions
   use Root_Finder
   

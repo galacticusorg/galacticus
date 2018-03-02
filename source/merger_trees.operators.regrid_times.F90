@@ -145,7 +145,7 @@ contains
   function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
     !% Internal constructor for the regrid times merger tree operator class.
     use Cosmology_Functions
-    use Critical_Overdensities
+    use Cosmological_Density_Field
     use Numerical_Ranges
     use Galacticus_Error
     use Memory_Management

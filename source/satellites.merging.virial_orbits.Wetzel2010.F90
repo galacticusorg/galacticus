@@ -22,7 +22,7 @@
   use Root_Finder
   use Dark_Matter_Halo_Scales
   use Cosmology_Functions
-  use Critical_Overdensities
+  use Cosmological_Density_Field
 
   !# <virialOrbit name="virialOrbitWetzel2010">
   !#  <description>Virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.</description>

@@ -28,7 +28,7 @@ contains
   
   subroutine Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,aTilde,bTilde)
     !% Computes fitting function parameters for the \cite{correa_accretion_2015} dark matter halo models.
-    use Cosmological_Mass_Variance
+    use Cosmological_Density_Field
     use Numerical_Constants_Math
     use Linear_Growth
     implicit none

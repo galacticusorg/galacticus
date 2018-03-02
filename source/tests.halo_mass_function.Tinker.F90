@@ -30,7 +30,7 @@ program Tests_Halo_Mass_Function_Tinker
   use Cosmology_Functions
   use Cosmology_Parameters
   use File_Utilities
-  use Critical_Overdensities
+  use Cosmological_Density_Field
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &

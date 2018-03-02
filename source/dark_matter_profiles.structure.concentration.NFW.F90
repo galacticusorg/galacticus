@@ -19,8 +19,7 @@
   !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
 
   use Cosmology_Functions
-  use Cosmological_Mass_Variance
-  use Critical_Overdensities
+  use Cosmological_Density_Field
   use Virial_Density_Contrast
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">

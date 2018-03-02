@@ -20,9 +20,8 @@
   !% \cite{diemer_universal_2014} algorithm.
 
   use Cosmology_Functions
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Cosmology_Parameters
-  use Critical_Overdensities
   use Power_Spectra
   
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">

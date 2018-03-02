@@ -18,8 +18,7 @@
 
   !% Implementation of halo bias using the algorithm of \cite{sheth_ellipsoidal_2001}.
 
-  use Critical_Overdensities
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   
   !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001" defaultThreadPrivate="yes">
   !#  <description>

@@ -122,7 +122,7 @@ contains
     use Sort
     use File_Utilities
     use System_Command
-    use Cosmological_Mass_Variance
+    use Cosmological_Density_Field
     implicit none
     class           (mergerTreeOperatorExport), intent(inout)                 :: self
     type            (mergerTree              ), intent(inout), target         :: tree

@@ -75,7 +75,7 @@ contains
     use String_Handling
     use File_Utilities
     use Memory_Management
-    use Cosmological_Mass_Variance
+    use Cosmological_Density_Field
     implicit none
     class           (mergerTreeImporterSussingHDF5), intent(inout)             :: self
     type            (varying_string               ), intent(in   )             :: fileName

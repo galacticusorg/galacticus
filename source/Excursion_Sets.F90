@@ -30,9 +30,10 @@ program Tests_Excursion_Sets
   use Halo_Mass_Functions
   use Galacticus_Display
   use Galacticus_Error
+  use Galacticus_Nodes
   use Numerical_Ranges
   use Power_Spectra
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Numerical_Constants_Math
   use IO_HDF5
   implicit none
@@ -53,6 +54,7 @@ program Tests_Excursion_Sets
   class           (excursionSetBarrierClass      ), pointer                                         :: excursionSetBarrier_
   class           (excursionSetFirstCrossingClass), pointer                                         :: excursionSetFirstCrossing_
   class           (powerSpectrumClass            ), pointer                                         :: powerSpectrum_
+  type            (treeNode                      )                                                  :: node
   double precision                                                                                  :: time                             , varianceProgenitor
   character       (len=fileNameLengthMaximum     )                                                  :: fileCharacter
   type            (varying_string                )                                                  :: outputFileName                   , parameterFile
@@ -114,16 +116,16 @@ program Tests_Excursion_Sets
   ! Loop over masses.
   do iMass=1,massCount
      wavenumber                  (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/cosmologyParameters_%densityCritical()/cosmologyParameters_%OmegaMatter())**(-1.0d0/3.0d0)
-     powerSpectrumValue          (iMass)=powerSpectrum_            %power       (wavenumber(iMass)                                         )
-     variance                    (iMass)=cosmologicalMassVariance_ %rootVariance(                       haloMass(iMass)                    )**2
-     barrier                     (iMass)=excursionSetBarrier_      %barrier     (variance  (iMass),time                ,rateCompute=.false.)
-     firstCrossingProbability    (iMass)=excursionSetFirstCrossing_%probability (variance  (iMass),time                                    )
-     haloMassFunctionDifferential(iMass)=haloMassFunction_         %differential(                  time,haloMass(iMass)                    )
+     powerSpectrumValue          (iMass)=powerSpectrum_            %power       (wavenumber(iMass)                                              )
+     variance                    (iMass)=cosmologicalMassVariance_ %rootVariance(                       haloMass(iMass)                         )**2
+     barrier                     (iMass)=excursionSetBarrier_      %barrier     (variance  (iMass),time                ,node,rateCompute=.false.)
+     firstCrossingProbability    (iMass)=excursionSetFirstCrossing_%probability (variance  (iMass),time                ,node                    )
+     haloMassFunctionDifferential(iMass)=haloMassFunction_         %differential(                  time,haloMass(iMass)                         )
 
      ! Compute halo branching rates.
      do jMass=1,iMass-1
-        varianceProgenitor             =cosmologicalMassVariance_ %rootVariance(haloMass(jMass)                        )**2
-        firstCrossingRate (iMass,jMass)=excursionSetFirstCrossing_%rate        (variance(iMass),varianceProgenitor,time)
+        varianceProgenitor             =cosmologicalMassVariance_ %rootVariance(haloMass(jMass)                             )**2
+        firstCrossingRate (iMass,jMass)=excursionSetFirstCrossing_%rate        (variance(iMass),varianceProgenitor,time,node)
      end do
 
   end do

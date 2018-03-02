@@ -29,7 +29,7 @@ program Test_Parameters
   use               Memory_Management
   use               Input_Parameters
   use               Cosmology_Parameters
-  use               Cosmological_Mass_Variance
+  use               Cosmological_Density_Field
   implicit none
   type   (hdf5Object                   )               :: outputFile
   type   (varying_string               )               :: parameterFile
