@@ -34,6 +34,7 @@ module Galacticus_Nodes
   use Numerical_Constants_Astronomical
   use IO_HDF5
   use Pseudo_Random
+  use Hashes
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 
