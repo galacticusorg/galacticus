@@ -57,7 +57,7 @@ double precision function distributionVoightDensity(self,x)
   use Numerical_Constants_Math
   use Error_Functions
   implicit none
-  class           (distributionVoight), intent(in   ) :: self
+  class           (distributionVoight), intent(inout) :: self
   double precision                    , intent(in   ) :: x
   double precision                                    :: x0
   double complex                                      :: z   , w
@@ -86,7 +86,7 @@ double precision function distributionVoightCumulative(self,x)
   use Hypergeometric_Functions
   use Error_Functions
   implicit none
-  class           (distributionVoight), intent(in   )               :: self
+  class           (distributionVoight), intent(inout)               :: self
   double precision                    , intent(in   )               :: x
   double complex                      , parameter    , dimension(2) :: a=[dcmplx(1.0d0,0.0d0),dcmplx(1.0d0,0.0d0)]
   double complex                      , parameter    , dimension(2) :: b=[dcmplx(1.5d0,0.0d0),dcmplx(2.0d0,0.0d0)]

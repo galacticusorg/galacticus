@@ -20,6 +20,7 @@
 
 module Statistics_Distributions
   use Pseudo_Random
+  use Tables
   private
   public :: distributionNew
 
@@ -88,7 +89,7 @@ module Statistics_Distributions
   abstract interface
      double precision function distribution1DDensity(self,x)
        import :: distribution1D
-       class           (distribution1D), intent(in   ) :: self
+       class           (distribution1D), intent(inout) :: self
        double precision                , intent(in   ) :: x
      end function distribution1DDensity
   end interface
@@ -96,7 +97,7 @@ module Statistics_Distributions
   abstract interface
      double precision function distribution1DCumulative(self,x)
        import :: distribution1D
-       class           (distribution1D), intent(in   ) :: self
+       class           (distribution1D), intent(inout) :: self
        double precision                , intent(in   ) :: x
      end function distribution1DCumulative
   end interface
@@ -116,6 +117,7 @@ module Statistics_Distributions
   include 'statistics.distributions.Gamma.type.inc'
   include 'statistics.distributions.Voight.type.inc'
   include 'statistics.distributions.negative_exponential.type.inc'
+  include 'statistics.distributions.peak_background.type.inc'
 
 contains
 
@@ -359,7 +361,7 @@ contains
   double precision function distribution1DInverse(self,p)
     !% Null implementation of 1D inversion.
     use Galacticus_Error
-    class           (distribution1D), intent(in   ) :: self
+    class           (distribution1D), intent(inout) :: self
     double precision                , intent(in   ) :: p
     !GCC$ attributes unused :: self, p
 
@@ -371,7 +373,7 @@ contains
   double precision function distribution1DMinimum(self)
     !% Null implementation of distribution minimum value.
     use Galacticus_Error
-    class(distribution1D), intent(in   ) :: self
+    class(distribution1D), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     distribution1DMinimum=0.0d0
@@ -382,7 +384,7 @@ contains
   double precision function distribution1DMaximum(self)
     !% Null implementation of distribution maximum value.
     use Galacticus_Error
-    class(distribution1D), intent(in   ) :: self
+    class(distribution1D), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     distribution1DMaximum=0.0d0
@@ -400,5 +402,6 @@ contains
   include 'statistics.distributions.Gamma.methods.inc'
   include 'statistics.distributions.Voight.methods.inc'
   include 'statistics.distributions.negative_exponential.methods.inc'
+  include 'statistics.distributions.peak_background.methods.inc'
 
 end module Statistics_Distributions

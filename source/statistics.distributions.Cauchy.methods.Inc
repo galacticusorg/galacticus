@@ -48,7 +48,7 @@ double precision function distributionCauchyDensity(self,x)
   !% Return the density of a Cauchy distribution.
   use Numerical_Constants_Math
   implicit none
-  class           (distributionCauchy), intent(in   ) :: self
+  class           (distributionCauchy), intent(inout) :: self
   double precision                    , intent(in   ) :: x
   
   distributionCauchyDensity=1.0d0/Pi/self%scale/(1.0d0+((x-self%median)/self%scale)**2)
@@ -59,7 +59,7 @@ double precision function distributionCauchyCumulative(self,x)
   !% Return the cumulative probability of a Cauchy distribution.
   use Numerical_Constants_Math
   implicit none
-  class           (distributionCauchy), intent(in   ) :: self
+  class           (distributionCauchy), intent(inout) :: self
   double precision                    , intent(in   ) :: x
 
   distributionCauchyCumulative=0.5d0+atan((x-self%median)/self%scale)/Pi
@@ -71,7 +71,7 @@ double precision function distributionCauchyInverse(self,p)
   use Galacticus_Error
   use Numerical_Constants_Math
   implicit none
-  class           (distributionCauchy), intent(in   ) :: self
+  class           (distributionCauchy), intent(inout) :: self
   double precision                    , intent(in   ) :: p
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &

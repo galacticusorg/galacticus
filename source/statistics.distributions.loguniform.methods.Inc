@@ -32,7 +32,7 @@ end function distributionLogUniformConstructor
 double precision function distributionLogUniformDensity(self,x)
   !% Return the density of a uniform distribution.
   implicit none
-  class           (distributionLogUniform), intent(in   ) :: self
+  class           (distributionLogUniform), intent(inout) :: self
   double precision                        , intent(in   ) :: x
   
   if (x < self%limitLower .or. x > self%limitUpper) then
@@ -46,7 +46,7 @@ end function distributionLogUniformDensity
 double precision function distributionLogUniformCumulative(self,x)
   !% Return the cumulative probability of a uniform distribution.
   implicit none
-  class           (distributionLogUniform), intent(in   ) :: self
+  class           (distributionLogUniform), intent(inout) :: self
   double precision                        , intent(in   ) :: x
 
   if      (x < self%limitLower) then
@@ -63,7 +63,7 @@ double precision function distributionLogUniformInverse(self,p)
   !% Return the inverse of a uniform distribution.
   use Galacticus_Error
   implicit none
-  class           (distributionLogUniform), intent(in   ) :: self
+  class           (distributionLogUniform), intent(inout) :: self
   double precision                        , intent(in   ) :: p
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &

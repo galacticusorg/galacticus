@@ -32,7 +32,7 @@ end function distributionUniformConstructor
 double precision function distributionUniformMinimum(self)
   !% Return the minimum possible value of a uniform distribution.
   implicit none
-  class(distributionUniform), intent(in   ) :: self
+  class(distributionUniform), intent(inout) :: self
 
   distributionUniformMinimum=self%limitLower
   return
@@ -41,7 +41,7 @@ end function distributionUniformMinimum
 double precision function distributionUniformMaximum(self)
   !% Return the maximum possible value of a uniform distribution.
   implicit none
-  class(distributionUniform), intent(in   ) :: self
+  class(distributionUniform), intent(inout) :: self
 
   distributionUniformMaximum=self%limitUpper
   return
@@ -50,7 +50,7 @@ end function distributionUniformMaximum
 double precision function distributionUniformDensity(self,x)
   !% Return the density of a uniform distribution.
   implicit none
-  class           (distributionUniform), intent(in   ) :: self
+  class           (distributionUniform), intent(inout) :: self
   double precision                     , intent(in   ) :: x
   
   if (x < self%limitLower .or. x > self%limitUpper) then
@@ -64,7 +64,7 @@ end function distributionUniformDensity
 double precision function distributionUniformCumulative(self,x)
   !% Return the cumulative probability of a uniform distribution.
   implicit none
-  class           (distributionUniform), intent(in   ) :: self
+  class           (distributionUniform), intent(inout) :: self
   double precision                     , intent(in   ) :: x
 
   if      (x < self%limitLower) then
@@ -81,7 +81,7 @@ double precision function distributionUniformInverse(self,p)
   !% Return the inverse of a uniform distribution.
   use Galacticus_Error
   implicit none
-  class           (distributionUniform), intent(in   ) :: self
+  class           (distributionUniform), intent(inout) :: self
   double precision                     , intent(in   ) :: p
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &

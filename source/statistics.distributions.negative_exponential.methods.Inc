@@ -31,7 +31,7 @@ end function distributionNegativeExponentialConstructor
 double precision function distributionNegativeExponentialDensity(self,x)
   !% Return the density of a negative exponential distribution.
   implicit none
-  class           (distributionNegativeExponential), intent(in   ) :: self
+  class           (distributionNegativeExponential), intent(inout) :: self
   double precision                                 , intent(in   ) :: x
   
   if (x < 0.0d0) then
@@ -45,7 +45,7 @@ end function distributionNegativeExponentialDensity
 double precision function distributionNegativeExponentialCumulative(self,x)
   !% Return the cumulative probability of a negative exponential distribution.
   implicit none
-  class           (distributionNegativeExponential), intent(in   ) :: self
+  class           (distributionNegativeExponential), intent(inout) :: self
   double precision                                 , intent(in   ) :: x
 
   if (x < 0.0d0) then
@@ -60,7 +60,7 @@ double precision function distributionNegativeExponentialInverse(self,p)
   !% Return the inverse of a negative exponential distribution.
   use Galacticus_Error
   implicit none
-  class           (distributionNegativeExponential), intent(in   ) :: self
+  class           (distributionNegativeExponential), intent(inout) :: self
   double precision                                 , intent(in   ) :: p
   double precision                                 , parameter     :: pTiny=1.0d-6
 
