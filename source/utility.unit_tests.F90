@@ -439,7 +439,7 @@ contains
     case (compareEquals)
        passed=.true.
        do iTest=1,min(size(value1),size(value2))
-          if (Values_Differ(value1(iTest),value2(iTest),absTol,relTol)) then
+          if (.not.Values_Agree(value1(iTest),value2(iTest),absTol,relTol)) then
              passed=.false.
              exit
           end if
