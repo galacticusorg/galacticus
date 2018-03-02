@@ -17,17 +17,22 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of a merger tree builder using the algorithm of \cite{cole_hierarchical_2000}.
+
   use Merger_Trees_Build_Mass_Resolution
+  use Cosmology_Functions
+  use Statistics_Distributions
+  use Cosmological_Density_Field
 
   !# <mergerTreeBuilder name="mergerTreeBuilderCole2000">
   !#  <description>Merger trees are built using the algorithm of \cite{cole_hierarchical_2000}.</description>
   !# </mergerTreeBuilder>
-  use Statistics_Distributions
 
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
      class           (mergerTreeMassResolutionClass  ), pointer :: mergerTreeMassResolution_
+     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_
      ! Variables controlling merger tree accuracy.
      double precision                                           :: accretionLimit                          , timeEarliest             , &
           &                                                        mergeProbability
@@ -54,17 +59,18 @@
      !@     <description>Return true if the branch should be followed.</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>validateParameters</method>
+     !@     <method>criticalOverdensitySet</method>
      !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@     <description>Validate the parameters of an instance of this class, aborting if any are invalid.</description>
+     !@     <arguments>\textless class(criticalOverdensityClass)\textgreater criticalOverdensity_</arguments>
+     !@     <description>Set the critical overdensity object.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: build              => cole2000Build
-     procedure :: shouldAbort        => cole2000ShouldAbort
-     procedure :: shouldFollowBranch => cole2000ShouldFollowBranch
-     procedure :: timeEarliestSet    => cole2000TimeEarliestSet
-     procedure :: validateParameters => cole2000ValidateParameters
+     final     ::                           cole2000Destructor
+     procedure :: build                  => cole2000Build
+     procedure :: shouldAbort            => cole2000ShouldAbort
+     procedure :: shouldFollowBranch     => cole2000ShouldFollowBranch
+     procedure :: timeEarliestSet        => cole2000TimeEarliestSet
+     procedure :: criticalOverdensitySet => cole2000CriticalOverdensitySet
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -75,21 +81,23 @@
   
 contains
 
-  function cole2000ConstructorParameters(parameters)
+  function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
-    use, intrinsic :: ISO_C_Binding
-    use Cosmology_Functions
     implicit none
-    type            (mergerTreeBuilderCole2000)                :: cole2000ConstructorParameters    
-    type            (inputParameters          ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
-    double precision                                           :: redshiftMaximum
+    type            (mergerTreeBuilderCole2000    )                :: self    
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (mergerTreeMassResolutionClass), pointer       :: mergerTreeMassResolution_
+    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
+    double precision                                               :: mergeProbability             , accretionLimit         , &
+         &                                                            redshiftMaximum              , toleranceResolutionSelf, &
+         &                                                            toleranceResolutionParent
+    logical                                                        :: branchIntervalStep
 
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>mergeProbability</name>
     !#   <source>parameters</source>
-    !#   <variable>cole2000ConstructorParameters%mergeProbability</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The largest probability of branching allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
     !#   <type>real</type>
@@ -98,7 +106,6 @@ contains
     !# <inputParameter>
     !#   <name>accretionLimit</name>
     !#   <source>parameters</source>
-    !#   <variable>cole2000ConstructorParameters%accretionLimit</variable>
     !#   <defaultValue>0.1d0</defaultValue>
     !#   <description>The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the \cite{cole_hierarchical_2000} method.</description>
     !#   <type>real</type>
@@ -115,7 +122,6 @@ contains
     !# <inputParameter>
     !#   <name>branchIntervalStep</name>
     !#   <source>parameters</source>
-    !#   <variable>cole2000ConstructorParameters%branchIntervalStep</variable>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>If {\normalfont \ttfamily false} use the original \cite{cole_hierarchical_2000} method to determine whether branching occurs in a timestep. If {\normalfont \ttfamily true} draw branching intervals from a negative exponential distribution.</description>
     !#   <type>boolean</type>
@@ -124,7 +130,6 @@ contains
     !# <inputParameter>
     !#   <name>toleranceResolutionSelf</name>
     !#   <source>parameters</source>
-    !#   <variable>cole2000ConstructorParameters%toleranceResolutionSelf</variable>
     !#   <defaultValue>1.0d-6</defaultValue>
     !#   <description>The fractional tolerance in node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
     !#   <type>real</type>
@@ -133,66 +138,64 @@ contains
     !# <inputParameter>
     !#   <name>toleranceResolutionParent</name>
     !#   <source>parameters</source>
-    !#   <variable>cole2000ConstructorParameters%toleranceResolutionParent</variable>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The fractional tolerance in parent node mass at the resolution limit below which branch mis-orderings will be ignored.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="mergerTreeMassResolution" name="cole2000ConstructorParameters%mergerTreeMassResolution_" source="parameters"/>
-    ! Convert maximum redshift to earliest time.
-    cosmologyFunctions_ => cosmologyFunctions()
-    cole2000ConstructorParameters%timeEarliest=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
-    ! Initialize state.
-    cole2000ConstructorParameters%branchingIntervalDistributionInitialized=.false.
-    ! Validate parameters.
-    call cole2000ConstructorParameters%validateParameters()
+    !# <objectBuilder class="mergerTreeMassResolution" name="mergerTreeMassResolution_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    self   =mergerTreeBuilderCole2000(                                                                                                            &
+         &                                                                                                           mergeProbability           , &
+         &                                                                                                           accretionLimit             , &
+         &                            cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum          )), &
+         &                                                                                                           branchIntervalStep         , &
+         &                                                                                                           toleranceResolutionSelf    , &
+         &                                                                                                           toleranceResolutionParent  , &
+         &                                                                                                           mergerTreeMassResolution_  , &
+         &                                                                                                           cosmologyFunctions_        , &
+         &                                                                                                           criticalOverdensity_         &
+         &                           )
     !# <inputParametersValidate source="parameters"/>
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
-    use, intrinsic :: ISO_C_Binding
-    use Cosmology_Functions
+    use Galacticus_Error
     implicit none
-    type            (mergerTreeBuilderCole2000    )                        :: cole2000ConstructorInternal
+    type            (mergerTreeBuilderCole2000    )                        :: self
     double precision                               , intent(in   )         :: mergeProbability           , accretionLimit         , &
          &                                                                    timeEarliest               , toleranceResolutionSelf, &
          &                                                                    toleranceResolutionParent
     logical                                        , intent(in   )         :: branchIntervalStep
     class           (mergerTreeMassResolutionClass), intent(in   ), target :: mergerTreeMassResolution_
-    
-    ! Store options.
-    cole2000ConstructorInternal%mergeProbability          =  mergeProbability
-    cole2000ConstructorInternal%accretionLimit            =  accretionLimit
-    cole2000ConstructorInternal%timeEarliest              =  timeEarliest
-    cole2000ConstructorInternal%branchIntervalStep        =  branchIntervalStep
-    cole2000ConstructorInternal%toleranceResolutionSelf   =  toleranceResolutionSelf
-    cole2000ConstructorInternal%toleranceResolutionParent =  toleranceResolutionParent
-    cole2000ConstructorInternal%mergerTreeMassResolution_ => mergerTreeMassResolution_
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class           (criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_
+    !# <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_"/>
     ! Initialize state.
-    cole2000ConstructorInternal%branchingIntervalDistributionInitialized=.false.
+    self%branchingIntervalDistributionInitialized=.false.
     ! Validate parameters.
-    call cole2000ConstructorInternal%validateParameters()
+    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('accretionLimit < 1 required'//{introspection:location})
     return
   end function cole2000ConstructorInternal
 
-  subroutine cole2000ValidateParameters(self)
-    !% Validate parameters for the {\normalfont \ttfamily Cole2000} merger tree builder class.
-    use Galacticus_Error
+  subroutine cole2000Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily cole2000} merger tree builder class.
     implicit none
-    class(mergerTreeBuilderCole2000), intent(inout) :: self
+    type(mergerTreeBuilderCole2000), intent(inout) :: self
 
-    if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('accretionLimit < 1 required'//{introspection:location})
+    !# <objectDestructor name="self%mergerTreeMassResolution_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%criticalOverdensity_"     />
     return
-  end subroutine cole2000ValidateParameters
+  end subroutine cole2000Destructor
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
     use Galacticus_Nodes
     use Galacticus_Error
-    use Critical_Overdensities
     use Merger_Tree_Branching
     use Merger_Tree_Branching_Options
     use Pseudo_Random
@@ -202,10 +205,9 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000), intent(inout)         :: self
     type            (mergerTree               ), intent(inout), target :: tree
-    type            (treeNode                 ), pointer               :: nodeNew1                  , nodeNew2                   , node                  , &
+    type            (treeNode                 ), pointer               :: nodeNew1                  , nodeNew2                   , node                      , &
          &                                                                nodePrevious
-    class           (criticalOverdensityClass ), pointer               :: criticalOverdensity_
-    class           (nodeComponentBasic       ), pointer               :: basicNew1                 , basicNew2                  , basic                 , &
+    class           (nodeComponentBasic       ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
          &                                                                basicParent
     double precision                           , parameter             :: toleranceDeltaCritical   =1.0d-6
     integer         (kind=kind_int8           )                        :: nodeIndex
@@ -215,16 +217,15 @@ contains
          &                                                                nodeMass2                 , time                       , uniformRandom             , &
          &                                                                massResolution            , accretionFractionCumulative, branchMassCurrent         , &
          &                                                                branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime
+         &                                                                branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                deltaCriticalEarliest
     logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
          &                                                                snapEarliestTime
     type            (varying_string           )                        :: message
     character       (len=20                   )                        :: label
     
-    ! Get default objects.
-    criticalOverdensity_ => criticalOverdensity()
     ! Begin construction.
-    nodeIndex =  1                   ! Initialize the node index counter to unity.
+    nodeIndex =  1           ! Initialize the node index counter to unity.
     node  => tree%baseNode   ! Point to the base node.
     basic => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
@@ -232,14 +233,18 @@ contains
        self%branchingIntervalDistribution           =distributionNegativeExponential(1.0d0)
        self%branchingIntervalDistributionInitialized=.true.
     end if
-    ! Restart the random number sequence.
-    call tree%randomNumberGenerator%initialize()
-    uniformRandom=tree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(tree%index))
     ! Get the mass resolution for this tree.
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
+    ! Find the critical overdensity at the earliest time to which we will build this tree. We evaluate this here to ensure that
+    ! δc(t) is already evaluated over the full range of epochs that we will require - this prevents any possible retabulation
+    ! during tree construction which can potentially lead to misordering of branches. This is not the ideal solution - ideally,
+    ! critical overdensity classes which rely on tabulation and which have to retabulate themselves should ensure that they simply
+    ! expand their range without changing any of the previous computed values (as we do for expansion factor vs. time in the
+    ! cosmology function class).
+    deltaCriticalEarliest=self%criticalOverdensity_%value(time=self%timeEarliest,mass=basic%mass(),node=node)
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
     baseNodeTime =basic%time()
-    deltaCritical=criticalOverdensity_%value(time=basic%time(),mass=basic%mass())
+    deltaCritical=self%criticalOverdensity_%value(time=basic%time(),mass=basic%mass(),node=node)
     call basic%timeSet(deltaCritical)
     ! Begin tree build loop.    
     do while (associated(node))
@@ -252,12 +257,12 @@ contains
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.       
        branchIsDone=.false.
        do while (.not.branchIsDone)
-          if     (                                                                                                                      &
-               &   branchMassCurrent                       <= massResolution                                                            &
-               &  .or.                                                                                                                  &
-               &   branchDeltaCriticalCurrent              >= criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent) &
-               &  .or.                                                                                                                  &
-               &   .not.self%shouldFollowBranch(tree,node)                                                                              &
+          if     (                                                                                                                                     &
+               &   branchMassCurrent                       <= massResolution                                                                           &
+               &  .or.                                                                                                                                 &
+               &   branchDeltaCriticalCurrent              >= self%criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent,node=node) &
+               &  .or.                                                                                                                                 &
+               &   .not.self%shouldFollowBranch(tree,node)                                                                                             &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
@@ -267,14 +272,14 @@ contains
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
                 ! Compute the time corresponding to this new node.
-                time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                time           =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=nodeNew1)
                 ! Set properties of the new node.
-                deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                deltaCritical1 =  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
                 call basicNew1%massSet(nodeMass1     )
                 call basicNew1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
                 node%firstChild => nodeNew1
-                nodeNew1%parent     => node
+                nodeNew1%parent => node
                 ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
                 ! grow a branch from it).
                 node            => nodeNew1
@@ -283,9 +288,9 @@ contains
              branchIsDone=.true.
           else
              ! Find branching probability rate per unit deltaW.
-             branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper)
+             branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper,node)
              ! Find accretion rate.
-             accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           )
+             accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           ,node)
              ! A negative accretion fraction indicates that the node is so close to the resolution limit that
              ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
              ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
@@ -297,9 +302,9 @@ contains
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1          = massResolution
                 ! Compute the time corresponding to this event.
-                time               = criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent)
+                time               = self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
                 ! Convert to a critical overdensity.
-                deltaCritical1     = criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        )
+                deltaCritical1     = self%criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        ,node=nodeNew1)
                 ! Ensure critical overdensity exceeds that of the current node.
                 if      (                                                                             &
                      &    deltaCritical1 <  branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
@@ -349,10 +354,11 @@ contains
                    end if
                 end if
                 ! Limit the timestep so that the maximum allowed time is not exceeded.
-                deltaWEarliestTime=+criticalOverdensity_%value(                        &
-                     &                                         time=self%timeEarliest, &
-                     &                                         mass=branchMassCurrent  &
-                     &                                        )                        &
+                deltaWEarliestTime=+self%criticalOverdensity_%value(                        &
+                     &                                              time=self%timeEarliest, &
+                     &                                              mass=branchMassCurrent, &
+                     &                                              node=node               &
+                     &                                             )                        &
                      &             -branchDeltaCriticalCurrent
                 if (deltaWEarliestTime < deltaW) then
                    deltaW               =deltaWEarliestTime
@@ -389,7 +395,7 @@ contains
                       ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
                       if (branchingInterval < deltaW) then
                          ! It does, so recheck using the actual branching rate.
-                         branchingProbabilityRate=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
+                         branchingProbabilityRate=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,node)
                          branchingInterval       =branchingIntervalScaleFree/branchingProbabilityRate
                          doBranch                =(branchingInterval <= deltaW)
                          if (doBranch) then
@@ -414,11 +420,11 @@ contains
                       uniformRandom=tree%randomNumberGenerator%sample()
                       doBranch=(uniformRandom <= branchingProbability)
                       if (doBranch) then
-                         branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower)*deltaW
+                         branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower,node)*deltaW
                          if (uniformRandom <= branchingProbability) then
                             doBranch=.true.
                          else
-                            branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)*deltaW
+                            branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,node)*deltaW
                             doBranch=(uniformRandom <= branchingProbability)
                          end if
                          ! First convert the realized probability back to a rate.               
@@ -430,10 +436,11 @@ contains
                 end if
                 ! Determine the critical overdensity for collapse for the new halo(s).
                 if (snapEarliestTime) then
-                   deltaCritical=+criticalOverdensity_%value(                        &
-                        &                                    time=self%timeEarliest, &
-                        &                                    mass=branchMassCurrent  &
-                        &                                   )
+                   deltaCritical=+self%criticalOverdensity_%value(                        &
+                        &                                         time=self%timeEarliest, &
+                        &                                         mass=branchMassCurrent, &
+                        &                                         node=node               &
+                        &                                        )
                 else
                    deltaCritical=+branchDeltaCriticalCurrent &
                         &        +deltaW
@@ -451,14 +458,14 @@ contains
                    nodeNew1      => treeNode(nodeIndex,tree)
                    basicNew1     => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
-                   nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator)
+                   nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator,node)
                    nodeMass2     =  basic%mass()-nodeMass1
                    nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
                    nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)
                    ! Compute the time corresponding to this branching event.
-                   time          =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                   time          =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=nodeNew1)
                    ! Set properties of first new node.
-                   deltaCritical1=  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                   deltaCritical1=  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=1.0d-6)) deltaCritical1=deltaCritical
                    call basicNew1%massSet(nodeMass1     )
@@ -468,7 +475,7 @@ contains
                    nodeNew2  => treeNode(nodeIndex,tree)
                    basicNew2 => nodeNew2%basic(autoCreate=.true.)
                    ! Set properties of second new node.
-                   deltaCritical2=criticalOverdensity_%value(time=time,mass=nodeMass2)
+                   deltaCritical2=self%criticalOverdensity_%value(time=time,mass=nodeMass2,node=nodeNew2)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=1.0d-6)) deltaCritical2=deltaCritical
                    call basicNew2%massSet(nodeMass2     )
@@ -493,9 +500,9 @@ contains
                       ! Compute new mass accounting for sub-resolution accretion.
                       nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
                       ! Compute the time corresponding to this new node.
-                      time           =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent)
+                      time           =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=nodeNew1)
                       ! Set properties of the new node.
-                      deltaCritical1 =  criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        )
+                      deltaCritical1 =  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
                       call basicNew1%massSet(nodeMass1     )
                       call basicNew1%timeSet(deltaCritical1)
                       ! Create links from old to new node and vice-versa.
@@ -524,7 +531,7 @@ contains
        ! Get the basic component of the node.
        basic    => node%basic()
        ! Compute the collapse time.
-       collapseTime =  criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic%time(),mass=basic%mass())
+       collapseTime =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic%time(),mass=basic%mass(),node=node)       
        call basic%timeSet(collapseTime)
        node => node%walkTree()
     end do
@@ -558,13 +565,13 @@ contains
                 message=message//" ->       node time = "//label//" Gyr"//char(10)
                 write (label,'(e20.14)')                                 basicParent%time()
                 message=message//" ->     parent time = "//label//" Gyr"//char(10)
-                write (label,'(e20.14)')                                                         basic      %mass()
+                write (label,'(e20.14)')                                                              basic      %mass()
                 message=message//" ->       node mass = "//label//" M☉" //char(10)
-                write (label,'(e20.14)')                                                         basicParent%mass()
+                write (label,'(e20.14)')                                                              basicParent%mass()
                 message=message//" ->     parent mass = "//label//" M☉" //char(10)
-                write (label,'(e20.14)') criticalOverdensity_%value(time=basic      %time(),mass=basic      %mass())
+                write (label,'(e20.14)') self%criticalOverdensity_%value(time=basic      %time(),mass=basic      %mass(),node=node       )
                 message=message//" ->         node δc = "//label        //char(10)
-                write (label,'(e20.14)') criticalOverdensity_%value(time=basicParent%time(),mass=basicParent%mass())
+                write (label,'(e20.14)') self%criticalOverdensity_%value(time=basicParent%time(),mass=basicParent%mass(),node=node%parent)
                 message=message//" ->       parent δc = "//label        //char(10)
                 basic => tree%baseNode%basic()
                 write (label,'(e20.14)')                                   basic%time()
@@ -617,3 +624,13 @@ contains
     self%timeEarliest=timeEarliest
     return
   end subroutine cole2000TimeEarliestSet
+
+  subroutine cole2000CriticalOverdensitySet(self,criticalOverdensity_)
+    !% Set the critical overdensity object for this tree builder.
+    class(mergerTreeBuilderCole2000), intent(inout)         :: self
+    class(criticalOverdensityClass ), intent(in   ), target :: criticalOverdensity_
+
+    !# <objectDestructor name="self%criticalOverdensity_"/>
+    self%criticalOverdensity_ => criticalOverdensity_
+    return
+  end subroutine cole2000CriticalOverdensitySet
