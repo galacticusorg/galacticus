@@ -26,7 +26,8 @@ module Tables
   public :: table                       , table1D                          , table1DGeneric                    , &
        &    table1DLinearLinear         , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
        &    table1DLinearCSpline        , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
-       &    table1DLinearMonotoneCSpline, table1DLogarithmicMonotoneCSpline, table1DDeserializeClassRaw
+       &    table1DLinearMonotoneCSpline, table1DLogarithmicMonotoneCSpline, table1DDeserializeClassRaw        , &
+       &    table2DLinLinLin
 
   !# <enumeration>
   !#  <name>tableType</name>
@@ -358,6 +359,63 @@ module Tables
        double precision, intent(in   ) :: x
      end function integrandTemplate
   end interface
+
+  type, extends(table) :: table2DLinLinLin
+     !% Table type supporting generic two dimensional tables.
+     integer                                                            :: xCount               , yCount
+     double precision                   , allocatable, dimension(:    ) :: xv                   , yv
+     double precision                   , allocatable, dimension(:,:,:) :: zv
+     type            (fgsl_interp      )                                :: interpolatorX        , interpolatorY
+     type            (fgsl_interp_accel)                                :: acceleratorX         , acceleratorY
+     logical                                                            :: resetX        =.true., resetY       =.true.
+   contains
+     !@ <objectMethods>
+     !@   <object>table2DLinLinLin</object>
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ x,\doubleone\ y,\intzero\ [tableCount]</arguments>
+     !@     <description>Create the object with the specified {\normalfont \ttfamily x} and {\normafont \ttfamily y} values, and with {\normalfont \ttfamily tableCount} tables.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>populate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero|\doubletwo\ z,\intzero\ [i],\intzero\ [j],\intzero\ [table]</arguments>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the indices, {\normalfont \ttfamily i}, {\normalfont \ttfamily j}, of the element to set must also be specified.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>interpolate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ x,\doublezero\ y,\intzero\ [table]</arguments>
+     !@     <description>Interpolate to {\normalfont \ttfamily x}, {\normalfont \ttfamily y} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>xs</method>
+     !@     <type>\doubleone</type>
+     !@     <description>Return an array of all {\normalfont \ttfamily x} values.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>ys</method>
+     !@     <type>\doubleone</type>
+     !@     <description>Return an array of all {\normalfont \ttfamily y} values.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>zs</method>
+     !@     <type>\doublethree</type>
+     !@     <description>Return an array of all {\normalfont \ttfamily z} values.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: create                           => Table_2D_LinLinLin_Create
+     procedure :: destroy                          => Table_2D_LinLinLin_Destroy
+     procedure :: Table_2D_LinLinLin_Populate
+     procedure :: Table_2D_LinLinLin_Populate_Single
+     generic   :: populate                         => Table_2D_LinLinLin_Populate       , &
+          &                                           Table_2D_LinLinLin_Populate_Single
+     procedure :: interpolate                      => Table_2D_LinLinLin_Interpolate
+     procedure :: xs                               => Table_2D_LinLinLin_Xs
+     procedure :: ys                               => Table_2D_LinLinLin_Ys
+     procedure :: zs                               => Table_2D_LinLinLin_Zs
+  end type table2DLinLinLin
 
   type, extends(table) :: table2DLogLogLin
      !% Two-dimensional table type with logarithmic spacing in x and y dimensions, and linear interpolation in z.
@@ -2336,4 +2394,153 @@ contains
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
   
+  subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount)
+    !% Create a 2-D generic table.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class           (table2DLinLinLin)              , intent(inout)           :: self
+    double precision                  , dimension(:), intent(in   )           :: x                , y
+    integer                                         , intent(in   ), optional :: tableCount
+    integer                                                                   :: tableCountActual
+
+    ! Determine number of tables.
+    tableCountActual=1
+    if (present(tableCount)) tableCountActual=tableCount
+    ! Allocate arrays and construct the x-range.
+    self%xCount=size(x)
+    self%yCount=size(y)
+    call allocateArray(self%xv,[size(x)                         ])
+    call allocateArray(self%yv,[        size(y)                 ])
+    call allocateArray(self%zv,[size(x),size(y),tableCountActual])
+    self%xv    =x
+    self%yv    =y
+    self%resetX=.true.
+    self%resetY=.true.
+    return
+  end subroutine Table_2D_LinLinLin_Create
+
+  subroutine Table_2D_LinLinLin_Destroy(self)
+    !% Destroy a generic 2-D table.
+    use Memory_Management
+    use Numerical_Interpolation
+    implicit none
+    class(table2DLinLinLin), intent(inout) :: self
+
+    if (allocated(self%xv)) call deallocateArray(self%xv)
+    if (allocated(self%yv)) call deallocateArray(self%yv)
+    if (allocated(self%zv)) call deallocateArray(self%yv)
+    call Interpolate_Done(self%interpolatorX,self%acceleratorX,self%resetX)
+    call Interpolate_Done(self%interpolatorY,self%acceleratorY,self%resetY)
+    return
+  end subroutine Table_2D_LinLinLin_Destroy
+
+  subroutine Table_2D_LinLinLin_Populate(self,z,table)
+    !% Populate a 2-D linear table.
+    use Galacticus_Error
+    implicit none
+    class           (table2DLinLinLin)                , intent(inout)           :: self
+    double precision                  , dimension(:,:), intent(in   )           :: z
+    integer                                           , intent(in   ), optional :: table
+    integer                                                                     :: tableActual
+
+    ! Validate the input.
+    if (.not.allocated(self%zv)             ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%zv,dim=1) /= size(z,dim=1)) call Galacticus_Error_Report("provided z array is of wrong size"    //{introspection:location})
+    if (size(self%zv,dim=2) /= size(z,dim=2)) call Galacticus_Error_Report("provided z array is of wrong size"    //{introspection:location})
+
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+
+    ! Store the y values.
+    self%zv(:,:,tableActual)=z
+    return
+  end subroutine Table_2D_LinLinLin_Populate
+
+  subroutine Table_2D_LinLinLin_Populate_Single(self,z,i,j,table)
+    !% Populate a single element of a 2-D generic table.
+    use Galacticus_Error
+    implicit none
+    class           (table2DLinLinLin), intent(inout)           :: self
+    double precision                  , intent(in   )           :: z
+    integer                           , intent(in   )           :: i          , j
+    integer                           , intent(in   ), optional :: table
+    integer                                                     :: tableActual
+
+    ! Validate the input.
+    if (.not.allocated(self%zv)           ) call Galacticus_Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%zv,dim=1)) call Galacticus_Error_Report("provided i value is out of bounds"    //{introspection:location})
+    if (j < 1 .or. j > size(self%zv,dim=2)) call Galacticus_Error_Report("provided j value is out of bounds"    //{introspection:location})
+
+    ! Determine which table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+
+    ! Store the y values.
+    self%zv(i,j,tableActual)=z
+    return
+  end subroutine Table_2D_LinLinLin_Populate_Single
+
+  double precision function Table_2D_LinLinLin_Interpolate(self,x,y,table)
+    !% Perform generic interpolation in a generic 2D table.
+    use, intrinsic :: ISO_C_Binding
+    use               Numerical_Interpolation
+    implicit none
+    class           (table2DLinLinLin), intent(inout)            :: self
+    double precision                  , intent(in   )            :: x          , y
+    integer                           , intent(in   ) , optional :: table
+    integer                                                      :: tableActual
+    integer         (c_size_t        )                           :: i          , j , &
+         &                                                          ii         , jj
+    double precision                  , dimension(0:1)           :: hi         , hj
+
+    ! Determine table to use.
+    tableActual=1
+    if (present(table)) tableActual=table
+    ! Compute interpolating factors.
+    i =Interpolate_Locate                 (self%xv,self%acceleratorX,x,self%resetX)
+    j =Interpolate_Locate                 (self%yv,self%acceleratorY,y,self%resetY)
+    hi=Interpolate_Linear_Generate_Factors(self%xv,                i,x            )
+    hj=Interpolate_Linear_Generate_Factors(self%yv,                j,y            )
+    ! Perform the interpolation.
+    Table_2D_LinLinLin_Interpolate=0.0d0
+    do ii=0,1
+       do jj=0,1
+          Table_2D_LinLinLin_Interpolate=Table_2D_LinLinLin_Interpolate+self%zv(i+ii,j+jj,tableActual)*hi(ii)*hj(jj)
+       end do
+    end do
+    return
+  end function Table_2D_LinLinLin_Interpolate
+
+  function Table_2D_LinLinLin_Xs(self)
+    !% Return the $x$-values for a 2D table.
+    implicit none
+    class           (table2DLinLinLin), intent(in   )            :: self
+    double precision                  , dimension(size(self%xv)) :: Table_2D_LinLinLin_Xs
+
+    Table_2D_LinLinLin_Xs=self%xv
+    return
+  end function Table_2D_LinLinLin_Xs
+
+  function Table_2D_LinLinLin_Ys(self)
+    !% Return the $y$-values for a 2D table.
+    implicit none
+    class           (table2DLinLinLin), intent(in   )            :: self
+    double precision                  , dimension(size(self%yv)) :: Table_2D_LinLinLin_Ys
+
+    Table_2D_LinLinLin_Ys=self%yv
+    return
+  end function Table_2D_LinLinLin_Ys
+
+  function Table_2D_LinLinLin_Zs(self)
+    !% Return the $z$-values for a 2D table.
+    implicit none
+    class           (table2DLinLinLin), intent(in   )                                                          :: self
+    double precision                  , dimension(size(self%zv,dim=1),size(self%zv,dim=2),size(self%zv,dim=3)) :: Table_2D_LinLinLin_Zs
+
+    Table_2D_LinLinLin_Zs=self%zv
+    return
+  end function Table_2D_LinLinLin_Zs
+
 end module Tables
