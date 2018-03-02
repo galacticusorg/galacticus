@@ -46,6 +46,11 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   )           :: expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
+  !#  <method name="timeBigCrunch" >
+  !#   <description>Return the cosmological age at Big Crunch (or a negative value if no Big Crunch occurs).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !#  <method name="expansionFactor" >
   !#   <description>Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
@@ -232,5 +237,8 @@ module Cosmology_Functions
   !#   <argument>logical         , intent(in   ), optional :: collapsingPhase</argument>
   !#  </method>
   !# </functionClass>
+
+  ! A recommended relative time tolerance to which other functions should approach the Big Crunch.
+  double precision, parameter, public :: timeToleranceRelativeBigCrunch=1.0d-4
 
 end module Cosmology_Functions
