@@ -34,6 +34,7 @@
      final     ::                                  staticUniverseDestructor
      procedure :: epochValidate                 => staticUniverseEpochValidate
      procedure :: cosmicTime                    => staticUniverseCosmicTime
+     procedure :: timeBigCrunch                 => staticUniverseTimeBigCrunch
      procedure :: expansionFactor               => staticUniverseExpansionFactor
      procedure :: expansionRate                 => staticUniverseExpansionRate
      procedure :: hubbleParameterEpochal        => staticUniverseHubbleParameterEpochal
@@ -151,6 +152,17 @@ contains
     call Galacticus_Error_Report('time can not be determined from expansion factor'//{introspection:location})
     return
   end function staticUniverseCosmicTime
+
+  double precision function staticUniverseTimeBigCrunch(self)
+    !% Return the time of the Big Crunch in a static cosmology. Since no Big Crunch occurs we return a negative value to indicate
+    !% that.
+    implicit none
+    class(cosmologyFunctionsStaticUniverse), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    staticUniverseTimeBigCrunch=-1.0d0
+    return
+  end function staticUniverseTimeBigCrunch
 
   double precision function staticUniverseExpansionFactor(self,time)
     !% Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
