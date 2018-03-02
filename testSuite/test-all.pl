@@ -249,6 +249,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.spherical_collapse.nonlinear.exe",                             # .
+	valgrind => 0
+    },
+    {
 	name     => "tests.linear_growth.cosmological_constant.exe",                      # Tests of linear growth factor.
 	valgrind => 0
     },
