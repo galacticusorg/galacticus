@@ -93,23 +93,24 @@ contains
     return
   end subroutine simpleSystematicDestructor
 
-  double precision function simpleSystematicDifferential(self,time,mass)
+  double precision function simpleSystematicDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     implicit none
-    class           (haloMassFunctionSimpleSystematic), intent(inout) :: self
-    double precision                                  , intent(in   ) :: time                , mass
-    double precision                                  , parameter     :: massZeroPoint=1.0d12
+    class           (haloMassFunctionSimpleSystematic), intent(inout)           :: self
+    double precision                                  , intent(in   )           :: time                , mass
+    type            (treeNode                        ), intent(inout), optional :: node
+    double precision                                  , parameter               :: massZeroPoint=1.0d12
     
     ! Compute the systematic shift in the halo mass function.
-    simpleSystematicDifferential=+self%referenceMassFunction%differential(time,mass) &
-         &                       *(                                                  &
-         &                         +1.0d0                                            &
-         &                         +self%alpha                                       &
-         &                         +self%beta                                        &
-         &                         *log10(                                           &
-         &                                 mass                                      &
-         &                                /massZeroPoint                             &
-         &                               )                                           &
+    simpleSystematicDifferential=+self%referenceMassFunction%differential(time,mass,node) &
+         &                       *(                                                       &
+         &                         +1.0d0                                                 &
+         &                         +self%alpha                                            &
+         &                         +self%beta                                             &
+         &                         *log10(                                                &
+         &                                 mass                                           &
+         &                                /massZeroPoint                                  &
+         &                               )                                                &
          &                        )
     return
   end function simpleSystematicDifferential

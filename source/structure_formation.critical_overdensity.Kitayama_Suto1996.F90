@@ -107,7 +107,7 @@ contains
     return
   end subroutine kitayamaSuto1996Destructor
 
-  double precision function kitayamaSuto1996Value(self,time,expansionFactor,collapsing,mass)
+  double precision function kitayamaSuto1996Value(self,time,expansionFactor,collapsing,mass,node)
     !% Return the critical overdensity at the given time and mass.
     use Numerical_Constants_Math
     implicit none
@@ -115,8 +115,9 @@ contains
     double precision                                     , intent(in   ), optional :: time               , expansionFactor
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
+    type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_
-    !GCC$ attributes unused :: mass
+    !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     if (time_ /= self%timePrevious)                                                                       &
@@ -127,7 +128,7 @@ contains
     return
   end function kitayamaSuto1996Value
 
-  double precision function kitayamaSuto1996GradientTime(self,time,expansionFactor,collapsing,mass)
+  double precision function kitayamaSuto1996GradientTime(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to time of critical overdensity at the given time and mass.
     use Numerical_Constants_Math
     implicit none
@@ -135,8 +136,9 @@ contains
     double precision                                     , intent(in   ), optional :: time      , expansionFactor
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
+    type            (treeNode                           ), intent(inout), optional :: node
     double precision                                                               :: time_     , expansionFactor_
-    !GCC$ attributes unused :: mass
+    !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                                                 &
@@ -152,14 +154,15 @@ contains
     return
   end function kitayamaSuto1996GradientTime
 
-  double precision function kitayamaSuto1996GradientMass(self,time,expansionFactor,collapsing,mass)
+  double precision function kitayamaSuto1996GradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityKitayamaSuto1996), intent(inout)           :: self
     double precision                                     , intent(in   ), optional :: time      , expansionFactor
     logical                                              , intent(in   ), optional :: collapsing
     double precision                                     , intent(in   ), optional :: mass
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass
+    type            (treeNode                           ), intent(inout), optional :: node
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     kitayamaSuto1996GradientMass=0.0d0
     return

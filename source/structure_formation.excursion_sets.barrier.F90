@@ -20,6 +20,7 @@
 
 module Excursion_Sets_Barriers
   !% Provides a class that implements barriers for the excursion set problem.
+  use Galacticus_Nodes
   private
   
   !# <functionClass>
@@ -32,15 +33,17 @@ module Excursion_Sets_Barriers
   !#   <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: variance   , time</argument>
-  !#   <argument>logical         , intent(in   ) :: rateCompute</argument>
+  !#   <argument>double precision          , intent(in   ) :: variance   , time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>logical                   , intent(in   ) :: rateCompute</argument>
   !#  </method>
   !#  <method name="barrierGradient" >
   !#   <description>Return the gradient of the barrier with respect to variance at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: variance   , time</argument>
-  !#   <argument>logical         , intent(in   ) :: rateCompute</argument>
+  !#   <argument>double precision          , intent(in   ) :: variance   , time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>logical                   , intent(in   ) :: rateCompute</argument>
   !#  </method>
   !# </functionClass>
   

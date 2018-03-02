@@ -92,13 +92,14 @@ contains
     return
   end function quadraticConstructorInternal
 
-  double precision function quadraticBarrier(self,variance,time,rateCompute)
+  double precision function quadraticBarrier(self,variance,time,node,rateCompute)
     !% Return the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierQuadratic), intent(inout) :: self
     double precision                              , intent(in   ) :: variance   , time
+    type            (treeNode                    ), intent(inout) :: node
     logical                                       , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: time, rateCompute
+    !GCC$ attributes unused :: time, rateCompute, node
 
     quadraticBarrier=+self%coefficientConstant              &
          &           +self%coefficientLinear   *variance    &
@@ -106,13 +107,14 @@ contains
     return
   end function quadraticBarrier
 
-  double precision function quadraticBarrierGradient(self,variance,time,rateCompute)
+  double precision function quadraticBarrierGradient(self,variance,time,node,rateCompute)
     !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierQuadratic), intent(inout) :: self
     double precision                              , intent(in   ) :: variance   , time
+    type            (treeNode                    ), intent(inout) :: node
     logical                                       , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: variance, time, rateCompute
+    !GCC$ attributes unused :: variance, time, rateCompute, node
 
     quadraticBarrierGradient=+      self%coefficientLinear             &
          &                   +2.0d0*self%coefficientQuadratic*variance

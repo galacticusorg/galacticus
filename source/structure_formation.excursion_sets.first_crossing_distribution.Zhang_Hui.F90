@@ -138,7 +138,7 @@ contains
     return
   end subroutine zhangHuiDestructor
   
-  double precision function zhangHuiProbability(self,variance,time)
+  double precision function zhangHuiProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Interpolation
@@ -147,7 +147,8 @@ contains
     use               Galacticus_Display
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
-    double precision                                   , intent(in   )  :: variance, time
+    double precision                                   , intent(in   )  :: variance         , time
+    type            (treeNode                         ), intent(inout)  :: node
     double precision                                   , dimension(0:1) :: hTime            , hVariance
     logical                                                             :: makeTable
     integer         (c_size_t                         )                 :: iTime            , iVariance
@@ -193,39 +194,39 @@ contains
              if      (i  > 2) then
                 summedProbability=0.0d0
                 do j=1,i-1
-                   summedProbability                       =+summedProbability                                                                                                                          &
-                        &                                   +    self%firstCrossingProbabilityTable(    j                                                                       ,               iTime)  &
-                        &                                   *(                                                                                                                                          &
-                        &                                     +  self%delta                        (i  ,j  ,self%varianceTable(i),self%varianceTable(j  ),self%varianceTableStep,self%timeTable(iTime)) &
-                        &                                     +  self%delta                        (i  ,j+1,self%varianceTable(i),self%varianceTable(j+1),self%varianceTableStep,self%timeTable(iTime)) &
+                   summedProbability                       =+summedProbability                                                                                                                               &
+                        &                                   +    self%firstCrossingProbabilityTable(    j                                                                       ,               iTime)       &
+                        &                                   *(                                                                                                                                               &
+                        &                                     +  self%delta                        (i  ,j  ,self%varianceTable(i),self%varianceTable(j  ),self%varianceTableStep,self%timeTable(iTime),node)&
+                        &                                     +  self%delta                        (i  ,j+1,self%varianceTable(i),self%varianceTable(j+1),self%varianceTableStep,self%timeTable(iTime),node) &
                         &                                    )
                 end do
-                self%firstCrossingProbabilityTable(i,iTime)=+(                                                                                                                                          &
-                     &                                        +  self%g1                           (        self%varianceTable(i)                                               ,self%timeTable(iTime)) &
-                     &                                        +summedProbability                                                                                                                        &
-                     &                                       )                                                                                                                                          &
-                     &                                      /(                                                                                                                                          &
-                     &                                        +1.0d0                                                                                                                                    &
-                     &                                        -  self%delta                        (i  ,i  ,self%varianceTable(i),self%varianceTable(i  ),self%varianceTableStep,self%timeTable(iTime)) &
+                self%firstCrossingProbabilityTable(i,iTime)=+(                                                                                                                                               &
+                     &                                        +  self%g1                           (        self%varianceTable(i)                                               ,self%timeTable(iTime),node) &
+                     &                                        +summedProbability                                                                                                                             &
+                     &                                       )                                                                                                                                               &
+                     &                                      /(                                                                                                                                               &
+                     &                                        +1.0d0                                                                                                                                         &
+                     &                                        -  self%delta                        (i  ,i  ,self%varianceTable(i),self%varianceTable(i  ),self%varianceTableStep,self%timeTable(iTime),node) &
                      &                                       )
-             else if (i == 2) then
-                self%firstCrossingProbabilityTable(i,iTime)=+(                                                                                                                                          &
-                     &                                        +  self%g1                           (        self%varianceTable(i)                                               ,self%timeTable(iTime)) &
-                     &                                        +  self%firstCrossingProbabilityTable(i-1                                                                         ,               iTime)  &
-                     &                                        *(                                                                                                                                        &
-                     &                                          +self%delta                        (i  ,1  ,self%varianceTable(i),self%varianceTable(1  ),self%varianceTableStep,self%timeTable(iTime)) &
-                     &                                          +self%delta                        (i  ,2  ,self%varianceTable(i),self%varianceTable(2  ),self%varianceTableStep,self%timeTable(iTime)) &
-                     &                                         )                                                                                                                                        &
-                     &                                       )                                                                                                                                          &
-                     &                                      /(                                                                                                                                          &
-                     &                                        +1.0d0                                                                                                                                    &
-                     &                                        -  self%delta                        (i  ,i  ,self%varianceTable(i),self%varianceTable(i  ),self%varianceTableStep,self%timeTable(iTime)) &
+             else if (i == 2) then     
+                self%firstCrossingProbabilityTable(i,iTime)=+(                                                                                                                                               &
+                     &                                        +  self%g1                           (        self%varianceTable(i)                                               ,self%timeTable(iTime),node) &
+                     &                                        +  self%firstCrossingProbabilityTable(i-1                                                                         ,               iTime)       &
+                     &                                        *(                                                                                                                                             &
+                     &                                          +self%delta                        (i  ,1  ,self%varianceTable(i),self%varianceTable(1  ),self%varianceTableStep,self%timeTable(iTime),node) &
+                     &                                          +self%delta                        (i  ,2  ,self%varianceTable(i),self%varianceTable(2  ),self%varianceTableStep,self%timeTable(iTime),node) &
+                     &                                         )                                                                                                                                             &
+                     &                                       )                                                                                                                                               &
+                     &                                      /(                                                                                                                                               &
+                     &                                        +1.0d0                                                                                                                                         &
+                     &                                        -  self%delta                        (i  ,i  ,self%varianceTable(i),self%varianceTable(i  ),self%varianceTableStep,self%timeTable(iTime),node) &
                      &                                       )
              else if (i == 1) then
-                self%firstCrossingProbabilityTable(i,iTime)=+    self%g1                           (        self%varianceTable(i)                                               ,self%timeTable(iTime)) &
-                     &                                      /(                                                                                                                                          &
-                     &                                        +1.0d0                                                                                                                                    &
-                     &                                        -  self%delta                        (1  ,  1,self%varianceTable(1),self%varianceTable(1  ),self%varianceTableStep,self%timeTable(iTime)) &
+                self%firstCrossingProbabilityTable(i,iTime)=+    self%g1                           (        self%varianceTable(i)                                               ,self%timeTable(iTime),node) &
+                     &                                      /(                                                                                                                                               &
+                     &                                        +1.0d0                                                                                                                                         &
+                     &                                        -  self%delta                        (1  ,  1,self%varianceTable(1),self%varianceTable(1  ),self%varianceTableStep,self%timeTable(iTime),node) &
                      &                                       )
              else if (i == 0) then
                 self%firstCrossingProbabilityTable(i,iTime)=+0.0d0
@@ -258,69 +259,73 @@ contains
     return
   end function zhangHuiProbability
 
-  double precision function zhangHuiRate(self,variance,varianceProgenitor,time)
+  double precision function zhangHuiRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time. This method is not implemented.
     use Galacticus_Error
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: variance, varianceProgenitor, &
          &                                                                time
-    !GCC$ attributes unused :: self, time, variance, varianceProgenitor
+    type            (treeNode                         ), intent(inout) :: node
+    !GCC$ attributes unused :: self, time, variance, varianceProgenitor, node
 
     zhangHuiRate=0.0d0
     call Galacticus_Error_Report('barrier crossing rates are not implemented for this method [too slow]'//{introspection:location})
     return
   end function zhangHuiRate
 
-  double precision function zhangHuiRateNonCrossing(self,variance,time)
+  double precision function zhangHuiRateNonCrossing(self,variance,time,node)
     !% Return the rate for excursion set non-crossing. This method is not implemented.
     use Galacticus_Error
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time, variance
-    !GCC$ attributes unused :: self, time, variance
+    type            (treeNode                         ), intent(inout) :: node
+    !GCC$ attributes unused :: self, time, variance, node
 
     zhangHuiRateNonCrossing=0.0d0
     call Galacticus_Error_Report('barrier non-crossing rates are not implemented for this method [too slow]'//{introspection:location})
     return
   end function zhangHuiRateNonCrossing
 
-  double precision function zhangHuiG1(self,variance,time)
+  double precision function zhangHuiG1(self,variance,time,node)
     !% Returns the function $g_1(S)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use Math_Distributions_Gaussian
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time                , variance
     double precision                                                   :: barrier
+    type            (treeNode                         ), intent(inout) :: node
 
-    barrier   =+  self%excursionSetBarrier_%barrier        (variance,time,rateCompute=.false.)
-    zhangHuiG1=+(                                                                              &
-         &       +barrier                                                                      &
-         &       /variance                                                                     &
-         &       -2.0d0                                                                        &
-         &       *self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute=.false.) &
-         &      )                                                                              &
+    barrier   =+  self%excursionSetBarrier_%barrier        (variance,time,node,rateCompute=.false.)
+    zhangHuiG1=+(                                                                                   &
+         &       +barrier                                                                           &
+         &       /variance                                                                          &
+         &       -2.0d0                                                                             &
+         &       *self%excursionSetBarrier_%barrierGradient(variance,time,node,rateCompute=.false.) &
+         &      )                                                                                   &
          &     *Gaussian_Distribution(barrier,sqrt(variance))
     return
   end function zhangHuiG1
 
-  double precision function zhangHuiG2(self,variance,variancePrimed,time)
+  double precision function zhangHuiG2(self,variance,variancePrimed,time,node)
     !% Returns the function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use Math_Distributions_Gaussian
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: time          , variance, &
          &                                                                variancePrimed
+    type            (treeNode                         ), intent(inout) :: node
     double precision                                                   :: barrierPrimed
 
     ! Compute the barriers.
     if (variance /= self%variancePrevious .or. time /= self%timePrevious) then
        self%variancePrevious     =variance
        self%    timePrevious     =time
-       self%barrierStored        =self%excursionSetBarrier_%barrier        (variance,time,rateCompute=.false.)
-       self%barrierGradientStored=self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute=.false.)
+       self%barrierStored        =self%excursionSetBarrier_%barrier        (variance,time,node,rateCompute=.false.)
+       self%barrierGradientStored=self%excursionSetBarrier_%barrierGradient(variance,time,node,rateCompute=.false.)
     end if
-    barrierPrimed=self%excursionSetBarrier_%barrier(variancePrimed,time,rateCompute=.false.)
+    barrierPrimed=self%excursionSetBarrier_%barrier(variancePrimed,time,node,rateCompute=.false.)
     ! Compute the function.
     zhangHuiG2=+(                                                                                               &
          &       +2.0d0                                                                                         &
@@ -331,31 +336,32 @@ contains
     return
   end function zhangHuiG2
 
-  double precision function zhangHuiDelta(self,i,j,iVariance,jVariance,deltaVariance,time)
+  double precision function zhangHuiDelta(self,i,j,iVariance,jVariance,deltaVariance,time,node)
     !% Returns the factor $\Delta{i,j}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     integer                                            , intent(in   ) :: i               , j
     double precision                                   , intent(in   ) :: deltaVariance   , iVariance          , jVariance, &
          &                                                                time
-    
+    type            (treeNode                         ), intent(inout) :: node
+
     if (.not.(i == self%iDeltaPrevious .and. j == self%jDeltaPrevious .and. time == self%timeDeltaPrevious)) then
        self%   iDeltaPrevious=i
        self%   jDeltaPrevious=j
        self%timeDeltaPrevious=time
        if (i == j) then
           ! In this case integrate over the range to get an average value.
-          self%deltaStored=0.5d0              *self%g2Integrated(iVariance,         +deltaVariance      ,time)
+          self%deltaStored=0.5d0              *self%g2Integrated(iVariance,         +deltaVariance      ,time,node)
        else
           ! Compute the appropriate factor.
-          self%deltaStored=0.5d0*deltaVariance*self%g2          (iVariance,jVariance-deltaVariance/2.0d0,time)
+          self%deltaStored=0.5d0*deltaVariance*self%g2          (iVariance,jVariance-deltaVariance/2.0d0,time,node)
        end if
     end if
     zhangHuiDelta=self%deltaStored
     return
   end function zhangHuiDelta
 
-  double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time)
+  double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use FGSL
     use Numerical_Comparison
@@ -364,6 +370,7 @@ contains
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: deltaVariance                 , time           , &
          &                                                                variance
+    type            (treeNode                         ), intent(inout) :: node
     class           (excursionSetBarrierClass         ), pointer       :: excursionSetBarrier_
     double precision                                   , parameter     :: gradientChangeTolerance=1.0d-3
     double precision                                                   :: smallStep                     , barrierGradient, &
@@ -372,13 +379,13 @@ contains
     type            (fgsl_integration_workspace       )                :: integrationWorkspace
 
     ! Store variables needed in the integrand.
-    barrier        =self%excursionSetBarrier_%barrier        (variance,time,rateCompute=.false.)
-    barrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute=.false.)
+    barrier        =self%excursionSetBarrier_%barrier        (variance,time,node,rateCompute=.false.)
+    barrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,node,rateCompute=.false.)
     ! Find a suitably small step in variance that allows us to compute the divergent part of the integral with an analytic
     ! approximation. The approximation used assumes that the barrier gradient, dB/dS, is constant, so find a step over which
     ! the gradient is constant to within a specified tolerance.
     smallStep=deltaVariance
-    do while (Values_Differ(excursionSetBarrier_%barrierGradient(variance-smallStep,time,rateCompute=.false.),barrierGradient,relTol=gradientChangeTolerance))
+    do while (Values_Differ(excursionSetBarrier_%barrierGradient(variance-smallStep,time,node,rateCompute=.false.),barrierGradient,relTol=gradientChangeTolerance))
        smallStep=0.5d0*smallStep
     end do
     ! Compute the non-divergent part of the integral numerically.
@@ -418,7 +425,7 @@ contains
       if (variancePrimed >= variance) then
          zhangHuiG2Integrand=0.0d0
       else
-         barrierPrimed      =+self%excursionSetBarrier_%barrier(variancePrimed,time,rateCompute=.false.)
+         barrierPrimed      =+self%excursionSetBarrier_%barrier(variancePrimed,time,node,rateCompute=.false.)
          zhangHuiG2Integrand=+(                                                                             &
               &                +2.0d0                                                                       &
               &                *barrierGradient                                                             &

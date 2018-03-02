@@ -121,14 +121,15 @@ contains
     return
   end subroutine remapShethMoTormenDestructor
 
-  double precision function remapShethMoTormenBarrier(self,variance,time,rateCompute)
+  double precision function remapShethMoTormenBarrier(self,variance,time,node,rateCompute)
     !% Return the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
-    double precision                               , intent(in   ) :: variance   , time
-    logical                                        , intent(in   ) :: rateCompute
+    double precision                                       , intent(in   ) :: variance   , time
+    type            (treeNode                             ), intent(inout) :: node
+    logical                                                , intent(in   ) :: rateCompute
 
-    remapShethMoTormenBarrier=self%excursionSetBarrier_%barrier(variance,time,rateCompute)
+    remapShethMoTormenBarrier=self%excursionSetBarrier_%barrier(variance,time,node,rateCompute)
     if     (                                                                    &
          &    self%applyTo == excursionSetRemapBoth                             &
          &  .or.                                                                &
@@ -150,15 +151,16 @@ contains
     return
   end function remapShethMoTormenBarrier
 
-  double precision function remapShethMoTormenBarrierGradient(self,variance,time,rateCompute)
+  double precision function remapShethMoTormenBarrierGradient(self,variance,time,node,rateCompute)
     !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
     double precision                                       , intent(in   ) :: variance   , time
+    type            (treeNode                             ), intent(inout) :: node
     logical                                                , intent(in   ) :: rateCompute
     double precision                                                       :: barrier    , barrierGradient
 
-    barrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute)
+    barrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,node,rateCompute)
     if     (                                                                    &
          &    self%applyTo == excursionSetRemapBoth                             &
          &  .or.                                                                &
@@ -170,7 +172,7 @@ contains
        if (variance <= 0.0d0) then
           remapShethMoTormenBarrierGradient=0.0d0
        else
-          barrier                          =self%excursionSetBarrier_%barrier(variance,time,rateCompute)
+          barrier                          =self%excursionSetBarrier_%barrier(variance,time,node,rateCompute)
           remapShethMoTormenBarrierGradient=+sqrt(self%a)*barrierGradient*(                                      &
                &                                                           +1.0d0                                &
                &                                                           +self%b                               &

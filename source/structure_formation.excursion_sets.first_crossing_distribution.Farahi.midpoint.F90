@@ -62,7 +62,7 @@ contains
     return
   end function farahiMidpointConstructorInternal
 
-  double precision function farahiMidpointProbability(self,variance,time)
+  double precision function farahiMidpointProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use Numerical_Ranges
     use Numerical_Interpolation
@@ -74,6 +74,7 @@ contains
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
+    type            (treeNode                               ), intent(inout)                 :: node
     double precision                                                        , dimension(0:1) :: hTime                        , hVariance
     double precision                                         , parameter                     :: varianceTableTolerance=1.0d-6
     double precision                                         , allocatable  , dimension( : ) :: varianceMidTable
@@ -149,25 +150,25 @@ contains
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
           self%firstCrossingProbabilityTable(0,iTime)=0.0d0
-          integralKernel                             =+1.0_kind_quad                                                                                                      &
-               &                                      -erfApproximate(                                                                                                    &
-               &                                                      +(                                                                                                  &
-               &                                                        +excursionSetBarrier_%barrier(self%varianceTable   (1),self%timeTable(iTime),rateCompute=.false.) &
-               &                                                        -excursionSetBarrier_%barrier(     varianceMidTable(1),self%timeTable(iTime),rateCompute=.false.) &
-               &                                                       )                                                                                                  &
-               &                                                      /sqrt(2.0_kind_quad*(self%varianceTable(1)-varianceMidTable(1)))                                    &
+          integralKernel                             =+1.0_kind_quad                                                                                                           &
+               &                                      -erfApproximate(                                                                                                         &
+               &                                                      +(                                                                                                       &
+               &                                                        +excursionSetBarrier_%barrier(self%varianceTable   (1),self%timeTable(iTime),node,rateCompute=.false.) &
+               &                                                        -excursionSetBarrier_%barrier(     varianceMidTable(1),self%timeTable(iTime),node,rateCompute=.false.) &
+               &                                                       )                                                                                                       &
+               &                                                      /sqrt(2.0_kind_quad*(self%varianceTable(1)-varianceMidTable(1)))                                         &
                &                                                     )
-          self%firstCrossingProbabilityTable(1,iTime)=real(                                                                                                                  &
-               &                                           +(                                                                                                                &
-               &                                             +1.0_kind_quad                                                                                                  &
-               &                                             -erfApproximate(                                                                                                &
-               &                                                             +excursionSetBarrier_%barrier(self%varianceTable(1),self%timeTable(iTime),rateCompute=.false.)  &
-               &                                                             /sqrt(2.0_kind_quad*self%varianceTable(1))                                                      &
-               &                                                            )                                                                                                &
-               &                                            )                                                                                                                &
-               &                                           /self%varianceTableStep                                                                                           &
-               &                                           /integralKernel                                                                                                 , &
-               &                                           kind=kind_dble                                                                                                    &
+          self%firstCrossingProbabilityTable(1,iTime)=real(                                                                                                                       &
+               &                                           +(                                                                                                                     &
+               &                                             +1.0_kind_quad                                                                                                       &
+               &                                             -erfApproximate(                                                                                                     &
+               &                                                             +excursionSetBarrier_%barrier(self%varianceTable(1),self%timeTable(iTime),node,rateCompute=.false.)  &
+               &                                                             /sqrt(2.0_kind_quad*self%varianceTable(1))                                                           &
+               &                                                            )                                                                                                     &
+               &                                            )                                                                                                                     &
+               &                                           /self%varianceTableStep                                                                                                &
+               &                                           /integralKernel                                                                                                      , &
+               &                                           kind=kind_dble                                                                                                         &
                &                                          )
           do i=2,self%varianceTableCount
              call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
@@ -175,49 +176,49 @@ contains
              loopCount=loopCount+1
              sigma1f  =0.0d0
              do j=1,i-1
-                sigma1f=+sigma1f                                                                                                                    &
-                     &  +self%firstCrossingProbabilityTable(j,iTime)                                                                                &
-                     &  *real(                                                                                                                      &
-                     &         1.0_kind_quad                                                                                                        &
-                     &        -erfApproximate(                                                                                                      &
-                     &                          (                                                                                                   &
-                     &                            excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),rateCompute=.false.)  &
-                     &                           -excursionSetBarrier_%barrier(     varianceMidTable(j),self%timeTable(iTime),rateCompute=.false.)  &
-                     &                          )                                                                                                   &
-                     &                          /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(j)))                                    &
-                     &                         )                                                                                                  , &
-                     &        kind=kind_dble                                                                                                        &
+                sigma1f=+sigma1f                                                                                                                         &
+                     &  +self%firstCrossingProbabilityTable(j,iTime)                                                                                     &
+                     &  *real(                                                                                                                           &
+                     &         1.0_kind_quad                                                                                                             &
+                     &        -erfApproximate(                                                                                                           &
+                     &                          (                                                                                                        &
+                     &                            excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),node,rateCompute=.false.)  &
+                     &                           -excursionSetBarrier_%barrier(     varianceMidTable(j),self%timeTable(iTime),node,rateCompute=.false.)  &
+                     &                          )                                                                                                        &
+                     &                          /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(j)))                                         &
+                     &                         )                                                                                                       , &
+                     &        kind=kind_dble                                                                                                             &
                      &       )
              end do
-             integralKernel=+1.0_kind_quad                                                                                                      &
-                  &         -erfApproximate(                                                                                                    &
-                  &                         +(                                                                                                  &
-                  &                           +excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),rateCompute=.false.) &
-                  &                           -excursionSetBarrier_%barrier(     varianceMidTable(i),self%timeTable(iTime),rateCompute=.false.) &
-                  &                          )                                                                                                  &
-                  &                         /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(i)))                                    &
+             integralKernel=+1.0_kind_quad                                                                                                           &
+                  &         -erfApproximate(                                                                                                         &
+                  &                         +(                                                                                                       &
+                  &                           +excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),node,rateCompute=.false.) &
+                  &                           -excursionSetBarrier_%barrier(     varianceMidTable(i),self%timeTable(iTime),node,rateCompute=.false.) &
+                  &                          )                                                                                                       &
+                  &                         /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(i)))                                         &
                   &                        )
              if (integralKernel==0.0_kind_quad) then
                self%firstCrossingProbabilityTable(i,iTime)=0.0d0
              else
-               self%firstCrossingProbabilityTable(i,iTime)=real(                                                                                                                        &
-                    &                                           max(                                                                                                                    &
-                    &                                               +0.0_kind_quad,                                                                                                     &
-                    &                                               +(                                                                                                                  &
-                    &                                                 +(                                                                                                                &
-                    &                                                   +1.0_kind_quad                                                                                                  &
-                    &                                                   -erfApproximate(                                                                                                &
-                    &                                                                   +excursionSetBarrier_%barrier(self%varianceTable(i),self%timeTable(iTime),rateCompute=.false.)  &
-                    &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))                                                      &
-                    &                                                                  )                                                                                                &
-                    &                                                  )                                                                                                                &
-                    &                                                 /self%varianceTableStep                                                                                           &
-                    &                                                 -1.0_kind_quad                                                                                                    &
-                    &                                                 *sigma1f                                                                                                          &
-                    &                                                )                                                                                                                  &
-                    &                                               /integralKernel                                                                                                     &
-                    &                                              )                                                                                                                  , &
-                    &                                           kind=kind_dble                                                                                                          &
+               self%firstCrossingProbabilityTable(i,iTime)=real(                                                                                                                             &
+                    &                                           max(                                                                                                                         &
+                    &                                               +0.0_kind_quad,                                                                                                          &
+                    &                                               +(                                                                                                                       &
+                    &                                                 +(                                                                                                                     &
+                    &                                                   +1.0_kind_quad                                                                                                       &
+                    &                                                   -erfApproximate(                                                                                                     &
+                    &                                                                   +excursionSetBarrier_%barrier(self%varianceTable(i),self%timeTable(iTime),node,rateCompute=.false.)  &
+                    &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))                                                           &
+                    &                                                                  )                                                                                                     &
+                    &                                                  )                                                                                                                     &
+                    &                                                 /self%varianceTableStep                                                                                                &
+                    &                                                 -1.0_kind_quad                                                                                                         &
+                    &                                                 *sigma1f                                                                                                               &
+                    &                                                )                                                                                                                       &
+                    &                                               /integralKernel                                                                                                          &
+                    &                                              )                                                                                                                       , &
+                    &                                           kind=kind_dble                                                                                                               &
                     &                                          )
              end if
           end do
@@ -254,10 +255,10 @@ contains
     farahiMidpointProbability=0.0d0
     do jTime=0,1
        do jVariance=0,1
-          farahiMidpointProbability=+farahiMidpointProbability                                                     &
-               &            +hTime                             (                            jTime) &
-               &            *hVariance                         (            jVariance            ) &
-               &            *self%firstCrossingProbabilityTable(iVariance-1+jVariance,iTime+jTime)
+          farahiMidpointProbability=+farahiMidpointProbability                                             &
+               &                    +hTime                             (                            jTime) &
+               &                    *hVariance                         (            jVariance            ) &
+               &                    *self%firstCrossingProbabilityTable(iVariance-1+jVariance,iTime+jTime)
        end do
     end do
     return

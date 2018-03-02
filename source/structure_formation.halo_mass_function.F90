@@ -20,6 +20,7 @@
 
 module Halo_Mass_Functions
   use, intrinsic :: ISO_C_Binding
+  use            :: Galacticus_Nodes
   implicit none
   private
 
@@ -32,6 +33,7 @@ module Halo_Mass_Functions
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>double precision                                    :: time_                         </data>
   !#  <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
+  !#  <data>type            (treeNode                ), pointer :: node                 => null()</data>
   !#  <data>
   !#   <scope>module</scope>
   !#   <threadprivate>yes</threadprivate>
@@ -41,20 +43,27 @@ module Halo_Mass_Functions
   !#   <description>Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time} [Gyr].</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: time, mass</argument>
+  !#   <argument>double precision          , intent(in   )           :: time, mass</argument>
+  !#   <argument>type            (treeNode), intent(inout), optional :: node      </argument>
   !#  </method>
   !#  <method name="integrated" >
   !#   <description>Return the halo mass function at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision, intent(in   ) :: time, massLow, massHigh</argument>
+  !#   <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
+  !#   <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
   !#   <modules>Numerical_Integration</modules>
   !#   <code>
   !#    double precision                             :: logMassHigh         , logMassLow
   !#    type            (fgsl_function             ) :: integrandFunction
   !#    type            (fgsl_integration_workspace) :: integrationWorkspace
   !#    globalSelf => self
+  !#    if (present(node)) then
+  !#       self%node => node
+  !#    else
+  !#       self%node => null()
+  !#    end if
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
@@ -77,13 +86,19 @@ module Halo_Mass_Functions
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision, intent(in   ) :: time, massLow, massHigh</argument>
+  !#   <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
+  !#   <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
   !#   <modules>Numerical_Integration</modules>
   !#   <code>
   !#    double precision                             :: logMassHigh         , logMassLow
   !#    type            (fgsl_function             ) :: integrandFunction
   !#    type            (fgsl_integration_workspace) :: integrationWorkspace
   !#    globalSelf => self
+  !#    if (present(node)) then
+  !#       self%node => node
+  !#    else
+  !#       self%node => null()
+  !#    end if
   !#    self%time_ =  time
   !#    logMassLow =log(massLow )
   !#    logMassHigh=log(massHigh)
@@ -118,8 +133,13 @@ contains
     ! Extract integrand parameters.
     mass=exp(logMass)
     ! Return the differential mass function multiplied by mass since we are integrating over log(mass).
-    integratedIntegrand=+globalSelf%differential(globalSelf%time_,mass) &
-         &              *                                         mass
+    if (associated(globalSelf%node)) then
+       integratedIntegrand=+globalSelf%differential(globalSelf%time_,mass,node=globalSelf%node) &
+            &              *                                         mass
+    else
+       integratedIntegrand=+globalSelf%differential(globalSelf%time_,mass                     ) &
+            &              *                                         mass
+    end if
     return
   end function integratedIntegrand
 
@@ -133,8 +153,13 @@ contains
     mass=exp(logMass)
     ! Return the differential mass function multiplied by mass since we are integrating over log(mass) and by mass again to get
     ! the mass fraction.
-    massFractionIntegrand=+globalSelf%differential(globalSelf%time_,mass)    &
-         &                *                                         mass **2
+    if (associated(globalSelf%node)) then
+       massFractionIntegrand=+globalSelf%differential(globalSelf%time_,mass,node=globalSelf%node)    &
+            &                *                                         mass                      **2
+    else
+       massFractionIntegrand=+globalSelf%differential(globalSelf%time_,mass                     )    &
+            &                *                                         mass                      **2
+    end if
     return
   end function massFractionIntegrand
 

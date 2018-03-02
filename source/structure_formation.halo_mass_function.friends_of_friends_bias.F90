@@ -140,40 +140,41 @@ contains
     return
   end subroutine fofBiasDestructor
 
-  double precision function fofBiasDifferential(self,time,mass)
+  double precision function fofBiasDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use Galacticus_Error
     use Galacticus_Nodes
     use Numerical_Constants_Math
     implicit none
-    class           (haloMassFunctionFofBias), intent(inout) :: self
-    double precision                         , intent(in   ) :: time                                                                , &
-         &                                                      mass
-    double precision                         , parameter     :: correctionCoefficient                                 =  0.220000d+0 ! More et al. (2011; eqn. B11).
-    double precision                         , parameter     :: fofFractionalAccuracyExponent                         =  1.330000d+0 ! More et al. (2011; nu).
-    double precision                         , parameter     :: numberDensityPercolation                              =  0.652960d+0 ! More et al. (2011; n_c).
-    double precision                         , parameter     :: solutionAccuracy                                      =  1.000000d-6
-    double precision                         , parameter     :: correctionFactorMaximum                               =  2.000000d+0
-    integer                                  , parameter     :: iterationCountMaximum                                 =1000
-    type            (treeNode               ), pointer       :: node
-    class           (nodeComponentBasic     ), pointer       :: basic
-    integer                                                  :: iterationCount
-    double precision                                         :: fractionalAccuracyParameter                                         , &
-         &                                                      densityProfileLogarithmicSlope                                      , &
-         &                                                      gradientFractionalAccuracyParameterMass                             , &
-         &                                                      gradientMassLogarithmicDensity                                      , &
-         &                                                      gradientMassLogarithmicProbabilityCritical                          , &
-         &                                                      gradientRadiusHaloMass                                              , &
-         &                                                      massHaloInfinite                                                    , &
-         &                                                      correctionFactor                                                    , &
-         &                                                      massJacobian                                                        , &
-         &                                                      gradientGradientMassLogarithmicProbabilityCriticalMass              , &
-         &                                                      gradientProbabilityCriticalDensity                                  , &
-         &                                                      radiusHalo                                                          , &
-         &                                                      numberDensityCritical                                               , &
-         &                                                      linkingLength                                                       , &
-         &                                                      accuracyIteration                                                   , &
-         &                                                      massHaloInfinitePrevious
+    class           (haloMassFunctionFofBias), intent(inout)           :: self
+    double precision                         , intent(in   )           :: time                                                                , &
+         &                                                                mass
+    type            (treeNode               ), intent(inout), optional :: node
+    double precision                         , parameter               :: correctionCoefficient                                 =  0.220000d+0 ! More et al. (2011; eqn. B11).
+    double precision                         , parameter               :: fofFractionalAccuracyExponent                         =  1.330000d+0 ! More et al. (2011; nu).
+    double precision                         , parameter               :: numberDensityPercolation                              =  0.652960d+0 ! More et al. (2011; n_c).
+    double precision                         , parameter               :: solutionAccuracy                                      =  1.000000d-6
+    double precision                         , parameter               :: correctionFactorMaximum                               =  2.000000d+0
+    integer                                  , parameter               :: iterationCountMaximum                                 =1000
+    type            (treeNode               ), pointer                 :: nodeWork
+    class           (nodeComponentBasic     ), pointer                 :: basic
+    integer                                                            :: iterationCount
+    double precision                                                   :: fractionalAccuracyParameter                                         , &
+         &                                                                densityProfileLogarithmicSlope                                      , &
+         &                                                                gradientFractionalAccuracyParameterMass                             , &
+         &                                                                gradientMassLogarithmicDensity                                      , &
+         &                                                                gradientMassLogarithmicProbabilityCritical                          , &
+         &                                                                gradientRadiusHaloMass                                              , &
+         &                                                                massHaloInfinite                                                    , &
+         &                                                                correctionFactor                                                    , &
+         &                                                                massJacobian                                                        , &
+         &                                                                gradientGradientMassLogarithmicProbabilityCriticalMass              , &
+         &                                                                gradientProbabilityCriticalDensity                                  , &
+         &                                                                radiusHalo                                                          , &
+         &                                                                numberDensityCritical                                               , &
+         &                                                                linkingLength                                                       , &
+         &                                                                accuracyIteration                                                   , &
+         &                                                                massHaloInfinitePrevious
     
     ! Compute linking length in physical coordinates.
     if (self%linkingLengthIsComoving) then
@@ -184,8 +185,8 @@ contains
        linkingLength=self%linkingLength
     end if
     ! Create a work node.
-    node  => treeNode      (                 )
-    basic => node    %basic(autoCreate=.true.)
+    nodeWork => treeNode      (                 )
+    basic    => nodeWork%basic(autoCreate=.true.)
     ! Initialize iterations.
     iterationCount          =0
     massHaloInfinitePrevious=mass
@@ -199,9 +200,9 @@ contains
        call basic%massSet(massHaloInfinitePrevious)
        call basic%timeSet(time                    )
        ! Get the radius of the halo.
-       radiusHalo                             =+self%darkMatterHaloScale_%virialRadius                       (node)
-       gradientRadiusHaloMass                 =+self%darkMatterHaloScale_%virialRadiusGradientLogarithmicMass(node) &
-            &                                  *radiusHalo                                                          &
+       radiusHalo                             =+self%darkMatterHaloScale_%virialRadius                       (nodeWork)
+       gradientRadiusHaloMass                 =+self%darkMatterHaloScale_%virialRadiusGradientLogarithmicMass(nodeWork) &
+            &                                  *radiusHalo                                                              &
             &                                  /massHaloInfinitePrevious
        ! Compute friends-of-friends fractional accuracy parameter (Lsize from More et al. 2011).
        fractionalAccuracyParameter            =+2.0d0         &
@@ -211,7 +212,7 @@ contains
             &                                  *gradientRadiusHaloMass &
             &                                  /linkingLength    
        ! Compute negative a logarithmic slope of the density profile at the outer edge of the halo.
-       densityProfileLogarithmicSlope=+self%darkMatterProfile_ %densityLogSlope(node,radiusHalo)
+       densityProfileLogarithmicSlope=+self%darkMatterProfile_ %densityLogSlope(nodeWork,radiusHalo)
        ! Compute absolute value of the rate of change of logarithmic mass at halo outer edge as the
        ! percolation critical probability changes.
        numberDensityCritical                                 =+numberDensityPercolation          &
@@ -296,12 +297,12 @@ contains
          &         *gradientFractionalAccuracyParameterMass                                                             &
          &        )    
     ! Clean up our work node.
-    call node%destroy()
-    deallocate(node)
+    call nodeWork%destroy()
+    deallocate(nodeWork)
     ! Compute the mass function from the intrinsic mass function evaluated at the halo mass
     ! corresponding to infinte resolution, and modified by the Jacobian of the mass
     ! transformation.
-    fofBiasDifferential=+self%massFunctionIntrinsic%differential(time,massHaloInfinite)&
-         &                /massJacobian
+    fofBiasDifferential=+self%massFunctionIntrinsic%differential(time,massHaloInfinite,node=node) &
+         &              /massJacobian
     return
   end function fofBiasDifferential

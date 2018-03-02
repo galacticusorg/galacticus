@@ -94,8 +94,8 @@ contains
     implicit none
     type (criticalOverdensitySphericalCollapseMatterDE), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%linearGrowth_"      />
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%darkMatterParticle_"/>
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()

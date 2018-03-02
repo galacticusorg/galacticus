@@ -100,14 +100,15 @@ contains
     return
   end subroutine remapScaleDestructor
 
-  double precision function remapScaleBarrier(self,variance,time,rateCompute)
+  double precision function remapScaleBarrier(self,variance,time,node,rateCompute)
     !% Return the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierRemapScale), intent(inout) :: self
     double precision                               , intent(in   ) :: variance   , time
+    type            (treeNode                     ), intent(inout) :: node
     logical                                        , intent(in   ) :: rateCompute
 
-    remapScaleBarrier=self%excursionSetBarrier_%barrier(variance,time,rateCompute)
+    remapScaleBarrier=self%excursionSetBarrier_%barrier(variance,time,node,rateCompute)
     if     (                                                                    &
          &    self%applyTo == excursionSetRemapBoth                             &
          &  .or.                                                                &
@@ -120,14 +121,15 @@ contains
     return
   end function remapScaleBarrier
 
-  double precision function remapScaleBarrierGradient(self,variance,time,rateCompute)
+  double precision function remapScaleBarrierGradient(self,variance,time,node,rateCompute)
     !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierRemapScale), intent(inout) :: self
     double precision                               , intent(in   ) :: variance   , time
+    type            (treeNode                     ), intent(inout) :: node
     logical                                        , intent(in   ) :: rateCompute
 
-    remapScaleBarrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,rateCompute)
+    remapScaleBarrierGradient=self%excursionSetBarrier_%barrierGradient(variance,time,node,rateCompute)
     if     (                                                                    &
          &    self%applyTo == excursionSetRemapBoth                             &
          &  .or.                                                                &

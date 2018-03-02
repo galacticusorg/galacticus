@@ -85,7 +85,7 @@ contains
     return
   end subroutine zhangHuiHighOrderInitialize
 
-  double precision function zhangHuiHighOrderProbability(self,variance,time)
+  double precision function zhangHuiHighOrderProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Interpolation
@@ -95,6 +95,7 @@ contains
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time
+    type            (treeNode                                  ), intent(inout)                 :: node
     double precision                                                           , dimension(0:1) :: hTime                                , hVariance
     double precision                                            , allocatable  , dimension(:,:) :: firstCrossingProbabilityTablePrevious
     logical                                                                                     :: makeTable                            , tableIsExtendable
@@ -176,36 +177,36 @@ contains
                 summation2=0.0d0
                 k=mod(i,4)
                 if      (k == 3) then
-                   summation0=+(                                                                                                                              &
-                        &       +3.0d0*self%firstCrossingProbabilityTable(1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(1),self%timeTable(iTime)) &
-                        &       +3.0d0*self%firstCrossingProbabilityTable(2,iTime)*self%g2(self%varianceTable(i),self%varianceTable(2),self%timeTable(iTime)) &
-                        &       +      self%firstCrossingProbabilityTable(3,iTime)*self%g2(self%varianceTable(i),self%varianceTable(3),self%timeTable(iTime)) &
-                        &      )                                                                                                                              &
+                   summation0=+(                                                                                                                                   &
+                        &       +3.0d0*self%firstCrossingProbabilityTable(1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(1),self%timeTable(iTime),node) &
+                        &       +3.0d0*self%firstCrossingProbabilityTable(2,iTime)*self%g2(self%varianceTable(i),self%varianceTable(2),self%timeTable(iTime),node) &
+                        &       +      self%firstCrossingProbabilityTable(3,iTime)*self%g2(self%varianceTable(i),self%varianceTable(3),self%timeTable(iTime),node) &
+                        &      )                                                                                                                                   &
                         &     *3.0d0*self%varianceTableStep/32.0d0
                 else if (k == 2) then
-                   summation0=+(                                                                                                                              &
-                        &       +4.0d0*self%firstCrossingProbabilityTable(1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(1),self%timeTable(iTime)) &
-                        &       +      self%firstCrossingProbabilityTable(2,iTime)*self%g2(self%varianceTable(i),self%varianceTable(2),self%timeTable(iTime)) &
-                        &      )                                                                                                                              &
+                   summation0=+(                                                                                                                                   &
+                        &       +4.0d0*self%firstCrossingProbabilityTable(1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(1),self%timeTable(iTime),node) &
+                        &       +      self%firstCrossingProbabilityTable(2,iTime)*self%g2(self%varianceTable(i),self%varianceTable(2),self%timeTable(iTime),node) &
+                        &      )                                                                                                                                   &
                         &     *self%varianceTableStep/12.0d0
                 else if (k == 1) then
-                   summation0=+       self%firstCrossingProbabilityTable(1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(1),self%timeTable(iTime)) &
+                   summation0=+       self%firstCrossingProbabilityTable(1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(1),self%timeTable(iTime),node) &
                         &     *self%varianceTableStep/8.0d0
                 else
                    summation0=0.0d0
                 end if
                 do j=k,i-8,4
-                   summation1=+summation1                                                                                                                        &
-                        &     + 7.0d0*self%firstCrossingProbabilityTable(j  ,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j  ),self%timeTable(iTime)) &
-                        &     +32.0d0*self%firstCrossingProbabilityTable(j+1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+1),self%timeTable(iTime)) &
-                        &     +12.0d0*self%firstCrossingProbabilityTable(j+2,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+2),self%timeTable(iTime)) &
-                        &     +32.0d0*self%firstCrossingProbabilityTable(j+3,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+3),self%timeTable(iTime)) &
-                        &     + 7.0d0*self%firstCrossingProbabilityTable(j+4,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+4),self%timeTable(iTime))
+                   summation1=+summation1                                                                                                                             &
+                        &     + 7.0d0*self%firstCrossingProbabilityTable(j  ,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j  ),self%timeTable(iTime),node) &
+                        &     +32.0d0*self%firstCrossingProbabilityTable(j+1,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+1),self%timeTable(iTime),node) &
+                        &     +12.0d0*self%firstCrossingProbabilityTable(j+2,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+2),self%timeTable(iTime),node) &
+                        &     +32.0d0*self%firstCrossingProbabilityTable(j+3,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+3),self%timeTable(iTime),node) &
+                        &     + 7.0d0*self%firstCrossingProbabilityTable(j+4,iTime)*self%g2(self%varianceTable(i),self%varianceTable(j+4),self%timeTable(iTime),node)
                 end do
                 summation1=+summation1             &
                      &     *self%varianceTableStep &
                      &     /90.0d0
-                g2Average=self%g2Integrated(self%varianceTable(i),self%varianceTableStep,self%timeTable(iTime))
+                g2Average=self%g2Integrated(self%varianceTable(i),self%varianceTableStep,self%timeTable(iTime),node)
                 summation2=+g2Average                                              &
                      &     *(                                                      &
                      &       + 7.0d0*self%firstCrossingProbabilityTable(i-4,iTime) &
@@ -214,56 +215,56 @@ contains
                      &       +32.0d0*self%firstCrossingProbabilityTable(i-1,iTime) &
                      &      )                                                      &
                      &     /90.0d0
-                self%firstCrossingProbabilityTable(i,iTime)=+(                                                      &
-                     &                                        +self%g1(self%varianceTable(i),self%timeTable(iTime)) &
-                     &                                        +summation0                                           &
-                     &                                        +summation1                                           &
-                     &                                        +summation2                                           &
-                     &                                       )                                                      &
-                     &                                      /(                                                      &
-                     &                                        +1.0d0                                                &
-                     &                                        -7.0d0                                                &
-                     &                                        *g2Average                                            &
-                     &                                        /90.0d0                                               &
+                self%firstCrossingProbabilityTable(i,iTime)=+(                                                           &
+                     &                                        +self%g1(self%varianceTable(i),self%timeTable(iTime),node) &
+                     &                                        +summation0                                                &
+                     &                                        +summation1                                                &
+                     &                                        +summation2                                                &
+                     &                                       )                                                           &
+                     &                                      /(                                                           &
+                     &                                        +1.0d0                                                     &
+                     &                                        -7.0d0                                                     &
+                     &                                        *g2Average                                                 &
+                     &                                        /90.0d0                                                    &
                      &                                       )
              else if (i == 3) then
-                g2Average=self%g2Integrated(self%varianceTable(i),0.75d0*self%varianceTableStep,self%timeTable(iTime))
-                self%firstCrossingProbabilityTable(i,iTime)=+(                                                      &
-                     &                                        +self%g1(self%varianceTable(i),self%timeTable(iTime)) &
-                     &                                        +g2Average                                            &
-                     &                                        *3.0d0                                                &
-                     &                                        *(                                                    &
-                     &                                          +self%firstCrossingProbabilityTable(1,iTime)        &
-                     &                                          +self%firstCrossingProbabilityTable(2,iTime)        &
-                     &                                         )                                                    &
-                     &                                        /8.0d0                                                &
-                     &                                       )                                                      &
-                     &                                      /(                                                      &
-                     &                                        +1.0d0                                                &
-                     &                                        -g2Average                                            &
-                     &                                        /8.0d0                                                &
+                g2Average=self%g2Integrated(self%varianceTable(i),0.75d0*self%varianceTableStep,self%timeTable(iTime),node)
+                self%firstCrossingProbabilityTable(i,iTime)=+(                                                           &
+                     &                                        +self%g1(self%varianceTable(i),self%timeTable(iTime),node) &
+                     &                                        +g2Average                                                 &
+                     &                                        *3.0d0                                                     &
+                     &                                        *(                                                         &
+                     &                                          +self%firstCrossingProbabilityTable(1,iTime)             &
+                     &                                          +self%firstCrossingProbabilityTable(2,iTime)             &
+                     &                                         )                                                         &
+                     &                                        /8.0d0                                                     &
+                     &                                       )                                                           &
+                     &                                      /(                                                           &
+                     &                                        +1.0d0                                                     &
+                     &                                        -g2Average                                                 &
+                     &                                        /8.0d0                                                     &
                      &                                       )
              else if (i == 2) then
-                g2Average=self%g2Integrated(self%varianceTable(i),0.5d0*self%varianceTableStep,self%timeTable(iTime))
-                self%firstCrossingProbabilityTable(i,iTime)=+(                                                      &
-                     &                                        +self%g1(self%varianceTable(i),self%timeTable(iTime)) &
-                     &                                        +g2Average                                            &
-                     &                                        *4.0d0                                                &
-                     &                                        *self%firstCrossingProbabilityTable(1,iTime)          &
-                     &                                        /6.0d0                                                &
-                     &                                       )                                                      &
-                     &                                      /(                                                      &
-                     &                                        +1.0d0                                                &
-                     &                                        -g2Average                                            &
-                     &                                        /6.0d0                                                &
+                g2Average=self%g2Integrated(self%varianceTable(i),0.5d0*self%varianceTableStep,self%timeTable(iTime),node)
+                self%firstCrossingProbabilityTable(i,iTime)=+(                                                           &
+                     &                                        +self%g1(self%varianceTable(i),self%timeTable(iTime),node) &
+                     &                                        +g2Average                                                 &
+                     &                                        *4.0d0                                                     &
+                     &                                        *self%firstCrossingProbabilityTable(1,iTime)               &
+                     &                                        /6.0d0                                                     &
+                     &                                       )                                                           &
+                     &                                      /(                                                           &
+                     &                                        +1.0d0                                                     &
+                     &                                        -g2Average                                                 &
+                     &                                        /6.0d0                                                     &
                      &                                       )
              else if (i == 1) then
-                g2Average=self%g2Integrated(self%varianceTable(i),0.25d0*self%varianceTableStep,self%timeTable(iTime))
-                self%firstCrossingProbabilityTable(i,iTime)=+self%g1(self%varianceTable(i),self%timeTable(iTime)) &
-                     &                                      /(                                                    &
-                     &                                        +1.0d0                                              &
-                     &                                        -g2Average                                          &
-                     &                                        /2.0d0                                              &
+                g2Average=self%g2Integrated(self%varianceTable(i),0.25d0*self%varianceTableStep,self%timeTable(iTime),node)
+                self%firstCrossingProbabilityTable(i,iTime)=+self%g1(self%varianceTable(i),self%timeTable(iTime),node) &
+                     &                                      /(                                                         &
+                     &                                        +1.0d0                                                   &
+                     &                                        -g2Average                                               &
+                     &                                        /2.0d0                                                   &
                      &                                       )
              else if (i == 0) then
                 self%firstCrossingProbabilityTable(i,iTime)=+0.0d0

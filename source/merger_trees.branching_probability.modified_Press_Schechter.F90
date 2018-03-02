@@ -20,9 +20,10 @@
 
 module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Numerical_Constants_Math
   use Tables
+  use Galacticus_Nodes
   implicit none
   private
   public :: Modified_Press_Schechter_Branching_Initialize   , Modified_Press_Schechter_Branching_State_Store, &
@@ -42,7 +43,7 @@ module Modified_Press_Schechter_Branching
 
   ! Parameters of the merger rate modification function.
   logical                     :: parametersRead                               =.false.
-  double precision            :: modifiedPressSchechterG0                                    , modifiedPressSchechterGamma1, &
+  double precision            :: modifiedPressSchechterG0                                    , modifiedPressSchechterGamma1 , &
        &                         modifiedPressSchechterGamma2
 
   ! Accuracy parameter to ensure that merger rate function (which is correct to 1st order) is sufficiently accurate.
@@ -180,7 +181,7 @@ contains
     return
   end subroutine Modified_Press_Schechter_Branching_Parameters
   
-  double precision function Modified_Press_Schechter_Branch_Mass_CDMAssumptions(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
+  double precision function Modified_Press_Schechter_Branch_Mass_CDMAssumptions(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator,node)
     !% A merger tree branch split mass function which assumes a \gls{cdm}-like power
     !% spectrum. With these assumptions, it can employ the mass sampling algorithm of
     !% \cite{parkinson_generating_2008}. One difference with respect to the algorithm of
@@ -190,19 +191,20 @@ contains
     !% names follow \cite{parkinson_generating_2008}.
     use Pseudo_Random
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical                 , haloMass       , &
-         &                                                            massResolution                , probability
-    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                                               :: massFractionResolution        , beta           , &
-         &                                                            B                             , halfMassSigma  , &
-         &                                                            halfMassAlpha                 , eta            , &
-         &                                                            x                             , mu             , &
-         &                                                            massFraction                  , resolutionSigma, &
-         &                                                            massFractionResolutionPowerEta, halfPowerEta   , &
-         &                                                            halfMassV
-    logical                                                        :: reject
-    !GCC$ attributes unused :: deltaCritical, probability
+    double precision                               , intent(in   )         :: deltaCritical                 , haloMass       , &
+         &                                                                    massResolution                , probability
+    type            (pseudoRandom                 ), intent(inout)         :: randomNumberGenerator
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    double precision                                                       :: massFractionResolution        , beta           , &
+         &                                                                    B                             , halfMassSigma  , &
+         &                                                                    halfMassAlpha                 , eta            , &
+         &                                                                    x                             , mu             , &
+         &                                                                    massFraction                  , resolutionSigma, &
+         &                                                                    massFractionResolutionPowerEta, halfPowerEta   , &
+         &                                                                    halfMassV
+    logical                                                                :: reject
+    !GCC$ attributes unused :: deltaCritical, probability, node
     
     ! Get parent and half-mass sigmas and alphas.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
@@ -301,7 +303,7 @@ contains
     
   end function Modified_Press_Schechter_Branch_Mass_CDMAssumptions
   
-  double precision function Modified_Press_Schechter_Branch_Mass_Generic(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
+  double precision function Modified_Press_Schechter_Branch_Mass_Generic(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator,node)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
     !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Modified\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
@@ -309,15 +311,16 @@ contains
     use Pseudo_Random
     use Root_Finder
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical              , haloMass                , &
-         &                                                            massResolution             , probability
-    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                               , parameter     :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-9
-    type            (rootFinder                   ), save          :: finder
+    double precision                               , intent(in   )         :: deltaCritical              , haloMass                , &
+         &                                                                    massResolution             , probability
+    type            (pseudoRandom                 ), intent(inout)         :: randomNumberGenerator
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    double precision                               , parameter             :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-9
+    type            (rootFinder                   ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                               :: logMassMinimum             , logMassMaximum
-    !GCC$ attributes unused :: randomNumberGenerator
+    double precision                                                       :: logMassMinimum             , logMassMaximum
+    !GCC$ attributes unused :: randomNumberGenerator, node
     
     ! Get required objects.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
@@ -329,7 +332,7 @@ contains
     probabilityMinimumMassLog=log(massResolution)
     probabilityMaximumMassLog=log(0.5d0*haloMass)
     probabilitySeek          =probability
-    call Compute_Common_Factors
+    call Compute_Common_Factors(node,haloMass,deltaCritical)
     ! Check the sign of the root function at half the halo mass.
     if (Modified_Press_Schechter_Branch_Mass_Root(probabilityMaximumMassLog) >= 0.0d0) then
        ! The root function is zero, or very close to it (which can happen due to rounding errors
@@ -436,19 +439,20 @@ contains
     return
   end function Modified_Press_Schechter_Branching_Maximum_Step
 
-  double precision function Modified_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
+  double precision function Modified_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution,node)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Numerical_Integration
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical                , haloMass                    , &
-         &                                                            massResolution
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
-    double precision                                               :: massMaximum                  , massMinimum
-    double precision                               , save          :: haloMassPrevious      =-1.0d0, deltaCriticalPrevious=-1.0d0, &
-         &                                                            massResolutionPrevious=-1.0d0, probabilityPrevious
+    double precision                               , intent(in   )         :: deltaCritical                , haloMass                    , &
+         &                                                                    massResolution
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    type            (fgsl_function                )                        :: integrandFunction
+    type            (fgsl_integration_workspace   )                        :: integrationWorkspace
+    double precision                                                       :: massMaximum                  , massMinimum
+    double precision                               , save                  :: haloMassPrevious      =-1.0d0, deltaCriticalPrevious=-1.0d0, &
+         &                                                                    massResolutionPrevious=-1.0d0, probabilityPrevious
     !$omp threadprivate(haloMassPrevious,deltaCriticalPrevious,massResolutionPrevious,probabilityPrevious)
     
     ! Recompute branching probability if necessary.
@@ -462,7 +466,7 @@ contains
           parentHaloMass=haloMass
           parentSigma=cosmologicalMassVariance_%rootVariance(haloMass)
           parentDelta=deltaCritical
-          call Compute_Common_Factors()
+          call Compute_Common_Factors(node,haloMass,deltaCritical)
           massMinimum=      massResolution
           massMaximum=0.5d0*parentHaloMass
           probabilityPrevious=+branchingProbabilityPreFactor                                                                        &
@@ -485,7 +489,7 @@ contains
     return
   end function Modified_Press_Schechter_Branching_Probability
 
-  double precision function Modified_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+  double precision function Modified_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound,node)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Merger_Tree_Branching_Options
@@ -495,20 +499,21 @@ contains
     use FGSL
     use Numerical_Comparison
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical                   , haloMass                 , &
-         &                                                            massResolution
-    integer                                        , intent(in   ) :: bound
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                               , save          :: resolutionSigma                 , resolutionAlpha
+    double precision                               , intent(in   )         :: deltaCritical                   , haloMass                 , &
+         &                                                                    massResolution
+    integer                                        , intent(in   )         :: bound
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    double precision                               , save                  :: resolutionSigma                 , resolutionAlpha
     !$omp threadprivate(resolutionSigma,resolutionAlpha)
-    double precision                                               :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
-         &                                                            halfParentSigma                 , halfParentAlpha          , &
-         &                                                            gammaEffective
-    double precision                                               :: hyperGeometricFactorLower       , hyperGeometricFactorUpper, &
-         &                                                            resolutionSigmaOverParentSigma
-    integer         (fgsl_int                     )                :: statusLower                     , statusUpper
-    logical                                                        :: usingCDMAssumptions
-    integer                                                        :: iBound
+    double precision                                                       :: probabilityIntegrandLower       , probabilityIntegrandUpper, &
+         &                                                                    halfParentSigma                 , halfParentAlpha          , &
+         &                                                                    gammaEffective
+    double precision                                                       :: hyperGeometricFactorLower       , hyperGeometricFactorUpper, &
+         &                                                                    resolutionSigmaOverParentSigma
+    integer         (fgsl_int                     )                        :: statusLower                     , statusUpper
+    logical                                                                :: usingCDMAssumptions
+    integer                                                                :: iBound
     
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
@@ -516,7 +521,7 @@ contains
        parentHaloMass=haloMass
        parentSigma=cosmologicalMassVariance_%rootVariance(haloMass)
        parentDelta=deltaCritical
-       call Compute_Common_Factors()
+       call Compute_Common_Factors(node,haloMass,deltaCritical)
        if (massResolution /= massResolutionTabulated) then
           ! Resolution changed - recompute sigma and alpha at resolution limit. Also reset the hypergeometric factor tables since
           ! these depend on resolution.
@@ -702,18 +707,19 @@ contains
     return
   end function Modified_Press_Schechter_Branching_Probability_Bound
 
-  double precision function Modified_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
+  double precision function Modified_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed analytically in
     !% terms of the $_2F_1$ hypergeometric function.
     use Hypergeometric_Functions
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical                 , haloMass                      , &
-         &                                                            massResolution
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                               , save          :: massResolutionPrevious=-1.0d+0, resolutionSigma
+    double precision                               , intent(in   )         :: deltaCritical                 , haloMass                      , &
+         &                                                                    massResolution
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    double precision                               , save                  :: massResolutionPrevious=-1.0d+0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                                               :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
+    double precision                                                       :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
 
     ! Get required objects.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
@@ -721,7 +727,7 @@ contains
     parentHaloMass=haloMass
     parentSigma   =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta   =deltaCritical
-    call Compute_Common_Factors
+    call Compute_Common_Factors(node,haloMass,deltaCritical)
     if (massResolution /= massResolutionPrevious) then
        resolutionSigma       =cosmologicalMassVariance_%rootVariance(massResolution)
        massResolutionPrevious=                                       massResolution
@@ -744,7 +750,7 @@ contains
                &                                  [      1.5d0-0.5d0*modifiedPressSchechterGamma1]               , &
                &                                  1.0d0/resolutionSigmaOverParentSigma**2                        , &
                &                                  toleranceRelative=modifiedPressSchechterHypergeometricPrecision  &
-               &)
+               &                                 )
           Modified_Press_Schechter_Subresolution_Fraction=+sqrtTwoOverPi                                                         &
                &                                          *modificationG0Gamma2Factor                                            &
                &                                          /parentSigma                                                           &
@@ -813,12 +819,18 @@ contains
     return
   end function Modification_Function
 
-  subroutine Compute_Common_Factors
+  subroutine Compute_Common_Factors(node,haloMass,deltaCritical)
     !% Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
+    use Cosmological_Density_Field
     implicit none
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: haloMass            , deltaCritical
+    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
+    class           (haloEnvironmentClass    ), pointer       :: haloEnvironment_
+    class           (nodeComponentBasic      ), pointer       :: basic
 
     parentSigmaSquared           =parentSigma**2
-    modificationG0Gamma2Factor   =modifiedPressSchechterG0*((parentDelta/parentSigma)**modifiedPressSchechterGamma2)
+    modificationG0Gamma2Factor   =modifiedPressSchechterG0*((max(parentDelta,0.0d0)/parentSigma)**modifiedPressSchechterGamma2)
     branchingProbabilityPreFactor=sqrtTwoOverPi*parentHaloMass*modificationG0Gamma2Factor/parentSigma**modifiedPressSchechterGamma1
     return
   end subroutine Compute_Common_Factors

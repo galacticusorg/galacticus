@@ -18,8 +18,7 @@
 
 !% Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
 
-  use Cosmological_Mass_Variance
-  use Critical_Overdensities
+  use Cosmological_Density_Field
   use Virial_Density_Contrast
   use Cosmology_Functions
 

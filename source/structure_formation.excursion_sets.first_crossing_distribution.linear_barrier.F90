@@ -76,35 +76,37 @@ contains
     return
   end subroutine linearBarrierDestructor
   
-  double precision function linearBarrierProbability(self,variance,time)
+  double precision function linearBarrierProbability(self,variance,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use Numerical_Constants_Math
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance, time
+    type            (treeNode                              ), intent(inout) :: node
 
-    linearBarrierProbability=+     self%excursionSetBarrier_%barrier(   0.0d0,time,rateCompute=.false.)    &
-         &                   *exp(                                                                         &
-         &                        -0.5d0                                                                   &
-         &                        *self%excursionSetBarrier_%barrier(variance,time,rateCompute=.false.)**2 &
-         &                        /variance                                                                &
-         &                       )                                                                         &
-         &                   /variance                                                                     &
-         &                   /sqrt(                                                                        &
-         &                         +2.0d0                                                                  &
-         &                         *Pi                                                                     &
-         &                         *variance                                                               &
+    linearBarrierProbability=+     self%excursionSetBarrier_%barrier(   0.0d0,time,node,rateCompute=.false.)    &
+         &                   *exp(                                                                              &
+         &                        -0.5d0                                                                        &
+         &                        *self%excursionSetBarrier_%barrier(variance,time,node,rateCompute=.false.)**2 &
+         &                        /variance                                                                     &
+         &                       )                                                                              &
+         &                   /variance                                                                          &
+         &                   /sqrt(                                                                             &
+         &                         +2.0d0                                                                       &
+         &                         *Pi                                                                          &
+         &                         *variance                                                                    &
          &                        )
     return
   end function linearBarrierProbability
 
-  double precision function linearBarrierRate(self,variance,varianceProgenitor,time)
+  double precision function linearBarrierRate(self,variance,varianceProgenitor,time,node)
     !% Return the excursion set barrier at the given variance and time.
     use Numerical_Constants_Math
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance                   , varianceProgenitor, &
          &                                                                     time
+    type            (treeNode                              ), intent(inout) :: node
     double precision                                        , parameter     :: fractionalTimeChange=1.0d-3
     double precision                                                        :: timeProgenitor
 
@@ -138,21 +140,22 @@ contains
       double precision, intent(in   ) :: time1    , time0    , &
            &                             variance1, variance0
 
-      barrierEffective=+self%excursionSetBarrier_%barrier(variance1,time1,rateCompute=.false.) &
-           &                        -self%excursionSetBarrier_%barrier(variance0,time0,rateCompute=.false.)
+      barrierEffective=+self%excursionSetBarrier_%barrier(variance1,time1,node,rateCompute=.false.) &
+           &           -self%excursionSetBarrier_%barrier(variance0,time0,node,rateCompute=.false.)
       return
     end function barrierEffective
 
   end function linearBarrierRate
 
-  double precision function linearBarrierRateNonCrossing(self,variance,time)
+  double precision function linearBarrierRateNonCrossing(self,variance,time,node)
     !% Return the rate for excursion set non-crossing assuming a linearBarrier barrier. For a linearBarrier barrier the integral over the
     !% crossing probability (from zero to infinite variance) equals unity, so all trajectories cross. The non-crossing rate is
     !% therefore zero.
     implicit none
     class           (excursionSetFirstCrossingLinearBarrier), intent(inout) :: self
     double precision                                        , intent(in   ) :: time, variance
-    !GCC$ attributes unused :: self, time, variance
+     type            (treeNode                              ), intent(inout) :: node
+   !GCC$ attributes unused :: self, time, variance, node
     
     linearBarrierRateNonCrossing=0.0d0
     return
