@@ -73,7 +73,8 @@ contains
     use               Numerical_Ranges
     use               Input_Parameters
     use               Power_Spectra
-    use               Cosmological_Mass_Variance
+    use               Cosmological_Density_Field
+    use               Power_Spectrum_Window_Functions
     use               Numerical_Constants_Math
     use               Cosmology_Parameters
     use               Cosmology_Functions

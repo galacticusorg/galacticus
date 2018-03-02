@@ -60,7 +60,7 @@
      use Cosmology_Functions
      use Cosmology_Parameters
      use Linear_Growth
-     use Cosmological_Mass_Variance
+     use Cosmological_Density_Field
      use Intergalactic_Medium_Filtering_Masses
      use Numerical_Constants_Math
      use Numerical_Constants_Units
@@ -283,7 +283,7 @@
      use               Cosmology_Functions
      use               Cosmology_Parameters
      use               Linear_Growth
-     use               Cosmological_Mass_Variance
+     use               Cosmological_Density_Field
      use               ISO_Varying_String
      use               Galacticus_HDF5
      use               IO_HDF5
@@ -483,7 +483,7 @@
      use Atomic_Cross_Sections_Ionization_Photo
      use Intergalactic_Medium_Filtering_Masses
      use Linear_Growth
-     use Cosmological_Mass_Variance
+     use Cosmological_Density_Field
      use Numerical_Integration
      use FGSL
      implicit none

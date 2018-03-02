@@ -24,7 +24,7 @@ program Tests_Power_Spectrum
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Power_Spectra
   use Power_Spectra_Primordial
   use Power_Spectra_Primordial_Transferred

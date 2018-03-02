@@ -39,8 +39,7 @@ contains
     !% \end{equation}
     !% where $\nu=\delta_{\mathrm c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
-    use Cosmological_Mass_Variance
-    use Critical_Overdensities
+    use Cosmological_Density_Field
     implicit none
     class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
     type            (treeNode                     ), intent(inout), pointer :: node

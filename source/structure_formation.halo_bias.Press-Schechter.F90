@@ -18,8 +18,7 @@
 
   !% Implementation of halo bias using the Press-Schechter algorithm \citep{mo_analytic_1996}.
 
-  use Critical_Overdensities
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   
   !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter" defaultThreadPrivate="yes">
   !#  <description>

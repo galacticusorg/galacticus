@@ -157,7 +157,7 @@ contains
     use Numerical_Comparison
     use Galacticus_Display
     use Galacticus_Error
-    use Cosmological_Mass_Variance
+    use Cosmological_Density_Field
     use Cosmology_Parameters
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self

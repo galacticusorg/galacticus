@@ -90,8 +90,7 @@ contains
     use Numerical_Ranges
     use Numerical_Integration
     use Input_Parameters
-    use Critical_Overdensities
-    use Cosmological_Mass_Variance
+    use Cosmological_Density_Field
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
     use Linear_Growth

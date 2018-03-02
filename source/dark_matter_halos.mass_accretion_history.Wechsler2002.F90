@@ -138,8 +138,7 @@ contains
     
     double precision function expansionFactorAtFormation(haloMass)
       !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
-      use Cosmological_Mass_Variance
-      use Critical_Overdensities
+      use Cosmological_Density_Field
       implicit none
       double precision                               , intent(in   ) :: haloMass
       class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_

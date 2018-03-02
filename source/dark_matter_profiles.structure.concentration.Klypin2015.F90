@@ -625,7 +625,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Error
-    use Cosmological_Mass_Variance
+    use Cosmological_Density_Field
     use Cosmology_Parameters
     use Cosmology_Functions
     implicit none

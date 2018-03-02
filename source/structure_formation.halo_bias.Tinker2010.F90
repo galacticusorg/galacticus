@@ -18,8 +18,7 @@
 
   !% Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
 
-  use Critical_Overdensities
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Virial_Density_Contrast
 
   !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010" defaultThreadPrivate="yes">

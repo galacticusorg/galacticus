@@ -159,8 +159,7 @@ double precision function likelihoodHaloMassFunctionEvaluate(self,simulationStat
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles
   use Cosmology_Parameters
-  use Critical_Overdensities
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Statistics_NBody_Halo_Mass_Errors
   implicit none
   class           (likelihoodHaloMassFunction    ), intent(inout)               :: self

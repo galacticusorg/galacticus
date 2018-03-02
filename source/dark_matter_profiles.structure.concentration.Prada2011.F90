@@ -19,7 +19,7 @@
   !% An implementation of dark matter halo profile concentrations using the \cite{prada_halo_2011} algorithm.
 
   use Cosmology_Functions
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Cosmology_Parameters
   use Linear_Growth
   

@@ -110,8 +110,7 @@ contains
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Nodes
     use Galacticus_Error
-    use Cosmological_Mass_Variance
-    use Critical_Overdensities
+    use Cosmological_Density_Field
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self
     type            (treeNode                        ), intent(inout), pointer :: node

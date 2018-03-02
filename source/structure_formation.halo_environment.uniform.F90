@@ -1,0 +1,96 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a uniform halo environment.
+
+  !# <haloEnvironment name="haloEnvironmentUniform">
+  !#  <description>Implements a uniform halo environment.</description>
+  !# </haloEnvironment>
+  type, extends(haloEnvironmentClass) :: haloEnvironmentUniform
+     !% A uniform halo environment class.
+     private
+   contains
+     procedure :: overdensityLinear    => uniformOverdensityLinear
+     procedure :: overdensityNonLinear => uniformOverdensityNonLinear
+     procedure :: environmentRadius    => uniformEnvironmentRadius
+     procedure :: environmentMass      => uniformEnvironmentMass
+  end type haloEnvironmentUniform
+
+  interface haloEnvironmentUniform
+     !% Constructors for the {\normalfont \ttfamily uniform} halo environment class.
+     module procedure uniformConstructorParameters
+  end interface haloEnvironmentUniform
+
+contains
+
+  function uniformConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type(haloEnvironmentUniform)                :: self
+    type(inputParameters       ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=haloEnvironmentUniform()
+    return
+  end function uniformConstructorParameters
+
+  double precision function uniformOverdensityLinear(self,node,presentDay)
+    !% Return the environment of the given {\normalfont \ttfamily node}.
+    implicit none
+    class  (haloEnvironmentUniform), intent(inout)           :: self
+    type   (treeNode              ), intent(inout)           :: node
+    logical                        , intent(in   ), optional :: presentDay
+    !GCC$ attributes unused :: self, node, presentDay
+
+    uniformOverdensityLinear=0.0d0
+    return
+  end function uniformOverdensityLinear
+
+  double precision function uniformOverdensityNonLinear(self,node)
+    !% Return the environment of the given {\normalfont \ttfamily node}.
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+
+    uniformOverdensityNonLinear=0.0d0
+    return
+  end function uniformOverdensityNonLinear
+
+
+  double precision function uniformEnvironmentRadius(self)
+    !% Return the radius of the environment.
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    uniformEnvironmentRadius=huge(0.0d0)
+    return
+  end function uniformEnvironmentRadius
+
+  double precision function uniformEnvironmentMass(self)
+    !% Return the mass of the environment.
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    uniformEnvironmentMass=huge(0.0d0)
+    return
+  end function uniformEnvironmentMass
+

@@ -22,7 +22,10 @@ program Tests_Sigma
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
+  use Power_Spectrum_Window_Functions
+  use Power_Spectra_Primordial
+  use Power_Spectra_Primordial_Transferred
   use Numerical_Ranges
   use Cosmology_Parameters
   use Numerical_Constants_Math

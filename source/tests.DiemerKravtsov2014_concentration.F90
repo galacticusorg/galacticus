@@ -32,8 +32,7 @@ program Test_DiemerKravtsov2014_Concentration
   use Galacticus_Error
   use File_Utilities
   use Galacticus_Input_Paths
-  use Critical_Overdensities
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Power_Spectra
   implicit none
   type            (treeNode                                        ), pointer :: node
