@@ -117,8 +117,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
     @{$directives->{$_}} = &Galacticus::Build::Directives::Extract_Directives($sourceFile->{'fullPathFileName'},$_)
 	foreach ( "functionClass", "inputParameter", "enumeration" );
     # Special handling for functionClass directives - add implementation files to the list of files to scan.
-    &List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{${$directives->{'functionClass'}}[0]->{'name'}}->{'file'})
-	if ( scalar(@{$directives->{'functionClass'}}) > 0 );
+    if ( scalar(@{$directives->{'functionClass'}}) > 0 ) {
+	foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
+	    &List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$functionClass->{'name'}}->{'file'});
+	}
+    }
     # Add dependence on input parameters module if necessary.
     push(@modulesUsed,$workDirectoryName."input_parameters.mod")
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
