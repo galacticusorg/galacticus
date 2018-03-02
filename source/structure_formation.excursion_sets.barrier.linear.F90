@@ -80,26 +80,28 @@ contains
     return
   end function linearConstructorInternal
 
-  double precision function linearBarrier(self,variance,time,rateCompute)
+  double precision function linearBarrier(self,variance,time,node,rateCompute)
     !% Return the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierLinear), intent(inout) :: self
     double precision                           , intent(in   ) :: variance, time
+    type            (treeNode                 ), intent(inout) :: node
     logical                                    , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: time, rateCompute
+    !GCC$ attributes unused :: time, rateCompute, node
 
     linearBarrier=+self%coefficientConstant          &
          &        +self%coefficientLinear  *variance
     return
   end function linearBarrier
 
-  double precision function linearBarrierGradient(self,variance,time,rateCompute)
+  double precision function linearBarrierGradient(self,variance,time,node,rateCompute)
     !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierLinear), intent(inout) :: self
     double precision                           , intent(in   ) :: variance   , time
+    type            (treeNode                 ), intent(inout) :: node
     logical                                    , intent(in   ) :: rateCompute
-    !GCC$ attributes unused :: variance, time, rateCompute
+    !GCC$ attributes unused :: variance, time, rateCompute, node
 
     linearBarrierGradient=+self%coefficientLinear
     return

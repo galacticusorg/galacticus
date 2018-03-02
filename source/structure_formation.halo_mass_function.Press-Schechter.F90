@@ -17,7 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Excursion_Sets_First_Crossings
 
   !# <haloMassFunction name="haloMassFunctionPressSchechter">
@@ -79,21 +79,24 @@ contains
     return
   end subroutine pressSchechterDestructor
 
-  double precision function pressSchechterDifferential(self,time,mass)
+  double precision function pressSchechterDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
+    use Galacticus_Error
     implicit none
-    class           (haloMassFunctionPressSchechter), intent(inout) :: self
-    double precision                                , intent(in   ) :: time , mass    
-    double precision                                                :: alpha, variance
+    class           (haloMassFunctionPressSchechter), intent(inout)           :: self
+    double precision                                , intent(in   )           :: time , mass    
+    type            (treeNode                      ), intent(inout), optional :: node
+    double precision                                                          :: alpha, variance
 
-    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass         ))
-    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass         ) **2
-    pressSchechterDifferential=+2.0d0                                                                                 &
-         &                     *   self%cosmologyParameters_      %OmegaMatter                    (             )     &
-         &                     *   self%cosmologyParameters_      %densityCritical                (             )     &
-         &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time)     &
-         &                     /mass**2                                                                               &
-         &                     *alpha                                                                                 &
+    if (.not.present(node)) call Galacticus_Error_Report('"node" must be present'//{introspection:location})
+    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass              ))
+    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass              ) **2
+    pressSchechterDifferential=+2.0d0                                                                                      &
+         &                     *   self%cosmologyParameters_      %OmegaMatter                    (                  )     &
+         &                     *   self%cosmologyParameters_      %densityCritical                (                  )     &
+         &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time,node)     &
+         &                     /mass**2                                                                                    &
+         &                     *alpha                                                                                      &
          &                     *variance
     return
   end function pressSchechterDifferential

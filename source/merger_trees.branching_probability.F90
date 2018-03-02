@@ -22,6 +22,7 @@ module Merger_Tree_Branching
   !% Implements calculations of merger tree branching probabilities.
   use ISO_Varying_String
   use Pseudo_Random
+  use Galacticus_Nodes
   implicit none
   private
   public :: Tree_Branching_Probability_Bound, Tree_Branching_Probability, Tree_Subresolution_Fraction, Tree_Branch_Mass, Tree_Maximum_Step
@@ -39,27 +40,34 @@ module Merger_Tree_Branching
   procedure(Tree_Branch_Mass_Template                ), pointer :: Tree_Branch_Mass_Function                 => null()
   procedure(Tree_Maximum_Step_Template               ), pointer :: Tree_Maximum_Step_Function                => null()
   interface Tree_Branching_Probability_Template
-     double precision function Tree_Branching_Probability_Bound_Template(haloMass,deltaCritical,massResolution,bound)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
-       integer         , intent(in   ) :: bound
+     double precision function Tree_Branching_Probability_Bound_Template(haloMass,deltaCritical,massResolution,bound,node)
+       import treeNode
+       double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+       integer                   , intent(in   )         :: bound
+       type            (treeNode), intent(inout), target :: node
      end function Tree_Branching_Probability_Bound_Template
   end interface Tree_Branching_Probability_Template
   interface Tree_Branching_Probability_Template
-     double precision function Tree_Branching_Probability_Template(haloMass,deltaCritical,massResolution)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+     double precision function Tree_Branching_Probability_Template(haloMass,deltaCritical,massResolution,node)
+       import treeNode
+       double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+       type            (treeNode), intent(inout), target :: node
      end function Tree_Branching_Probability_Template
   end interface Tree_Branching_Probability_Template
   interface Tree_Subresolution_Fraction_Template
-     double precision function Tree_Subresolution_Fraction_Template(haloMass,deltaCritical,massResolution)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+     double precision function Tree_Subresolution_Fraction_Template(haloMass,deltaCritical,massResolution,node)
+       import treeNode
+       double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+       type            (treeNode), intent(inout), target :: node
      end function Tree_Subresolution_Fraction_Template
   end interface Tree_Subresolution_Fraction_Template
   interface Tree_Branch_Mass_Template
-     double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator)
-       import pseudoRandom
-       double precision              , intent(in   ) :: deltaCritical      , haloMass, massResolution, &
-            &                                           probabilityFraction
-       type            (pseudoRandom), intent(inout) :: randomNumberGenerator
+     double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
+       import pseudoRandom, treeNode
+       double precision              , intent(in   )         :: deltaCritical      , haloMass, massResolution, &
+            &                                                   probabilityFraction
+       type            (pseudoRandom), intent(inout)         :: randomNumberGenerator
+       type            (treeNode    ), intent(inout), target :: node
      end function Tree_Branch_Mass_Template
   end interface Tree_Branch_Mass_Template
   interface Tree_Maximum_Step_Template
@@ -83,58 +91,62 @@ contains
     return
   end function Tree_Maximum_Step
 
-  double precision function Tree_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+  double precision function Tree_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound,node)
     !% Return the branching probability per unit $\delta_{\mathrm crit}$ for a halo in a merger tree.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
-    integer         , intent(in   ) :: bound
+    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+    integer                   , intent(in   )         :: bound
+    type            (treeNode), intent(inout), target :: node
 
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
     ! Interpolate in the tabulated function and return a value.
-    Tree_Branching_Probability_Bound=Tree_Branching_Probability_Bound_Function(haloMass,deltaCritical,massResolution,bound)
+    Tree_Branching_Probability_Bound=Tree_Branching_Probability_Bound_Function(haloMass,deltaCritical,massResolution,bound,node)
     return
   end function Tree_Branching_Probability_Bound
 
-  double precision function Tree_Branching_Probability(haloMass,deltaCritical,massResolution)
+  double precision function Tree_Branching_Probability(haloMass,deltaCritical,massResolution,node)
     !% Return the branching probability per unit $\delta_{\mathrm crit}$ for a halo in a merger tree.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+    type            (treeNode), intent(inout), target :: node
 
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
     ! Interpolate in the tabulated function and return a value.
-    Tree_Branching_Probability=Tree_Branching_Probability_Function(haloMass,deltaCritical,massResolution)
+    Tree_Branching_Probability=Tree_Branching_Probability_Function(haloMass,deltaCritical,massResolution,node)
     return
   end function Tree_Branching_Probability
 
-  double precision function Tree_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
+  double precision function Tree_Subresolution_Fraction(haloMass,deltaCritical,massResolution,node)
     !% Return the fraction of mass accreted below the resolution limit per $\delta_{\mathrm crit}$ in a halo in a merger tree.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+    type            (treeNode), intent(inout), target :: node
 
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
     ! Interpolate in the tabulated function and return a value.
-    Tree_Subresolution_Fraction=Tree_Subresolution_Fraction_Function(haloMass,deltaCritical,massResolution)
+    Tree_Subresolution_Fraction=Tree_Subresolution_Fraction_Function(haloMass,deltaCritical,massResolution,node)
     return
   end function Tree_Subresolution_Fraction
 
-  double precision function Tree_Branch_Mass(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator)
+  double precision function Tree_Branch_Mass(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
     !% Return the mass of a progenitor halo in a branch split.
     implicit none
-    double precision              , intent(in   ) :: deltaCritical        , haloMass, massResolution, &
-         &                                           probabilityFraction
-    type            (pseudoRandom), intent(inout) :: randomNumberGenerator
+    double precision              , intent(in   )         :: deltaCritical        , haloMass, massResolution, &
+         &                                                   probabilityFraction
+    type            (pseudoRandom), intent(inout)         :: randomNumberGenerator
+    type            (treeNode    ), intent(inout), target :: node
 
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
     ! Interpolate in the tabulated function and return a value.
-    Tree_Branch_Mass=Tree_Branch_Mass_Function(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator)
+    Tree_Branch_Mass=Tree_Branch_Mass_Function(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
     return
   end function Tree_Branch_Mass
 

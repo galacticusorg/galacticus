@@ -94,7 +94,7 @@ contains
     return
   end subroutine fixedDestructor
 
-  double precision function fixedValue(self,time,expansionFactor,collapsing,mass)
+  double precision function fixedValue(self,time,expansionFactor,collapsing,mass,node)
     !% Return the critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
@@ -102,7 +102,8 @@ contains
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     double precision                                                    :: time_
-    !GCC$ attributes unused :: mass
+    type            (treeNode                ), intent(inout), optional :: node
+    !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     fixedValue=+self%criticalOverdensity              &
@@ -110,15 +111,16 @@ contains
     return
   end function fixedValue
 
-  double precision function fixedGradientTime(self,time,expansionFactor,collapsing,mass)
+  double precision function fixedGradientTime(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to time of critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
     double precision                          , intent(in   ), optional :: time               , expansionFactor
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
+    type            (treeNode                ), intent(inout), optional :: node
     double precision                                                    :: time_              , expansionFactor_
-    !GCC$ attributes unused :: mass
+    !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
     fixedGradientTime=-self%criticalOverdensity                                                        &
@@ -128,14 +130,15 @@ contains
     return
   end function fixedGradientTime
 
-  double precision function fixedGradientMass(self,time,expansionFactor,collapsing,mass)
+  double precision function fixedGradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
     double precision                          , intent(in   ), optional :: time      , expansionFactor
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
-    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass
+    type            (treeNode                ), intent(inout), optional :: node
+    !GCC$ attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     fixedGradientMass=0.0d0
     return

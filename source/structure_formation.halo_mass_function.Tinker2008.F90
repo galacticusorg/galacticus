@@ -17,7 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Linear_Growth
   use Cosmology_Functions
   use Virial_Density_Contrast
@@ -146,22 +146,24 @@ contains
     return
   end subroutine tinker2008Destructor
 
-  double precision function tinker2008Differential(self,time,mass)
+  double precision function tinker2008Differential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use FGSL
     use Numerical_Interpolation
     use Table_Labels
     implicit none
-    class           (haloMassFunctionTinker2008), intent(inout)                                            :: self
-    double precision                            , intent(in   )                                            :: time                  , mass
-    double precision                            , dimension(tinker2008ParameterMin:tinker2008ParameterMax) :: parameters
-    class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_
-    integer                                                                                                :: i
-    double precision                                                                                       :: alpha                 , sigma, &
-         &                                                                                                    densityContrast       , a    , &
-         &                                                                                                    alphaDensityContrast  , b    , &
-         &                                                                                                    expansionFactor       , c    , &
-         &                                                                                                    normalization 
+    class           (haloMassFunctionTinker2008), intent(inout)                                                      :: self
+    double precision                            , intent(in   )                                                      :: time                  , mass
+    type            (treeNode                  ), intent(inout)                                           , optional :: node 
+    double precision                            , dimension(tinker2008ParameterMin:tinker2008ParameterMax)           :: parameters
+    class           (virialDensityContrastClass), pointer                                                            :: virialDensityContrast_
+    integer                                                                                                          :: i
+    double precision                                                                                                 :: alpha                 , sigma, &
+         &                                                                                                              densityContrast       , a    , &
+         &                                                                                                              alphaDensityContrast  , b    , &
+         &                                                                                                              expansionFactor       , c    , &
+         &                                                                                                              normalization 
+    !GCC$ attributes unused :: node
 
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= self%time .or. mass /= self%mass) then

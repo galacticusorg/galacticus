@@ -18,8 +18,7 @@
 
 !% Contains a module which implements a critical overdensity excursion set barrier class.
 
-  use Cosmological_Mass_Variance
-  use Critical_Overdensities
+  use Cosmological_Density_Field
 
   !# <excursionSetBarrier name="excursionSetBarrierCriticalOverdensity">
   !#  <description>A critical overdensity excursion set barrier class.</description>
@@ -81,32 +80,34 @@ contains
     return
   end subroutine criticalOverdensityDestructor
   
-  double precision function criticalOverdensityBarrier(self,variance,time,rateCompute)
+  double precision function criticalOverdensityBarrier(self,variance,time,node,rateCompute)
     !% Return the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierCriticalOverdensity), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance   , time
+    type            (treeNode                              ), intent(inout) :: node
     logical                                                 , intent(in   ) :: rateCompute
-    double precision                                                         :: mass
+    double precision                                                        :: mass
     !GCC$ attributes unused :: rateCompute
 
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
-       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=huge(   0.0d0))
+       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=huge(   0.0d0),node=node)
     else
        ! Get the mass corresponding to this variance.
-       mass                      =self%cosmologicalMassVariance_%mass(                sqrt(variance))
+       mass                      =self%cosmologicalMassVariance_%mass(                sqrt(variance)          )
        ! Return the critical overdensity at this time at the computed mass scale.
-       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=     mass     )
+       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=     mass     ,node=node)
     end if
    return
   end function criticalOverdensityBarrier
 
-  double precision function criticalOverdensityBarrierGradient(self,variance,time,rateCompute)
+  double precision function criticalOverdensityBarrierGradient(self,variance,time,node,rateCompute)
     !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
     implicit none
     class           (excursionSetBarrierCriticalOverdensity), intent(inout) :: self
     double precision                                        , intent(in   ) :: variance   , time
+    type            (treeNode                              ), intent(inout) :: node
     logical                                                 , intent(in   ) :: rateCompute
     double precision                                                        :: alpha      , mass
     !GCC$ attributes unused :: rateCompute
@@ -120,11 +121,11 @@ contains
        ! Get the logarithmic slope of σ(M).
        alpha=self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(     mass     )
        ! Return the critical overdensity at this time at the computed mass scale.
-       criticalOverdensityBarrierGradient=+0.5d0                                                       &
-            &                             *mass                                                        &
-            &                             /variance                                                    &
-            &                             /alpha                                                       &
-            &                             *self%criticalOverdensity_%gradientMass(time=time,mass=mass)
+       criticalOverdensityBarrierGradient=+0.5d0                                                                 &
+            &                             *mass                                                                  &
+            &                             /variance                                                              &
+            &                             /alpha                                                                 &
+            &                             *self%criticalOverdensity_%gradientMass(time=time,mass=mass,node=node)
     end if
     return
   end function criticalOverdensityBarrierGradient

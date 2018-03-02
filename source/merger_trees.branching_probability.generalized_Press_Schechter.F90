@@ -20,42 +20,47 @@
 
 module Generalized_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in generalized Press-Schechter theory.
-  use Cosmological_Mass_Variance
+  use Cosmological_Density_Field
   use Numerical_Constants_Math
+  use Galacticus_Nodes
   implicit none
   private
   public :: Generalized_Press_Schechter_Branching_Initialize
 
   ! Parent halo shared variables.
-  double precision            :: parentDTimeDDeltaCritical                                   , parentDelta    , &
-       &                         parentHaloMass                                              , parentSigma    , &
-       &                         parentSigmaSquared                                          , parentTime     , &
-       &                         probabilityMinimumMass                                      , probabilitySeek
+  double precision                      :: parentDTimeDDeltaCritical                                   , parentDelta    , &
+       &                                   parentHaloMass                                              , parentSigma    , &
+       &                                   parentSigmaSquared                                          , parentTime     , &
+       &                                   probabilityMinimumMass                                      , probabilitySeek
   !$omp threadprivate(parentHaloMass,parentTime,parentDTimeDDeltaCritical,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass)
   ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
-  double precision            :: generalizedPressSchechterDeltaStepMaximum
+  double precision                      :: generalizedPressSchechterDeltaStepMaximum
 
   ! Minimum mass to which subresolution fractions will be integrated.
-  double precision            :: generalizedPressSchechterMinimumMass
+  double precision                      :: generalizedPressSchechterMinimumMass
 
   ! Precomputed numerical factors.
-  double precision, parameter :: sqrtTwoOverPi                                =sqrt(2.0d0/Pi)
+  double precision          , parameter :: sqrtTwoOverPi                                =sqrt(2.0d0/Pi)
 
   ! Branching probability integrand integration tolerance.
-  double precision, parameter :: branchingProbabilityIntegrandToleraceRelative=1.0d-2
+  double precision          , parameter :: branchingProbabilityIntegrandToleraceRelative=1.0d-2
 
   ! The maximum sigma that we expect to find.
-  double precision            :: sigmaMaximum
+  double precision                      :: sigmaMaximum
 
   ! Record of whether we have tested the excursion set routines.
-  logical                     :: excursionSetsTested                          =.false.
+  logical                               :: excursionSetsTested                          =.false.
 
   ! Control for inclusion of smooth accretion rates.
-  logical                     :: generalizedPressSchechterSmoothAccretion
+  logical                               :: generalizedPressSchechterSmoothAccretion
 
   ! Record of issued warnings.
-  logical                     :: subresolutionFractionIntegrandFailureWarned  =.false.
+  logical                               :: subresolutionFractionIntegrandFailureWarned  =.false.
 
+  ! Module-scope variables used in integrands.
+  type            (treeNode), pointer :: nodeActive
+  !$omp threadprivate(nodeActive)
+  
 contains
 
   !# <treeBranchingMethod>
@@ -92,7 +97,7 @@ contains
        !#   <name>generalizedPressSchechterMinimumMass</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d6</defaultValue>
-       !#   <description>The minimum mass to used in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
+       !#   <description>The minimum mass to use in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.</description>
        !#   <source>globalParameters</source>
        !#   <type>real</type>
        !# </inputParameter>
@@ -108,29 +113,32 @@ contains
     return
   end subroutine Generalized_Press_Schechter_Branching_Initialize
 
-  subroutine Excursion_Sets_Maximum_Sigma_Test()
+  subroutine Excursion_Sets_Maximum_Sigma_Test(node)
     !% Make a call to excursion set routines with the maximum $\sigma$ that we will use to ensure that they can handle it.
     use Excursion_Sets_First_Crossings
     use Cosmology_Functions
     implicit none
-    class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
-    class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
-    double precision                                          :: presentTime               , testResult, &
-         &                                                       varianceMaximum
+    type            (treeNode                      ), intent(inout) :: node
+    class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass ), pointer       :: cosmologicalMassVariance_
+    class           (excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
+    double precision                                                :: presentTime               , testResult, &
+         &                                                             varianceMaximum
     
     if (.not.excursionSetsTested) then
        !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
        if (.not.excursionSetsTested) then
-          ! Get required objects.
-          cosmologyFunctions_        => cosmologyFunctions       ()
-          cosmologicalMassVariance_  => cosmologicalMassVariance ()
-          excursionSetFirstCrossing_ => excursionSetFirstCrossing()
-          presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
-          sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
-          varianceMaximum=sigmaMaximum**2
-          testResult     =excursionSetFirstCrossing_%probability(                      varianceMaximum,presentTime)
-          testResult     =excursionSetFirstCrossing_%rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
+          if (generalizedPressSchechterMinimumMass > 0.0d0) then
+             ! Get required objects.
+             cosmologyFunctions_        => cosmologyFunctions       ()
+             cosmologicalMassVariance_  => cosmologicalMassVariance ()
+             excursionSetFirstCrossing_ => excursionSetFirstCrossing()
+             presentTime    =cosmologyFunctions_      %cosmicTime  (1.0d0                               )
+             sigmaMaximum   =cosmologicalMassVariance_%rootVariance(generalizedPressSchechterMinimumMass)
+             varianceMaximum=sigmaMaximum**2
+             testResult     =excursionSetFirstCrossing_%probability(                      varianceMaximum,presentTime,node)
+             testResult     =excursionSetFirstCrossing_%rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime,node)
+          end if
           excursionSetsTested=.true.
        end if
        !$omp end critical (Excursion_Sets_Maximum_Sigma_Test)
@@ -138,7 +146,7 @@ contains
     return
   end subroutine Excursion_Sets_Maximum_Sigma_Test
 
-  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator)
+  double precision function Generalized_Press_Schechter_Branch_Mass(haloMass,deltaCritical,massResolution,probability,randomNumberGenerator,node)
     !% Determine the mass of one of the halos to which the given halo branches, given the branching probability,
     !% {\normalfont \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
@@ -149,29 +157,31 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical                   , haloMass                , &
-         &                                                            massResolution                  , probability
-    type            (pseudoRandom                 ), intent(inout) :: randomNumberGenerator
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    double precision                               , parameter     :: toleranceAbsolute        =0.0d0 , toleranceRelative=1.0d-9
-    double precision                               , parameter     :: smallProbabilityFraction =1.0d-3
-    type            (varying_string               )                :: message
-    character       (len=26                       )                :: label
-    type            (rootFinder                   ), save          :: finder
+    double precision                               , intent(in   )         :: deltaCritical                   , haloMass                , &
+         &                                                                    massResolution                  , probability
+    type            (pseudoRandom                 ), intent(inout)         :: randomNumberGenerator
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    double precision                               , parameter             :: toleranceAbsolute        =0.0d0 , toleranceRelative=1.0d-9
+    double precision                               , parameter             :: smallProbabilityFraction =1.0d-3
+    type            (varying_string               )                        :: message
+    character       (len=26                       )                        :: label
+    type            (rootFinder                   ), save                  :: finder
     !$omp threadprivate(finder)
     !GCC$ attributes unused :: randomNumberGenerator
-    
+
     ! Get required objects.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Ensure excursion set calculations have sufficient range in sigma.
-    call Excursion_Sets_Maximum_Sigma_Test()
+    call Excursion_Sets_Maximum_Sigma_Test(node)
     ! Initialize global variables.
     parentHaloMass        =                                       haloMass
     parentSigma           =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta           =deltaCritical
+    nodeActive            => node
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
-    call Compute_Common_Factors
+    call Compute_Common_Factors(node)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(Generalized_Press_Schechter_Branch_Mass_Root)
@@ -244,37 +254,40 @@ contains
     return
   end function Generalized_Press_Schechter_Branching_Maximum_Step
 
-  double precision function Generalized_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound)
+  double precision function Generalized_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound,node)
     !% Return bounds onthe probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
-    integer         , intent(in   ) :: bound
+    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
+    integer                   , intent(in   )         :: bound
+    type            (treeNode), intent(inout), target :: node
     !GCC$ attributes unused :: bound
-    
-    Generalized_Press_Schechter_Branching_Probability_Bound=Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
+
+    Generalized_Press_Schechter_Branching_Probability_Bound=Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution,node)
     return
   end function Generalized_Press_Schechter_Branching_Probability_Bound
 
-  double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution)
+  double precision function Generalized_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution,node)
     !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Numerical_Integration
     implicit none
-    double precision                               , intent(in   ) :: deltaCritical            , haloMass   , massResolution
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
-    type            (fgsl_function                )                :: integrandFunction
-    type            (fgsl_integration_workspace   )                :: integrationWorkspace
-    double precision                                               :: massMaximum              , massMinimum
+    double precision                               , intent(in   )         :: deltaCritical            , haloMass   , massResolution
+    type            (treeNode                     ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass), pointer               :: cosmologicalMassVariance_
+    type            (fgsl_function                )                        :: integrandFunction
+    type            (fgsl_integration_workspace   )                        :: integrationWorkspace
+    double precision                                                       :: massMaximum              , massMinimum
 
-    call Excursion_Sets_Maximum_Sigma_Test()
+    call Excursion_Sets_Maximum_Sigma_Test(node)
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
        cosmologicalMassVariance_ => cosmologicalMassVariance()
        parentHaloMass           =                                       haloMass
        parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
        parentDelta              =deltaCritical
-       call Compute_Common_Factors
+       nodeActive               => node
+       call Compute_Common_Factors(node)
        massMinimum=massResolution
        massMaximum=0.5d0*parentHaloMass
        Generalized_Press_Schechter_Branching_Probability=Integrate(massMinimum,massMaximum,Branching_Probability_Integrand_Generalized &
@@ -287,7 +300,7 @@ contains
     return
   end function Generalized_Press_Schechter_Branching_Probability
 
-  double precision function Generalized_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
+  double precision function Generalized_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
     use Numerical_Integration
@@ -297,34 +310,36 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     implicit none
-    double precision                                , intent(in   ) :: deltaCritical                                 , haloMass       , &
-         &                                                             massResolution
-    class           (cosmologicalMassVarianceClass ), pointer       :: cosmologicalMassVariance_
-    class           (excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
-    double precision                                , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
+    double precision                                , intent(in   )         :: deltaCritical                                 , haloMass       , &
+         &                                                                     massResolution
+    type            (treeNode                      ), intent(inout), target :: node
+    class           (cosmologicalMassVarianceClass ), pointer               :: cosmologicalMassVariance_
+    class           (excursionSetFirstCrossingClass), pointer               :: excursionSetFirstCrossing_
+    double precision                                , save                  :: massResolutionPrevious                 =-1.0d0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                                , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
-    double precision                                                :: massMaximum                                   , massMinimum    , &
-         &                                                             resolutionSigmaOverParentSigma
-    type            (fgsl_function                 )                :: integrandFunction
-    type            (fgsl_integration_workspace    )                :: integrationWorkspace
-    integer                                                         :: errorStatus
-    type            (varying_string                )                :: message
+    double precision                                , parameter             :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
+    double precision                                                        :: massMaximum                                   , massMinimum    , &
+         &                                                                     resolutionSigmaOverParentSigma
+    type            (fgsl_function                 )                        :: integrandFunction
+    type            (fgsl_integration_workspace    )                        :: integrationWorkspace
+    integer                                                                 :: errorStatus
+    type            (varying_string                )                        :: message
 
-    call Excursion_Sets_Maximum_Sigma_Test()
+    call Excursion_Sets_Maximum_Sigma_Test(node)
     ! Get required objects.
     cosmologicalMassVariance_  => cosmologicalMassVariance ()
     excursionSetFirstCrossing_ => excursionSetFirstCrossing()
-   ! Get sigma and delta_critical for the parent halo.
+    ! Get sigma and delta_critical for the parent halo.
     parentHaloMass           =                                       haloMass
     parentSigma              =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta              =deltaCritical
-    call Compute_Common_Factors
+    nodeActive               => node
+    call Compute_Common_Factors(node)
 
     ! If requested, compute the rate of smooth accretion.
     if (generalizedPressSchechterSmoothAccretion) then
        Generalized_Press_Schechter_Subresolution_Fraction=abs(parentDTimeDDeltaCritical)*Merger_Tree_Branching_Modifier(parentDelta&
-            &,sigmaMaximum,parentSigma)*excursionSetFirstCrossing_%rateNonCrossing(parentSigmaSquared,parentTime)
+            &,sigmaMaximum,parentSigma)*excursionSetFirstCrossing_%rateNonCrossing(parentSigmaSquared,parentTime,node)
     else
        Generalized_Press_Schechter_Subresolution_Fraction=0.0d0
     end if
@@ -339,7 +354,7 @@ contains
        massMaximum=massResolution
        Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction&
             &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized,integrandFunction&
-            &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 ,integrationRule=FGSL_Integ_Gauss15&
+            &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3,integrationRule=FGSL_Integ_Gauss15&
             &,errorStatus=errorStatus)
        call Integrate_Done(integrandFunction,integrationWorkspace)
        if (errorStatus /= errorStatusSuccess) then
@@ -377,7 +392,7 @@ contains
 
     cosmologicalMassVariance_ => cosmologicalMassVariance()
     call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
-    Branching_Probability_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
+    Branching_Probability_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha,nodeActive)
     return
   end function Branching_Probability_Integrand_Generalized
 
@@ -389,9 +404,9 @@ contains
     double precision                                               :: childAlpha               , childSigma
 
     if (childHaloMass>0.0d0) then
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
+       cosmologicalMassVariance_ => cosmologicalMassVariance()
        call cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
-       Subresolution_Fraction_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
+       Subresolution_Fraction_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha,nodeActive)*(childHaloMass&
             &/parentHaloMass)
     else
        Subresolution_Fraction_Integrand_Generalized=0.0d0
@@ -399,16 +414,17 @@ contains
     return
   end function Subresolution_Fraction_Integrand_Generalized
 
-  double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
+  double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha,node)
     !% Progenitor mass function from Press-Schechter.
     implicit none
-    double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma
+    double precision          , intent(in   ) :: childAlpha, childHaloMass, childSigma
+    type            (treeNode), intent(inout) :: node
 
-    Progenitor_Mass_Function=(parentHaloMass/childHaloMass**2)*Merging_Rate(childSigma,childAlpha)
+    Progenitor_Mass_Function=(parentHaloMass/childHaloMass**2)*Merging_Rate(childSigma,childAlpha,node)
     return
   end function Progenitor_Mass_Function
 
-  double precision function Merging_Rate(childSigma,childAlpha)
+  double precision function Merging_Rate(childSigma,childAlpha,node)
     !% Computes the merging rate of dark matter halos in the generalized Press-Schechter algorithm. This ``merging rate'' is specifically defined as
     !% \begin{equation}
     !% {{\mathrm d}^2 f \over {\mathrm d} \ln M_{\mathrm child} {\mathrm d} \delta_{\mathrm c}} = 2 \sigma^2(M_{\mathrm child}) \left.{{\mathrm d} \ln \sigma \over {\mathrm d} \ln M}\right|_{M=M_{\mathrm child}} {{\mathrm d}t\over {\mathrm d}\delta_{\mathrm c}} {{\mathrm d}f_{12}\over {\mathrm d}t},
@@ -420,26 +436,28 @@ contains
     use Excursion_Sets_First_Crossings
     implicit none
     double precision                                , intent(in   ) :: childAlpha                , childSigma
+    type            (treeNode                      ), intent(inout) :: node
     class           (excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
     double precision                                                :: childSigmaSquared
-
+    
     excursionSetFirstCrossing_ => excursionSetFirstCrossing()
     childSigmaSquared=childSigma**2
-    Merging_Rate=-2.0d0*excursionSetFirstCrossing_%rate(parentSigmaSquared,childSigmaSquared,parentTime)*childSigmaSquared&
+    Merging_Rate=-2.0d0*excursionSetFirstCrossing_%rate(parentSigmaSquared,childSigmaSquared,parentTime,node)*childSigmaSquared&
          &*abs(childAlpha)*parentDTimeDDeltaCritical*Merger_Tree_Branching_Modifier(parentDelta,childSigma,parentSigma)
     return
   end function Merging_Rate
 
-  subroutine Compute_Common_Factors
+  subroutine Compute_Common_Factors(node)
     !% Precomputes some useful factors that are used in the generalized Press-Schechter branching integrals.
-    use Critical_Overdensities
+    use Cosmological_Density_Field
     implicit none
-    class(criticalOverdensityClass), pointer :: criticalOverdensity_
+    type (treeNode                ), intent(inout) :: node
+    class(criticalOverdensityClass), pointer       :: criticalOverdensity_
 
-    criticalOverdensity_     =>       criticalOverdensity                (                               )
-    parentSigmaSquared       =                                            parentSigma                     **2
-    parentTime               =        criticalOverdensity_%timeOfCollapse(parentDelta,     parentHaloMass)
-    parentDTimeDDeltaCritical=  1.0d0/criticalOverdensity_%gradientTime  (parentTime ,mass=parentHaloMass)
+    criticalOverdensity_     =>       criticalOverdensity                (                                         )
+    parentSigmaSquared       =                                            parentSigma                               **2
+    parentTime               =        criticalOverdensity_%timeOfCollapse(parentDelta,     parentHaloMass,node=node)
+    parentDTimeDDeltaCritical=  1.0d0/criticalOverdensity_%gradientTime  (parentTime ,mass=parentHaloMass,node=node)
     return
   end subroutine Compute_Common_Factors
 

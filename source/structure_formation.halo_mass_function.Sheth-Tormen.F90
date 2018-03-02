@@ -17,8 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a \cite{sheth_ellipsoidal_2001} dark matter halo mass function class.
-  use Cosmological_Mass_Variance
-  use Critical_Overdensities
+  use Cosmological_Density_Field
 
   !# <haloMassFunction name="haloMassFunctionShethTormen">
   !#  <description>The halo mass function is computed from the function given by \cite{sheth_ellipsoidal_2001}.</description>
@@ -139,21 +138,22 @@ contains
     return
   end subroutine shethTormenDestructor
 
-  double precision function shethTormenDifferential(self,time,mass)
+  double precision function shethTormenDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use Numerical_Constants_Math
     implicit none
-    class           (haloMassFunctionShethTormen), intent(inout) :: self
-    double precision                             , intent(in   ) :: time   , mass    
-    double precision                                             :: alpha  , nu  , &
-         &                                                          nuPrime
+    class           (haloMassFunctionShethTormen), intent(inout)           :: self
+    double precision                             , intent(in   )           :: time   , mass
+    type            (treeNode                   ), intent(inout), optional :: node
+    double precision                                                       :: alpha  , nu  , &
+         &                                                                    nuPrime
 
     ! Compute the mass function.
-    nu                     =+(                                                                  &
-         &                    +self%criticalOverdensity_     %value       (time=time,mass=mass) &
-         &                    /self%cosmologicalMassVariance_%rootVariance(               mass) &
+    nu                     =+(                                                                            &
+         &                    +self%criticalOverdensity_     %value       (time=time,mass=mass,node=node) &
+         &                    /self%cosmologicalMassVariance_%rootVariance(               mass          ) &
          &                   )**2
-    nuPrime                =+self%a(time,mass)                                                  &
+    nuPrime                =+self%a(time,mass)                                                            &
          &                  *nu
     alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
     shethTormenDifferential=+self%cosmologyParameters_%OmegaMatter    () &

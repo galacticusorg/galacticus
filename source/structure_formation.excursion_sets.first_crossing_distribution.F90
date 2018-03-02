@@ -21,6 +21,7 @@
 
 module Excursion_Sets_First_Crossings
   !% Provides a class for first crossing distributions for excursion set calculations.
+  use Galacticus_Nodes
   private
   
   !# <functionClass>
@@ -33,19 +34,22 @@ module Excursion_Sets_First_Crossings
   !#   <description>Return the probability for a trajectory to make its first crossing of the barrier at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: variance, time</argument>
+  !#   <argument>double precision          , intent(in   ) :: variance, time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="rate" >
   !#   <description>Return the rate of first crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time} to transition to a first crossing at the given {\normalfont \ttfamily varianceProgenitor}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: variance, varianceProgenitor, time</argument>
+  !#   <argument>double precision          , intent(in   ) :: variance, varianceProgenitor, time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="rateNonCrossing" >
   !#   <description>Return the rate of non-crossing for excursion sets beginning at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: variance, time</argument>
+  !#   <argument>double precision          , intent(in   ) :: variance, time</argument>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
 

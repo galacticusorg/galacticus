@@ -166,7 +166,7 @@ contains
     return
   end subroutine barkana2001WDMDestructor
 
-  double precision function barkana2001WDMValue(self,time,expansionFactor,collapsing,mass)
+  double precision function barkana2001WDMValue(self,time,expansionFactor,collapsing,mass,node)
     !% Returns a mass scaling for critical overdensities based on the results of \cite{barkana_constraints_2001}. This method
     !% assumes that their results for the original collapse barrier (i.e. the critical overdensity, and which they call $B_0$)
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
@@ -179,10 +179,12 @@ contains
     double precision                                   , intent(in   ), optional :: time                         , expansionFactor
     logical                                            , intent(in   ), optional :: collapsing
     double precision                                   , intent(in   ), optional :: mass
+    type            (treeNode                         ), intent(inout), optional :: node
     double precision                                   , parameter               :: massScaleFreeMinimum=- 10.0d0
     double precision                                   , parameter               :: massScaleFreeLarge  =+100.0d0
     double precision                                                             :: exponentialFit               , massScaleFree   , &
          &                                                                          powerLawFit                  , smoothTransition
+    !GCC$ attributes unused :: node
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
@@ -257,21 +259,23 @@ contains
     return
   end function barkana2001WDMValue
 
-  double precision function barkana2001WDMGradientTime(self,time,expansionFactor,collapsing,mass)
+  double precision function barkana2001WDMGradientTime(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to time of critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
     double precision                                   , intent(in   ), optional :: time      , expansionFactor
     logical                                            , intent(in   ), optional :: collapsing
     double precision                                   , intent(in   ), optional :: mass
-    
+    type            (treeNode                         ), intent(inout), optional :: node
+    !GCC$ attributes unused :: node
+
     barkana2001WDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass) &
          &                     *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass) &
          &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass)
     return
   end function barkana2001WDMGradientTime
   
-  double precision function barkana2001WDMGradientMass(self,time,expansionFactor,collapsing,mass)
+  double precision function barkana2001WDMGradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     use Numerical_Interpolation
     use Table_Labels
@@ -282,10 +286,12 @@ contains
     double precision                                   , intent(in   ), optional :: time                    , expansionFactor
     logical                                            , intent(in   ), optional :: collapsing
     double precision                                   , intent(in   ), optional :: mass
+    type            (treeNode                         ), intent(inout), optional :: node
     double precision                                                             :: exponentialFit          , exponentialFitGradient, &
          &                                                                          massScaleFree           , powerLawFit           , &
          &                                                                          powerLawFitGradient     , smoothTransition      , &
          &                                                                          smoothTransitionGradient
+    !GCC$ attributes unused :: node
 
     ! Validate.
     if (.not.present(mass)) call Galacticus_Error_Report('mass is required for this critical overdensity class'//{introspection:location})
