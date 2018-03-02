@@ -72,6 +72,8 @@ contains
           forall(iRange=1:rangeNumber)
              rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
           end forall
+          ! Ensure upper limit is precise.
+          rangeValues(rangeNumber)=rangeMaximum
        end if
     case (rangeTypeLogarithmic)
        ! Call ourself with logged limits and then exponentiate the result.
