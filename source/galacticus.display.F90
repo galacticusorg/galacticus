@@ -307,7 +307,7 @@ contains
        showMessage=(verbositySilent <  verbosityLevel)
     end if
     if (showMessage) then
-       if (percentageComplete == barPercentage) return
+       if (percentageComplete == barPercentage .and. .not.isNew) return
        if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
        percentage=max(0,min(percentageComplete,100))
        majorCount=percentage/2
