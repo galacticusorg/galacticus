@@ -702,6 +702,7 @@ CODE
 	    };
 	    # Add "deepCopy" method.
 	    my %deepCopyModules;
+            my $rankMaximum = 0;
 	    my $deepCopyCode;
 	    $deepCopyCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
@@ -779,9 +780,31 @@ CODE
 				     &&
 				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
 				    ) {
-					$assignments .= "!\$ call destination\%".$_."%initialize()\n"
-					    foreach ( @{$declaration->{'variables'}} );
-				}				    
+					foreach ( @{$declaration->{'variables'}} ) {
+					    my @dimensions =
+						exists($declaration->{'attributes'}) 
+						?
+						map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}} 
+					        :
+						undef();	    
+					    if ( @dimensions ) {
+						my @rank = split(",",$dimensions[0]);
+						# Add loop index variables.
+						$rankMaximum = scalar(@rank)
+						    if ( scalar(@rank) > $rankMaximum );
+						for(my $i=1;$i<=scalar(@rank);++$i) {
+						    $assignments .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
+						}
+						$assignments .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
+						for(my $i=1;$i<=scalar(@rank);++$i) {
+						    $assignments .= "!\$ end do\n";
+						}
+					    } else {
+						# Scalar lock.
+						$assignments .= "!\$ call destination\%".$_."%initialize()\n";
+					    }
+					}
+				}		    
 			    }
 			}
 			$node = $node->{'sibling'};
@@ -850,7 +873,10 @@ CODE
 		$deepCopyCode .= "destination%isIndestructible=.false.\n";
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
-	    $deepCopyCode .= "end select\n";
+            $deepCopyCode .= "end select\n";
+            # Insert any iterator variables needed.
+            $deepCopyCode = "!\$ integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
+                if ( $rankMaximum > 0 );
 	    $methods{'deepCopy'} = 
 	    {
 		description => "Perform a deep copy of the object.",
