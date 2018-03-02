@@ -49,7 +49,7 @@ double precision function distributionNormalMinimum(self)
   !% Return the minimum possible value of a uniform distribution.
   use Galacticus_Error
   implicit none
-  class(distributionNormal), intent(in   ) :: self
+  class(distributionNormal), intent(inout) :: self
 
   if (self%limitLowerExists) then
      distributionNormalMinimum=self%limitLower
@@ -64,7 +64,7 @@ double precision function distributionNormalMaximum(self)
   !% Return the maximum possible value of a uniform distribution.
   use Galacticus_Error
   implicit none
-  class(distributionNormal), intent(in   ) :: self
+  class(distributionNormal), intent(inout) :: self
 
   if (self%limitUpperExists) then
      distributionNormalMaximum=self%limitUpper
@@ -79,7 +79,7 @@ double precision function distributionNormalDensity(self,x)
   !% Return the density of a normal distribution.
   use Numerical_Constants_Math
   implicit none
-  class           (distributionNormal), intent(in   ) :: self
+  class           (distributionNormal), intent(inout) :: self
   double precision                    , intent(in   ) :: x
   
   if     (                                                   &
@@ -112,7 +112,7 @@ double precision function distributionNormalCumulative(self,x)
   !% Return the cumulative probability of a normal distribution.
   use Error_Functions
   implicit none
-  class           (distributionNormal), intent(in   ) :: self
+  class           (distributionNormal), intent(inout) :: self
   double precision                    , intent(in   ) :: x
 
   if      (self%limitLowerExists .and. x < self%limitLower) then
@@ -137,7 +137,7 @@ double precision function distributionNormalInverse(self,p)
   !% Return the inverse of a normal distribution.
   use Galacticus_Error
   implicit none
-  class           (distributionNormal), intent(in   ) :: self
+  class           (distributionNormal), intent(inout) :: self
   double precision                     , intent(in   ) :: p
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &

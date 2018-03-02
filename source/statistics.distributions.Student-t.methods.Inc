@@ -32,7 +32,7 @@ double precision function distributionStudentTDensity(self,x)
   !% Return the density of a StudentT distribution.
   use FGSL
   implicit none
-  class           (distributionStudentT), intent(in   ) :: self
+  class           (distributionStudentT), intent(inout) :: self
   double precision                      , intent(in   ) :: x
   
   distributionStudentTDensity=FGSL_Ran_tDist_PDF(x,self%degreesOfFreedom)
@@ -43,7 +43,7 @@ double precision function distributionStudentTCumulative(self,x)
   !% Return the cumulative probability of a StudentT distribution.
   use FGSL
   implicit none
-  class           (distributionStudentT), intent(in   ) :: self
+  class           (distributionStudentT), intent(inout) :: self
   double precision                      , intent(in   ) :: x
 
   distributionStudentTCumulative=FGSL_CDF_tDist_P(x,self%degreesOfFreedom)
@@ -55,7 +55,7 @@ double precision function distributionStudentTInverse(self,p)
   use Galacticus_Error
   use FGSL
   implicit none
-  class           (distributionStudentT), intent(in   ) :: self
+  class           (distributionStudentT), intent(inout) :: self
   double precision                      , intent(in   ) :: p
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &

@@ -56,7 +56,7 @@ double precision function distributionGammaDensity(self,x)
   !% Return the density of a Gamma distribution.
   use Gamma_Functions
   implicit none
-  class           (distributionGamma), intent(in   ) :: self
+  class           (distributionGamma), intent(inout) :: self
   double precision                   , intent(in   ) :: x
   
   if     (                                                   &
@@ -85,7 +85,7 @@ double precision function distributionGammaCumulative(self,x)
   !% Return the cumulative probability of a Gamma distribution.
   use Gamma_Functions
   implicit none
-  class           (distributionGamma), intent(in   ) :: self
+  class           (distributionGamma), intent(inout) :: self
   double precision                   , intent(in   ) :: x
 
   if      (                            x <= 0.0d0          ) then
@@ -123,7 +123,7 @@ double precision function distributionGammaInverse(self,p)
   use Galacticus_Error
   use Gamma_Functions
   implicit none
-  class           (distributionGamma), intent(in   ) :: self
+  class           (distributionGamma), intent(inout) :: self
   double precision                   , intent(in   ) :: p
 
   if (p < 0.0d0 .or. p > 1.0d0)                                    &

@@ -58,7 +58,7 @@ end function distributionLogNormalConstructor
 double precision function distributionLogNormalMinimum(self)
   !% Return the minimum possible value of a uniform distribution.
   implicit none
-  class(distributionLogNormal), intent(in   ) :: self
+  class(distributionLogNormal), intent(inout) :: self
 
   distributionLogNormalMinimum=exp(self%distributionNormal%minimum())
   return
@@ -67,7 +67,7 @@ end function distributionLogNormalMinimum
 double precision function distributionLogNormalMaximum(self)
   !% Return the maximum possible value of a uniform distribution.
   implicit none
-  class(distributionLogNormal), intent(in   ) :: self
+  class(distributionLogNormal), intent(inout) :: self
 
   distributionLogNormalMaximum=exp(self%distributionNormal%maximum())
   return
@@ -76,7 +76,7 @@ end function distributionLogNormalMaximum
 double precision function distributionLogNormalDensity(self,x)
   !% Return the density of a normal distribution.
   implicit none
-  class           (distributionLogNormal), intent(in   ) :: self
+  class           (distributionLogNormal), intent(inout) :: self
   double precision                       , intent(in   ) :: x
 
   distributionLogNormalDensity=+self%distributionNormal%density(log(x)) &
@@ -87,7 +87,7 @@ end function distributionLogNormalDensity
 double precision function distributionLogNormalCumulative(self,x)
   !% Return the cumulative probability of a normal distribution.
   implicit none
-  class           (distributionLogNormal), intent(in   ) :: self
+  class           (distributionLogNormal), intent(inout) :: self
   double precision                       , intent(in   ) :: x
 
   distributionLogNormalCumulative=self%distributionNormal%cumulative(log(x))
@@ -97,7 +97,7 @@ end function distributionLogNormalCumulative
 double precision function distributionLogNormalInverse(self,p)
   !% Return the inverse of a normal distribution.
   implicit none
-  class           (distributionLogNormal), intent(in   ) :: self
+  class           (distributionLogNormal), intent(inout) :: self
   double precision                       , intent(in   ) :: p
 
   distributionLogNormalInverse=exp(self%distributionNormal%inverse(p))
