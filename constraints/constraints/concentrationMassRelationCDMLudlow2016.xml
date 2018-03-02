@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the Copernicus Complexio CDM simualtion concentration-mass relation. -->
+<constraint>
+  <name>Copernicus Complexio CDM simualtion concentration-mass relation</name>
+  <label>concentrationMassRelationCDMLudlow2016</label>
+  <outputRedshift>0.0</outputRedshift>
+  <haloMassResolution>1.0e5</haloMassResolution>
+  <haloMassMinimum>1.0e07</haloMassMinimum>
+  <haloMassMaximum>1.0e13</haloMassMaximum>
+  <analysis>constraints/scripts/concentrationMassRelationCDMLudlow2016.pl</analysis>
+</constraint>

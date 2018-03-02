@@ -1,0 +1,10 @@
+<!-- A constraint compilation to constrain to match the N-body concentration-mass relation --> 
+<constraintCompilation>
+
+  <!-- Copernicus Complexio CDM simualtion concentration-mass relation -->
+  <constraint>
+    <definition>constraints/constraints/concentrationMassRelationCDMLudlow2016.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>
