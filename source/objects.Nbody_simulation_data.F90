@@ -29,6 +29,7 @@ module NBody_Simulation_Data
      !% A class to store N-body simulation data.
      type            (hdf5Object)                              :: analysis
      double precision            , allocatable, dimension(:,:) :: position       , velocity
+     integer                     , allocatable, dimension(  :) :: identifier
      double precision                                          :: lengthSoftening, massParticle
   end type nBodyData
 
