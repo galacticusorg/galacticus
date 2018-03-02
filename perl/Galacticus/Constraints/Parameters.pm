@@ -547,7 +547,7 @@ sub Sample_Models {
 	    $command .= "ulimit -t unlimited\n";
 	    $command .= "ulimit -c unlimited\n";
 	    $command .= "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
-	    $command .= "mpirun --bynode -np 1 Galacticus.exe ".$modelDirectory."parameters.xml\n";
+	    $command .= "mpirun --bynode -np 1 ".(exists($config->{'likelihood'}->{'executable'}) ? $config->{'likelihood'}->{'executable'} : "Galacticus.exe")." ".$modelDirectory."parameters.xml\n";
 	    unless ( exists($arguments{'analyze'}) && $arguments{'analyze'} eq "no" ) {
 		foreach my $constraint ( @constraints ) {
 		    # Parse the definition file.
