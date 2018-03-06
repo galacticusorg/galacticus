@@ -167,6 +167,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Memory_Management
+    use Galacticus_Display
     implicit none
     type            (treeNode                  ), intent(inout)                     :: node
     double precision                            , intent(in   )                     :: specificAngularMomentum
@@ -195,7 +196,7 @@ contains
 
     if (iterationCount == 1 .or. haloFraction <= 0.0d0) then       
        ! If structure is to be reverted, do so now.
-       if (revertStructure) then
+       if (revertStructure.and.allocated(radiusStored)) then
           call   Radius_Set(node,  radiusStored(activeComponentCount))
           call Velocity_Set(node,velocityStored(activeComponentCount))
        end if
@@ -316,6 +317,7 @@ contains
 
        ! Catch unphysical states.
        if (radius <= 0.0d0) then
+          if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
           call node%serializeASCII()
           message='radius has reached zero for node '
           message=message//node%index()//' - report follows:'//char(10)
