@@ -127,20 +127,20 @@
      !% A cooling function class which interpolates in a tabulated cooling function read from file.
      private
      type            (varying_string   )                              :: fileName
-     double precision                                                 :: metallicityMaximum        , metallicityMinimum          , &
-          &                                                              temperatureMaximum        , temperatureMinimum
-     integer                                                          :: extrapolateMetallicityHigh, extrapolateMetallicityLow   , &
-          &                                                              extrapolateTemperatureHigh, extrapolateTemperatureLow
-     logical                                                          :: firstMetallicityIsZero    , logarithmicTable
-     integer                                                          :: metallicityCount          , temperatureCount
+     double precision                                                 :: metallicityMaximum               , metallicityMinimum                 , &
+          &                                                              temperatureMaximum               , temperatureMinimum
+     integer                                                          :: extrapolateMetallicityHigh       , extrapolateMetallicityLow          , &
+          &                                                              extrapolateTemperatureHigh       , extrapolateTemperatureLow
+     logical                                                          :: firstMetallicityIsZero           , logarithmicTable
+     integer                                                          :: metallicityCount                 , temperatureCount
      double precision                                                 :: firstNonZeroMetallicity
-     double precision                   , allocatable, dimension(:)   :: metallicities             , temperatures
+     double precision                   , allocatable, dimension(:)   :: metallicities                    , temperatures
      double precision                   , allocatable, dimension(:,:) :: coolingFunctionTable
-     logical                                                          :: resetMetallicity          , resetTemperature                      
-     type            (fgsl_interp_accel)                              :: acceleratorMetallicity    , acceleratorTemperature
-     double precision                                                 :: temperaturePrevious       , metallicityPrevious         , &
-          &                                                              temperatureSlopePrevious  , metallicitySlopePrevious    , &
-          &                                                              coolingFunctionPrevious   , coolingFunctionSlopePrevious
+     logical                                                          :: resetMetallicity          =.true., resetTemperature            =.true.          
+     type            (fgsl_interp_accel)                              :: acceleratorMetallicity           , acceleratorTemperature
+     double precision                                                 :: temperaturePrevious              , metallicityPrevious                , &
+          &                                                              temperatureSlopePrevious         , metallicitySlopePrevious           , &
+          &                                                              coolingFunctionPrevious          , coolingFunctionSlopePrevious
    contains
      !@ <objectMethods>
      !@   <object>coolingFunctionCIEFile</object>
