@@ -138,25 +138,25 @@
      !% A chemical state class which interpolates state given in a file assuming collisional ionization equilibrium.
      private
      type            (varying_string    )                              :: fileName
-     double precision                                                  :: metallicityMaximum               , metallicityMinimum         , &
-          &                                                               temperatureMaximum               , temperatureMinimum
-     integer                                                           :: extrapolateMetallicityHigh       , extrapolateMetallicityLow  , &
-          &                                                               extrapolateTemperatureHigh       , extrapolateTemperatureLow
-     logical                                                           :: firstMetallicityIsZero           , gotHydrogenAtomic          , &
-          &                                                               gotHydrogenCation                , logarithmicTable
-     integer                                                           :: metallicityCount                 , temperatureCount
-     double precision                                                  :: firstNonZeroMetallicity          , electronDensityPrevious    , &
-          &                                                               metallicityPrevious              , temperaturePrevious        , &
-          &                                                               electronDensitySlopePrevious     , metallicitySlopePrevious   , &
-          &                                                               temperatureSlopePrevious         , metallicityChemicalPrevious, &
+     double precision                                                  :: metallicityMaximum                      , metallicityMinimum                , &
+          &                                                               temperatureMaximum                      , temperatureMinimum
+     integer                                                           :: extrapolateMetallicityHigh              , extrapolateMetallicityLow         , &
+          &                                                               extrapolateTemperatureHigh              , extrapolateTemperatureLow
+     logical                                                           :: firstMetallicityIsZero                  , gotHydrogenAtomic                 , &
+          &                                                               gotHydrogenCation                       , logarithmicTable
+     integer                                                           :: metallicityCount                        , temperatureCount
+     double precision                                                  :: firstNonZeroMetallicity                 , electronDensityPrevious           , &
+          &                                                               metallicityPrevious                     , temperaturePrevious               , &
+          &                                                               electronDensitySlopePrevious            , metallicitySlopePrevious          , &
+          &                                                               temperatureSlopePrevious                , metallicityChemicalPrevious       , &
           &                                                               temperatureChemicalPrevious
      type            (chemicalAbundances)                              :: chemicalDensitiesPrevious
-     double precision                    , allocatable, dimension(:  ) :: metallicities                    , temperatures
-     double precision                    , allocatable, dimension(:,:) :: densityElectron                  , densityHydrogenAtomic      , &
+     double precision                    , allocatable, dimension(:  ) :: metallicities                           , temperatures
+     double precision                    , allocatable, dimension(:,:) :: densityElectron                         , densityHydrogenAtomic             , &
           &                                                               densityHydrogenCation
-     logical                                                           :: resetMetallicity                 , resetTemperature
-     type            (fgsl_interp_accel )                              :: acceleratorMetallicity           , acceleratorTemperature
-     integer                                                           :: atomicHydrogenCationChemicalIndex, atomicHydrogenChemicalIndex, &
+     logical                                                           :: resetMetallicity                 =.true., resetTemperature           =.true.
+     type            (fgsl_interp_accel )                              :: acceleratorMetallicity                  , acceleratorTemperature
+     integer                                                           :: atomicHydrogenCationChemicalIndex       , atomicHydrogenChemicalIndex       , &
           &                                                               electronChemicalIndex
    contains
      !@ <objectMethods>
