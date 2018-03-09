@@ -794,6 +794,7 @@ contains
        call FODEIV2_Driver_Errors(ode2Driver,yError)
        yTolerance=treeNodeODEStepTolerances(y)
        ! Report the failure message.
+       if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
        message="ODE solver failed with error code "
        message=message//status//" in tree #"//activeTreeIndex
        call Galacticus_Display_Message(message)
