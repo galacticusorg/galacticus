@@ -220,13 +220,17 @@ contains
           if (.not.allocated(radiusStored)) then
              call allocateArray(  radiusStored,storeIncrement)
              call allocateArray(velocityStored,storeIncrement)
+             radiusStored  =0.0d0
+             velocityStored=0.0d0
           else if (activeComponentCount > size(radiusStored)) then
              call move_alloc     (  radiusStored,        radiusStoredTmp                )
              call move_alloc     (velocityStored,      velocityStoredTmp                )
              call allocateArray  (  radiusStored,shape(  radiusStoredTmp)+storeIncrement)
              call allocateArray  (velocityStored,shape(velocityStoredTmp)+storeIncrement)
-             radiusStored  (1:size(  radiusStoredTmp))=  radiusStoredTmp
-             velocityStored(1:size(velocityStoredTmp))=velocityStoredTmp
+             radiusStored  (                        1:size(  radiusStoredTmp))=  radiusStoredTmp
+             velocityStored(                        1:size(velocityStoredTmp))=velocityStoredTmp
+             radiusStored  (size(  radiusStoredTmp)+1:size(  radiusStored   ))=0.0d0
+             velocityStored(size(velocityStoredTmp)+1:size(velocityStored   ))=0.0d0
              call deallocateArray(  radiusStoredTmp)
              call deallocateArray(velocityStoredTmp)
           end if
