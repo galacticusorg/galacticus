@@ -150,10 +150,10 @@ contains
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass              , wavenumber
     double precision                                               , parameter     :: xSeriesMaximum      =1.0d-3
-    double precision                                                               :: kSpaceSharpRadius          , topHatRadius, &
-         &                                                                            topHatWindowFunction       , totalRadius , &
-         &                                                                            wavenumberCutOff           , x           , &
-         &                                                                            xSquared
+    double precision                                                               :: kSpaceSharpRadius          , topHatRadius             , &
+         &                                                                            topHatWindowFunction       , totalRadius              , &
+         &                                                                            wavenumberCutOff           , x                        , &
+         &                                                                            xSquared                   , kSpaceSharpWindowFunction
 
     ! Find the radius enclosing this mass.
     totalRadius      =+(                                             &
@@ -194,14 +194,15 @@ contains
     end if
     ! Compute k-space sharp window function.
     if      (wavenumber <=            0.0d0) then
-       wavenumberCutOff=0.0d0
+       kSpaceSharpWindowFunction=0.0d0
     else if (wavenumber <= wavenumberCutOff) then
-       wavenumberCutOff=1.0d0
+       kSpaceSharpWindowFunction=1.0d0
     else
-       wavenumberCutOff=0.0d0
+       kSpaceSharpWindowFunction=0.0d0
     end if
     ! Compute the convolution (which is just the multiplication in k-space).
-    topHatSharpKHybridValue=wavenumberCutOff*topHatWindowFunction
+    topHatSharpKHybridValue=+kSpaceSharpWindowFunction &
+         &                  *     topHatWindowFunction
     return
   end function topHatSharpKHybridValue
 
