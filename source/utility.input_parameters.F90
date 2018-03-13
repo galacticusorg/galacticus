@@ -38,18 +38,19 @@ module Input_Parameters
   include 'utility.input_parameters.unique_labels.visibilities.inc'
 
   !# <generic identifier="Type">
-  !#  <instance label="Logical"        intrinsic="logical"                                        outputConverter="regEx¦(.*)¦char($1)¦"/>
-  !#  <instance label="Integer"        intrinsic="integer"                                        outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="Long"           intrinsic="integer         (kind=kind_int8)"               outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="Double"         intrinsic="double precision"                               outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="Character"      intrinsic="character       (len=*         )"               outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="VarStr"         intrinsic="type            (varying_string)"               outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="LogicalRank1"   intrinsic="logical                         , dimension(:)" outputConverter="regEx¦(.*)¦char($1)¦"/>
-  !#  <instance label="IntegerRank1"   intrinsic="integer                         , dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="DoubleRank1"    intrinsic="double precision                , dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="LongRank1"      intrinsic="integer         (kind=kind_int8), dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="CharacterRank1" intrinsic="character       (len=*         ), dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
-  !#  <instance label="VarStrRank1"    intrinsic="type            (varying_string), dimension(:)" outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
+  !#  <instance label="Integer"        intrinsic="integer"                                          outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="Long"           intrinsic="integer         (kind=kind_int8)"                 outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="Double"         intrinsic="double precision"                                 outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="Character"      intrinsic="character       (len=*         )"                 outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="VarStr"         intrinsic="type            (varying_string)"                 outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="LogicalRank1"   intrinsic="logical                         , dimension(:)"   outputConverter="regEx¦(.*)¦char($1)¦"/>
+  !#  <instance label="IntegerRank1"   intrinsic="integer                         , dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="DoubleRank1"    intrinsic="double precision                , dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="LongRank1"      intrinsic="integer         (kind=kind_int8), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="CharacterRank1" intrinsic="character       (len=*         ), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="VarStrRank1"    intrinsic="type            (varying_string), dimension(:)"   outputConverter="regEx¦(.*)¦$1¦"      />
+  !#  <instance label="DoubleRank2"    intrinsic="double precision                , dimension(:,:)" outputConverter="regEx¦(.*)¦$1¦"      />
   !# </generic>
 
   !# <generic identifier="cType">
