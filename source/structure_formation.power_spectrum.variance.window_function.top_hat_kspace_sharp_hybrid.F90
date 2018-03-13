@@ -32,6 +32,7 @@
      final     ::                      topHatSharpKHybridDestructor
      procedure :: value             => topHatSharpKHybridValue
      procedure :: wavenumberMaximum => topHatSharpKHybridWavenumberMaximum
+     procedure :: radii             => topHatSharpKHybridRadii
   end type powerSpectrumWindowFunctionTopHatSharpKHybrid
 
   interface powerSpectrumWindowFunctionTopHatSharpKHybrid
@@ -42,11 +43,11 @@
 
 contains
 
-  function topHatSharpKHybridConstructorParameters(parameters)
+  function topHatSharpKHybridConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                :: topHatSharpKHybridConstructorParameters
+    type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (cosmologyParametersClass                     ), pointer       :: cosmologyParameters_
     type            (varying_string                               )                :: normalization
@@ -86,46 +87,35 @@ contains
        normalizationChar=char(normalization)
        read (normalizationChar,*) normalizationValue
     end if
-    topHatSharpKHybridConstructorParameters=topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalizationValue,radiiRatio)
+    self=powerSpectrumWindowFunctionTopHatSharpKHybrid(cosmologyParameters_,normalizationValue,radiiRatio)
     !# <inputParametersValidate source="parameters"/>
     return
   end function topHatSharpKHybridConstructorParameters
 
-  function topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalization,radiiRatio)
+  function topHatSharpKHybridConstructorInternal(cosmologyParameters_,normalization,radiiRatio) result(self)
     !% Internal constructor for the {\normalfont \ttfamily topHatSharpKHybrid} power spectrum window function class.
     use Numerical_Constants_Math
     implicit none
-    type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                        :: topHatSharpKHybridConstructorInternal
+    type            (powerSpectrumWindowFunctionTopHatSharpKHybrid)                        :: self
     class           (cosmologyParametersClass                     ), target, intent(in   ) :: cosmologyParameters_    
     double precision                                                                       :: normalization                        , radiiRatio
     character       (len=18                                       )                        :: normalizationText
-        
-    topHatSharpKHybridConstructorInternal%cosmologyParameters_ => cosmologyParameters_
-    topHatSharpKHybridConstructorInternal%radiiRatio           =  radiiRatio
+    !# <constructorAssign variables="radiiRatio, *cosmologyParameters_"/>
+    
     ! Compute normalization.
     if (normalization <= 0.0d0) then
        ! Compute the "natural" normalization.
-       topHatSharpKHybridConstructorInternal%cutOffNormalization=                                &
-            & +(                                                                                 &
-            &   +6.0d0                                                                           &
-            &   *Pi                                                                          **2 &
-            &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
-            &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%densityCritical()    &
-            &  )**(1.0d0/3.0d0)
-       topHatSharpKHybridConstructorInternal%normalization='natural'
+       self%cutOffNormalization=+(                &
+            &                     +9.0d0          &
+            &                     *Pi             &
+            &                     /2.0d0          &
+            &                    )**(1.0d0/3.0d0)
+       self%normalization='natural'
     else
        ! Use provided normalization.
-       topHatSharpKHybridConstructorInternal%cutOffNormalization=                                &
-            & +normalization                                                                     &
-            & *(                                                                                 &
-            &   +4.0d0                                                                           &
-            &   *Pi                                                                              &
-            &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
-            &   *topHatSharpKHybridConstructorInternal%cosmologyParameters_%densityCritical()    &
-            &   /3.0d0                                                                           &
-            &  )**(1.0d0/3.0d0)
+       self%cutOffNormalization=+normalization
        write (normalizationText,'(e17.10)') normalization
-       topHatSharpKHybridConstructorInternal%normalization=trim(normalizationText)
+       self%normalization=trim(normalizationText)
     end if
     return
   end function topHatSharpKHybridConstructorInternal
@@ -141,41 +131,25 @@ contains
 
   double precision function topHatSharpKHybridValue(self,wavenumber,smoothingMass)
     !% Computes a window function for calculations of the variance in the power spectrum. Specifically, uses a convolution of
-    !% top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_{\mathrm th}$, while the $k$-space cut-off
-    !% wavenumber is $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii
-    !% are chosen such that $r_{\mathrm th}^2 + r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm th}$ where
-    !% $\beta=${\normalfont \ttfamily [pradiiRatio]}.
-    use Numerical_Constants_Math
+    !% top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_{\mathrm th}$, while the $k$-space
+    !% cut-off wavenumber is $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are
+    !% chosen such that $r_{\mathrm th}^2 + r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm
+    !% th}$ where $\beta=${\normalfont \ttfamily [pradiiRatio]}.
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass              , wavenumber
     double precision                                               , parameter     :: xSeriesMaximum      =1.0d-3
-    double precision                                                               :: kSpaceSharpRadius          , topHatRadius             , &
+    double precision                                                               :: radiusKSpaceSharp          , radiusTopHat             , &
          &                                                                            topHatWindowFunction       , totalRadius              , &
          &                                                                            wavenumberCutOff           , x                        , &
          &                                                                            xSquared                   , kSpaceSharpWindowFunction
 
-    ! Find the radius enclosing this mass.
-    totalRadius      =+(                                             &
-         &              +3.0d0                                       &
-         &              /4.0d0                                       &
-         &              /Pi                                          &
-         &              *smoothingMass                               &
-         &              /self%cosmologyParameters_%OmegaMatter    () &
-         &              /self%cosmologyParameters_%densityCritical() &
-         &              )**(1.0d0/3.0d0)
-    ! Find the top-hat and sharp k-space radii, and the k-space wavenumber.
-    topHatRadius     =+totalRadius                                   &
-         &            /sqrt(                                         &
-         &                  +1.0d0                                   &
-         &                  +self%radiiRatio**2                      &
-         &                 )
-    kSpaceSharpRadius=+self%radiiRatio                               &
-         &            *topHatRadius
-    wavenumberCutOff =+self%cutOffNormalization                      &
-         &            /kSpaceSharpRadius
+    ! Find radii for both filters and cut-off wavenumber for the sharp k-space filter.
+    call self%radii(smoothingMass,radiusTopHat,radiusKSpaceSharp)
+    wavenumberCutOff=self%wavenumberMaximum(smoothingMass)
     ! Compute the top-hat window function.
-    x                =+wavenumber*topHatRadius
+    x               =+wavenumber   &
+         &           *radiusTopHat
     if      (x <= 0.0d0) then
        topHatWindowFunction=0.0d0
     else if (x <= xSeriesMaximum) then
@@ -202,10 +176,10 @@ contains
     end if
     ! Compute the convolution (which is just the multiplication in k-space).
     topHatSharpKHybridValue=+kSpaceSharpWindowFunction &
-         &                  *     topHatWindowFunction
+         &                  *     topHatWindowFunction      
     return
   end function topHatSharpKHybridValue
-
+  
   double precision function topHatSharpKHybridWavenumberMaximum(self,smoothingMass)
     !% Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
     !% non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
@@ -215,10 +189,43 @@ contains
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
-    double precision                                               , parameter     :: wavenumberLarge=huge(1.0d0) ! Effective infinity.
-    !GCC$ attributes unused :: self, smoothingMass
-    
-    topHatSharpKHybridWavenumberMaximum=wavenumberLarge
+    double precision                                                               :: radiusTopHat , radiusKSpaceSharp
+
+    call self%radii(smoothingMass,radiusTopHat,radiusKSpaceSharp)
+    topHatSharpKHybridWavenumberMaximum=+self%cutOffNormalization &
+         &                              /radiusKSpaceSharp
     return
   end function topHatSharpKHybridWavenumberMaximum
+
+  subroutine topHatSharpKHybridRadii(self,smoothingMass,radiusTopHat,radiusKSpaceSharp)
+    !% Computes the radii of the top-hat and sharp $k$-space filters. Specifically, uses a convolution of top-hat real-space and
+    !% sharp $k$-space window functions. The top-hat radius is $r_{\mathrm th}$, while the $k$-space cut-off wavenumber is
+    !% $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\tt [normalization]}. The two radii are chosen such that $r_{\mathrm th}^2 +
+    !% r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm th}$ where $\beta=${\tt [radiiRatio]}.
+    use Numerical_Constants_Math
+    implicit none
+    class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
+    double precision                                               , intent(in   ) :: smoothingMass
+    double precision                                               , intent(  out) :: radiusTopHat , radiusKSpaceSharp
+    double precision                                                               :: radiusTotal
+
+    ! Find the radius enclosing this mass.
+    radiusTotal      =+(                                             &
+         &              +3.0d0                                       &
+         &              /4.0d0                                       &
+         &              /Pi                                          &
+         &              *smoothingMass                               &
+         &              /self%cosmologyParameters_%OmegaMatter    () &
+         &              /self%cosmologyParameters_%densityCritical() &
+         &              )**(1.0d0/3.0d0)
+    ! Find the top-hat and sharp k-space radii, and the k-space wavenumber.
+    radiusTopHat     =+radiusTotal                                   &
+         &            /sqrt(                                         &
+         &                  +1.0d0                                   &
+         &                  +self%radiiRatio**2                      &
+         &                 )
+    radiusKSpaceSharp=+self%radiiRatio                               &
+         &            *radiusTopHat
+    return
+  end subroutine topHatSharpKHybridRadii
 
