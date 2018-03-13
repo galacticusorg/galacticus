@@ -17,10 +17,8 @@
 
 //% Implements Fortran-callable wrappers around the Linux file locking functions.
 
-#ifdef __linux__
-#include <linux/version.h>
-#endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#include <flock_config.h>
+#ifdef OFDAVAIL
 #define _GNU_SOURCE
 #endif
 #include <unistd.h>
@@ -56,12 +54,8 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
   (*ld)->fl.l_whence=SEEK_SET;
   (*ld)->fl.l_start =0;        /* Offset from l_whence                        */
   (*ld)->fl.l_len   =1;        /* length, 0 = to EOF                          */
-#ifdef __linux__
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#ifdef OFDAVAIL
   (*ld)->fl.l_pid   =0;        /* no PID for Linux open file descriptor locks */
-#else
-  (*ld)->fl.l_pid   =getpid(); /* our PID                                     */
-#endif
 #else
   (*ld)->fl.l_pid   =getpid(); /* our PID                                     */
 #endif
@@ -72,12 +66,8 @@ void flock_C(const char *name, struct lockDescriptor **ld, int lockIsShared) {
     printf("  -> error description is : %s\n",strerror(errno));
     abort();
   }
-#ifdef __linux__
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#ifdef OFDAVAIL
   if (fcntl((*ld)->fd, F_OFD_SETLKW, &(*ld)->fl) == -1) {
-#else
-  if (fcntl((*ld)->fd, F_SETLKW    , &(*ld)->fl) == -1) {
-#endif
 #else
   if (fcntl((*ld)->fd, F_SETLKW    , &(*ld)->fl) == -1) {
 #endif
@@ -111,12 +101,8 @@ void funlock_C(struct lockDescriptor **ld) {
   if ( (*ld)->fd != -1 ) {
     (*ld)->fl.l_type  =F_UNLCK;
     close((*ld)->fd);
-#ifdef __linux__
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#ifdef OFDAVAIL
     fcntl((*ld)->fd, F_OFD_SETLK, &(*ld)->fl); /* set the region to unlocked */
-#else
-    fcntl((*ld)->fd, F_SETLK    , &(*ld)->fl); /* set the region to unlocked */
-#endif
 #else
     fcntl((*ld)->fd, F_SETLK    , &(*ld)->fl); /* set the region to unlocked */
 #endif
