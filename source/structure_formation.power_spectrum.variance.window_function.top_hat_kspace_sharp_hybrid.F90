@@ -140,9 +140,9 @@ contains
     double precision                                               , intent(in   ) :: smoothingMass              , wavenumber
     double precision                                               , parameter     :: xSeriesMaximum      =1.0d-3
     double precision                                                               :: radiusKSpaceSharp          , radiusTopHat             , &
-         &                                                                            topHatWindowFunction       , totalRadius              , &
+         &                                                                            topHatWindowFunction       , kSpaceSharpWindowFunction, &
          &                                                                            wavenumberCutOff           , x                        , &
-         &                                                                            xSquared                   , kSpaceSharpWindowFunction
+         &                                                                            xSquared
 
     ! Find radii for both filters and cut-off wavenumber for the sharp k-space filter.
     call self%radii(smoothingMass,radiusTopHat,radiusKSpaceSharp)
