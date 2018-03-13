@@ -157,6 +157,16 @@ $(BUILDPATH)/hdf5FCInterop.exe  : source/hdf5FCInterop.F90
 $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
+# Configuration of file locking implementation.
+$(BUILDPATH)/flock_config.h : source/flock_config.c
+	$(CCOMPILER) -c source/flock_config.c -o $(BUILDPATH)/flock_config.o $(CFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "#define OFDAVAIL"   > $(BUILDPATH)/flock_config.h ; \
+	else \
+	 echo "#define OFDUNAVAIL" > $(BUILDPATH)/flock_config.h ; \
+	fi
+$(BUILDPATH)/flock.o : $(BUILDPATH)/flock_config.h
+
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
 $(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
