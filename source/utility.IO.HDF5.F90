@@ -276,6 +276,7 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Attribute_Integer8_1D
      procedure :: IO_HDF5_Write_Attribute_Double_Scalar
      procedure :: IO_HDF5_Write_Attribute_Double_1D
+     procedure :: IO_HDF5_Write_Attribute_Double_2D
      procedure :: IO_HDF5_Write_Attribute_Character_Scalar
      procedure :: IO_HDF5_Write_Attribute_Character_1D
      procedure :: IO_HDF5_Write_Attribute_VarString_Scalar
@@ -286,6 +287,7 @@ module IO_HDF5
           &                              IO_HDF5_Write_Attribute_Integer8_1D     , &
           &                              IO_HDF5_Write_Attribute_Double_Scalar   , &
           &                              IO_HDF5_Write_Attribute_Double_1D       , &
+          &                              IO_HDF5_Write_Attribute_Double_2D       , &
           &                              IO_HDF5_Write_Attribute_Character_Scalar, &
           &                              IO_HDF5_Write_Attribute_Character_1D    , &
           &                              IO_HDF5_Write_Attribute_VarString_Scalar, &
@@ -1690,6 +1692,85 @@ contains
     return
   end subroutine IO_HDF5_Write_Attribute_Double_1D
 
+  subroutine IO_HDF5_Write_Attribute_Double_2D(thisObject,attributeValue,attributeName)
+    !% Open and write an double 2-D array attribute in {\normalfont \ttfamily thisObject}.
+    use Galacticus_Error
+    implicit none
+    class           (hdf5Object    )                , intent(inout)           :: thisObject
+    character       (len=*         )                , intent(in   ), optional :: attributeName
+    double precision                , dimension(:,:), intent(in   )           :: attributeValue
+    integer         (kind=HSIZE_T  ), dimension(2)                            :: attributeDimensions
+    integer                                                                   :: errorCode
+    logical                                                                   :: preExisted
+    type            (hdf5Object    )                                          :: attributeObject
+    type            (varying_string)                                          :: attributeNameActual, message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Get the name of the attribute.
+    if (present(attributeName)) then
+       attributeNameActual=attributeName
+    else
+       attributeNameActual=thisObject%objectName
+    end if
+
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="attempt to write attribute '"//trim(attributeNameActual)//"' in unopen object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Check if the object is an attribute, or something else.
+    if (thisObject%hdf5ObjectType == hdf5ObjectTypeAttribute) then
+       ! If this attribute if not overwritable, report an error.
+       if (.not.thisObject%isOverwritable) then
+          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
+          call Galacticus_Error_Report(message//{introspection:location})
+       else
+          ! Check that the object is a 2D double.
+          call thisObject%assertAttributeType(H5T_NATIVE_DOUBLES,2)
+       end if
+       select type (thisObject)
+       type is (hdf5Object)
+       attributeObject=thisObject
+       end select
+       attributeNameActual=thisObject%objectName
+    else
+       ! Check that an attribute name was supplied.
+       if (present(attributeName)) then
+          attributeNameActual=trim(attributeName)
+       else
+          message="no name was supplied for attribute in '"//thisObject%objectName//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       ! Record if attribute already exists.
+       preExisted=thisObject%hasAttribute(attributeName)
+       ! Open the attribute.
+       attributeDimensions=shape(attributeValue)
+       attributeObject=IO_HDF5_Open_Attribute(thisObject,attributeName,hdf5DataTypeDouble,attributeDimensions)
+       ! Check that pre-existing object is a 2D double.
+       if (preExisted) call attributeObject%assertAttributeType(H5T_NATIVE_DOUBLES,2)
+       ! If this attribute if not overwritable, report an error.
+       if (preExisted.and..not.attributeObject%isOverwritable) then
+          message="attribute '"//trim(attributeNameActual)//"' is not overwritable"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+    end if
+
+    ! Write the attribute.
+    call h5awrite_f(attributeObject%objectID,H5T_NATIVE_DOUBLE,attributeValue,attributeDimensions,errorCode)
+    if (errorCode /= 0) then
+       message="unable to write attribute '"//attributeNameActual//"' in object '"//thisObject%objectName//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+
+    ! Close the attribute unless this was an attribute object.
+    if (thisObject%hdf5ObjectType /= hdf5ObjectTypeAttribute) call attributeObject%close()
+
+    return
+  end subroutine IO_HDF5_Write_Attribute_Double_2D
+  
   subroutine IO_HDF5_Write_Attribute_Character_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write an character scalar attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
