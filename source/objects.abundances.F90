@@ -24,7 +24,7 @@ module Abundances_Structure
   use Numerical_Constants_Astronomical
   implicit none
   private
-  public :: abundances, Abundances_Names, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
+  public :: abundances, Abundances_Names, Abundances_Index_From_Name, Abundances_Atomic_Index, Abundances_Property_Count, Abundances_Get_Metallicity&
        &, Abundances_Mass_To_Mass_Fraction, operator(*), max, abs
 
   ! Interface to multiplication operators with abundances objects as their second argument.
@@ -623,6 +623,22 @@ contains
     return
   end function Abundances_Names
 
+  integer function Abundances_Index_From_Name(name)
+    !% Return the index of an element in the elements array given its name.
+    implicit none
+    character(len=*), intent(in   ) :: name
+    integer                         :: i
+    
+    Abundances_Index_From_Name=-1
+    do i=1,elementsCount
+       if (trim(name) == elementsToTrack(i)) then
+          Abundances_Index_From_Name=i+1
+          exit
+       end if
+    end do
+    return
+  end function Abundances_Index_From_Name
+  
   integer function Abundances_Atomic_Index(index)
     !% Return the atomic index for the specified entry in the abundances structure.
     use Galacticus_Error
