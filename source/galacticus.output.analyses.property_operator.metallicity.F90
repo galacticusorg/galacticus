@@ -16,93 +16,82 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property operator class which transforms into various definitions of metallicity.
+  !% Contains a module which implements a property operator class which converts a metallicity, assumed to be a mass ratio of a
+  !% given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
   
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity">
-  !#  <description>A property operator class in which the property value is replaced with an integral over a metallicity distribution between given limits, using the property value at the mean of the distribution.</description>
+  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMetallicity12LogNH">
+  !#  <description>A property operator class which converts a metallicity, assumed to be a mass ratio of a given element to hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.</description>
   !# </outputAnalysisPropertyOperator>
-  type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMetallicity
-     !% A metallicity property operator class.
+  type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMetallicity12LogNH
+     !% A metallicity property operator class which converts a metallicity, assumed to be a mass ratio of a given element to
+     !% hydrogen, to $12+\log_{10}(\mathrm{N}/\mathrm{H})$ form.
      private
-     integer          :: type
-     double precision :: valueSolar
+     double precision :: massElement
    contains
-     procedure :: operate => metallicityOperate
-  end type outputAnalysisPropertyOperatorMetallicity
+     procedure :: operate => metallicity12LogNHOperate
+  end type outputAnalysisPropertyOperatorMetallicity12LogNH
 
-  interface outputAnalysisPropertyOperatorMetallicity
+  interface outputAnalysisPropertyOperatorMetallicity12LogNH
      !% Constructors for the ``metallicity'' output analysis class.
-     module procedure metallicityConstructorParameters
-     module procedure metallicityConstructorInternal
-  end interface outputAnalysisPropertyOperatorMetallicity
+     module procedure metallicity12LogNHConstructorParameters
+     module procedure metallicity12LogNHConstructorInternal
+  end interface outputAnalysisPropertyOperatorMetallicity12LogNH
 
 contains
 
-  function metallicityConstructorParameters(parameters) result(self)
-    !% Constructor for the ``metallicity'' output analysis property operator class which takes a parameter set as input.
+  function metallicity12LogNHConstructorParameters(parameters) result(self)
+    !% Constructor for the ``metallicity12LogNH'' output analysis property operator class which takes a parameter set as input.
     use Abundances_Structure
     use Input_Parameters
     implicit none
-    type            (outputAnalysisPropertyOperatorMetallicity)                :: self
-    type            (inputParameters                          ), intent(inout) :: parameters
-    type            (varying_string                           )                :: type
-    double precision                                                           :: valueSolar
+    type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self
+    type            (inputParameters                                 ), intent(inout) :: parameters
+    double precision                                                                  :: massElement
 
     ! Check and read parameters.
     !# <inputParameter>
-    !#   <name>type</name>
+    !#   <name>massElement</name>
     !#   <source>parameters</source>
-    !#   <description>The type of metallicity to transform into.</description>
-    !#   <type>string</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>valueSolar</name>
-    !#   <source>parameters</source>
-    !#   <description>The value at Solar metallicity</description>
+    !#   <description>The atomic mass of the element used to define metallicity.</description>
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=outputAnalysisPropertyOperatorMetallicity(enumerationMetallicityTypeEncode(char(type),includesPrefix=.false.),valueSolar)
+    self=outputAnalysisPropertyOperatorMetallicity12LogNH(massElement)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function metallicityConstructorParameters
+  end function metallicity12LogNHConstructorParameters
 
-  function metallicityConstructorInternal(type,valueSolar) result (self)
-    !% Internal constructor for the ``metallicity'' output analysis distribution operator class.
+  function metallicity12LogNHConstructorInternal(massElement) result (self)
+    !% Internal constructor for the ``metallicity12LogNH'' output analysis distribution operator class.
     implicit none
-    type            (outputAnalysisPropertyOperatorMetallicity)                :: self
-    integer                                                    , intent(in   ) :: type
-    double precision                                           , intent(in   ) :: valueSolar
-    !# <constructorAssign variables="type, valueSolar"/>
+    type            (outputAnalysisPropertyOperatorMetallicity12LogNH)                :: self
+    double precision                                                  , intent(in   ) :: massElement
+    !# <constructorAssign variables="massElement"/>
 
     return
-  end function metallicityConstructorInternal
+  end function metallicity12LogNHConstructorInternal
 
-  double precision function metallicityOperate(self,propertyValue,node,propertyType,outputIndex)
+  double precision function metallicity12LogNHOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an metallicity output analysis property operator.
     use, intrinsic :: ISO_C_Binding
-    use               Abundances_Structure
-    use               Galacticus_Error
-    use               Numerical_Constants_Astronomical
+    use               Numerical_Constants_Atomic
     implicit none
-    class           (outputAnalysisPropertyOperatorMetallicity), intent(inout)           :: self
-    double precision                                           , intent(in   )           :: propertyValue
-    type            (treeNode                                 ), intent(inout), optional :: node
-    integer                                                    , intent(inout), optional :: propertyType
-    integer         (c_size_t                                 ), intent(in   ), optional :: outputIndex
+    class           (outputAnalysisPropertyOperatorMetallicity12LogNH), intent(inout)           :: self
+    double precision                                                  , intent(in   )           :: propertyValue
+    type            (treeNode                                        ), intent(inout), optional :: node
+    integer                                                           , intent(inout), optional :: propertyType
+    integer         (c_size_t                                        ), intent(in   ), optional :: outputIndex
+    double precision                                                                            :: ratioByNumber
     !GCC$ attributes unused :: propertyType, outputIndex, node
-
-    select case (self%type)
-    case (metallicityTypeLogarithmicByNumberSolarPlus12)
-       if (propertyValue > 0.0d0) then
-          metallicityOperate=log10(propertyValue/metallicitySolar)+self%valueSolar
-       else
-          metallicityOperate=-huge(0.0d0)
-       end if
-    case default
-       metallicityOperate=0.0d0
-       call Galacticus_Error_Report('unsupported metallicity type'//{introspection:location})
-    end select
+    
+    ratioByNumber=+propertyValue      &
+            &     *atomicMassHydrogen &
+            &     /self%massElement 
+    if (ratioByNumber > 0.0d0) then
+       metallicity12LogNHOperate=+log10(ratioByNumber) &
+            &                    +12.0d0
+    else
+       metallicity12LogNHOperate=-huge (+0.0d0       )
+    end if
     return
-  end function metallicityOperate
+  end function metallicity12LogNHOperate

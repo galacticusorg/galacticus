@@ -107,6 +107,7 @@ contains
     use Cosmology_Functions
     use Numerical_Constants_Astronomical
     use Abundances_Structure
+    use Atomic_Data
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2017             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
@@ -117,16 +118,16 @@ contains
     double precision                                                     , allocatable  , dimension(:  ) :: masses
     double precision                                                     , allocatable  , dimension(:,:) :: outputWeight
     type            (galacticFilterStellarMass                          ), pointer                       :: galacticFilterStellarMass_
-    type            (galacticFilterStarFormationRate                          ), pointer                       :: galacticFilterStarFormationRate_
-     type            (galacticFilterAll                                ), pointer                     :: galacticFilter_
-     type            (filterList                                       ), pointer                     :: filters_                                       , filter_
-  type            (outputAnalysisDistributionOperatorRandomErrorPlynml), pointer                       :: outputAnalysisDistributionOperator_
+    type            (galacticFilterStarFormationRate                    ), pointer                       :: galacticFilterStarFormationRate_
+    type            (galacticFilterAll                                  ), pointer                       :: galacticFilter_
+    type            (filterList                                         ), pointer                       :: filters_                                       , filter_
+    type            (outputAnalysisDistributionOperatorRandomErrorPlynml), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity               ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorSequence             ), pointer                       :: outputAnalysisPropertyOperator_                         , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorFilterHighPass       ), pointer                       :: outputAnalysisPropertyOperatorFilterHighPass_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisPropertyOperatorMetallicity          ), pointer                       :: outputAnalysisPropertyOperatorMetallicity_
+    type            (outputAnalysisPropertyOperatorMetallicity12LogNH   ), pointer                       :: outputAnalysisPropertyOperatorMetallicity12LogNH_
     type            (outputAnalysisPropertyExtractorMassStellar         ), pointer                       :: outputAnalysisPropertyExtractor_
     type            (outputAnalysisPropertyExtractorMetallicityISM      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -214,16 +215,15 @@ contains
          &                                                                                                      randomErrorPolynomialCoefficient  &
          &                                                                                                     )
     ! Build a metallicity weight property operator.
-    allocate(outputAnalysisPropertyOperatorMetallicity_            )
-    outputAnalysisPropertyOperatorMetallicity_       =  outputAnalysisPropertyOperatorMetallicity              (                                                          &
-         &                                                                                                      type      =metallicityTypeLogarithmicByNumberSolarPlus12, &
-         &                                                                                                      valueSolar=8.86d0                                         & ! Delahaye & Pinsonneault (2006, ApJ, 649, 529)
+    allocate(outputAnalysisPropertyOperatorMetallicity12LogNH_     )
+    outputAnalysisPropertyOperatorMetallicity12LogNH_=  outputAnalysisPropertyOperatorMetallicity12LogNH       (                                                          &
+         &                                                                                                      Atomic_Mass(shortLabel="O")                               &
          &                                                                                                     )
     allocate(outputAnalysisPropertyOperatorFilterHighPass_         )
     outputAnalysisPropertyOperatorFilterHighPass_    =  outputAnalysisPropertyOperatorFilterHighPass           (0.0d0                                                        )
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
-    weightPropertyOperators_     %operator_ => outputAnalysisPropertyOperatorMetallicity_
+    weightPropertyOperators_     %operator_ => outputAnalysisPropertyOperatorMetallicity12LogNH_
     weightPropertyOperators_%next%operator_ => outputAnalysisPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     outputAnalysisWeightPropertyOperator_            =  outputAnalysisPropertyOperatorSequence                 (weightPropertyOperators_                                     )
@@ -235,7 +235,7 @@ contains
     outputAnalysisPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar             (                                                             )
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMetallicityISM          (                                                             )
+    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMetallicityISM          (Abundances_Index_From_Name("O")                              )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                &
          &                                                         var_str('massMetallicityBlanc2017'           ), &
@@ -265,27 +265,27 @@ contains
          &                                                         covarianceBinomialMassHaloMaximum               &
          &                                                        )
     ! Clean up.
-    nullify(galacticFilter_                                 )
-    nullify(galacticFilterStellarMass_                      )
-    nullify(galacticFilterStarFormationRate_                )
-    nullify(outputAnalysisDistributionOperator_             )
-    nullify(outputAnalysisWeightOperator_                   )
-    nullify(outputAnalysisPropertyOperator_                 )
-    nullify(outputAnalysisPropertyOperatorLog10_            )
-    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    nullify(outputAnalysisPropertyOperatorSystmtcPolynomial_)
-    nullify(outputAnalysisPropertyOperatorMetallicity_      )
-    nullify(outputAnalysisPropertyOperatorFilterHighPass_   )
-    nullify(outputAnalysisPropertyUnoperator_               )
-    nullify(outputAnalysisWeightPropertyOperator_           )
-    nullify(outputAnalysisWeightPropertyExtractor_          )
-    nullify(outputAnalysisPropertyExtractor_                )
-    nullify(cosmologyParametersData                         )
-    nullify(cosmologyFunctionsData                          )
-    nullify(propertyOperators_                              )
-    nullify(weightPropertyOperators_                        )
-    nullify(filter_                                         )
-    nullify(filters_                                        )
+    nullify(galacticFilter_                                  )
+    nullify(galacticFilterStellarMass_                       )
+    nullify(galacticFilterStarFormationRate_                 )
+    nullify(outputAnalysisDistributionOperator_              )
+    nullify(outputAnalysisWeightOperator_                    )
+    nullify(outputAnalysisPropertyOperator_                  )
+    nullify(outputAnalysisPropertyOperatorLog10_             )
+    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ )
+    nullify(outputAnalysisPropertyOperatorSystmtcPolynomial_ )
+    nullify(outputAnalysisPropertyOperatorMetallicity12LogNH_)
+    nullify(outputAnalysisPropertyOperatorFilterHighPass_    )
+    nullify(outputAnalysisPropertyUnoperator_                )
+    nullify(outputAnalysisWeightPropertyOperator_            )
+    nullify(outputAnalysisWeightPropertyExtractor_           )
+    nullify(outputAnalysisPropertyExtractor_                 )
+    nullify(cosmologyParametersData                          )
+    nullify(cosmologyFunctionsData                           )
+    nullify(propertyOperators_                               )
+    nullify(weightPropertyOperators_                         )
+    nullify(filter_                                          ) 
+    nullify(filters_                                         )
     
     return
   end function massMetallicityBlanc2017ConstructorInternal
