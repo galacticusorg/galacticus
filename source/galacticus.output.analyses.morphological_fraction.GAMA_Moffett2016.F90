@@ -18,33 +18,33 @@
 
   !% Contains a module which implements a stellar vs halo mass relation analysis class.
   
-  !# <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAKelvin2014" defaultThreadPrivate="yes">
-  !#  <description>A morphological fraction output analysis class.</description>
+  !# <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016" defaultThreadPrivate="yes">
+  !#  <description>A morphological fraction output analysis class for the analysis of \cite{moffett_galaxy_2016}.</description>
   !# </outputAnalysis>
-  type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMorphologicalFractionGAMAKelvin2014
+  type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMorphologicalFractionGAMAMoffett2016
      !% A morphological fraction output analysis class.
      private
-  end type outputAnalysisMorphologicalFractionGAMAKelvin2014
+  end type outputAnalysisMorphologicalFractionGAMAMoffett2016
 
-  interface outputAnalysisMorphologicalFractionGAMAKelvin2014
-     !% Constructors for the ``morphologicalFractionGAMAKelvin2014'' output analysis class.
-     module procedure morphologicalFractionGAMAKelvin2014ConstructorParameters
-     module procedure morphologicalFractionGAMAKelvin2014ConstructorInternal
-  end interface outputAnalysisMorphologicalFractionGAMAKelvin2014
+  interface outputAnalysisMorphologicalFractionGAMAMoffett2016
+     !% Constructors for the ``morphologicalFractionGAMAMoffett2016'' output analysis class.
+     module procedure morphologicalFractionGAMAMoffett2016ConstructorParameters
+     module procedure morphologicalFractionGAMAMoffett2016ConstructorInternal
+  end interface outputAnalysisMorphologicalFractionGAMAMoffett2016
 
 contains
 
-  function morphologicalFractionGAMAKelvin2014ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``morphologicalFractionGAMAKelvin2014'' output analysis class which takes a parameter set as input.
+  function morphologicalFractionGAMAMoffett2016ConstructorParameters(parameters) result (self)
+    !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class which takes a parameter set as input.
     use Cosmology_Functions
     use Input_Parameters
     implicit none
-    type            (outputAnalysisMorphologicalFractionGAMAKelvin2014)                              :: self
-    type            (inputParameters                                  ), intent(inout)               :: parameters
-    double precision                                                   , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
-    class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
-    double precision                                                                                 :: ratioEarlyType                      , ratioEarlyTypeError             , &
-         &                                                                                              randomErrorMinimum                  , randomErrorMaximum 
+    type            (outputAnalysisMorphologicalFractionGAMAMoffett2016)                              :: self
+    type            (inputParameters                                   ), intent(inout)               :: parameters
+    double precision                                                    , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass                           ), pointer                     :: cosmologyFunctions_
+    double precision                                                                                  :: ratioEarlyType                      , ratioEarlyTypeError             , &
+         &                                                                                               randomErrorMinimum                  , randomErrorMaximum 
 
     
     ! Check and read parameters.
@@ -104,13 +104,13 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMorphologicalFractionGAMAKelvin2014(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_)
+    self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function morphologicalFractionGAMAKelvin2014ConstructorParameters
+  end function morphologicalFractionGAMAMoffett2016ConstructorParameters
 
-  function morphologicalFractionGAMAKelvin2014ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_) result (self)
-    !% Constructor for the ``morphologicalFractionGAMAKelvin2014'' output analysis class for internal use.
+  function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_) result (self)
+    !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
     use Memory_Management
     use IO_HDF5
     use Galacticus_Input_Paths  
@@ -124,34 +124,34 @@ contains
     use Cosmology_Functions
     use Numerical_Constants_Astronomical
     implicit none
-    type            (outputAnalysisMorphologicalFractionGAMAKelvin2014   )                                :: self
-    double precision                                                      , intent(in   )                 :: ratioEarlyType                                          , ratioEarlyTypeError                     , &
-         &                                                                                                   randomErrorMinimum                                      , randomErrorMaximum
-    double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
-    class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
-    integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                 =10
-    double precision                                                      , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
-    double precision                                                      , allocatable  , dimension(:  ) :: masses
-    double precision                                                      , allocatable  , dimension(:,:) :: outputWeight
-    type            (galacticFilterStellarMass                           ), pointer                       :: galacticFilter_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml ), pointer                       :: outputAnalysisDistributionOperator_
-    type            (outputAnalysisWeightOperatorIdentity                ), pointer                       :: outputAnalysisWeightOperator_
-    type            (outputAnalysisPropertyOperatorSequence              ), pointer                       :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisPropertyOperatorLog10                 ), pointer                       :: outputAnalysisPropertyOperatorLog10_
-    type            (outputAnalysisPropertyOperatorAntiLog10             ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisPropertyOperatorNormal                ), pointer                       :: outputAnalysisWeightPropertyOperator_
-    type            (outputAnalysisPropertyExtractorMassStellar          ), pointer                       :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorMassStellarMorphology), pointer                       :: outputAnalysisWeightPropertyExtractor_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial     ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_
-    type            (cosmologyParametersSimple                           ), pointer                       :: cosmologyParametersData
-    type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
-    type            (propertyOperatorList                                ), pointer                       :: propertyOperators_
-    double precision                                                      , parameter                     :: errorPolynomialZeroPoint                        =11.3d00
-    integer         (c_size_t                                            ), parameter                     :: bufferCount                                     =10
-    integer         (c_size_t                                            )                                :: iBin                                                    , binCount
-    type            (surveyGeometryKelvin2014GAMAnear                    )                                :: surveyGeometry_
-    type            (hdf5Object                                          )                                :: dataFile
+    type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
+    double precision                                                       , intent(in   )                 :: ratioEarlyType                                          , ratioEarlyTypeError                     , &
+         &                                                                                                    randomErrorMinimum                                      , randomErrorMaximum
+    double precision                                                       , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass                              ), intent(inout), target         :: cosmologyFunctions_
+    integer                                                                , parameter                     :: covarianceBinomialBinsPerDecade                 =10
+    double precision                                                       , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
+    double precision                                                       , allocatable  , dimension(:  ) :: masses
+    double precision                                                       , allocatable  , dimension(:,:) :: outputWeight
+    type            (galacticFilterStellarMass                            ), pointer                       :: galacticFilter_
+    type            (outputAnalysisDistributionOperatorRandomErrorPlynml  ), pointer                       :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisWeightOperatorIdentity                 ), pointer                       :: outputAnalysisWeightOperator_
+    type            (outputAnalysisPropertyOperatorSequence               ), pointer                       :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisPropertyOperatorLog10                  ), pointer                       :: outputAnalysisPropertyOperatorLog10_
+    type            (outputAnalysisPropertyOperatorAntiLog10              ), pointer                       :: outputAnalysisPropertyUnoperator_
+    type            (outputAnalysisPropertyOperatorNormal                 ), pointer                       :: outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyExtractorMassStellar           ), pointer                       :: outputAnalysisPropertyExtractor_
+    type            (outputAnalysisPropertyExtractorMassStellarMorphology ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc      ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorSystmtcPolynomial      ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_
+    type            (cosmologyParametersSimple                            ), pointer                       :: cosmologyParametersData
+    type            (cosmologyFunctionsMatterLambda                       ), pointer                       :: cosmologyFunctionsData
+    type            (propertyOperatorList                                 ), pointer                       :: propertyOperators_
+    double precision                                                       , parameter                     :: errorPolynomialZeroPoint                        =11.3d00
+    integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
+    integer         (c_size_t                                             )                                :: iBin                                                    , binCount
+    type            (surveyGeometryBaldry2012GAMA                         )                                :: surveyGeometry_
+    type            (hdf5Object                                           )                                :: dataFile
 
     ! Read masses at which fraction was measured.
     !$omp critical(HDF5_Access)
@@ -160,7 +160,7 @@ contains
     call dataFile%close      (                                                                                                        )
     !$omp end critical(HDF5_Access)
     ! Construct survey geometry.
-    surveyGeometry_=surveyGeometryKelvin2014GAMAnear(cosmologyFunctions_)
+    surveyGeometry_=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.
     binCount=size(masses,kind=c_size_t)
     call allocateArray(outputWeight,[binCount,Galacticus_Output_Time_Count()])
@@ -228,32 +228,32 @@ contains
     allocate(outputAnalysisWeightPropertyExtractor_                )
     outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMassStellarMorphology(                                                             )
     ! Build the object.
-    self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                &
-         &                                                         var_str('morphologicalFractionGAMAKelvin2014'), &
-         &                                                         var_str('Early-type fraction'                ), &
-         &                                                         var_str('massStellar'                        ), &
-         &                                                         var_str('Stellar mass'                       ), &
-         &                                                         var_str('M☉'                                 ), &
-         &                                                         massSolar                                     , &
-         &                                                         var_str('earlyTypeFraction'                  ), &
-         &                                                         var_str('Early-type fraction'                ), &
-         &                                                         var_str(' '                                  ), &
-         &                                                         0.0d0                                         , &
-         &                                                         log10(masses)                                 , &
-         &                                                         bufferCount                                   , &
-         &                                                         outputWeight                                  , &
-         &                                                         outputAnalysisPropertyExtractor_              , &
-         &                                                         outputAnalysisWeightPropertyExtractor_        , &
-         &                                                         outputAnalysisPropertyOperator_               , &
-         &                                                         outputAnalysisWeightPropertyOperator_         , &
-         &                                                         outputAnalysisPropertyUnoperator_             , &
-         &                                                         outputAnalysisWeightOperator_                 , &
-         &                                                         outputAnalysisDistributionOperator_           , &
-         &                                                         galacticFilter_                               , &
-         &                                                         outputAnalysisCovarianceModelBinomial         , &
-         &                                                         covarianceBinomialBinsPerDecade               , &
-         &                                                         covarianceBinomialMassHaloMinimum             , &
-         &                                                         covarianceBinomialMassHaloMaximum               &
+    self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &
+         &                                                         var_str('morphologicalFractionGAMAMoffett2016'), &
+         &                                                         var_str('Early-type fraction'                 ), &
+         &                                                         var_str('massStellar'                         ), &
+         &                                                         var_str('Stellar mass'                        ), &
+         &                                                         var_str('M☉'                                  ), &
+         &                                                         massSolar                                      , &
+         &                                                         var_str('earlyTypeFraction'                   ), &
+         &                                                         var_str('Early-type fraction'                 ), &
+         &                                                         var_str(' '                                   ), &
+         &                                                         0.0d0                                          , &
+         &                                                         log10(masses)                                  , &
+         &                                                         bufferCount                                    , &
+         &                                                         outputWeight                                   , &
+         &                                                         outputAnalysisPropertyExtractor_               , &
+         &                                                         outputAnalysisWeightPropertyExtractor_         , &
+         &                                                         outputAnalysisPropertyOperator_                , &
+         &                                                         outputAnalysisWeightPropertyOperator_          , &
+         &                                                         outputAnalysisPropertyUnoperator_              , &
+         &                                                         outputAnalysisWeightOperator_                  , &
+         &                                                         outputAnalysisDistributionOperator_            , &
+         &                                                         galacticFilter_                                , &
+         &                                                         outputAnalysisCovarianceModelBinomial          , &
+         &                                                         covarianceBinomialBinsPerDecade                , &
+         &                                                         covarianceBinomialMassHaloMinimum              , &
+         &                                                         covarianceBinomialMassHaloMaximum                &
          &                                                        )
     ! Clean up.
     nullify(galacticFilter_                                 )
@@ -271,5 +271,5 @@ contains
     nullify(cosmologyFunctionsData                          )
     nullify(propertyOperators_                              )
     return
-  end function morphologicalFractionGAMAKelvin2014ConstructorInternal
+  end function morphologicalFractionGAMAMoffett2016ConstructorInternal
 
