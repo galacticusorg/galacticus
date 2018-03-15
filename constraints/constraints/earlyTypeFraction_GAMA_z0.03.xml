@@ -6,5 +6,5 @@
   <haloMassResolution>1.0e8</haloMassResolution>
   <haloMassMinimum>2.0e08</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
-  <analysis>constraints/scripts/earlyTypeFraction_Kelvin2014.pl</analysis>
+  <analysis>constraints/scripts/earlyTypeFraction_Moffett2016.pl</analysis>
 </constraint>

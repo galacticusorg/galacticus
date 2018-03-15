@@ -16,7 +16,7 @@ use Galacticus::HDF5;
 # for z=0 from Kelvin et al. (2014).
 
 # Get name of input and output files.
-die("earlyTypeFraction_Kelvin2014.pl <galacticusFile> [options]") unless ( scalar(@ARGV) >= 1 );
+die("earlyTypeFraction_Moffett2016.pl <galacticusFile> [options]") unless ( scalar(@ARGV) >= 1 );
 my $galacticusFileName = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
@@ -46,7 +46,7 @@ if ( $massScaling eq "linear" ) {
 } elsif ( $massScaling eq "log10" ) {
     $massStellarObserved .= 10.0**$massStellarObserved;
 } else {
-    die("earlyTypeFraction_Kelvin2014.pl: unknown mass scaling");
+    die("earlyTypeFraction_Moffett2016.pl: unknown mass scaling");
 }
 
 # Read model data.
@@ -54,15 +54,15 @@ my $model;
 $model->{'file'}    = $galacticusFileName;
 &Galacticus::HDF5::Open_File     ($model);
 &Galacticus::HDF5::Get_Parameters($model);
-my $analysis        = $model   ->       {'hdf5File'                   }->group ('analyses'                           )
-                                                                       ->group ('morphologicalFractionGAMAKelvin2014');
-my $massModel       = $analysis->dataset('massStellar'                )->get  (                                     );
-my $fractionModel   = $analysis->dataset('earlyTypeFraction'          )->get  (                                     );
-my $covarianceModel = $analysis->dataset('earlyTypeFractionCovariance')->get  (                                     );
+my $analysis        = $model   ->       {'hdf5File'                   }->group('analyses'                            )
+                                                                       ->group('morphologicalFractionGAMAMoffett2016');
+my $massModel       = $analysis->dataset('massStellar'                )->get  (                                      );
+my $fractionModel   = $analysis->dataset('earlyTypeFraction'          )->get  (                                      );
+my $covarianceModel = $analysis->dataset('earlyTypeFractionCovariance')->get  (                                      );
 my $errorModel      = sqrt($covarianceModel->diagonal(0,1));
 
 # Specify probability of LBS class being included in early-type class.
-my $lbsInclusionProbability = pdl 0.1;
+my $lbsInclusionProbability = pdl 0.5;
 
 # Compute confidence intervals on data. (Follows the approach described in Cameron 2011; PASA; 28; 128;
 # http://adsabs.harvard.edu/abs/2011PASA...28..128C)
@@ -195,7 +195,7 @@ if ( exists($arguments{'plotFile'}) ) {
     print $gnuPlot "set logscale x\n";
     print $gnuPlot "set mxtics 10\n";
     print $gnuPlot "set format x '\$10^{\%L}\$'\n";
-    print $gnuPlot "set xrange [5.0e8:6.0e11]\n";
+    print $gnuPlot "set xrange [1.0e8:4.0e11]\n";
     print $gnuPlot "set yrange [-0.05:1.05]\n";
     print $gnuPlot "set title offset 0,-0.9 'Early-type fraction'\n";
     print $gnuPlot "set xlabel 'Stellar mass; \$M_\\star\\ [\\mathrm{M}_\\odot]\$'\n";
