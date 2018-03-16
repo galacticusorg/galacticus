@@ -1,4 +1,4 @@
-<!-- Simple XML file used to test XML I/O functions in Galacticus -->
+<?xml version="1.0"?>
 <test>
   <array1>
     <datum>0.0</datum>
@@ -121,5 +121,10 @@
       </level3>
     </level2>
   </level1>
-  <xi:include href="XIncludeTest.xml" xpointer="xpointer(outer/included)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <included>
+    <a b="c"/>
+  </included>
+  <included>
+    <d e="f"/>
+  </included>
 </test>

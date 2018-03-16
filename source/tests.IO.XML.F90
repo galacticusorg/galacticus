@@ -20,10 +20,12 @@
 
 program Tests_IO_XML
   !% Tests the XML I/O module.
-  use FoX_dom
+  use FoX_DOM
   use IO_XML
   use Unit_Tests
+  use Galacticus_Error  
   use Memory_Management
+  use System_Command
   implicit none
   type            (node    )                           , pointer :: doc        , xmlElement
   type            (nodeList)                           , pointer :: xmlElements
@@ -31,7 +33,7 @@ program Tests_IO_XML
   integer                   , allocatable, dimension(:)          :: iarray1
   character       (len=1   ), allocatable, dimension(:)          :: carray1
   integer                                , dimension(1)          :: iValue
-  integer                                                        :: ioErr
+  integer                                                        :: ioErr      , status
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.IO.XML.size')
@@ -41,7 +43,13 @@ program Tests_IO_XML
 
   !$omp critical (FoX_DOM_Access)
   ! Parse the XML file.
-  doc => parseFile("testSuite/data/xmlTest.xml",iostat=ioErr)
+  doc => XML_Parse("testSuite/data/xmlTest.xml",iostat=ioErr)
+  if (ioErr /= 0) call Galacticus_Error_Report("failed to parse 'testSuite/data/xmlTest.xml'"//{introspection:location})
+
+  ! Test XInclude.
+  call serialize(doc,"testSuite/outputs/xmlTest.xml")
+  call System_Command_Do("diff testSuite/outputs/xmlTest.xml testSuite/data/xmlTestIncluded.xml",status)
+  call Assert("Parse XIncludes",status,0)
 
   ! Test array reading.
   xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"array1")
