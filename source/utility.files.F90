@@ -29,7 +29,7 @@ module File_Utilities
   !$ use OMP_Lib
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find
+  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -225,5 +225,33 @@ contains
     end subroutine Get_Paths
 
   end function Executable_Find
+
+  function File_Path(fileName)
+    !% Returns the path to the file.
+    implicit none
+    type     (varying_string)                :: File_Path
+    character(len=*         ), intent(in   ) :: fileName
+
+    if (index(fileName,"/",back=.true.) > 0) then
+       File_Path=extract(fileName,1,index(fileName,"/",back=.true.))
+    else
+       File_Path="./"
+    end if
+    return
+  end function File_Path
+  
+  function File_Name(fileName)
+    !% Returns the path to the file.
+    implicit none
+    type     (varying_string)                :: File_Name
+    character(len=*         ), intent(in   ) :: fileName
+
+    if (index(fileName,"/",back=.true.) > 0) then
+       File_Name=extract(fileName,index(fileName,"/",back=.true.)+1,len(fileName))
+    else
+       File_Name=fileName
+    end if
+    return
+  end function File_Name
   
 end module File_Utilities
