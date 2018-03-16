@@ -1,0 +1,9 @@
+<!-- Simple XML file used to test XML XInclude parsing in Galacticus -->
+<outer>
+  <included>
+    <a b="c"/>
+  </included>
+  <included>
+    <d e="f"/>
+  </included>
+</outer>
