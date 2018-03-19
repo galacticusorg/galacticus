@@ -192,8 +192,11 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
      end if
      ! Compute actual density.
      position=[positionSpherical(1)/self%radius(),0.0d0,0.0d0]
-     Node_Component_Spheroid_Standard_Density=(Node_Component_Spheroid_Standard_Density/self%radius()**3)&
-          &*spheroidMassDistribution%density(position)
+     Node_Component_Spheroid_Standard_Density       =+Node_Component_Spheroid_Standard_Density                      &
+          &                                          *spheroidMassDistribution                %density(position)
+     if (Node_Component_Spheroid_Standard_Density > 0.0d0)                                                          &
+          & Node_Component_Spheroid_Standard_Density=+Node_Component_Spheroid_Standard_Density                      &
+          &                                          /self                                    %radius (        )**3
   end select
   return
 end function Node_Component_Spheroid_Standard_Density
