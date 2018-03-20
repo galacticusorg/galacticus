@@ -1904,9 +1904,11 @@ contains
   function multiVectorizedCompositeTrapezoidal1DEvaluate(self,a,b,status) result(integral)
     !% Evaluate a one-dimension integral using a numerical composite trapezoidal rule.
     use, intrinsic :: ISO_C_Binding
+    use               ISO_Varying_String
     use               Numerical_Comparison
     use               Galacticus_Error
     use               Sort
+    use               Galacticus_Display
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
     double precision                                                 , intent(in   )                                :: a                , b
@@ -1927,7 +1929,9 @@ contains
     type            (intervalMulti                                  ), pointer                                      :: head             , newInterval1, &
          &                                                                                                             newInterval2     , current     , &
          &                                                                                                             previous         , newInterval
-    integer         (c_size_t)                                                                                      :: iInterval        , intervalCount
+    integer         (c_size_t                                       )                                               :: iInterval        , intervalCount
+    type            (varying_string                                 )                                               :: message
+    character       (len=13                                         )                                               :: label
 
     ! Create our first estimate of the integral, using a single interval.
     intervalCount=1_c_size_t
@@ -1988,7 +1992,26 @@ contains
             &   midpoint==current%a &
             &  .or.                 &
             &   midpoint==current%b &
-            & ) call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+            & ) then
+          if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+          call Galacticus_Display_Indent('integration failure: current intervals')
+          current => head          
+          do while (associated(current))
+             message="a/b : f(a)/f(b) ="
+             write (label,'(e12.6)') current%a
+             message=message//" "  //label
+             write (label,'(e12.6)') current%b
+             message=message//"/"  //label
+             write (label,'(e12.6)') current%fa
+             message=message//" : "//label
+             write (label,'(e12.6)') current%fa
+             message=message//"/"  //label
+             call Galacticus_Display_Message(message)
+             current  => current%next
+          end do
+          call Galacticus_Display_Unindent('done')
+          call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
+       end if
        ! Evaluate the function at the midpoint of the current interval.
        mustEvaluate=.not.converged
        xUnion(1)=midpoint
