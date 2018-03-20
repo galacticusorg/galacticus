@@ -133,7 +133,11 @@ if ( exists($arguments{'outputFile'}) ) {
 	# Compute a base model likelihood.
 	$fractionModel->($fractionModel < 0.001;?) .= 0.001;
 	$fractionModel->($fractionModel > 0.999;?) .= 0.999;
-	my $logLikelihoodsBase = &logLikelihood($a,$b,$facA,$facB,$facAB,$fractionModel);
+	my $logLikelihoodsBaseNoLBS = &logLikelihood($a   ,$b   ,$facA   ,$facB   ,$facAB   ,$fractionModel);
+	my $logLikelihoodsBaseLBS   = &logLikelihood($aLBS,$bLBS,$facALBS,$facBLBS,$facABLBS,$fractionModel);
+	my $logLikelihoodsBase      = $logLikelihoodsBaseNoLBS->copy();
+	my $useLBS                  = which($logLikelihoodsBaseLBS > $logLikelihoodsBaseNoLBS);
+	$logLikelihoodsBase->($useLBS) .= $logLikelihoodsBaseLBS->($useLBS);
 	# Compute model realizations.
 	my $realizationCount   =     100000;
 	my $probability        = pdl      0.0;
@@ -161,6 +165,11 @@ if ( exists($arguments{'outputFile'}) ) {
 	my $probabilityVariance  = ($probabilitySquared-$realizationCount*$probability**2)/($realizationCount-1);
 	$logLikelihood           = log($probability)+sum($logLikelihoodsBase);
 	$logLikelihoodVariance   = $probabilityVariance/$probability**2;
+    }
+    # Catch cases of non-finite probability. These can happen for particularly bad models for which we get floating point overflows.
+    if ( ! isfinite($logLikelihood) ) {
+	$logLikelihood         .= -1.0e30;
+	$logLikelihoodVariance .= +0.0e00;
     }
     my $constraint;
     $constraint->{'label'                } = "gamaEarlyTypeFractionZ0.03";
