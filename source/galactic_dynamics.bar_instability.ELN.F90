@@ -25,7 +25,7 @@ module Galactic_Dynamics_Bar_Instabilities_ELN
   public :: Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
 
   ! Stability parameters for stellar and gaseous disks.
-  double precision :: stabilityThresholdGaseous, stabilityThresholdStellar
+  double precision :: stabilityThresholdGaseous, stabilityThresholdStellar, stabilityTimescaleMinimum
 
 contains
 
@@ -56,6 +56,14 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.7d0</defaultValue>
        !#   <description>The stability threshold in the \cite{efstathiou_stability_1982} algorithm for purely gaseous disks.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>stabilityTimescaleMinimum</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-9</defaultValue>
+       !#   <description>The minimum absolute dynamical timescale (in Gyr) to use in the \cite{efstathiou_stability_1982} algorithm.</description>
        !#   <source>globalParameters</source>
        !#   <type>real</type>
        !# </inputParameter>
@@ -127,7 +135,7 @@ contains
        else
           timescaleDimensionless=(stabilityIsolatedRelative/stabilityEstimatorRelative)**2
        end if
-       barInstabilityTimeScale=dynamicalTime*timescaleDimensionless
+       barInstabilityTimeScale=max(dynamicalTime,stabilityTimescaleMinimum)*timescaleDimensionless
     end if
     return
   end subroutine Bar_Instability_Timescale_ELN
