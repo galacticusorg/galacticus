@@ -116,7 +116,8 @@ sub Process_ObjectBuilder {
 		$node->{'parent'}->{'objectBuilderDeclarations'} = 1;
 	    }
 	    unless ( exists($node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}}) ) {
-		&Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"]);
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"])
+		    if ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$node->{'directive'}->{'source'}) );
 		$node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}} = 1;
 	    }
 	    # Mark the directive as processed.
