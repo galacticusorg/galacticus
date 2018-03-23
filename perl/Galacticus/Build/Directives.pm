@@ -14,7 +14,7 @@ sub Extract_Directive {
     my $xmlText;
     my $matchedDirectiveName;
     my $commentRegEx = exists($options{'comment'}) ? $options{'comment'} : qr/^\s*\!#/;
-    my $xmlTagRegEx  = $directiveName eq "*" ? qr/^\s*<([a-zA-Z]+).*>/ : qr/^\s*<($directiveName)(>|\s.*>)/;    
+    my $xmlTagRegEx  = $directiveName eq "*" ? qr/^\s*<([a-zA-Z0-9]+).*>/ : qr/^\s*<($directiveName)(>|\s.*>)/;    
     while ( my $line = <$fileHandle> ) {
 	if ( $line =~ s/$commentRegEx// ) {
 	    $xmlText .= $line;
