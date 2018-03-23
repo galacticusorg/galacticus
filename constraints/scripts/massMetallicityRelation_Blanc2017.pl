@@ -76,13 +76,14 @@ if ( exists($arguments{'outputFile'}) ) {
     my $logLikelihood =
 	&Galacticus::Constraints::Covariances::ComputeLikelihood
 	(
-	 $metallicityModel                           ,
-	 $metallicityObserved                        ,
-	 $fullCovariance                             ,
-	 jacobian              => \$jacobian         ,
-	 offsets               => \$offsets          ,
-	 quiet                 => $arguments{'quiet'},
-	 productMethod         => "linearSolver" 
+	 $metallicityModel                            ,
+	 $metallicityObserved                         ,
+	 $fullCovariance                              ,
+	 jacobian               => \$jacobian         ,
+	 offsets                => \$offsets          ,
+	 quiet                  => $arguments{'quiet'},
+	 assumePositiveDefinite => 0,
+	 productMethod          => "linearSolver" 
 	);
     $constraint->{'label'} = "massMetallicityRelationZ0.0Blanc2017";
     $constraint->{'logLikelihood'} = $logLikelihood;
