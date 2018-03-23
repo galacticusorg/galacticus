@@ -24,6 +24,7 @@ my %dependencies =
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
+     FoX_utils      => [ "FoX_wxml"                         ],
      yepLibrary     => [ "yeppp"                            ],
      yepCore        => [ "yeppp"                            ],
      yepMath        => [ "yeppp"                            ]
@@ -32,18 +33,19 @@ my %dependencies =
 # before which the key library must appear in the link command when static linking is used.
 my %staticLinkDependencies =
     (
-     hdf5           => [ "z", "dl"                          ],
-     hdf5_hl        => [ "hdf5"                             ],
-     hdf5_fortran   => [ "hdf5"                             ],
-     hdf5hl_fortran => [ "hdf5_hl"                          ],
-     fgsl_gfortran  => [ "gsl"                              ],
-     gsl            => [ "gslcblas"                         ],
-     FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax        => [ "FoX_common"                       ],
-     FoX_common     => [ "FoX_fsys"                         ],
-     YEPLibrary     => [ "yeppp"                            ],
-     YEPCore        => [ "yeppp"                            ],
-     YEPMath        => [ "yeppp"                            ]
+     hdf5           => [ "z", "dl"                                      ],
+     hdf5_hl        => [ "hdf5"                                         ],
+     hdf5_fortran   => [ "hdf5"                                         ],
+     hdf5hl_fortran => [ "hdf5_hl"                                      ],
+     fgsl_gfortran  => [ "gsl"                                          ],
+     gsl            => [ "gslcblas"                                     ],
+     FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax", "FoX_wxml" ],
+     FoX_sax        => [ "FoX_common"                                   ],
+     FoX_wxml       => [ "FoX_utils"                                    ],
+     FoX_common     => [ "FoX_fsys"                                     ],
+     YEPLibrary     => [ "yeppp"                                        ],
+     YEPCore        => [ "yeppp"                                        ],
+     YEPMath        => [ "yeppp"                                        ]
     );
 # Detect static linking.
 my $isStatic = grep {$_ eq "-static"} @compilerOptions;
