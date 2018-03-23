@@ -122,6 +122,8 @@ sub Process_InputParameters {
 			    }
 			    $inputParameterSource .= ",writeOutput=".($node->{'directive'}->{'writeOutput'} eq "no" ? ".false." : ".true.")
 				if ( exists($node->{'directive'}->{'writeOutput'}) );
+			    $inputParameterSource .= ",copyInstance=".$node->{'directive'}->{'instance'}
+				if ( exists($node->{'directive'}->{'instance'}) );
 			    $inputParameterSource .= ")\n";
 			}
 		    }
