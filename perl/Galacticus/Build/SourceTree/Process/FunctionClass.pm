@@ -1209,7 +1209,8 @@ CODE
 	    $postContains->[0]->{'content'} .= "      if (.not.".$directive->{'name'}."Initialized) then\n";
 	    $postContains->[0]->{'content'} .= "         !@ <inputParameter>\n";
 	    $postContains->[0]->{'content'} .= "         !@   <name>".$directive->{'name'}."Method</name>\n";
-	    $postContains->[0]->{'content'} .= "         !@   <defaultValue>".$directive->{'default'}."</defaultValue>\n";
+	    $postContains->[0]->{'content'} .= "         !@   <defaultValue>".$directive->{'default'}."</defaultValue>\n"
+              if ( exists($directive->{'default'}) );
 	    $postContains->[0]->{'content'} .= "         !@   <attachedTo>module</attachedTo>\n";
 	    $postContains->[0]->{'content'} .= "         !@   <description>\n";
 	    $postContains->[0]->{'content'} .= "         !@     The method to be used for {\\normalfont \\ttfamily ".$directive->{'name'}."}.\n";
@@ -1217,7 +1218,10 @@ CODE
 	    $postContains->[0]->{'content'} .= "         !@   <type>string</type>\n";
 	    $postContains->[0]->{'content'} .= "         !@   <cardinality>1</cardinality>\n";
 	    $postContains->[0]->{'content'} .= "         !@ </inputParameter>\n";
-	    $postContains->[0]->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."Method',".$directive->{'name'}."Method,defaultValue=var_str('".$directive->{'default'}."'))\n";
+	    $postContains->[0]->{'content'} .= "         call globalParameters%value('".$directive->{'name'}."Method',".$directive->{'name'}."Method";
+	    $postContains->[0]->{'content'} .= ",defaultValue=var_str('".$directive->{'default'}."')"
+               if ( exists($directive->{'default'}) );
+ 	    $postContains->[0]->{'content'} .= ")\n";
 	    $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."Initialized=.true.\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."Method',requirePresent=.false.)\n";
