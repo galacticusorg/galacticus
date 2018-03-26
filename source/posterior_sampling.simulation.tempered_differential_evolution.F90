@@ -1,0 +1,350 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
+
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn" defaultThreadPrivate="yes">
+  !#  <description>A posterior sampling simulation class which implements a tempered differential evolution algorithm.</description>
+  !# </posteriorSampleSimulation>
+  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDffrntlEvltn
+     !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
+     private
+     integer                                                                                    :: untemperedStepCount                      , temperingLevelCount    , &
+          &                                                                                        stepsPerLevel
+     integer                                                                                    :: temperingStep                            , temperingLevelMonotonic
+     double precision                                                                           :: temperatureMaximum
+     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), pointer                   :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
+     double precision                                               , allocatable, dimension(:) :: temperatures
+     class           (posteriorSampleStateClass                    ), allocatable, dimension(:) :: temperedStates
+   contains
+     !@ <objectMethods>
+     !@   <object>posteriorSampleSimulationTemperedDffrntlEvltn</object>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleDffrntlEvltnPrpslSzTmpExpClass)\textgreater} posteriorSampleDffrntlEvltnPrpslSzTmpExp_\argin</arguments>
+     !@     <description>Return the current tempering level.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>level</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current tempering level.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                   temperedDifferentialEvolutionDestructor
+     procedure :: logging        => temperedDifferentialEvolutionLogging
+     procedure :: acceptProposal => temperedDifferentialEvolutionAcceptProposal
+     procedure :: update         => temperedDifferentialEvolutionUpdate
+     procedure :: stepSize       => temperedDifferentialEvolutionStepSize
+     procedure :: level          => temperedDifferentialEvolutionLevel
+     procedure :: temperature    => temperedDifferentialEvolutionTemperature
+     procedure :: initialize     => temperedDifferentialEvolutionInitialize
+  end type posteriorSampleSimulationTemperedDffrntlEvltn
+
+  interface posteriorSampleSimulationTemperedDffrntlEvltn
+     !% Constructors for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling convergence class.
+     module procedure temperedDifferentialEvolutionConstructorParameters
+     module procedure temperedDifferentialEvolutionConstructorInternal
+  end interface posteriorSampleSimulationTemperedDffrntlEvltn
+
+contains
+
+  function temperedDifferentialEvolutionConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    implicit none
+    type            (posteriorSampleSimulationTemperedDffrntlEvltn)                :: self
+    type            (inputParameters                              ), intent(inout) :: parameters
+    class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), pointer       :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
+    integer                                                                        :: temperingLevelCount                      , untemperedStepCount, &
+         &                                                                            stepsPerLevel
+    double precision                                                               :: temperatureMaximum
+    
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
+    !# <inputParameter>
+    !#   <name>untemperedStepCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of untempered steps to take.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>stepsPerLevel</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps to take at each tempering level.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>temperingLevelCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number tempering levels to use.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>temperatureMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The maximum temperature to reach.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <objectBuilder class="posteriorSampleDffrntlEvltnPrpslSzTmpExp" name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_" source="parameters"/>
+    call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function temperedDifferentialEvolutionConstructorParameters
+
+  function temperedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum) result(self)
+    !% Internal constructor for the ``temperedDifferentialEvolution'' simulation class.
+    implicit none
+    type            (posteriorSampleSimulationTemperedDffrntlEvltn)                                      :: self
+    type            (modelParameterList                           ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
+    class           (posteriorSampleLikelihoodClass               ), intent(in   ), target               :: posteriorSampleLikelihood_
+    class           (posteriorSampleConvergenceClass              ), intent(in   ), target               :: posteriorSampleConvergence_
+    class           (posteriorSampleStoppingCriterionClass        ), intent(in   ), target               :: posteriorSampleStoppingCriterion_
+    class           (posteriorSampleStateClass                    ), intent(in   ), target               :: posteriorSampleState_
+    class           (posteriorSampleStateInitializeClass          ), intent(in   ), target               :: posteriorSampleStateInitialize_
+    class           (posteriorSampleDffrntlEvltnProposalSizeClass ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
+    class           (posteriorSampleDffrntlEvltnRandomJumpClass   ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
+    class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), intent(in   ), target               :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
+    integer                                                        , intent(in   )                       :: stepsMaximum                             , acceptanceAverageCount  , &
+         &                                                                                                  stateSwapCount                           , logFlushCount           , &
+         &                                                                                                  reportCount                              , temperingLevelCount     , &
+         &                                                                                                  untemperedStepCount                      , stepsPerLevel
+    character       (len=*                                        ), intent(in   )                       :: logFileRoot                              , interactionRoot
+    logical                                                        , intent(in   )                       :: sampleOutliers
+    double precision                                               , intent(in   )                       :: temperatureMaximum
+
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot)
+    call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
+    return
+  end function temperedDifferentialEvolutionConstructorInternal
+  
+  subroutine temperedDifferentialEvolutionInitialize(self,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
+    !% Finished initialization of tempered differential evolution simulation objects during construction.
+    implicit none
+    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)         :: self
+    class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), intent(in   ), target :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
+    integer                                                        , intent(in   )         :: temperingLevelCount                      , untemperedStepCount, &
+         &                                                                                    stepsPerLevel
+    double precision                                                                       :: temperatureMaximum
+    integer                                                                                :: i
+
+    self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_ => posteriorSampleDffrntlEvltnPrpslSzTmpExp_
+    self%temperingLevelCount                       =  temperingLevelCount
+    self%untemperedStepCount                       =  untemperedStepCount
+    self%stepsPerLevel                             =  stepsPerLevel
+    self%temperatureMaximum                        =  temperatureMaximum
+    allocate(self%temperatures(temperingLevelCount))
+    allocate(posteriorSampleStateSimple :: self%temperedStates(temperingLevelCount))
+    do i=1,temperingLevelCount
+       self%temperatures(i) &
+            &  =exp(                                                     &
+            &        log (temperatureMaximum )                           &
+            &       *dble(i                  )                           &
+            &       /dble(temperingLevelCount)                           &
+            &      )
+       select type (posteriorSampleState_ => self%temperedStates(i))
+       type is (posteriorSampleStateSimple)
+          posteriorSampleState_=posteriorSampleStateSimple(self%acceptanceAverageCount)
+          call posteriorSampleState_%parameterCountSet(size(self%modelParametersActive_))
+       end select
+    end do
+    return
+  end subroutine temperedDifferentialEvolutionInitialize
+
+  subroutine temperedDifferentialEvolutionDestructor(self)
+    !% Destroy a tempered differential evolution simulation object.
+    implicit none
+    type(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+
+    !# <objectDestructor name="self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
+    return
+  end subroutine temperedDifferentialEvolutionDestructor
+  
+  logical function temperedDifferentialEvolutionLogging(self)
+    !% Specifies whether or not the current state should be logged to file during differential evolution.
+    implicit none
+    class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+
+    temperedDifferentialEvolutionLogging=(self%temperingLevelMonotonic == 0)
+    return
+  end function temperedDifferentialEvolutionLogging
+
+  subroutine temperedDifferentialEvolutionUpdate(self,stateVector)
+    !% Update the differential evolution simulator state.
+    use MPI_Utilities
+    use Galacticus_Display
+    use String_Handling
+    use ISO_Varying_String
+    implicit none
+    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)                                 :: self
+    double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
+    logical                                                        , allocatable  , dimension(:                  ) :: outlierMask
+    integer                                                                                                        :: i             , temperingLevelSaved
+    logical                                                                                                        :: levelChanged
+    double precision                                                                                               :: acceptanceRate, temperature        , &
+         &                                                                                                            stepSize
+    character       (len=30                                       )                                                :: label
+    type            (varying_string                               )                                                :: message
+
+    ! Update the simulation state.
+    allocate(outlierMask(0:mpiSelf%count()-1))
+    do i=0,mpiSelf%count()-1
+       outlierMask(i)=self%posteriorSampleConvergence_%stateIsOutlier(i)
+    end do
+    call self%posteriorSampleState_%update(stateVector,self%logging(),self%posteriorSampleConvergence_%isConverged(),outlierMask)
+    ! Update tempering step count and level as necessary.
+    levelChanged=.false.
+    self%temperingStep=self%temperingStep+1
+    if (self%temperingLevelMonotonic == 0) then
+       ! Currently not tempering: check if we've run all required untempered steps.
+       if (self%temperingStep > self%untemperedStepCount) then
+          ! We have, switch to the first tempered level.
+          self%temperingStep          =0
+          self%temperingLevelMonotonic=1
+          levelChanged                =.true.
+       end if
+    else
+       ! Update the tempered level states.
+       call self%temperedStates(self%level())%update(stateVector,.true.,self%posteriorSampleConvergence_%isConverged(),outlierMask)
+       ! Currently tempering: check if we've run all required steps at this level.
+       if (self%temperingStep > self%stepsPerLevel) then
+          ! We have, move to the next tempering level. Note that we run tempering levels from 1 to
+          ! 2*temperingLevelCount-1 - levels above temperingLevelCount represent the cooling phase.
+          self%temperingStep          =0
+          self%temperingLevelMonotonic=self%temperingLevelMonotonic+1
+          levelChanged                =.true.
+          ! Check if we've finished tempering and switch back to untempered evolution is so.
+          if (self%temperingLevelMonotonic > 2*self%temperingLevelCount-1) self%temperingLevelMonotonic=0 
+       end if
+    end if
+    ! Check for change in level.
+    if (levelChanged) then
+       if (mpiSelf%isMaster().and.Galacticus_Verbosity_Level() >= verbosityInfo) then
+          write (label,'(f8.1)') self%temperature()
+          message='Tempering state: level='
+          message=message//self%level()//'; temperature='//trim(label)
+          call Galacticus_Display_Message(message)
+       end if
+       if (self%temperingLevelMonotonic == 0) then
+          ! We've just returned to the untempered level. Report on acceptance rates in tempered levels.
+          if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+             if (mpiSelf%isMaster()) then
+                call Galacticus_Display_Indent('Acceptance rates in tempered levels')
+                call Galacticus_Display_Message('Level Temperature  Gamma  Rate')
+                call Galacticus_Display_Message('------------------------------')
+             end if
+             ! Store the current tempering level so that we can restore it below.
+             temperingLevelSaved=self%temperingLevelMonotonic
+             do i=1,self%temperingLevelCount
+                self%temperingLevelMonotonic=i
+                acceptanceRate=mpiSelf%average(self%temperedStates(i)%acceptanceRate())
+                temperature   =                self                  %temperature   ()
+                stepSize      =                self                  %stepSize      ()
+                if (mpiSelf%isMaster())  then
+                   write (label,'(2x,i3,4x,f8.1,1x,f6.3,1x,f5.3)') i,temperature,stepSize,acceptanceRate
+                   call Galacticus_Display_Message(label)
+                end if
+             end do
+             if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done')
+             ! Restore the tempering level to the original.
+             self%temperingLevelMonotonic=temperingLevelSaved
+          end if
+       else
+          ! We're in a tempering level, update the state of the new level to the current state, without logging.
+          call self%temperedStates(self%level())%update(stateVector,.false.,self%posteriorSampleConvergence_%isConverged(),outlierMask)
+       end if
+    end if
+    return
+  end subroutine temperedDifferentialEvolutionUpdate
+
+  integer function temperedDifferentialEvolutionLevel(self)
+    !% Return the actual tempering level.
+    implicit none
+    class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+
+    temperedDifferentialEvolutionLevel=self%temperingLevelMonotonic
+    if (self%temperingLevelMonotonic > self%temperingLevelCount)                     &
+         & temperedDifferentialEvolutionLevel= 2                            &
+         &                                             *self%temperingLevelCount     &
+         &                                             -self%temperingLevelMonotonic
+    return
+  end function temperedDifferentialEvolutionLevel
+
+  double precision function temperedDifferentialEvolutionStepSize(self)
+    !% Return the step size parameter, $\gamma$, for a differential evolution step.
+    implicit none
+    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    double precision                                                               :: gammaBoostFactor
+
+    if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0 .and. self%level() == 0) then
+       ! Every self%stateSwapCount steps, set gamma=1 to allow interchange of chains.
+       temperedDifferentialEvolutionStepSize=1.0d0
+    else
+       gammaBoostFactor=self%temperature()**self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_%exponent(self%temperedStates,self%temperatures,self%posteriorSampleState_,self%posteriorSampleConvergence_)
+       temperedDifferentialEvolutionStepSize=gammaBoostFactor *self%posteriorSampleSimulationDifferentialEvolution%stepSize()
+    end if
+    return
+  end function temperedDifferentialEvolutionStepSize
+
+  double precision function temperedDifferentialEvolutionTemperature(self)
+    !% Return the temperature.
+    implicit none
+    class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+
+    if (self%level() == 0) then
+       temperedDifferentialEvolutionTemperature=1.0d0
+    else
+       temperedDifferentialEvolutionTemperature=self%temperatures(self%level())
+    end if
+    return
+  end function temperedDifferentialEvolutionTemperature
+
+  logical function temperedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
+    !% Return whether or not to accept a proposal.
+    use Pseudo_Random
+    use MPI_Utilities
+    implicit none
+    class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
+    double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
+         &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
+    type            (pseudoRandom                                 ), intent(inout) :: randomNumberGenerator
+    double precision                                                               :: x
+    !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+
+    ! Decide whether to take step.
+    x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+    temperedDifferentialEvolutionAcceptProposal=               &
+         &   logPosteriorProposed >      logPosterior          &
+         &  .or.                                               &
+         &   x                    < exp(                       &
+         &                              (                      &
+         &                               -logPosterior         &
+         &                               +logPosteriorProposed &
+         &                              )                      &
+         &                              /self%temperature()    &
+         &                             )
+    return
+  end function temperedDifferentialEvolutionAcceptProposal

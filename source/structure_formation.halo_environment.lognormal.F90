@@ -122,17 +122,17 @@ contains
     use Kind_Numbers
     use Statistics_Distributions
     implicit none
-    class           (haloEnvironmentLogNormal), intent(inout)           :: self
-    type            (treeNode                ), intent(inout)           :: node
-    logical                                   , intent(in   ), optional :: presentDay
-    type            (treeNode                ), pointer                 :: nodeRoot
-    class           (nodeComponentBasic      ), pointer                 :: basic
-    integer         (kind_int8               ), save                    :: uniqueIDPrevious           =-1_kind_int8
-    double precision                          , save                    :: overdensityPrevious
+    class           (haloEnvironmentLogNormal       ), intent(inout)           :: self
+    type            (treeNode                       ), intent(inout)           :: node
+    logical                                          , intent(in   ), optional :: presentDay
+    type            (treeNode                       ), pointer                 :: nodeRoot
+    class           (nodeComponentBasic             ), pointer                 :: basic
+    integer         (kind_int8                      ), save                    :: uniqueIDPrevious           =-1_kind_int8
+    double precision                                 , save                    :: overdensityPrevious
     !$omp threadprivate(uniqueIDPrevious,overdensityPrevious)
-    double precision                          , parameter               :: densityContrastMean        =1.0d0
-    double precision                                                    :: densityContrastVariance
-    type            (distributionLogNormal   )                          :: distributionDensityContrast
+    double precision                                 , parameter               :: densityContrastMean        =1.0d0
+    double precision                                                           :: densityContrastVariance
+    type            (distributionFunction1DLogNormal)                          :: distributionDensityContrast
     !# <optionalArgument name="presentDay" defaultsTo=".false." />
 
     if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
@@ -146,16 +146,16 @@ contains
           densityContrastVariance     =  +self%variance                                         &
                &                         *self%linearGrowth_%value   (expansionFactor=1.0d0)**2
           ! Construct a log-normal distribution, for 1+δ.
-          distributionDensityContrast =   distributionLogNormal             (                                                                               &
-               &                                                                                   +densityContrastMean                                   , &
-               &                                                                                   +densityContrastVariance                               , &
-               &                                                             limitUpper           =+1.0d0                                                   &
-               &                                                                                   +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
-               &                                                            )
+          distributionDensityContrast =   distributionFunction1DLogNormal       (                                                                               &
+               &                                                                                       +densityContrastMean                                   , &
+               &                                                                                       +densityContrastVariance                               , &
+               &                                                                 limitUpper           =+1.0d0                                                   &
+               &                                                                                       +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
+               &                                                                )
           ! Choose an overdensity.
-          overdensityPrevious         =  +distributionDensityContrast%sample(                                                                               &
-               &                                                             randomNumberGenerator= node%hostTree%randomNumberGenerator                     &
-               &                                                            )                                                                               &
+          overdensityPrevious         =  +distributionDensityContrast    %sample(                                                                               &
+               &                                                                 randomNumberGenerator= node%hostTree%randomNumberGenerator                     &
+               &                                                                )                                                                               &
                &                         -1.0d0
           call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensityPrevious)
        end if

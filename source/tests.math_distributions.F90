@@ -26,14 +26,14 @@ program Test_Math_Distributions
   use Statistics_Distributions
   use Input_Parameters
   implicit none
-  double precision                   , dimension(  10) :: p                , x           , y
-  integer                            , dimension(0:10) :: trials
-  double precision                   , dimension(0:10) :: Pk               , PkMonteCarlo, errorMonteCarlo
-  integer                            , parameter       :: trialCount=100000
-  type            (distributionGamma)                  :: distributionGamma_
-  integer                                              :: i                , j           , k
-  type            (pseudoRandom     )                  :: prng
-  type            (inputParameters  )                  :: parameters
+  double precision                             , dimension(  10) :: p                , x           , y
+  integer                                      , dimension(0:10) :: trials
+  double precision                             , dimension(0:10) :: Pk               , PkMonteCarlo, errorMonteCarlo
+  integer                                      , parameter       :: trialCount=100000
+  type            (distributionFunction1DGamma)                  :: distributionGamma_
+  integer                                                        :: i                , j           , k
+  type            (pseudoRandom               )                  :: prng
+  type            (inputParameters            )                  :: parameters
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: distributions")
@@ -66,7 +66,7 @@ program Test_Math_Distributions
   call Assert("Poisson binomial: mean pairs",Poisson_Binomial_Distribution_Mean_Pairs(p),90.0d0,absTol=1.0d-4)
 
   ! Gamma distribution.
-  distributionGamma_=distributionGamma(2.0d0,1.2d0,limitLower=0.3d0,limitUpper=6.0d0)
+  distributionGamma_=distributionFunction1DGamma(2.0d0,1.2d0,limitLower=0.3d0,limitUpper=6.0d0)
   x=[0.3d0,0.8d0,1.3d0,1.8d0,2.3d0,2.8d0,3.3d0,3.8d0,5.0d0,5.9d0]
   do i=1,10
      p(i)=distributionGamma_%cumulative(x(i))

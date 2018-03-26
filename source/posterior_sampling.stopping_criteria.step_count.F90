@@ -1,0 +1,100 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Implementation of a posterior sampling stopping class which stepCount stops.
+
+  use Posterior_Sampling_Convergence
+  
+  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount" defaultThreadPrivate="yes">
+  !#  <description>A posterior sampling stopping class which stepCount converges.</description>
+  !# </posteriorSampleStoppingCriterion>
+  type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionStepCount
+     !% Implementation of a posterior sampling convergence class which stepCount converges.
+     private
+     integer                                           :: stopAfterCount
+     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_
+   contains
+     final     ::         stepCountDestructor
+     procedure :: stop => stepCountStop
+  end type posteriorSampleStoppingCriterionStepCount
+
+  interface posteriorSampleStoppingCriterionStepCount
+     !% Constructors for the {\normalfont \ttfamily stepCount} posterior sampling convergence class.
+     module procedure stepCountConstructorParameters
+     module procedure stepCountConstructorInternal
+  end interface posteriorSampleStoppingCriterionStepCount
+
+contains
+
+  function stepCountConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily stepCount} posterior sampling stopping class which builds the object from a parameter set.
+    use Input_Parameters
+    implicit none
+    type   (posteriorSampleStoppingCriterionStepCount)                :: self
+    type   (inputParameters                          ), intent(inout) :: parameters
+    class  (posteriorSampleConvergenceClass          ), pointer       :: posteriorSampleConvergence_
+    integer                                                           :: stopAfterCount
+
+    !# <inputParameter>
+    !#   <name>stopAfterCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The number of steps to continue after convergence before stopping.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
+    self=posteriorSampleStoppingCriterionStepCount(stopAfterCount,posteriorSampleConvergence_)
+    !# <inputParametersValidate source="parameters"/>
+   return
+  end function stepCountConstructorParameters
+
+  function stepCountConstructorInternal(stopAfterCount,posteriorSampleConvergence_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily stepCount} posterior sampling stopping class.
+    use Input_Parameters
+    implicit none
+    type   (posteriorSampleStoppingCriterionStepCount)                        :: self
+    integer                                           , intent(in   )         :: stopAfterCount
+    class  (posteriorSampleConvergenceClass          ), intent(in   ), target :: posteriorSampleConvergence_
+    !# <constructorAssign variables="stopAfterCount, *posteriorSampleConvergence_"/>
+    
+    return
+ end function stepCountConstructorInternal
+
+  subroutine stepCountDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily stepCount} posterior sampling stopping class.
+    implicit none
+    type(posteriorSampleStoppingCriterionStepCount), intent(inout) :: self
+
+    !# <objectDestructor name="self%posteriorSampleConvergence_"/>
+    return
+  end subroutine stepCountDestructor
+  
+  logical function stepCountStop(self,simulationState)
+    !% Returns true if the posterior sampling should stop.
+    implicit none
+    class(posteriorSampleStoppingCriterionStepCount), intent(inout) :: self
+    class(posteriorSampleStateClass                ), intent(inout) :: simulationState
+
+    stepCountStop=   self%posteriorSampleConvergence_%isConverged    () &
+         &        .and.                                                 &
+         &                simulationState            %count          () &
+         &         >                                                    &
+         &          +self%posteriorSampleConvergence_%convergedAtStep() &
+         &          +self%stopAfterCount
+    return
+  end function stepCountStop

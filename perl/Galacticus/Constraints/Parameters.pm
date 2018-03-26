@@ -83,9 +83,10 @@ sub Output {
 
 sub Compilation {
     # Process a compilation of constraints, adjusting parameters as necessary and return a parameter hash.
-    my $config                 = shift();
     my $compilationFileName    = shift();
     my $baseParametersFileName = shift();
+    my $adjustMasses           = shift();
+    my $adjustOutputs          = shift();
     # Create an XML worker object.
     my $xml = new XML::Simple();
     # Retrieve the compilation file.
@@ -204,8 +205,7 @@ sub Compilation {
     }
     # Construct a sorted list of redshifts, suitable for output as a parameter. Ensure that we always have at least one output
     # redshift.
-    my $adjustOutputs = exists($config->{'likelihood'}->{'adjustOutputs'}) ? $config->{'likelihood'}->{'adjustOutputs'} : "no";
-    if ( $adjustOutputs eq "yes" ) {
+    if ( $adjustOutputs eq "T" ) {
 	my @outputRedshiftList = keys(%outputRedshifts);
 	if ( scalar(@outputRedshiftList) == 0 ) {
 	    push(@outputRedshiftList,&redshiftPrecision(0.0));
@@ -219,8 +219,7 @@ sub Compilation {
     $haloMassResolution = 5.00e09 unless ( defined($haloMassResolution) );
     $haloMassMinimum    = 1.00e10 unless ( defined($haloMassMinimum   ) );
     $haloMassMaximum    = 1.01e10 unless ( defined($haloMassMaximum   ) );
-    my $adjustMasses = exists($config->{'likelihood'}->{'adjustMasses'}) ? $config->{'likelihood'}->{'adjustMasses'} : "no";
-    if ( $adjustMasses eq "yes" ) {
+    if ( $adjustMasses eq "T" ) {
 	$parameters->{'mergerTreeBuildHaloMassMinimum'}->{'value'} = $haloMassMinimum;
 	$parameters->{'mergerTreeBuildHaloMassMaximum'}->{'value'} = $haloMassMaximum;
 	if ( exists($parameters->{'mergerTreeMassResolutionMethod'}) ) {
@@ -264,34 +263,22 @@ sub Active_Parameter_Names {
 }
 
 sub Convert_Parameters_To_Galacticus {
-    my $config = shift;
-    my @values = @_;
-    # Extract parameters from config file.
-    my @parameters = &List::ExtraUtils::as_array($config->{'parameters'}->{'parameter'});
-    # Count active parameters.
-    my $parameterCount = 0;
-    for(my $i=0;$i<scalar(@parameters);++$i) {
-	++$parameterCount if ( exists($parameters[$i]->{'prior'}) );
-    }
-    die("Convert_Parameters_To_Galacticus: number of supplied values [".scalar(@values)."] does not match number of parameters [".$parameterCount."]")
-	unless
-	( 
-	   scalar(@values) ==   $parameterCount
-	  ||
-	  (
-	   $config->{'simulation'}->{'type'} eq "particleSwarm" 
-	   &&
-	   scalar(@values) == 2*$parameterCount 
-	  )
-	);
-    # Map values to parameters.
-    my $j = -1;
+    my @parameterDefinitions = &List::ExtraUtils::as_array(shift());
+    # Build an array of parameter names and values.
+    my @parameters;
     my %parameterValues;
-    for(my $i=0;$i<scalar(@parameters);++$i) {
-	if ( exists($parameters[$i]->{'prior'}) ) {
-	    ++$j;
-	    $parameterValues{$parameters[$i]->{'name'}} = $values[$j];	  
+    foreach my $parameterDefinition ( @parameterDefinitions ) {
+	my $parameter;
+	if      ( $parameterDefinition =~ m/^([^=]+)==([^=]+)$/ ) {
+	    $parameter->{'name'      } = $1;
+	    $parameter->{'definition'} = $2;
+	} elsif ( $parameterDefinition =~ m/([^=]+)=([^=]+)$/  ) {
+	    $parameter->{'name'      } = $1;
+	    $parameterValues{$parameter->{'name'}} = $2;
+	} else {
+	    die('unable to parse parameter definition');
 	}
+	push(@parameters,$parameter);
     }
     # Set the values of any parameters that are defined in terms of other parameters.
     my $failCount  = 1;
@@ -302,21 +289,19 @@ sub Convert_Parameters_To_Galacticus {
 	die("Convert_Parameters_To_Galacticus: Failed to resolve parameter definitions")
 	    if ( $iterations > 100000 );
 	for(my $i=0;$i<scalar(@parameters);++$i) {
-	    if ( exists($parameters[$i]->{'define'}) ) {
-		die ("Convert_Parameters_To_Galacticus: cannot specify a prior for a defined parameter")
-		    if ( exists($parameters[$i]->{'prior'}) );
+	    if ( exists($parameters[$i]->{'definition'}) ) {
 		# Attempt to replace named parameters in the definition with their values.
-		while ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_\.\-\>]+)\]/ ) {
+		while ( $parameters[$i]->{'definition'} =~ m/\%\[([a-zA-Z0-9_\.:]+)\]/ ) {
 		    my $parameterName = $1;
 		    if ( exists($parameterValues{$parameterName}) ) {
-			$parameters[$i]->{'define'} =~ s/\%\[$parameterName\]/$parameterValues{$parameterName}/g;
+			$parameters[$i]->{'definition'} =~ s/\%\[$parameterName\]/$parameterValues{$parameterName}/g;
 		    } else {
 			++$failCount;
 			last;
 		    }
 		}
-		$parameterValues{$parameters[$i]->{'name'}} = eval($parameters[$i]->{'define'})
-		    unless ( $parameters[$i]->{'define'} =~ m/\%\[([a-zA-Z0-9_\.\-\>]+)\]/ );
+		$parameterValues{$parameters[$i]->{'name'}} = eval($parameters[$i]->{'definition'})
+		    unless ( $parameters[$i]->{'definition'} =~ m/\%\[([a-zA-Z0-9_\.:]+)\]/ );
 	    }
 	}
     }

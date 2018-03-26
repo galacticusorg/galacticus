@@ -1,0 +1,149 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Implementation of a posterior sampling convergence class which resume converges.
+
+  use ISO_Varying_String
+  
+  !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeResume">
+  !#  <description>A posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.</description>
+  !# </posteriorSampleStateInitialize>
+  type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeResume
+     !% Implementation of a posterior sampling state initialization class which sets initial state to that at the end of a previous simulation.
+     private
+     type   (varying_string) :: logFileRoot
+     logical                 :: restoreState
+   contains
+     procedure :: initialize  => resumeInitialize
+  end type posteriorSampleStateInitializeResume
+
+  interface posteriorSampleStateInitializeResume
+     !% Constructors for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+     module procedure resumeConstructorParameters
+     module procedure resumeConstructorInternal
+  end interface posteriorSampleStateInitializeResume
+
+contains
+
+  function resumeConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    use Input_Parameters
+    implicit none
+    type   (posteriorSampleStateInitializeResume)                :: self
+    type   (inputParameters                     ), intent(inout) :: parameters
+    type   (varying_string                      )                :: logFileRoot
+    logical                                                      :: restoreState
+
+    !# <inputParameter>
+    !#   <name>logFileRoot</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The root file name of the stae files from which to resume.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>restoreState</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true, restore the state of the simulation.</description>
+    !#   <source>parameters</source>
+    !#   <type>logical</type>
+    !# </inputParameter>
+    self=posteriorSampleStateInitializeResume(logFileRoot,restoreState)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function resumeConstructorParameters
+
+  function resumeConstructorInternal(logFileRoot,restoreState) result(self)
+    !% Constructor for the {\normalfont \ttfamily resume} posterior sampling state initialization class.
+    implicit none
+    type   (posteriorSampleStateInitializeResume)                :: self
+    type   (varying_string                      ), intent(in   ) :: logFileRoot
+    logical                                      , intent(in   ) :: restoreState
+    !# <constructorAssign variables="logFileRoot, restoreState"/>
+    
+    return
+  end function resumeConstructorInternal
+  
+  subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious)
+    !% Initialize simulation state by drawing at random from the parameter priors.
+    use Posterior_Sampling_State
+    use Models_Likelihoods_Constants
+    use MPI_Utilities
+    use String_Handling
+    use Galacticus_Display
+    implicit none
+    class           (posteriorSampleStateInitializeResume), intent(inout)               :: self
+    class           (posteriorSampleStateClass           ), intent(inout)               :: simulationState
+    class           (posteriorSampleLikelihoodClass      ), intent(inout)               :: modelLikelihood
+    type            (modelParameterList                  ), intent(in   ), dimension(:) :: modelParameters_
+    double precision                                      , intent(  out)               :: timeEvaluatePrevious
+    double precision                                      , allocatable  , dimension(:) :: stateVector         , stateVectorMapped
+    type            (varying_string                      )                              :: logFileName         , message
+    integer                                                                             :: stateCount          , mpiRank          , &
+         &                                                                                 logFileUnit         , ioStatus         , &
+         &                                                                                 i
+    double precision                                                                    :: logPosterior        , logLikelihood
+    logical                                                                             :: converged           , first
+    character       (len=12                )                                            :: label
+
+    ! Allocate the state vector.
+    allocate(stateVector      (simulationState%dimension()))
+    allocate(stateVectorMapped(simulationState%dimension()))
+    ! Read state from the log file.
+    logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
+    open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    ioStatus=0
+    first   =.true.
+    do while (ioStatus == 0)
+       read (logFileUnit,*,iostat=ioStatus) stateCount          , &
+            &                               mpiRank             , &
+            &                               timeEvaluatePrevious, &
+            &                               converged           , &
+            &                               logPosterior        , &
+            &                               logLikelihood       , &
+            &                               stateVector     
+       if (ioStatus == 0) then
+          ! Map the state.
+          do i=1,size(stateVector)
+             stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
+          end do
+          ! Restore the state object.
+          if (self%restoreState) then
+             call simulationState%restore(stateVectorMapped,first        )
+             call modelLikelihood%restore(stateVectorMapped,logLikelihood)
+          end if
+          first=.false.
+       end if
+    end do
+    close(logFileUnit)
+    ! Set the simulation state.
+    call simulationState%update(stateVectorMapped,.false.,.false.)
+    ! Check for out of range state.
+    do i=1,simulationState%dimension()
+       if (modelParameters_(i)%modelParameter_%logPrior(stateVector(i)) <= logImpossible) then
+          write (label,'(e12.6)') modelParameters_(i)%modelParameter_%unmap(stateVectorMapped(i))
+          message='Out of range state for parameter '
+          message=message//i//' ['//trim(label)//']'
+          call Galacticus_Display_Message(message)
+       end if
+    end do
+    ! Deallocate the state vector.
+    deallocate(stateVector      )
+    deallocate(stateVectorMapped)
+    return
+  end subroutine resumeInitialize

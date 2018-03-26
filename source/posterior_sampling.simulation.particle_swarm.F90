@@ -1,0 +1,709 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
+
+  use Models_Likelihoods
+  use Posterior_Sampling_Convergence
+  use Posterior_Sampling_Stopping_Criteria
+  use Posterior_Sampling_State
+  use Posterior_Sampling_State_Initialize
+  use Model_Parameters
+
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm" defaultThreadPrivate="yes">
+  !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
+  !# </posteriorSampleSimulation>
+  type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
+     !% Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
+     private
+     type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_           , modelParametersInactive_
+     class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_
+     class           (posteriorSampleConvergenceClass      ), pointer               :: posteriorSampleConvergence_
+     class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_
+     class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_
+     class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_
+     integer                                                                        :: parameterCount                   , stepsMaximum                 , &
+          &                                                                            reportCount                      , logFlushCount
+     double precision                                                               :: accelerationCoefficientPersonal  , accelerationCoefficientGlobal, &
+          &                                                                            inertiaWeight                    , velocityCoefficient
+     logical                                                                        :: isInteractive                    , resume
+     type            (varying_string                       )                        :: logFileRoot                      , interactionRoot              , &
+          &                                                                            logFilePreviousRoot
+   contains
+     !@ <objectMethods>
+     !@   <object>posteriorSampleSimulationParticleSwarm</object>
+     !@   <objectMethod>
+     !@     <method>posterior</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} simulationState\argin</arguments>
+     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily simulationState}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::              particleSwarmDestructor
+     procedure :: simulate  => particleSwarmSimulate
+     procedure :: posterior => particleSwarmPosterior
+  end type posteriorSampleSimulationParticleSwarm
+
+  interface posteriorSampleSimulationParticleSwarm
+     !% Constructors for the {\normalfont \ttfamily particleSwarm} posterior sampling convergence class.
+     module procedure particleSwarmConstructorParameters
+     module procedure particleSwarmConstructorInternal
+  end interface posteriorSampleSimulationParticleSwarm
+  
+contains
+  
+  function particleSwarmConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily particleSwarm} posterior sampling simulation class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    use MPI_Utilities
+    use String_Handling
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    type            (posteriorSampleSimulationParticleSwarm        )                              :: self
+    type            (inputParameters                               ), intent(inout)               :: parameters
+    type            (modelParameterList                            ), pointer      , dimension(:) :: modelParametersActive_           , modelParametersInactive_
+    class           (modelParameterClass                           ), pointer                     :: modelParameter_
+    class           (posteriorSampleLikelihoodClass                ), pointer                     :: posteriorSampleLikelihood_
+    class           (posteriorSampleConvergenceClass               ), pointer                     :: posteriorSampleConvergence_
+    class           (posteriorSampleStoppingCriterionClass         ), pointer                     :: posteriorSampleStoppingCriterion_
+    class           (posteriorSampleStateClass                     ), pointer                     :: posteriorSampleState_
+    class           (posteriorSampleStateInitializeClass           ), pointer                     :: posteriorSampleStateInitialize_
+    type            (varying_string                                )                              :: logFileRoot                      , interactionRoot                , &
+         &                                                                                           logFilePreviousRoot              , message
+    integer                                                                                       :: stepsMaximum                     , reportCount                    , &
+         &                                                                                           logFlushCount                    , inactiveParameterCount         , &
+         &                                                                                           activeParameterCount             , iActive                        , &
+         &                                                                                           iInactive
+    double precision                                                                              :: inertiaWeight                    , accelerationCoefficientPersonal, &
+         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
+    logical                                                                                       :: resume
+
+    !# <inputParameter>
+    !#   <name>stepsMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>huge(0)</defaultValue>
+    !#   <description>The maximum number of steps to take.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logFlushCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps between flushing the log file.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>reportCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps between issuing reports.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>interactionRoot</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logFileRoot</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Root file name for log files.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logFilePreviousRoot</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>Root file name for log files from which to resume.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>resume</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, resume from a previous set of log files.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>inertiaWeight</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.72d0</defaultValue>
+    !#   <description>Inertia parameter.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>accelerationCoefficientPersonal</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.193d0</defaultValue>
+    !#   <description>Personal accleration parameter.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>accelerationCoefficientGlobal</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.193d0</defaultValue>
+    !#   <description>Global accleration parameter.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityCoefficient</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.5d0</defaultValue>
+    !#   <description>Velocity parameter.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="posteriorSampleLikelihood"        name="posteriorSampleLikelihood_"        source="parameters"/>
+    !# <objectBuilder class="posteriorSampleConvergence"       name="posteriorSampleConvergence_"       source="parameters"/>
+    !# <objectBuilder class="posteriorSampleStoppingCriterion" name="posteriorSampleStoppingCriterion_" source="parameters"/>
+    !# <objectBuilder class="posteriorSampleState"             name="posteriorSampleState_"             source="parameters"/>
+    !# <objectBuilder class="posteriorSampleStateInitialize"   name="posteriorSampleStateInitialize_"   source="parameters"/>
+    ! Determine the number of parameters.
+    activeParameterCount  =0
+    inactiveParameterCount=0
+    do i=1,parameters%copiesCount("modelParameterMethod")
+       !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       select type (modelParameter_)
+       class is (modelParameterActive  )
+          activeParameterCount  =activeParameterCount  +1
+       class is (modelParameterInactive)
+          inactiveParameterCount=inactiveParameterCount+1
+       end select
+    end do
+    if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
+    if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Found '
+       message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
+       call Galacticus_Display_Message(message)
+    end if
+    ! Initialize priors and random perturbers.
+    allocate(modelParametersActive_  (  activeParameterCount))
+    allocate(modelParametersInactive_(inactiveParameterCount))
+    iActive  =0
+    iInactive=0
+    do i=1,parameters%copiesCount("modelParameterMethod")
+       !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       select type (modelParameter_)
+       class is (modelParameterInactive)
+          iInactive=iInactive+1
+          modelParametersInactive_(iInactive)%modelParameter_ => modelParameter_
+       class is (modelParameterActive  )
+          iActive  =iActive  +1
+          modelParametersActive_  (  iActive)%modelParameter_ => modelParameter_
+       end select
+    end do
+    self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,char(interactionRoot),resume,char(logFilePreviousRoot))
+    !# <inputParametersValidate source="parameters"/>
+    nullify(modelParametersActive_  )
+    nullify(modelParametersInactive_)
+    return
+  end function particleSwarmConstructorParameters
+
+  function particleSwarmConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,stepsMaximum,logFileRoot,logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,interactionRoot,resume,logFilePreviousRoot) result(self)
+    !% Internal constructor for the ``particleSwarm'' simulation class.
+    implicit none
+    type            (posteriorSampleSimulationParticleSwarm)                                      :: self
+    type            (modelParameterList                    ), intent(in   ), target, dimension(:) :: modelParametersActive_           , modelParametersInactive_
+    class           (posteriorSampleLikelihoodClass        ), intent(in   ), target               :: posteriorSampleLikelihood_
+    class           (posteriorSampleConvergenceClass       ), intent(in   ), target               :: posteriorSampleConvergence_
+    class           (posteriorSampleStoppingCriterionClass ), intent(in   ), target               :: posteriorSampleStoppingCriterion_
+    class           (posteriorSampleStateClass             ), intent(in   ), target               :: posteriorSampleState_
+    class           (posteriorSampleStateInitializeClass   ), intent(in   ), target               :: posteriorSampleStateInitialize_
+    character       (len=*                                 ), intent(in   )                       :: logFileRoot                      , interactionRoot                , &
+         &                                                                                           logFilePreviousRoot
+    integer                                                 , intent(in   )                       :: stepsMaximum                     , reportCount                    , &
+         &                                                                                           logFlushCount
+    double precision                                        , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
+         &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
+    logical                                                                                       :: resume
+    !# <constructorAssign variables="*modelParametersActive_, *modelParametersInactive_, *posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
+
+    self%parameterCount=size(modelParametersActive_)
+    self%isInteractive =trim(interactionRoot ) /= "none"
+    call self%posteriorSampleState_%parameterCountSet(self%parameterCount)
+    return
+  end function particleSwarmConstructorInternal
+
+  subroutine particleSwarmDestructor(self)
+    !% Destroy a differential evolution simulation object.
+    implicit none
+    type(posteriorSampleSimulationParticleSwarm), intent(inout) :: self
+
+    !# <objectDestructor name="self%posteriorSampleLikelihood_"              />
+    !# <objectDestructor name="self%posteriorSampleConvergence_"             />
+    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"       />
+    !# <objectDestructor name="self%posteriorSampleState_"                   />
+    !# <objectDestructor name="self%posteriorSampleStateInitialize_"         />
+    return
+  end subroutine particleSwarmDestructor
+
+  subroutine particleSwarmSimulate(self)
+    !% Perform a particle swarm simulation.
+    use MPI_Utilities
+    use Pseudo_Random
+    use Galacticus_Error
+    use Galacticus_Display
+    use String_Handling
+    use Models_Likelihoods_Constants
+    use Kind_Numbers
+    use File_Utilities
+    use System_Command
+    use Error_Functions
+    implicit none
+    class           (posteriorSampleSimulationParticleSwarm), intent(inout)                               :: self
+    double precision                                        , dimension(self%parameterCount)              :: stateVector                    , positionMinimum                  , &
+         &                                                                                                   positionMaximum                , velocityParticle                 , &
+         &                                                                                                   velocityMaximum                , stateBestPersonal                , &
+         &                                                                                                   stateBestGlobal                , stateVectorInteractive
+    double precision                                        , dimension(:,:)                , allocatable :: stateVectors
+    double precision                                        , dimension(:  )                , allocatable :: logPosteriorsAll               , logLikelihoodVariancesAll 
+    real                                                                                                  :: timePreEvaluate                , timePostEvaluate                 , &
+         &                                                                                                   timeEvaluate                   , timeEvaluatePrevious
+    double precision                                                                                      :: timeEvaluateInitial            , logPosterior                     , &
+         &                                                                                                   logPosteriorBestPersonal       , logPosteriorBestGlobal           , &
+         &                                                                                                   logLikelihoodVariance          , logLikelihoodVarianceBestPersonal, &
+         &                                                                                                   logLikelihoodVarianceBestGlobal, logLikelihood
+    type            (pseudoRandom                          )                                              :: randomNumberGenerator
+    type            (varying_string                        )                                              :: logFileName                    , message                          , &
+         &                                                                                                   interactionFileName
+    integer                                                                                               :: logFileUnit                    , convergedAtStep                  , &
+         &                                                                                                   convergenceFileUnit            , i                                , &
+         &                                                                                                   ioStatus                       , interactionFile                  , &
+         &                                                                                                   stateCount                     , mpiRank
+    logical                                                                                               :: isConverged                    , accept
+    character       (len=32                                )                                              :: label
+
+    ! Write start-up message.
+    message="Process "//mpiSelf%rankLabel()//" [PID: "
+    message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
+    call Galacticus_Display_Message(message)
+    ! Initialize the particle state vector.
+    logPosterior=logImpossible
+    do while (logPosterior <= logImpossible)
+       ! Initialize particle to some state vector.
+       call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial)
+       ! Evaluate the posterior in the initial state.
+       timeEvaluate        =-1.0
+       timeEvaluatePrevious=real(timeEvaluateInitial)
+       call CPU_Time(timePreEvaluate )
+       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+       call CPU_Time(timePostEvaluate)
+       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+       timeEvaluatePrevious=timeEvaluate
+    end do
+    ! Set the personal best state to the initial state.
+    logPosteriorBestPersonal         =logPosterior
+    logLikelihoodVarianceBestPersonal=logLikelihoodVariance
+    stateBestPersonal                =self%posteriorSampleState_%get()
+    ! Set global best state.
+    allocate(stateVectors             (self%parameterCount,mpiSelf%count()))
+    allocate(logPosteriorsAll         (                    mpiSelf%count()))
+    allocate(logLikelihoodVariancesAll(                    mpiSelf%count()))
+    logPosteriorBestGlobal         =logPosterior
+    logLikelihoodVarianceBestGlobal=logLikelihoodVariance
+    stateBestGlobal                =self%posteriorSampleState_%get()
+    logPosteriorsAll               =mpiSelf%gather(logPosteriorBestGlobal         )
+    logLikelihoodVariancesAll      =mpiSelf%gather(logLikelihoodVarianceBestGlobal)
+    stateVectors                   =mpiSelf%gather(stateBestGlobal                )
+    if (mpiSelf%isMaster()) then
+       do i=1,mpiSelf%count()
+          accept=.false.
+          if (i == 1) then
+             accept=.true.
+          else
+             accept=(logPosteriorsAll(i) > logPosteriorBestGlobal)
+          end if
+          if (accept) then
+             stateBestGlobal                =stateVectors             (:,i)
+             logPosteriorBestGlobal         =logPosteriorsAll         (  i)
+             logLikelihoodVarianceBestGlobal=logLikelihoodVariancesAll(  i)
+          end if
+       end do
+    end if
+    call mpiBarrier()
+    stateBestGlobal                =reshape(mpiSelf%requestData([0],                 stateBestGlobal ),[self%parameterCount])
+    logPosteriorBestGlobal         =sum    (mpiSelf%requestData([0],[         logPosteriorBestGlobal])                      )
+    logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
+    ! Compute maximum velocities.
+    do i=1,self%parameterCount     
+       positionMinimum(i)=self%modelParametersActive_(i)%modelParameter_%priorMinimum()
+       positionMaximum(i)=self%modelParametersActive_(i)%modelParameter_%priorMaximum()
+       velocityMaximum(i)=self%velocityCoefficient*(positionMaximum(i)-positionMinimum(i))
+    end do
+    ! Set initial velocities.
+    if (self%resume) then
+       ! Simulation is being resumed - retrieve velocities from the previous state files.
+       logFileName=self%logFilePreviousRoot//'_'//mpiSelf%rankLabel()//'.log'
+       open(newunit=logFileUnit,file=char(logFileName),status='old',form='formatted')
+       ioStatus=0
+       do while (ioStatus == 0)
+          read (logFileUnit,*,iostat=ioStatus) stateCount          , &
+               &                               mpiRank             , &
+               &                               timeEvaluateInitial , &
+               &                               isConverged         , &
+               &                               logPosterior        , &
+               &                               logLikelihood       , &
+               &                               stateVector         , &
+               &                               stateVector
+          if (ioStatus == 0) velocityParticle=stateVector
+       end do
+       close(logFileUnit)
+    else
+       ! Simulation is not being resumed, so set an initial velocity for the particle.
+       do i=1,self%parameterCount     
+          velocityParticle(i)=(2.0d0*randomNumberGenerator%sample()-1.0d0)*velocityMaximum(i)
+       end do
+    end if
+    ! Begin the simulation.
+    logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
+    open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    isConverged=.false. 
+    do while (                                                                                                                  &
+         &          self%posteriorSampleState_            %count(                                               ) < self%stepsMaximum &
+         &    .and.                                                                                                             &
+         &     .not.self%posteriorSampleStoppingCriterion_%stop (self%posteriorSampleState_)                     &
+         &   )
+       ! Get the current particle state.
+       stateVector=self%posteriorSampleState_%get()
+       ! Update the state vector
+       stateVector=stateVector+velocityParticle
+       do i=1,self%parameterCount
+          if (stateVector(i) < positionMinimum(i)) then
+             velocityParticle(i)=-velocityParticle(i)
+             stateVector     (i)=+positionMinimum (i)
+          end if
+          if (stateVector(i) > positionMaximum(i)) then
+             velocityParticle(i)=-velocityParticle(i)
+             stateVector     (i)=+positionMaximum (i)
+          end if
+       end do
+       ! If simulation is interactive, check for any interaction file.
+       if (self%isInteractive) then
+          ! Check if an interaction file exists.
+          interactionFileName=self%interactionRoot//"_"//mpiSelf%rankLabel()
+          if (File_Exists(interactionFileName)) then
+             ! Read the file and validate.
+             open(newUnit=interactionFile,file=char(interactionFileName),status='old',form='formatted',ioStat=ioStatus)
+             if (ioStatus == 0) then
+                read (interactionFile,*,ioStat=ioStatus) stateVectorInteractive
+                if (ioStatus == 0) then
+                   ! Copy the state to the proposed state vector.
+                   stateVector=stateVectorInteractive
+                   message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
+                   call Galacticus_Display_Indent(message)
+                   ! Map parameters of interactively proposed state.
+                   do i=1,size(stateVector)
+                      write (label,*) stateVector(i)
+                      message="State["
+                      message=message//i//"] = "//trim(adjustl(label))
+                      call Galacticus_Display_Message(message)
+                      stateVector(i)=self%modelParametersActive_(i)%modelParameter_%map(stateVector(i))
+                   end do
+                   call Galacticus_Display_Unindent('end')
+                else
+                   message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                   call Galacticus_Display_Message(message)
+                end if
+             else
+                message="WARNING: unable to open interaction file '"//interactionFileName//"'"
+                call Galacticus_Display_Message(message)
+             end if
+             close(interactionFile)
+             ! Remove the interaction file.
+             call System_Command_Do("rm -f "//interactionFileName)
+          end if
+       end if
+       ! Store the state vector.
+       call self%posteriorSampleState_%update(stateVector,.true.,self%posteriorSampleConvergence_%isConverged())
+       ! Update the velocity.
+       velocityParticle=+self%inertiaWeight                   &
+            &           *velocityParticle                     &
+            &           +self%accelerationCoefficientPersonal &
+            &           *randomNumberGenerator%sample()       &
+            &           *(                                    &
+            &             +stateBestPersonal                  &
+            &             -stateVector                        &
+            &            )                                    &
+            &           +self%accelerationCoefficientGlobal   &
+            &           *randomNumberGenerator%sample()       &
+            &           *(                                    &
+            &             +stateBestGlobal                    &
+            &             -stateVector                        &
+            &            )
+       where (velocityParticle > velocityMaximum)
+          velocityParticle=+velocityMaximum
+       end where
+       where (velocityParticle < -velocityMaximum)
+          velocityParticle=-velocityMaximum
+       end where
+       ! Evaluate posterior.
+       timeEvaluatePrevious=timeEvaluate
+       timeEvaluate        =-1.0
+       call CPU_Time(timePreEvaluate )
+       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+       call CPU_Time(timePostEvaluate)
+       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+       ! Update personal best state.
+       accept=(logPosterior > logPosteriorBestPersonal)
+       if (accept) then
+          logPosteriorBestPersonal         =logPosterior
+          logLikelihoodVarianceBestPersonal=logLikelihoodVariance
+          stateBestPersonal                =stateVector
+       end if
+       ! Update global best state.
+       logPosteriorsAll         =mpiSelf%gather(logPosterior         )
+       logLikelihoodVariancesAll=mpiSelf%gather(logLikelihoodVariance)
+       stateVectors             =mpiSelf%gather(stateVector          )
+       if (mpiSelf%isMaster()) then
+          do i=1,mpiSelf%count()
+             accept=(logPosteriorsAll(i) > logPosteriorBestGlobal)
+             if (accept) then
+                stateBestGlobal                =stateVectors             (:,i)
+                logPosteriorBestGlobal         =logPosteriorsAll         (  i)
+                logLikelihoodVarianceBestGlobal=logLikelihoodVariancesAll(  i)
+             end if
+          end do
+       end if
+       call mpiBarrier()
+       stateBestGlobal                =reshape(mpiSelf%requestData([0],                 stateBestGlobal ),[self%parameterCount])
+       logPosteriorBestGlobal         =sum    (mpiSelf%requestData([0],[         logPosteriorBestGlobal])                      )
+       logLikelihoodVarianceBestGlobal=sum    (mpiSelf%requestData([0],[logLikelihoodVarianceBestGlobal])                      )
+       ! Unmap parameters and write to log file.
+       do i=1,size(stateVector)
+          stateVector(i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
+       end do
+       write (logFileUnit,*) self   %posteriorSampleState_%count(), &
+            &                mpiSelf%rank                 (), &
+            &                timeEvaluate                   , &
+            &                isConverged                    , &
+            &                logPosterior                   , &
+            &                logLikelihood                  , &
+            &                stateVector                    , &
+            &                velocityParticle
+       if (mod(self%posteriorSampleState_%count(),self%logFlushCount) == 0) call flush(logFileUnit)
+       ! Repeat.
+       call mpiBarrier()
+       ! Test for convergence.
+       if (.not.isConverged) then
+          isConverged=self%posteriorSampleConvergence_%isConverged(self%posteriorSampleState_,logPosterior)
+          if (isConverged) then
+             convergedAtStep=self%posteriorSampleState_%count()
+             if (mpiSelf%rank() == 0) then
+                message='Converged after '
+                message=message//convergedAtStep//' steps'
+                call Galacticus_Display_Message(message)
+                logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.convergence.log'
+                open(newunit=convergenceFileUnit,file=char(logFileName),status='unknown',form='formatted',access='append')
+                write (convergenceFileUnit,'(a,i8)') 'Converged at step: ',convergedAtStep
+                call self%posteriorSampleConvergence_%logReport(convergenceFileUnit)
+                close(convergenceFileUnit)
+             end if
+          end if
+       end if
+    end do
+    close(logFileUnit)
+    return
+  end subroutine particleSwarmSimulate
+
+  subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+    !% Return the log of the posterior for the current state.
+    use, intrinsic :: ISO_C_Binding
+    use               Models_Likelihoods_Constants
+    use               MPI_Utilities
+    use               Sort
+    use               Galacticus_Error
+    use               Galacticus_Display
+    use               Kind_Numbers
+    implicit none
+    class           (posteriorSampleSimulationParticleSwarm), intent(inout)               :: self
+    class           (posteriorSampleStateClass             ), intent(inout)               :: posteriorSampleState_
+    double precision                                        , intent(  out)               :: logPosterior              , logLikelihoodVariance   , &
+         &                                                                                   logLikelihood
+    real                                                    , intent(inout)               :: timeEvaluate
+    real                                                    , intent(in   )               :: timeEvaluatePrevious
+    double precision                                        , dimension(:  ), allocatable :: timesEvaluate             , nodeWork                , &
+         &                                                                                   stateVectorSelf           , timesEvaluateActual
+    double precision                                        , dimension(:,:), allocatable :: stateVectorWork
+    integer                                                 , dimension(:  ), allocatable :: processToProcess          , processFromProcess
+    integer         (c_size_t                              ), dimension(:  ), allocatable :: timesEvaluateOrder        , nodeWorkOrder
+    integer                                                 , dimension(1  )              :: particleIndexSelf
+    integer                                                 , dimension(1,1)              :: particleIndexWork
+    double precision                                        , dimension(1,1)              :: logLikelihoodSelf         , logPriorWork            , &
+         &                                                                                   timeEvaluateSelf
+    double precision                                        , dimension(1  )              :: logLikelihoodWork         , logPriorSelf            , &
+         &                                                                                   timeEvaluateWork
+    double precision                                        , parameter                   :: temperature         =1.0d0
+    double precision                                                                      :: logPrior                  , timeEvaluateEffective
+    integer                                                                               :: i                         , processTrial            , &
+         &                                                                                   nodeTrial
+    type            (varying_string                        )                              :: message
+    character       (len=10                                )                              :: label
+
+    ! Evaluate the proposed prior.
+    logPrior=modelParameterListLogPrior(self%modelParametersActive_,posteriorSampleState_)
+    ! Gather timing data from all particles.
+    allocate(timesEvaluate      (0:mpiSelf%count()-1))
+    allocate(timesEvaluateActual(0:mpiSelf%count()-1))
+    allocate(processToProcess   (0:mpiSelf%count()-1))
+    allocate(processFromProcess (0:mpiSelf%count()-1))
+    allocate(timesEvaluateOrder (0:mpiSelf%count()-1))
+    timeEvaluateEffective=timeEvaluatePrevious
+    if     (                                                                                    &
+         &  .not.self%posteriorSampleLikelihood_%willEvaluate(                                  &
+         &                                                    posteriorSampleState_           , &
+         &                                                    self%modelParametersActive_     , &
+         &                                                    self%posteriorSampleConvergence_, &
+         &                                                    temperature                     , &
+         &                                                    logImpossible                   , &
+         &                                                    logImpossible                   , &
+         &                                                    logPrior                          &
+         &                                                   )                                  &
+         & )                                                                                    &
+         & timeEvaluateEffective=0.0d0
+    timesEvaluate=mpiSelf%gather(dble(timeEvaluateEffective))
+    ! If previous time estimate is negative, don't do load balancing.
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Indent('Load balancing report')
+    if (any(timesEvaluate < 0.0d0)) then
+       forall(i=0:mpiSelf%count()-1)
+          processToProcess  (i)=i
+          processFromProcess(i)=i
+       end forall
+       if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
+    else
+       ! Distribute tasks across nodes.
+       timesEvaluateOrder=Sort_Index_Do(timesEvaluate)-1
+       processToProcess=-1
+       allocate(nodeWork     (mpiSelf%nodeCount()))
+       allocate(nodeWorkOrder(mpiSelf%nodeCount()))
+       nodeWork=0.0d0
+       do i=mpiSelf%count()-1,0,-1
+          nodeWorkOrder=Sort_Index_Do(nodeWork)
+          do nodeTrial=1,mpiSelf%nodeCount()
+             do processTrial=0,mpiSelf%count()-1
+                if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then
+                   processToProcess  (timesEvaluateOrder(i))=processTrial
+                   processFromProcess(processTrial)=int(timesEvaluateOrder(i),kind_int4)
+                   nodeWork(nodeWorkOrder(nodeTrial))=nodeWork(nodeWorkOrder(nodeTrial))+timesEvaluate(timesEvaluateOrder(i))
+                   exit
+                end if
+             end do
+             if (processToProcess(timesevaluateorder(i)) >= 0) exit
+          end do
+          if (processToProcess(timesevaluateorder(i)) < 0) call Galacticus_Error_Report('failed to assign task to process'//{introspection:location})
+       end do
+       ! Report.
+       if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
+          call Galacticus_Display_Indent('Particle redistribution:')
+          do i=0,mpiSelf%count()-1
+             write (label,'(i4.4)') i
+             message='Particle '//trim(label)//' -> process/node '
+             write (label,'(i4.4)') processToProcess(i)
+             message=message//trim(label)//'/'
+             write (label,'(i4.4)') mpiSelf%nodeAffinity(processToProcess(i))
+             message=message//trim(label)//' (work = '
+             write (label,'(f9.2)') timesEvaluate(i)
+             message=message//trim(label)//')'
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+          call Galacticus_Display_Indent('Node work loads:')
+          do i=1,size(nodeWork)
+             write (label,'(i4.4)') i
+             message='Node '//trim(label)//': work = '
+             write (label,'(f9.2)') nodeWork(i)
+             message=message//trim(label)
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+       end if
+    end if
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Unindent('done')
+    ! Get state vector, particle index, and prior.
+    allocate(stateVectorSelf(self%parameterCount  ))
+    allocate(stateVectorWork(self%parameterCount,1))
+    stateVectorSelf         =posteriorSampleState_%get       ()
+    particleIndexSelf       =posteriorSampleState_%chainIndex()
+    logPriorSelf            =logPrior
+    stateVectorWork         =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),stateVectorSelf  )
+    particleIndexWork       =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),particleIndexSelf)
+    logPriorWork            =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logPriorSelf     )
+    ! Set state and particle index.
+    call posteriorSampleState_%update       (  stateVectorWork(:,1),logState=.false.,isConverged=.false.)
+    call posteriorSampleState_%chainIndexSet(particleIndexWork(1,1)                                     )
+    ! Evaluate the likelihood.
+    logLikelihood=self%posteriorSampleLikelihood_%evaluate(                                                             &
+         &                                                                       posteriorSampleState_                , &
+         &                                                                       self%modelParametersActive_          , &
+         &                                                                       self%modelParametersInactive_        , &
+         &                                                                       self%posteriorSampleConvergence_     , &
+         &                                                                       temperature                          , &
+         &                                                                       logImpossible                        , &
+         &                                                                       logImpossible                        , &
+         &                                                                       logPriorWork                    (1,1), &
+         &                                                                       timeEvaluate                         , &
+         &                                                 logLikelihoodVariance=logLikelihoodVariance                  &
+         &                                                )
+    call mpiBarrier()
+    ! Distribute likelihoods back to origins.
+    logLikelihoodWork    =                                                                         logLikelihood
+    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork          )
+    logLikelihood        =                                                                         logLikelihoodSelf    (1,1)
+    ! Distribute likelihood variances back to origins.
+    logLikelihoodWork    =                                                                         logLikelihoodVariance
+    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork          )
+    logLikelihoodVariance=                                                                         logLikelihoodSelf    (1,1)
+    ! Distribute evaluation times back to origins.
+    timeEvaluateWork     =                                                                    dble(timeEvaluate              )
+    timeEvaluateSelf     =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork           )
+    timeEvaluate         =                                                                    real(timeEvaluateSelf     (1,1))
+    ! Restore state and particle index.
+    call posteriorSampleState_%update       (  stateVectorSelf   ,logState=.false.,isConverged=.false.)
+    call posteriorSampleState_%chainIndexSet(particleIndexSelf(1)                                     )
+    ! Compute the log posterior.
+    logPosterior=logPrior+logLikelihood
+    ! Gather actual evaluation times and report.
+    timesEvaluateActual=mpiSelf%gather(dble(timeEvaluate))
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
+       call Galacticus_Display_Indent('Node work done vs. expected:')
+       do i=0,mpiSelf%count()-1
+          write (label,'(i4.4)') i
+          message='Node '//trim(label)//': work (actual/estimated) = '
+          write (label,'(f9.2)') timesEvaluateActual(i)
+          message=message//trim(label)//" / "
+          write (label,'(f9.2)') timesEvaluate      (i)
+          message=message//trim(label)
+          call Galacticus_Display_Message(message)
+       end do
+       call Galacticus_Display_Unindent('done')
+    end if
+    return
+  end subroutine particleSwarmPosterior

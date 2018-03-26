@@ -1,0 +1,643 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+  
+  use Cosmology_Functions
+  
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit" defaultThreadPrivate="yes">
+  !#  <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
+  !# </posteriorSampleLikelihood>
+  type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
+     !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+     private
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     integer                                                              :: photometryCount         , dustType           , &
+          &                                                                  burstCount              , startTimeType
+     integer                                  , allocatable, dimension(:) :: filterIndex             , luminosityIndex    , &
+          &                                                                  postprocessingChainIndex
+     double precision                         , allocatable, dimension(:) :: magnitude               , error              , &
+          &                                                                  redshift                , burstFraction      , &
+          &                                                                  age                     , wavelengthEffective, &
+          &                                                                  burstTimeStart          , burstTimescale
+     type            (varying_string         ), allocatable, dimension(:) :: filter                  , system
+     type            (varying_string         )                            :: startTime
+     double precision                                      , dimension(1) :: massToLightRatio
+   contains
+     final     ::                    sedFitDestructor
+     procedure :: evaluate        => sedFitEvaluate
+     procedure :: functionChanged => sedFitFunctionChanged
+  end type posteriorSampleLikelihoodSEDFit
+
+  interface posteriorSampleLikelihoodSEDFit
+     !% Constructors for the {\normalfont \ttfamily sedFit} posterior sampling convergence class.
+     module procedure sedFitConstructorParameters
+     module procedure sedFitConstructorInternal
+  end interface posteriorSampleLikelihoodSEDFit
+
+  !# <enumeration>
+  !#  <name>sedFitDustType</name>
+  !#  <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
+  !#  <visibility>private</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="null"           />
+  !#  <entry label="charlotFall2000"/>
+  !#  <entry label="cardelli1989"   />
+  !#  <entry label="gordon2003"     />
+  !#  <entry label="calzetti2000"   />
+  !#  <entry label="wittGordon2000" />
+  !# </enumeration>
+
+  !# <enumeration>
+  !#  <name>sedFitStartTime</name>
+  !#  <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
+  !#  <visibility>private</visibility>
+  !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="time"/>
+  !#  <entry label="age" />
+  !# </enumeration>
+
+contains
+
+  function sedFitConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sedFit} posterior sampling convergence class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    implicit none
+    type            (posteriorSampleLikelihoodSEDFit)                              :: self
+    type            (inputParameters                ), intent(inout)               :: parameters
+    double precision                                 , allocatable  , dimension(:) :: magnitude          , error
+    type            (varying_string                 ), allocatable  , dimension(:) :: filter             , system
+    integer                                                                        :: burstCount         , dustType, &
+         &                                                                            startTime
+    class           (cosmologyFunctionsClass        ), pointer                     :: cosmologyFunctions_
+
+    !# <inputParameter>
+    !#   <name>magnitude</name>
+    !#   <cardinality>1..*</cardinality>
+    !#   <description>The magnitudes of the broad-band SED.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>error</name>
+    !#   <cardinality>1..*</cardinality>
+    !#   <description>The errors on the magnitudes of the broad-band SED.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>filter</name>
+    !#   <cardinality>1..*</cardinality>
+    !#   <description>The names of the filters in the broad-band SED.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>system</name>
+    !#   <cardinality>1..*</cardinality>
+    !#   <description>The photometric system (AB or Vega) of the broad-band SED.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>burstCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The number of bursts events to include in the star formation history.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>dustType</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The type of dust model to apply to the SED.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>startTime</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The definition of start time (absolute {\normalfont \ttfamily time} or {\normalfont \ttfamily age}).</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=posteriorSampleLikelihoodSEDFit(                                                                                    &
+         &                                                                     magnitude                                   , &
+         &                                                                     error                                       , &
+         &                                                                     filter                                      , &
+         &                                                                     system                                      , &
+         &                                                                     burstCount                                  , &
+         &                               enumerationSedFitDustTypeEncode (char(dustType           ),includesPrefix=.false.), &
+         &                               enumerationSedFitStartTimeEncode(char(startTime          ),includesPrefix=.false.), &
+         &                                                                     cosmologyFunctions_                           &
+         &                              )
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function sedFitConstructorParameters
+
+  function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_) result(self)
+    !% Constructor for ``sedFit'' posterior sampling likelihood class.
+    use Instruments_Filters
+    use ISO_Varying_String
+    use Memory_Management
+    use Stellar_Population_Spectra_Postprocess
+    use Galacticus_Error
+    implicit none
+    type            (posteriorSampleLikelihoodSEDFit)                              :: self
+    double precision                                 , intent(in   ), dimension(:) :: magnitude          , error
+    type            (varying_string                 ), intent(in   ), dimension(:) :: filter             , system
+    integer                                          , intent(in   )               :: burstCount         , dustType, &
+         &                                                                            startTimeType
+    class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
+    integer                                                                        :: i
+    !# <constructorAssign variables="magnitude, error, filter, system, burstCount, dustType, startTimeType, *cosmologyFunctions_"/>
+
+    self%photometryCount=size(magnitude)
+    call allocateArray(self%filterIndex             ,[self%photometryCount])
+    call allocateArray(self%luminosityIndex         ,[self%photometryCount])
+    call allocateArray(self%redshift                ,[self%photometryCount])
+    call allocateArray(self%age                     ,[self%photometryCount])
+    call allocateArray(self%postprocessingChainIndex,[self%photometryCount])
+    call allocateArray(self%wavelengthEffective     ,[self%photometryCount])
+    ! Determine indices.
+    do i=1,self%photometryCount
+       ! Set a luminosity index.
+       self%luminosityIndex(i)=i
+       ! Find the index for this filter.
+       self%filterIndex    (i)=Filter_Get_Index(filter(i))
+       ! Convert to Vega system if required.
+       if (system(i) == "vega")                         &
+            & self                     %magnitude  (i)  &
+            &  =                   self%magnitude  (i)  &
+            &  -Filter_Vega_Offset(self%filterIndex(i))
+       ! Get the effective wavelength.
+       self%wavelengthEffective(i)=Filter_Wavelength_Effective(self%filterIndex(i))
+    end do
+    ! Create burst arrays.
+    call allocateArray(self%burstTimeStart,[self%burstCount])
+    call allocateArray(self%burstTimescale,[self%burstCount])
+    call allocateArray(self%burstFraction ,[self%burstCount])
+    ! Find stellar spectra postprocessing chain to use.
+    self%postprocessingChainIndex=Stellar_Population_Spectrum_Postprocess_Index(var_str('default'))
+    return
+  end function sedFitConstructorInternal
+
+  subroutine sedFitDestructor(self)
+    !% Destructor for ``sedFit'' posterior sampling likelihood class.
+    implicit none
+    type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine sedFitDestructor
+  
+  double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+    !% Return the log-likelihood for the SED fitting likelihood function.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Error
+    use               FGSL
+    use               Models_Likelihoods_Constants
+    use               Posterior_Sampling_State
+    use               Posterior_Sampling_Convergence
+    use               Numerical_Integration
+    use               Galactic_Structure_Options
+    use               Abundances_Structure
+    use               Cosmology_Functions
+    use               Stellar_Spectra_Dust_Attenuations
+    use               Star_Formation_IMF
+    use               Stellar_Population_Luminosities
+    implicit none
+    class           (posteriorSampleLikelihoodSEDFit   ), intent(inout)                 :: self
+    class           (posteriorSampleStateClass         ), intent(inout)                 :: simulationState
+    type            (modelParameterList                ), intent(in   ), dimension(:  ) :: modelParametersActive_                          , modelParametersInactive_
+    class           (posteriorSampleConvergenceClass   ), intent(inout)                 :: simulationConvergence
+    double precision                                    , intent(in   )                 :: temperature                                     , logLikelihoodCurrent         , &
+         &                                                                                 logPriorCurrent                                 , logPriorProposed
+    real                                                , intent(inout)                 :: timeEvaluate
+    double precision                                    , intent(  out), optional       :: logLikelihoodVariance
+    double precision                                    , allocatable  , dimension(:  ) :: stateVector                                     , ages                         , &
+         &                                                                                 weights
+    double precision                                    , allocatable  , dimension(:,:) :: massToLightRatios
+    double precision                                    , parameter                     :: logImprobable              =-7.00000000000000d+0
+    double precision                                    , parameter                     :: toleranceRelativeFractional=+1.00000000000000d-2
+    double precision                                    , parameter                     :: stellarAgeArbitrary        =+1.00000000000000d+0
+    double precision                                    , parameter                     :: vBandWavelength            =+5.50461227375652d+3
+    class           (stellarSpectraDustAttenuationClass), allocatable                   :: dust
+    integer         (c_size_t                          )                                :: i
+    integer                                                                             :: iMagnitude                                      , imfIndex                     , &
+         &                                                                                 burstIndexOffset
+    double precision                                                                    :: mass                                            , timeScale                    , &
+         &                                                                                 starFormationRateNormalization                  , magnitude                    , &
+         &                                                                                 luminosity                                      , metallicity                  , &
+         &                                                                                 redshift                                        , timeObserved                 , &
+         &                                                                                 vBandAttenuation                                , opticalDepthBirthClouds      , &
+         &                                                                                 timeStart                                       , Rv                           , &
+         &                                                                                 toleranceRelative                               , termLinear                   , &
+         &                                                                                 termConstant                                    , recycledFractionInstantaneous, &
+         &                                                                                 agePrevious                                     , ageNow                       , &
+         &                                                                                 ageNext
+    type            (abundances                )                                        :: abundancesStars
+    type            (fgsl_function             )                                        :: integrandFunction
+    type            (fgsl_integration_workspace)                                        :: integrationWorkspace
+    logical                                                                             :: integrationReset                                , useRapidEvaluation
+    !GCC$ attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_
+
+    ! There is no variance in our likelihood estimate.
+    if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
+    ! Do not evaluate if the proposed prior is impossible.
+    if (logPriorProposed <= logImpossible) then
+       sedFitEvaluate=0.0d0
+       return
+    end if
+    ! Get the simulation state.
+    stateVector=simulationState%get()
+    do i=1,size(stateVector)
+       stateVector(i)=modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
+    end do
+    mass        =      stateVector(1)
+    timeScale   =1.0d0/stateVector(3)
+    metallicity =      stateVector(4)
+    redshift    =      stateVector(5)
+    ! Determine time observed.
+    timeObserved=self%cosmologyFunctions_%cosmicTime                 (          &
+         &       self%cosmologyFunctions_%expansionFactorFromRedshift (         &
+         &                                                             redshift &
+         &                                                            )         &
+         &                                                           )
+    ! Determine start time.
+    select case (self%startTimeType)
+    case (sedFitStartTimeTime)
+       timeStart=             stateVector(2)
+    case (sedFitStartTimeAge )
+       timeStart=timeObserved-stateVector(2)
+    end select
+    ! Return impossibility if start time is after the observed time or before the Big Bang.
+    if (timeStart >= timeObserved*(1.0d0-toleranceRelativeFractional) .or. timeStart <= 0.0d0) then
+       sedFitEvaluate=logImpossible
+       return
+    end if
+    ! Construct dust attenuation object.
+    select case (self%dustType)
+    case (sedFitDustTypeNull           )
+       allocate(stellarSpectraDustAttenuationNull :: dust)
+       select type (dust)
+       type is (stellarSpectraDustAttenuationNull)
+          vBandAttenuation=0.0d0
+          dust=stellarSpectraDustAttenuationNull()
+       end select
+       burstIndexOffset=5
+    case (sedFitDustTypeCharlotFall2000)
+       allocate(stellarSpectraDustAttenuationCharlotFall2000 :: dust)
+       select type (dust)
+       type is (stellarSpectraDustAttenuationCharlotFall2000)
+          vBandAttenuation       =     stateVector(6)
+          opticalDepthBirthClouds=-log(stateVector(7))
+          dust=stellarSpectraDustAttenuationCharlotFall2000(                                                 &
+               &                                            opacityExponent        =0.7d+0                 , &
+               &                                            birthCloudLifetime     =1.0d-2                 , &
+               &                                            opticalDepthISM        =1.0d+0                 , &
+               &                                            opticalDepthBirthClouds=opticalDepthBirthClouds  &
+               &                                           )
+       end select
+       burstIndexOffset=7
+    case (sedFitDustTypeCardelli1989)
+       allocate(stellarSpectraDustAttenuationCardelli1989    :: dust)
+       select type (dust)
+       type is (stellarSpectraDustAttenuationCardelli1989)
+          vBandAttenuation=stateVector(6)
+          Rv              =stateVector(7)
+          dust=stellarSpectraDustAttenuationCardelli1989   (                                                 &
+               &                                            Rv                     =Rv                       &
+               &                                           )
+       end select
+       burstIndexOffset=7
+    case (sedFitDustTypeGordon2003)
+       allocate(stellarSpectraDustAttenuationGordon2003      :: dust)
+       select type (dust)
+       type is (stellarSpectraDustAttenuationGordon2003)
+          vBandAttenuation=stateVector(6)
+          dust=stellarSpectraDustAttenuationGordon2003     (                                                 &
+               &                                            sample                 ='LMC'                    &
+               &                                           )
+       end select
+       burstIndexOffset=6
+    case (sedFitDustTypeCalzetti2000)
+       allocate(stellarSpectraDustAttenuationCalzetti2000    :: dust)
+       select type (dust)
+       type is (stellarSpectraDustAttenuationCalzetti2000)
+          vBandAttenuation=stateVector(6)
+          dust=stellarSpectraDustAttenuationCalzetti2000   (                                                 &
+               &                                           )
+       end select
+       burstIndexOffset=6
+    case (sedFitDustTypeWittGordon2000)
+       allocate(stellarSpectraDustAttenuationWittGordon2000  :: dust)
+       select type (dust)
+       type is (stellarSpectraDustAttenuationWittGordon2000)
+          vBandAttenuation=stateVector(6)
+          dust=stellarSpectraDustAttenuationWittGordon2000 (                                                &
+               &                                            model                 ='MilkyWayShellTau3.0'    &
+               &                                           )
+       end select
+       burstIndexOffset=6
+    case default
+       burstIndexOffset=-1
+       call Galacticus_Error_Report('unknown dust type'//{introspection:location})
+    end select
+    ! Extract bursts.
+    do i=1,self%burstCount
+       self%burstTimeStart(i)=stateVector(burstIndexOffset+(i-1)*3+1)
+       self%burstTimescale(i)=stateVector(burstIndexOffset+(i-1)*3+2)
+       self%burstFraction (i)=stateVector(burstIndexOffset+(i-1)*3+3)
+       ! Return impossibility if the burst begins before the galaxy forms.
+       if (self%burstTimeStart(i) < timeStart) then
+          sedFitEvaluate=logImpossible
+          return
+       end if
+    end do
+    ! Set redshift.
+    self%redshift=redshift
+    ! Construct the abundances object.
+    call abundancesStars%metallicitySet(metallicity,metallicityType=metallicityTypeLinearByMassSolar)
+    ! Determine if we can use a rapid summation over tabulated mass-to-light ratios.
+    useRapidEvaluation= self%burstCount == 0                        &
+         &             .and.                                        &
+         &              (                                           &
+         &                     dust%isSeparable   ()                &
+         &               .or.                                       &
+         &                .not.dust%isAgeDependent()                &
+         &              )                                           &
+         &             .and.                                        &
+         &              .not.IMF_Is_Star_Formation_Rate_Dependent()
+    if (useRapidEvaluation) then
+       ! Find the IMF.
+       imfIndex         =IMF_Select(1.0d0,abundancesStars,componentTypeDisk)
+       ! Get tables of ages and luminosities.
+       call Stellar_Population_Luminosity_Track(                               &
+            &                                   self%luminosityIndex         , &
+            &                                   self%filterIndex             , &
+            &                                   self%postprocessingChainIndex, &
+            &                                   imfIndex                     , &
+            &                                   abundancesStars              , &
+            &                                   self%redshift                , &
+            &                                   ages                         , &
+            &                                   massToLightRatios              &
+            &                                  )
+       ! Evaluate the star formation rate normalization.
+       starFormationRateNormalization=+mass                  &
+            &                         /timeScale             &
+            &                         /(                     &
+            &                           +1.0d0               &
+            &                           -exp(                &
+            &                                -(              &
+            &                                  +timeObserved &
+            &                                  -timeStart    &
+            &                                 )              &
+            &                                /  timeScale    &
+            &                               )                &
+            &                          )
+       ! Evaluate weight for each tabulated age.
+       allocate(weights(size(ages)))
+       weights(size(ages))=0.0d0
+       do i=1,size(ages,kind=c_size_t)-1
+          if (i == 1) then
+             agePrevious=0.0d0
+          else
+             agePrevious=min(ages(i-1),timeObserved-timeStart)
+          end if
+          ageNow =min(ages(i  ),timeObserved-timeStart)
+          ageNext=min(ages(i+1),timeObserved-timeStart)        
+          termConstant=0.0d0
+          if (ageNext     > ageNow) termConstant=                                                                                  &
+               &                                 +termConstant                                                                     &
+               &                                 +(1.0d0+ageNow/(ageNext-ageNow))                                                  &
+               &                                 *(                                                                                &
+               &                                   -exp(-((timeObserved-ageNow     )-timeStart)/timeScale)                         &
+               &                                   +exp(-((timeObserved-ageNext    )-timeStart)/timeScale)                         &
+               &                                  )
+          if (agePrevious < ageNow) termConstant=                                                                                  &
+               &                                 +termConstant                                                                     &
+               &                                 -(agePrevious/(ageNow-agePrevious))                                               &
+               &                                 *(                                                                                &
+               &                                   -exp(-((timeObserved-agePrevious)-timeStart)/timeScale)                         &
+               &                                   +exp(-((timeObserved-ageNow     )-timeStart)/timeScale)                         &
+               &                                 )
+          termLinear=0.0d0
+          if (ageNext     > ageNow) termLinear  =                                                                                  &
+               &                                 +termLinear                                                                       &
+               &                                 -(                                                                                &
+               &                                   -exp(-((timeObserved-ageNow     )-timeStart)/timeScale)*(ageNow     -timeScale) &
+               &                                   +exp(-((timeObserved-ageNext    )-timeStart)/timeScale)*(ageNext    -timeScale) &
+               &                                 )                                                                                 &
+               &                                 /(ageNext-ageNow)
+          if (agePrevious < ageNow) termLinear  =                                                                                  &
+               &                                 +termLinear                                                                       &
+               &                                 +(                                                                                &
+               &                                   -exp(-((timeObserved-agePrevious)-timeStart)/timeScale)*(agePrevious-timeScale) &
+               &                                   +exp(-((timeObserved-ageNow     )-timeStart)/timeScale)*(ageNow     -timeScale) &
+               &                                 )                                                                                 &
+               &                                 /(ageNow-agePrevious)        
+          ! Find the recycled fraction.
+          recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(1.0d0,abundancesStars,componentTypeDisk)
+          weights(i)=(termConstant+termLinear)*starFormationRateNormalization*timeScale/(1.0d0-recycledFractionInstantaneous)        
+          if (.not.dust%isSeparable())                                       &
+               & weights(i)=                                                 &
+               &            +weights(i)                                      &
+               &            *10.0d0**(                                       &
+               &                      -0.4d0                                 &
+               &                      *dust%attenuation(                     &
+               &                                        vBandWavelength    , &
+               &                                        ageNow             , &
+               &                                        vBandAttenuation     &
+               &                                       )                     &
+               &                      +0.4d0                                 &
+               &                      *dust%attenuation(                     &
+               &                                        vBandWavelength    , &
+               &                                        stellarAgeArbitrary, &
+               &                                        vBandAttenuation     &
+               &                                       )                     &
+               &                     )
+       end do
+    else
+       allocate(weights(0))
+    end if
+    ! Iterate over bands.
+    sedFitEvaluate      =0.0d0
+    starFormationRateNormalization=1.0d0
+    do iMagnitude=0,size(self%magnitude)
+       ! Compute luminosity.
+       if (useRapidEvaluation) then
+          if (iMagnitude > 0.0d0)                                                             &
+               & luminosity=+sum(weights*massToLightRatios(:,iMagnitude))                     &
+               &            *10.0d0**(                                                        &
+               &                      -0.4d0                                                  &
+               &                      *dust%attenuation(                                      &
+               &                                        self%wavelengthEffective(iMagnitude), &
+               &                                        stellarAgeArbitrary                 , &
+               &                                        vBandAttenuation                      &
+               &                                       )                                      &
+               &                     )
+       else
+          ! Integrate star formation history to get luminosity.
+          integrationReset=.true.
+          if (iMagnitude == 0) then
+             toleranceRelative=    1.0d-3
+          else
+             toleranceRelative=max(1.0d-3,toleranceRelativeFractional*self%error(imagnitude)*log(10.0d0)/2.5d0)
+          end if
+          luminosity=Integrate(                                         &
+               &               timeStart                              , &
+               &               timeObserved                           , &
+               &               luminosityIntegrand                    , &
+               &               integrandFunction                      , &
+               &               integrationWorkspace                   , &
+               &               toleranceRelative   =toleranceRelative , &
+               &               integrationRule     =FGSL_Integ_Gauss61, &
+               &               reset               =integrationReset    &
+               &              )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
+       end if
+       ! Determine if we're computing mass or luminosity.
+       if (iMagnitude > 0) then
+          ! Accumulate to likelihood.
+          magnitude=-2.5d0*log10(luminosity)
+          sedFitEvaluate=                       &
+               & +sedFitEvaluate                &
+               & -0.5d0                         &
+               & *(                             &
+               &   (                            &
+               &    +     magnitude             &
+               &    -self%magnitude(iMagnitude) &
+               &   )                            &
+               &   / self%error    (iMagnitude) &
+               &  )**2
+          ! Exit as soon as the proposed likelihood is found to be sufficiently below the current likelihood.
+          if     (                                          &
+               &    (sedFitEvaluate      +logPriorProposed) &
+               &   -                                        &
+               &    (logLikelihoodCurrent+logPriorCurrent ) &
+               &  <                                         &
+               &    logImprobable                           &
+               &   *temperature                             &
+               & ) exit
+       else if (.not.useRapidEvaluation) then
+          ! Normalize the star formation rate.
+          starFormationRateNormalization=mass/luminosity
+       end if
+    end do
+    ! Destroy abundances object.
+    call abundancesStars%destroy()
+    return
+
+  contains
+
+    double precision function luminosityIntegrand(time)
+      !% Star formation rate integrand.
+      use Star_Formation_IMF
+      use Stellar_Population_Luminosities
+      use Numerical_Constants_Math
+      implicit none
+      double precision, intent(in   ) :: time
+      integer                         :: imfIndex
+      double precision                :: recycledFractionInstantaneous, starFormationRate
+
+      ! Find stellar population age.
+      self%age         =+timeObserved&
+           &            -time
+      ! Find continuous star formation rate.
+      starFormationRate=+starFormationRateNormalization &
+           &            *exp(                           &
+           &                 -(                         &
+           &                   +time                    &
+           &                   -timeStart               &
+           &                  )                         &
+           &                 /  timeScale               &
+           &                )
+      ! Add burst star formation rate.
+      do i=1,self%burstCount
+         starFormationRate=+starFormationRate                &
+              &            +starFormationRateNormalization   &
+              &            *timeScale                        &
+              &            *(                                &
+              &              +1.0d0                          &
+              &              -exp(                           &
+              &                   -self%burstTimeStart(i)    &
+              &                   /timeScale                 &
+              &                  )                           &
+              &             )                                &
+              &            *       self%burstFraction (i)    &
+              &            *exp(                             &
+              &                 -0.5d0                       &
+              &                 *(                           &
+              &                   +time                      &
+              &                   -self%burstTimeStart(i)    &
+              &                  )**2                        &
+              &                 /  self%burstTimescale(i)**2 &
+              &                )                             &
+              &            /sqrt(                            &
+              &                  +2.0d0                      &
+              &                  *Pi                         &
+              &                 )
+      end do
+      ! Find the IMF.
+      imfIndex         =IMF_Select(starFormationRate,abundancesStars,componentTypeDisk)
+      ! Determine if we're computing luminosity or mass.
+      if (iMagnitude > 0) then
+         ! Find the mass-to-light ratio.
+         self%massToLightRatio=Stellar_Population_Luminosity(                                                      &
+              &                                              self%luminosityIndex         (iMagnitude:iMagnitude), &
+              &                                              self%filterIndex             (iMagnitude:iMagnitude), &
+              &                                              self%postprocessingChainIndex(iMagnitude:iMagnitude), &
+              &                                              imfIndex                                            , &
+              &                                              abundancesStars                                     , &
+              &                                              self%age                     (iMagnitude:iMagnitude), &
+              &                                              self%redshift                (iMagnitude:iMagnitude)  &
+              &                                             )
+         luminosityIntegrand=                                                                  &
+              &              +starFormationRate                                                &
+              &              *self%massToLightRatio(1)                                         &
+              &              *10.0d0**(                                                        &
+              &                        -0.4d0                                                  &
+              &                        *dust%attenuation(                                      &
+              &                                          self%wavelengthEffective(iMagnitude), &
+              &                                          self%age                (iMagnitude), &
+              &                                          vBandAttenuation                      &
+              &                                         )                                      &
+              &                       )
+      else
+         ! Find the recycled fraction.
+         recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,abundancesStars,componentTypeDisk)
+         ! Find the contribution to final mass.
+         luminosityIntegrand          =starFormationRate*(1.0d0-recycledFractionInstantaneous)
+      end if
+      return
+    end function luminosityIntegrand
+
+  end function sedFitEvaluate
+
+  subroutine sedFitFunctionChanged(self)
+    !% Respond to possible changes in the likelihood function.
+    implicit none
+    class(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    return
+  end subroutine sedFitFunctionChanged
