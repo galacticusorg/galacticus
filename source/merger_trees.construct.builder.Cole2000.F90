@@ -30,19 +30,19 @@
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
-     class           (mergerTreeMassResolutionClass  ), pointer :: mergerTreeMassResolution_
-     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_
+     class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_
+     class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_
+     class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_
      ! Variables controlling merger tree accuracy.
-     double precision                                           :: accretionLimit                          , timeEarliest             , &
-          &                                                        mergeProbability
+     double precision                                                     :: accretionLimit                          , timeEarliest             , &
+          &                                                                  mergeProbability
      ! Random number sequence variables
-     logical                                                    :: branchIntervalStep
+     logical                                                              :: branchIntervalStep
      ! Interval distribution.
-     logical                                                    :: branchingIntervalDistributionInitialized
-     type            (distributionNegativeExponential)          :: branchingIntervalDistribution
+     logical                                                              :: branchingIntervalDistributionInitialized
+     type            (distributionFunction1DNegativeExponential)          :: branchingIntervalDistribution
      ! Tolerances for behavior close to the resolution limit.
-     double precision                                           :: toleranceResolutionSelf                 , toleranceResolutionParent
+     double precision                                                     :: toleranceResolutionSelf                 , toleranceResolutionParent
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeBuilderCole2000</object>
@@ -230,7 +230,7 @@ contains
     basic => node%basic   () ! Get the basic component of the node.
     if (.not.self%branchingIntervalDistributionInitialized.and.self%branchIntervalStep) then
        ! Note that we use a unit rate - we will scale the results to the actual rate required.
-       self%branchingIntervalDistribution           =distributionNegativeExponential(1.0d0)
+       self%branchingIntervalDistribution           =distributionFunction1DNegativeExponential(1.0d0)
        self%branchingIntervalDistributionInitialized=.true.
     end if
     ! Get the mass resolution for this tree.

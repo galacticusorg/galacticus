@@ -1,0 +1,751 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
+
+  use Models_Likelihoods
+  use Posterior_Sampling_Convergence
+  use Posterior_Sampling_Stopping_Criteria
+  use Posterior_Sampling_State
+  use Posterior_Sampling_State_Initialize
+  use Posterior_Sample_Differential_Proposal_Size
+  use Posterior_Sampling_Prop_Size_Temp_Exp
+  use Posterior_Sample_Differential_Random_Jump
+  use Model_Parameters
+
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution" defaultThreadPrivate="yes">
+  !#  <description>A posterior sampling simulation class which implements the differential evolution algorithm.</description>
+  !# </posteriorSampleSimulation>
+  type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
+     !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
+     private
+     integer                                                                               :: parameterCount                          , stepsMaximum            , &
+          &                                                                                   stateSwapCount                          , acceptanceAverageCount  , & 
+          &                                                                                   logFlushCount                           , reportCount
+     double precision                                                                      :: logPosterior                            , logPrior
+     logical                                                                               :: isConverged                             , sampleOutliers          , &
+          &                                                                                   isInteractive
+     type            (modelParameterList                          ), pointer, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
+     class           (posteriorSampleLikelihoodClass              ), pointer               :: posteriorSampleLikelihood_
+     class           (posteriorSampleConvergenceClass             ), pointer               :: posteriorSampleConvergence_
+     class           (posteriorSampleStoppingCriterionClass       ), pointer               :: posteriorSampleStoppingCriterion_
+     class           (posteriorSampleStateClass                   ), pointer               :: posteriorSampleState_
+     class           (posteriorSampleStateInitializeClass         ), pointer               :: posteriorSampleStateInitialize_
+     class           (posteriorSampleDffrntlEvltnProposalSizeClass), pointer               :: posteriorSampleDffrntlEvltnProposalSize_
+     class           (posteriorSampleDffrntlEvltnRandomJumpClass  ), pointer               :: posteriorSampleDffrntlEvltnRandomJump_
+     type            (varying_string                              )                        :: logFileRoot                             , interactionRoot
+   contains
+     !@ <objectMethods>
+     !@   <object>posteriorSampleSimulationDifferentialEvolution</object>
+     !@   <objectMethod>
+     !@     <method>logging</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if the simulator is currently logging state.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>posterior</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} posteriorSampleState_\argin</arguments>
+     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState_}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>update</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ stateVector\argin</arguments>
+     !@     <description>Update the simulator to the new {\normalfont \ttfamily stateVector} after a step.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>temperature</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current temperature.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>acceptProposal</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\doublezero\ logPosterior\argin, \doublezero\ logPosteriorProposed\argin, \textcolor{red}{\textless type(pseudoRandom)\textgreater} randomNumberGenerator\arginout</arguments>
+     !@     <description>Return true if the proposed state should be accepted.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>stepSize</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the step size parameter, $\gamma$, for the differential evolution proposal vector.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>chainSelect</method>
+     !@     <type>\intzero</type>
+     !@     <arguments>\textcolor{red}{\textless type(pseudoRandom)\textgreater} randomNumberGenertor\arginout, \intone\ [blockedChains]\argin</arguments>
+     !@     <description>Select a chain.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                   differentialEvolutionDestructor
+     procedure :: simulate       => differentialEvolutionSimulate
+     procedure :: logging        => differentialEvolutionLogging
+     procedure :: posterior      => differentialEvolutionPosterior
+     procedure :: update         => differentialEvolutionUpdate
+     procedure :: stepSize       => differentialEvolutionStepSize
+     procedure :: acceptProposal => differentialEvolutionAcceptProposal
+     procedure :: temperature    => differentialEvolutionTemperature
+     procedure :: chainSelect    => differentialEvolutionChainSelect
+  end type posteriorSampleSimulationDifferentialEvolution
+
+  interface posteriorSampleSimulationDifferentialEvolution
+     !% Constructors for the {\normalfont \ttfamily differentialEvolution} posterior sampling convergence class.
+     module procedure differentialEvolutionConstructorParameters
+     module procedure differentialEvolutionConstructorInternal
+  end interface posteriorSampleSimulationDifferentialEvolution
+
+contains
+
+  function differentialEvolutionConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily differentialEvolution} posterior sampling simulation class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    use MPI_Utilities
+    use String_Handling
+    use Galacticus_Display
+    use Galacticus_Error
+    implicit none
+    type   (posteriorSampleSimulationDifferentialEvolution)                              :: self
+    type   (inputParameters                               ), intent(inout)               :: parameters
+    type   (modelParameterList                            ), pointer      , dimension(:) :: modelParametersActive_                  , modelParametersInactive_
+    class  (modelParameterClass                           ), pointer                     :: modelParameter_
+    class  (posteriorSampleLikelihoodClass                ), pointer                     :: posteriorSampleLikelihood_
+    class  (posteriorSampleConvergenceClass               ), pointer                     :: posteriorSampleConvergence_
+    class  (posteriorSampleStoppingCriterionClass         ), pointer                     :: posteriorSampleStoppingCriterion_
+    class  (posteriorSampleStateClass                     ), pointer                     :: posteriorSampleState_
+    class  (posteriorSampleStateInitializeClass           ), pointer                     :: posteriorSampleStateInitialize_
+    class  (posteriorSampleDffrntlEvltnProposalSizeClass  ), pointer                     :: posteriorSampleDffrntlEvltnProposalSize_
+    class  (posteriorSampleDffrntlEvltnRandomJumpClass    ), pointer                     :: posteriorSampleDffrntlEvltnRandomJump_
+    integer                                                                              :: stepsMaximum                            , acceptanceAverageCount  , &
+         &                                                                                  stateSwapCount                          , logFlushCount           , &
+         &                                                                                  reportCount                             , activeParameterCount    , &
+         &                                                                                  inactiveParameterCount                  , i                       , &
+         &                                                                                  iActive                                 , iInactive
+    type   (varying_string                                )                              :: logFileRoot                             , interactionRoot         , &
+         &                                                                                  message
+    logical                                                                              :: sampleOutliers
+
+    !# <inputParameter>
+    !#   <name>stepsMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>huge(0)</defaultValue>
+    !#   <description>The maximum number of steps to take.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>acceptanceAverageCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps over which to average the acceptance rate.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>stateSwapCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps between state swap steps.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logFlushCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps between flushing the log file.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>reportCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of steps between issuing reports.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>sampleOutliers</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, sample from outlier states.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>interactionRoot</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>Root file name for interaction files, or `{\normalfont \ttfamily none}' if interaction is not required.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>logFileRoot</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Root file name for log files.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
+    !# <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>
+    !# <objectBuilder class="posteriorSampleStoppingCriterion"        name="posteriorSampleStoppingCriterion_"        source="parameters"/>
+    !# <objectBuilder class="posteriorSampleState"                    name="posteriorSampleState_"                    source="parameters"/>
+    !# <objectBuilder class="posteriorSampleStateInitialize"          name="posteriorSampleStateInitialize_"          source="parameters"/>
+    !# <objectBuilder class="posteriorSampleDffrntlEvltnProposalSize" name="posteriorSampleDffrntlEvltnProposalSize_" source="parameters"/>
+    !# <objectBuilder class="posteriorSampleDffrntlEvltnRandomJump"   name="posteriorSampleDffrntlEvltnRandomJump_"   source="parameters"/>
+    ! Determine the number of parameters.
+    activeParameterCount  =0
+    inactiveParameterCount=0
+    do i=1,parameters%copiesCount("modelParameterMethod")
+       !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       select type (modelParameter_)
+       class is (modelParameterActive  )
+          activeParameterCount  =activeParameterCount  +1
+       class is (modelParameterInactive)
+          inactiveParameterCount=inactiveParameterCount+1
+       end select
+    end do
+    if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
+    if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Found '
+       message=message//activeParameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
+       call Galacticus_Display_Message(message)
+    end if
+    ! Initialize priors and random perturbers.
+    allocate(modelParametersActive_  (  activeParameterCount))
+    allocate(modelParametersInactive_(inactiveParameterCount))
+    iActive  =0
+    iInactive=0
+    do i=1,parameters%copiesCount("modelParameterMethod")
+       !# <objectBuilder class="modelParameter" name="modelParameter_" source="parameters" copy="i" />
+       select type (modelParameter_)
+       class is (modelParameterInactive)
+          iInactive=iInactive+1
+          modelParametersInactive_(iInactive)%modelParameter_ => modelParameter_
+       class is (modelParameterActive  )
+          iActive  =iActive  +1
+          modelParametersActive_  (  iActive)%modelParameter_ => modelParameter_
+       end select
+    end do
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot))
+    !# <inputParametersValidate source="parameters"/>
+    nullify(modelParametersActive_  )
+    nullify(modelParametersInactive_)
+    return
+  end function differentialEvolutionConstructorParameters
+
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot) result(self)
+    !% Internal constructor for the ``differentialEvolution'' simulation class.
+    implicit none
+    type     (posteriorSampleSimulationDifferentialEvolution)                                      :: self
+    type     (modelParameterList                            ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
+    class    (posteriorSampleLikelihoodClass                ), intent(in   ), target               :: posteriorSampleLikelihood_
+    class    (posteriorSampleConvergenceClass               ), intent(in   ), target               :: posteriorSampleConvergence_
+    class    (posteriorSampleStoppingCriterionClass         ), intent(in   ), target               :: posteriorSampleStoppingCriterion_
+    class    (posteriorSampleStateClass                     ), intent(in   ), target               :: posteriorSampleState_
+    class    (posteriorSampleStateInitializeClass           ), intent(in   ), target               :: posteriorSampleStateInitialize_
+    class    (posteriorSampleDffrntlEvltnProposalSizeClass  ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
+    class    (posteriorSampleDffrntlEvltnRandomJumpClass    ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
+    integer                                                  , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
+         &                                                                                            stateSwapCount                          , logFlushCount           , &
+         &                                                                                            reportCount
+    character(len=*                                         ), intent(in   )                       :: logFileRoot                             , interactionRoot
+    logical                                                  , intent(in   )                       :: sampleOutliers
+    !# <constructorAssign variables="*modelParametersActive_, *modelParametersInactive_, *posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot"/>
+
+    self%parameterCount=size(modelParametersActive_)
+    self%isInteractive =trim(interactionRoot) /= "none"
+    call self%posteriorSampleState_%parameterCountSet(self%parameterCount)
+    return
+  end function differentialEvolutionConstructorInternal
+
+  subroutine differentialEvolutionDestructor(self)
+    !% Destroy a differential evolution simulation object.
+    implicit none
+    type(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+
+    !# <objectDestructor name="self%posteriorSampleLikelihood_"              />
+    !# <objectDestructor name="self%posteriorSampleConvergence_"             />
+    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"       />
+    !# <objectDestructor name="self%posteriorSampleState_"                   />
+    !# <objectDestructor name="self%posteriorSampleStateInitialize_"         />
+    !# <objectDestructor name="self%posteriorSampleDffrntlEvltnProposalSize_"/>
+    !# <objectDestructor name="self%posteriorSampleDffrntlEvltnRandomJump_"  />
+   return
+  end subroutine differentialEvolutionDestructor
+
+  subroutine differentialEvolutionSimulate(self)
+    !% Perform a differential evolution simulation.
+    use MPI_Utilities
+    use Pseudo_Random
+    use Galacticus_Error
+    use Galacticus_Display
+    use String_Handling
+    use Models_Likelihoods_Constants
+    use Kind_Numbers
+    use File_Utilities
+    use System_Command
+    implicit none
+    class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                    :: self
+    integer                                                         , dimension(                    2) :: chainPair
+    double precision                                                , dimension(self%parameterCount,2) :: statePair
+    double precision                                                , dimension(self%parameterCount  ) :: stateVector           , stateVectorProposed          , &
+         &                                                                                                stateVectorInteractive
+    class           (posteriorSampleStateClass                     ), allocatable                      :: stateProposed
+    real                                                                                               :: timePreEvaluate       , timePostEvaluate             , &
+         &                                                                                                timeEvaluate          , timeEvaluatePrevious
+    double precision                                                                                   :: logLikelihoodProposed , logPosteriorProposed         , &
+         &                                                                                                logLikelihood         , logLikelihoodVariance        , &
+         &                                                                                                timeEvaluateInitial   , logLikelihoodVarianceProposed
+    type            (pseudoRandom                                  )                                   :: randomNumberGenerator
+    type            (varying_string                                )                                   :: logFileName           , message                      , &
+         &                                                                                                interactionFileName
+    integer                                                                                            :: logFileUnit           , convergedAtStep              , &
+         &                                                                                                convergenceFileUnit   , i                            , &
+         &                                                                                                ioStatus              , interactionFile
+    logical                                                                                               forceAcceptance
+    character       (len=32                                        )                                   :: label
+
+    ! Check that we have sufficient chains for differential evolution.
+    if (mpiSelf%count() < 3) call Galacticus_Error_Report('at least 3 chains are required for differential evolution'//{introspection:location})
+    ! Write start-up message.
+    message="Process "//mpiSelf%rankLabel()//" [PID: "
+    message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
+    call Galacticus_Display_Message(message)
+    ! Allocate a simple state object for the proposed state.
+    allocate(posteriorSampleStateSimple :: stateProposed)
+    select type (stateProposed)
+    type is (posteriorSampleStateSimple)
+       stateProposed=posteriorSampleStateSimple(1)
+       call stateProposed%parameterCountSet(self%parameterCount)
+    end select
+    ! Initialize chain to some state vector.
+    call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial)
+    ! Evaluate the posterior in the initial state.
+    timeEvaluate        =-1.0
+    timeEvaluatePrevious=real(timeEvaluateInitial)
+    call CPU_Time(timePreEvaluate )
+    call self%posterior(self%posteriorSampleState_,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+    call CPU_Time(timePostEvaluate)
+    if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+    timeEvaluatePrevious=timeEvaluate     
+    ! Check for impossible state.
+    if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('impossible initial state'//{introspection:location})
+    ! Begin stepping.
+    logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
+    open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    self%isConverged=.false. 
+    do while (                                                                                                   &
+         &          self%posteriorSampleState_            %count(                          ) < self%stepsMaximum &
+         &    .and.                                                                                              &
+         &     .not.self%posteriorSampleStoppingCriterion_%stop (self%posteriorSampleState_)                     &
+         &   )
+       ! Pick two random processes to use for proposal.
+       chainPair(1)=self%chainSelect(randomNumberGenerator               )
+       chainPair(2)=self%chainSelect(randomNumberGenerator,[chainPair(1)])
+       ! Receive states from selected chains.
+       stateVector=self%posteriorSampleState_%get()
+       statePair  =mpiSelf%requestData(chainPair,stateVector)
+       ! Generate proposal.
+       stateVectorProposed= stateVector      &
+            &              +self%stepSize()  &
+            &              *(                &
+            &                +statePair(:,1) &
+            &                -statePair(:,2) &
+            &               )
+       ! Add random perturbations to the proposal.
+       stateVectorProposed=stateVectorProposed+self%posteriorSampleDffrntlEvltnRandomJump_%sample(self%modelParametersActive_,self%posteriorSampleState_)
+       ! If simulation is interactive, check for any interaction file.
+       forceAcceptance=.false.
+       if (self%isInteractive) then
+          ! Check if an interaction file exists.
+          interactionFileName=self%interactionRoot//"_"//mpiSelf%rankLabel()
+          if (File_Exists(interactionFileName)) then
+             ! Read the file and validate.
+             open(newUnit=interactionFile,file=char(interactionFileName),status='old',form='formatted',ioStat=ioStatus)
+             if (ioStatus == 0) then
+                read (interactionFile,*,ioStat=ioStatus) stateVectorInteractive
+                if (ioStatus == 0) then
+                   ! Copy the state to the proposed state vector.
+                   stateVectorProposed=stateVectorInteractive
+                   message="Chain "//mpiSelf%rankLabel()//" is being interactively moved to state:"
+                   call Galacticus_Display_Indent(message)
+                   ! Map parameters of interactively proposed state.
+                   do i=1,size(stateVector)
+                      write (label,*) stateVectorProposed(i)
+                      message="State["
+                      message=message//i//"] = "//trim(adjustl(label))
+                      call Galacticus_Display_Message(message)
+                      stateVectorProposed(i)=self%modelParametersActive_(i)%modelParameter_%map(stateVectorProposed(i))
+                   end do
+                   call Galacticus_Display_Unindent('end')
+                   ! Force acceptance of this state.
+                   forceAcceptance=.true.
+                else
+                   message="WARNING: state proposed in interaction file '"//interactionFileName//"' cannot be read"
+                   call Galacticus_Display_Message(message)
+                end if
+             else
+                message="WARNING: unable to open interaction file '"//interactionFileName//"'"
+                call Galacticus_Display_Message(message)
+             end if
+             close(interactionFile)
+             ! Remove the interaction file.
+             call System_Command_Do("rm -f "//interactionFileName)
+          end if
+       end if
+       ! Store the proposed state vector.
+       call stateProposed%update(stateVectorProposed,.false.,.false.)
+       ! Evaluate likelihood.
+       timeEvaluatePrevious=timeEvaluate
+       timeEvaluate        =-1.0
+       call CPU_Time(timePreEvaluate )
+       call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed,logLikelihoodVarianceProposed,timeEvaluate,timeEvaluatePrevious)
+       call CPU_Time(timePostEvaluate)
+       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
+       ! Decide whether to take step.
+       if     (                                                                                                                                       &
+            &   self%acceptProposal(self%logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator) &
+            &  .or.                                                                                                                                   &
+            &   forceAcceptance                                                                                                                       &
+            & ) then
+          self%logPosterior    =logPosteriorProposed
+          logLikelihood        =logLikelihoodProposed
+          logLikelihoodVariance=logLikelihoodVarianceProposed
+          stateVector          =stateVectorProposed
+       else
+          ! Step not accepted - retain the old estimate of work time.
+          timeEvaluate         =timeEvaluatePrevious
+       end if
+       call self%update(stateVector)
+       ! Unmap parameters and write to log file.
+       do i=1,size(stateVector)
+          stateVector(i)=self%modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
+       end do
+       if (self%logging()) then
+          write (logFileUnit,*) self   %posteriorSampleState_%count(), &
+               &                mpiSelf%rank                 (), &
+               &                timeEvaluate                   , &
+               &                self%isConverged               , &
+               &                self%logPosterior              , &
+               &                logLikelihood                  , &
+               &                stateVector
+          if (mod(self%posteriorSampleState_%count(),self%logFlushCount) == 0) call flush(logFileUnit)
+       end if
+       ! Repeat.
+       call mpiBarrier()
+       ! Test for convergence.
+       if (.not.self%isConverged) then
+          self%isConverged=self%posteriorSampleConvergence_%isConverged(self%posteriorSampleState_,self%logPosterior)
+          if (self%isConverged) then
+             convergedAtStep=self%posteriorSampleState_%count()
+             if (mpiSelf%rank() == 0) then
+                message='Converged after '
+                message=message//convergedAtStep//' steps'
+                call Galacticus_Display_Message(message)
+                logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.convergence.log'
+                open(newunit=convergenceFileUnit,file=char(logFileName),status='unknown',form='formatted',access='append')
+                write (convergenceFileUnit,'(a,i8)') 'Converged at step: ',convergedAtStep
+                call self%posteriorSampleConvergence_%logReport(convergenceFileUnit)
+                close(convergenceFileUnit)
+             end if
+          end if
+       end if
+    end do
+    close(logFileUnit)
+    return
+  end subroutine differentialEvolutionSimulate
+
+  subroutine differentialEvolutionUpdate(self,stateVector)
+    !% Update the differential evolution simulator state.
+    use MPI_Utilities
+    implicit none
+    class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)                                 :: self
+    double precision                                                , intent(in   ), dimension(self%parameterCount) :: stateVector
+    logical                                                         , allocatable  , dimension(:                  ) :: outlierMask
+    integer                                                                                                         :: i
+
+    allocate(outlierMask(0:mpiSelf%count()-1))
+    do i=0,mpiSelf%count()-1
+       outlierMask(i)=self%posteriorSampleConvergence_%stateIsOutlier(i)
+    end do
+    call self%posteriorSampleState_%update(stateVector,self%logging(),self%posteriorSampleConvergence_%isConverged(),outlierMask)
+    return
+  end subroutine differentialEvolutionUpdate
+
+  integer function differentialEvolutionChainSelect(self,randomNumberGenerator,blockedChains)
+    !% Select a chain at random, optionally excluding blocked chains.
+    use Pseudo_Random
+    use MPI_Utilities
+    implicit none
+    class  (posteriorSampleSimulationDifferentialEvolution), intent(inout)                         :: self
+    type   (pseudoRandom                                  ), intent(inout)                         :: randomNumberGenerator
+    integer                                                , intent(in   ), dimension(:), optional :: blockedChains
+    logical                                                                                        :: accept
+
+    accept=.false.
+    do while (.not.accept)
+       differentialEvolutionChainSelect=min(                                                         &
+            &                               int(                                                     &
+            &                                   +dble(mpiSelf%count())                               &
+            &                                   *randomNumberGenerator%sample(mpiRankOffset=.true.)  &
+            &                                  )                                                   , &
+            &                               +mpiSelf%count()                                         &
+            &                               -1                                                       &
+            &                              )
+       accept=.true.
+       if (.not.self%sampleOutliers.and.self%isConverged)                                           &
+            & accept=                                                                               &
+            &              self%posteriorSampleConvergence_%stateIsOutlier(         mpiSelf%rank()) &
+            &        .or.                                                                           &
+            &         .not.self%posteriorSampleConvergence_%stateIsOutlier(differentialEvolutionChainSelect)
+       if (present(blockedChains)) accept=accept.and.all(differentialEvolutionChainSelect /= blockedChains)
+    end do
+    return
+  end function differentialEvolutionChainSelect
+
+  logical function differentialEvolutionLogging(self)
+    !% Specifies whether or not the current state should be logged to file during differential evolution.
+    implicit none
+    class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    differentialEvolutionLogging=.true.
+    return
+  end function differentialEvolutionLogging
+
+  subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+    !% Return the log of the posterior for the current state.
+    use, intrinsic :: ISO_C_Binding
+    use               MPI_Utilities
+    use               Sort
+    use               Galacticus_Error
+    use               Galacticus_Display
+    use               Kind_Numbers
+    implicit none
+    class           (posteriorSampleSimulationDifferentialEvolution), intent(inout)               :: self
+    class           (posteriorSampleStateClass                     ), intent(inout)               :: posteriorSampleState_
+    double precision                                                , intent(in   )               :: logLikelihoodCurrent  , logPriorCurrent
+    double precision                                                , intent(  out)               :: logLikelihood         , logPosterior            , &
+         &                                                                                           logLikelihoodVariance
+    real                                                            , intent(inout)               :: timeEvaluate
+    real                                                            , intent(in   )               :: timeEvaluatePrevious
+    double precision                                                , dimension(:  ), allocatable :: timesEvaluate         , nodeWork                , &
+         &                                                                                           stateVectorSelf       , timesEvaluateActual
+    double precision                                                , dimension(:,:), allocatable :: stateVectorWork
+    integer                                                         , dimension(:  ), allocatable :: processToProcess      , processFromProcess
+    integer         (c_size_t                                      ), dimension(:  ), allocatable :: timesEvaluateOrder    , nodeWorkOrder
+    integer                                                         , dimension(1  )              :: chainIndexSelf
+    integer                                                         , dimension(1,1)              :: chainIndexWork
+    double precision                                                , dimension(1,1)              :: logLikelihoodSelf     , logLikelihoodCurrentWork, &
+         &                                                                                           logPriorCurrentWork   , logPriorWork            , &
+         &                                                                                           timeEvaluateSelf
+    double precision                                                , dimension(1  )              :: logLikelihoodWork     , logLikelihoodCurrentSelf, &
+         &                                                                                           logPriorCurrentSelf   , logPriorSelf            , &
+         &                                                                                           timeEvaluateWork
+    double precision                                                                              :: logPrior              , timeEvaluateEffective
+    integer                                                                                       :: i                     , processTrial            , &
+         &                                                                                           nodeTrial
+    type            (varying_string                                )                              :: message
+    character       (len=10                                        )                              :: label
+
+    ! Evaluate the proposed prior.
+    logPrior=modelParameterListLogPrior(self%modelParametersActive_,posteriorSampleState_)
+    ! Gather timing data from all chains.
+    allocate(timesEvaluate      (0:mpiSelf%count()-1))
+    allocate(timesEvaluateActual(0:mpiSelf%count()-1))
+    allocate(processToProcess   (0:mpiSelf%count()-1))
+    allocate(processFromProcess (0:mpiSelf%count()-1))
+    allocate(timesEvaluateOrder (0:mpiSelf%count()-1))
+    timeEvaluateEffective=timeEvaluatePrevious
+    if     (                                                                           &
+         &  .not.self%posteriorSampleLikelihood_%willEvaluate(                         &
+         &                                         posteriorSampleState_             , &
+         &                                         self%modelParametersActive_       , &
+         &                                         self%posteriorSampleConvergence_  , &
+         &                                         self%temperature                (), &
+         &                                         logLikelihoodCurrent              , &
+         &                                         logPriorCurrent                   , &
+         &                                         logPrior                            &
+         &                                        )                                    &
+         & )                                                                           &
+         & timeEvaluateEffective=0.0d0
+    timesEvaluate=mpiSelf%gather(dble(timeEvaluateEffective))
+    ! If previous time estimate is negative, don't do load balancing.
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Indent('Load balancing report')
+    if (any(timesEvaluate < 0.0d0)) then
+       forall(i=0:mpiSelf%count()-1)
+          processToProcess  (i)=i
+          processFromProcess(i)=i
+       end forall
+       if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Message('Not performing load balancing - missing work cost data')
+    else
+       ! Distribute tasks across nodes.
+       timesEvaluateOrder=Sort_Index_Do(timesEvaluate)-1
+       processToProcess=-1
+       allocate(nodeWork     (mpiSelf%nodeCount()))
+       allocate(nodeWorkOrder(mpiSelf%nodeCount()))
+       nodeWork=0.0d0
+       do i=mpiSelf%count()-1,0,-1
+          nodeWorkOrder=Sort_Index_Do(nodeWork)
+          do nodeTrial=1,mpiSelf%nodeCount()
+             do processTrial=0,mpiSelf%count()-1
+                if (mpiSelf%nodeAffinity(processTrial) == nodeWorkOrder(nodeTrial) .and. .not.any(processToProcess == processTrial)) then
+                   processToProcess  (timesEvaluateOrder(i))=processTrial
+                   processFromProcess(processTrial)=int(timesEvaluateOrder(i),kind_int4)
+                   nodeWork(nodeWorkOrder(nodeTrial))=nodeWork(nodeWorkOrder(nodeTrial))+timesEvaluate(timesEvaluateOrder(i))
+                   exit
+                end if
+             end do
+             if (processToProcess(timesEvaluateOrder(i)) >= 0) exit
+          end do
+          if (processToProcess(timesEvaluateOrder(i)) < 0) call Galacticus_Error_Report('failed to assign task to process'//{introspection:location})
+       end do
+       ! Report.
+       if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
+          call Galacticus_Display_Indent('Chain redistribution:')
+          do i=0,mpiSelf%count()-1
+             write (label,'(i4.4)') i
+             message='Chain '//trim(label)//' -> process/node '
+             write (label,'(i4.4)') processToProcess(i)
+             message=message//trim(label)//'/'
+             write (label,'(i4.4)') mpiSelf%nodeAffinity(processToProcess(i))
+             message=message//trim(label)//' (work = '
+             write (label,'(f9.2)') timesEvaluate(i)
+             message=message//trim(label)//')'
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+          call Galacticus_Display_Indent('Node work loads:')
+          do i=1,size(nodeWork)
+             write (label,'(i4.4)') i
+             message='Node '//trim(label)//': work = '
+             write (label,'(f9.2)') nodeWork(i)
+             message=message//trim(label)
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+       end if
+    end if
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) call Galacticus_Display_Unindent('done')
+    ! Get state vector, chain index, current likelihood, current prior and proposed prior.
+    allocate(stateVectorSelf(self%parameterCount  ))
+    allocate(stateVectorWork(self%parameterCount,1))
+    stateVectorSelf         =posteriorSampleState_%get       ()
+    chainIndexSelf          =posteriorSampleState_%chainIndex()
+    logLikelihoodCurrentSelf=logLikelihoodCurrent
+    logPriorCurrentSelf     =logPriorCurrent
+    logPriorSelf            =logPrior
+    stateVectorWork         =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),stateVectorSelf         )
+    chainIndexWork          =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),chainIndexSelf          )
+    logLikelihoodCurrentWork=mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logLikelihoodCurrentSelf)
+    logPriorCurrentWork     =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logPriorCurrentSelf     )
+    logPriorWork            =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logPriorSelf            )
+    ! Set state and chain index.
+    call posteriorSampleState_%update       (stateVectorWork(:,1),logState=.false.,isConverged=.false.)
+    call posteriorSampleState_%chainIndexSet( chainIndexWork(1,1)                                     )
+    ! Evaluate the likelihood.
+    logLikelihood=self%posteriorSampleLikelihood_%evaluate(posteriorSampleState_,self%modelParametersActive_,self%modelParametersInactive_,self%posteriorSampleConvergence_,self%temperature(),logLikelihoodCurrentWork(1,1),logPriorCurrentWork(1,1),logPriorWork(1,1),timeEvaluate,logLikelihoodVariance=logLikelihoodVariance)
+    call mpiBarrier()
+    ! Distribute likelihoods back to origins.
+    logLikelihoodWork    =                                                                         logLikelihood
+    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork      )
+    logLikelihood        =                                                                         logLikelihoodSelf(1,1)
+    ! Distribute likelihood variances back to origins.
+    logLikelihoodWork    =                                                                         logLikelihoodVariance
+    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork      )
+    logLikelihoodVariance=                                                                         logLikelihoodSelf(1,1)
+    ! Distribute evaluation times back to origins.
+    timeEvaluateWork     =                                                                    dble(timeEvaluate          )
+    timeEvaluateSelf     =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork       )
+    timeEvaluate     =                                                                        real(timeEvaluateSelf (1,1))
+    ! Restore state and chain index.
+    call posteriorSampleState_%update       (stateVectorSelf   ,logState=.false.,isConverged=.false.)
+    call posteriorSampleState_%chainIndexSet( chainIndexSelf(1)                                     )
+    ! Compute the log posterior.
+    logPosterior=logPrior+logLikelihood
+    ! Gather actual evaluation times and report.
+    timesEvaluateActual=mpiSelf%gather(dble(timeEvaluate))
+    if (mpiSelf%isMaster() .and. mod(self%posteriorSampleState_%count(),self%reportCount) == 0) then
+       call Galacticus_Display_Indent('Node work done vs. expected:')
+       do i=0,mpiSelf%count()-1
+          write (label,'(i4.4)') i
+          message='Node '//trim(label)//': work (actual/estimated) = '
+          write (label,'(f9.2)') timesEvaluateActual(i)
+          message=message//trim(label)//" / "
+          write (label,'(f9.2)') timesEvaluate      (i)
+          message=message//trim(label)
+          call Galacticus_Display_Message(message)
+       end do
+       call Galacticus_Display_Unindent('done')
+    end if
+    return
+  end subroutine differentialEvolutionPosterior
+
+  double precision function differentialEvolutionStepSize(self)
+    !% Return the step size parameter, $\gamma$, for a differential evolution step.
+    implicit none
+    class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+
+    if (mod(self%posteriorSampleState_%count(),self%stateSwapCount) == 0) then
+       ! Every self%stateSwapCount steps, set gamma=1 to allow interchange of chains.
+       differentialEvolutionStepSize=1.0d0
+    else
+       ! Otherwise, use the step-size algorithm.
+       differentialEvolutionStepSize=self%posteriorSampleDffrntlEvltnProposalSize_%gamma(                                  &
+            &                                                                            self%posteriorSampleState_      , &
+            &                                                                            self%posteriorSampleConvergence_  &
+            &                                                                           )
+    end if
+    return
+  end function differentialEvolutionStepSize
+
+  logical function differentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
+    !% Return whether or not to accept a proposal.
+    use Pseudo_Random
+    use MPI_Utilities
+    implicit none
+    class           (posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    double precision                                                , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
+         &                                                                             logLikelihoodVariance, logLikelihoodVarianceProposed
+    type            (pseudoRandom                                  ), intent(inout) :: randomNumberGenerator
+    double precision                                                                :: x
+    !GCC$ attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
+
+    ! Decide whether to take step.
+    x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+    differentialEvolutionAcceptProposal= logPosteriorProposed >      logPosterior                       &
+         &                              .or.                                                            &
+         &                               x                    < exp(-logPosterior+logPosteriorProposed)
+    return
+  end function differentialEvolutionAcceptProposal
+
+  double precision function differentialEvolutionTemperature(self)
+    !% Return the temperature.
+    implicit none
+    class(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    differentialEvolutionTemperature=1.0d0
+    return
+  end function differentialEvolutionTemperature

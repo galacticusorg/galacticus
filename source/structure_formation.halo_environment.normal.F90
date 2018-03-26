@@ -128,18 +128,18 @@ contains
     use Kind_Numbers
     use Statistics_Distributions
     implicit none
-    class           (haloEnvironmentNormal     ), intent(inout)           :: self
-    type            (treeNode                  ), intent(inout)           :: node
-    logical                                     , intent(in   ), optional :: presentDay
-    type            (treeNode                  ), pointer                 :: nodeRoot
-    class           (nodeComponentBasic        ), pointer                 :: basic
-    integer         (kind_int8                 ), save                    :: uniqueIDPrevious       =-1_kind_int8
-    double precision                            , save                    :: overdensityPrevious
+    class           (haloEnvironmentNormal               ), intent(inout)           :: self
+    type            (treeNode                            ), intent(inout)           :: node
+    logical                                               , intent(in   ), optional :: presentDay
+    type            (treeNode                            ), pointer                 :: nodeRoot
+    class           (nodeComponentBasic                  ), pointer                 :: basic
+    integer         (kind_int8                           ), save                    :: uniqueIDPrevious       =-1_kind_int8
+    double precision                                      , save                    :: overdensityPrevious
     !$omp threadprivate(uniqueIDPrevious,overdensityPrevious)
-    double precision                            , parameter               :: overdensityMean        =0.0d+0
-    double precision                            , parameter               :: limitUpperBuffer       =1.0d-3
-    double precision                                                      :: overdensityVariance
-    type            (distributionPeakBackground)                          :: distributionOverdensity
+    double precision                                      , parameter               :: overdensityMean        =0.0d+0
+    double precision                                      , parameter               :: limitUpperBuffer       =1.0d-3
+    double precision                                                                :: overdensityVariance
+    type            (distributionFunction1DPeakBackground)                          :: distributionOverdensity
     !# <optionalArgument name="presentDay" defaultsTo=".false." />
 
     if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
@@ -155,18 +155,18 @@ contains
           ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact
           ! that the region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White
           ! (1996; MNRAS; 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors.
-          distributionOverdensity =   distributionPeakBackground       (                                                           &
-               &                                                        +     overdensityVariance                                , &
-               &                                                        +self%criticalOverdensity_%value(expansionFactor=1.0d0)    &
-               &                                                        *(                                                         &
-               &                                                          +1.0d0                                                   &
-               &                                                          -limitUpperBuffer                                        &
-               &                                                         )                                                         &
-               &                                                       )
+          distributionOverdensity =   distributionFunction1DPeakBackground       (                                                           &
+               &                                                                  +     overdensityVariance                                , &
+               &                                                                  +self%criticalOverdensity_%value(expansionFactor=1.0d0)    &
+               &                                                                  *(                                                         &
+               &                                                                    +1.0d0                                                   &
+               &                                                                    -limitUpperBuffer                                        &
+               &                                                                   )                                                         &
+               &                                                                 )
           ! Choose an overdensity.
-          overdensityPrevious     =  +distributionOverdensity   %sample(                                                           &
-               &                                                        randomNumberGenerator= node%hostTree%randomNumberGenerator &
-               &                                                       )
+          overdensityPrevious     =  +distributionOverdensity             %sample(                                                           &
+               &                                                                  randomNumberGenerator= node%hostTree%randomNumberGenerator &
+               &                                                                 )
           call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensityPrevious)
        end if
     end if

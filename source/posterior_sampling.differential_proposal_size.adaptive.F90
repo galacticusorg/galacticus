@@ -1,0 +1,173 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
+  
+  !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
+  !#  <description>A posterior sampling differential evolution proposal size class in which the proposal size is adaptive.</description>
+  !# </posteriorSampleDffrntlEvltnProposalSize>
+  type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeAdaptive
+     !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
+     private
+     double precision :: gammaCurrent         , gammaAdjustFactor    , &
+          &              gammaInitial
+     double precision :: gammaMinimum         , gammaMaximum
+     double precision :: acceptanceRateMinimum, acceptanceRateMaximum
+     integer          :: updateCount          , lastUpdateCount
+   contains
+     procedure :: gamma => adaptiveGamma
+  end type posteriorSampleDffrntlEvltnProposalSizeAdaptive
+
+  interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
+     !% Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     module procedure adaptiveConstructorParameters
+     module procedure adaptiveConstructorInternal
+  end interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
+
+contains
+
+  function adaptiveConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
+    !% builds the object from a parameter set.
+    use Input_Parameters
+    implicit none
+    type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                 :: self
+    type            (inputParameters                                ), intent(inout)  :: parameters
+    double precision                                                                  :: gammaInitial         , gammaMinimum         , &
+         &                                                                               gammaMaximum         , gammaAdjustFactor    , &
+         &                                                                               acceptanceRateMinimum, acceptanceRateMaximum
+    integer                                                                           :: updateCount
+
+    !# <inputParameter>
+    !#   <name>gammaInitial</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The initial proposal size, $\gamma$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>gammaMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The minimum allowed proposal size, $\gamma$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>gammaMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The maximum allowed proposal size, $\gamma$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>gammaAdjustFactor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The factor by which to adjust the proposal size, $\gamma$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>acceptanceRateMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The minimum acceptable acceptance rate.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>acceptanceRateMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The maximum acceptable acceptance rate.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>updateCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The number of steps between potential updates of the proposal size.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function adaptiveConstructorParameters
+
+  function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount) result(self)
+    !% Constructor for the ``adaptive'' differential evolution proposal size class.
+    implicit none
+    type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self
+    double precision                                                 , intent(in   ) :: gammaInitial         , gammaAdjustFactor    , &
+         &                                                                              gammaMinimum         , gammaMaximum         , &
+         &                                                                              acceptanceRateMinimum, acceptanceRateMaximum
+    integer                                                          , intent(in   ) :: updateCount
+    !# <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount"/>
+    
+    self%gammaCurrent   =gammaInitial
+    self%lastUpdateCount=0
+    return
+  end function adaptiveConstructorInternal
+
+  double precision function adaptiveGamma(self,simulationState,simulationConvergence)
+    !% Return the proposal size.
+    use MPI_Utilities
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
+    implicit none
+    class           (posteriorSampleDffrntlEvltnProposalSizeAdaptive), intent(inout) :: self
+    class           (posteriorSampleStateClass                      ), intent(inout) :: simulationState
+    class           (posteriorSampleConvergenceClass                ), intent(inout) :: simulationConvergence
+    double precision                                                 , dimension(1)  :: acceptanceRate
+    character       (len=8                                          )                :: label
+    type            (varying_string                                 )                :: message
+
+    ! Should we consider updating gamma?
+    if     (                                                                                   &
+         &        simulationState      %count      () >= self%lastUpdateCount+self%updateCount &
+         &  .and.                                                                              &
+         &   .not.simulationConvergence%isConverged()                                          &
+         & ) then
+       ! Reset the number of steps remaining.
+       self%lastUpdateCount=simulationState%count()
+       ! Find the mean acceptance rate across all chains.
+       acceptanceRate=mpiSelf%average([simulationState%acceptanceRate()])
+       if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+          write (label,'(f5.3)') acceptanceRate(1)
+          message='After '
+          message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
+          call Galacticus_Display_Message(message)
+       end if
+       ! If the acceptance rate is out of range, adjust gamma.
+       if      (acceptanceRate(1) > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
+          self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
+          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+             write (label,'(f8.5)') self%gammaCurrent
+             call Galacticus_Display_Message('Adjusting gamma up to '//label)
+          end if
+       else if (acceptanceRate(1) < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
+          self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
+          if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+             write (label,'(f8.5)') self%gammaCurrent
+             call Galacticus_Display_Message('Adjusting gamma down to '//label)
+          end if
+       end if
+    end if
+    ! Return the current adaptive size. 
+    adaptiveGamma=self%gammaCurrent
+    return
+  end function adaptiveGamma

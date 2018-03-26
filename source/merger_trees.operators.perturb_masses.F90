@@ -29,8 +29,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPerturbMasses
      !% A merger tree operator class perturbs halo masses by some error model.
      private
-     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_
-     type (distributionNormal     )          :: standardNormal
+     class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_
+     type (distributionFunction1DNormal)          :: standardNormal
    contains
      final     ::             perturbMassesDestructor
      procedure :: operate  => perturbMassesOperate
@@ -69,7 +69,7 @@ contains
     !# <constructorAssign variables="*nbodyHaloMassError_"/>
 
     ! Build a standard normal distribution.
-    self%standardNormal=distributionNormal(0.0d0,1.0d0)
+    self%standardNormal=distributionFunction1DNormal(0.0d0,1.0d0)
     return
   end function perturbMassesConstructorInternal
 

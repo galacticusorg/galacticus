@@ -1,0 +1,216 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
+
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn" defaultThreadPrivate="yes">
+  !#  <description>A posterior sampling simulation class which implements an annealed differential evolution algorithm.</description>
+  !# </posteriorSampleSimulation>
+  type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationAnnealedDffrntlEvltn
+     !% Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
+     private
+     integer                                     :: temperatureLevelCount, temperatureLevelCurrent
+     double precision                            :: temperatureMaximum
+     double precision, allocatable, dimension(:) :: temperatures
+   contains
+     !@ <objectMethods>
+     !@   <object>posteriorSampleSimulationAnnealedDffrntlEvltn</object>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ temperatureLevelCount\argin, \doublezero\ temperatureMaximum</arguments>
+     !@     <description>Initialize the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>level</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current tempering level.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: acceptProposal => annealedDifferentialEvolutionAcceptProposal
+     procedure :: update         => annealedDifferentialEvolutionUpdate
+     procedure :: temperature    => annealedDifferentialEvolutionTemperature
+     procedure :: initialize     => annealedDifferentialEvolutionInitialize
+  end type posteriorSampleSimulationAnnealedDffrntlEvltn
+
+  interface posteriorSampleSimulationAnnealedDffrntlEvltn
+     !% Constructors for the {\normalfont \ttfamily annealedDifferentialEvolution} posterior sampling convergence class.
+     module procedure annealedDifferentialEvolutionConstructorParameters
+     module procedure annealedDifferentialEvolutionConstructorInternal
+  end interface posteriorSampleSimulationAnnealedDffrntlEvltn
+
+contains
+
+  function annealedDifferentialEvolutionConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily annealedDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    implicit none
+    type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                :: self
+    type            (inputParameters                              ), intent(inout) :: parameters
+    integer                                                                        :: temperatureLevelCount
+    double precision                                                               :: temperatureMaximum
+    
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
+    !# <inputParameter>
+    !#   <name>temperatureLevelCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number temperature levels to use.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>temperatureMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The maximum temperature to reach.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    call self%initialize(temperatureLevelCount,temperatureMaximum)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function annealedDifferentialEvolutionConstructorParameters
+  
+  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,temperatureLevelCount,temperatureMaximum) result(self)
+    !% Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
+    implicit none
+    type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                                      :: self
+    type            (modelParameterList                           ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
+    class           (posteriorSampleLikelihoodClass               ), intent(in   ), target               :: posteriorSampleLikelihood_
+    class           (posteriorSampleConvergenceClass              ), intent(in   ), target               :: posteriorSampleConvergence_
+    class           (posteriorSampleStoppingCriterionClass        ), intent(in   ), target               :: posteriorSampleStoppingCriterion_
+    class           (posteriorSampleStateClass                    ), intent(in   ), target               :: posteriorSampleState_
+    class           (posteriorSampleStateInitializeClass          ), intent(in   ), target               :: posteriorSampleStateInitialize_
+    class           (posteriorSampleDffrntlEvltnProposalSizeClass ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
+    class           (posteriorSampleDffrntlEvltnRandomJumpClass   ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
+    integer                                                        , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
+         &                                                                                                  stateSwapCount                          , logFlushCount         ,   &
+         &                                                                                                  reportCount                             , temperatureLevelCount
+    character       (len=*                                        ), intent(in   )                       :: logFileRoot                             , interactionRoot
+    logical                                                        , intent(in   )                       :: sampleOutliers
+    double precision                                               , intent(in   )                       :: temperatureMaximum
+
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot)
+    call self%initialize(temperatureLevelCount,temperatureMaximum)
+    return
+  end function annealedDifferentialEvolutionConstructorInternal
+
+  subroutine annealedDifferentialEvolutionInitialize(self,temperatureLevelCount,temperatureMaximum)
+    !% Finished initialization of annealed differential evolution simulation objects during construction.
+    implicit none
+    class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
+    integer                                                        , intent(in   ) :: temperatureLevelCount
+    double precision                                               , intent(in   ) :: temperatureMaximum
+    integer                                                                        :: i
+
+    self%temperatureLevelCount=temperatureLevelCount
+    self%temperatureMaximum   =temperatureMaximum
+    allocate(self%temperatures(temperatureLevelCount))
+    if (temperatureLevelCount == 1) then
+       self%temperatures(1)=1.0d0
+    else
+       do i=1,temperatureLevelCount
+          self%temperatures(i)                        &
+               &  =exp(                               &
+               &        log (temperatureMaximum     ) &
+               &       *dble(i                    -1) &
+               &       /dble(temperatureLevelCount-1) &
+               &      )
+       end do
+    end if
+    return
+  end subroutine annealedDifferentialEvolutionInitialize
+
+  subroutine annealedDifferentialEvolutionUpdate(self,stateVector)
+    !% Update the differential evolution simulator state.
+    use MPI_Utilities
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout)                                 :: self
+    double precision                                               , intent(in   ), dimension(self%parameterCount) :: stateVector
+    logical                                                        , allocatable  , dimension(:                  ) :: outlierMask
+    integer                                                                                                        :: i
+    type            (varying_string                               )                                                :: message
+    character       (len=7                                        )                                                :: label
+
+    ! Check for convergence.
+    if (self%posteriorSampleConvergence_%isConverged(self%posteriorSampleState_,self%logPosterior).and.self%temperatureLevelCurrent > 1) then
+       ! Decrease the temperature level.
+       self%temperatureLevelCurrent=self%temperatureLevelCurrent-1
+       ! Reset state.
+       call self%posteriorSampleState_      %reset()
+       call self%posteriorSampleConvergence_%reset()
+       self%isConverged=.false.
+       ! Inform likelihood object that likelihood function may have changed.
+       call self%posteriorSampleLikelihood_%functionChanged()
+       ! Report.
+       if (mpiSelf%isMaster()) then
+          write (label,'(f7.2)') self%temperature()
+          message="Annealing temperature is now "//label//" (level "
+          message=message//self%temperatureLevelCurrent//" of "//self%temperatureLevelCount//")"
+          call Galacticus_Display_Message(message)
+       end if
+    end if
+    ! Update the simulation state.
+    allocate(outlierMask(0:mpiSelf%count()-1))
+    do i=0,mpiSelf%count()-1
+       outlierMask(i)=self%posteriorSampleConvergence_%stateIsOutlier(i)
+    end do
+    call self%posteriorSampleState_%update(stateVector,self%logging(),self%posteriorSampleConvergence_%isConverged(),outlierMask)
+    return
+  end subroutine annealedDifferentialEvolutionUpdate
+
+  double precision function annealedDifferentialEvolutionTemperature(self)
+    !% Return the temperature.
+    implicit none
+    class(posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
+
+    annealedDifferentialEvolutionTemperature=self%temperatures(self%temperatureLevelCurrent)
+    return
+  end function annealedDifferentialEvolutionTemperature
+
+  logical function annealedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed,randomNumberGenerator)
+    !% Return whether or not to accept a proposal.
+    use Pseudo_Random
+    use MPI_Utilities
+    implicit none
+    class           (posteriorSampleSimulationAnnealedDffrntlEvltn), intent(inout) :: self
+    double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &
+         &                                                                            logLikelihoodVariance, logLikelihoodVarianceProposed
+    type            (pseudoRandom                                 ), intent(inout) :: randomNumberGenerator
+    double precision                                                               :: x
+    !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
+
+    ! Decide whether to take step.
+    x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+    annealedDifferentialEvolutionAcceptProposal=               &
+         &   logPosteriorProposed >      logPosterior          &
+         &  .or.                                               &
+         &   x                    < exp(                       &
+         &                              (                      &
+         &                               -logPosterior         &
+         &                               +logPosteriorProposed &
+         &                              )                      &
+         &                              /self%temperature()    &
+         &                             )
+    return
+  end function annealedDifferentialEvolutionAcceptProposal
