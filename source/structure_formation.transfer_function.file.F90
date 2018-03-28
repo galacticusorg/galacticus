@@ -268,9 +268,9 @@ contains
          &                                                                   transferLogarithmic             , wavenumberLogarithmic
     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_            , cosmologyParametersFile
     double precision                          , parameter                 :: toleranceUniformity      =1.0d-6
-    double precision                          , parameter                 :: temperatureCMB           =0.0d+0 ! Value irrelevant as not used.
     double precision                                                      :: HubbleConstant                  , OmegaBaryon                , &
-         &                                                                   OmegaMatter                     , OmegaDarkEnergy
+         &                                                                   OmegaMatter                     , OmegaDarkEnergy            , &
+         &                                                                   temperatureCMB
     type            (inputParameters         )                            :: transferFunctionCosmology
     integer                                                               :: extrapolationMethod             , versionNumber              , &
          &                                                                   iExtrapolation                  , ioError                    , &
@@ -354,6 +354,7 @@ contains
           call parametersObject%readAttribute('OmegaDarkEnergy',OmegaDarkEnergy)
           call parametersObject%readAttribute('OmegaBaryon'    ,OmegaBaryon    )
           call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
+          call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
           cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
           if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
                & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
