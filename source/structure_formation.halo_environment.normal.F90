@@ -22,6 +22,8 @@
   use Cosmology_Functions
   use Linear_Growth
   use Tables
+  use Statistics_Distributions
+  use Kind_Numbers
 
   !# <haloEnvironment name="haloEnvironmentNormal">
   !#  <description>Implements a normally-distributed halo environment.</description>
@@ -29,19 +31,31 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
      !% A normal halo environment class.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (linearGrowthClass            ), pointer :: linearGrowth_
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     type            (table2DLinLinLin             )          :: linearToNonLinear
-     double precision                                         :: radiusEnvironment        , variance
+     class           (cosmologyParametersClass            ), pointer :: cosmologyParameters_
+     class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_
+     class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_
+     class           (linearGrowthClass                   ), pointer :: linearGrowth_
+     class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_
+     type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
+     type            (table2DLinLinLin                    )          :: linearToNonLinear
+     double precision                                                :: radiusEnvironment              , variance           , &
+          &                                                             environmentalOverdensityMaximum, overdensityPrevious
+     integer         (kind_int8                           )          :: uniqueIDPrevious
    contains
-     final     ::                         normalDestructor
-     procedure :: overdensityLinear    => normalOverdensityLinear
-     procedure :: overdensityNonLinear => normalOverdensityNonLinear
-     procedure :: environmentRadius    => normalEnvironmentRadius
-     procedure :: environmentMass      => normalEnvironmentMass
+     final     ::                             normalDestructor
+     procedure :: overdensityLinear        => normalOverdensityLinear
+     procedure :: overdensityNonLinear     => normalOverdensityNonLinear
+     procedure :: environmentRadius        => normalEnvironmentRadius
+     procedure :: environmentMass          => normalEnvironmentMass
+     procedure :: overdensityLinearMaximum => normalOverdensityLinearMaximum
+     procedure :: pdf                      => normalPDF
+     procedure :: cdf                      => normalCDF
+     procedure :: overdensityLinearSet     => normalOverdensityLinearSet
+
+
+     !! AJB HACK
+     procedure :: reset => normalReset
+     
   end type haloEnvironmentNormal
 
   interface haloEnvironmentNormal
@@ -96,6 +110,9 @@ contains
     class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_
     class           (criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
     double precision                                       , intent(in   ) :: radiusEnvironment
+    double precision                                       , parameter     :: overdensityMean          =0.0d+0
+    double precision                                       , parameter     :: limitUpperBuffer         =1.0d-3
+    double precision                                                       :: overdensityVariance
     !# <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
 
     ! Find the root-variance in the linear density field on the given scale.
@@ -109,6 +126,23 @@ contains
          &                                                   )                                              **2
     ! Get a table of linear vs. nonlinear density.
     call Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear,self%linearGrowth_,self%cosmologyFunctions_)
+    ! Build the distribution function.
+    overdensityVariance                 =+self%variance                                            &
+         &                               *self%linearGrowth_%value      (expansionFactor=1.0d0)**2
+    ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact
+    ! that the region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White
+    ! (1996; MNRAS; 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors.
+    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
+         &                               *(                                                       &
+         &                                 +1.0d0                                                 &
+         &                                 -limitUpperBuffer                                      &
+         &                                )
+    self%distributionOverdensity        =distributionFunction1DPeakBackground(                                      &
+         &                                                                         overdensityVariance            , &
+         &                                                                    self%environmentalOverdensityMaximum  &
+         &                                                                   )
+    ! Initialize optimizer.
+    self%uniqueIDPrevious=-1_kind_int8
     return
   end function normalConstructorInternal
 
@@ -126,51 +160,26 @@ contains
   double precision function normalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
     use Kind_Numbers
-    use Statistics_Distributions
     implicit none
     class           (haloEnvironmentNormal               ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
     logical                                               , intent(in   ), optional :: presentDay
-    type            (treeNode                            ), pointer                 :: nodeRoot
     class           (nodeComponentBasic                  ), pointer                 :: basic
-    integer         (kind_int8                           ), save                    :: uniqueIDPrevious       =-1_kind_int8
-    double precision                                      , save                    :: overdensityPrevious
-    !$omp threadprivate(uniqueIDPrevious,overdensityPrevious)
-    double precision                                      , parameter               :: overdensityMean        =0.0d+0
-    double precision                                      , parameter               :: limitUpperBuffer       =1.0d-3
-    double precision                                                                :: overdensityVariance
-    type            (distributionFunction1DPeakBackground)                          :: distributionOverdensity
     !# <optionalArgument name="presentDay" defaultsTo=".false." />
 
-    if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
-       uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
+    if (node%hostTree%baseNode%uniqueID() /= self%uniqueIDPrevious) then
+       self%uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
        if (node%hostTree%properties%exists('haloEnvironmentOverdensity')) then
-          overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
+          self%overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else
-          ! Find the root node of the tree.
-          nodeRoot                =>  node%hostTree     %baseNode
-          ! Find variance for the root node.
-          overdensityVariance     =  +self%variance                                            &
-               &                     *self%linearGrowth_%value      (expansionFactor=1.0d0)**2
-          ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact
-          ! that the region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White
-          ! (1996; MNRAS; 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors.
-          distributionOverdensity =   distributionFunction1DPeakBackground       (                                                           &
-               &                                                                  +     overdensityVariance                                , &
-               &                                                                  +self%criticalOverdensity_%value(expansionFactor=1.0d0)    &
-               &                                                                  *(                                                         &
-               &                                                                    +1.0d0                                                   &
-               &                                                                    -limitUpperBuffer                                        &
-               &                                                                   )                                                         &
-               &                                                                 )
           ! Choose an overdensity.
-          overdensityPrevious     =  +distributionOverdensity             %sample(                                                           &
-               &                                                                  randomNumberGenerator= node%hostTree%randomNumberGenerator &
-               &                                                                 )
-          call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensityPrevious)
+          self%overdensityPrevious=+self%distributionOverdensity%sample(                                                           &
+               &                                                        randomNumberGenerator= node%hostTree%randomNumberGenerator &
+               &                                                       )
+          call node%hostTree%properties%set('haloEnvironmentOverdensity',self%overdensityPrevious)
        end if
     end if
-    normalOverdensityLinear=overdensityPrevious
+    normalOverdensityLinear=self%overdensityPrevious
     if (.not.presentDay_) then
        basic                   =>  node                                 %basic(                 )
        normalOverdensityLinear =  +normalOverdensityLinear                                        &
@@ -214,3 +223,78 @@ contains
     return
   end function normalEnvironmentMass
 
+  double precision function normalOverdensityLinearMaximum(self)
+    !% Return the maximum overdensity for which the \gls{pdf} is non-zero.
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+
+    normalOverdensityLinearMaximum=self%environmentalOverdensityMaximum
+    return
+  end function normalOverdensityLinearMaximum
+
+  double precision function normalPDF(self,overdensity)
+    !% Return the PDF of the environmental overdensity.
+    implicit none
+    class           (haloEnvironmentNormal), intent(inout) :: self
+    double precision                       , intent(in   ) :: overdensity
+
+    normalPDF=self%distributionOverdensity%density(overdensity)
+    return
+  end function normalPDF
+
+  double precision function normalCDF(self,overdensity)
+    !% Return the CDF of the environmental overdensity.
+    implicit none
+    class           (haloEnvironmentNormal), intent(inout) :: self
+    double precision                       , intent(in   ) :: overdensity
+
+    normalCDF=self%distributionOverdensity%cumulative(overdensity)
+    return
+  end function normalCDF
+
+  subroutine normalOverdensityLinearSet(self,node,overdensity)
+    !% Return the CDF of the environmental overdensity.
+    use Galacticus_Error
+    implicit none
+    class           (haloEnvironmentNormal), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node
+    double precision                       , intent(in   ) :: overdensity
+    !GCC$ attributes unused :: self
+
+    if (overdensity > self%environmentalOverdensityMaximum) call Galacticus_Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
+    call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)
+    self%uniqueIDPrevious   =node%hostTree%baseNode%uniqueID()
+    self%overdensityPrevious=overdensity
+    return
+  end subroutine normalOverdensityLinearSet
+
+!! AJB HACK
+  subroutine normalReset(self,node)
+    use numerical_constants_Math
+    implicit none
+    class           (haloEnvironmentNormal), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node
+    double precision :: overdensityVariance
+    class(nodeComponentBasic), pointer :: basic
+
+    basic => node%basic()
+    self%variance=self%cosmologicalMassVariance_%rootVariance(                                                  &
+         &                                                    +4.0d0                                            &
+         &                                                    /3.0d0                                            &
+         &                                                    *Pi                                               &
+         &                                                    *self%cosmologyParameters_%OmegaMatter      ()    &
+         &                                                    *self%cosmologyParameters_%densityCritical  ()    &
+         &                                                    *self                     %radiusEnvironment  **3 &
+         &+basic%mass()&
+         &                                                   )                                              **2
+    overdensityVariance                 =+self%variance                                            &
+         &                               *self%linearGrowth_%value      (expansionFactor=1.0d0)**2
+    self%distributionOverdensity        =distributionFunction1DPeakBackground(                                      &
+         &                                                                         overdensityVariance            , &
+         &                                                                    self%environmentalOverdensityMaximum  &
+         &                                                                   ) 
+    self%uniqueIDPrevious   =-1_kind_int8
+    self%overdensityPrevious=0.0d0
+    return
+  end subroutine normalReset
+  

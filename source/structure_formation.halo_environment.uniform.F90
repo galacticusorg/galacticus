@@ -29,6 +29,9 @@
      procedure :: overdensityNonLinear => uniformOverdensityNonLinear
      procedure :: environmentRadius    => uniformEnvironmentRadius
      procedure :: environmentMass      => uniformEnvironmentMass
+     procedure :: pdf                  => uniformPDF
+     procedure :: cdf                  => uniformCDF
+     procedure :: overdensityLinearSet => uniformOverdensityLinearSet
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
@@ -73,7 +76,6 @@ contains
     return
   end function uniformOverdensityNonLinear
 
-
   double precision function uniformEnvironmentRadius(self)
     !% Return the radius of the environment.
     implicit none
@@ -93,4 +95,45 @@ contains
     uniformEnvironmentMass=huge(0.0d0)
     return
   end function uniformEnvironmentMass
+
+  double precision function uniformPDF(self,overdensity)
+    !% Return the PDF of the environmental overdensity.
+    use Galacticus_Error
+    implicit none
+    class           (haloEnvironmentUniform), intent(inout) :: self
+    double precision                        , intent(in   ) :: overdensity
+    !GCC$ attributes unused :: self, overdensity
+
+    uniformPDF=0.0d0
+    call Galacticus_Error_Report('PDF is a delta function'//{introspection:location})
+    return
+  end function uniformPDF
+
+  double precision function uniformCDF(self,overdensity)
+    !% Return the CDF of the environmental overdensity.
+    implicit none
+    class           (haloEnvironmentUniform), intent(inout) :: self
+    double precision                        , intent(in   ) :: overdensity
+    !GCC$ attributes unused :: self
+
+    if (overdensity >= 0.0d0) then
+       uniformCDF=1.0d0
+    else
+       uniformCDF=0.0d0
+    end if
+    return
+  end function uniformCDF
+
+  subroutine uniformOverdensityLinearSet(self,node,overdensity)
+    !% Return the CDF of the environmental overdensity.
+    use Galacticus_Error
+    implicit none
+    class           (haloEnvironmentUniform), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
+    double precision                        , intent(in   ) :: overdensity
+    !GCC$ attributes unused :: self, node
+
+    if (overdensity /= 0.0d0) call Galacticus_Error_Report('non-zero overdensity is inconsistent with uniform density field'//{introspection:location})
+    return
+  end subroutine uniformOverdensityLinearSet
 

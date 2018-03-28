@@ -21,6 +21,7 @@
   use Cosmology_Parameters
   use Cosmology_Functions
   use Linear_Growth
+  use Statistics_Distributions
 
   !# <haloEnvironment name="haloEnvironmentLogNormal">
   !#  <description>Implements a log-normal halo environment.</description>
@@ -28,18 +29,23 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentLogNormal
      !% A logNormal halo environment class.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (linearGrowthClass            ), pointer :: linearGrowth_
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     double precision                                         :: radiusEnvironment        , variance
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
+     class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_
+     class           (linearGrowthClass              ), pointer :: linearGrowth_
+     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_
+     type            (distributionFunction1DLogNormal)          :: distributionDensityContrast
+     double precision                                           :: radiusEnvironment          , variance
    contains
-     final     ::                         logNormalDestructor
-     procedure :: overdensityLinear    => logNormalOverdensityLinear
-     procedure :: overdensityNonLinear => logNormalOverdensityNonLinear
-     procedure :: environmentRadius    => logNormalEnvironmentRadius
-     procedure :: environmentMass      => logNormalEnvironmentMass
+     final     ::                             logNormalDestructor
+     procedure :: overdensityLinear        => logNormalOverdensityLinear
+     procedure :: overdensityNonLinear     => logNormalOverdensityNonLinear
+     procedure :: environmentRadius        => logNormalEnvironmentRadius
+     procedure :: environmentMass          => logNormalEnvironmentMass
+     procedure :: overdensityLinearMinimum => logNormalOverdensityLinearMinimum
+     procedure :: pdf                      => logNormalPDF
+     procedure :: cdf                      => logNormalCDF
+     procedure :: overdensityLinearSet     => logNormalOverdensityLinearSet
   end type haloEnvironmentLogNormal
 
   interface haloEnvironmentLogNormal
@@ -86,23 +92,34 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily logNormal} halo mass function class.
     use Numerical_Constants_Math
     implicit none
-    type            (haloEnvironmentLogNormal     )                        :: self
-    class           (cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
-    class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_
-    class           (criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
-    double precision                                       , intent(in   ) :: radiusEnvironment
+    type            (haloEnvironmentLogNormal     )                           :: self
+    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), target   , intent(in   ) :: cosmologicalMassVariance_
+    class           (linearGrowthClass            ), target   , intent(in   ) :: linearGrowth_
+    class           (criticalOverdensityClass     ), target   , intent(in   ) :: criticalOverdensity_
+    double precision                                          , intent(in   ) :: radiusEnvironment
+    double precision                               , parameter                :: densityContrastMean        =1.0d0
+    double precision                                                          :: densityContrastVariance
     !# <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
 
-    self%variance=self%cosmologicalMassVariance_%rootVariance(                                                  &
-         &                                                    +4.0d0                                            &
-         &                                                    /3.0d0                                            &
-         &                                                    *Pi                                               &
-         &                                                    *self%cosmologyParameters_%OmegaMatter      ()    &
-         &                                                    *self%cosmologyParameters_%densityCritical  ()    &
-         &                                                    *self                     %radiusEnvironment  **3 &
-         &                                                   )                                              **2
+    self%variance                   =self%cosmologicalMassVariance_%rootVariance(                                                  &
+         &                                                                       +4.0d0                                            &
+         &                                                                       /3.0d0                                            &
+         &                                                                       *Pi                                               &
+         &                                                                       *self%cosmologyParameters_%OmegaMatter      ()    &
+         &                                                                       *self%cosmologyParameters_%densityCritical  ()    &
+         &                                                                       *self                     %radiusEnvironment  **3 &
+         &                                                                      )                                              **2
+    densityContrastVariance         =+self%variance                                         &
+         &                           *self%linearGrowth_%value   (expansionFactor=1.0d0)**2
+    ! Construct a log-normal distribution, for 1+δ.
+    self%distributionDensityContrast= distributionFunction1DLogNormal(                                                                    &
+         &                                                                       +densityContrastMean                                   , &
+         &                                                                       +densityContrastVariance                               , &
+         &                                                            limitUpper=+1.0d0                                                   &
+         &                                                                       +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
+         &                                                           )
     return
   end function logNormalConstructorInternal
 
@@ -120,19 +137,14 @@ contains
   double precision function logNormalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
     use Kind_Numbers
-    use Statistics_Distributions
     implicit none
     class           (haloEnvironmentLogNormal       ), intent(inout)           :: self
     type            (treeNode                       ), intent(inout)           :: node
     logical                                          , intent(in   ), optional :: presentDay
-    type            (treeNode                       ), pointer                 :: nodeRoot
     class           (nodeComponentBasic             ), pointer                 :: basic
     integer         (kind_int8                      ), save                    :: uniqueIDPrevious           =-1_kind_int8
     double precision                                 , save                    :: overdensityPrevious
     !$omp threadprivate(uniqueIDPrevious,overdensityPrevious)
-    double precision                                 , parameter               :: densityContrastMean        =1.0d0
-    double precision                                                           :: densityContrastVariance
-    type            (distributionFunction1DLogNormal)                          :: distributionDensityContrast
     !# <optionalArgument name="presentDay" defaultsTo=".false." />
 
     if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
@@ -140,23 +152,11 @@ contains
        if (node%hostTree%properties%exists('haloEnvironmentOverdensity')) then
           overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else
-          ! Find the root node of the tree.
-          nodeRoot                    =>  node%hostTree     %baseNode
-          ! Find variance for the root node.
-          densityContrastVariance     =  +self%variance                                         &
-               &                         *self%linearGrowth_%value   (expansionFactor=1.0d0)**2
-          ! Construct a log-normal distribution, for 1+δ.
-          distributionDensityContrast =   distributionFunction1DLogNormal       (                                                                               &
-               &                                                                                       +densityContrastMean                                   , &
-               &                                                                                       +densityContrastVariance                               , &
-               &                                                                 limitUpper           =+1.0d0                                                   &
-               &                                                                                       +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &
-               &                                                                )
-          ! Choose an overdensity.
-          overdensityPrevious         =  +distributionDensityContrast    %sample(                                                                               &
-               &                                                                 randomNumberGenerator= node%hostTree%randomNumberGenerator                     &
-               &                                                                )                                                                               &
-               &                         -1.0d0
+           ! Choose an overdensity.
+          overdensityPrevious=+self%distributionDensityContrast%sample(                                                          &
+               &                                                       randomNumberGenerator=node%hostTree%randomNumberGenerator &
+               &                                                      )                                                          &
+               &              -1.0d0
           call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensityPrevious)
        end if
     end if
@@ -203,4 +203,47 @@ contains
          &                   /3.0d0
     return
   end function logNormalEnvironmentMass
+
+  double precision function logNormalOverdensityLinearMinimum(self)
+    !% Return the minimum overdensity for which the \gls{pdf} is non-zero.
+    implicit none
+    class(haloEnvironmentLogNormal), intent(inout) :: self
+
+    logNormalOverdensityLinearMinimum=-1.0d0
+    return
+  end function logNormalOverdensityLinearMinimum
+
+  double precision function logNormalPDF(self,overdensity)
+    !% Return the PDF of the environmental overdensity.
+    implicit none
+    class           (haloEnvironmentLogNormal), intent(inout) :: self
+    double precision                          , intent(in   ) :: overdensity
+
+    logNormalPDF=self%distributionDensityContrast%density(1.0d0+overdensity)
+    return
+  end function logNormalPDF
+
+  double precision function logNormalCDF(self,overdensity)
+    !% Return the CDF of the environmental overdensity.
+    implicit none
+    class           (haloEnvironmentLogNormal), intent(inout) :: self
+    double precision                          , intent(in   ) :: overdensity
+
+    logNormalCDF=self%distributionDensityContrast%cumulative(1.0d0+overdensity)
+    return
+  end function logNormalCDF
+
+  subroutine logNormalOverdensityLinearSet(self,node,overdensity)
+    !% Return the CDF of the environmental overdensity.
+    use Galacticus_Error
+    implicit none
+    class           (haloEnvironmentLogNormal), intent(inout) :: self
+    type            (treeNode                ), intent(inout) :: node
+    double precision                          , intent(in   ) :: overdensity
+    !GCC$ attributes unused :: self
+
+    if (overdensity <= -1.0d0) call Galacticus_Error_Report('δ≤-1 is inconsistent with log-normal density field'//{introspection:location})
+    call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)
+    return
+  end subroutine logNormalOverdensityLinearSet
 

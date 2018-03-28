@@ -187,6 +187,41 @@ module Cosmological_Density_Field
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="overdensityLinearMinimum" >
+  !#   <description>Return the minimum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#     haloEnvironmentOverdensityLinearMinimum=-huge(0.0d0)
+  !#   </code>
+  !#  </method>
+  !#  <method name="overdensityLinearMaximum" >
+  !#   <description>Return the maximum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#     haloEnvironmentOverdensityLinearMaximum=+huge(0.0d0)
+  !#   </code>
+  !#  </method>
+  !#  <method name="pdf" >
+  !#   <description>Return the \gls{pdf} of the environmental overdensity for the given overdensity.</description>
+  !#   <type>double precision</type>
+  !#   <argument>double precision, intent(in   ) :: overdensity</argument>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="cdf" >
+  !#   <description>Return the \gls{cdf} of the environmental overdensity for the given overdensity.</description>
+  !#   <type>double precision</type>
+  !#   <argument>double precision, intent(in   ) :: overdensity</argument>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="overdensityLinearSet" >
+  !#   <description>Set the environmental overdensity for the give node.</description>
+  !#   <type>void</type>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: overdensity</argument>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
   
   !# <functionClass>
