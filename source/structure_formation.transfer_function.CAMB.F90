@@ -411,6 +411,7 @@ contains
        call parametersGroup%writeAttribute(self%cosmologyParameters_%OmegaBaryon    (),'OmegaBaryon'    )
        call parametersGroup%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(),'OmegaDarkEnergy')
        call parametersGroup%writeAttribute(self%cosmologyParameters_%OmegaMatter    (),'OmegaMatter'    )
+       call parametersGroup%writeAttribute(self%cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
        call parametersGroup%close()
        extrapolationGroup          =cambOutput        %openGroup('extrapolation')
        extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
