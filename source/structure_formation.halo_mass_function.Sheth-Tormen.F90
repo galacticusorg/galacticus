@@ -145,15 +145,21 @@ contains
     class           (haloMassFunctionShethTormen), intent(inout)           :: self
     double precision                             , intent(in   )           :: time   , mass
     type            (treeNode                   ), intent(inout), optional :: node
-    double precision                                                       :: alpha  , nu  , &
-         &                                                                    nuPrime
+    double precision                                                       :: alpha  , nu          , &
+         &                                                                    nuPrime, massVariance
 
+    ! Determine the mass variance. If zero, return zero mass function.
+    massVariance=self%cosmologicalMassVariance_%rootVariance(mass)
+    if (massVariance <= 0.0d0) then
+       shethTormenDifferential=0.0d0
+       return
+    end if
     ! Compute the mass function.
-    nu                     =+(                                                                            &
-         &                    +self%criticalOverdensity_     %value       (time=time,mass=mass,node=node) &
-         &                    /self%cosmologicalMassVariance_%rootVariance(               mass          ) &
+    nu                     =+(                                                                &
+         &                    +self%criticalOverdensity_%value(time=time,mass=mass,node=node) &
+         &                    /massVariance                                                   &
          &                   )**2
-    nuPrime                =+self%a(time,mass)                                                            &
+    nuPrime                =+self%a(time,mass)                                                &
          &                  *nu
     alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
     shethTormenDifferential=+self%cosmologyParameters_%OmegaMatter    () &
