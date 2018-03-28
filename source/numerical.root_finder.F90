@@ -304,7 +304,7 @@ contains
           select case (self%rangeExpandType)
           case (rangeExpandAdditive      )
              if     (                                  &
-                  &   self%rangeExpandUpward   > 1.0d0 &
+                  &   self%rangeExpandUpward   > 0.0d0 &
                   &  .and.                             &
                   &  .not.rangeUpperAsExpected         &
                   &  .and.                             &
@@ -320,7 +320,7 @@ contains
                 rangeChanged=.true.
              end if
              if     (                                  &
-                  &   self%rangeExpandDownward < 1.0d0 &
+                  &   self%rangeExpandDownward < 0.0d0 &
                   &  .and.                             &
                   &  .not.rangeLowerAsExpected         &
                   &  .and.                             &
