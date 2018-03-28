@@ -15,9 +15,9 @@ use GnuPlot::LaTeX;
 # Andrew Benson (10-June-2012)
 
 # Get file name to process.
-die("Usage: mcmcVisualize.pl configFileName fileRoot1 fileRoot2.... [options]")
+die("Usage: mcmcVisualize.pl parameterFileName fileRoot1 fileRoot2.... [options]")
     unless ( scalar(@ARGV) > 1 );
-my $configFileName = $ARGV[0];
+my $parameterFileName = $ARGV[0];
 my @fileRoots;
 for(my $i=1;$i<scalar(@ARGV);++$i) {
     last
@@ -63,30 +63,30 @@ $workDirectory = $arguments{'workDirectory'}
 my $nGrid = 100;
 $nGrid = $arguments{'ngrid'}
     if ( exists($arguments{'ngrid'}) );
-my $xScale = "linear";
+my $xScale = "identity";
 $xScale = $arguments{'xScale'}
 if ( exists($arguments{'xScale'}) );
-die("xScale must be 'linear' or 'logarithmic'")
-    unless ( $xScale eq "linear" || $xScale eq "logarithmic" );
+die("xScale must be 'identity' or 'logarithm'")
+    unless ( $xScale eq "identity" || $xScale eq "logarithm" );
 my $xLabel = "x";
 $xLabel = $arguments{'xLabel'}
 if ( exists($arguments{'xLabel'}) );
-my $yScale = "linear";
+my $yScale = "identity";
 $yScale = $arguments{'yScale'}
     if ( exists($arguments{'yScale'}) );
-die("yScale must be 'linear' or 'logarithmic'")
-    unless ( $yScale eq "linear" || $yScale eq "logarithmic" );
+die("yScale must be 'identity' or 'logarithm'")
+    unless ( $yScale eq "identity" || $yScale eq "logarithm" );
 my $yLabel = "y";
 $yLabel = $arguments{'yLabel'}
     if ( exists($arguments{'yLabel'}) );
-my $zScale = "linear";
+my $zScale = "identity";
 $zScale = $arguments{'zScale'}
 if ( exists($arguments{'zScale'}) );
-die("zScale must be 'linear' or 'logarithmic'")
-    unless ( $zScale eq "linear" || $zScale eq "logarithmic" );
+die("zScale must be 'identity' or 'logarithm'")
+    unless ( $zScale eq "identity" || $zScale eq "logarithm" );
 my $zLabel = "\${\\rm d}p/{\\rm d}x\$";
 $zLabel = "\${\\rm d}p/{\\rm d}\\log x\$"
-    if ( $xScale eq "logarithmic" );
+    if ( $xScale eq "logarithm" );
 $zLabel = $arguments{'zLabel'}
     if ( exists($arguments{'zLabel'}) );
 my $plotFile = "mcmcVisualize.pdf";
@@ -137,12 +137,12 @@ if ( exists($arguments{'labels'}) ) {
 }
 
 # Open the config file and parse the available parameter names.
-my $xml    = new XML::Simple;
-my $config = $xml->XMLin($configFileName, KeyAttr => []);
+my $xml        = new XML::Simple;
+my $parameters = $xml->XMLin($parameterFileName);
 my @properties;
-foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
-    push(@properties,$parameter->{'name'})
-	 if ( exists($parameter->{'prior'}) );
+foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}} ) {
+    push(@properties,$parameter->{'name'}->{'value'})
+	 if ( $parameter->{'value'} eq "active" );
 }
 
 # Find which columns to plot.
@@ -168,7 +168,7 @@ if ( exists($arguments{'range'}) ) {
 	    $range->{'column'} = $i+$firstParameterColumn
 		if ( $properties[$i] eq $range->{'name'} );
 	}
-    } 
+    } 0
 }
 
 # Colors for contours.
@@ -214,13 +214,13 @@ print $gnuPlot "set key spacing 1.2\n";
 print $gnuPlot "set key at screen 0.275,0.16\n";
 print $gnuPlot "set key left\n";
 print $gnuPlot "set key bottom\n";
-if ( $xScale eq "logarithmic" ) {
+if ( $xScale eq "logarithm" ) {
     print $gnuPlot "set logscale x\n";
     print $gnuPlot "set mxtics 10\n";
     print $gnuPlot "set format x '\$10^{\%L}\$'\n"
 	unless ( $labelX eq "" );
 }
-if ( ( $dimensions == 1 && $zScale eq "logarithmic" ) || ( $dimensions == 2 && $yScale eq "logarithmic" ) ) {
+if ( ( $dimensions == 1 && $zScale eq "logarithm" ) || ( $dimensions == 2 && $yScale eq "logarithm" ) ) {
     print $gnuPlot "set logscale y\n";
     print $gnuPlot "set mytics 10\n";
     print $gnuPlot "set format y '\$10^{\%L}\$'\n"
@@ -300,7 +300,6 @@ foreach my $fileRoot ( @fileRoots ) {
 	    $include = 0
 		if ( $i < $iChainBegin );
 	    if ( exists($arguments{'range'}) ) {
-		my $dog = 1;
 		foreach my $range ( @{$arguments{'range'}} ) {
 		    $include = 0
 			if (
@@ -312,9 +311,9 @@ foreach my $fileRoot ( @fileRoots ) {
 	    }
 	    if ( $include == 1 ) {
 		$columns[$xColumn] = log($columns[$xColumn])
-		    if ( $xScale eq "logarithmic" );
+		    if ( $xScale eq "logarithm" );
 		$columns[$yColumn] = log($columns[$yColumn])
-		    if ( $yScale eq "logarithmic" );
+		    if ( $yScale eq "logarithm" );
 		print oHndl join("\t",@columns)."\n";
 	    }
 	}
@@ -383,9 +382,9 @@ foreach my $fileRoot ( @fileRoots ) {
     
     # Convert axes with logarithmic scaling.
     $x = exp($x)
-	if ( $xScale eq "logarithmic" );
+	if ( $xScale eq "logarithm" );
     $y = exp($y)
-	if ( $yScale eq "logarithmic" );
+	if ( $yScale eq "logarithm" );
 
     # Find ranges.
     my $pMin;
@@ -405,7 +404,7 @@ foreach my $fileRoot ( @fileRoots ) {
 	}
 	$pMin = 0.0;
 	$pMin = 1.0e-3
-	    if ( $zScale eq "logarithmic" );
+	    if ( $zScale eq "logarithm" );
 	$pMax = 1.02*$p->max();
 	if ( exists($arguments{'pRange'}) && $arguments{'pRange'} =~ m/(.*):(.*)/ ) {
 	    $pMin = $1;
@@ -490,7 +489,7 @@ foreach my $fileRoot ( @fileRoots ) {
 	print $gnuPlot "set pm3d corners2color c1\n";
 	print $gnuPlot "set palette rgbformulae 21,22,23 negative\n";
 	print $gnuPlot "set log cb\n"
-	    if ( $zScale eq "logarithmic" );
+	    if ( $zScale eq "logarithm" );
 	if ( $iFileRoot == 0 ) {
 	    print $gnuPlot "set cbrange [".$pMin.":".$pMax."]\n";
 	} elsif ( $iFileRoot == 1 ) {

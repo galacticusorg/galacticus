@@ -12,10 +12,10 @@ use Galacticus::Launch::PBS;
 # Andrew Benson (12-June-2012)
 
 # Get file name to process.
-die("Usage: mcmcVisualizeTriangle.pl fileRoot configFile [options]")
+die("Usage: mcmcVisualizeTriangle.pl fileRoot parameterFile [options]")
     unless ( scalar(@ARGV) > 1 );
-my $fileRoot       = $ARGV[0];
-my $configFileName = $ARGV[1];
+my $fileRoot          = $ARGV[0];
+my $parameterFileName = $ARGV[1];
 
 # Create a hash of named arguments.
 my %arguments;
@@ -106,13 +106,13 @@ my $options = " --title none --ngood ".$ngood." --ngrid ".$ngrid;
 $options .= " --useUnconverged ".$arguments{'useUnconverged'}
    if ( exists($arguments{'useUnconverged'}) );
 
-# Open the config file and parse the available parameter names.
-my $xml    = new XML::Simple;
-my $config = $xml->XMLin($configFileName, KeyAttr => []);
+# Open the parameter file and parse the available parameter names.
+my $xml        = new XML::Simple;
+my $parameters = $xml->XMLin($parameterFileName);
 my @propertyNamesAvailable;
-foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
-    push(@propertyNamesAvailable,$parameter->{'name'})
-	 if ( exists($parameter->{'prior'}) );
+foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}} ) {
+    push(@propertyNamesAvailable,$parameter->{'name'}->{'value'})
+	 if ( $parameter->{'value'} eq "active" );
 }
 my @propertyNames;
 if ( exists($arguments{'property'}) ) {
@@ -138,10 +138,10 @@ if ( exists($arguments{'range'}) ) {
 
 # Construct property list.
 my @properties;
-foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
-    if ( grep {$parameter->{'name'} eq $_} @propertyNames ) {
+foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}} ) {
+    if ( grep {$parameter->{'name'}->{'value'} eq $_} @propertyNames ) {
 	foreach my $property ( @{$arguments{'property'}} ) {
-	    if ( $property->{'name'} eq $parameter->{'name'} ) {
+	    if ( $property->{'name'} eq $parameter->{'name'}->{'value'} ) {
 		foreach ( 'xLabel', 'zLabel' ) {
 		    $parameter->{$_} = $property->{$_};
 		}
@@ -155,8 +155,8 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 my @pbsStack;
 my $standardWidth;
 my $standardHeight;
-for(my $i=0;$i<scalar(@properties);++$i) {    
-    my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}."' --xScale ".$properties[$i]->{'mapping'}->{'type'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
+for(my $i=0;$i<scalar(@properties);++$i) {
+    my $command = "constraints/visualization/mcmcVisualize.pl ".$parameterFileName." ".$fileRoot." --workDirectory ".$workDirectory." --xProperty '".$properties[$i]->{'name'}->{'value'}."' --xScale ".$properties[$i]->{'operatorUnaryMapper'}->{'value'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i.".pdf --data ".$outputFileName."_".$i.".xml ".$options;
     $command .= " --oldChainFormat ".$arguments{'oldChainFormat'}
 	if ( exists($arguments{'oldChainFormat'}) );
     $command .= " --showLabels no"
@@ -188,7 +188,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
     }
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
-	    my $command = "constraints/visualization/mcmcVisualize.pl ".$configFileName." ".$fileRoot." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}."' --yScale ".$properties[$i]->{'mapping'}->{'type'}." --xProperty '".$properties[$j]->{'name'}."' --xScale ".$properties[$j]->{'mapping'}->{'type'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
+	    my $command = "constraints/visualization/mcmcVisualize.pl ".$parameterFileName." ".$fileRoot." --workDirectory ".$workDirectory." --yProperty '".$properties[$i]->{'name'}->{'value'}."' --yScale ".$properties[$i]->{'operatorUnaryMapper'}->{'value'}." --xProperty '".$properties[$j]->{'name'}->{'value'}."' --xScale ".$properties[$j]->{'operatorUnaryMapper'}->{'value'}." --textSize ".$textSize." --plotSize ".$plotSize." --lineWeight ".$lineWeight." --labelStyle ".$labelStyle." --output ".$outputFileName."_".$i."_".$j.".pdf --data ".$outputFileName."_".$i."_".$j.".xml ".$options;
 	    $command .= " --oldChainFormat ".$arguments{'oldChainFormat'}
 	        if ( exists($arguments{'oldChainFormat'}) );
 	    $command .= " --showLabels no"

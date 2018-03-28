@@ -316,12 +316,10 @@ sub Convert_Parameters_To_Galacticus {
 
 sub Chains_Count {
     # Return a count of the number of chains used.
-    my $config    =   shift() ;
-    my %arguments = %{shift()};
-    # Find the work directory.
-    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
+    my $parameters =   shift() ;
+    my %arguments  = %{shift()};
     # Determine number of chains.
-    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
+    my $logFileRoot = $parameters->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
     my $chainCount  = 0;
     while () {
 	++$chainCount;
@@ -568,13 +566,13 @@ sub Sample_Models {
 }
 
 sub Maximum_Likelihood_Vector {
-    my $config    =   shift() ;
-    my %arguments = %{shift()};
+    my $parameters =   shift() ;
+    my %arguments  = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};
+    my $logFileRoot = $parameters->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
-    my $chainCount = &Chains_Count($config,\%arguments);
+    my $chainCount = &Chains_Count($parameters,\%arguments);
     # Parse the chains to find the maximum likelihood model.
     my $maximumLikelihood = -1e30;
     my @maximumLikelihoodParameters;
