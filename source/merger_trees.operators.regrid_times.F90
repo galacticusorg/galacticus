@@ -250,24 +250,25 @@ contains
     implicit none
     class           (mergerTreeOperatorRegridTimes), intent(inout)                        :: self
     type            (mergerTree                   ), intent(inout), target                :: tree
-    type            (treeNode                     )                             , pointer :: nodeChild               , nodeNext   , &
-         &                                                                                   nodeSibling             , node       , &
+    type            (treeNode                     )                             , pointer :: nodeChild                       , nodeNext   , &
+         &                                                                                   nodeSibling                     , node       , &
          &                                                                                   mergee
     type            (treeNodeList                 ), allocatable  , dimension(:)          :: newNodes
     integer         (kind=kind_int8               ), allocatable  , dimension(:)          :: highlightNodes
-    class           (nodeComponentBasic           )                             , pointer :: basicChild              , basicParent, &
+    class           (nodeComponentBasic           )                             , pointer :: basicChild                      , basicParent, &
          &                                                                                   basic
     class           (nodeComponentSatellite       )                             , pointer :: mergeeSatellite
     type            (mergerTree                   )                             , pointer :: currentTree
-    class           (nodeEvent                    )                             , pointer :: event                   , pairedEvent
+    class           (nodeEvent                    )                             , pointer :: event                           , pairedEvent
+    logical                                                                               :: mergeTargetWarningIssued=.false.
     type            (fgsl_interp_accel            )                                       :: interpolationAccelerator
     logical                                                                               :: interpolationReset
-    integer         (c_size_t                     )                                       :: iNow                    , iParent    , &
+    integer         (c_size_t                     )                                       :: iNow                            , iParent    , &
          &                                                                                   iTime
     integer                                                                               :: allocErr
-    double precision                                                                      :: massNow                 , massParent , &
-         &                                                                                   timeNow                 , timeParent
-    integer         (kind=kind_int8               )                                       :: firstNewNode            , nodeIndex
+    double precision                                                                      :: massNow                         , massParent , &
+         &                                                                                   timeNow                         , timeParent
+    integer         (kind=kind_int8               )                                       :: firstNewNode                    , nodeIndex
 
     ! Iterate over trees.
     currentTree => tree
@@ -296,6 +297,21 @@ contains
        node      => currentTree%baseNode
        do while (associated(node))
           nodeIndex=max(nodeIndex,node%index())
+          ! Check for merge targets being set - these are not supported under the regridding transformation, so issue a warning.
+          if (associated(node%mergeTarget).and..not.mergeTargetWarningIssued) then
+             !$omp critical (mergeTargetWarning)
+             if (.not.mergeTargetWarningIssued) then
+                call Galacticus_Warn(                                                                                &
+                     &               'WARNING: nodes in this tree have merge targets set'               //char(10)// &
+                     &               '         this is not supported by the regridding operator'        //char(10)// &
+                     &               '         your tree may crash or deadlock'                         //char(10)// &
+                     &               '         to avoid this problem do not preset merge targets, e.g. '//char(10)// &
+                     &               '           <mergerTreeReadPresetMergerNodes value="false"/>'                   &
+                     &              )
+                mergeTargetWarningIssued=.true.
+             end if
+             !$omp end critical (mergeTargetWarning)
+          end if
           ! Check if this node can be snapped to a grid time.
           if (self%snapTolerance > 0.0d0) then
              ! Get the basic component.
