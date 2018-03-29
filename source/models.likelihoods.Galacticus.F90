@@ -332,33 +332,33 @@ contains
     write (adjustMassesLabel       ,'(L1)'   ) self%adjustMasses
     write (adjustOutputsLabel      ,'(L1)'   ) self%adjustOutputs
     ! Generate the command to run the Galacticus model.
-    wrapperCommand=                                                                                &
-         & self%timeCommand                                                                //' '// &
-         & '--format "%S %U"'                                                              //' '// &
-         & '--output '                           //             timingFileName             //' '// &
-         & './constraints/constrainGalacticus.pl'                                          //' '// &
-         & '--mpiRank '                          //     mpiSelf%rankLabel               () //' '// &
-         & '--likelihoodFile '                   //             likelihoodFileName         //' '// &
-         & '--name '                             //     self   %name                       //' '// &
-         & '--executable '                       //     self   %executable                 //' '// &
-         & '--compilation '                      //     self   %compilation                //' '// &
-         & '--baseParameters '                   //     self   %baseParameters             //' '// &
-         & '--workPath '                         //     self   %workPath                   //' '// &
-         & '--scratchPath '                      //     self   %scratchPath                //' '// &
-         & '--failPath '                         //     self   %failPath                   //' '// &
-         & '--report '                           //trim(        reportLabel               )//' '// &
-         & '--randomize '                        //trim(        randomizeLabel            )//' '// &
-         & '--saveState '                        //trim(        saveStateLabel            )//' '// &
-         & '--cleanUp '                          //trim(        cleanUpLabel              )//' '// & 
-         & '--coreDump '                         //trim(        coreDumpLabel             )//' '// &
-         & '--useFixedTrees  '                   //trim(        useFixedTreesLabel        )//' '// &
-         & '--fixedTreesInScratch '              //trim(        fixedTreesInScratchLabel  )//' '// &
-         & '--adjustMasses  '                    //trim(        adjustMassesLabel         )//' '// &
-         & '--adjustOutputs '                    //trim(        adjustOutputsLabel        )//' '// &
-         & '--temperature '                      //trim(        temperatureLabel          )//' '// &
-         & '--threads '                          //     self   %threads                    //' '// &
-         & '--cpuLimit '                         //     self   %cpuLimit                   //' '// &
-         & '--treesPerDecadeMinimum '            //     self   %treesPerDecadeMinimum
+    wrapperCommand=                                                                                 &
+         & self%timeCommand                                                                 //' '// &
+         & '--format "%S %U"'                                                               //' '// &
+         & '--output '                            //             timingFileName             //' '// &
+         & './constraints/galacticusLikelihood.pl'                                          //' '// &
+         & '--mpiRank '                           //     mpiSelf%rankLabel               () //' '// &
+         & '--likelihoodFile '                    //             likelihoodFileName         //' '// &
+         & '--name '                              //     self   %name                       //' '// &
+         & '--executable '                        //     self   %executable                 //' '// &
+         & '--compilation '                       //     self   %compilation                //' '// &
+         & '--baseParameters '                    //     self   %baseParameters             //' '// &
+         & '--workPath '                          //     self   %workPath                   //' '// &
+         & '--scratchPath '                       //     self   %scratchPath                //' '// &
+         & '--failPath '                          //     self   %failPath                   //' '// &
+         & '--report '                            //trim(        reportLabel               )//' '// &
+         & '--randomize '                         //trim(        randomizeLabel            )//' '// &
+         & '--saveState '                         //trim(        saveStateLabel            )//' '// &
+         & '--cleanUp '                           //trim(        cleanUpLabel              )//' '// & 
+         & '--coreDump '                          //trim(        coreDumpLabel             )//' '// &
+         & '--useFixedTrees  '                    //trim(        useFixedTreesLabel        )//' '// &
+         & '--fixedTreesInScratch '               //trim(        fixedTreesInScratchLabel  )//' '// &
+         & '--adjustMasses  '                     //trim(        adjustMassesLabel         )//' '// &
+         & '--adjustOutputs '                     //trim(        adjustOutputsLabel        )//' '// &
+         & '--temperature '                       //trim(        temperatureLabel          )//' '// &
+         & '--threads '                           //     self   %threads                    //' '// &
+         & '--cpuLimit '                          //     self   %cpuLimit                   //' '// &
+         & '--treesPerDecadeMinimum '             //     self   %treesPerDecadeMinimum
     do i=1,size(self%environment)
        wrapperCommand=wrapperCommand//'--environment '//self%environment(i)//' '
     end do
