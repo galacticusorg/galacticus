@@ -102,8 +102,6 @@ contains
   double precision function isothermalDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileIsothermal), intent(inout) :: self
@@ -366,16 +364,22 @@ contains
 
   double precision function isothermalRadiusEnclosingDensity(self,node,density)
     !% Null implementation of function to compute the radius enclosing a given density for isothermal dark matter halo profiles.
-     use Galacticus_Nodes
-   use Galacticus_Error
+    use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileIsothermal), intent(inout) :: self
     type            (treeNode                   ), intent(inout) :: node
     double precision                             , intent(in   ) :: density
-    !GCC$ attributes unused :: self, node, density
+    class           (nodeComponentBasic         ), pointer       :: basic
 
-    isothermalRadiusEnclosingDensity=0.0d0
-    call Galacticus_Error_Report('function is not implemented'//{introspection:location})
+    basic                            =>             node                %basic       (    )
+    isothermalRadiusEnclosingDensity =  +sqrt(                                              &
+         &                                    +     basic               %mass        (    ) &
+         &                                    *3.0d0                                        &
+         &                                    /4.0d0                                        &
+         &                                    /Pi                                           &
+         &                                    /self%darkMatterHaloScale_%virialRadius(node) &
+         &                                    /density                                      &
+         &                                   )
     return
   end function isothermalRadiusEnclosingDensity
-  
+
