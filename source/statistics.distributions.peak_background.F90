@@ -39,7 +39,7 @@
   end type distributionFunction1DPeakBackground
 
   interface distributionFunction1DPeakBackground
-     !% Constructors for the {\peakBackgroundfont \ttfamily peakBackground} 1D distribution function class.
+     !% Constructors for the {\normalfont \ttfamily peakBackground} 1D distribution function class.
      module procedure peakBackgroundConstructorParameters
      module procedure peakBackgroundConstructorInternal
   end interface distributionFunction1DPeakBackground
@@ -47,7 +47,7 @@
 contains
 
   function peakBackgroundConstructorParameters(parameters) result(self)
-    !% Constructor for the {\peakBackgroundfont \ttfamily peakBackground} 1D distribution function class which builds the object from a parameter
+    !% Constructor for the {\normalfont \ttfamily peakBackground} 1D distribution function class which builds the object from a parameter
     !% set.
     use Input_Parameters
     implicit none

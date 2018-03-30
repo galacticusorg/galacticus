@@ -35,7 +35,7 @@
   end type distributionFunction1DGamma
 
   interface distributionFunction1DGamma
-     !% Constructors for the {\gammafont \ttfamily gamma} 1D distribution function class.
+     !% Constructors for the {\normalfont \ttfamily gamma} 1D distribution function class.
      module procedure gammaConstructorParameters
      module procedure gammaConstructorInternal
   end interface distributionFunction1DGamma

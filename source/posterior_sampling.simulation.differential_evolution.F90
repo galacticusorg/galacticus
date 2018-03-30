@@ -62,7 +62,7 @@
      !@     <method>posterior</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless class(posteriorSampleStateClass)\textgreater} posteriorSampleState_\argin</arguments>
-     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState_}.</description>
+     !@     <description>Return the log of posterior probability for the given {\normalfont \ttfamily posteriorSampleState}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>update</method>

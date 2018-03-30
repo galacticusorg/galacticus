@@ -32,7 +32,7 @@
   end type distributionFunction1DNegativeExponential
 
   interface distributionFunction1DNegativeExponential
-     !% Constructors for the {\negativeExponentialfont \ttfamily negativeExponential} 1D distribution function class.
+     !% Constructors for the {\normalfont \ttfamily negativeExponential} 1D distribution function class.
      module procedure negativeExponentialConstructorParameters
      module procedure negativeExponentialConstructorInternal
   end interface distributionFunction1DNegativeExponential
