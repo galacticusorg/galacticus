@@ -165,7 +165,6 @@ $(BUILDPATH)/flock_config.h : source/flock_config.c
 	else \
 	 echo "#define OFDUNAVAIL" > $(BUILDPATH)/flock_config.h ; \
 	fi
-$(BUILDPATH)/flock.o : $(BUILDPATH)/flock_config.h
 
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
@@ -314,7 +313,7 @@ dfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.d,$(wildcard source/*.F90))
 mfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.m,$(wildcard source/*.F90))
 $(BUILDPATH)/utility.input_parameters.unique_labels.inc:
 	@touch $(BUILDPATH)/utility.input_parameters.unique_labels.inc
-$(BUILDPATH)/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles)
+$(BUILDPATH)/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles) $(BUILDPATH)/flock_config.h
 	./scripts/build/uniqueLabelFunctions.pl `pwd`
 
 # Rules for changeset creation.
