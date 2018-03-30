@@ -3,6 +3,11 @@
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
 
+# Clear out old build files.
+rm -f doc/enumerations/*.tex
+rm -f doc/inputParameters/*.tex
+rm -f doc/methods/*.tex
+
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
 make all
 if [ $? -ne 0 ]; then
