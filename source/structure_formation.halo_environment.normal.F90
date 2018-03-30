@@ -51,11 +51,6 @@
      procedure :: pdf                      => normalPDF
      procedure :: cdf                      => normalCDF
      procedure :: overdensityLinearSet     => normalOverdensityLinearSet
-
-
-     !! AJB HACK
-     procedure :: reset => normalReset
-     
   end type haloEnvironmentNormal
 
   interface haloEnvironmentNormal
@@ -267,34 +262,3 @@ contains
     self%overdensityPrevious=overdensity
     return
   end subroutine normalOverdensityLinearSet
-
-!! AJB HACK
-  subroutine normalReset(self,node)
-    use numerical_constants_Math
-    implicit none
-    class           (haloEnvironmentNormal), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node
-    double precision :: overdensityVariance
-    class(nodeComponentBasic), pointer :: basic
-
-    basic => node%basic()
-    self%variance=self%cosmologicalMassVariance_%rootVariance(                                                  &
-         &                                                    +4.0d0                                            &
-         &                                                    /3.0d0                                            &
-         &                                                    *Pi                                               &
-         &                                                    *self%cosmologyParameters_%OmegaMatter      ()    &
-         &                                                    *self%cosmologyParameters_%densityCritical  ()    &
-         &                                                    *self                     %radiusEnvironment  **3 &
-         &+basic%mass()&
-         &                                                   )                                              **2
-    overdensityVariance                 =+self%variance                                            &
-         &                               *self%linearGrowth_%value      (expansionFactor=1.0d0)**2
-    self%distributionOverdensity        =distributionFunction1DPeakBackground(                                      &
-         &                                                                         overdensityVariance            , &
-         &                                                                    self%environmentalOverdensityMaximum  &
-         &                                                                   ) 
-    self%uniqueIDPrevious   =-1_kind_int8
-    self%overdensityPrevious=0.0d0
-    return
-  end subroutine normalReset
-  
