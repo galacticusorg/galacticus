@@ -940,6 +940,7 @@ CODE
 	    $preContains->[0]->{'content'} .= "    contains\n";
 	    $preContains->[0]->{'content'} .= "    !@ <objectMethods>\n";
 	    $preContains->[0]->{'content'} .= "    !@   <object>".$directive->{'name'}."Class</object>\n";
+	    my $generics;
 	    foreach my $methodName ( keys(%methods) ) {
 		my $method = $methods{$methodName};
 		my $argumentList = "";
@@ -983,9 +984,27 @@ CODE
 		}
 		$preContains->[0]->{'content'} .= "    !@   <objectMethod>\n";
 		$preContains->[0]->{'content'} .= "    !@     <method>".$methodName."</method>\n";
-		$preContains->[0]->{'content'} .= "    !@     <type>".$method->{'type'}."</type>\n";
+		$preContains->[0]->{'content'} .= "    !@     <type>".latex_encode($method->{'type'})."</type>\n";
 		$preContains->[0]->{'content'} .= "    !@     <arguments>".latex_encode($argumentList)."</arguments>\n";
 		$preContains->[0]->{'content'} .= "    !@     <description>".$method->{'description'}."</description>\n";
+		$preContains->[0]->{'content'} .= "    !@   </objectMethod>\n";
+		if ( exists($directive->{'generic'}) ) {
+		    foreach my $generic ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
+			if ( grep {$_ eq $methodName} &List::ExtraUtils::as_array($generic->{'method'}) ) {
+			    # This method is part of a generic method, store relevant information.
+			    $generics->{$generic->{'name'}}->{'type'} = $method->{'type'};
+			    push(@{ $generics->{$generic->{'name'}}->{'description'}},$method->{'description'});
+			    push(@{ $generics->{$generic->{'name'}}->{'argumentList'}},latex_encode($argumentList));
+			}
+		    }
+		}
+	    }
+	    foreach my $generic ( &List::ExtraUtils::hashList($generics, keyAs => "name") ) {
+		$preContains->[0]->{'content'} .= "    !@   <objectMethod>\n";
+		$preContains->[0]->{'content'} .= "    !@     <method>".$generic->{'name'}."</method>\n";
+		$preContains->[0]->{'content'} .= "    !@     <type>".latex_encode($generic->{'type'})."</type>\n";
+		$preContains->[0]->{'content'} .= "    !@     <arguments>".join(" | ",@{$generic->{'argumentList'}})."</arguments>\n";
+		$preContains->[0]->{'content'} .= "    !@     <description>".join(" | ",@{$generic->{'description'}})."</description>\n";
 		$preContains->[0]->{'content'} .= "    !@   </objectMethod>\n";
 	    }
 	    $preContains->[0]->{'content'} .= "    !@ </objectMethods>\n";
