@@ -55,6 +55,12 @@ module Locks
      !@     <arguments>\logicalzero\ [haveReadLock]\argin</arguments>
      !@     <description>Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>(Re)initialize an OpenMP read/write lock object</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::               ompReadWriteLockDestructor
      procedure :: initialize => ompReadWriteLockInitialize
