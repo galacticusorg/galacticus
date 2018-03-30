@@ -32,7 +32,7 @@
   end type distributionFunction1DCauchy
 
   interface distributionFunction1DCauchy
-     !% Constructors for the {\cauchyfont \ttfamily cauchy} 1D distribution function class.
+     !% Constructors for the {\normalfont \ttfamily cauchy} 1D distribution function class.
      module procedure cauchyConstructorParameters
      module procedure cauchyConstructorInternal
      module procedure cauchyConstructorProbability

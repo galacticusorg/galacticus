@@ -32,7 +32,7 @@
   end type distributionFunction1DLogUniform
 
   interface distributionFunction1DLogUniform
-     !% Constructors for the {\logUniformfont \ttfamily logUniform} 1D distribution function class.
+     !% Constructors for the {\normalfont \ttfamily logUniform} 1D distribution function class.
      module procedure logUniformConstructorParameters
      module procedure logUniformConstructorInternal
   end interface distributionFunction1DLogUniform

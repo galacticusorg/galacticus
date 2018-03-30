@@ -35,7 +35,7 @@
   end type distributionFunction1DVoight
 
   interface distributionFunction1DVoight
-     !% Constructors for the {\voightfont \ttfamily voight} 1D distribution function class.
+     !% Constructors for the {\normalfont \ttfamily voight} 1D distribution function class.
      module procedure voightConstructorParameters
      module procedure voightConstructorInternal
   end interface distributionFunction1DVoight
@@ -43,7 +43,7 @@
 contains
 
   function voightConstructorParameters(parameters) result(self)
-    !% Constructor for the {\voightfont \ttfamily voight} 1D distribution function class which builds the object from a parameter
+    !% Constructor for the {\normalfont \ttfamily voight} 1D distribution function class which builds the object from a parameter
     !% set.
     use Input_Parameters
     implicit none
