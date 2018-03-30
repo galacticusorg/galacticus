@@ -25,7 +25,7 @@
      !% Implementation of a satellite dyanmical fiction class in which the acceleration is always zero.
      private
    contains
-     procedure :: rate => zeroAcceleration
+     procedure :: acceleration => zeroAcceleration
   end type satelliteDynamicalFrictionZero
 
   interface satelliteDynamicalFrictionZero

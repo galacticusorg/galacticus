@@ -31,8 +31,8 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
      double precision                                    :: logarithmCoulomb
    contains
-     final     ::         chandrasekhar1943Destructor
-     procedure :: rate => chandrasekhar1943Acceleration
+     final     ::                 chandrasekhar1943Destructor
+     procedure :: acceleration => chandrasekhar1943Acceleration
   end type satelliteDynamicalFrictionChandrasekhar1943
 
   interface satelliteDynamicalFrictionChandrasekhar1943
