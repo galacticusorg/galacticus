@@ -40,6 +40,21 @@
      double precision                                               :: C                                        , f              , &
           &                                                            timeFormationSeekDelta                   , densityContrast
    contains
+     !@ <objectMethods>
+     !@   <object>darkMatterProfileConcentrationLudlow2016</object>
+     !@   <objectMethod>
+     !@     <method>formationTimeRoot</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ timeFormation\argin</arguments>
+     !@     <description>Evalute a function which goes to zero at the formation time of the tree.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>formationTimeRootFunctionSet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(rootFinder)\textgreater} finder\arginout</arguments>
+     !@     <description>Initialize a root finder object for use in finding the formation time of the tree.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final             ::                                 ludlow2016Destructor
      procedure         :: concentration                => ludlow2016Concentration
      procedure         :: densityContrastDefinition    => ludlow2016DensityContrastDefinition
