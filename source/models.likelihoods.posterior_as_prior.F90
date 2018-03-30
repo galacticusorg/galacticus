@@ -40,7 +40,7 @@
      logical                                                                       :: initialized
    contains
      !@ <objectMethods>
-     !@   <object>likelihoodPosteriorPrior</object>
+     !@   <object>posteriorSampleLikelihoodPosteriorAsPrior</object>
      !@   <objectMethod>
      !@     <method>initialize</method>
      !@     <type>\void</type>
