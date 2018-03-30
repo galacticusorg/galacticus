@@ -359,7 +359,7 @@ module Tables
        double precision, intent(in   ) :: x
      end function integrandTemplate
   end interface
-
+  
   type, extends(table) :: table2DLinLinLin
      !% Table type supporting generic two dimensional tables.
      integer                                                            :: xCount               , yCount
@@ -375,7 +375,7 @@ module Tables
      !@     <method>create</method>
      !@     <type>\void</type>
      !@     <arguments>\doubleone\ x,\doubleone\ y,\intzero\ [tableCount]</arguments>
-     !@     <description>Create the object with the specified {\normalfont \ttfamily x} and {\normafont \ttfamily y} values, and with {\normalfont \ttfamily tableCount} tables.</description>
+     !@     <description>Create the object with the specified {\normalfont \ttfamily x} and {\normalfont \ttfamily y} values, and with {\normalfont \ttfamily tableCount} tables.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>populate</method>
@@ -392,16 +392,19 @@ module Tables
      !@   <objectMethod>
      !@     <method>xs</method>
      !@     <type>\doubleone</type>
+     !@     <arguments></arguments>
      !@     <description>Return an array of all {\normalfont \ttfamily x} values.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>ys</method>
      !@     <type>\doubleone</type>
+     !@     <arguments></arguments>
      !@     <description>Return an array of all {\normalfont \ttfamily y} values.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>zs</method>
      !@     <type>\doublethree</type>
+     !@     <arguments></arguments>
      !@     <description>Return an array of all {\normalfont \ttfamily z} values.</description>
      !@   </objectMethod>
      !@ </objectMethods>
