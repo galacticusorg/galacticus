@@ -30,7 +30,7 @@
      integer         , allocatable, dimension(:  ) :: correlationLengths
    contains
      !@ <objectMethods>
-     !@   <object>stateCorrelation</object>
+     !@   <object>posteriorSampleStateCorrelation</object>
      !@   <objectMethod>
      !@     <method>correlationLength</method>
      !@     <type>\intzero</type>
