@@ -826,9 +826,9 @@ contains
                    end if
                 end do
                 if (distanceMinimum < 0) then
-                   write (0,'(3a)') '    unrecognised parameter [',trim(unknownName),']'
+                   write (0,'(3a)') '    unrecognized parameter [',trim(unknownName),']'
                 else
-                   write (0,'(5a)') '    unrecognised parameter [',trim(unknownName),'] (did you mean [',trim(parameterNameGuess),']?)'
+                   write (0,'(5a)') '    unrecognized parameter [',trim(unknownName),'] (did you mean [',trim(parameterNameGuess),']?)'
                 end if
              end if
           end if
