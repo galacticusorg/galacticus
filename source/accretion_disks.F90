@@ -26,7 +26,7 @@ module Accretion_Disks
   !#  <name>accretionDisks</name>
   !#  <descriptiveName>Accretion disks</descriptiveName>
   !#  <description>Class implementing accretion disks.</description>
-  !#  <default>switched</default>
+  !#  <default>shakuraSunyaev</default>
   !#  <method name="efficiencyRadiative" >
   !#   <description>Returns the radiative efficiency of the accretion disk.</description>
   !#   <type>double precision</type>
