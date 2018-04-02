@@ -10,7 +10,7 @@ use PDL::IO::HDF5;
 
 # Run the model and check for successful completion.
 system("Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml");
-die("FAILED: mergerTreeBoxSizeWeight.xml model failed to complete") 
+die("FAILED: mergerTreeBoxSizeWeight.pl model failed to complete") 
     unless ( $? == 0 );
 
 # Extract required information from files.
@@ -50,7 +50,7 @@ my $weightExpected = 1.0/$boxSize**3;
 my $fractionalError = abs($treeWeight-$weightExpected)/$weightExpected;
 
 # Check for consistency.
-die("FAILED: mergerTreeBoxSizeWeight.xml tree weights do not equal expected values")
+die("FAILED: mergerTreeBoxSizeWeight.pl tree weights do not equal expected values")
     unless ( all($fractionalError < 1.0e-6) );
 
 exit;
