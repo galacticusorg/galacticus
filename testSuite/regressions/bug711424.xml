@@ -84,7 +84,6 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <starFormationSpheroidMinimumTimescale value="0.001"/>
-  <accretionRateThinDiskMinimum value="0.01d0"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <accretionDisksMethod value="ADAF">
@@ -126,7 +125,6 @@
   <mergerTreeStructureOutput value="false"/>
   <timestepHostRelative value="0.1"/>
   <randomSeed value="228"/>
-  <mergerTreeBuildTreesHaloMassExponent value="1"/>
   <stabilityThresholdStellar value="1.1"/>
   <elementsToTrack value="Ca O Fe"/>
   <starFormationFeedbackDisksMethod value="powerLaw">
@@ -150,8 +148,9 @@
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <mergerTreeConstructMethod value="build"/>
   <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
-  <accretionRateThinDiskMaximum value="0.30d0"/>
   <hotHaloOutflowReturnRate value="1.26027"/>
-
   <diskMassDistribution value="exponentialDisk"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="powerLaw">
+    <exponent value="1.0"/>
+  </mergerTreeHaloMassFunctionSamplingMethod>
 </parameters>

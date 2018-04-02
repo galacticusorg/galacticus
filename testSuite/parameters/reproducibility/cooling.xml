@@ -28,7 +28,8 @@
   <!-- Power spectrum options -->
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
+  </cosmologicalMassVarianceMethod>
+  <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
   </transferFunctionMethod>
