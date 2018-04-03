@@ -102,7 +102,6 @@ contains
     implicit none
     class           (nodeComponentBasic               ), pointer :: basic
     class           (nodeComponentDarkMatterProfile   ), pointer :: darkMatterProfileHalo
-    type            (treeNode                         ), pointer :: node
     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_
     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
@@ -112,11 +111,13 @@ contains
     class           (linearGrowthClass                ), pointer :: linearGrowth_
     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_
+    class           (haloEnvironmentClass             ), pointer :: haloEnvironment_
     class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_
     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_
+    type            (mergerTree                       ), target  :: tree
     type            (fgsl_function                    )          :: integrandFunction
     type            (fgsl_integration_workspace       )          :: integrationWorkspace
-    integer                                                      :: haloMassFunctionsCount       , haloMassFunctionsPointsPerDecade, &
+     integer                                                      :: haloMassFunctionsCount       , haloMassFunctionsPointsPerDecade, &
          &                                                          iMass                        , iOutput                         , &
          &                                                          outputCount                  , verbosityLevel
     double precision                                             :: haloMassFunctionsMassMaximum , haloMassFunctionsMassMinimum    , &
@@ -162,6 +163,7 @@ contains
     criticalOverdensity_          => criticalOverdensity         ()
     linearGrowth_                 => linearGrowth                ()
     haloMassFunction_             => haloMassFunction            ()
+    haloEnvironment_              => haloEnvironment             ()
     unevolvedSubhaloMassFunction_ => unevolvedSubhaloMassFunction()
     darkMatterHaloScale_          => darkMatterHaloScale         ()
     cosmologicalMassVariance_     => cosmologicalMassVariance    ()
@@ -229,12 +231,15 @@ contains
     call allocateArray(haloMassFunction_scaleRadius      ,[haloMassFunctionsCount,outputCount])
     call allocateArray(haloMassFunction_velocityMaximum  ,[haloMassFunctionsCount,outputCount])
 
-    ! Create a node object.
-    node => treeNode()
+    ! Create a node object, assume zero environmental overdensity.
+    tree%baseNode          => treeNode()
+    tree%baseNode%hostTree => tree
+    call tree            %properties          %initialize(                               )
+    call haloEnvironment_%overdensityLinearSet           (tree%baseNode,overdensity=0.0d0)
 
     ! Get the basic and dark matter profile components.
-    basic                 => node%basic            (autoCreate=.true.)
-    darkMatterProfileHalo => node%darkMatterProfile(autoCreate=.true.)
+    basic                 => tree%baseNode%basic            (autoCreate=.true.)
+    darkMatterProfileHalo => tree%baseNode%darkMatterProfile(autoCreate=.true.)
 
     ! Loop over all output times.
     do iOutput=1,outputCount
@@ -248,22 +253,21 @@ contains
        
        ! Loop over all halo masses.
        do iMass=1,haloMassFunctionsCount
-
           ! Reset calculations.
-          call Galacticus_Calculations_Reset(node)
+          call Galacticus_Calculations_Reset(tree%baseNode)
           ! Set the mass in the node.
           call basic                %massSet (haloMassFunction_Mass(iMass,iOutput))
           ! Set the node scale radius.
-          call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(node))
+          call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(tree%baseNode))
           ! Compute bin interval.
           haloMassBinMinimum=haloMassFunction_Mass(iMass,iOutput)*exp(-0.5*haloMassLogarithmicInterval)
           haloMassBinMaximum=haloMassFunction_Mass(iMass,iOutput)*exp(+0.5*haloMassLogarithmicInterval)
           ! Compute halo properties.
-          haloMassFunction_dndM             (iMass,iOutput)=haloMassFunction_%differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_dndM             (iMass,iOutput)=haloMassFunction_%differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),node=tree%baseNode)          
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
-          haloMassFunction_dndlnMBinAveraged(iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassBinMinimum                  ,haloMassBinMaximum       )/haloMassLogarithmicInterval
-          haloMassFunction_cumulative       (iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_massFraction     (iMass,iOutput)=haloMassFunction_%massFraction(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          haloMassFunction_dndlnMBinAveraged(iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassBinMinimum                  ,haloMassBinMaximum       ,node=tree%baseNode)/haloMassLogarithmicInterval
+          haloMassFunction_cumulative       (iMass,iOutput)=haloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity,node=tree%baseNode)
+          haloMassFunction_massFraction     (iMass,iOutput)=haloMassFunction_%massFraction(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity,node=tree%baseNode)
           haloMassFunction_sigma            (iMass,iOutput)=cosmologicalMassVariance_%rootVariance                   (haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_alpha            (iMass,iOutput)=cosmologicalMassVariance_%rootVarianceLogarithmicGradient(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
@@ -276,12 +280,12 @@ contains
                &                                                                                                           haloMassFunction_Mass(iMass,iOutput)    &
                &                                                                                                          )                                        &
                &                                                )
-          haloMassFunction_bias             (iMass,iOutput)=darkMatterHaloBias_  %bias                   (node)
-          haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (node)
-          haloMassFunction_virialTemperature(iMass,iOutput)=darkMatterHaloScale_ %virialTemperature      (node)
-          haloMassFunction_virialRadius     (iMass,iOutput)=darkMatterHaloScale_ %virialRadius           (node)
-          haloMassFunction_scaleRadius      (iMass,iOutput)=darkMatterProfileHalo%scale                  (    )
-          haloMassFunction_velocityMaximum  (iMass,iOutput)=darkMatterProfile_   %circularVelocityMaximum(node)
+          haloMassFunction_bias             (iMass,iOutput)=darkMatterHaloBias_  %bias                   (tree%baseNode)
+          haloMassFunction_virialVelocity   (iMass,iOutput)=darkMatterHaloScale_ %virialVelocity         (tree%baseNode)
+          haloMassFunction_virialTemperature(iMass,iOutput)=darkMatterHaloScale_ %virialTemperature      (tree%baseNode)
+          haloMassFunction_virialRadius     (iMass,iOutput)=darkMatterHaloScale_ %virialRadius           (tree%baseNode)
+          haloMassFunction_scaleRadius      (iMass,iOutput)=darkMatterProfileHalo%scale                  (             )
+          haloMassFunction_velocityMaximum  (iMass,iOutput)=darkMatterProfile_   %circularVelocityMaximum(tree%baseNode)
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           haloMassFunction_cumulativeSubhalo(iMass,iOutput)=Integrate(                                          &
                &                                                      log(haloMassFunction_Mass(1,iOutput)/subhaloMassMaximum       ), &
@@ -311,9 +315,9 @@ contains
       ! Extract integrand parameters.
       mass=exp(logMass)
       ! Return the differential halo mass function multiplied by the integrated unevolved subhalo mass function in such hosts.
-      subhaloMassFunctionIntegrand=+                                                                                                                               mass  &
-           &                       *haloMassFunction_            %differential(outputTimes(iOutput)                                                               ,mass) &
-           &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity,mass)
+      subhaloMassFunctionIntegrand=+                                                                                                                               mass                     &
+           &                       *haloMassFunction_            %differential(outputTimes(iOutput)                                                               ,mass,node=tree%baseNode) &
+           &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity,mass                   )
       return
     end function subhaloMassFunctionIntegrand
   
