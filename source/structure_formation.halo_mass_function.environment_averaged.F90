@@ -29,7 +29,7 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
      !% A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
      private
-     class(haloMassFunctionClass), pointer :: haloMassFunction_
+     class(haloMassFunctionClass), pointer :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
      class(haloEnvironmentClass ), pointer :: haloEnvironment_
    contains
      final     ::                 environmentAveragedDestructor
@@ -51,28 +51,29 @@ contains
     implicit none
     type (haloMassFunctionEnvironmentAveraged)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    class(haloMassFunctionClass              ), pointer       :: haloMassFunction_
+    class(haloMassFunctionClass              ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
     class(haloEnvironmentClass               ), pointer       :: haloEnvironment_
     class(cosmologyParametersClass           ), pointer       :: cosmologyParameters_
-
-    !# <objectBuilder class="haloMassFunction"    name="haloMassFunction_"    source="parameters"/>
-    !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"     source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-   self=haloMassFunctionEnvironmentAveraged(haloMassFunction_,haloEnvironment_,cosmologyParameters_)
+    
+    !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
+    !# <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
+    !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
+    self=haloMassFunctionEnvironmentAveraged(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function environmentAveragedConstructorParameters
 
-  function environmentAveragedConstructorInternal(haloMassFunction_,haloEnvironment_,cosmologyParameters_) result(self)
+  function environmentAveragedConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
     implicit none
     type (haloMassFunctionEnvironmentAveraged)                        :: self
-    class(haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunction_
+    class(haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunctionConditioned_,haloMassFunctionUnconditioned_
     class(haloEnvironmentClass               ), target, intent(in   ) :: haloEnvironment_
     class(cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
-    !# <constructorAssign variables="*haloMassFunction_, *haloEnvironment_, *cosmologyParameters_"/>
-    
-    return
+    !# <constructorAssign variables="*haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
+
+     return
   end function environmentAveragedConstructorInternal
   
   subroutine environmentAveragedDestructor(self)
@@ -80,12 +81,13 @@ contains
     implicit none
     type(haloMassFunctionEnvironmentAveraged), intent(inout) :: self
 
-    !# <objectDestructor name="self%haloMassFunction_" />
-    !# <objectDestructor name="self%haloEnvironment_"  />
+    !# <objectDestructor name="self%haloMassFunctionConditioned_"  />
+    !# <objectDestructor name="self%haloMassFunctionUnconditioned_"/>
+    !# <objectDestructor name="self%haloEnvironment_"              />
     return
   end subroutine environmentAveragedDestructor
 
-  double precision function environmentAveragedDifferential(self,time,mass,node)
+  recursive double precision function environmentAveragedDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
@@ -96,56 +98,75 @@ contains
     double precision                                     , intent(in   )           :: time                              , mass
     type            (treeNode                           ), intent(inout), optional :: node
     class           (nodeComponentBasic                 ), pointer                 :: basic
-    double precision                                     , parameter               :: overdensityCDFFraction     =1.0d-3
+    double precision                                     , parameter               :: overdensityCDFFraction     =1.0d-6
+    double precision                                     , parameter               :: rangeExpandStep            =1.0d-1
+    double precision                                     , parameter               :: toleranceBackground        =1.0d-3
     type            (mergerTree                         ), target                  :: tree
     double precision                                                               :: environmentOverdensityLower       , environmentOverdensityUpper, &
-         &                                                                            cdfTarget
+         &                                                                            cdfTarget                         , massBackground
     type            (fgsl_function                      )                          :: integrandFunction
     type            (fgsl_integration_workspace         )                          :: integrationWorkspace
     type            (rootFinder                         ), save                    :: finder
     !$omp threadprivate(finder)
 
-    ! Create a work node.
-    tree %baseNode          => treeNode               (                 )
-    tree %baseNode%hostTree => tree
-    basic                   => tree    %baseNode%basic(autoCreate=.true.)
-    call tree%properties%initialize()
-    ! Set the properties of the work node.
-    call basic%massSet(mass)
-    call basic%timeSet(time)
-    ! Find the range of overdensities over which to integrate.
-    call finder%tolerance   (                                                                                     &
-         &                   toleranceRelative            = 1.0d-3                                                &
-         &                  )
-    call finder%rangeExpand (                                                                                     &
-         &                   rangeExpandUpward            =+0.5d0                                               , &
-         &                   rangeExpandDownward          =-0.5d0                                               , &
-         &                   rangeExpandUpwardSignExpect  =                      rangeExpandSignExpectPositive  , &
-         &                   rangeExpandDownwardSignExpect=                      rangeExpandSignExpectNegative  , &
-         &                   rangeUpwardLimit             =self%haloEnvironment_%overdensityLinearMaximum     (), &
-         &                   rangeExpandType              =                      rangeExpandAdditive              &
-         &                  )
-    call finder%rootFunction(                                                                                     &
-         &                                                                       environmentAveragedRoot          &
-         &                  )
-    cdfTarget                  =+0.0+overdensityCDFFraction
-    environmentOverdensityLower=finder%find(rootGuess=0.0d0)
-    cdfTarget                  =+1.0-overdensityCDFFraction
-    environmentOverdensityUpper=finder%find(rootGuess=0.0d0)
-    ! Perform the averaging integral.
-    environmentAveragedDifferential=Integrate(                                       &
-         &                                    environmentOverdensityLower          , &
-         &                                    environmentOverdensityUpper          , &
-         &                                    environmentAveragedIntegrand         , &
-         &                                    integrandFunction                    , &
-         &                                    integrationWorkspace                 , &
-         &                                    toleranceAbsolute           =1.0d-100, &
-         &                                    toleranceRelative           =1.0d-006  &
-         &                                   )
-    call Integrate_Done(integrandFunction,integrationWorkspace)    
-    ! Clean up our work node.
-    call tree%baseNode%destroy()
-    deallocate(tree%baseNode)
+    massBackground=self%haloEnvironment_%environmentMass()
+    if (mass >= massBackground) then
+       ! If the halo mass is equal to or greater than the mass of the environment, we simply use the unconditioned mass
+       ! function. We include an empirical correction to ensure that the mass function transitions smoothly through the background
+       ! mass.
+       environmentAveragedDifferential=+self%haloMassFunctionUnconditioned_%differential(time,mass                                      ,node) &
+            &                          *self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node) &
+            &                          /self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
+    else
+       ! Halo mass is less than the mass of the environment - we must average the mass function over environment.
+       ! Create a work node.
+       tree %baseNode          => treeNode               (                 )
+       tree %baseNode%hostTree => tree
+       basic                   => tree    %baseNode%basic(autoCreate=.true.)
+       call tree%properties%initialize()
+       ! Set the properties of the work node.
+       call basic%massSet(mass)
+       call basic%timeSet(time)
+       ! Find the range of overdensities over which to integrate.
+       call finder%tolerance   (                                                                                     &
+            &                   toleranceRelative            = 1.0d-6                                                &
+            &                  )
+       call finder%rangeExpand (                                                                                     &
+            &                   rangeExpandUpward            =+rangeExpandStep                                     , &
+            &                   rangeExpandDownward          =-rangeExpandStep                                     , &
+            &                   rangeExpandUpwardSignExpect  =                      rangeExpandSignExpectPositive  , &
+            &                   rangeExpandDownwardSignExpect=                      rangeExpandSignExpectNegative  , &
+            &                   rangeUpwardLimit             =self%haloEnvironment_%overdensityLinearMaximum     (), &
+            &                   rangeExpandType              =                      rangeExpandAdditive              &
+            &                  )
+       call finder%rootFunction(                                                                                     &
+            &                                                                       environmentAveragedRoot          &
+            &                  )
+       cdfTarget                  =+0.0+overdensityCDFFraction
+       environmentOverdensityLower=finder%find(rootGuess=0.0d0)
+       cdfTarget                  =+1.0-overdensityCDFFraction
+       environmentOverdensityUpper=finder%find(rootGuess=0.0d0)
+       if (environmentAveragedIntegrand(environmentOverdensityLower) == 0.0d0) then
+          do while (environmentAveragedIntegrand(environmentOverdensityLower) == 0.0d0 .and. environmentOverdensityLower < 0.0d0)
+             environmentOverdensityLower=environmentOverdensityLower+rangeExpandStep
+          end do
+          environmentOverdensityLower=environmentOverdensityLower-rangeExpandStep
+       end if
+       ! Perform the averaging integral.
+       environmentAveragedDifferential=Integrate(                                       &
+            &                                    environmentOverdensityLower          , &
+            &                                    environmentOverdensityUpper          , &
+            &                                    environmentAveragedIntegrand         , &
+            &                                    integrandFunction                    , &
+            &                                    integrationWorkspace                 , &
+            &                                    toleranceAbsolute           =1.0d-100, &
+            &                                    toleranceRelative           =1.0d-009  &
+            &                                   )
+       call Integrate_Done(integrandFunction,integrationWorkspace)    
+       ! Clean up our work node.
+       call tree%baseNode%destroy()
+       deallocate(tree%baseNode)
+    end if
     return
 
   contains
@@ -165,8 +186,8 @@ contains
       double precision, intent(in   ) :: environmentOverdensity
 
       call self%haloEnvironment_%overdensityLinearSet(node=tree%baseNode,overdensity=environmentOverdensity)
-      environmentAveragedIntegrand=+self%haloMassFunction_%differential(time                  ,mass,node=tree%baseNode) &
-           &                       *self%haloEnvironment_ %pdf         (environmentOverdensity                        )
+      environmentAveragedIntegrand=+self%haloMassFunctionConditioned_%differential(time                  ,mass,node=tree%baseNode) &
+           &                       *self%haloEnvironment_            %pdf         (environmentOverdensity                        )
       return
     end function environmentAveragedIntegrand
 
