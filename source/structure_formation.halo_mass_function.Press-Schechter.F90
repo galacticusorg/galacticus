@@ -91,12 +91,16 @@ contains
     if (.not.present(node)) call Galacticus_Error_Report('"node" must be present'//{introspection:location})
     alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass              ))
     variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass              ) **2
-    pressSchechterDifferential=+2.0d0                                                                                      &
-         &                     *   self%cosmologyParameters_      %OmegaMatter                    (                  )     &
-         &                     *   self%cosmologyParameters_      %densityCritical                (                  )     &
-         &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time,node)     &
-         &                     /mass**2                                                                                    &
-         &                     *alpha                                                                                      &
-         &                     *variance
+    if (variance > 0.0d0) then
+       pressSchechterDifferential=+2.0d0                                                                                      &
+            &                     *   self%cosmologyParameters_      %OmegaMatter                    (                  )     &
+            &                     *   self%cosmologyParameters_      %densityCritical                (                  )     &
+            &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time,node)     &
+            &                     /mass**2                                                                                    &
+            &                     *alpha                                                                                      &
+            &                     *variance
+    else
+       pressSchechterDifferential=+0.0d0
+    end if
     return
   end function pressSchechterDifferential
