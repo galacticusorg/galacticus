@@ -39,7 +39,8 @@
      type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
      type            (table2DLinLinLin                    )          :: linearToNonLinear
      double precision                                                :: radiusEnvironment              , variance           , &
-          &                                                             environmentalOverdensityMaximum, overdensityPrevious
+          &                                                             environmentalOverdensityMaximum, overdensityPrevious, &
+          &                                                             includedVolumeFraction
      integer         (kind_int8                           )          :: uniqueIDPrevious
    contains
      final     ::                             normalDestructor
@@ -97,6 +98,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily normal} halo mass function class.
     use Spherical_Collapse_Matter_Lambda
     use Numerical_Constants_Math
+    use Error_Functions
     implicit none
     type            (haloEnvironmentNormal        )                        :: self
     class           (cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_
@@ -106,7 +108,7 @@ contains
     class           (criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
     double precision                                       , intent(in   ) :: radiusEnvironment
     double precision                                       , parameter     :: overdensityMean          =0.0d+0
-    double precision                                       , parameter     :: limitUpperBuffer         =1.0d-3
+    double precision                                       , parameter     :: limitUpperBuffer         =1.0d-4
     double precision                                                       :: overdensityVariance
     !# <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
 
@@ -136,6 +138,9 @@ contains
          &                                                                         overdensityVariance            , &
          &                                                                    self%environmentalOverdensityMaximum  &
          &                                                                   )
+    ! Find the fraction of cosmological volume which is included in regions below the collapse threshold. This is used to scale
+    ! the PDF such that when the mass function is averaged over the PDF we get the correct mass function.
+    self%includedVolumeFraction         =Error_Function(self%environmentalOverdensityMaximum/sqrt(2.0d0)/sqrt(overdensityVariance))
     ! Initialize optimizer.
     self%uniqueIDPrevious=-1_kind_int8
     return
@@ -233,7 +238,11 @@ contains
     class           (haloEnvironmentNormal), intent(inout) :: self
     double precision                       , intent(in   ) :: overdensity
 
-    normalPDF=self%distributionOverdensity%density(overdensity)
+    ! Include a factor of the included volume fraction - that is, the fraction of the volume of the universe for which the
+    ! background is below the collapse threshold. This ensures that such volumes are excluded when averaging functions weighted by
+    ! the environment PDF.
+    normalPDF=+self%distributionOverdensity%density(overdensity) &
+         &    *self%includedVolumeFraction
     return
   end function normalPDF
 
