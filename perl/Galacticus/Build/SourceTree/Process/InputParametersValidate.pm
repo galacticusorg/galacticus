@@ -70,11 +70,11 @@ sub Process_InputParametersValidate {
 	    } else {
 		$result = $node->{'parent'}->{'name'};
 	    }
-	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
 	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";
 	    $code .= "   call ".$_     ."%allowedParameters(".$variableName.",'parameters')\n"
 		foreach ( @objectBuilderNames);
 	    $code .= "   call ".$source."%checkParameters(".$variableName.")\n";
+	    $code .= "   deallocate(".$variableName.")\n";
 	    # Insert new code.
 	    my $codeNode =
 	    {
