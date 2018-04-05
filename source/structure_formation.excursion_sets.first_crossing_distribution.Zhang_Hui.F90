@@ -371,7 +371,6 @@ contains
     double precision                                   , intent(in   ) :: deltaVariance                 , time           , &
          &                                                                variance
     type            (treeNode                         ), intent(inout) :: node
-    class           (excursionSetBarrierClass         ), pointer       :: excursionSetBarrier_
     double precision                                   , parameter     :: gradientChangeTolerance=1.0d-3
     double precision                                                   :: smallStep                     , barrierGradient, &
          &                                                                barrier
@@ -385,7 +384,7 @@ contains
     ! approximation. The approximation used assumes that the barrier gradient, dB/dS, is constant, so find a step over which
     ! the gradient is constant to within a specified tolerance.
     smallStep=deltaVariance
-    do while (Values_Differ(excursionSetBarrier_%barrierGradient(variance-smallStep,time,node,rateCompute=.false.),barrierGradient,relTol=gradientChangeTolerance))
+    do while (Values_Differ(self%excursionSetBarrier_%barrierGradient(variance-smallStep,time,node,rateCompute=.false.),barrierGradient,relTol=gradientChangeTolerance))
        smallStep=0.5d0*smallStep
     end do
     ! Compute the non-divergent part of the integral numerically.

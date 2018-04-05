@@ -347,7 +347,6 @@ contains
       implicit none
       double precision                        , intent(in   ) :: massHalo
       class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
-      class           (haloMassFunctionClass ), pointer       :: haloMassFunction_
       double precision                                        :: darkMatterProfileKSpace, numberCentrals   , &
            &                                                     numberSatellites       , wavenumberMaximum
 
@@ -436,13 +435,11 @@ contains
       implicit none
       double precision                         , intent(in   ) :: massHalo
       class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
-      class           (haloMassFunctionClass  ), pointer       :: haloMassFunction_
       class           (darkMatterHaloBiasClass), pointer       :: darkMatterHaloBias_
       double precision                                         :: wavenumberMaximum
       
       darkMatterProfile_  => darkMatterProfile ()
       darkMatterHaloBias_ => darkMatterHaloBias()
-      haloMassFunction_   => haloMassFunction  ()
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(node)
