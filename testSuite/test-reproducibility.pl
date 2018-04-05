@@ -117,7 +117,7 @@ my @tests =
 		  name              => "spheroid radius"          ,
 		  output            => 1                          ,
 		  property          => "spheroidRadius"           ,
-		  values            => pdl ( 0.00360653416232037 ),
+		  values            => pdl ( 0.00360702132699066 ),
 		  toleranceRelative => 7.0e-6
 	      },
 	      {
