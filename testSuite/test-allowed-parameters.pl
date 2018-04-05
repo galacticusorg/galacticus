@@ -27,6 +27,8 @@ close($log);
 
 # Check against expectations.
 my $status = join(":",@disallowed) eq "scaleCutOff" ? "success" : "FAILURE";
+print "  -> unrecognized parameters: ".join(", ",@disallowed)."\n"
+    if ( $status eq "FAILURE" );
 print "Test allowed parameters functionality: ".$status."\n";
 
 exit 0;
