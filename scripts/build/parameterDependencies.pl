@@ -56,7 +56,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	@fileStack = ( $rootFileName."p.F90" );
     } else {
 	@fileStack = ( $sourceDirectoryName."/source/".$fileName ); 
-   }
+    }
     while ( scalar(@fileStack) > 0 ) {
 	my $fileToProcess = shift(@fileStack);
 	# Find "include" lines in the file, extract the name of the included file, filter out any include files which are to be
