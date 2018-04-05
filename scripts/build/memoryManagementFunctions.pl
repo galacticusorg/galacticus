@@ -62,13 +62,13 @@ subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
   use ISO_Varying_String
   use String_Handling
   implicit none
-  {$intrinsicName}         , allocatable  , dimension({join(",",split(//,":" x $rank))}) :: thisArray
-  integer                  , intent(in   ), optional                                     :: memoryType
-  character(len=*         ), intent(in   ), optional                                     :: file
-  integer                  , intent(in   ), optional                                     :: line
-  type     (varying_string)                                                              :: message
-  integer                                                                                :: memoryTypeActual
-  integer  (kind_int8     )                                                              :: accumulation
+  {$intrinsicName}         , intent(inout), allocatable  , dimension({join(",",split(//,":" x $rank))}) :: thisArray
+  integer                  , intent(in   ), optional                                                    :: memoryType
+  character(len=*         ), intent(in   ), optional                                                    :: file
+  integer                  , intent(in   ), optional                                                    :: line
+  type     (varying_string)                                                                             :: message
+  integer                                                                                               :: memoryTypeActual
+  integer  (kind_int8     )                                                                             :: accumulation
   if (present(memoryType)) then
      memoryTypeActual=memoryType
   else
@@ -100,15 +100,15 @@ subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBoun
   use ISO_Varying_String
   use String_Handling
   implicit none
-  {$intrinsicName}                       , allocatable  , dimension({join(",",split(//,":" x $rank))}) :: thisArray
-  integer                                , intent(in   ), optional                                     :: memoryType
-  integer{$typeDefinition}               , intent(in   )                                               :: dimensions ({$rank})
-  integer{$typeDefinition}               , intent(in   ), optional                                     :: lowerBounds({$rank})
-  character               (len=*        ), intent(in   ), optional                                     :: file
-  integer                                , intent(in   ), optional                                     :: line
-  type                    (varying_string)                                                             :: message
-  integer                                                                                              :: memoryTypeActual
-  integer                 (kind_int8     )                                                             :: accumulation
+  {$intrinsicName}                       , intent(inout), allocatable  , dimension({join(",",split(//,":" x $rank))}) :: thisArray
+  integer                                , intent(in   ), optional                                                    :: memoryType
+  integer{$typeDefinition}               , intent(in   )                                                              :: dimensions ({$rank})
+  integer{$typeDefinition}               , intent(in   ), optional                                                    :: lowerBounds({$rank})
+  character               (len=*        ), intent(in   ), optional                                                    :: file
+  integer                                , intent(in   ), optional                                                    :: line
+  type                    (varying_string)                                                                            :: message
+  integer                                                                                                             :: memoryTypeActual
+  integer                 (kind_int8     )                                                                            :: accumulation
   if (allocated(thisArray)) call deallocateArray_{$functionLabel}(thisArray,memoryType)
   if (present(lowerBounds)) then
      allocate(thisArray({join(",",map {"lowerBounds(".$_."):lowerBounds(".$_.")+dimensions(".$_.")-1"} 1..$rank)}))
