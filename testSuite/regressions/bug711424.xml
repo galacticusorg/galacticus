@@ -120,7 +120,7 @@
   <reionizationSuppressionRedshift value="9"/>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <exponent value="2.0"/>
-    <velocityCharacteristic value="5 0.0"/>
+    <velocityCharacteristic value="50.0"/>
   </starFormationFeedbackSpheroidsMethod>
   <mergerTreeStructureOutput value="false"/>
   <timestepHostRelative value="0.1"/>
