@@ -332,7 +332,7 @@ contains
     probabilityMinimumMassLog=log(massResolution)
     probabilityMaximumMassLog=log(0.5d0*haloMass)
     probabilitySeek          =probability
-    call Compute_Common_Factors(node,haloMass,deltaCritical)
+    call Compute_Common_Factors()
     ! Check the sign of the root function at half the halo mass.
     if (Modified_Press_Schechter_Branch_Mass_Root(probabilityMaximumMassLog) >= 0.0d0) then
        ! The root function is zero, or very close to it (which can happen due to rounding errors
@@ -454,6 +454,7 @@ contains
     double precision                               , save                  :: haloMassPrevious      =-1.0d0, deltaCriticalPrevious=-1.0d0, &
          &                                                                    massResolutionPrevious=-1.0d0, probabilityPrevious
     !$omp threadprivate(haloMassPrevious,deltaCriticalPrevious,massResolutionPrevious,probabilityPrevious)
+    !GCC$ attributes unused :: node
     
     ! Recompute branching probability if necessary.
     if (haloMass /= haloMassPrevious .or. deltaCritical /= deltaCriticalPrevious .or. massResolution /= massResolutionPrevious) then
@@ -466,7 +467,7 @@ contains
           parentHaloMass=haloMass
           parentSigma=cosmologicalMassVariance_%rootVariance(haloMass)
           parentDelta=deltaCritical
-          call Compute_Common_Factors(node,haloMass,deltaCritical)
+          call Compute_Common_Factors()
           massMinimum=      massResolution
           massMaximum=0.5d0*parentHaloMass
           probabilityPrevious=+branchingProbabilityPreFactor                                                                        &
@@ -514,14 +515,15 @@ contains
     integer         (fgsl_int                     )                        :: statusLower                     , statusUpper
     logical                                                                :: usingCDMAssumptions
     integer                                                                :: iBound
-    
+    !GCC$ attributes unused :: node
+
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
        cosmologicalMassVariance_ => cosmologicalMassVariance()
        parentHaloMass=haloMass
        parentSigma=cosmologicalMassVariance_%rootVariance(haloMass)
        parentDelta=deltaCritical
-       call Compute_Common_Factors(node,haloMass,deltaCritical)
+       call Compute_Common_Factors()
        if (massResolution /= massResolutionTabulated) then
           ! Resolution changed - recompute sigma and alpha at resolution limit. Also reset the hypergeometric factor tables since
           ! these depend on resolution.
@@ -720,6 +722,7 @@ contains
     double precision                               , save                  :: massResolutionPrevious=-1.0d+0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
     double precision                                                       :: hyperGeometricFactor          , resolutionSigmaOverParentSigma
+    !GCC$ attributes unused :: node
 
     ! Get required objects.
     cosmologicalMassVariance_ => cosmologicalMassVariance()
@@ -727,7 +730,7 @@ contains
     parentHaloMass=haloMass
     parentSigma   =cosmologicalMassVariance_%rootVariance(haloMass)
     parentDelta   =deltaCritical
-    call Compute_Common_Factors(node,haloMass,deltaCritical)
+    call Compute_Common_Factors()
     if (massResolution /= massResolutionPrevious) then
        resolutionSigma       =cosmologicalMassVariance_%rootVariance(massResolution)
        massResolutionPrevious=                                       massResolution
@@ -819,16 +822,10 @@ contains
     return
   end function Modification_Function
 
-  subroutine Compute_Common_Factors(node,haloMass,deltaCritical)
+  subroutine Compute_Common_Factors()
     !% Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
-    use Cosmological_Density_Field
     implicit none
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: haloMass            , deltaCritical
-    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
-    class           (haloEnvironmentClass    ), pointer       :: haloEnvironment_
-    class           (nodeComponentBasic      ), pointer       :: basic
-
+   
     parentSigmaSquared           =parentSigma**2
     modificationG0Gamma2Factor   =modifiedPressSchechterG0*((max(parentDelta,0.0d0)/parentSigma)**modifiedPressSchechterGamma2)
     branchingProbabilityPreFactor=sqrtTwoOverPi*parentHaloMass*modificationG0Gamma2Factor/parentSigma**modifiedPressSchechterGamma1
