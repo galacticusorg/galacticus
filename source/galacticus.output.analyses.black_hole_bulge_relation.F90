@@ -139,6 +139,7 @@ contains
     integer         (c_size_t                                           )                                :: iOutput
 
     ! Specify mass bins.
+    allocate(masses(massStellarCount))
     masses=Make_Range(log10(massStellarMinimum),log10(massStellarMaximum),int(massStellarCount),rangeType=rangeTypeLinear)
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[massStellarCount,Galacticus_Output_Time_Count()])

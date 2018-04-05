@@ -263,6 +263,7 @@ contains
 
     cosmologyFunctions_ => cosmologyFunctions()
     if (present(timeSnapshots)) then
+       allocate(augmentConstructorInternal%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
        call allocateArray(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
        augmentConstructorInternal%timeSnapshots=timeSnapshots
        call Sort_Do(augmentConstructorInternal%timeSnapshots)
