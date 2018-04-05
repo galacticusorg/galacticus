@@ -766,7 +766,7 @@
     <intergalacticMediumStateMethod>
       <value>recFast</value>
       <value>file
-      <intergalaticMediumStateFileName value="data/intergalacticMedium/recFast_OmegaMatter0.281_OmegaDarkEnergy0.719_OmegaBaryon0.0461_HubbleConstant69.7_temperatureCMB2.725_YHe0.22.xml"/>
+      <fileName value="data/intergalacticMedium/recFast_OmegaMatter0.281_OmegaDarkEnergy0.719_OmegaBaryon0.0461_HubbleConstant69.7_temperatureCMB2.725_YHe0.22.xml"/>
       </value>
       <value>simple</value>
     </intergalacticMediumStateMethod>

@@ -161,7 +161,10 @@
   <luminosityType value="rest"/>
   
   <!-- Output options -->
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput value="">
+    <outputMergerTrees value="true" />
+    <outputReferences  value="false"/>
+  </mergerTreeOutput>
   <outputTimestepHistory      value="false"/>
   <outputVirialData           value="true" />
   <outputRedshifts            value="0.0"/>

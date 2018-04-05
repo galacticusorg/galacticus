@@ -93,9 +93,10 @@
   <modifiedPressSchechterHypergeometricPrecision value="1.0e-6"/>
   <modifiedPressSchechterTabulateHypergeometricFactors value="true"/>
   <modifiedPressSchechterUseCDMAssumptions value="true"/>
-  <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction"/>
-  <haloMassFunctionSamplingAbundanceMaximum value="1.0e-1"/>
-  <haloMassFunctionSamplingAbundanceMinimum value="1.0e-8"/>
+  <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction">
+    <abundanceMaximum value="1.0e-1"/>
+    <abundanceMinimum value="1.0e-8"/>    
+  </mergerTreeHaloMassFunctionSamplingMethod>
   
   <!-- Merger tree operators -->
   <mergerTreePruneBaryons value="true"/>

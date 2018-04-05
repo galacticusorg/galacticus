@@ -14,7 +14,7 @@
   <treeNodeMethodSatellite value="verySimple"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
-  </cosmologicalMassVarianceMethod><intergalaticMediumStateFileName value="constraints/data/igmState.xml"/>
+  </cosmologicalMassVarianceMethod>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <mergerTreeReadPresetSubhaloIndices value="false"/>
   <mergerTreeReadPresetMergerTimes value="false"/>
@@ -92,7 +92,9 @@
   </coolingTimeAvailableMethod>
   <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
   <odeToleranceRelative value="0.01"/>
-  <intergalacticMediumStateMethod value="file"/>
+  <intergalacticMediumStateMethod value="file">
+    <fileName value="constraints/data/igmState.xml"/>
+  </intergalacticMediumStateMethod>
   <mergerTreeHaloMassFunctionSamplingMethod value="stellarMassFunction">
     <massMaximum value="7.5857758e11"/>
     <massMinimum value="1.2589254e8"/>

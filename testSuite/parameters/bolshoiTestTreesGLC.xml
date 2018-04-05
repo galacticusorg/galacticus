@@ -239,7 +239,10 @@
   <timestepSimpleRelative value="0.1"/>
 
   <!-- Output options -->
-  <mergerTreeOutputReferences value="false"/>
+  <mergerTreeOutput value="">
+    <outputMergerTrees value="true" />
+    <outputReferences  value="false"/>
+  </mergerTreeOutput>
   <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
   <outputRedshifts value="0 0.1 2 4"/>
   <luminosityFilter value="SDSS_g SDSS_u SDSS_r bJ UKIRT_K RGO_I 2MASS_Ks SDSS_z SDSS_i"/>
