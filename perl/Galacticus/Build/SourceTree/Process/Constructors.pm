@@ -27,6 +27,8 @@ sub Process_Constructors {
 	    # Assert that our parent is a function.
 	    die("Process_Constructors: parent node must be a function")
 		unless ( $node->{'parent'}->{'type'} eq "function" );
+	    # Determine if automatic allocation of variables should be performed.
+	    my $allocate = exists($node->{'directive'}->{'allocate'}) ? $node->{'directive'}->{'allocate'} : "yes";
 	    # Determine function return value name.
 	    my $returnValueLabel;
 	    if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
@@ -45,9 +47,16 @@ sub Process_Constructors {
 		    $assigner     = " => ";
 		    $argumentName = $1;
 		} 
-		# Detect optional arguments.
+		# Get the variable declaration.
 		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
+		# Detect optional arguments.
 		my $optional    = (grep {$_ eq "optional"} @{$declaration->{'attributes'}}) ? "if (present(".$argumentName.")) " : "";
+		# Detect allocatable objects.
+		if ( $allocate eq "yes" && grep {$_ =~ m/dimension\s*\([:,]+\)/} @{$declaration->{'attributes'}} ) {
+		    # Determine the rank of the variable.
+		    my $rank = join("",map {$_ =~ m/dimension\s*\(([:,]+)\)/ ? $1 : ""} @{$declaration->{'attributes'}}) =~ tr/://;
+		    $assignmentSource .= "   allocate(".$returnValueLabel."%".$argumentName."(".join(",",map {"size(".$argumentName.",dim=".$_.")"} 1..$rank)."))\n";
+		}
 		# Build the assignment.
 		$assignmentSource   .= "   ".$optional.$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
 	    }
