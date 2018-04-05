@@ -113,6 +113,7 @@
   ! Module scope pointer to the current object.
   class(cosmologyFunctionsMatterLambda), pointer :: matterLambdaSelfGlobal
   !$omp threadprivate(matterLambdaSelfGlobal)
+  !$GLC ignore outlive :: matterLambdaSelfGlobal
 
   interface cosmologyFunctionsMatterLambda
      !% Constructors for the matter plus cosmological constant cosmological functions class.
