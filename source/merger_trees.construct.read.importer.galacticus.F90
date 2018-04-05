@@ -955,6 +955,7 @@ contains
        ! Check that all nodes are within range.
        if (any(nodeSubset > nodeCount(1))) call Galacticus_Error_Report('node subset lies outside of forest'//{introspection:location})
        ! Shift node subset to start of this forest.
+       allocate(nodeSubsetOffset(size(nodeSubset)))
        nodeSubsetOffset=nodeSubset+firstNodeIndex(1)-1
        ! Reset size of node array to read.
        nodeCount(1)=size(nodeSubset)

@@ -151,6 +151,9 @@ contains
     double precision                                            , intent(in   ), dimension(:) :: haloMass                 , haloRadius
     integer                                                     , intent(in   ), dimension(:) :: haloCount
 
+    allocate(fixedMassHalosConstructor%haloMass  (size(haloMass  )))
+    allocate(fixedMassHalosConstructor%haloRadius(size(haloRadius)))
+    allocate(fixedMassHalosConstructor%haloCount (size(haloCount )))
     fixedMassHalosConstructor%haloMass  =haloMass
     fixedMassHalosConstructor%haloRadius=haloRadius
     fixedMassHalosConstructor%haloCount =haloCount
