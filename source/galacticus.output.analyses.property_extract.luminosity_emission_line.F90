@@ -335,6 +335,7 @@ contains
        end if
     end do
     ! Compute the (logarithm of) hydrogen density, based on the model of Krumholz, McKee, & Tumlinson (2009) for molecular cloud properties.
+    densitySurfaceGas=+0.0d0
     where (isPhysical)
        densitySurfaceGas              =+massGas                            &
             &                          /2.0d0                              &
