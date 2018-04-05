@@ -208,7 +208,8 @@ contains
     !% Return the minimum overdensity for which the \gls{pdf} is non-zero.
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
-
+    !GCC$ attributes unused :: self
+    
     logNormalOverdensityLinearMinimum=-1.0d0
     return
   end function logNormalOverdensityLinearMinimum
