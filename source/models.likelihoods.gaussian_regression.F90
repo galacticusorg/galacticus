@@ -57,6 +57,7 @@
      double precision                                                             :: separationNormalization    , semiVarianceNormalization
      integer                                                                      :: binCount
    contains
+     final     ::                    gaussianRegressionDestructor
      procedure :: evaluate        => gaussianRegressionEvaluate
      procedure :: functionChanged => gaussianRegressionFunctionChanged
      procedure :: willEvaluate    => gaussianRegressionWillEvaluate
