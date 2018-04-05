@@ -41,7 +41,7 @@
   <cosmologyFunctionsMethod value="matterLambda"/>
   <modifiedPressSchechterGamma2 value="-0.01"/>
   <treeNodeMethodBlackHole value="null"/>
-  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpheroid value="verySimple"/>
   <timestepSimpleRelative value="0.1"/>
   <treeNodeMethodBasic value="standard"/>
   <mergerTreeBuildHaloMassMaximum value="2.0e14"/>
