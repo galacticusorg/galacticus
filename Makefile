@@ -176,6 +176,37 @@ vpath %.cpp source
 $(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 	$(CPPCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CPPFLAGS)
 
+# Rules for FFTLog library.
+source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFTlog/drfftf.f:
+	mkdir -p source/FFTlog
+	mkdir -p $(BUILDPATH)/FFTlog
+	wget http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -
+	if [ ! -e source/FFTlog/fftlog.f ]; then \
+	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
+	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
+	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
+	 echo "      end subroutine fhti"                            >> source/FFTlog/fftlog.f; \
+	 touch source/FFTlog/cdgamma.f; \
+	 touch source/FFTlog/drfftb.f; \
+	 touch source/FFTlog/drfftf.f; \
+	 touch source/FFTlog/drffti.f; \
+	else \
+	 cd source/FFTlog; \
+	 patch < ../drfftb.f.patch; \
+	 patch < ../drfftf.f.patch; \
+	 patch < ../drffti.f.patch; \
+	 cd -; \
+	 ./scripts/build/useDependencies.pl `pwd`; \
+	fi
+	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
+	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
+	echo $(BUILDPATH)/FFTlog/drfftf.o  > $(BUILDPATH)/FFTlog/drfftf.d
+	echo $(BUILDPATH)/FFTlog/drffti.o  > $(BUILDPATH)/FFTlog/drffti.d
+	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
+
+$(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch
+
 # Object (*.o) files are built by compiling Fortran (*.f) source files.
 vpath %.f source
 $(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
@@ -356,37 +387,6 @@ $(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl source/*.[fF
 	./scripts/build/findExecutables.pl `pwd`
 
 deps: $(MAKE_DEPS) $(BUILDPATH)/Makefile_All_Execs
-
-# Rules for FFTLog library.
-source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFTlog/drfftf.f:
-	mkdir -p source/FFTlog
-	mkdir -p $(BUILDPATH)/FFTlog
-	wget http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -
-	if [ ! -e source/FFTlog/fftlog.f ]; then \
-	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
-	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \
-	 echo "     & remove the source/FFTlog directory'"           >> source/FFTlog/fftlog.f; \
-	 echo "      end subroutine fhti"                            >> source/FFTlog/fftlog.f; \
-	 touch source/FFTlog/cdgamma.f; \
-	 touch source/FFTlog/drfftb.f; \
-	 touch source/FFTlog/drfftf.f; \
-	 touch source/FFTlog/drffti.f; \
-	else \
-	 cd source/FFTlog; \
-	 patch < ../drfftb.f.patch; \
-	 patch < ../drfftf.f.patch; \
-	 patch < ../drffti.f.patch; \
-	 cd -; \
-	 ./scripts/build/useDependencies.pl `pwd`; \
-	fi
-	echo $(BUILDPATH)/FFTlog/cdgamma.o > $(BUILDPATH)/FFTlog/cdgamma.d
-	echo $(BUILDPATH)/FFTlog/drfftb.o  > $(BUILDPATH)/FFTlog/drfftb.d
-	echo $(BUILDPATH)/FFTlog/drfftf.o  > $(BUILDPATH)/FFTlog/drfftf.d
-	echo $(BUILDPATH)/FFTlog/drffti.o  > $(BUILDPATH)/FFTlog/drffti.d
-	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
-
-$(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(FCFLAGS)
 
 # Rules for XSpec code.
 aux/XSpec/%.o: ./aux/XSpec/%.f Makefile
