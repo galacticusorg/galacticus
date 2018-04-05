@@ -21,7 +21,7 @@ $galacticus->{'tree' } = "all";
 &Galacticus::HDF5::Get_Parameters($galacticus    );
 &Galacticus::HDF5::Count_Trees   ($galacticus    );
 &Galacticus::HDF5::Select_Output ($galacticus,0.0);
-&Galacticus::HDF5::Get_Dataset($galacticus,['mergerTreeWeight','diskMassStellar','diskMassGas','spheroidMassStellar','spheroidMassGas','hotHaloMass','hotHaloMassCold','hotHaloOutflowedMass','nodeIsIsolated','basicMass','hotHaloUnaccretedMass','mergerTreeIndex']);
+&Galacticus::HDF5::Get_Dataset($galacticus,['mergerTreeWeight','blackHoleMass','diskMassStellar','diskMassGas','spheroidMassStellar','spheroidMassGas','hotHaloMass','hotHaloMassCold','hotHaloOutflowedMass','nodeIsIsolated','basicMass','hotHaloUnaccretedMass','mergerTreeIndex']);
 my $properties = $galacticus->{'dataSets'  };
 my $parameters = $galacticus->{'parameters'};
 # Find centrals.
@@ -41,6 +41,7 @@ for(my $i=0;$i<nelem($centrals);++$i) {
 	     +$properties->{'hotHaloMassCold'      }->($satellites)->($inTree)->sum()
 	     +$properties->{'hotHaloOutflowedMass' }->($satellites)->($inTree)->sum()
 	     +$properties->{'hotHaloUnaccretedMass'}->($satellites)->($inTree)->sum()
+	     +$properties->{'blackHoleMass'        }->($satellites)->($inTree)->sum()
 	    )
 	    /(
 		+$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
@@ -96,6 +97,12 @@ $properties->{'hotHaloUnaccretedMass'} /=
      /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
+$properties->{'blackHoleMass'        } /= 
+    (
+     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+    )
+    *$properties->{'basicMass'};
 my $massTotal =
     +$properties    ->{'diskMassStellar'      }->($centrals)
     +$properties    ->{'diskMassGas'          }->($centrals)
@@ -105,6 +112,7 @@ my $massTotal =
     +$properties    ->{'hotHaloMassCold'      }->($centrals)
     +$properties    ->{'hotHaloOutflowedMass' }->($centrals)
     +$properties    ->{'hotHaloUnaccretedMass'}->($centrals)
+    +$properties    ->{'blackHoleMass'        }->($centrals)
     +$massSatellites;
 # Check that all masses are unity.
 if ( any(abs($massTotal-1.0) > 1.0e-4) ) {
