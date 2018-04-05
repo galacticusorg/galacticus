@@ -247,7 +247,8 @@ sub GetDeclaration {
 	    $declarationsFound = 1;
 	    # Locate the variable in the list of declarations.
 	    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
-		if ( grep {$_ eq lc($variableName)} @{$declaration->{'variables'}} ) {
+		my @variableNames = map {$_ =~ m/^([^=]+)\s*=/ ? $1 : $_} @{$declaration->{'variables'}};
+		if ( grep {$_ eq lc($variableName)} @variableNames ) {
 		    $declarationFound = dclone($declaration);
 		    $declarationFound->{'variables'} = [ $variableName ];
 		    last;
