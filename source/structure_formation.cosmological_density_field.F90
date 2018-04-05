@@ -192,6 +192,7 @@ module Cosmological_Density_Field
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <code>
+  !#     !GCC$ attributes unused :: self
   !#     haloEnvironmentOverdensityLinearMinimum=-huge(0.0d0)
   !#   </code>
   !#  </method>
@@ -200,6 +201,7 @@ module Cosmological_Density_Field
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <code>
+  !#     !GCC$ attributes unused :: self
   !#     haloEnvironmentOverdensityLinearMaximum=+huge(0.0d0)
   !#   </code>
   !#  </method>
