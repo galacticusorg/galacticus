@@ -57,8 +57,7 @@ contains
     class           (posteriorSampleDffrntlEvltnRandomJumpAdaptive)                                   , intent(inout) :: self
     type            (modelParameterList                           ), dimension(:)                     , intent(in   ) :: modelParameters_
     class           (posteriorSampleStateClass                    )                                   , intent(inout) :: simulationState
-    double precision                                               , dimension(size(modelParameters_))                :: adaptiveSample
-    double precision                                               , dimension(:)                     , allocatable   :: parameterRange
+    double precision                                               , dimension(size(modelParameters_))                :: adaptiveSample  , parameterRange
     integer                                                                                                           :: i
     !GCC$ attributes unused :: self
 
