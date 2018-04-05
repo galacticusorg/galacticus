@@ -93,8 +93,9 @@ contains
          &                                                                        fileOmegaDE             , fileSigma8
     
     ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    cosmologyFunctions_  => cosmologyFunctions ()
+    cosmologyParameters_      => cosmologyParameters     ()
+    cosmologyFunctions_       => cosmologyFunctions      ()
+    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
     localLittleH0   =cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
     localOmegaMatter=cosmologyParameters_     %OmegaMatter    (                  )
