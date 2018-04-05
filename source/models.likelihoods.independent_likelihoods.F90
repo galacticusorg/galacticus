@@ -59,8 +59,7 @@ contains
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
     type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_
-    integer                                                                 :: i                 , j, &
-         &                                                                     parameterMapCount
+    integer                                                                 :: i                 , parameterMapCount
     type   (varying_string                                 )                :: parameterMapJoined
     
     if     (                                                                                   &

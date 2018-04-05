@@ -81,7 +81,6 @@ contains
     class           (nodeComponentSpheroid                        ), pointer                     :: spheroid
     double precision                                               , allocatable  , dimension(:) :: massElementsDisk, massElementsSpheroid
     type            (abundances                                   )                              :: abundancesDisk  , abundancesSpheroid
-    double precision                                                                             :: massGas         , massMetals
     integer                                                                                      :: countElements
     !GCC$ attributes unused :: self
 
