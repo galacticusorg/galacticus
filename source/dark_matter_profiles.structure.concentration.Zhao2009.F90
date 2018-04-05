@@ -137,6 +137,7 @@ contains
     allocate(darkMatterProfileNFW :: zhao2009DarkMatterProfileDefinition)
     select type (zhao2009DarkMatterProfileDefinition)
     type is (darkMatterProfileNFW)
+       allocate(darkMatterHaloScaleDefinition)
        select type (darkMatterHaloScaleDefinition)
        type is (darkMatterHaloScaleVirialDensityContrastDefinition)
           darkMatterHaloScaleDefinition      =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
