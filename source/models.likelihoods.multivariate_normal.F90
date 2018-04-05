@@ -77,7 +77,7 @@ contains
     type            (posteriorSampleLikelihoodMultivariateNormal)                                :: self
     double precision                                             , intent(in   ), dimension(:  ) :: means
     double precision                                             , intent(in   ), dimension(:,:) :: covariance
-    !# <constructorAssign variables="means, covariance"/>
+    !# <constructorAssign variables="means, covariance" allocate="no"/>
 
     ! Find the inverse of the covariance matrix.
     self%inverseCovariance=self%covariance%invert()  
