@@ -42,7 +42,7 @@ program Test_Math_Distributions
   call parameters%markGlobal()
   ! Test Poisson binomial distribution.
   p=[0.1d0,0.2d0,0.3d0,0.4d0,0.5d0,0.6d0,0.7d0,0.8d0,0.9d0,1.0d0]
-  do k=0,11
+  do k=0,10
      Pk(k)=Poisson_Binomial_Distribution(k,p)
   end do
   call Assert("Poisson binomial: normalization",sum(Pk),1.0d0,absTol=1.0d-6)
