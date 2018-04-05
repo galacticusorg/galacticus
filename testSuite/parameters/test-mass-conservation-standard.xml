@@ -77,9 +77,10 @@
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="1.0e9"/>
     </mergerTreeMassResolutionMethod> 
-    <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction"/>
-    <haloMassFunctionSamplingAbundanceMaximum value="1.0e-1"/>
-    <haloMassFunctionSamplingAbundanceMinimum value="1.0e-8"/>
+    <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction">
+      <abundanceMaximum value="1.0e-1"/>
+      <abundanceMinimum value="1.0e-8"/>    
+    </mergerTreeHaloMassFunctionSamplingMethod>
     <mergerTreesBuildFixedThreadAssignment value="true" />
     <mergerTreeBuilderMethod value="cole2000">
       <branchIntervalStep value="true"/>
@@ -130,8 +131,9 @@
     <accretionHaloMethod value="simple"/>
     <reionizationSuppressionRedshift value="10.5"/>
     <reionizationSuppressionVelocity value="35.0"/>
-    <intergalacticMediumStateMethod value="file"/>
-    <intergalaticMediumStateFileName value="constraints/data/igmState.xml"/>
+    <intergalacticMediumStateMethod value="file">
+      <fileName value="constraints/data/igmState.xml" />
+    </intergalacticMediumStateMethod>
 
     <!-- Hot halo gas cooling model options -->
     <hotHaloMassDistributionMethod value="betaProfile"/>
@@ -262,8 +264,8 @@
     <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
     <!-- Numerical tolerances -->
-    <odeToleranceAbsolute value="1.0e-4"/>
-    <odeToleranceRelative value="1.0e-4"/>
+    <odeToleranceAbsolute value="1.0e-5"/>
+    <odeToleranceRelative value="1.0e-5"/>
     <diskMassToleranceAbsolute value="1.0e-6"/>
     <spheroidMassToleranceAbsolute value="1.0e-6"/>
     <timestepHostAbsolute value="1.0"/>
