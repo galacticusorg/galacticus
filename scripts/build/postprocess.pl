@@ -25,6 +25,9 @@ my @map;
 # Initialize a hash of (possibly) unused functions.
 my %unusedFunctions;
 
+# Initialize a hash of variables for which "pointer may outlive target" is ignored.
+my %ignoreOutlives;
+
 # Open and read the file.
 my $lineNumber = 0;
 push(
@@ -54,6 +57,12 @@ while ( my $line = <$file> ) {
 	$unusedFunctions{lc($_)} = 1
 	    foreach ( split(/\s*,\s*/,$functions) );
     }
+    # Capture pointer outlive ignores.
+    if ( $line =~ m/^\s*!\$GLC\s+ignore\s+outlive\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
+	(my $variables = $1) =~ s/\s*$//;
+	$ignoreOutlives{lc($_)} = 1
+	    foreach ( split(/\s*,\s*/,$variables) );
+    }
 }
 close($file);
 
@@ -61,6 +70,7 @@ close($file);
 my $buffer;
 my $status = 0;
 my $functionName;
+my $pointerName;
 while ( my $line = <STDIN> ) {
     if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):(\d+):\s*$/ ) {
 	my $fileName     = $1;
@@ -96,6 +106,15 @@ while ( my $line = <STDIN> ) {
 	    if ( exists($unusedFunctions{lc($functionName)}) );
 	undef($functionName);
     }
+    # Handle ignore "pointer may outlive target" warnings.
+    if ( $line =~ m/^\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
+	$pointerName = lc($1);
+    }
+    if ( $line =~ m/\[\-Wtarget\-lifetime\]/ ) {
+	$dropBuffer = 1
+	    if ( exists($ignoreOutlives{lc($pointerName)}) );
+	undef($pointerName);
+    }    
     # Determine when to print the buffered output.
     my $printBuffer = 0;
     $printBuffer = 1
