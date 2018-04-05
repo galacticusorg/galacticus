@@ -189,8 +189,9 @@ contains
     !% Subtract one vector from another.
     implicit none   
     type (vector)                :: vectorSubtract
-    class(vector), intent(in   ) :: vector1        , vector2
+    class(vector), intent(in   ) :: vector1       , vector2
 
+    allocate(vectorSubtract%elements(size(vector1%elements,dim=1)))
     vectorSubtract%elements=vector1%elements-vector2%elements
     return
   end function vectorSubtract
@@ -201,6 +202,7 @@ contains
     type (vector)                :: vectorAdd
     class(vector), intent(in   ) :: vector1  , vector2
 
+    allocate(vectorAdd%elements(size(vector1%elements,dim=1)))
     vectorAdd%elements=vector1%elements+vector2%elements
     return
   end function vectorAdd
@@ -419,7 +421,8 @@ contains
     implicit none
     type (matrix)                :: matrixTranspose
     class(matrix), intent(inout) :: self
-  
+
+    allocate(matrixTranspose%elements(size(self%elements,dim=2),size(self%elements,dim=1)))
     matrixTranspose%elements=transpose(self%elements)
     return
   end function matrixTranspose
