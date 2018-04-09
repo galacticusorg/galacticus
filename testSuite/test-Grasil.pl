@@ -10,6 +10,7 @@ use Galacticus::HDF5;
 use Galacticus::SubMmFluxesHayward;
 use Galacticus::Grasil;
 use Galacticus::Survey;
+use Galacticus::Path;
 
 # Run simple Galacticus+Grasil calculations.
 # Andrew Benson (12-January-2013)
@@ -82,7 +83,7 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 
     # Specify model.
     my $galacticus;
-    $galacticus->{'file' } = "outputs/test-Grasil/galacticus_0:1/galacticus.hdf5";
+    $galacticus->{'file' } = &galacticusPath()."testSuite/outputs/test-Grasil/galacticus_0:1/galacticus.hdf5";
     $galacticus->{'store'} = 0;
     $galacticus->{'tree' } = "all";
   
@@ -121,14 +122,12 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 		& 
 		( $dataSets->{'redshift'            } < $maximumRedshift )
 	    );
-
-
 	
 	# Extract recycling parameter for the model.
 	die("test-Grasil.pl: FAIL - fixed IMF and instantaneous recycling expected for this model")
 	    unless ( $galacticus->{'parameters'}->{'imfSelectionMethod'}->{'value'} eq "fixed" && $galacticus->{'parameters'}->{'stellarPopulationPropertiesMethod'}->{'value'} eq "instantaneous" );
 	my $imfRecycledAttributeName = "imf".$galacticus->{'parameters'}->{'imfSelectionFixed'}->{'value'}."RecycledInstantaneous";
-	my $recycledFraction =$galacticus->{'parameters'}->{$imfRecycledAttributeName}->{'value'};
+	my $recycledFraction = $galacticus->{'parameters'}->{$imfRecycledAttributeName}->{'value'};
 
 	# Determine the number of galaxies selected and write a message reporting this.
 	my $numberSelected = nelem($galacticus->{'selection'});
@@ -176,7 +175,7 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 		    unless ( $galacticus->{'dataSets'}->{'diskMassStellar'}->(($j)) == 0.0 );
 	    } else {
 		my $fractionalError = abs(($galacticus->{'dataSets'}->{'diskMassStellar'}->(($j))-$diskMass)/$diskMass);
-		print "test-Grasil.pl: FAIL - star formation history does not integrate to expected stellar mass for disk [".$fractionalError."]\n"
+		print "test-Grasil.pl: FAIL - star formation history does not integrate to expected stellar mass for disk [expected : recovered : error = ".$galacticus->{'dataSets'}->{'diskMassStellar'}->(($j))." : ".$diskMass." : ".$fractionalError."] in Output : Tree : Node = ".$outputNumber." : ".$treeIndex." : ".$nodeIndex."\n"
 		    unless ( $fractionalError < 1.0e-2 );
 	    }
 	    if ( $spheroidMass == 0.0 ) {
@@ -184,12 +183,11 @@ foreach my $outputRedshift ( $galacticus->{'outputs'}->{'redshift'}->list() ) {
 		    unless ( $galacticus->{'dataSets'}->{'spheroidMassStellar'}->(($j)) == 0.0 );
 	    } else {
 		my $fractionalError = abs(($galacticus->{'dataSets'}->{'spheroidMassStellar'}->(($j))-$spheroidMass)/$spheroidMass);
-		print "test-Grasil.pl: FAIL - star formation history does not integrate to expected stellar mass for spheroid [".$fractionalError."]\n"
+		print "test-Grasil.pl: FAIL - star formation history does not integrate to expected stellar mass for spheroid [expected : recovered : error = ".$galacticus->{'dataSets'}->{'spheroidMassStellar'}->(($j))." : ".$spheroidMass." : ".$fractionalError."] in Output : Tree : Node = ".$outputNumber." : ".$treeIndex." : ".$nodeIndex."\n"
 		    unless ( $fractionalError < 1.0e-2 );
 	    }
-
 	    foreach my $dataSet ( "redshift", "flux850micronHayward", "grasilFlux850microns", "grasilFlux250microns", "grasilFlux350microns", "grasilFlux500microns", "grasilInfraredLuminosity" ) {
-		print $galacticus->{'dataSets'}->{$dataSet}->(($j))."\t";
+	    	print $galacticus->{'dataSets'}->{$dataSet}->(($j))."\t";
 	    }
 	    print "\n";
 	}
