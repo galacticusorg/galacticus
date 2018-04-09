@@ -129,10 +129,10 @@ module Histories
      !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} addHistory\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>combine</method>
-     !@     <description>Combines two histories.</description>
+     !@     <method>interpolatedIncrement</method>
+     !@     <description>Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values.</description>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} combineHistory\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} addHistory\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>extend</method>
@@ -189,38 +189,38 @@ module Histories
      !@     <arguments>(\doublezero\ time\argin, \doubleone\ append\argin | \textcolor{red}{\textless type(history)\textgreater} append\argin)</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: add     =>History_Add
-     procedure :: subtract=>History_Subtract
-     procedure :: divide  =>History_Divide
-     procedure :: multiply=>History_Multiply
-     generic                   :: operator(+)            => add
-     generic                   :: operator(-)            => subtract
-     generic                   :: operator(/)            => divide
-     generic                   :: operator(*)            => multiply
-     procedure :: isZero        => History_Is_Zero
-     procedure :: builder       => History_Builder
-     procedure :: dump          => History_Dump
-     procedure :: dumpRaw       => History_Dump_Raw
-     procedure :: readRaw       => History_Read_Raw
-     procedure :: create        => History_Create
-     procedure :: clone         => History_Clone
-     procedure :: destroy       => History_Destroy
-     procedure :: trim          => History_Trim
-     procedure :: trimForward   => History_Trim_Forward
-     procedure :: extend        => History_Extend
-     procedure :: increment     => History_Increment
-     procedure :: combine       => History_Combine
-     procedure :: reset         => History_Reset
-     procedure :: setToUnity    => History_Set_To_Unity
-     procedure :: exists        => History_Exists
-     procedure :: timeSteps     => History_Timesteps
-     procedure :: serializeCount=> History_Serialize_Count
-     procedure :: serialize     => History_Serialize
-     procedure :: deserialize   => History_Deserialize
-     procedure ::                  History_Append_History
-     procedure ::                  History_Append_Epoch
-     generic   :: append        => History_Append_History, &
-          &                        History_Append_Epoch
+     procedure :: add                   => History_Add
+     procedure :: subtract              => History_Subtract
+     procedure :: divide                => History_Divide
+     procedure :: multiply              => History_Multiply
+     generic   :: operator(+)           => add
+     generic   :: operator(-)           => subtract
+     generic   :: operator(/)           => divide
+     generic   :: operator(*)           => multiply
+     procedure :: isZero                => History_Is_Zero
+     procedure :: builder               => History_Builder
+     procedure :: dump                  => History_Dump
+     procedure :: dumpRaw               => History_Dump_Raw
+     procedure :: readRaw               => History_Read_Raw
+     procedure :: create                => History_Create
+     procedure :: clone                 => History_Clone
+     procedure :: destroy               => History_Destroy
+     procedure :: trim                  => History_Trim
+     procedure :: trimForward           => History_Trim_Forward
+     procedure :: extend                => History_Extend
+     procedure :: increment             => History_Increment
+     procedure :: interpolatedIncrement => History_Interpolated_Increment
+     procedure :: reset                 => History_Reset
+     procedure :: setToUnity            => History_Set_To_Unity
+     procedure :: exists                => History_Exists
+     procedure :: timeSteps             => History_Timesteps
+     procedure :: serializeCount        => History_Serialize_Count
+     procedure :: serialize             => History_Serialize
+     procedure :: deserialize           => History_Deserialize
+     procedure ::                          History_Append_History
+     procedure ::                          History_Append_Epoch
+     generic   :: append                => History_Append_History, &
+          &                                History_Append_Epoch
   end type history
 
   type longIntegerHistory
@@ -1176,10 +1176,10 @@ contains
     return
   end subroutine History_Append_Epoch
   
-   subroutine History_Increment(thisHistory,addHistory)
-     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that track
-     !% instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to the times in {\normalfont \ttfamily thisHistory} and added to the
-     !% rates in {\normalfont \ttfamily thisHistory}.
+   subroutine History_Interpolated_Increment(thisHistory,addHistory)
+     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily thisHistory}. This function is
+     !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
+     !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
      use, intrinsic :: ISO_C_Binding
      use FGSL
      use Numerical_Interpolation
@@ -1237,91 +1237,96 @@ contains
      end select
 
      return
-   end subroutine History_Increment
+   end subroutine History_Interpolated_Increment
 
-   subroutine History_Combine(thisHistory,combineHistory)
-     !% Combines the data in {\normalfont \ttfamily combineHistory} with that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that
+   subroutine History_Increment(thisHistory,addHistory,autoExtend)
+     !% Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily thisHistory}. This function is designed for histories that
      !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily thisHistory} will be
-     !% extended if necessary to span the range of {\normalfont \ttfamily combineHistory}. Then, the data from {\normalfont \ttfamily combineHistory} will be added to
-     !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily combineHistory} that overlaps with each timestep
+     !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
+     !% that in {\normalfont \ttfamily thisHistory} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
      !% in {\normalfont \ttfamily thisHistory} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily thisHistory}.
      use Galacticus_Error
      use Arrays_Search
      use Numerical_Ranges
      use, intrinsic :: ISO_C_Binding
      implicit none
-     class           (history ), intent(inout) :: thisHistory
-     type            (history ), intent(in   ) :: combineHistory
-     integer                                   :: combineCount       , combineHistoryPointCount
-     integer         (c_size_t)                :: timeBeginIndex     , timeEndIndex            , &
-          &                                       iPoint             , jPoint
-     double precision                          :: fractionContributed, timeBegin               , &
-          &                                       timeEnd
-
+     class           (history ), intent(inout)           :: thisHistory
+     type            (history ), intent(in   )           :: addHistory
+     logical                   , intent(in   ), optional :: autoExtend
+     integer                                             :: addCount           , addHistoryPointCount
+     integer         (c_size_t)                          :: timeBeginIndex     , timeEndIndex            , &
+          &                                                 iPoint             , jPoint
+     double precision                                    :: fractionContributed, timeBegin               , &
+          &                                                 timeEnd
+     !# <optionalArgument name="autoExtend" defaultsTo=".false." />
+     
      select type (thisHistory)
      type is (history)
 
-        ! Return if combineHistory does not exist.
-        if (.not.allocated(combineHistory%time)) return
+        ! Return if addHistory does not exist.
+        if (.not.allocated(addHistory%time)) return
 
-        ! Get size of combineHistory.
-        combineHistoryPointCount=size(combineHistory%time)
+        ! Get size of addHistory.
+        addHistoryPointCount=size(addHistory%time)
 
-        ! Return if combineHistory has zero size.
-        if (combineHistoryPointCount == 0) return
+        ! Return if addHistory has zero size.
+        if (addHistoryPointCount == 0) return
 
-        ! If thisHistory does not exist, simply replace it with combineHistory.
+        ! If thisHistory does not exist, simply replace it with addHistory.
         if (.not.allocated(thisHistory%time)) then
            call thisHistory%destroy()
-           thisHistory=combineHistory
+           thisHistory=addHistory
            return
         end if
 
-        ! If thisHistory has zero size, simply replace it with combineHistory.
+        ! If thisHistory has zero size, simply replace it with addHistory.
         if (size(thisHistory%time) == 0) then
            call thisHistory%destroy()
-           thisHistory=combineHistory
+           thisHistory=addHistory
            return
         end if
 
         ! The two objects must contain the same number of histories.
-        if (size(thisHistory%data,dim=2) /= size(combineHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
+        if (size(thisHistory%data,dim=2) /= size(addHistory%data,dim=2)) call Galacticus_Error_Report('two objects contain differing numbers of histories'//{introspection:location})
 
         ! Determine if we need to extend the time range in thisHistory.
-        combineCount=size(combineHistory%time)
-        if (thisHistory%rangeType == rangeTypeUndefined) then
-           ! The history has no defined range type, so pass the time array of the history being combined to use as a template for new times.
-           call thisHistory%extend(times=combineHistory%time)
-        else
-           ! The history has a defined range type, so simply pass the required extent of the range.
-           call thisHistory%extend([combineHistory%time(1),combineHistory%time(combineCount)])
+        addCount=size(addHistory%time)
+        if (addHistory%time(1) < thisHistory%time(1) .or. addHistory%time(addCount) > thisHistory%time(size(thisHistory%time))) then
+           if (.not.autoExtend_) call Galacticus_Error_Report("history needs to be extended, but is not permitted"//{introspection:location})
+           if (thisHistory%rangeType == rangeTypeUndefined) then
+              ! The history has no defined range type, so pass the time array of the history being addd to use as a template for new times.
+              call thisHistory%extend(times=addHistory%time)
+           else
+              ! The history has a defined range type, so simply pass the required extent of the range.
+              call thisHistory%extend([addHistory%time(1),addHistory%time(addCount)])
+           end if
         end if
 
-        ! Transfer each entry from combineHistory to thisHistory.
-        do iPoint=2,combineCount
-           ! Find indices in thisHistory spanned by combineHistory point.
+        ! Transfer each entry from addHistory to thisHistory.
+        do iPoint=2,addCount
+           ! Find indices in thisHistory spanned by addHistory point.
            if (iPoint > 2) then
               ! Reuse the end index from the previous loop iteration if available.
               timeBeginIndex=timeEndIndex
            else
-              timeBeginIndex=Search_Array(thisHistory%time,combineHistory%time(iPoint-1))
+              timeBeginIndex=Search_Array(thisHistory%time,addHistory%time(iPoint-1))
            end if
-           timeEndIndex=min(Search_Array(thisHistory%time,combineHistory%time(iPoint))+1,size(thisHistory%time))
+           timeEndIndex=min(Search_Array(thisHistory%time,addHistory%time(iPoint))+1,size(thisHistory%time))
            ! Loop over all points in thisHistory to which we need to add this contribution.
            do jPoint=timeBeginIndex,timeEndIndex
               if (jPoint == 1) then
-                 timeBegin=                               combineHistory%time(iPoint-1)
+                 timeBegin=                               addHistory%time(iPoint-1)
               else
-                 timeBegin=max(thisHistory%time(jPoint-1),combineHistory%time(iPoint-1))
+                 timeBegin=max(thisHistory%time(jPoint-1),addHistory%time(iPoint-1))
               end if
-              timeEnd     =min(thisHistory%time(jPoint  ),combineHistory%time(iPoint  ))
-              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(combineHistory%time(iPoint)-combineHistory%time(iPoint-1)))
-              thisHistory%data(jPoint,:)=thisHistory%data(jPoint,:)+combineHistory%data(iPoint,:)*fractionContributed
+              timeEnd     =min(thisHistory%time(jPoint  ),addHistory%time(iPoint  ))
+              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(addHistory%time(iPoint)-addHistory%time(iPoint-1)))
+              thisHistory%data(jPoint,:)=thisHistory%data(jPoint,:)+addHistory%data(iPoint,:)*fractionContributed
            end do
         end do
      end select
      return
-   end subroutine History_Combine
+   end subroutine History_Increment
 
    function History_Divide(self,divisor)
      !% Divides history data by a double precision {\normalfont \ttfamily divisor}.

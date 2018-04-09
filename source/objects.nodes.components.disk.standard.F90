@@ -796,7 +796,7 @@ contains
           call                                      disk    %luminositiesStellarRate(-luminositiesTransferRate                             )
           call                                      spheroid%luminositiesStellarRate(+luminositiesTransferRate,interrupt,interruptProcedure)
           ! Stellar properties history.
-          historyTransferRate=disk%stellarPropertiesHistory()         
+          historyTransferRate=disk%stellarPropertiesHistory()
           if (historyTransferRate%exists()) then
              historyTransferRate=historyTransferRate/barInstabilityTimescale
              call disk    %stellarPropertiesHistoryRate(-historyTransferRate                             )
@@ -1059,19 +1059,19 @@ contains
           ! Also add stellar properties histories.
           historyNode=disk    %stellarPropertiesHistory()
           historyHost=diskHost    %stellarPropertiesHistory()
-          call historyHost%increment(historyNode)
+          call historyHost%interpolatedIncrement(historyNode)
           call historyNode%reset    (           )
           call diskHost%stellarPropertiesHistorySet(historyHost)
           call disk%stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
           historyNode=disk    %starFormationHistory    ()
-          historyHost=diskHost    %starFormationHistory    ()
-          call historyHost%combine (historyNode)
-          call historyNode%reset   (           )
-          call diskHost    %starFormationHistorySet    (historyHost)
-          call disk    %starFormationHistorySet    (historyNode)
-          call historyNode%destroy(recordMemory=.false.)
-          call historyHost%destroy(recordMemory=.false.)
+          historyHost=diskHost%starFormationHistory    ()
+          call historyHost%increment              (historyNode,autoExtend  =.true. )
+          call historyNode%reset                  (                                )
+          call diskHost   %starFormationHistorySet(historyHost                     )
+          call disk       %starFormationHistorySet(historyNode                     )
+          call historyNode%destroy                (            recordMemory=.false.)
+          call historyHost%destroy                (            recordMemory=.false.)
        case (movesToSpheroid)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
@@ -1088,19 +1088,19 @@ contains
           ! Also add stellar properties histories.
           historyNode=disk    %stellarPropertiesHistory()
           historyHost=spheroidHost%stellarPropertiesHistory()
-          call historyHost%increment(historyNode)
+          call historyHost%interpolatedIncrement(historyNode)
           call historyNode%reset    (           )
           call spheroidHost%stellarPropertiesHistorySet(historyHost)
           call disk    %stellarPropertiesHistorySet(historyNode)
           ! Also add star formation histories.
           historyNode=disk    %starFormationHistory    ()
           historyHost=spheroidHost%starFormationHistory    ()
-          call historyHost%combine(historyNode)
-          call historyNode%reset  (           )
-          call spheroidHost%starFormationHistorySet(historyHost)
-          call disk    %starFormationHistorySet(historyNode)
-          call historyNode%destroy(recordMemory=.false.)
-          call historyHost%destroy(recordMemory=.false.)
+          call historyHost %increment              (historyNode,autoExtend  =.true. )
+          call historyNode %reset                  (                                )
+          call spheroidHost%starFormationHistorySet(historyHost                     )
+          call disk        %starFormationHistorySet(historyNode                     )
+          call historyNode %destroy                (            recordMemory=.false.)
+          call historyHost %destroy                (            recordMemory=.false.)
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select

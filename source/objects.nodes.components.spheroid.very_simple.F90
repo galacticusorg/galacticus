@@ -633,7 +633,7 @@ contains
              ! Also add stellar properties histories.
              historyDisk    =    diskHost%stellarPropertiesHistory()
              historySpheroid=spheroidHost%stellarPropertiesHistory()
-             call historyDisk    %increment                  (historySpheroid)
+             call historyDisk    %interpolatedIncrement                  (historySpheroid)
              call historySpheroid%reset                      (               )
              call diskHost       %stellarPropertiesHistorySet(historyDisk    )
              call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
@@ -662,7 +662,7 @@ contains
              ! Also add stellar properties histories.
              historyDisk    =    diskHost%stellarPropertiesHistory()
              historySpheroid=spheroidHost%stellarPropertiesHistory()
-             call historySpheroid%increment                  (historyDisk    )
+             call historySpheroid%interpolatedIncrement                  (historyDisk    )
              call historyDisk    %reset                      (               )
              call spheroidHost   %stellarPropertiesHistorySet(historySpheroid)
              call diskHost       %stellarPropertiesHistorySet(historyDisk    )
@@ -726,7 +726,7 @@ contains
              ! Also add stellar properties histories.
              historySpheroid=spheroid%stellarPropertiesHistory()
              historyHost    =diskHost%stellarPropertiesHistory()
-             call historyHost    %increment                  (historySpheroid)
+             call historyHost    %interpolatedIncrement                  (historySpheroid)
              call historySpheroid%reset                      (               )
              call diskHost       %stellarPropertiesHistorySet(historyHost    )
              call spheroid       %stellarPropertiesHistorySet(historySpheroid)
@@ -746,7 +746,7 @@ contains
              ! Also add stellar properties histories.
              historySpheroid=spheroid%stellarPropertiesHistory()
              historyHost=spheroidHost%stellarPropertiesHistory()
-             call historyHost    %increment                  (historySpheroid)
+             call historyHost    %interpolatedIncrement                  (historySpheroid)
              call historySpheroid%reset                      (               )
              call diskHost       %stellarPropertiesHistorySet(historyHost    )
              call spheroid       %stellarPropertiesHistorySet(historySpheroid)
