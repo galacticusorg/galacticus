@@ -1064,14 +1064,14 @@ contains
              ! Also add stellar properties histories.
              historyDisk    =    diskHost%stellarPropertiesHistory()
              historySpheroid=spheroidHost%stellarPropertiesHistory()
-             call historyDisk    %increment(historySpheroid    )
+             call historyDisk    %interpolatedIncrement(historySpheroid    )
              call historySpheroid%reset    (                   )
              call diskHost    %stellarPropertiesHistorySet(historyDisk    )
              call spheroidHost%stellarPropertiesHistorySet(historySpheroid)
              ! Also add star formation histories.
              historyDisk    =    diskHost%starFormationHistory()
              historySpheroid=spheroidHost%starFormationHistory()
-             call historyDisk    %combine(historySpheroid     )
+             call historyDisk    %increment(historySpheroid     ,autoExtend=.true.)
              call historySpheroid%reset  (                    )
              call diskHost    %    starFormationHistorySet(historyDisk    )
              call spheroidHost%    starFormationHistorySet(historySpheroid)
@@ -1105,14 +1105,14 @@ contains
              ! Also add stellar properties histories.
              historyDisk    =    diskHost%stellarPropertiesHistory()
              historySpheroid=spheroidHost%stellarPropertiesHistory()
-             call historySpheroid%increment(historyDisk)
+             call historySpheroid%interpolatedIncrement(historyDisk)
              call historyDisk    %reset    (           )
              call spheroidHost%stellarPropertiesHistorySet(historySpheroid)
              call diskHost    %stellarPropertiesHistorySet( historyDisk   )
              ! Also add star formation histories.
              historyDisk    =diskHost    %starFormationHistory()
              historySpheroid=spheroidHost%starFormationHistory()
-             call historySpheroid%combine(historyDisk         )
+             call historySpheroid%increment(historyDisk         ,autoExtend=.true.)
              call historyDisk    %reset  (                    )
              call spheroidHost%starFormationHistorySet    (historySpheroid)
              call diskHost    %starFormationHistorySet    (historyDisk    )
@@ -1188,19 +1188,19 @@ contains
                 ! Also add stellar properties histories.
                 historySpheroid=spheroid%stellarPropertiesHistory()
                 history_       =diskHost%stellarPropertiesHistory()
-                call history_       %increment                  (historySpheroid)
+                call history_       %interpolatedIncrement                  (historySpheroid)
                 call historySpheroid%reset                      (               )
                 call diskHost       %stellarPropertiesHistorySet(history_       )
                 call spheroid       %stellarPropertiesHistorySet(historySpheroid)
                 ! Also add star formation histories.
                 historySpheroid=spheroid%starFormationHistory()
                 history_       =diskHost%starFormationHistory()
-                call history_       %combine                (             historySpheroid)
-                call historySpheroid%reset                  (                            )
-                call diskHost       %starFormationHistorySet(             history_       )
-                call spheroid       %starFormationHistorySet(             historySpheroid)
-                call history_       %destroy                (recordMemory=.false.        )
-                call historySpheroid%destroy                (recordMemory=.false.        )
+                call history_       %increment              (historySpheroid,autoExtend  =.true. )
+                call historySpheroid%reset                  (                                    )
+                call diskHost       %starFormationHistorySet(history_                            )
+                call spheroid       %starFormationHistorySet(historySpheroid                     )
+                call history_       %destroy                (                recordMemory=.false.)
+                call historySpheroid%destroy                (                recordMemory=.false.)
              case (movesToSpheroid)
                 call spheroidHost%        massStellarSet( spheroidHost%        massStellar() &
                      &                                   +spheroid    %        massStellar() &
@@ -1214,19 +1214,19 @@ contains
                 ! Also add stellar properties histories.
                 historySpheroid=spheroid    %stellarPropertiesHistory()
                 history_       =spheroidHost%stellarPropertiesHistory()
-                call history_        %increment(historySpheroid)
+                call history_        %interpolatedIncrement(historySpheroid)
                 call historySpheroid%reset                      (               )
                 call spheroidHost   %stellarPropertiesHistorySet(history_       )
                 call spheroid       %stellarPropertiesHistorySet(historySpheroid)
                 ! Also add star formation histories.
                 historySpheroid=spheroid    %starFormationHistory()
                 history_       =spheroidHost%starFormationHistory()
-                call history_       %combine(historySpheroid)
-                call historySpheroid%reset                  (                             )
-                call spheroidHost   %starFormationHistorySet(              history_       )
-                call spheroid       %starFormationHistorySet(              historySpheroid)
-                call history_       %destroy                (recordMemory=.false.         )
-                call historySpheroid%destroy                (recordMemory=.false.         )
+                call history_       %increment              (historySpheroid,autoExtend  =.true. )
+                call historySpheroid%reset                  (                                    )
+                call spheroidHost   %starFormationHistorySet(history_                            )
+                call spheroid       %starFormationHistorySet(historySpheroid                     )
+                call history_       %destroy                (                recordMemory=.false.)
+                call historySpheroid%destroy                (                recordMemory=.false.)
              case default
                 call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
              end select
@@ -1463,10 +1463,9 @@ contains
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
     type (history              )                         :: starFormationHistory
-
+    
     ! Get the spheroid component.
     spheroid => node%spheroid()
-
     ! Extend the range as necessary.
     starFormationHistory=spheroid%starFormationHistory()
     call starFormationHistory%extend(times=starFormationHistoryTemplate)
