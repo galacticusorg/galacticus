@@ -154,7 +154,7 @@ contains
                    exit
                 end if
              end do
-             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter'//{introspection:location})             
+             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})             
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              call modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersActive_(i)%modelParameter_)
