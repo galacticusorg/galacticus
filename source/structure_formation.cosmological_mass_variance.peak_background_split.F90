@@ -140,11 +140,13 @@ contains
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass
+    double precision                                                             :: varianceTotal
 
-    if (mass < self%massBackground) then
-       variancePeakBackgroundSplitRootVariance=+sqrt(                                                      &
-            &                                        +self%cosmologicalMassVariance_%rootVariance(mass)**2 &
-            &                                        -self%varianceBackground                              &
+    varianceTotal=self%cosmologicalMassVariance_%rootVariance(mass)**2
+    if (varianceTotal > self%varianceBackground) then
+       variancePeakBackgroundSplitRootVariance=+sqrt(                         &
+            &                                              varianceTotal      &
+            &                                        -self%varianceBackground &
             &                                       )
     else
        variancePeakBackgroundSplitRootVariance=+0.0d0
@@ -159,10 +161,12 @@ contains
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass
-  
-    if (mass < self%massBackground) then
+    double precision                                                             :: varianceTotal
+
+    varianceTotal=self%cosmologicalMassVariance_%rootVariance(mass)**2
+    if (varianceTotal > self%varianceBackground) then
        variancePeakBackgroundSplitRootVarianceLogarithmicGradient=+self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass)    &
-            &                                                     *self%cosmologicalMassVariance_%rootVariance                   (mass)**2 &
+            &                                                     *                               varianceTotal                            &
             &                                                     /self                          %rootVariance                   (mass)**2
     else
        variancePeakBackgroundSplitRootVarianceLogarithmicGradient=+0.0d0
@@ -177,15 +181,17 @@ contains
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass
-    double precision                                             , intent(  out) :: rootVariance, rootVarianceLogarithmicGradient
+    double precision                                             , intent(  out) :: rootVariance , rootVarianceLogarithmicGradient
+    double precision                                                             :: varianceTotal
 
-    if (mass < self%massBackground) then
+    varianceTotal=self%cosmologicalMassVariance_%rootVariance(mass)**2
+    if (varianceTotal > self%varianceBackground) then
        rootVariance                   =+sqrt(                                                                         &
-            &                                +self%cosmologicalMassVariance_%rootVariance                   (mass)**2 &
+            &                                +     varianceTotal                                                      &
             &                                -self%varianceBackground                                                 &
             &                               )
        rootVarianceLogarithmicGradient=+      self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass)    &
-            &                          *      self%cosmologicalMassVariance_%rootVariance                   (mass)**2 &
+            &                          *                                     varianceTotal                            &
             &                          /                                     rootVariance                         **2
     else
        rootVariance                   =+0.0d0
