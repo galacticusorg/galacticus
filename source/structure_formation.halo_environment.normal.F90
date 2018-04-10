@@ -37,6 +37,7 @@
      class           (linearGrowthClass                   ), pointer :: linearGrowth_
      class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_
      type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
+     type            (distributionFunction1DNormal        )          :: distributionOverdensityMassive
      type            (table2DLinLinLin                    )          :: linearToNonLinear
      double precision                                                :: radiusEnvironment              , variance           , &
           &                                                             environmentalOverdensityMaximum, overdensityPrevious, &
@@ -138,6 +139,12 @@ contains
          &                                                                         overdensityVariance            , &
          &                                                                    self%environmentalOverdensityMaximum  &
          &                                                                   )
+    ! Construct a standard normal distribution function which will be used for assigning the overdensity for trees which exceed
+    ! the mass of the background.
+    self%distributionOverdensityMassive=distributionFunction1DNormal         (                &
+         &                                                                    mean    =0.0d0, &
+         &                                                                    variance=1.0d0  &
+         &                                                                   )
     ! Find the fraction of cosmological volume which is included in regions below the collapse threshold. This is used to scale
     ! the PDF such that when the mass function is averaged over the PDF we get the correct mass function.
     self%includedVolumeFraction         =Error_Function(self%environmentalOverdensityMaximum/sqrt(2.0d0)/sqrt(overdensityVariance))
@@ -173,9 +180,26 @@ contains
           self%overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else
           ! Choose an overdensity.
-          self%overdensityPrevious=+self%distributionOverdensity%sample(                                                           &
-               &                                                        randomNumberGenerator= node%hostTree%randomNumberGenerator &
-               &                                                       )
+          basic => node%hostTree%baseNode%basic()
+          if (basic%mass() < self%environmentMass()) then
+             ! The mass of the tree is less than that of the environment. Therefore, the overdensity is drawn from the
+             ! distribution expected for the background scale given that it hasn't collapsed to become a halo on any larger scale.
+             self%overdensityPrevious=+self%distributionOverdensity       %sample(                                                           &
+                  &                                                               randomNumberGenerator= node%hostTree%randomNumberGenerator &
+                  &                                                              )
+          else
+             ! The mass of the tree exceeds that of the background. Give that the base halo of the tree collapsed into a halo of
+             ! mass Mₜ>Mₑ, the distribution of overdensities on the scale of Mₑ is just a Gaussian, with mean of δ_c, and variance
+             ! equal to the difference in variance between the two scales.
+             self%overdensityPrevious=+self%distributionOverdensityMassive%sample(                                                           &
+                  &                                                               randomNumberGenerator= node%hostTree%randomNumberGenerator &
+                  &                                                              )                                                           &
+                  &                   *sqrt(                                                                                                 &
+                  &                         +self                          %variance                                                         &
+                  &                         -self%cosmologicalMassVariance_%rootVariance(     basic%mass())**2                               &
+                  &                        )                                                                                                 &
+                  &                   +      self%criticalOverdensity_      %value      (time=basic%time())
+          end if
           call node%hostTree%properties%set('haloEnvironmentOverdensity',self%overdensityPrevious)
        end if
     end if
