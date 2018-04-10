@@ -604,6 +604,14 @@ sub testCompileFailure {
 	$errorStatus = 1
 	    if ( $? == 0 );	
     }
+    # Check for compiler error message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q Error: ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = "Compiler errors issued\n".$jobMessage;
+	}
+    }
     # Check for compiler warning message in log file.
     if ( $errorStatus == 0 ) {
 	system("grep -q Warning: ".$logFile);
