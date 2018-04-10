@@ -30,17 +30,17 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodHaloMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
      private
-     double precision                               , dimension(:  ), allocatable :: mass                     , massFunction     , &
+     double precision                               , dimension(:  ), allocatable :: mass                     , massFunction                          , &
           &                                                                          massMinimum              , massMaximum
      double precision                               , dimension(:,:), allocatable :: covarianceMatrix
      class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
      class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_
-     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_
+     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
+     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_     , criticalOverdensityUnconditioned_
      class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_
      class           (darkMatterProfileClass       ), pointer                     :: darkMatterProfile_
      class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_
-     double precision                                                             :: time                     , massParticle     , &
+     double precision                                                             :: time                     , massParticle                           , &
           &                                                                          massRangeMinimum         , redshift     
      type            (vector                       )                              :: means
      type            (matrix                       )                              :: covariance               , inverseCovariance
@@ -79,22 +79,24 @@ contains
     !% parameter set.
     use Input_Parameters
     implicit none
-    type            (posteriorSampleLikelihoodHaloMassFunction)          :: self
-    type            (inputParameters                          )          :: parameters
-    type            (varying_string                           )          :: fileName           , massFunctionType , &
-         &                                                                  errorModel
-    double precision                                                     :: redshift           , massRangeMinimum , &
-         &                                                                  massParticle
-    integer                                                              :: binCountMinimum
-    logical                                                              :: environmentAveraged
-    class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_
-    class           (cosmologyParametersClass                 ), pointer :: cosmologyParameters_
-    class           (cosmologicalMassVarianceClass            ), pointer :: cosmologicalMassVariance_
-    class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_
-    class           (darkMatterHaloScaleClass                 ), pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass                   ), pointer :: darkMatterProfile_
-    class           (haloEnvironmentClass                     ), pointer :: haloEnvironment_
+    type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    type            (inputParameters                          )                :: parametersUnconditioned
+    type            (varying_string                           )                :: fileName                 , massFunctionType                      , &
+         &                                                                        errorModel
+    double precision                                                           :: redshift                 , massRangeMinimum                      , &
+         &                                                                        massParticle
+    integer                                                                    :: binCountMinimum
+    logical                                                                    :: environmentAveraged
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass                 ), pointer       :: cosmologyParameters_
+    class           (cosmologicalMassVarianceClass            ), pointer       :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
+    class           (criticalOverdensityClass                 ), pointer       :: criticalOverdensity_     , criticalOverdensityUnconditioned_
+    class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass                   ), pointer       :: darkMatterProfile_
+    class           (haloEnvironmentClass                     ), pointer       :: haloEnvironment_
 
+    parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
     !# <inputParameter>
     !#   <name>fileName</name>
     !#   <cardinality>1</cardinality>
@@ -151,19 +153,21 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>   
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"        source="parameters"/>
-    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"         source="parameters"/>
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_)
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"                    source="parameters"             />
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"                   source="parameters"             />
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_"              source="parameters"             />
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVarianceUnconditioned_" source="parametersUnconditioned"/>
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"                   source="parameters"             />
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityUnconditioned_"      source="parametersUnconditioned"/>
+    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"                   source="parameters"             />
+    !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"                     source="parameters"             />
+    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     use IO_HDF5
     use Galacticus_Error
@@ -172,30 +176,30 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodHaloMassFunction)                                :: self
     character       (len=*                                    ), intent(in   )                 :: fileName                      , massFunctionType
-    double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum , &
+    double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum                      , &
          &                                                                                        massParticle
     integer                                                    , intent(in   )                 :: binCountMinimum               , errorModel
     logical                                                    , intent(in   )                 :: environmentAveraged
     class           (cosmologyFunctionsClass                  ), intent(in   ), target         :: cosmologyFunctions_
     class           (cosmologyParametersClass                 ), intent(in   ), target         :: cosmologyParameters_
-    class           (cosmologicalMassVarianceClass            ), intent(in   ), target         :: cosmologicalMassVariance_
-    class           (criticalOverdensityClass                 ), intent(in   ), target         :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass            ), intent(in   ), target         :: cosmologicalMassVariance_     , cosmologicalMassVarianceUnconditioned_
+    class           (criticalOverdensityClass                 ), intent(in   ), target         :: criticalOverdensity_          , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target         :: darkMatterHaloScale_
     class           (darkMatterProfileClass                   ), intent(in   ), target         :: darkMatterProfile_
     class           (haloEnvironmentClass                     ), intent(in   ), target         :: haloEnvironment_
-    double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal     , &
+    double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                          , &
          &                                                                                        massFunctionOriginal
     double precision                                           , allocatable  , dimension(:,:) :: massFunctionCovarianceOriginal
     character       (len=12                                   )                                :: redshiftLabel                 , typeLabel
-    type            (hdf5Object                               )                                :: massFunctionFile              , massFunctionGroup, &
+    type            (hdf5Object                               )                                :: massFunctionFile              , massFunctionGroup                     , &
          &                                                                                        analysisGroup
-    integer                                                                                    :: i                             , j                , &
-         &                                                                                        ii                            , jj               , &
+    integer                                                                                    :: i                             , j                                     , &
+         &                                                                                        ii                            , jj                                    , &
          &                                                                                        massCountReduced
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
-    !# <constructorAssign variables="fileName, redshift, massRangeMinimum, massFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *darkMatterHaloScale_, *darkMatterProfile_, *haloEnvironment_"/>
+    !# <constructorAssign variables="fileName, redshift, massRangeMinimum, massFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfile_, *haloEnvironment_"/>
     
     ! Convert redshift to time.
     self%time=self%cosmologyFunctions_ %cosmicTime                (          &
@@ -290,13 +294,15 @@ contains
     implicit none
     type(posteriorSampleLikelihoodHaloMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%darkMatterHaloScale_"     />
-    !# <objectDestructor name="self%darkMatterProfile_"       />
-    !# <objectDestructor name="self%haloEnvironment_"         />
+    !# <objectDestructor name="self%cosmologyFunctions_"                   />
+    !# <objectDestructor name="self%cosmologyParameters_"                  />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"             />
+    !# <objectDestructor name="self%criticalOverdensity_"                  />
+    !# <objectDestructor name="self%darkMatterHaloScale_"                  />
+    !# <objectDestructor name="self%darkMatterProfile_"                    />
+    !# <objectDestructor name="self%haloEnvironment_"                      />
+    !# <objectDestructor name="self%cosmologicalMassVarianceUnconditioned_"/>
+    !# <objectDestructor name="self%criticalOverdensityUnconditioned_"     />
     return
   end subroutine haloMassFunctionDestructor
   
@@ -314,15 +320,15 @@ contains
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
     type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_          , modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
-    double precision                                           , intent(in   )               :: temperature                     , logLikelihoodCurrent   , &
+    double precision                                           , intent(in   )               :: temperature                     , logLikelihoodCurrent          , &
          &                                                                                      logPriorCurrent                 , logPriorProposed
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
     double precision                                           , allocatable  , dimension(:) :: stateVector                     , massFunction
     double precision                                           , parameter                   :: errorFractionalMaximum    =1.0d1
     class           (nbodyHaloMassErrorClass                  ), pointer                     :: nbodyHaloMassError_
-    class           (haloMassFunctionClass                    ), pointer                     :: haloMassFunctionRaw_            , haloMassFunctionAveraged_, &
-         &                                                                                      haloMassFunctionConvolved_
+    class           (haloMassFunctionClass                    ), pointer                     :: haloMassFunctionRaw_            , haloMassFunctionAveraged_     , &
+         &                                                                                      haloMassFunctionConvolved_      , haloMassFunctionUnconditioned_
     type            (vector                                   )                              :: difference
     integer                                                                                  :: i
     !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_
@@ -354,13 +360,28 @@ contains
     end select
     ! If averaging over environment, build the averager.
     if (self%environmentAveraged) then
+       ! First build an unconditioned (on environment) Sheth-Tormen mass function.
+       allocate(haloMassFunctionShethTormen :: haloMassFunctionUnconditioned_)
+       select type (haloMassFunctionUnconditioned_)
+       type is (haloMassFunctionShethTormen)
+          haloMassFunctionUnconditioned_=haloMassFunctionShethTormen(                                                &
+               &                                                     self%cosmologyParameters_                     , &
+               &                                                     self%cosmologicalMassVarianceUnconditioned_   , &
+               &                                                     self%criticalOverdensityUnconditioned_        , &
+               &                                                     stateVector                                (1), &
+               &                                                     stateVector                                (2), &
+               &                                                     stateVector                                (3)  &
+               &                                                    )
+       end select
+       ! Now build the environment averaged mass function.
        allocate(haloMassFunctionEnvironmentAveraged :: haloMassFunctionAveraged_)
        select type (haloMassFunctionAveraged_)
        type is (haloMassFunctionEnvironmentAveraged)
-          haloMassFunctionAveraged_=haloMassFunctionEnvironmentAveraged(                           &
-               &                                                             haloMassFunctionRaw_, &
-               &                                                        self%haloEnvironment_    , &
-               &                                                        self%cosmologyParameters_  &
+          haloMassFunctionAveraged_=haloMassFunctionEnvironmentAveraged(                                     &
+               &                                                             haloMassFunctionRaw_          , &
+               &                                                             haloMassFunctionUnconditioned_, &
+               &                                                        self%haloEnvironment_              , &
+               &                                                        self%cosmologyParameters_            &
                &                                                       )
        end select
     else
