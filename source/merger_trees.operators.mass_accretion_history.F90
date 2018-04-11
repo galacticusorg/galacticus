@@ -192,7 +192,12 @@ contains
        do while (associated(node))
           accretionHistoryCount                                               =  accretionHistoryCount+1
           basic                                                               =>                                          node%basic      (                 )
-          spin                                                                =>                                          node%spin       (autoCreate=.true.)
+          if     (                        &
+               &   self%includeSpin       &
+               &  .or.                    &
+               &   self%includeSpinVector &
+               & )                        &
+               & spin                                                         =>                                          node%spin       (autoCreate=.true.)
           nodeIndex                                 (accretionHistoryCount  ) =                                           node %index     (                 )
           nodeTime                                  (accretionHistoryCount  ) =                                           basic%time      (                 )
           nodeMass                                  (accretionHistoryCount  ) =                                           basic%mass      (                 )
