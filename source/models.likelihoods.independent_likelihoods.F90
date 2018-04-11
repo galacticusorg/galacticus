@@ -96,7 +96,7 @@ contains
     implicit none
     type(posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
     type(posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
-    !# <constructorAssign variables="modelLikelihoods"/>
+    !# <constructorAssign variables="*modelLikelihoods"/>
 
    return
   end function independentLikelihoodsConstructorInternal

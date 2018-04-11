@@ -105,6 +105,7 @@ contains
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
     ! Evaluate the likelihood.
+    allocate(stateArray(simulationState%dimension()))
     stateArray =simulationState%get()
     do i=1,size(stateArray)
        stateArray(i)=modelParametersActive_(i)%modelParameter_%unmap(stateArray(i))
