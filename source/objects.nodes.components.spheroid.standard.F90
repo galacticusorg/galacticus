@@ -121,7 +121,7 @@ module Node_Component_Spheroid_Standard
   !#     <name>stellarPropertiesHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="rate" createIfNeeded="true" />
   !#   </property>
   !#   <property>
   !#     <name>starFormationHistory</name>
@@ -155,9 +155,9 @@ module Node_Component_Spheroid_Standard
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
-  ! Storage for the star formation history time range, used when extending this range.
-  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate
-  !$omp threadprivate(starFormationHistoryTemplate)
+  ! Storage for the star formation and stellar properties histories time range, used when extending this range.
+  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate, stellarPropertiesHistoryTemplate
+  !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
   ! Parameters controlling the physical implementation.
   double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum       , &
        &                                         spheroidMassToleranceAbsolute
@@ -204,11 +204,12 @@ contains
        !# </inputParameter>
 
        ! Bind deferred functions.
-       call spheroidStandardComponent%       starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
-       call spheroidStandardComponent%      energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate      )
-       call spheroidStandardComponent%         massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate         )
-       call spheroidStandardComponent%starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
-       call spheroidStandardComponent%               createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
+       call spheroidStandardComponent%           starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
+       call spheroidStandardComponent%          energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate      )
+       call spheroidStandardComponent%             massGasSinkRateFunction(Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate         )
+       call spheroidStandardComponent%    starFormationHistoryRateFunction(Node_Component_Spheroid_Standard_Star_Formation_History_Rate)
+       call spheroidStandardComponent%stellarPropertiesHistoryRateFunction(Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate)
+       call spheroidStandardComponent%                   createFunctionSet(Node_Component_Spheroid_Standard_Initializor                )
 
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
@@ -780,7 +781,7 @@ contains
     class    (nodeComponentSpheroid        ), intent(inout)                    :: self
     type     (history                      ), intent(in   )                    :: rate
     logical                                 , intent(inout), optional          :: interrupt
-    procedure(interruptTask ), intent(inout), optional, pointer :: interruptProcedure
+    procedure(interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
     type     (history                      )                                   :: starFormationHistory
 
     ! Get the star formation history in the spheroid.
@@ -811,6 +812,46 @@ contains
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate
+
+  subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate(self,rate,interrupt,interruptProcedure)
+    !% Adjust the rates for the stellar properties history.
+    use Memory_Management
+    use Galacticus_Error
+    implicit none
+    class    (nodeComponentSpheroid        ), intent(inout)                    :: self
+    type     (history                      ), intent(in   )                    :: rate
+    logical                                 , intent(inout), optional          :: interrupt
+    procedure(interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
+    type     (history                      )                                   :: stellarPropertiesHistory
+
+    ! Get the star formation history in the spheroid.
+    stellarPropertiesHistory=self%stellarPropertiesHistory()
+    ! Ensure that the history already exists.
+    if (.not.stellarPropertiesHistory%exists())                                                    &
+         & call Galacticus_Error_Report(                                                           &
+         &                              'no star formation history has been created in spheroid'// &
+         &                              {introspection:location}                                   &
+         &                             )
+    ! Check if the star formation history in the spheroid spans a sufficient range to accept the input rates.
+    if     (                                                                                                     &
+         &       rate%time(              1) < stellarPropertiesHistory%time(                                  1) &
+         &  .or. rate%time(size(rate%time)) > stellarPropertiesHistory%time(size(stellarPropertiesHistory%time)) &
+         & ) then
+       ! It does not, so interrupt evolution and extend the history.
+       if (allocated(stellarPropertiesHistoryTemplate)) call deallocateArray(stellarPropertiesHistoryTemplate)
+       call allocateArray(stellarPropertiesHistoryTemplate,shape(rate%time))
+       stellarPropertiesHistoryTemplate=rate%time
+       interrupt=.true.
+       interruptProcedure => Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend
+       return
+    end if
+    ! Adjust the rate.
+    select type (self)
+    class is (nodeComponentSpheroidStandard)
+       call self%stellarPropertiesHistoryRateIntrinsic(rate)
+    end select
+    return
+  end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Rate
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Scale_Set</unitName>
@@ -1472,6 +1513,22 @@ contains
     call spheroid%starFormationHistorySet(starFormationHistory)
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend
+
+  subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node)
+    !% Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
+    implicit none
+    type (treeNode             ), intent(inout), pointer :: node
+    class(nodeComponentSpheroid)               , pointer :: spheroid
+    type (history              )                         :: stellarPropertiesHistory
+    
+    ! Get the spheroid component.
+    spheroid => node%spheroid()
+    ! Extend the range as necessary.
+    stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
+    call stellarPropertiesHistory%extend(times=stellarPropertiesHistoryTemplate)
+    call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
+    return
+  end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend
 
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Star_Formation_History_Output</unitName>
