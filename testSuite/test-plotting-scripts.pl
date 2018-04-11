@@ -24,11 +24,6 @@ my @plottingScripts =
 	 constraint => 0
      },
      {
-	 script     => "Plot_Star_Formation_History.pl",
-	 model      => "0:1",
-	 constraint => 0
-     },
-     {
 	 script     => "stellarMassFunction_SDSS_z0.07.pl",
 	 model      => "0:1",
 	 constraint => 1
@@ -57,11 +52,6 @@ my @plottingScripts =
 	 script     => "Plot_Disk_Scalelengths.pl",
 	 model      => "0:1",
 	 constraint => 0
-     },
-     {
-	 script     => "diskGalaxySizes_SDSS_z0.07.pl",
-	 model      => "0:1",
-	 constraint => 1
      },
      {
 	 script     => "Plot_SDSS_Tully_Fisher.pl",
