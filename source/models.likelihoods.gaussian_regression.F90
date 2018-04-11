@@ -1018,6 +1018,7 @@ contains
     type            (polynomialIterator                         )                              :: iterator1
 
     ! Compute vector D.
+    allocate(stateCurrent(simulationState%dimension()))
     stateCurrent=simulationState%get()-self%stateMeans
     do i=1,self%emulatorRebuildCount
        separation         =gaussianRegressionSeparation (self,stateCurrent,self%statesCombined(:,i))
