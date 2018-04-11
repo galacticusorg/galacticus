@@ -16,7 +16,7 @@ use List::Uniq ':all';
 my @disallowed;
 open(my $log,"outputs/test-allowed-parameters.log");
 while ( my $line = <$log> ) {
-    if ( $line =~ m/unrecognised parameter \[([a-zA-Z0-9\-]+)\]/ ) {
+    if ( $line =~ m/unrecognized parameter \[([a-zA-Z0-9\-]+)\]/ ) {
 	push(@disallowed,$1);
     }
 }
