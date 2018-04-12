@@ -16,7 +16,7 @@ use Galacticus::Path;
 # Andrew Benson (12-January-2013)
 
 # First run the models.
-system("rm -rf ../aux/Grasil");
+system("find aux/Grasil -type f -not -name \"grasilExample.par\" -delete");
 system("cd ..; export OMP_NUM_THREADS=1; scripts/aux/launch.pl testSuite/parameters/test-Grasil.xml");
 system("cd ..; bunzip2 testSuite/outputs/test-Grasil/galacticus_*/galacticus.hdf5.bz2");
 
