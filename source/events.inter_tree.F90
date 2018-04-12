@@ -137,8 +137,10 @@ contains
        call Galacticus_Error_Report('unknown event type'//{introspection:location})
     end select
     call Galacticus_Display_Message(message,verbosityInfo)
-    ! This is a subhalo jumping to another in another tree. Remove the node from its host.
+    ! This is a subhalo jumping to another tree. Remove the node from its host, and explicitly nullify its parent pointer to
+    ! prevent it being evolved any further until it is inserted into its new tree.
     call node%removeFromHost()
+    node%parent => null()
     ! Put the node onto the inter-tree wait list.
     !$omp critical(interTreeWaitList)
     if (.not.associated(interTreeWaitList%next)) allocate(interTreeWaitList%next)
