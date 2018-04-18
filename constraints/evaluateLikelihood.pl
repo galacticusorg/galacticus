@@ -34,16 +34,24 @@ my %arguments =
 my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFileName);
 
 # Validate the config file.
-die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) 
-    unless ( exists($config->{'likelihood'}->{'workDirectory' }) );
+my $modelLikelihood = $config->{'posteriorSampleSimulationMethod'};
+while ( $modelLikelihood->{'value'} ne "galacticus" ) {
+    if ( exists($modelLikelihood->{'posteriorSampleLikelihoodMethod'}) ) {
+	$modelLikelihood = $modelLikelihood->{'posteriorSampleLikelihoodMethod'};
+    } else {
+	die("evaluateLikelihood.pl: can not find a Galacticus likelihood function");
+    }
+}
+die("maximumLikelihoodModel.pl: workPath must be specified in config file" ) 
+    unless ( exists($modelLikelihood->{'workPath' }) );
 die("maximumLikelihoodModel.pl: compilation must be specified in config file"   )
-    unless ( exists($config->{'likelihood'}->{'compilation'   }) );
+    unless ( exists($modelLikelihood->{'compilation'   }) );
 
 # Determine the work directory.
-my $workDirectory  = $config->{'likelihood'}->{'workDirectory'};
+my $workPath  = $modelLikelihood->{'workPath'};
 
 # Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config,$config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+(my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($modelLikelihood->{'compilation'}->{'value'},$modelLikelihood->{'baseParameters'}->{'value'},"F","F");
 my @constraints = @{$constraintsRef};
 
 # Perform processing of the model, accumulating likelihood as we go.
@@ -58,8 +66,8 @@ foreach my $constraint ( @constraints ) {
     my $options = "";
     $options = " ".$constraintDefinition->{'analysisArguments'}
         if ( exists($constraintDefinition->{'analysisArguments'}) );
-    $options .= " --modelDiscrepancies ".$workDirectory."/modelDiscrepancy"
-	if ( -e $workDirectory."/modelDiscrepancy" );
+    $options .= " --modelDiscrepancies ".$workPath."/modelDiscrepancy"
+	if ( -e $workPath."/modelDiscrepancy" );
     if ( $arguments{'plots'} eq "yes" ) {
 	(my $plotFile = $constraintDefinition->{'label'}) =~ s/\./_/g;
 	$options .= " --plotFile ".$plotFile.".pdf";
