@@ -140,6 +140,7 @@ contains
        call Galacticus_Error_Report('critical overdensity expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Read in the tabulated critical overdensity scaling.
+    !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
     if (ioStatus /= 0) call Galacticus_Error_Report('unable to find or parse the tabulated data'//{introspection:location})
     ! Extract the datum lists.
@@ -147,9 +148,9 @@ contains
     call XML_Array_Read(element,"datum",barkana2001WDMConstructorInternal%deltaTableMass )
     element    => XML_Get_First_Element_By_Tag_Name(doc,"delta")
     call XML_Array_Read(element,"datum",barkana2001WDMConstructorInternal%deltaTableDelta)
-    barkana2001WDMConstructorInternal%deltaTableCount=size(barkana2001WDMConstructorInternal%deltaTableMass)
-    ! Destroy the document.
     call destroy(doc)
+    !$omp end critical (FoX_DOM_Access)
+    barkana2001WDMConstructorInternal%deltaTableCount=size(barkana2001WDMConstructorInternal%deltaTableMass)
     ! Convert tabulations to logarithmic versions.
     barkana2001WDMConstructorInternal%deltaTableMass =log(barkana2001WDMConstructorInternal%deltaTableMass )
     barkana2001WDMConstructorInternal%deltaTableDelta=log(barkana2001WDMConstructorInternal%deltaTableDelta)
