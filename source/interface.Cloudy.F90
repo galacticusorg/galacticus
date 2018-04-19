@@ -38,7 +38,7 @@ contains
     integer                                :: status
 
     ! Specify Cloudy version.
-    cloudyVersion="c17.00"
+    cloudyVersion="c17.01"
     ! Specify Cloudy path.
     cloudyPath   =Galacticus_Input_Path()//"/aux/"//cloudyVersion
     ! Download the Cloudy code.
