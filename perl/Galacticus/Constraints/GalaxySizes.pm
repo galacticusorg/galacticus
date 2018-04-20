@@ -78,11 +78,11 @@ sub SDSS2003 {
 	    my $modelErrorExcluded              = $modelCovarianceExcluded->diagonal(0,1)->copy();
 	    # Limit multiplicative covariances which can be too large due to noise.
 	    &Galacticus::Constraints::DiscrepancyModels::Apply_Discrepancies(
-		"discrepancyalaxySizeZ0.07_".$distributionLabel.".hdf5",
-		$options                    {'modelDiscrepancies'}     ,
-		$modelRadiusFunctionExcluded                           ,
-		$modelErrorExcluded                                    ,
-		$modelCovarianceExcluded                               ,
+		"discrepancyGalaxySizeZ0.07_".$distributionLabel.".hdf5",
+		$options                    {'modelDiscrepancies'}      ,
+		$modelRadiusFunctionExcluded                            ,
+		$modelErrorExcluded                                     ,
+		$modelCovarianceExcluded                                ,
 		limitMultiplicativeCovariance => 1.0
 		);
 	    # Find the change in the model covariance matrix and add to the full covariance matrix.
