@@ -30,10 +30,21 @@
      class           (outputAnalysisPropertyExtractorClass), pointer :: outputAnalysisPropertyExtractor_
      class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_
      double precision                                                :: rangeLower                      , rangeUpper, &
-          &                                                             rootVariance
+          &                                                             rootVariance_
    contains
-     final     ::            normalDestructor
-     procedure :: operate => normalOperate
+     !@ <objectMethods>
+     !@   <object>outputAnalysisWeightOperatorNormal</object>
+     !@   <objectMethod>
+     !@     <method>rootVariance</method>
+     !@     <description>Return the root-variance to use in the weight operator.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ propertyValue\argin, \doublezero\ propertyValueIntrinsic\argin, \intzero\ propertyType\argin, \intzero\ propertyQuantity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} outputIndex\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@ </objectMethods>
+     final     ::                 normalDestructor
+     procedure :: operate      => normalOperate
+     procedure :: rootVariance => normalRootVariance
   end type outputAnalysisWeightOperatorNormal
 
   interface outputAnalysisWeightOperatorNormal
@@ -53,7 +64,7 @@ contains
     class           (outputAnalysisPropertyExtractorClass), pointer       :: outputAnalysisPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass ), pointer       :: outputAnalysisPropertyOperator_
     double precision                                                      :: rangeLower                      , rangeUpper, &
-         &                                                                   rootVariance
+         &                                                                   rootVariance_
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -72,6 +83,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>rootVariance</name>
+    !#   <variable>rootVariance_</variable>
     !#   <source>parameters</source>
     !#   <description>Root variance for the normal distribution weight operator.</description>
     !#   <type>float</type>
@@ -79,21 +91,21 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"      source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
-    self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_)
+    self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance_,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function normalConstructorParameters
 
-  function normalConstructorInternal(rangeLower,rangeUpper,rootVariance,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
+  function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !% Internal constructor for the ``normal'' output analysis distribution operator class.
     use Input_Parameters
     implicit none
     type            (outputAnalysisWeightOperatorNormal  )                        :: self
     double precision                                      , intent(in   )         :: rangeLower                      , rangeUpper, &
-         &                                                                           rootVariance
+         &                                                                           rootVariance_
     class           (outputAnalysisPropertyExtractorClass), intent(in   ), target :: outputAnalysisPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass ), intent(in   ), target :: outputAnalysisPropertyOperator_
-    !# <constructorAssign variables="rangeLower, rangeUpper, rootVariance, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_"/>
+    !# <constructorAssign variables="rangeLower, rangeUpper, rootVariance_, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_"/>
 
     return
   end function normalConstructorInternal
@@ -106,6 +118,20 @@ contains
     !# <objectDestructor name="self%outputAnalysisPropertyOperator_"  />
     return
   end subroutine normalDestructor
+
+  double precision function normalRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
+    !% Return the root variance for use in the ``normal'' output analysis weight operator class.
+    implicit none
+    class           (outputAnalysisWeightOperatorNormal), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ) :: propertyValue, propertyValueIntrinsic
+    integer                                             , intent(in   ) :: propertyType , propertyQuantity
+    integer         (c_size_t                          ), intent(in   ) :: outputIndex
+    !GCC$ attributes unused :: node, propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
+
+    normalRootVariance=self%rootVariance_
+    return
+  end function normalRootVariance
   
   double precision function normalOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an normal output analysis weight operator.
@@ -118,7 +144,7 @@ contains
          &                                                                 weightValue
     integer                                             , intent(in   ) :: propertyType       , propertyQuantity
     integer         (c_size_t                          ), intent(in   ) :: outputIndex
-    double precision                                                    :: normalPropertyValue
+    double precision                                                    :: normalPropertyValue, rootVariance
     integer                                                             :: normalPropertyType
     !GCC$ attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
 
@@ -134,11 +160,12 @@ contains
          & ) then
        normalOperate=+0.0d0
     else
-       normalOperate=+weightValue                                                                           &
-            &        *(                                                                                     &
-            &          +Error_Function((self%rangeUpper-normalPropertyValue)/sqrt(2.0d0)/self%rootVariance) &
-            &          -Error_Function((self%rangeLower-normalPropertyValue)/sqrt(2.0d0)/self%rootVariance) &
-            &         )                                                                                     &
+       rootVariance =+self%rootVariance(node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
+       normalOperate=+weightValue                                                                      &
+            &        *(                                                                                &
+            &          +Error_Function((self%rangeUpper-normalPropertyValue)/sqrt(2.0d0)/rootVariance) &
+            &          -Error_Function((self%rangeLower-normalPropertyValue)/sqrt(2.0d0)/rootVariance) &
+            &         )                                                                                &
             &        /2.0d0
     end if
     return
