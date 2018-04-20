@@ -252,12 +252,12 @@ sub Active_Parameter_Names {
     my $config = shift;
     my @names;
     # Extract parameters from config file.
-    my @parameters = &List::ExtraUtils::as_array($config->{'parameters'}->{'parameter'});
+    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
     # Extract names.
     my $parameterCount = 0;
     for(my $i=0;$i<scalar(@parameters);++$i) {
-	push(@names,$parameters[$i]->{'name'})
-	    if ( exists($parameters[$i]->{'prior'}) );
+	push(@names,$parameters[$i]->{'name'}->{'value'})
+	    if ( $parameters[$i]->{'value'} eq "active" );
     }
     return @names;
 }
@@ -276,7 +276,7 @@ sub Convert_Parameters_To_Galacticus {
 	    $parameter->{'name'      } = $1;
 	    $parameterValues{$parameter->{'name'}} = $2;
 	} else {
-	    die('unable to parse parameter definition');
+	    die('unable to parse parameter definition: "'.$parameterDefinition.'"');
 	}
 	push(@parameters,$parameter);
     }
