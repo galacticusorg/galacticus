@@ -314,8 +314,7 @@ contains
           ! Get the black hole.
           blackHole => node%blackHole(instance=iInstance)
           ! Find the rate of rest mass accretion onto the black hole.
-          call Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid&
-               &,accretionRateHotHalo)
+          call Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid,accretionRateHotHalo)
           restMassAccretionRate=accretionRateSpheroid+accretionRateHotHalo
           ! Finish if there is no accretion.
           if (restMassAccretionRate <= 0.0d0) cycle
@@ -575,8 +574,7 @@ contains
     return
   end function Node_Component_Black_Hole_Standard_Recoil_Escapes
   
-  subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid&
-       &,accretionRateHotHalo)
+  subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(blackHole,accretionRateSpheroid,accretionRateHotHalo)
     !% Returns the rate of mass accretion onto the black hole in {\normalfont \ttfamily node}.
     use Bondi_Hoyle_Lyttleton_Accretion
     use Galactic_Structure_Densities
@@ -644,8 +642,8 @@ contains
                   &=componentTypeSpheroid,massType =massTypeGaseous)
           end if
           ! Compute the accretion rate.
-          accretionRateSpheroid=bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
-               &,gasDensity ,relativeVelocity,bondiHoyleAccretionTemperatureSpheroid)
+          accretionRateSpheroid=max(bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
+               &,gasDensity ,relativeVelocity,bondiHoyleAccretionTemperatureSpheroid),0.0d0)
           ! Get the radiative efficiency of the accretion.
           radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,accretionRateSpheroid)
           ! Limit the accretion rate to the Eddington limit.
@@ -709,11 +707,11 @@ contains
        ! Check if we have a non-zero gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Compute the accretion rate.
-          accretionRateHotHalo=bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
-               &,gasDensity,relativeVelocity,hotHaloTemperature,accretionRadius)
+          accretionRateHotHalo=max(bondiHoyleAccretionEnhancementHotHalo*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
+               &,gasDensity,relativeVelocity,hotHaloTemperature,accretionRadius),0.0d0)
           ! Limit the accretion rate to the total mass of the hot halo, divided by the sound crossing time.
-          accretionRateMaximum=hotHalo%mass()/(hotHalo%outerRadius()/(kilo*gigaYear/megaParsec)&
-               &/Ideal_Gas_Sound_Speed(hotHaloTemperature))
+          accretionRateMaximum=max(hotHalo%mass()/(hotHalo%outerRadius()/(kilo*gigaYear/megaParsec)&
+               &/Ideal_Gas_Sound_Speed(hotHaloTemperature)),0.0d0)
           accretionRateHotHalo=min(accretionRateHotHalo,accretionRateMaximum)
           ! Get the radiative efficiency of the accretion.
           radiativeEfficiency=accretionDisks_%efficiencyRadiative(blackHole,accretionRateHotHalo)
