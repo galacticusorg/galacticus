@@ -99,7 +99,8 @@ contains
          &                                                                                 i
     double precision                                                                    :: logPosterior        , logLikelihood
     logical                                                                             :: converged           , first
-    character       (len=12                )                                            :: label
+    character       (len=12                )                                            :: labelValue          , labelMinimum     , &
+         &                                                                                 labelMaximum
 
     ! Allocate the state vector.
     allocate(stateVector      (simulationState%dimension()))
@@ -136,9 +137,17 @@ contains
     ! Check for out of range state.
     do i=1,simulationState%dimension()
        if (modelParameters_(i)%modelParameter_%logPrior(stateVector(i)) <= logImpossible) then
-          write (label,'(e12.6)') modelParameters_(i)%modelParameter_%unmap(stateVectorMapped(i))
+          write (labelValue  ,'(e12.6)') modelParameters_(i)%modelParameter_%unmap       (stateVectorMapped(i))
+          write (labelMinimum,'(e12.6)') modelParameters_(i)%modelParameter_%priorMinimum(                    )
+          write (labelMaximum,'(e12.6)') modelParameters_(i)%modelParameter_%priorMaximum(                    )
           message='Out of range state for parameter '
-          message=message//i//' ['//trim(label)//']'
+          message=message                                                                           // &
+               &                           modelParameters_(i)%modelParameter_%name()     //char(10)// &
+               &  ' -> on chain '        //mpiSelf            %rankLabel           ()     //char(10)// &
+               &  ' -> from state file "'//logFileName                               //'"'//char(10)// &
+               &  ' -> value   = '       //trim(labelValue  )                             //char(10)// &
+               &  ' -> minimum = '       //trim(labelMinimum)                             //char(10)// &
+               &  ' -> maximum = '       //trim(labelMaximum)
           call Galacticus_Display_Message(message)
        end if
     end do
