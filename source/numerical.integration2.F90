@@ -1608,7 +1608,12 @@ contains
          &                                                                                                            newInterval2     , current     , &
          &                                                                                                            previous         , newInterval
     integer         (c_size_t)                                                                                     :: iInterval        , intervalCount
-    
+
+    ! If the interval has zero size, return a zero result.
+    if (a == b) then
+       integral=0.0d0
+       return
+    end if
     ! Create our first estimate of the integral, using a single interval.
     intervalCount=1_c_size_t
     allocate(head                              )
@@ -1933,6 +1938,11 @@ contains
     type            (varying_string                                 )                                               :: message
     character       (len=13                                         )                                               :: label
 
+    ! If the interval has zero size, return a zero result.
+    if (a == b) then
+       integral=0.0d0
+       return
+    end if
     ! Create our first estimate of the integral, using a single interval.
     intervalCount=1_c_size_t
     allocate(head                              )
@@ -1995,6 +2005,22 @@ contains
             & ) then
           if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
           call Galacticus_Display_Indent('integration failure: current intervals')
+          message="a/b             ="
+          write (label,'(e12.6)') a
+          message=message//" "  //label
+          write (label,'(e12.6)') b
+          message=message//"/"  //label
+          call Galacticus_Display_Message(message)
+          message="a/b : f(a)/f(b) ="
+          write (label,'(e12.6)') current%a
+          message=message//" "  //label
+          write (label,'(e12.6)') current%b
+          message=message//"/"  //label
+          write (label,'(e12.6)') current%fa
+          message=message//" : "//label
+          write (label,'(e12.6)') current%fa
+          message=message//"/"  //label
+          call Galacticus_Display_Message(message)
           current => head          
           do while (associated(current))
              message="a/b : f(a)/f(b) ="
