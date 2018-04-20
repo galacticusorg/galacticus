@@ -224,7 +224,7 @@ sub Construct {
 	my $isMagnitudes = exists($config->{'magnitudes'}) ? $config->{'magnitudes'} : "no";
 	if ( $isMagnitudes eq "yes" ) {
 	    print $gnuPlot "set logscale y\n";
-	    print $gnuPlot "set key at screen 0.5,0.2\n";
+	    print $gnuPlot "set key at screen 0.45,0.2\n";
 	} else {
 	    print $gnuPlot "set logscale xy\n";
 	    print $gnuPlot "set mxtics 10\n";
