@@ -122,7 +122,7 @@ contains
     galacticFilterBasicMass_                 =  galacticFilterBasicMass    (massThreshold=1.0d7   )
     galacticFilterHaloIsolated_              =  galacticFilterHaloIsolated (                      )
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
-    ! Build identity distribution operator.
+    ! Build N-body mass error distribution operator.
     allocate(outputAnalysisDistributionOperator_    )
     outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                 )
     ! Build identity weight operator.
