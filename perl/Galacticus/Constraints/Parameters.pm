@@ -17,7 +17,7 @@ use List::Util;
 use List::ExtraUtils;
 use Galacticus::Launch::PBS;
 use Scalar::Util 'reftype';
-use Storable qw(dclone);
+use Storable qw(dclone retrieve);
 
 sub Parse_Config {
     # Get the config file name.
