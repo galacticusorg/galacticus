@@ -113,17 +113,16 @@ CODE
 		    $code::parameterName = $1;
 		    unless ( exists($outputConditions{$code::parameterName}) ) {
 			$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-     !@ <inputParameter>
-     !@   <name>{$parameterName}</name>
-     !@   <defaultValue>false</defaultValue>
-     !@   <attachedTo>module</attachedTo>
-     !@   <description>
-     !@    Specifies whether the \{\\normalfont \\ttfamily {$property->{'name'}}\} method of the \{\\normalfont \\ttfamily {$component->{'name'}}\} implemention of the \{\\normalfont \\ttfamily {$componentClass}\} component class should be output.
-     !@   </description>
-     !@   <type>string</type>
-     !@   <cardinality>1</cardinality>
-     !@ </inputParameter>
-     call globalParameters%value('{$parameterName}',{$parameterName},defaultValue=.false.)
+     !# <inputParameter>
+     !#  <name>{$parameterName}</name>
+     !#  <variable>{$parameterName}</variable>
+     !#  <source>globalParameters</source>
+     !#  <defaultValue>.false.</defaultValue>
+     !#  <attachedTo>module</attachedTo>
+     !#  <description>Specifies whether the \{\\normalfont \\ttfamily {$property->{'name'}}\} method of the \{\\normalfont \\ttfamily {$component->{'name'}}\} implemention of the \{\\normalfont \\ttfamily {$componentClass}\} component class should be output.</description>
+     !#  <type>string</type>
+     !#  <cardinality>1</cardinality>
+     !# </inputParameter>
 CODE
 			# Add a module-scope variable to store the output status of this property.
 			push(
