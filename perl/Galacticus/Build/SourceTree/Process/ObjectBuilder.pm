@@ -8,6 +8,7 @@ use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use List::ExtraUtils;
+use XML::Simple;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process_ObjectBuilder;
@@ -17,6 +18,7 @@ sub Process_ObjectBuilder {
     my $tree = shift();
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
+    my $xml   = new XML::Simple();
     my $depth = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "objectBuilder" && ! $node->{'directive'}->{'processed'} ) {
@@ -31,17 +33,33 @@ sub Process_ObjectBuilder {
 	    # if it has already been built, reusing if it has, and building and storing if it
 	    # has not. This prevents creating instances more than once when not necessary.
 	    my $parameterName = exists($node->{'directive'}->{'parameterName'}) ? $node->{'directive'}->{'parameterName'} : $node->{'directive'}->{'class'}."Method";
+	    my $defaultName   = $parameterName eq $node->{'directive'}->{'class'}."Method";
+	    die("objects with defaults must have explicit parameter names")
+		if ( exists($node->{'directive'}->{'default'}) && ! exists($node->{'directive'}->{'parameterName'}) );
+	    my $parametersDefaultRequired = 0;
 	    my $builderCode;
 	    $builderCode .= "   ! Determine where to build+store or point to the required object....\n";
 	    $builderCode .= "   parametersCurrent => ".$node->{'directive'}->{'source'}."\n";
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
-		$builderCode .= "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		if ( exists($node->{'directive'}->{'default'}) ) {
+		    $parametersDefaultRequired  =  1;
+		    my $defaultXML              =  $xml->XMLout($node->{'directive'}->{'default'}, RootName => "parameters");
+		    $defaultXML                 =~ s/\s*\n\s*//g;
+		    $defaultXML                 =~ s/\s{2,}/ /g;
+		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) then\n";
+		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'))\n";
+		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
+		    $builderCode               .=  "  end if\n";
+		} else {
+		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		}
 	    } else {	    
 		$builderCode .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
 		$builderCode .= "      parametersCurrent => parametersCurrent%parent\n";
 		$builderCode .= "   end do\n";
 	    }
-	    $builderCode .= "   if (parametersCurrent%isPresent('".$parameterName."').and.(.not.".$node->{'directive'}->{'source'}."%isGlobal().or.associated(parametersCurrent%parent))) then\n";
+	    $builderCode .= "   if (parametersCurrent%isPresent('".$parameterName."').and.(.not.".$node->{'directive'}->{'source'}."%isGlobal().or.associated(parametersCurrent%parent))) then\n"
+		if ( $defaultName );
 	    $builderCode .= "      ! Object should belong to the parameter node. Get the node and test whether the object has already been created in it.\n";
 	    $builderCode .= "      parameterNode => parametersCurrent%node('".$parameterName."'".(exists($node->{'directive'}->{'copy'}) ? ",copyInstance=".$node->{'directive'}->{'copy'} : "").")\n";
 	    $builderCode .= "      if (parameterNode%objectCreated()) then\n";
@@ -58,13 +76,15 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent".(exists($node->{'directive'}->{'copy'}) ? ",copyInstance=".$node->{'directive'}->{'copy'} : "").(exists($node->{'directive'}->{'parameterName'}) ? ",parameterName='".$parameterName."'" : "").")\n";
 	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
 	    $builderCode .= "      end if\n";
-	    $builderCode .= "   else if (".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
-	    $builderCode .= "      ! This is the global parameter set - so we can use the default object of this class.\n";
-	    $builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
-	    $builderCode .= "   else\n";
-	    $builderCode .= "      ! No means to define the object.\n";
-	    $builderCode .= "      call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
-	    $builderCode .= "   end if\n";
+	    if ( $defaultName ) {
+		$builderCode .= "   else if (".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
+		$builderCode .= "      ! This is the global parameter set - so we can use the default object of this class.\n";
+		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
+		$builderCode .= "   else\n";
+		$builderCode .= "      ! No means to define the object.\n";
+		$builderCode .= "      call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$builderCode .= "   end if\n";
+	    }
 	    # Build a code node.
 	    my $newNode =
 	    {
@@ -97,6 +117,16 @@ sub Process_ObjectBuilder {
 			 attributes => [ "pointer"           ]
 		     }
 		    );
+		push(
+		    @declarations,
+		    {
+			intrinsic  => "type"                 ,
+			type       => "inputParameters"      ,
+			variables  => [ "parametersDefault" ],
+			attributes => [ "target"            ]
+		    }
+		    )
+		    if ( $parametersDefaultRequired );
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 		# Ensure error reporting module is used.
 		my $usesNode =
