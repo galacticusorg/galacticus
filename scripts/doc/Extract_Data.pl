@@ -22,7 +22,7 @@ my $sourceDir  = $ARGV[0];
 my $outputRoot = $ARGV[1];
 
 # Specify regex for derived-type declarations.
-my $derivedTypeOpenRegex  = "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$";
+my $derivedTypeOpenRegex  = "^\\s*type\\s*((,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*)*)(::)??\\s*([a-zA-Z0-9_]+)\\s*\$";
 my $derivedTypeCloseRegex = "^\\s*end\\s+type\\s+([a-z0-9_]+)";
 
 # Specify regex for type-bound procedures.
@@ -124,9 +124,9 @@ foreach my $fileName ( @fileNames ) {
 	    if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {pop(@programUnits)};
 
 	    # Check for derived-type definitions.
-	    if ( defined($processedLine) ) {
+	    if ( defined($processedLine) ) {	
 		if ( $processedLine =~ m/$derivedTypeOpenRegex/i ) {
-		    $inDerivedType = $3;
+		    $inDerivedType = $4;
 		    $objects{lc($inDerivedType)}->{'name'} = $inDerivedType;
 		    if ( defined($1) ) {
 			my $attributes = $1;
@@ -139,15 +139,12 @@ foreach my $fileName ( @fileNames ) {
 		    $inDerivedType = "";
 		}
 	    }
-	    
 	    # Check for type-bound procedures.
 	    if ( $inDerivedType ne "" ) {
 		if ( $processedLine =~ m/$typeBoundRegex/i ) {
 		    my $method = lc($3);
 		    $objects{lc($inDerivedType)}->{'methods'}->{$method}->{'description'} = "UNDEFINED"
 			unless ( exists($objects{lc($inDerivedType)}->{'methods'}->{$method}) );
-
-
                     if ( $1 eq "generic" ) {
 			my $methodList = lc($4);
 			$methodList =~ s/^\s*//;
