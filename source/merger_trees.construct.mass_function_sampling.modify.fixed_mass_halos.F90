@@ -57,7 +57,7 @@ contains
     integer                                             :: fixedHalosCount
 
     if (.not.fixedMassHalosInitialized) then
-       !$omp critical (satelliteMergingTimescalesFixedMassHalosInitialize)
+       !$omp critical (massFunctionSamplingModifierFixedMassHalosInitialize)
        if (.not.fixedMassHalosInitialized) then
           ! Find number of masses to insert.
           fixedHalosCount=-1
@@ -136,7 +136,7 @@ contains
           ! Record that we are now initialized.
           fixedMassHalosInitialized=.true.
        end if
-       !$omp end critical (satelliteMergingTimescalesFixedMassHalosInitialize)
+       !$omp end critical (massFunctionSamplingModifierFixedMassHalosInitialize)
     end if
     fixedMassHalosDefaultConstructor=fixedMassHalosConstructor(haloMassSampleModifierFixedMassHalosMass,haloMassSampleModifierFixedMassHalosRadius,haloMassSampleModifierFixedMassHalosCount)
     return
