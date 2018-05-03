@@ -171,8 +171,8 @@ contains
 
   subroutine Radiation_Set_Time(radiation,time)
     !% Set the {\normalfont \ttfamily radiation} field as specified.
-    !# <include directive="radiationSet" type="moduleUse">
-    include 'objects.radiation.set.modules.inc'
+    !# <include directive="radiationSetTime" type="moduleUse">
+    include 'objects.radiation.setTime.modules.inc'
     !# </include>
     use Galacticus_Nodes
     implicit none
