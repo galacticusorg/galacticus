@@ -245,8 +245,8 @@ module Input_Parameters
 
   interface inputParameters
      !% Constructors for the {\normalfont \ttfamily inputParameters} class.
+     module procedure inputParametersConstructorVarStr
      module procedure inputParametersConstructorFileChar
-     module procedure inputParametersConstructorFileVarStr
      module procedure inputParametersConstructorNode
      module procedure inputParametersConstructorNull
   end interface inputParameters
@@ -322,7 +322,43 @@ contains
     return
   end function inputParametersConstructorNull
   
-  
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,allowedParametersFile,outputParametersGroup)
+    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
+    !% specified as a variable length string.
+    implicit none
+    type     (inputParameters)                                           :: inputParametersConstructorVarStr
+    type     (varying_string    )              , intent(in   )           :: xmlString
+    character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    character(len=*             )              , intent(in   ), optional :: allowedParametersFile
+    type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
+    type     (node              ), pointer                               :: parameterNode
+
+    ! Check if we have been passed XML or a file name.
+    if (extract(xmlString,1,1) == "<") then
+       ! Parse the string.
+       !$omp critical (FoX_DOM_Access)
+       parameterNode => parseString(char(xmlString))
+       !$omp end critical (FoX_DOM_Access)
+       inputParametersConstructorVarStr=inputParametersConstructorNode      (                                                 &
+            &                                                                XML_Get_First_Element_By_Tag_Name(               &
+            &                                                                                                  parameterNode, &
+            &                                                                                                  'parameters'   &
+            &                                                                                                 )             , &
+            &                                                                allowedParameterNames                          , &
+            &                                                                allowedParametersFile                          , &
+            &                                                                outputParametersGroup                            &
+            &                                                               )
+    else
+       inputParametersConstructorVarStr=inputParametersConstructorFileVarStr(                                                 &
+            &                                                                xmlString                                      , &
+            &                                                                allowedParameterNames                          , &
+            &                                                                allowedParametersFile                          , &
+            &                                                                outputParametersGroup                            &
+            &                                                               )
+    end if
+    return
+  end function inputParametersConstructorVarStr
+
   function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
@@ -521,7 +557,7 @@ contains
     type (inputParameter ), pointer       :: currentParameter, referencedParameter
     
     ! Begin walking the parameter tree.
-    currentParameter => walkTree(self%parameters)
+    currentParameter => inputParametersWalkTree(self%parameters)
     do while (associated(currentParameter))
        ! Find parameters which reference another parameter.
        if     (                                                                &
@@ -530,7 +566,7 @@ contains
             &   hasAttribute(currentParameter%content,'idRef')                 &
             & ) then
           ! Search for a parameter with the referenced ID and the same name.
-          referencedParameter => walkTree(self%parameters)
+          referencedParameter => inputParametersWalkTree(self%parameters)
           do while (associated(referencedParameter))
              ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
              if     (                                                                   &
@@ -541,42 +577,39 @@ contains
                   & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content)&
                   & ) currentParameter%referenced => referencedParameter
              ! Walk to next node.
-             referencedParameter => walkTree(referencedParameter)
+             referencedParameter => inputParametersWalkTree(referencedParameter)
           end do
        end if
        ! Walk to next node.
-       currentParameter => walkTree(currentParameter)
+       currentParameter => inputParametersWalkTree(currentParameter)
     end do
     return
-
-  contains
-
-    function walkTree(currentNode) result(nextNode)
-      !% Perform a depth-first walk of a parameter tree.
-      type(inputParameter), pointer                :: nextNode
-      type(inputParameter), pointer, intent(in   ) :: currentNode
-
-      nextNode => currentNode
-      if (.not.associated(nextNode%parent)) then
-         do while (associated(nextNode%firstChild))
-            nextNode => nextNode%firstChild
-         end do
-         if (associated(nextNode,currentNode)) nullify(nextNode)
-      else
-         if (associated(nextNode%sibling)) then
-            nextNode => nextNode%sibling
-            do while (associated(nextNode%firstChild))
-               nextNode => nextNode%firstChild
-            end do
-         else
-            nextNode => nextNode%parent
-            if (.not.associated(nextNode%parent)) nextNode => null()
-         end if
-      end if
-      return
-    end function walkTree
-
   end subroutine inputParametersResolveReferences
+  
+  function inputParametersWalkTree(currentNode) result(nextNode)
+    !% Perform a depth-first walk of a parameter tree.
+    type(inputParameter), pointer                :: nextNode
+    type(inputParameter), pointer, intent(in   ) :: currentNode
+
+    nextNode => currentNode
+    if (.not.associated(nextNode%parent)) then
+       do while (associated(nextNode%firstChild))
+          nextNode => nextNode%firstChild
+       end do
+       if (associated(nextNode,currentNode)) nullify(nextNode)
+    else
+       if (associated(nextNode%sibling)) then
+          nextNode => nextNode%sibling
+          do while (associated(nextNode%firstChild))
+             nextNode => nextNode%firstChild
+          end do
+       else
+          nextNode => nextNode%parent
+          if (.not.associated(nextNode%parent)) nextNode => null()
+       end if
+    end if
+    return
+  end function inputParametersWalkTree
 
   subroutine inputParametersDestroy(self)
     !% Destructor for the {\normalfont \ttfamily inputParameters} class.
