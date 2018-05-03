@@ -79,7 +79,7 @@ sub Find_Hash {
 				    (my $md5FileName = $sourceFileName) =~ s/^source//;
 				    $md5FileName = $ENV{'BUILDPATH'}.$md5FileName.".md5";
 				    $useStoredCompositeHash = 0
-					unless ( &modificationTime($hashFileName) > &modificationTime($md5FileName) );
+					unless ( -e $md5FileName && &modificationTime($hashFileName) > &modificationTime($md5FileName) );
 				}
 			    }
 			}
@@ -113,7 +113,7 @@ sub Find_Hash {
 						&Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
 						) {
 						$useStoredHash = 0
-						    unless ( &modificationTime($md5FileName) > &modificationTime($dataFileName) );
+						    unless ( -e $md5FileName && &modificationTime($md5FileName) > &modificationTime($dataFileName) );
 					    }
 					}
 				    }
@@ -148,7 +148,11 @@ sub Find_Hash {
 					&updateModificationTime($md5FileName);
 				    }
 				}
-				$compositeHasher->add($digests{$sourceFileName});
+				if ( exists($digests{$sourceFileName}) ) {
+				    $compositeHasher->add($digests{$sourceFileName});
+				} else {
+				    die("Galacticus::Build::SourceTree::Process::SourceDigest::Process_SourceDigests: failed to build digest for '".$sourceFileName."'");
+				}
 			    }
 			}
 		    }
