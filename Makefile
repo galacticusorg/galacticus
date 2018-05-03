@@ -65,10 +65,10 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 FCFLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CFLAGS}
+CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
 
 # C++ compiler flags:
-CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ ${GALACTICUS_CPPFLAGS}
+CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}
 
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
@@ -121,7 +121,9 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
-	 if [ -f $$mod ] ; then mv $$mod $$mod~; fi \
+	 if [ -f $$mod ] ; then \
+	  mv $$mod $$mod~; \
+	 fi \
 	done
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.pl $(BUILDPATH)/$*.p.F90
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
@@ -231,19 +233,45 @@ $(BUILDPATH)/%.inc : $(BUILDPATH)/%.Inc Makefile
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Dependencies Makefile_Module_Dependencies files, but this acts as a fallback rule.
 $(BUILDPATH)/%.d : ./source/%.F90
-	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d
+	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d~
+	@if cmp -s $(BUILDPATH)/$*.d $(BUILDPATH)/$*.d~ ; then \
+	 rm $(BUILDPATH)/$*.d~ ; \
+	else \
+	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
+	fi
 $(BUILDPATH)/%.d : ./source/%.f
-	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d
+	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d~
+	@if cmp -s $(BUILDPATH)/$*.d $(BUILDPATH)/$*.d~ ; then \
+	 rm $(BUILDPATH)/$*.d~ ; \
+	else \
+	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
+	fi
 $(BUILDPATH)/%.d : ./source/%.c
-	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d
+	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d~
+	@if cmp -s $(BUILDPATH)/$*.d $(BUILDPATH)/$*.d~ ; then \
+	 rm $(BUILDPATH)/$*.d~ ; \
+	else \
+	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
+	fi
 $(BUILDPATH)/%.d : ./source/%.cpp
-	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d
+	@echo $(BUILDPATH)/$*.o > $(BUILDPATH)/$*.d~
+	@if cmp -s $(BUILDPATH)/$*.d $(BUILDPATH)/$*.d~ ; then \
+	 rm $(BUILDPATH)/$*.d~ ; \
+	else \
+	 mv $(BUILDPATH)/$*.d~ $(BUILDPATH)/$*.d ; \
+	fi
 %.d : %.f
-	@echo $*.o > $*.d
+	@echo $*.o > $*.d~
+	@if cmp -s $*.d $*.d~ ; then \
+	 rm $*.d~ ; \
+	else \
+	 mv $*.d~ $*.d ; \
+	fi
 %.d :
-	@mkdir -p `dirname $*.d`
-	@touch $*.d
-
+	@if [ ! -f $*.d ]; then \
+	 mkdir -p `dirname $*.d`; \
+	 touch $*.d; \
+	fi
 
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Dependencies file, but this acts as a fallback rule.
