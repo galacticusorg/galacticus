@@ -36,11 +36,11 @@ sub ModuleUse_Parse_Directive {
 	    $include = 0
 		if ( $buildData->{'exclude'} eq $buildData->{'moduleName'} );
 	}
-	$buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "use ".$buildData->{'moduleName'}."\n"
-	    if ( $include == 1 );
+	push(@{$buildData->{'moduleUses'}->{$buildData->{'moduleName'}}},exists($buildData->{'currentDocument'}->{'unitName'}) ? $buildData->{'currentDocument'}->{'unitName'} : "__all__")
+	    if ( $include == 1 );	
     } elsif ( $buildData->{'codeType'} eq "c" ) {
 	(my $leafName = $buildData->{'currentFileName'}) =~ s/.*?([^\/]+)\.c(pp)??$/$1.o/;
-	$buildData->{'moduleUses'}->{$buildData->{'moduleName'}} = "!: ".$ENV{'BUILDPATH'}."/".$leafName."\n";
+	push(@{$buildData->{'cUses'}},$leafName);
     }
 }
 
@@ -64,8 +64,12 @@ sub ModuleUse_Generate_Output {
 
     # Iterate over all modules, and add them to the content.
     foreach my $module ( keys(%{$buildData->{'moduleUses'}}) ) {
-	$buildData->{'content'} .= $buildData->{'moduleUses'}->{$module};
+	$buildData->{'content'} .= "use ".$module.((grep {$_ eq "__all__"} @{$buildData->{'moduleUses'}->{$module}}) ? "" : ", only : ".join(", ",@{$buildData->{'moduleUses'}->{$module}}))."\n";
     }
+    foreach my $leafName ( @{$buildData->{'cUses'}} ) {
+	$buildData->{'content'} .= "!: ".$ENV{'BUILDPATH'}."/".$leafName."\n";
+    }
+
 }
 
 1;
