@@ -94,6 +94,26 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	     }
 	     &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!\#|\/\/\@)/) 
 	    );
+	# Find all "objectBuilder" directives with non-standard parameter names, extract names from them, and push to the list of parameters.
+	push
+	    (
+	     @{$output->{'parameter'}},
+	     map 
+	     {
+		 (
+		   (! exists($_->{'source'       }) || $_->{'source'       } eq               "globalParameters")
+		  &&
+		   (  exists($_->{'parameterName'}) && $_->{'parameterName'} ne $_->{'class'}."Method"          )
+		 )
+		 ?
+		 (	
+		  $_->{'parameterName'}
+		 )
+		 :
+		 ()
+	     }
+	     &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"objectBuilder",comment => qr/^\s*(!\#|\/\/\@)/) 
+	    );
     }
 }
 close($sourceDirectory);
