@@ -24,13 +24,6 @@ module Star_Formation_IMF
   use Abundances_Structure
   use Input_Parameters
   use Input_Parameters
-  !# <include directive="imfRegister" type="moduleUse">
-  include 'star_formation.IMF.register.modules.inc'
-  !# </include>
-  !# <include directive="imfSelectionMethod" type="moduleUse">
-  !#  <functionArgs>imfSelectionMethod,IMF_Select,imfNames</functionArgs>
-  include 'star_formation.IMF.select.modules.inc'
-  !# </include>
   implicit none
   private
   public :: IMF_Select, IMF_Available_Count, IMF_Recycled_Fraction_Instantaneous, IMF_Recycling_Rate_NonInstantaneous, IMF_Yield_Instantaneous,&
@@ -232,6 +225,15 @@ contains
     !% Initialize the IMF subsystem.
     use Memory_Management
     use Galacticus_Error
+    !# <include directive="imfRegister" type="moduleUse">
+    include 'star_formation.IMF.register.modules.inc'
+    !# </include>
+    !# <include directive="imfRegisterName" type="moduleUse">
+    include 'star_formation.IMF.register_names.modules.inc'
+    !# </include>
+    !# <include directive="imfSelectionMethod" type="moduleUse">
+    include 'star_formation.IMF.select.modules.inc'
+    !# </include>
     implicit none
     type(varying_string) :: imfSelectionMethod
 
@@ -327,6 +329,9 @@ contains
 
   double precision function IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
     !% Returns a recycled fraction for the IMF suitable for use in the instantaneous recycling approximation.
+    !# <include directive="imfRecycledInstantaneous" type="moduleUse">
+    include 'star_formation.IMF.recycled_instantaneous.modules.inc'
+    !# </include>
     implicit none
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
@@ -352,6 +357,9 @@ contains
 
   double precision function IMF_Yield_Instantaneous(starFormationRate,fuelAbundances,component)
     !% Returns a yield for the IMF suitable for use in the instantaneous recycling approximation.
+    !# <include directive="imfYieldInstantaneous" type="moduleUse">
+    include 'star_formation.IMF.yield_instantaneous.modules.inc'
+    !# </include>
     implicit none
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
@@ -378,6 +386,9 @@ contains
   subroutine IMF_Tabulate(imfIndex,imf)
     !% Returns a tabulation of the IMF with sufficient resolution to resolve all features.
     use Tables
+    !# <include directive="imfTabulate" type="moduleUse">
+    include 'star_formation.IMF.tabulate.modules.inc'
+    !# </include>
     implicit none
     class  (table1D), allocatable, intent(inout) :: imf
     integer                      , intent(in   ) :: imfIndex
@@ -398,6 +409,9 @@ contains
 
   double precision function IMF_Minimum_Mass(imfSelected)
     !% Returns the minimum mass in the selected IMF.
+    !# <include directive="imfMinimumMass" type="moduleUse">
+    include 'star_formation.IMF.minimum_mass.modules.inc'
+    !# </include>
     implicit none
     integer, intent(in   ) :: imfSelected
     logical                :: imfMatched
@@ -414,6 +428,9 @@ contains
 
   double precision function IMF_Maximum_Mass(imfSelected)
     !% Returns the maximum mass in the selected IMF.
+    !# <include directive="imfMaximumMass" type="moduleUse">
+    include 'star_formation.IMF.maximum_mass.modules.inc'
+    !# </include>
     implicit none
     integer, intent(in   ) :: imfSelected
     logical                :: imfMatched
@@ -430,6 +447,9 @@ contains
 
   double precision function IMF_Phi(initialMass,imfSelected)
     !% Returns the IMF, $\Phi(M)$, at mass $M=${\normalfont \ttfamily initialMass} for the selected IMF.
+    !# <include directive="imfPhi" type="moduleUse">
+    include 'star_formation.IMF.phi.modules.inc'
+    !# </include>
     implicit none
     integer         , intent(in   ) :: imfSelected
     double precision, intent(in   ) :: initialMass
