@@ -976,7 +976,7 @@ contains
     !# </workaround>
     !$omp critical(HDF5_Access)
     if (useNodeSubset) then
-       ! nodeIndex
+       ! nodeIndex, hostIndex, parentNode
        call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex                               ,readSelection=nodeSubsetOffset)
        ! hostIndex
        call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex                               ,readSelection=nodeSubsetOffset)
