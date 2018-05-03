@@ -55,8 +55,13 @@ foreach my $sourceDirectoryDescriptor ( @sourceDirectoryDescriptors ) {
 		    print $makefile "\tfi\n\n";
 		    (my $objectDependencyFileName = $objectFileName) =~ s/.o$/.d/;
 		    print $makefile $workDirectoryName.$moduleFileName.".d: ".$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$objectDependencyFileName."\n";
-		    print $makefile "\t\@echo ".$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$objectFileName          ." > " .$workDirectoryName.$moduleFileName.".d\n";
-		    print $makefile "\t\@cat " .$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$objectDependencyFileName." >> ".$workDirectoryName.$moduleFileName.".d\n";		    
+		    print $makefile "\t\@echo ".$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$objectFileName          ." > " .$workDirectoryName.$moduleFileName.".d~\n";
+		    print $makefile "\t\@cat " .$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$objectDependencyFileName." >> ".$workDirectoryName.$moduleFileName.".d~\n";
+		    print $makefile "\t\@if cmp -s ".$workDirectoryName.$moduleFileName.".d ".$workDirectoryName.$moduleFileName.".d~ ; then \\\n";
+		    print $makefile "\t rm ".$workDirectoryName.$moduleFileName.".d~ ; \\\n";
+		    print $makefile "\telse \\\n";
+		    print $makefile "\t mv ".$workDirectoryName.$moduleFileName.".d~ ".$workDirectoryName.$moduleFileName.".d ; \\\n";
+		    print $makefile "\tfi\n\n";
 		    # Create rule for making a *.mod.gv file which is used in building GraphViz descriptions of source
 		    # file dependencies.
 		    print $makefile $workDirectoryName.$moduleFileName.".gv: ".$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$objectDependencyFileName." ".$workDirectoryName.$sourceDirectoryDescriptor->{'leaf'}.$sourceFileName.".gv\n";

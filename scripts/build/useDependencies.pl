@@ -258,14 +258,19 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	# Generate rules for dependency files - we first append a ".d" to any module file names used.
 	my @dependenciesUsed = map {$_ =~ m/\.mod$/ ? $_.".d" : $_} @modulesUsed;	
 	print $dependenciesFile $workSubDirectoryName.$dependencyFileName,": ".join(" ",@dependenciesUsed,map {(my $modifiedName = $_) =~ s/\.o$/.d/; $modifiedName} @dependenciesExplicit)."\n";
-	print $dependenciesFile "\t\@echo ".$workSubDirectoryName.$objectFileName." > ".$workSubDirectoryName.$dependencyFileName."\n";
+	print $dependenciesFile "\t\@echo ".$workSubDirectoryName.$objectFileName." > ".$workSubDirectoryName.$dependencyFileName."~\n";
 	foreach my $dependencyExplicit ( @dependenciesExplicit ) {
 	    (my $dependencyExplicitFileName = $dependencyExplicit) =~ s/\.o$/.d/;
-	    print $dependenciesFile "\t\@cat ".($dependencyExplicit =~ m/\// ? "" : $workDirectoryName).$dependencyExplicitFileName." >> ".$workSubDirectoryName.$dependencyFileName."\n";
+	    print $dependenciesFile "\t\@cat ".($dependencyExplicit =~ m/\// ? "" : $workDirectoryName).$dependencyExplicitFileName." >> ".$workSubDirectoryName.$dependencyFileName."~\n";
 	}
-	print $dependenciesFile "\t\@cat ".$_." >> ".$workSubDirectoryName.$dependencyFileName."\n"
+	print $dependenciesFile "\t\@cat ".$_." >> ".$workSubDirectoryName.$dependencyFileName."~\n"
 	    foreach ( @dependenciesUsed );
-	print $dependenciesFile "\t\@sort -u ".$workSubDirectoryName.$dependencyFileName." -o ".$workSubDirectoryName.$dependencyFileName."\n\n";
+	print $dependenciesFile "\t\@sort -u ".$workSubDirectoryName.$dependencyFileName."~ -o ".$workSubDirectoryName.$dependencyFileName."~\n";
+	print $dependenciesFile "\t\@if cmp -s ".$workSubDirectoryName.$dependencyFileName." ".$workSubDirectoryName.$dependencyFileName."~ ; then \\\n";
+	print $dependenciesFile "\t rm ".$workSubDirectoryName.$dependencyFileName."~ ; \\\n";
+	print $dependenciesFile "\telse \\\n";
+	print $dependenciesFile "\t mv ".$workSubDirectoryName.$dependencyFileName."~ ".$workSubDirectoryName.$dependencyFileName." ; \\\n";
+	print $dependenciesFile "\tfi\n\n";
 	# Create rules for making dependency trees with GraphViz.
 	my @graphVizesUsed   = map {$_ =~ m/\.d$/ ? $_.".gv" : $_} @modulesUsed;		 
 	my $graphVizFileName = $sourceFile->{'fileName'}.".gv";
