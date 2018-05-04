@@ -296,9 +296,9 @@ contains
   function Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,currentHost)
     !% Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
     !% halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
-    !% defined to be $\Phi(r_{\mathrm vir}) = - V_{\mathrm vir}^2$ then the specific energy transforms as:
+    !% defined to be $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$ then the specific energy transforms as:
     !% \begin{equation}
-    !% e \rightarrow e + V^2_{\mathrm vir,0} + \Phi(r_{\mathrm vir,0}),
+    !% e \rightarrow e + V^2_\mathrm{vir,0} + \Phi(r_\mathrm{vir,0}),
     !% \end{equation}
     !% where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
     !% current halo.

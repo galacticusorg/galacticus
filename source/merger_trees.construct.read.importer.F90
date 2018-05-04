@@ -169,19 +169,19 @@ module Merger_Tree_Read_Importers
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="treeIndex" >
-  !#   <description>Returns the index of the $i^{\mathrm th}$ tree.</description>
+  !#   <description>Returns the index of the $i^\mathrm{th}$ tree.</description>
   !#   <type>integer(kind=kind_int8)</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
   !#  </method>
   !#  <method name="nodeCount" >
-  !#   <description>Returns the number of nodes in the $i^{\mathrm th}$ tree.</description>
+  !#   <description>Returns the number of nodes in the $i^\mathrm{th}$ tree.</description>
   !#   <type>integer(kind=c_size_t)</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
   !#  </method>
   !#  <method name="treeWeight" >
-  !#   <description>Returns the weight to assign to the $i^{\mathrm th}$ tree.</description>
+  !#   <description>Returns the weight to assign to the $i^\mathrm{th}$ tree.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i</argument>
@@ -233,7 +233,7 @@ module Merger_Tree_Read_Importers
   !#   <pass>yes</pass>
   !#  </method>
   !#  <method name="import" >
-  !#   <description>Imports the $i^{\mathrm th}$ tree.</description>
+  !#   <description>Imports the $i^\mathrm{th}$ tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>integer                 , intent(in   )                            :: i</argument>

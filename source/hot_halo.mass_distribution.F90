@@ -60,7 +60,7 @@ module Hot_Halo_Mass_Distributions
   !#   <argument>double precision          , intent(in   ) :: moment, radius</argument>
   !#  </method>
   !#  <method name="rotationNormalization" >
-  !#   <description>Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.</description>
+  !#   <description>Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>

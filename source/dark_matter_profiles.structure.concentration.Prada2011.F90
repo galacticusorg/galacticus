@@ -266,7 +266,7 @@ contains
   end function prada2011B1
   
   double precision function prada2011cMin(self,x)
-    !% The function $c_{\mathrm min}(x)$ as defined in eqn.~(19) of \cite{prada_halo_2011}.
+    !% The function $c_\mathrm{min}(x)$ as defined in eqn.~(19) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self
@@ -276,7 +276,7 @@ contains
   end function prada2011cMin
   
   double precision function prada2011inverseSigmaMin(self,x)
-    !% The function $\sigma^{-1}_{\mathrm min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
+    !% The function $\sigma^{-1}_\mathrm{min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout) :: self

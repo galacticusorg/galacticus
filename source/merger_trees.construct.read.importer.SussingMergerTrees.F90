@@ -65,7 +65,7 @@
      !@     <method>inSubvolume1D</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\doublezero\ x\argin, \intzero\ iSubvolume\argin, \logicalzero\ [buffered]\argin</arguments>
-     !@     <description>Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^{\mathrm th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true.</description>
+     !@     <description>Return true if the given {\normalfont \ttfamily x} position lies within the {\normalfont \ttfamily iSubvolume}$^\mathrm{th}$ subvolume (plus the buffer region if {\normalfont \ttfamily buffered} is true.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>valueIsBad</method>
@@ -445,7 +445,7 @@ contains
   end function sussingTreeCount
 
   integer(kind=c_size_t) function sussingTreeIndex(self,i)
-    !% Return the index of the $i^{\mathrm th}$ tree.
+    !% Return the index of the $i^\mathrm{th}$ tree.
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                              , intent(in   ) :: i
@@ -456,7 +456,7 @@ contains
   end function sussingTreeIndex
 
   function sussingNodeCount(self,i)
-    !% Return a count of the number of nodes in the $i^{\mathrm th}$ tree.
+    !% Return a count of the number of nodes in the $i^\mathrm{th}$ tree.
     implicit none
     integer(c_size_t                 )                :: sussingNodeCount
     class  (mergerTreeImporterSussing), intent(inout) :: self
@@ -1004,7 +1004,7 @@ contains
   end function sussingSubhaloTraceCount
 
   subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions,structureOnly)
-    !% Import the $i^{\mathrm th}$ merger tree.
+    !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
     use Galacticus_Error
     implicit none

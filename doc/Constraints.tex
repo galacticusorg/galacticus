@@ -40,7 +40,7 @@ where {\normalfont \ttfamily configFile} is the name of the configuration file. 
 
 For each constraint in the specified constraint compilation a convergence measure, $C$, is constructed which
 \begin{equation}
- C = \sum_i {(y_i - y_{{\mathrm ideal}, i})^2 \over \sqrt{2} \sigma_{{\mathrm ideal}, i}^2}
+ C = \sum_i {(y_i - y_{\mathrm{ideal}, i})^2 \over \sqrt{2} \sigma_{\mathrm{ideal}, i}^2}
 \end{equation}
 where $y_i$ is the result of the constraint, $\sigma_i$ is the error on the result, and subscript ``ideal'' refers to the model with the most ideal value (i.e. that in the original, unmodified model) of the numerical parameter being tested (which might be the lowest value for a mass resolution, or the highest value for the maximum tree mass simulated for example). To be converged, the convergence measure should remain consistent with unity within a significant distance\footnote{``Significant distance'' here requires some judgement. Typically we would like for the model results to not change significantly as the value of a numerical parameter is adjusted by at least a factor of 2 away from the ideal value.} away from the ideal value.
 
@@ -146,7 +146,7 @@ where the $n(M)/\gamma(M)$ term is the weight assigned to each tree realization-
 
 When computing a model likelihood, we must employ some statistic which defines how likely the model is given the data. Typically, for stellar mass functions we have an estimate of the variance in the data, $\alpha^2(M_\star)$, as a function of stellar mass (full covariance matrices are typically not provided but, ideally would be, and can be easily incorporated into this method). In that case, we can define a likelihood
 \begin{equation}
- \ln \mathcal{L} = - {1 \over 2} \sum_i {[\phi_{{\mathrm obs},i} - \phi_i]^2 \over \alpha_i^2 + \sigma_i^2}
+ \ln \mathcal{L} = - {1 \over 2} \sum_i {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2 + \sigma_i^2}
 \end{equation}
 where the sum is taken over all data points, $i$, and $\sigma_i^2$ is the variance in the model estimate and is given by
 \begin{equation}
@@ -167,9 +167,9 @@ where $\psi^2(M_\star;M)$ is the variance in the conditional stellar mass functi
 
 Model variance artificially increases the likelihood of a given model. We would therefore like to minimize the increase in the likelihood due to the model variance:
 \begin{equation}
-\Delta 2 \ln \mathcal{L} = \sum_i {[\phi_{{\mathrm obs},i} - \phi_i]^2 \over \alpha_i^2} - {[\phi_{{\mathrm obs},i} - \phi_i]^2 \over \alpha_i^2 + \sigma_i^2} 
+\Delta 2 \ln \mathcal{L} = \sum_i {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2} - {[\phi_{\mathrm{obs},i} - \phi_i]^2 \over \alpha_i^2 + \sigma_i^2} 
 \end{equation}
-Of course, we don't know the model prediction, $\phi_i$, in advance\footnote{Below, we will adopt a simple empirical model for $\phi(M_\star)$. However, it should not be used here since we will in actuality be computing the likelihood from the model itself.}. However, if we assume that a model exists which is a good fit to the data then we would expect that $[\phi_{{\mathrm obs},i} - \phi_i]^2 \approx \alpha_i^2$ on average. In that case, the increase in likelihood due to the model is minimized by minimizing the function\footnote{This can be seen intuitively: we are simply requring that the variance in the model prediction is small compared the the variance in the data.}
+Of course, we don't know the model prediction, $\phi_i$, in advance\footnote{Below, we will adopt a simple empirical model for $\phi(M_\star)$. However, it should not be used here since we will in actuality be computing the likelihood from the model itself.}. However, if we assume that a model exists which is a good fit to the data then we would expect that $[\phi_{\mathrm{obs},i} - \phi_i]^2 \approx \alpha_i^2$ on average. In that case, the increase in likelihood due to the model is minimized by minimizing the function\footnote{This can be seen intuitively: we are simply requring that the variance in the model prediction is small compared the the variance in the data.}
 \begin{equation}
  F[\gamma(M)] = \sum_i {\alpha_i^2 \over \alpha_i^2 + \sigma_i^2}.
 \end{equation}
@@ -197,23 +197,23 @@ The values of $\lambda$ and $\delta \ln M_\star$, and the normalization of $t(M)
 
 Figure~\ref{fig:optimalSamplingStellarMassFunction} shows the function $\gamma(M)$ obtained by adopting a model conditional stellar mass function which is a sum of central and satellite terms. Specifically, we use the model of \cite{leauthaud_new_2011} which is constrained to match observations from the COSMOS survey. In their model\footnote{This integral form of the conditional stellar mass function is convenient here since it allows for easy calcualtion of the number of galaxies expected in the finite-width bins of the observed stellar mass function.}:
 \begin{equation}
- \langle N_{\mathrm c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_{\mathrm c}(M_\star^\prime) \d \ln M_\star^\prime = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_{\mathrm SHMR}(M) \over \sqrt{2}\sigma_{\log M_\star}} \right) \right].
+ \langle N_\mathrm{c}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{c}(M_\star^\prime) \d \ln M_\star^\prime = {1 \over 2} \left[ 1 - \hbox{erf}\left( {\log_{10}M_\star - \log_{10} f_\mathrm{SHMR}(M) \over \sqrt{2}\sigma_{\log M_\star}} \right) \right].
 \end{equation}
-Here, the function $f_{\mathrm SHMR}(M)$ is the solution of
+Here, the function $f_\mathrm{SHMR}(M)$ is the solution of
 \begin{equation}
  \log_{10}M = \log_{10}M_1 + \beta \log_{10}\left({M_\star \over M_{\star,0}}\right) + {(M_\star/M_{\star,0})^\delta \over 1 + (M_\star/M_{\star,0})^{-\gamma}} - {1/2}.
 \end{equation}
 For satellites,
 \begin{equation}
- \langle N_{\mathrm s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_{\mathrm s}(M_\star^\prime) \d \ln M_\star^\prime =  \langle N_{\mathrm c}(M_\star|M)\rangle \left({f^{-1}_{\mathrm SHMR}(M_\star) \over M_{\mathrm sat}}\right)^{\alpha_{\mathrm sat}} \exp\left(- {M_{\mathrm cut} \over f^{-1}_{\mathrm SHMR}(M_\star)} \right),
+ \langle N_\mathrm{s}(M_\star|M)\rangle \equiv \int_{M_\star}^\infty \phi_\mathrm{s}(M_\star^\prime) \d \ln M_\star^\prime =  \langle N_\mathrm{c}(M_\star|M)\rangle \left({f^{-1}_\mathrm{SHMR}(M_\star) \over M_\mathrm{sat}}\right)^{\alpha_\mathrm{sat}} \exp\left(- {M_\mathrm{cut} \over f^{-1}_\mathrm{SHMR}(M_\star)} \right),
 \end{equation}
 where
 \begin{equation}
- {M_{\mathrm sat} \over 10^{12} M_\odot} = B_{\mathrm sat} \left({f^{-1}_{\mathrm SHMR}(M_\star) \over 10^{12} M_\odot}\right)^{\beta_{\mathrm sat}},
+ {M_\mathrm{sat} \over 10^{12} M_\odot} = B_\mathrm{sat} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12} M_\odot}\right)^{\beta_\mathrm{sat}},
 \end{equation}
 and
 \begin{equation}
- {M_{\mathrm cut} \over 10^{12} M_\odot} = B_{\mathrm cut} \left({f^{-1}_{\mathrm SHMR}(M_\star) \over 10^{12} M_\odot}\right)^{\beta_{\mathrm cut}}.
+ {M_\mathrm{cut} \over 10^{12} M_\odot} = B_\mathrm{cut} \left({f^{-1}_\mathrm{SHMR}(M_\star) \over 10^{12} M_\odot}\right)^{\beta_\mathrm{cut}}.
 \end{equation}
 
 We use the best fit parameters from the {\normalfont \ttfamily SIG\_MOD1} method of \cite{leauthaud_new_2011} for their $z_1$ sample, but apply a shift of $-0.2$ dex in masses to bring the fit into line with the $z=0.07$ mass function of \cite{li_distribution_2009}. The resulting parameter values are shown in Table~\ref{tb:z0SMFFitParameters}.
@@ -226,23 +226,23 @@ We use the best fit parameters from the {\normalfont \ttfamily SIG\_MOD1} method
 \hline
 {\normalfont \bfseries Parameter} & \multicolumn{2}{c}{\normalfont \bfseries Value} \\
 \hline
-$\alpha_{\mathrm sat}$& 1&0 \\
+$\alpha_\mathrm{sat}$& 1&0 \\
 $\log_{10} M_1$& 12&120 \\
 $\log_{10} M_{\star,0}$& 10&516 \\
 $\beta$& 0&430 \\
 $\delta$& 0&5666 \\
 $\gamma$& 1&53 \\
 $\sigma_{\log M_\star}$& 0&206 \\
-$B_{\mathrm cut}$& 0&744 \\
-$B_{\mathrm sat}$& 8&00 \\
-$\beta_{\mathrm cut}$& $-$0&13 \\
-$\beta_{\mathrm sat}$& 0&859 \\
+$B_\mathrm{cut}$& 0&744 \\
+$B_\mathrm{sat}$& 8&00 \\
+$\beta_\mathrm{cut}$& $-$0&13 \\
+$\beta_\mathrm{sat}$& 0&859 \\
 \hline
 \end{tabular}
 \end{center}
 \end{table}
 
-We assume that $P_{\mathrm s}(N|M_\star,M;\delta \ln M_\star)$ is a Poisson distribution while $P_{\mathrm c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution, with each distribution's free parameter fixed by the constraint of eqn.~(\ref{eq:cSMFdefinition}), and the assumed forms for $\phi_{\mathrm c}$ and $\phi_{\mathrm s}$.
+We assume that $P_\mathrm{s}(N|M_\star,M;\delta \ln M_\star)$ is a Poisson distribution while $P_\mathrm{c}(N|M_\star,M;\delta \ln M_\star)$ has a Bernoulli distribution, with each distribution's free parameter fixed by the constraint of eqn.~(\ref{eq:cSMFdefinition}), and the assumed forms for $\phi_\mathrm{c}$ and $\phi_\mathrm{s}$.
 
 The errors in the \cite{li_distribution_2009} observed stellar mass function are well fit by (see Fig.~\ref{fig:stellarMassFunctionErrors}):
 \begin{equation}
@@ -404,19 +404,19 @@ In general, for constraints corresponding to mass functions (whether stellar mas
 
 Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle} polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\normalfont \ttfamily harmonize} utility.}, this is used to compute the relation
 \begin{equation}
-  \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty {\mathrm d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
+  \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty \mathrm{d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
 \end{equation}
-where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the spherical harmonic coefficients of the $i^{\mathrm th}$ field of the survey, $V$ is the maximum distance to which a galaxy of mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
+where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the spherical harmonic coefficients of the $i^\mathrm{th}$ field of the survey, $V$ is the maximum distance to which a galaxy of mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
 \begin{equation}
- R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) {\mathrm d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
+ R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) \mathrm{d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
 \end{equation}
 where $\tensor*[_1]{\stackrel{\sim}{F}}{_2}$ is the regularized generalized hypergeometric function. In other cases, where the angular power spectrum is not available, the survey geometry is realized on a grid which is when Fourier transformed to obtain the appropriate window function.
 
 To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational data. We use a likelihood
 \begin{equation}
- \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^{\mathrm T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+ \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^\mathrm{T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
 \end{equation}
-where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^{\mathrm (HOD)} - \phi_i^{\mathrm (observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
+where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function, and $\Delta_i = \phi_i^\mathrm{(HOD)} - \phi_i^\mathrm{(observed)}$. Of course, it is precisely this covariance matrix, $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
 \begin{enumerate}
  \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a function of stellar mass);
  \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of the covariance matrix;
@@ -427,15 +427,15 @@ In practice we find that this procedure often leads to an \gls{hod} and covarian
 
 \subsubsection{Methodology for Correlation Functions}
 
-For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^{\mathrm (c)}$, and $N$ probabilities, $p_i^{\mathrm (s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
+For constraints corresponding to (possibly, projected) correlation functions, the model expectation is computed using the halo model \cite{cooray_halo_2002}. For each model halo, each galaxy (satellite and central) is assessed to see if it meets the criteria for inclusion in the sample. Where the sample includes mass limits (either just a lower limit, or lower and upper limits) each galaxy is assigned a probability of inclusion in the sample based on its mass and the random error in mass. Thus, each halo is characterized by the probability of having a central galaxy in the sample, $p^\mathrm{(c)}$, and $N$ probabilities, $p_i^\mathrm{(s)}$, of each satellite galaxy being in the sample. We assume binomial statistics for each galaxy's probability of inclusion, and further assume that these probabilities are uncorrelated. Therefore, the contribution of the halo to the one- and two-halo terms of the power spectrum in the halo model are:
 \begin{equation}
-\Delta P^{\mathrm 1h}(k) = {w \over n_{\mathrm gal}^2} \left[ p^{\mathrm (c)} \sum_{i=1}^N p^{\mathrm (s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^{\mathrm (s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
+\Delta P^\mathrm{1h}(k) = {w \over n_\mathrm{gal}^2} \left[ p^\mathrm{(c)} \sum_{i=1}^N p^\mathrm{(s)} u(k|M) + \sum_{k=0}^N k(k-1) P\left(p_i^\mathrm{(s)},\ldots,p_N^{(s)}\right) u(k|M)^2 \right]
 \end{equation}
 and
 \begin{equation}
-\Delta \sqrt{P^{\mathrm 2h}}(k) = {w \over n_{\mathrm gal}} \sqrt{P^{\mathrm lin}}(k) b(M) u(k|M) \left[ p^{\mathrm (c)} + \sum_{i=1}^N p_i^{\mathrm (s)} \right],
+\Delta \sqrt{P^\mathrm{2h}}(k) = {w \over n_\mathrm{gal}} \sqrt{P^\mathrm{lin}}(k) b(M) u(k|M) \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right],
 \end{equation}
-respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_{\mathrm lin}(k)$ is the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_{\mathrm gal}$, is simply $\Delta n_{\mathrm gal} = w \left[ p^{\mathrm (c)} + \sum_{i=1}^N p_i^{\mathrm (s)} \right]$.
+respectively, where $w$ is the weight of the halo (i.e. the number of such model halos expected per unit volume), $b(M)$ is the bias of halos of mass $M$, $u(k|M)$ is the Fourier-transform of the halo density profile, and $P_\mathrm{lin}(k)$ is the linear theory power spectrum, and $P(p_1,\ldots,p_N)$ is the Poisson binomial distribution for $N$ events with probabities $p_1,\ldots,p_N$. The contribution of the halo to the galaxy density, $n_\mathrm{gal}$, is simply $\Delta n_\mathrm{gal} = w \left[ p^\mathrm{(c)} + \sum_{i=1}^N p_i^\mathrm{(s)} \right]$.
 
 \subsubsection{Li \& White (2009) SDSS Stellar Mass Function}
 
@@ -443,11 +443,11 @@ This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies 
 
 Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
 \begin{equation}
- M_\star \rightarrow {\mathbf G} {\mathbf S} M_\star 
+ M_\star \rightarrow \mathbf{G} \mathbf{S} M_\star 
 \end{equation}
-where the ${\mathbf S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
+where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
 \begin{equation}
- \log_{\mathrm 10} S = \mu + \kappa \log_{\mathrm 10} \left({M_\star \over 10^{11.3}M_\odot}\right)
+ \log_\mathrm{10} S = \mu + \kappa \log_\mathrm{10} \left({M_\star \over 10^{11.3}M_\odot}\right)
 \end{equation}
 where $\mu=${\normalfont \ttfamily [sdssStellarMassFunctionZ0.07StellarMassSystematicMu]}, $\kappa=${\normalfont \ttfamily [sdssStellarMassFunctionZ0.07StellarMassSystematiKappa]}, and the {\normalfont \bfseries G} operator is a multiplicative factor drawn from a log-normal distribution of width $0.07$~dex for each galaxy to mimic the effects of random errors on stellar masses (motivated by the discussion of \cite{behroozi_comprehensive_2010}).
 
@@ -457,15 +457,15 @@ If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any mu
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated---see \S\ref{sec:AnalysisALFALFAHIMassFunction} for a description of how this covariance matrix is estimated), and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated---see \S\ref{sec:AnalysisALFALFAHIMassFunction} for a description of how this covariance matrix is estimated), and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 \subsubsection{Caputi et al. (2011) UKIDSS UDS Stellar Mass Function}\label{sec:ConstraintsUKIDSSUDSStellarMassFunction}
 
@@ -473,25 +473,25 @@ This constraint utilizes the stellar mass functions for $z = 3$ to 5 galaxies me
 
 Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
 \begin{equation}
- M_\star \rightarrow {\mathbf G} {\mathbf S} M_\star 
+ M_\star \rightarrow \mathbf{G} \mathbf{S} M_\star 
 \end{equation}
-where the ${\mathbf S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
+where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
 \begin{equation}
- \log_{\mathrm 10} S = \mu + \kappa \log_{\mathrm 10} \left({M_\star \over 10^{11.3}M_\odot}\right)
+ \log_\mathrm{10} S = \mu + \kappa \log_\mathrm{10} \left({M_\star \over 10^{11.3}M_\odot}\right)
 \end{equation}
 where $\mu=${\normalfont \ttfamily [ukidssUdsStellarMassFunctionZX.XXXStellarMassSystematicMu]}, $\kappa=${\normalfont \ttfamily [ukidssUdsStellarMassFunctionZX.XXXStellarMassSystematiKappa]}, and the {\normalfont \bfseries G} operator is a multiplicative factor drawn from a log-normal distribution of width $0.173$~dex for each galaxy to mimic the effects of random errors on stellar masses (which accounts for errors in photometric redshifts, $\delta z/(1+z)$ of $\sigma=0.05$ as reported by \cite{caputi_stellar_2011} along with an additional 0.087~dex added in quadrature to account for SED fitting errors, judged from Figure 8 of \cite{caputi_stellar_2011}).
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 The survey window function is determined from the set of galaxy positions provided by Caputi (private communication), by finding a suitable bounding box and then cutting out empty regions (corresponding to regions that were removed around bright stars). A set of random points are then found within this mask and are used to find the Fourier transform of the survey volume. 
 
@@ -514,11 +514,11 @@ where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine t
 
 Finally, the incompleteness of the observational sample (which is required when estimating the Poisson contribution to the covariance matrix) is found from the 50\% and 80\% completeness masses, $M_{50}$ and $M_{80}$ respectively, given in Fig.~4 of \cite{caputi_stellar_2011}. Specifically, we assume that, at a given mass $M$, the number of photons being received from a galaxy can be modeled as a Gaussian distribution with mean $f M$ and variance $fM+\mu$, where $\mu$ is the number of photons ariving from the sky. The fraction of sources of mass $M$ that will be detected at more than $n \sigma$ above the background is then
 \begin{eqnarray}
-f(M) & = & \int_{n\sqrt{mu}}^\infty {1 \over \sqrt{2 \pi} \sqrt{f M + \mu}} \exp\left( - {[S-fM]^2 \over 2 [f M + \mu]} \right) {\mathrm d}S \nonumber \\
+f(M) & = & \int_{n\sqrt{mu}}^\infty {1 \over \sqrt{2 \pi} \sqrt{f M + \mu}} \exp\left( - {[S-fM]^2 \over 2 [f M + \mu]} \right) \mathrm{d}S \nonumber \\
      & = & {1 \over 2}\left[ 1 - \hbox{erf}\left( {x(M) \over \sqrt{2}} \right)  \right],
 \label{eq:incompleteness}
 \end{eqnarray}
-where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_{\mathrm 50})=0.5$ and $f(M_{\mathrm 80})=0.8$ we can solve for $f$ and $\mu$, and then compute the completeness in each mass using eqn.~(\ref{eq:incompleteness}). The resulting completeness curves are shown in Fig.~\ref{fig:UKIDSSUDSCompleteness}. Note that the model of eqn.~(\ref{eq:incompleteness}) is clearly an oversimplification, but should capture the expected behavior of the completeness and, since it is fit to the 50\% and 80\% completenesses reported by \cite{caputi_stellar_2011}---which were computed using detailed simulations---should work sufficiently well.
+where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_\mathrm{50})=0.5$ and $f(M_\mathrm{80})=0.8$ we can solve for $f$ and $\mu$, and then compute the completeness in each mass using eqn.~(\ref{eq:incompleteness}). The resulting completeness curves are shown in Fig.~\ref{fig:UKIDSSUDSCompleteness}. Note that the model of eqn.~(\ref{eq:incompleteness}) is clearly an oversimplification, but should capture the expected behavior of the completeness and, since it is fit to the 50\% and 80\% completenesses reported by \cite{caputi_stellar_2011}---which were computed using detailed simulations---should work sufficiently well.
 
 \begin{figure}
  \begin{center}
@@ -530,37 +530,37 @@ where $x(M) = (n \sqrt{mu} - f M)/(\mu+fM)^{1/2}$. Given $f(M_{\mathrm 50})=0.5$
 
 \subsubsection{Bernardi et al. (2013) SDSS Stellar Mass Function}\label{sec:AnalysisBernardiSDSSStellarMassFunction}
 
-This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{bernardi_massive_2013} from the SDSS survey. The mass function, and its covariance matrix ${\mathbf C}_{\mathrm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass function for $z\approx 0.07$ galaxies measured by \cite{bernardi_massive_2013} from the SDSS survey. The mass function, and its covariance matrix $\mathbf{C}_\mathrm{model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is determined directly from the mass function, assuming a 91\% completeness\footnote{7\% arising from fiber collisions, 2\% from failures in the Pymorph pipeline (M.~Bernardi, private communication).}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBernardi2013SDSS}.
 
 \subsubsection{Baldry et al. (2012) GAMA Stellar Mass Function}\label{sec:AnalysisBaldryGAMAStellarMassFunction}
 
-This constraint utilizes the stellar mass function for $z< 0.06$ galaxies measured by \cite{baldry_galaxy_2012} from the GAMA survey. The mass function, and its covariance matrix ${\mathbf C}_{\mathrm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass function for $z< 0.06$ galaxies measured by \cite{baldry_galaxy_2012} from the GAMA survey. The mass function, and its covariance matrix $\mathbf{C}_\mathrm{model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken from data supplied by I.~Baldry (private communication). The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryBaldry2012GAMA}.
 
@@ -568,91 +568,91 @@ Finally, the completeness of the observational sample is estimated to be greater
 
 \subsubsection{Tomczak et al. (2014) ZFOURGE Stellar Mass Functions}\label{sec:AnalysisTomczakZFOURGEStellarMassFunction}
 
-This constraint utilizes the stellar mass function for $0.2 < z< 3$ galaxies measured by \cite{tomczak_galaxy_2014} from the ZFOURGE survey. The mass function, and its covariance matrix ${\mathbf C}_{\mathrm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass function for $0.2 < z< 3$ galaxies measured by \cite{tomczak_galaxy_2014} from the ZFOURGE survey. The mass function, and its covariance matrix $\mathbf{C}_\mathrm{model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from tables provided by R.~Quadri (private communication).
 
 \subsubsection{Davidzon et al. (2013) VIPERS Stellar Mass Functions}\label{sec:AnalysisDavidzonVIPERSStellarMassFunction}
 
-This constraint utilizes the stellar mass function for $0.5 < z< 1.0$ galaxies measured by \cite{davidzon_vimos_2013} from the VIPERS survey. The mass function, and its covariance matrix ${\mathbf C}_{\mathrm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass function for $0.5 < z< 1.0$ galaxies measured by \cite{davidzon_vimos_2013} from the VIPERS survey. The mass function, and its covariance matrix $\mathbf{C}_\mathrm{model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from tables supplied by I.~Davidzon (private communication).
 
 \subsubsection{Muzzin et al. (2013) ULTRAVISTA Stellar Mass Functions}\label{sec:AnalysisMuzzinULTRAVISTAStellarMassFunction}
 
-This constraint utilizes the stellar mass function for $0.2 < z< 4.0$ galaxies measured by \cite{muzzin_evolution_2013} from the ULTRAVISTA survey. The mass function, and its covariance matrix ${\mathbf C}_{\mathrm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass function for $0.2 < z< 4.0$ galaxies measured by \cite{muzzin_evolution_2013} from the ULTRAVISTA survey. The mass function, and its covariance matrix $\mathbf{C}_\mathrm{model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the completeness is taken to be 95\% in the lowest mass bins, and 100\% in all other bins \citep{muzzin_evolution_2013}.
 
 \subsubsection{Moustakas et al. (2013) PRIMUS Stellar Mass Functions}\label{sec:AnalysisMoustakasPRIMUSSStellarMassFunctions}
 
-This constraint utilizes the stellar mass functions for $z\approx 0.2$ to $z\approx 1$ galaxies measured by \cite{moustakas_primus:_2013} from the PRIMUS survey. The mass functions, and their covariance matrices ${\mathbf C}_{\mathrm model}$, are calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the stellar mass functions for $z\approx 0.2$ to $z\approx 1$ galaxies measured by \cite{moustakas_primus:_2013} from the PRIMUS survey. The mass functions, and their covariance matrices $\mathbf{C}_\mathrm{model}$, are calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from \cite{moustakas_primus:_2013}. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryMoustakas2013PRIMUS}.
 
 \subsubsection{Martin et al. (2010) ALFALFA HI Mass Function}\label{sec:AnalysisALFALFAHIMassFunction}
 
-This constraint utilizes the HI mass function for $z\approx 0.0$ galaxies measured by \cite{martin_arecibo_2010} from the ALFALFA survey. The mass function, and its covariance matrix ${\mathbf C}_{\mathrm model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
+This constraint utilizes the HI mass function for $z\approx 0.0$ galaxies measured by \cite{martin_arecibo_2010} from the ALFALFA survey. The mass function, and its covariance matrix $\mathbf{C}_\mathrm{model}$, is calculated as described in \S\ref{sec:otfAnalysis:ALFALFA}, typically on-the-fly as \glc\ is run. If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any multiplicative or additive discrepancies found are applied to the model mass function, and any additional covariance is added to the covariance matrix.
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 When computing the Poisson term in the covariance matrix, the number of galaxies per bin is taken directly from Fig.~5 of \cite{martin_arecibo_2010} such that incompleteness is automatically accounted for. The survey geometry and depth is described in \S\ref{phys:surveyGeometry:surveyGeometryMartin2010ALFALFA}.
 
@@ -676,27 +676,27 @@ This constraint utilizes the distribution of Petrosian half-light radii for $z\a
 
 Given a \glc\ model, total stellar masses of model galaxies are adjusted using:
 \begin{equation}
- M_\star \rightarrow {\mathbf G} {\mathbf S} M_\star 
+ M_\star \rightarrow \mathbf{G} \mathbf{S} M_\star 
 \end{equation}
-where the ${\mathbf S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
+where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in stellar mass determination and is equal to \citep{behroozi_comprehensive_2010}
 \begin{equation}
- \log_{\mathrm 10} S = \mu + \kappa \log_{\mathrm 10} \left({M_\star \over 10^{11.0}M_\odot}\right)
+ \log_\mathrm{10} S = \mu + \kappa \log_\mathrm{10} \left({M_\star \over 10^{11.0}M_\odot}\right)
 \end{equation}
 where $\mu=${\normalfont \ttfamily [diskGalaxySizesSDSSZ0.07MassSystematic0]}, $\kappa=${\normalfont \ttfamily [diskGalaxySizesSDSSZ0.07MassSystematic1]}, and the {\normalfont \bfseries G} operator is a multiplicative factor drawn from a log-normal distribution of width $0.0806$~dex for each galaxy to mimic the effects of random errors on stellar masses (motivated by the statement from \cite{shen_size_2003} who quote the 95\% confidence
 interval on masses as being $\pm 40$\%).
 
 {\normalfont \bfseries Note:} This analysis currently assumes that model galaxies have disk Petrosian half-mass radii of
 \begin{equation}
- R_{\mathrm 50} = 1.6676 {1 \over \sqrt{2}} \lambda R_{\mathrm vir}.
+ R_\mathrm{50} = 1.6676 {1 \over \sqrt{2}} \lambda R_\mathrm{vir}.
 \end{equation}
 
 Disk sizes of model galaxies are then adjusted using:
 \begin{equation}
- R_{50} \rightarrow {\mathbf G} {\mathbf S} R_{50} 
+ R_{50} \rightarrow \mathbf{G} \mathbf{S} R_{50} 
 \end{equation}
-where the ${\mathbf S}$ operator is a multiplicative factor accounting for systematic errors in radius determination and in determination of radius from halo virial radius and spin and is equal to
+where the $\mathbf{S}$ operator is a multiplicative factor accounting for systematic errors in radius determination and in determination of radius from halo virial radius and spin and is equal to
 \begin{equation}
- \log_{\mathrm 10} S = \mu + \kappa \log_{\mathrm 10} \left({R_{50} \over 1 \hbox{kpc}}\right)
+ \log_\mathrm{10} S = \mu + \kappa \log_\mathrm{10} \left({R_{50} \over 1 \hbox{kpc}}\right)
 \end{equation}
 where $\mu=${\normalfont \ttfamily [iskGalaxySizesSDSSZ0.07RadiusSystematic0]}, $\kappa=${\normalfont \ttfamily [iskGalaxySizesSDSSZ0.07RadiusSystematic1]}, and the {\normalfont \bfseries G} operator is a multiplicative factor drawn from a log-normal distribution of width $0.0128$~dex for each galaxy to mimic the effects of random errors on disk radii (estimated from the fractional errors reported in the \gls{sdss} database).
 
@@ -706,9 +706,9 @@ If the {\normalfont \ttfamily --modelDiscrepancies} option is given, then any mu
 
 The covariance matrix is computed as
 \begin{equation}
- {\mathbf C} = {\mathbf C}_{\mathrm obs} + {\mathbf C}_{\mathrm model,random} + \sum_i {\mathbf C}_{{\mathrm discrepancy}, i},
+ \mathbf{C} = \mathbf{C}_\mathrm{obs} + \mathbf{C}_\mathrm{model,random} + \sum_i \mathbf{C}_{\mathrm{discrepancy}, i},
 \end{equation}
-where ${\mathbf C}_{\mathrm obs}$ is the covariance matrix of the observational data, ${\mathbf C}_{\mathrm model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and ${\mathbf C}_{{\mathrm discrepancy}, i}$ is the covariance due to the $i^{\mathrm th}$ model discrepancy.
+where $\mathbf{C}_\mathrm{obs}$ is the covariance matrix of the observational data, $\mathbf{C}_\mathrm{model,random}$ is the covariance matrix of the model arising from random noise (due to the finite number of trees simulated, and $\mathbf{C}_{\mathrm{discrepancy}, i}$ is the covariance due to the $i^\mathrm{th}$ model discrepancy.
 
 The model covariance matrix is estimated using the sample methods as described in \S\ref{sec:AnalysisALFALFAHIMassFunction}. The only difference is that in this case we have a 2-D histogram. This 2-D histogram is ``flattened'' into a 1-D vector for purposes of likelihood computation however, so covariance matrix estimation proceeds unchanged. (Note that correlations between mass bins are accounted for, in additional to correlations between radius bins.) Since the radius functions of \cite{shen_size_2003} are normalized to unity at each mass, we must account for this in the covariance matrix. The radius function transforms as:
 \begin{equation}
@@ -718,13 +718,13 @@ where $i$ indexes radius bins, $k$ indexes mass bins, and $\Delta \log_{10} R$ i
 \begin{equation}
  J_{ij} = {\delta_{ij} - f_i \over  \Delta \log_{10} R \sum_i f_{ik}}.
 \end{equation}
-Therefore, the covariance matrix is modified according to $\mathcal{C} \rightarrow J \mathcal{C} J^{\mathrm T}$. The same transformation is applied to the covariance matrix of the observed data (for which the reported errors are simply the Poisson errors on each bin).
+Therefore, the covariance matrix is modified according to $\mathcal{C} \rightarrow J \mathcal{C} J^\mathrm{T}$. The same transformation is applied to the covariance matrix of the observed data (for which the reported errors are simply the Poisson errors on each bin).
 
 The model likelihood is then computed using:
 \begin{equation}
- \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |{\mathbf C}|}} \exp\left[ -{1\over 2} \Delta {\mathbf C}^{-1} \Delta \right],
+ \mathcal{L} = {1 \over \sqrt{(2 \pi)^n |\mathbf{C}|}} \exp\left[ -{1\over 2} \Delta \mathbf{C}^{-1} \Delta \right],
 \end{equation}
-where $\Delta_i = \Phi_{{\mathrm model}, i} - \Phi_{{\mathrm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
+where $\Delta_i = \Phi_{\mathrm{model}, i} - \Phi_{\mathrm{observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 \section{Constraint Compilations}
 
@@ -885,7 +885,7 @@ The likelihood is a simple multivariate Gaussian, intended primarily for testing
 \end{verbatim}
 where the {\normalfont \ttfamily mean} element gives the mean vector of $N$ elements, and the {\normalfont \ttfamily covariance} element contains $N$ {\normalfont \ttfamily row} elements each containing a vector of $N$ elements giving a single row of the covariance matrix. The likelihood is then:
 \begin{equation}
-\log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^{\mathrm T},
+\log \mathcal{L} = - {1 \over 2} \Delta \mathcal{C}^{-1} \Delta^\mathrm{T},
 \end{equation}
 where $Delta = \theta - \bar{\theta}$, $\theta$ is the state, $\bar{\theta}$ is the mean, and $\mathcal{C}$ is the covariance matrix.
 
@@ -944,7 +944,7 @@ The entries have the following meanings:
 \item[{\normalfont \ttfamily fixedTreesInScratch}] If set to {\normalfont \ttfamily yes}, any fixed set of merger trees generated will be stored in the scratch directory, otherwise they will be stored in the work directory. (Storing in scratch can often be faster, particularly if {\normalfont \ttfamily /dev/shm} is used as scratch, but for large sets of trees the available scratch storage space may be insufficient.)
 \end{description}
 
-When evaluating model likelihood at temperatures above unity, \glc\ will attempt to speed computation by reducing the number of trees simulated. Specifically, it makes use of the facts that the model covariance, $\mathcal{C} \propto N_{\mathrm tree}^{-1}$, and that the model log-likelihood, $\mathcal{L} \propto \mathcal{C}^{-1}/T$. Therefore, increasing the temperature is equivalent to decreasing the number of trees simulated by the same proportion. \glc\ therefore runs a simulation with a number of trees per decade of halo mass equal to {\normalfont \ttfamily int([mergerTreeBuildTreesPerDecade]}$/T${\normalfont \ttfamily )} or the value of the {\normalfont \ttfamily treesPerDecadeMinimum} element, whichever is smaller. This defines an effective temperature $T^\prime=N_{\mathrm trees}^\prime/N_{\mathrm trees}$ where $N_{\mathrm trees}$ is the original number of trees per decade, and $N_{\mathrm trees}^\prime$ is the reduced number.
+When evaluating model likelihood at temperatures above unity, \glc\ will attempt to speed computation by reducing the number of trees simulated. Specifically, it makes use of the facts that the model covariance, $\mathcal{C} \propto N_\mathrm{tree}^{-1}$, and that the model log-likelihood, $\mathcal{L} \propto \mathcal{C}^{-1}/T$. Therefore, increasing the temperature is equivalent to decreasing the number of trees simulated by the same proportion. \glc\ therefore runs a simulation with a number of trees per decade of halo mass equal to {\normalfont \ttfamily int([mergerTreeBuildTreesPerDecade]}$/T${\normalfont \ttfamily )} or the value of the {\normalfont \ttfamily treesPerDecadeMinimum} element, whichever is smaller. This defines an effective temperature $T^\prime=N_\mathrm{trees}^\prime/N_\mathrm{trees}$ where $N_\mathrm{trees}$ is the original number of trees per decade, and $N_\mathrm{trees}^\prime$ is the reduced number.
 
 The model likelihood, $\mathcal{L}^\prime$ is then evaluated using this reduced number of trees. The covariance matrix of the data is increased by a factor $T^\prime$ when evaluating the likelihood, as are any additions to the covariance due to model discrepancy. Finally, the likelihood at $T=1$ is computed using:
 \begin{equation}
@@ -983,17 +983,17 @@ The entries have the following meanings:
 
 In detail, this likelihood function first collects {\normalfont \ttfamily emulatorRebuildCount} likelihood evaluations from the simulator. It then fits a polynomial of order {\normalfont \ttfamily polynomialOrder} and of dimension equal to the dimension of the state vector to the simulated likelihoods. Gaussian regression is performed on the residuals of the simulated likelihoods after this polynomial fit is removed. Once the emulator has been built in this way every second simulated state is discarded, and accumulation of new simulated states continues. Once {\normalfont \ttfamily emulatorRebuildCount} simulated states have once again been accumulated a new simulator is built. This ensures that the emulator does not lose all information used in building the previous emulator\footnote{This would be unfortunate as the second emulator to be built would then contain information on only those regions of the state space that were poorly emulated before.}, instead information from older emulators decays exponentially.
 
-Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood $\log\mathcal{L}_{\mathrm e}$ and its error estimate $\sigma_{\log\mathcal{L}_{\mathrm e}}$ are computed. The emulated likelihood is then returned if:
+Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood $\log\mathcal{L}_\mathrm{e}$ and its error estimate $\sigma_{\log\mathcal{L}_\mathrm{e}}$ are computed. The emulated likelihood is then returned if:
 \begin{equation}
-\log\mathcal{P}^\prime + \log\mathcal{L}_{\mathrm e} + N \sigma_{\log\mathcal{L}_{\mathrm e}} < \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
+\log\mathcal{P}^\prime + \log\mathcal{L}_\mathrm{e} + N \sigma_{\log\mathcal{L}_\mathrm{e}} < \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
 \end{equation}
 where $N=${\normalfont \ttfamily sigmaBuffer}, $\Delta\log\mathcal{L}=${\normalfont \ttfamily logLikelihoodBuffer}, $T$ is the temperature, $\log\mathcal{L}$ is the current log-likelhood, $\log\mathcal{P}$ is the current log-prior probability, and $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
 \begin{equation}
-\sigma_{\log\mathcal{L}_{\mathrm e}} < T \sigma_{\log\mathcal{L}},
+\sigma_{\log\mathcal{L}_\mathrm{e}} < T \sigma_{\log\mathcal{L}},
 \end{equation}
 where $\sigma_{\log\mathcal{L}}=${\normalfont \ttfamily logLikelihoodErrorTolerance}, otherwise the simulator is used to compute the exact likelihood. In this way, the emulated likelihood is used if it is sufficiently below the current likelihood that, even accounting for the emulation error, transition to the new state is highly unlikely, or if the error on the likelihood emulation is sufficiently small that it will not have a significant effect on the transition probabilty to the proposed state.
 
-If verbosity is set to 2 or greater than a report will be issued every {\normalfont \ttfamily reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within $3 \sigma_{\log\mathcal{L}_{\mathrm e}}$ of each other. The rate of failures (i.e. where the two differ by more than this amount) is then reported.
+If verbosity is set to 2 or greater than a report will be issued every {\normalfont \ttfamily reportCount} evaluations. The report will give the proportions of simulated vs. emulated evaluations. Additionally, during the evaluation where the report is issued, both the emulated and simulated log-likelihoods are evaluated and are tested to see if they lie within $3 \sigma_{\log\mathcal{L}_\mathrm{e}}$ of each other. The rate of failures (i.e. where the two differ by more than this amount) is then reported.
 
 \subsubsection{posteriorPrior}
 
@@ -1023,9 +1023,9 @@ This method uses the \gls{ann} library to locate {\normalfont \ttfamily neightbo
 
 The likelihood is computed as
 \begin{equation}
-\log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^{\mathrm T},
+\log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
 \end{equation}
-where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^{\mathrm model} - w_i^{\mathrm obs}$, $w_i^{\mathrm model}$ is the computed mass function at the $i^{\mathrm th}$ separation, and $w_i^{\mathrm obs}$ is the observed mass function at the $i^{\mathrm th}$ separation. The mass function is computed using the halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011}; \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the mass function calculation are specified by the follow content within the {\normalfont \ttfamily likelihood} element:
+where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$ is the computed mass function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed mass function at the $i^\mathrm{th}$ separation. The mass function is computed using the halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011}; \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the mass function calculation are specified by the follow content within the {\normalfont \ttfamily likelihood} element:
 \begin{verbatim}
   <haloMassMinimum>1.0e9</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
@@ -1047,9 +1047,9 @@ The HDF5 file specified by the {\normalfont \ttfamily massFunctionFileName} elem
 
 The likelihood is computed as
 \begin{equation}
-\log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^{\mathrm T},
+\log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
 \end{equation}
-where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^{\mathrm model} - w_i^{\mathrm obs}$, $w_i^{\mathrm model}$ is the computed projected correlation function at the $i^{\mathrm th}$ separation, and $w_i^{\mathrm obs}$ is the observed projected correlation function at the $i^{\mathrm th}$ separation. The projected correlation function is computed using the halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011}; \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the projected correlation function calculation are specified by the follow content within the {\normalfont \ttfamily likelihood} element:
+where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$ is the computed projected correlation function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed projected correlation function at the $i^\mathrm{th}$ separation. The projected correlation function is computed using the halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011}; \S\protect\ref{phys:conditionalMassFunction:conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}. The details of the projected correlation function calculation are specified by the follow content within the {\normalfont \ttfamily likelihood} element:
 \begin{verbatim}
   <haloMassMinimum>1.0e9</haloMassMinimum>
   <haloMassMaximum>1.0e15</haloMassMaximum>
@@ -1166,7 +1166,7 @@ This option uses a fixed $\alpha$ specified by the {\normalfont \ttfamily alpha}
 
 \subsubsection{{\normalfont \ttfamily adaptive}}
 
-This option adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of temperature, ${\mathrm d} R/{\mathrm d}\ln T$, at an acceptable level. The algorithm is controlled by the following parameters (to be specified as elements within the {\normalfont \ttfamily proposalSizeTemperatureExponent} element):
+This option adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of temperature, $\mathrm{d} R/\mathrm{d}\ln T$, at an acceptable level. The algorithm is controlled by the following parameters (to be specified as elements within the {\normalfont \ttfamily proposalSizeTemperatureExponent} element):
 \begin{description}
 \item[{\normalfont \ttfamily exponentInitial}] The initial value for $\alpha$;
 \item[{\normalfont \ttfamily exponentFactor}] The additive factor by which $\alpha$ should be increased or decreased if the acceptance rate gradient is out of range;
@@ -1213,9 +1213,9 @@ This option extends the {\normalfont \ttfamily differentialEvolution} option to 
 \end{description}
 In computing the acceptance probability for transitions between states, the chain temperature is set to
 \begin{equation}
-  T = 1 + \alpha C \sqrt{\sigma^2_{\mathrm current}+\sigma^2_{\mathrm proposed}},
+  T = 1 + \alpha C \sqrt{\sigma^2_\mathrm{current}+\sigma^2_\mathrm{proposed}},
 \end{equation}
-where $C = \log(\hat{R}/\hat{R}_{\mathrm t})$, $\hat{R}$ is the current maximum (across all parameters) Gelman-Rubin convergence statistic, $\hat{R}_{\mathrm t}$ is the target Gelman-Rubin convergence statistic at which convergence will be declared, and $\sigma^2_{\mathrm current}$ and $\sigma^2_{\mathrm proposed}$ are the variances in the log-likelihood of the current and proposed states respectively. This form ensures that the temperature declines to unity once the chains are converged (such that they will sample from the true posterior distribution), while ensuring that $T$ is of order the size of the expected random fluctuations in the difference in log-likelihoods between states prior to chain convergence.
+where $C = \log(\hat{R}/\hat{R}_\mathrm{t})$, $\hat{R}$ is the current maximum (across all parameters) Gelman-Rubin convergence statistic, $\hat{R}_\mathrm{t}$ is the target Gelman-Rubin convergence statistic at which convergence will be declared, and $\sigma^2_\mathrm{current}$ and $\sigma^2_\mathrm{proposed}$ are the variances in the log-likelihood of the current and proposed states respectively. This form ensures that the temperature declines to unity once the chains are converged (such that they will sample from the true posterior distribution), while ensuring that $T$ is of order the size of the expected random fluctuations in the difference in log-likelihoods between states prior to chain convergence.
 
 \subsubsection{{\normalfont \ttfamily temperedDifferentialEvolution}}
 
@@ -1230,9 +1230,9 @@ This option extends the {\normalfont \ttfamily differentialEvolution} option to 
 
 In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\normalfont \ttfamily temperedLevels}), and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
 \begin{equation}
-\log T_i = {i \over N} \log T_{\mathrm max},
+\log T_i = {i \over N} \log T_\mathrm{max},
 \end{equation}
-where $T_{\mathrm max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
 
 \subsubsection{{\normalfont \ttfamily annealedDifferentialEvolution}}
 
@@ -1244,9 +1244,9 @@ This option extends the {\normalfont \ttfamily differentialEvolution} option to 
 
 The temperature at level $i$ is given by:
 \begin{equation}
-\log T_i = {i-1 \over N-1} \log T_{\mathrm max},
+\log T_i = {i-1 \over N-1} \log T_\mathrm{max},
 \end{equation}
-where $T_{\mathrm max}=${\normalfont \ttfamily temperatureMaximum} and $N=${\normalfont \ttfamily temperatureLevels}.
+where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum} and $N=${\normalfont \ttfamily temperatureLevels}.
 
 \subsection{Parameters and Priors}\label{sec:ParametersPriors}
 
@@ -1290,7 +1290,7 @@ It is also possible to load parameters and their priors from external files. Thi
 
 It is possible to define parameters in terms of other parameters. Common uses for this include:
 \begin{itemize}
- \item Setting $\Omega_\Lambda$ from the value of $\Omega_{\mathrm M}$ to enforce a flat Universe;
+ \item Setting $\Omega_\Lambda$ from the value of $\Omega_\mathrm{M}$ to enforce a flat Universe;
  \item Setting the values of parameters with correlated priors as linear combinations of dummy parameters for which the priors are independent.
 \end{itemize}
 To define a parameter in this way include a {\normalfont \ttfamily parameter} element of the form:
@@ -1320,38 +1320,38 @@ Various distribution functions (for priors and random perturbations) are support
 
 A uniform distribution over a finite range
 \begin{equation}
-P(x) \propto \left\{ \begin{array}{ll} 1 & \hbox{ if } x_{\mathrm l} \leq x \leq x_{\mathrm u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
+P(x) \propto \left\{ \begin{array}{ll} 1 & \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
 \end{equation}
 Specified using:
 \begin{description}
-\item[{\normalfont \ttfamily minimum}] The lower limit of the range, $x_{\mathrm l}$;
-\item[{\normalfont \ttfamily maximum}] The upper limit of the range, $x_{\mathrm u}$.
+\item[{\normalfont \ttfamily minimum}] The lower limit of the range, $x_\mathrm{l}$;
+\item[{\normalfont \ttfamily maximum}] The upper limit of the range, $x_\mathrm{u}$.
 \end{description}
 
 \subsubsection{{\normalfont \ttfamily logUniform}}
 
 A distribution uniform in the logarithm of $x$ over a finite range
 \begin{equation}
-P(x) \propto \left\{ \begin{array}{ll} x^{-1} & \hbox{ if } x_{\mathrm l} \leq x \leq x_{\mathrm u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
+P(x) \propto \left\{ \begin{array}{ll} x^{-1} & \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
 \end{equation}
 Specified using:
 \begin{description}
-\item[{\normalfont \ttfamily minimum}] The lower limit of the range, $x_{\mathrm l}$;
-\item[{\normalfont \ttfamily maximum}] The upper limit of the range, $x_{\mathrm u}$.
+\item[{\normalfont \ttfamily minimum}] The lower limit of the range, $x_\mathrm{l}$;
+\item[{\normalfont \ttfamily maximum}] The upper limit of the range, $x_\mathrm{u}$.
 \end{description}
 
 \subsubsection{{\normalfont \ttfamily normal}}
 
 A normal distribution, optionally with lower and upper limits:
 \begin{equation}
-P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] & \hbox{ if } x_{\mathrm l} \leq x \leq x_{\mathrm u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
+P(x) \propto \left\{ \begin{array}{ll} \exp[-(x-\mu)^2/2S] & \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 & \hbox{ otherwise.}  \end{array} \right.
 \end{equation}
 Specified using:
 \begin{description}
 \item[{\normalfont \ttfamily mean}] The mean, $\mu$;
 \item[{\normalfont \ttfamily variance}] The variance, $S$;
-\item[{\normalfont \ttfamily minimum}] The lower limit of the range, $x_{\mathrm l}$;
-\item[{\normalfont \ttfamily maximum}] The upper limit of the range, $x_{\mathrm u}$.
+\item[{\normalfont \ttfamily minimum}] The lower limit of the range, $x_\mathrm{l}$;
+\item[{\normalfont \ttfamily maximum}] The upper limit of the range, $x_\mathrm{u}$.
 \end{description}
 
 \subsubsection{{\normalfont \ttfamily Cauchy}}

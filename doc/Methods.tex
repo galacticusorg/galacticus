@@ -274,9 +274,9 @@ Here, we get the disk component and check that it of the {\normalfont \ttfamily 
 
 When evolving ODEs the ODE solver aims to keep the error on property $i$ below
 \begin{equation}
- D_i = \epsilon_{\mathrm abs} s_i + \epsilon_{\mathrm rel} |y_i|,
+ D_i = \epsilon_\mathrm{abs} s_i + \epsilon_\mathrm{rel} |y_i|,
 \end{equation}
-where $epsilon_{\mathrm abs}=${\normalfont \ttfamily [odeToleranceAbsolute]}, $epsilon_{\mathrm rel}=${\normalfont \ttfamily [odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed for a component utilizing the {\normalfont \ttfamily scaleSetTask} directive. This allows a function to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_{\mathrm rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
+where $epsilon_\mathrm{abs}=${\normalfont \ttfamily [odeToleranceAbsolute]}, $epsilon_\mathrm{rel}=${\normalfont \ttfamily [odeToleranceRelative]}, $y_i$ is the value of property $i$ and $s_i$ is a scaling factor which controls the absolute tolerance for this property. By default, $s_i=1$, but this can be changed for a component utilizing the {\normalfont \ttfamily scaleSetTask} directive. This allows a function to be called in which the component sets suitable scale factors for each of its properties prior to any ODE evolution being carried out. This can be very useful, for example, in cases where two components are coupled. Consider a case where a disk is transferring material to a spheroid via a bar instability. If the disk is orders of magnitude more massive that the spheroid then the rate of mass transfer can be very high (i.e. $\dot{y}/y$ for the spheroid will be large). With just a relative tolerance (i.e. the $\epsilon_\mathrm{rel} |y_i|$ term) this would require very short timesteps for the spheroid. However, in such cases we don't care about such tiny tolerances for the spheroid (since it will grow to be substantially more massive). Therefore, it may be appropriate to set $s_i$ to be equal to the sum of the disk and spheroid properties for example. The scale set directive and associated subroutine should follow this template:
 \begin{verbatim}
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Disk_Exponential_Scale_Set</unitName>
@@ -393,10 +393,10 @@ Currently defined accretion disk methods are:
  \item [{\normalfont \ttfamily ADAF}] Computes the properties of an ADAF using the model of \cite{benson_maximum_2009}.
  \item [{\normalfont \ttfamily switched}] Select either {\normalfont \ttfamily Shakura-Sunyaev} or {\normalfont \ttfamily ADAF} accretion disks based on the accretion rate:
  \begin{eqnarray}
-  \dot{m}_{\mathrm minimum} < \dot{M}_{\bullet, 0}/\dot{M}_{\mathrm Eddington} < \dot{m}_{\mathrm maximum} &\rightarrow& \hbox{ Shakura-Sunyaev} \nonumber \\
+  \dot{m}_\mathrm{minimum} < \dot{M}_{\bullet, 0}/\dot{M}_\mathrm{Eddington} < \dot{m}_\mathrm{maximum} &\rightarrow& \hbox{ Shakura-Sunyaev} \nonumber \\
   \hbox{otherwise } &\rightarrow& \hbox{ ADAF},
  \end{eqnarray}
- where $\dot{m}_{\mathrm minimum}$={\normalfont \ttfamily accretionRateThinDiskMinimum} and $\dot{m}_{\mathrm maximum}$={\normalfont \ttfamily accretionRateThinDiskMaximum} are input parameters.
+ where $\dot{m}_\mathrm{minimum}$={\normalfont \ttfamily accretionRateThinDiskMinimum} and $\dot{m}_\mathrm{maximum}$={\normalfont \ttfamily accretionRateThinDiskMaximum} are input parameters.
  \item [{\normalfont \ttfamily eddingtonLimited}] Assumes no specific disk structure, instead setting the radiative efficiency to a fixed number and the jet power to a fixed fraction of the Eddington luminosity.
 \end{description}
 
@@ -853,8 +853,8 @@ The barrier function must return the barrier at the specified {\normalfont \ttfa
 
 Currently defined excursion set barrier methods are:
 \begin{description}
- \item [{\normalfont \ttfamily linear}] A linear ($1^{\mathrm st}$-order polynomial) barrier;
-  \item [{\normalfont \ttfamily quadratic}] A quadratic ($2^{\mathrm nd}$-order polynomial);
+ \item [{\normalfont \ttfamily linear}] A linear ($1^\mathrm{st}$-order polynomial) barrier;
+  \item [{\normalfont \ttfamily quadratic}] A quadratic ($2^\mathrm{nd}$-order polynomial);
   \item [{\normalfont \ttfamily criticalOverdensity}] A barrier equal to the critical overdensity for halo collapse.
 \end{description}
 
@@ -1278,9 +1278,9 @@ The function should return the halo mass sampling density function (the relative
 
 Currently defined halo mass sampling density function methods are:
 \begin{description}
- \item [{\normalfont \ttfamily powerLaw}] The distribution of halo masses is such that the mass of the $i^{\mathrm th}$ halo is
+ \item [{\normalfont \ttfamily powerLaw}] The distribution of halo masses is such that the mass of the $i^\mathrm{th}$ halo is
 \begin{equation}
- M_{\mathrm halo,i} = \exp\left[ \ln(M_{\mathrm halo,min}) + \ln\left({M_{\mathrm halo,max}/M_{\mathrm halo,min}}\right) x_i^{1+\alpha} \right].
+ M_\mathrm{halo,i} = \exp\left[ \ln(M_\mathrm{halo,min}) + \ln\left({M_\mathrm{halo,max}/M_\mathrm{halo,min}}\right) x_i^{1+\alpha} \right].
 \end{equation}
 Here, $x_i$ is a number between 0 and 1 and $\alpha=${\normalfont \ttfamily mergerTreeBuildTreesHaloMassExponent} is an input parameter that controls the relative number of low and high mass tree produced. 
 \item [{\normalfont \ttfamily haloMassFunction}] The sampling density is set equal to the dark matter halo mass function, defined per decade of halo mass.
@@ -1504,7 +1504,7 @@ The tabulation subroutine must have the form:
    end subroutine Linear_Growth_Tabulate
 \end{verbatim}
 The subroutine must tabulate the linear growth factor in array {\normalfont \ttfamily growthTableGrowthFactor()} for dark matter, baryons and radiation (entries 1, 2 and 3 of the first dimension respectively) as a function of time {\normalfont \ttfamily growthTableTime()} (second dimension) and wavenumber {\normalfont \ttfamily growthTableWavenumber()} (third dimension). These arrays must be allocated to the correct size, and may be prevously allocated, therefore requiring a deallocation. The number of tabulated points in the time dimension should be returned in {\normalfont \ttfamily growthTableNumberPoints}. It is permissible to tabulate for just a single wavenumber if the growth function is independent of wavenumber. The subroutine should ensure that the currently requested {\normalfont \ttfamily time} is within the range of the tabulated function (preferably with some buffer). The linear growth factors must be normalized to unity at $a=1$. Additionally, {\normalfont \ttfamily normalizationMatterDominated} should be set to the factor by which the tabulated growth factor (for the smallest wavenumber tabulated) 
-must be multiplied such that it scales as $(9 \Omega_{\mathrm M} / 4.0d0)^{1/3} (H_0 t)^{2/3}$ during the matter dominated regime.
+must be multiplied such that it scales as $(9 \Omega_\mathrm{M} / 4.0d0)^{1/3} (H_0 t)^{2/3}$ during the matter dominated regime.
 
 Currently defined linear growth factor methods are:
 \begin{description}
@@ -1583,7 +1583,7 @@ The procedure pointers must point to functions with the following templates:
     return
  end function My_Subresolution_Fraction
 \end{verbatim}
-{\normalfont \ttfamily Tree\_Branching\_Probability} must point to a function which returns the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. {\normalfont \ttfamily Tree\_Branching\_Probability\_Bound} must point to a function which returns either an upper or lower bound (as requested by the {\normalfont \ttfamily bound} arugment, which must be either {\normalfont \ttfamily boundLower} or {\normalfont \ttfamily boundUpper} as defined in the {\normalfont \ttfamily Merger\_Tree\_Branching\_Options} module) on the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. This is intended for cases where useful bounds can be computed rapidly (more rapidly than the full calculation performed by {\normalfont \ttfamily Tree\_Branching\_Probability}). It is acceptable to simply return the value given by {\normalfont \ttfamily Tree\_Branching\_Probability} is no bounds are available (in which case an implementation may want to intelligently store previously computed values and re-use them if possible). {\normalfont \ttfamily Tree\_Subresolution\_Fraction} must point to a function which returns the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}, or a negative value if the halo is so close to the resolution limit that this number cannot be determined accurately. {\normalfont \ttfamily Tree\_Maximum\_Step} must point to a function which returns the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} should be allowed to take. {\normalfont \ttfamily Tree\_Branch\_Mass} must point to a function which returns the mass of one of the halos to which the given halo branches, given the branching 
+{\normalfont \ttfamily Tree\_Branching\_Probability} must point to a function which returns the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. {\normalfont \ttfamily Tree\_Branching\_Probability\_Bound} must point to a function which returns either an upper or lower bound (as requested by the {\normalfont \ttfamily bound} arugment, which must be either {\normalfont \ttfamily boundLower} or {\normalfont \ttfamily boundUpper} as defined in the {\normalfont \ttfamily Merger\_Tree\_Branching\_Options} module) on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}. This is intended for cases where useful bounds can be computed rapidly (more rapidly than the full calculation performed by {\normalfont \ttfamily Tree\_Branching\_Probability}). It is acceptable to simply return the value given by {\normalfont \ttfamily Tree\_Branching\_Probability} is no bounds are available (in which case an implementation may want to intelligently store previously computed values and re-use them if possible). {\normalfont \ttfamily Tree\_Subresolution\_Fraction} must point to a function which returns the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}, or a negative value if the halo is so close to the resolution limit that this number cannot be determined accurately. {\normalfont \ttfamily Tree\_Maximum\_Step} must point to a function which returns the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical} should be allowed to take. {\normalfont \ttfamily Tree\_Branch\_Mass} must point to a function which returns the mass of one of the halos to which the given halo branches, given the branching 
 probability, {\normalfont \ttfamily probability}.
 
 Currently defined merger tree branching methods are:
@@ -2090,8 +2090,8 @@ The subroutine must compute the properties of the merger remnant. Typically thes
 Currently defined satellite merger remnant size methods are:
 \begin{description}
  \item [{\normalfont \ttfamily null}] This is a null method which does nothing. It is useful for runs where no baryonic components are included (e.g. for studying dark matter only).
- \item [{\normalfont \ttfamily Cole2000}] Implements the algorithm of \cite{cole_hierarchical_2000} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_{\mathrm orbit}$ parameter of \cite{cole_hierarchical_2000}.
- \item [{\normalfont \ttfamily Covington2008}] Implements the algorithm of \cite{covington_predicting_2008} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_{\mathrm orbit}$ parameter of \cite{cole_hierarchical_2000}.
+ \item [{\normalfont \ttfamily Cole2000}] Implements the algorithm of \cite{cole_hierarchical_2000} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_\mathrm{orbit}$ parameter of \cite{cole_hierarchical_2000}.
+ \item [{\normalfont \ttfamily Covington2008}] Implements the algorithm of \cite{covington_predicting_2008} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_\mathrm{orbit}$ parameter of \cite{cole_hierarchical_2000}.
 \end{description}
 
 \subsubsection{Satellite Merging Remnants: Progenitor Properties}
@@ -2131,8 +2131,8 @@ The progenitor properties subroutine must have the form:
     return
   end subroutine My_Method_Do
 \end{verbatim}
-The subroutine must compute properties of the merger progenitor galaxies in {\normalfont \ttfamily satelliteNode} and {\normalfont \ttfamily hostNode}: {\normalfont \ttfamily satelliteMass} and {\normalfont \ttfamily hostMass} are the total masses of the two galaxies; {\normalfont \ttfamily satelliteSpheroidMass} and {\normalfont \ttfamily hostSpheroidMass} are the masses of each galaxy that will end up in the spheroid of the merger remnant; {\normalfont \ttfamily hostSpheroidMassPreMerger} is the mass of the host spheroid prior to the merger; {\normalfont \ttfamily satelliteRadius} and {\normalfont \ttfamily hostRadius} are radii of the two galaxies for use in merger remnant size calculations (and so should typically refer to the radius of material that will end up in the merger remnant spheroid); {\normalfont \ttfamily remnantSpheroidMass} is the mass of the spheroid in the remnant; {\normalfont \ttfamily remnantSpheroidGasMass} is the mass of gas in the spheroid of the remnant; and {\normalfont \ttfamily angularMomentumFactor} gives the pseudo-specific angular momentum of the remnant in units of $({\mathrm G} M_{\mathrm remnant,spheroid} r_{\mathrm remnant,spheroid})^{1/2}$ where $M_{\mathrm remnant,spheroid}$ is the mass of the 
-remnant spheroid and $r_{\mathrm remnant,spheroid}$ is the radius of the remnant spheroid.
+The subroutine must compute properties of the merger progenitor galaxies in {\normalfont \ttfamily satelliteNode} and {\normalfont \ttfamily hostNode}: {\normalfont \ttfamily satelliteMass} and {\normalfont \ttfamily hostMass} are the total masses of the two galaxies; {\normalfont \ttfamily satelliteSpheroidMass} and {\normalfont \ttfamily hostSpheroidMass} are the masses of each galaxy that will end up in the spheroid of the merger remnant; {\normalfont \ttfamily hostSpheroidMassPreMerger} is the mass of the host spheroid prior to the merger; {\normalfont \ttfamily satelliteRadius} and {\normalfont \ttfamily hostRadius} are radii of the two galaxies for use in merger remnant size calculations (and so should typically refer to the radius of material that will end up in the merger remnant spheroid); {\normalfont \ttfamily remnantSpheroidMass} is the mass of the spheroid in the remnant; {\normalfont \ttfamily remnantSpheroidGasMass} is the mass of gas in the spheroid of the remnant; and {\normalfont \ttfamily angularMomentumFactor} gives the pseudo-specific angular momentum of the remnant in units of $(\mathrm{G} M_\mathrm{remnant,spheroid} r_\mathrm{remnant,spheroid})^{1/2}$ where $M_\mathrm{remnant,spheroid}$ is the mass of the 
+remnant spheroid and $r_\mathrm{remnant,spheroid}$ is the radius of the remnant spheroid.
 
 Currently defined satellite merger progenitor properties methods are:
 \begin{description}
@@ -2220,9 +2220,9 @@ Currently defined star formation expulsive feedback methods are:
  \item [\hyperlink{star_formation.feedback_expulsion.spheroids.null.F90:star_formation_expulsive_feedback_spheroids_null:star_formation_expulsive_feedback_spheroid_outflow_rate_null}{{\normalfont \ttfamily null}}] Assumes a zero outflow rate.
  \item [\hyperlink{star_formation.feedback_expulsion.spheroids.superwind.F90:star_formation_expulsive_feedback_spheroids_superwind:star_formation_expulsive_feedback_spheroid_outflow_rate_sw}{{\normalfont \ttfamily superwind}}] The outflow rate is given by
 \begin{equation}
- \dot{M}_{\mathrm outflow} = \beta_{\mathrm superwind} {\dot{E} \over E_{\mathrm canonical}} \left\{ \begin{array}{ll} \left( V_{\mathrm superwind}/V\right)^2 & \hbox{ if } V > V_{\mathrm superwind} \\ 1 & \hbox{ otherwise,} \end{array} \right.
+ \dot{M}_\mathrm{outflow} = \beta_\mathrm{superwind} {\dot{E} \over E_\mathrm{canonical}} \left\{ \begin{array}{ll} \left( V_\mathrm{superwind}/V\right)^2 & \hbox{ if } V > V_\mathrm{superwind} \\ 1 & \hbox{ otherwise,} \end{array} \right.
 \end{equation}
-where $V_{\mathrm superwind}=${\normalfont \ttfamily [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_{\mathrm superwind}=${\normalfont \ttfamily [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\mathrm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+where $V_\mathrm{superwind}=${\normalfont \ttfamily [disk|spheroid]SuperwindVelocity} (in km/s) and $\beta_\mathrm{superwind}=${\normalfont \ttfamily [disk|spheroid]SuperwindMassLoading} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_\mathrm{canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 \end{description}
 
 \subsubsection{Star Formation Rate Surface Density in Disks}
@@ -2308,11 +2308,11 @@ Currently defined star formation timescale methods are:
  \item [\hyperlink{star_formation.timescales.disks.fixed.F90:star_formation_timescale_disks_fixed}{{\normalfont \ttfamily fixed}}]  The timescale is a fixed quantity;
  \item [\hyperlink{star_formation.timescales.disks.dynamical_time.F90:star_formation_timescale_disks_dynamical_time:star_formation_timescale_disk_dynamical_time}{{\normalfont \ttfamily dynamicalTime}}]  The timescale is given by
 \begin{equation}
- \tau_\star = \epsilon_\star^{-1} \tau_{\mathrm dynamical, [disk|spheroid]} \left( {V_{\mathrm [disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},
+ \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical, [disk|spheroid]} \left( {V_\mathrm{[disk|spheroid]} \over 200\hbox{km/s}} \right)^{\alpha_\star},
 \end{equation}
-where $\epsilon_\star$(={\normalfont \ttfamily starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_{\mathrm dynamical,[disk|spheroid]}=R_{\mathrm [disk|spheroid]}/V_{\mathrm [disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that radius.
- \item {\normalfont \ttfamily Baugh2005}] The timescale is given by $\tau_0 (V_{\mathrm disk}/200\hbox{km/s})^\alpha a^\beta$.
- \item {\normalfont \ttfamily integratedSurfaceDensity}] The timescale is given by $\tau_\star = M_{\mathrm cold}/\int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) {\mathrm d}r$ where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate (see \S\ref{sec:StarFormationRateSurfaceDensity})
+where $\epsilon_\star$(={\normalfont \ttfamily starFormation[Disk|Spheroid]Efficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily starFormation[Disk|Spheroid]VelocityExponent}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical,[disk|spheroid]}=R_\mathrm{[disk|spheroid]}/V_\mathrm{[disk|spheroid]}$ where the radius and velocity are whatever characteristic values returned by the disk/spheroid method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but they specifically used the half-mass radius and circular velocity at that radius.
+ \item {\normalfont \ttfamily Baugh2005}] The timescale is given by $\tau_0 (V_\mathrm{disk}/200\hbox{km/s})^\alpha a^\beta$.
+ \item {\normalfont \ttfamily integratedSurfaceDensity}] The timescale is given by $\tau_\star = M_\mathrm{cold}/\int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) \mathrm{d}r$ where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate (see \S\ref{sec:StarFormationRateSurfaceDensity})
 \end{description}
 
 \subsubsection{Stellar Astrophysics}
@@ -2436,7 +2436,7 @@ The stellar populations properties subroutine must have the form:
     return
  end subroutine Stellar_Population_Properties_Rates
 \end{verbatim}
-The subroutine is given the {\normalfont \ttfamily starFormationRate} (in $M_\odot$ Gyr$^{-1}$) in {\normalfont \ttfamily thisNode}. Any history information required by this method must be passed in via the {\normalfont \ttfamily history} argument. Stars are forming from fuel material with composition specified by {\normalfont \ttfamily fuelAbundances} and occurring in the specified galactic {\normalfont \ttfamily component} (using the labels provided by the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\normalfont \ttfamily Galactic\_Structure\_Options}} module). The subroutine must return the rates of change of stellar and fuel mass (in $M_\odot$ Gyr$^{-1}$) in {\normalfont \ttfamily stellarMassRate} and {\normalfont \ttfamily fuelMassRate} respectively, and the corresponding rates (also in $M_\odot$ Gyr$^{-1}$) of abundance change in {\normalfont \ttfamily stellarAbundancesRates} and {\normalfont \ttfamily fuelAbundancesRates} respectively. Finally, it should return rates of change (in $L_{\mathrm AB}$ Gyr$^{-1}$) of stellar luminosities for all requested output bands in {\normalfont \ttfamily stellarLuminositiesRates}. Additionally, the rate of energy input from stellar 
+The subroutine is given the {\normalfont \ttfamily starFormationRate} (in $M_\odot$ Gyr$^{-1}$) in {\normalfont \ttfamily thisNode}. Any history information required by this method must be passed in via the {\normalfont \ttfamily history} argument. Stars are forming from fuel material with composition specified by {\normalfont \ttfamily fuelAbundances} and occurring in the specified galactic {\normalfont \ttfamily component} (using the labels provided by the \hyperlink{galactic_structure.options.F90:galactic_structure_options}{{\normalfont \ttfamily Galactic\_Structure\_Options}} module). The subroutine must return the rates of change of stellar and fuel mass (in $M_\odot$ Gyr$^{-1}$) in {\normalfont \ttfamily stellarMassRate} and {\normalfont \ttfamily fuelMassRate} respectively, and the corresponding rates (also in $M_\odot$ Gyr$^{-1}$) of abundance change in {\normalfont \ttfamily stellarAbundancesRates} and {\normalfont \ttfamily fuelAbundancesRates} respectively. Finally, it should return rates of change (in $L_\mathrm{AB}$ Gyr$^{-1}$) of stellar luminosities for all requested output bands in {\normalfont \ttfamily stellarLuminositiesRates}. Additionally, the rate of energy input from stellar 
 populations must be returned in {\normalfont \ttfamily energyInputRate}.
 
 The scales procedure should have the form:
@@ -2936,7 +2936,7 @@ where {\normalfont \ttfamily Density\_Procedure} is the name of a function with 
 If {\normalfont \ttfamily componentType} is a match to the component then the function should return the density of the component matching type {\normalfont \ttfamily massType} at {\normalfont \ttfamily position} for {\normalfont \ttfamily thisNode}. {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. In the above ``density'' can actually refer to different quantities depending on the values of {\normalfont \ttfamily weightBy} (and {\normalfont \ttfamily weightIndex}):
 \begin{description}
 \item [{\normalfont \ttfamily weightByMass}] The actual mass should be returned (the value of {\normalfont \ttfamily weightIndex} is irrelevant);
-\item [{\normalfont \ttfamily weightByLuminosity}] The {\normalfont \ttfamily weightIndex}$^{\mathrm th}$ luminosity should be returned.
+\item [{\normalfont \ttfamily weightByLuminosity}] The {\normalfont \ttfamily weightIndex}$^\mathrm{th}$ luminosity should be returned.
 \end{description}
 If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
@@ -2965,7 +2965,7 @@ If {\normalfont \ttfamily componentType} is a match to the component then the fu
 If {\normalfont \ttfamily radius} is equal to or greater than {\normalfont \ttfamily radiusLarge} the routine should the total ``mass'' (i.e. ``mass'' within infinite radius). In the above ``mass'' can actually refer to different quantities depending on the values of {\normalfont \ttfamily weightBy} (and {\normalfont \ttfamily weightIndex}):
 \begin{description}
 \item [{\normalfont \ttfamily weightByMass}] The actual mass should be returned (the value of {\normalfont \ttfamily weightIndex} is irrelevant);
-\item [{\normalfont \ttfamily weightByLuminosity}] The {\normalfont \ttfamily weightIndex}$^{\mathrm th}$ luminosity should be returned.
+\item [{\normalfont \ttfamily weightByLuminosity}] The {\normalfont \ttfamily weightIndex}$^\mathrm{th}$ luminosity should be returned.
 \end{description}
 If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
@@ -3013,7 +3013,7 @@ where {\normalfont \ttfamily Rotation\_Curve\_Gradient\_Procedure} is the name o
     return
  end function Rotation_Curve_Gradient_Procedure
 \end{verbatim}
-If {\normalfont \ttfamily componentType} is a match to the component then the function should return the contribution to the gradient of $V_{\mathrm c}^2(r)$ due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
+If {\normalfont \ttfamily componentType} is a match to the component then the function should return the contribution to the gradient of $V_\mathrm{c}^2(r)$ due to the component matching type {\normalfont \ttfamily massType} within {\normalfont \ttfamily radius} for {\normalfont \ttfamily thisNode}. \emph{Note that this is the gradient of the square of the rotation curve to permit gradients to be directly summed.} {\normalfont \ttfamily componentType} and {\normalfont \ttfamily massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\normalfont \ttfamily haloLoaded}$=${\normalfont \ttfamily true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Potential}
 
@@ -3651,7 +3651,7 @@ The {\normalfont \ttfamily keplerOrbit} object (provided by the \href{objects.ke
  \item If an orbit is overdefined (i.e. if more than three parameters are set manually) no checking is performed to ensure that the parameters are consistent with a Keplerian orbit;
  \item Not all interconversions between parameters are supported\footnote{The {\normalfont \ttfamily keplerOrbit} object works by trying to convert to the combination radius, radial and tengential velocities. Once these are defined, all other parameters can be computed. However, for orbits defined in terms of other parameters, the {\normalfont \ttfamily keplerOrbit} object does not know how to convert from every such combination of parameters.}. If a conversion cannot be performed, an error message will be given. 
 \end{itemize}
-A {\normalfont \ttfamily keplerOrbit} object can be reset by calling the {\normalfont \ttfamily reset()} method, and its defined/undefined status can be tested with the {\normalfont \ttfamily isDefined()} method or asserted with the {\normalfont \ttfamily assertIsDefined()} method. The following orbital parameters are supported, each method returning the value of the parameter and a corresponding method suffixed with {\normalfont \ttfamily Set} can be used to set the parameter: {\normalfont \ttfamily radius}, {\normalfont \ttfamily velocityRadial}, {\normalfont \ttfamily velocityTengentail}, {\normalfont \ttfamily energy}, {\normalfont \ttfamily angularMomentum}, {\normalfont \ttfamily eccentricity}, {\normalfont \ttfamily semiMajorAxis}, {\normalfont \ttfamily radiusPericenter}, {\normalfont \ttfamily radiusApocenter}. Additionally, the masses of the orbitting bodies are provided by the {\normalfont \ttfamily hostMass()} and {\normalfont \ttfamily reducedMassSpecific()}$=M_{\mathrm host}/(M_{\mathrm host}+M_{\mathrm satellite})$ methods. Finally, the {\normalfont \ttfamily velocityScale()} method returns ${\mathrm G}M_{\mathrm host}/r$ where $r$ is the radius of the orbit.
+A {\normalfont \ttfamily keplerOrbit} object can be reset by calling the {\normalfont \ttfamily reset()} method, and its defined/undefined status can be tested with the {\normalfont \ttfamily isDefined()} method or asserted with the {\normalfont \ttfamily assertIsDefined()} method. The following orbital parameters are supported, each method returning the value of the parameter and a corresponding method suffixed with {\normalfont \ttfamily Set} can be used to set the parameter: {\normalfont \ttfamily radius}, {\normalfont \ttfamily velocityRadial}, {\normalfont \ttfamily velocityTengentail}, {\normalfont \ttfamily energy}, {\normalfont \ttfamily angularMomentum}, {\normalfont \ttfamily eccentricity}, {\normalfont \ttfamily semiMajorAxis}, {\normalfont \ttfamily radiusPericenter}, {\normalfont \ttfamily radiusApocenter}. Additionally, the masses of the orbitting bodies are provided by the {\normalfont \ttfamily hostMass()} and {\normalfont \ttfamily reducedMassSpecific()}$=M_\mathrm{host}/(M_\mathrm{host}+M_\mathrm{satellite})$ methods. Finally, the {\normalfont \ttfamily velocityScale()} method returns $\mathrm{G}M_\mathrm{host}/r$ where $r$ is the radius of the orbit.
 
 \subsection{Chemicals}\label{sec:ChemicalSubsystem}
 
@@ -3752,7 +3752,7 @@ The base class provides the following methods:
  \end{description}
 \item [{\normalfont \ttfamily isDimensionless}] Returns a Boolean indicating whether this is a dimensionless or dimensionful mass distribution;
 \item [{\normalfont \ttfamily density}] Returns the density of the mass distribution at the supplied {\normalfont \ttfamily coordinates};
-\item [{\normalfont \ttfamily densityRadialMoment}] Returns the $n^{\mathrm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\mathbf x}) |x|^n {\mathrm d} {\mathbf x}$; 
+\item [{\normalfont \ttfamily densityRadialMoment}] Returns the $n^\mathrm{th}$ moment of the integral of the density over radius, $\int_0^\infty \rho(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$; 
 \item [{\normalfont \ttfamily massEnclosedBySphere}] Returns the mass enclosed by a sphere of given {\normalfont \ttfamily radius} (centered on the origin);
 \item [{\normalfont \ttfamily potential}] Returns the gravitational potential at the specified {\normalfont \ttfamily coordinates}.
 \end{description}
@@ -3780,12 +3780,12 @@ Currently implemented mass distributions include:
      &                         virialRadius,isDimensionless)
 \end{verbatim}
 All arguments are optional, but the combination given must be sufficient to allow the scale length and density normalization to be determined. The profile will be assumed to be dimensionful unless the {\normalfont \ttfamily isDimensionless} argument specifies otherwise.
- \item [{\normalfont \ttfamily betaProfile}] A $\beta$-profile, $\rho(r)=\rho_0/[1+(r/r_{\mathrm core})^2]^{3\beta/2}$. Initialization is by
+ \item [{\normalfont \ttfamily betaProfile}] A $\beta$-profile, $\rho(r)=\rho_0/[1+(r/r_\mathrm{core})^2]^{3\beta/2}$. Initialization is by
 \begin{verbatim}
  call myBetaProfile%initialize(beta,coreRadius,densityNormalization,mass, &
      &                         outerRadius,isDimensionless)
 \end{verbatim}
- {\normalfont \ttfamily beta}$=\beta$ and {\normalfont \ttfamily coreRadius}$=r_{\mathrm core}$ must always be specified. The density normalization must be specified either by the {\normalfont \ttfamily densityNormalization} argument, or by supplying both {\normalfont \ttfamily mass} and {\normalfont \ttfamily outerRadius}. The profile will be assumed to be dimensionful unless the {\normalfont \ttfamily isDimensionless} argument specifies otherwise.
+ {\normalfont \ttfamily beta}$=\beta$ and {\normalfont \ttfamily coreRadius}$=r_\mathrm{core}$ must always be specified. The density normalization must be specified either by the {\normalfont \ttfamily densityNormalization} argument, or by supplying both {\normalfont \ttfamily mass} and {\normalfont \ttfamily outerRadius}. The profile will be assumed to be dimensionful unless the {\normalfont \ttfamily isDimensionless} argument specifies otherwise.
  \item [{\normalfont \ttfamily hernquist}] The Hernquist \citep{hernquist_analytical_1990} profile. Initialization is by
 \begin{verbatim}
  call myHernquistProfile%initialize(scaleLength,densityNormalization,mass, &

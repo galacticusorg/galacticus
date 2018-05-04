@@ -152,7 +152,7 @@ module Stellar_Luminosities_Structure
      !@     <method>luminosity</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ index\argin</arguments>
-     !@     <description>Return the $i^{\mathrm th}$ luminosity.</description>
+     !@     <description>Return the $i^\mathrm{th}$ luminosity.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>output</method>

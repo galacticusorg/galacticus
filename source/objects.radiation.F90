@@ -256,7 +256,7 @@ contains
     !% Integrate the photon number of the radiation field over a given cross-section function (which should return the cross
     !% section in units of cm$^2$), i.e.:
     !% \begin{equation}
-    !% {4 \pi \over {\mathrm h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {{\mathrm d}\lambda \over \lambda},
+    !% {4 \pi \over \mathrm{h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {\mathrm{d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
     use Numerical_Integration

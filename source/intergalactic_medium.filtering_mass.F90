@@ -252,7 +252,7 @@ contains
   end function Mass_Filtering_Early_Epoch_Coefficients
 
   double precision function rLSS(omegaMatter,expansionFactor)
-    !% Evaluate the $r_{\mathrm LSS}$ parameter of \cite{naoz_formation_2007} using their fitting formula.
+    !% Evaluate the $r_\mathrm{LSS}$ parameter of \cite{naoz_formation_2007} using their fitting formula.
     implicit none
     double precision, intent(in   ) :: omegaMatter     , expansionFactor
     double precision                :: rLSSCoefficient1, rLSSCoefficient2, rLSSCoefficient3

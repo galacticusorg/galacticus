@@ -22,7 +22,7 @@
   use Output_Analysis_Molecular_Ratios
 
   !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorALFLF">
-  !#  <description>A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+  !#  <description>A random error output analysis distribution operator class providing errors in HI mass for the ALFALFA survey. Specifically, $\sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right)$.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorALFLF
      !% A random error output distribution operator class providing errors in HI mass for the ALFALFA survey.

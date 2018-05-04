@@ -578,7 +578,7 @@ contains
   end function galacticusTreeCount
 
   integer(kind=kind_int8) function galacticusTreeIndex(self,i)
-    !% Return the index of the $i^{\mathrm th}$ tree.
+    !% Return the index of the $i^\mathrm{th}$ tree.
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                              , intent(in   ) :: i
@@ -589,7 +589,7 @@ contains
   end function galacticusTreeIndex
 
   function galacticusNodeCount(self,i)
-    !% Return a count of the number of nodes in the $i^{\mathrm th}$ tree.
+    !% Return a count of the number of nodes in the $i^\mathrm{th}$ tree.
     implicit none
     integer(c_size_t                    )                :: galacticusNodeCount
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -915,7 +915,7 @@ contains
   end function galacticusSubhaloTraceCount
 
   subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions,structureOnly)
-    !% Import the $i^{\mathrm th}$ merger tree.
+    !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
     use HDF5

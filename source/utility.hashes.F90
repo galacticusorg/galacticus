@@ -66,7 +66,7 @@ module Hashes
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>key</method>
-     !@     <description>Return the key of the {\normalfont \ttfamily indexValue}$^{\mathrm th}$ entry in the hash.</description>
+     !@     <description>Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash.</description>
      !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
      !@     <arguments>\intzero\ indexValue\argin</arguments>
      !@   </objectMethod>

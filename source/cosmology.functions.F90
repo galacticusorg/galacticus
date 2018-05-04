@@ -196,7 +196,7 @@ module Cosmology_Functions
   !#   </code>
   !#  </method>
   !#  <method name="comovingVolumeElementRedshift" >
-  !#   <description>Returns the differential comoving volume element ${\mathrm d}V/{\mathrm d}z = r_{\mathrm c}^2(t) {\mathrm c} H^{-1}(t)$ (where $r_{\mathrm c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
+  !#   <description>Returns the differential comoving volume element $\mathrm{d}V/\mathrm{d}z = r_\mathrm{c}^2(t) \mathrm{c} H^{-1}(t)$ (where $r_\mathrm{c}$ is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Numerical_Constants_Physical</modules>
@@ -204,7 +204,7 @@ module Cosmology_Functions
   !#   <code>cosmologyFunctionsComovingVolumeElementRedshift=self%distanceComoving(time)**2*(speedLight/kilo)/self%hubbleParameterEpochal(time=time)</code>
   !#  </method>
   !#  <method name="comovingVolumeElementTime" >
-  !#   <description>Returns the differential comoving volume element ${\mathrm d}V/{\mathrm d}t = r_{\mathrm c}^2(t) {\mathrm c} a(t)$ (where $r_{\mathrm c}$ is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
+  !#   <description>Returns the differential comoving volume element $\mathrm{d}V/\mathrm{d}t = r_\mathrm{c}^2(t) \mathrm{c} a(t)$ (where $r_\mathrm{c}$ is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the specified {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Numerical_Constants_Astronomical Numerical_Constants_Physical</modules>

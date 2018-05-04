@@ -60,7 +60,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
        !#   <defaultValue>sqrt(0.5d0)</defaultValue>
-       !#   <description>The ratio of galaxy radius to $\lambda r_{\mathrm vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
+       !#   <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
        !#   <source>globalParameters</source>
        !#   <type>real</type>
        !# </inputParameter>

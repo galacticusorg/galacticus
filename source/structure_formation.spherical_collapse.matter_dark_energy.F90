@@ -101,7 +101,7 @@ contains
   end subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType,linearGrowth_,cosmologyFunctions_)
-    !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
+    !% Tabulate $\delta_\mathrm{crit}$ or $\Delta_\mathrm{vir}$ vs. time.
     use Linear_Growth
     use Root_Finder
     use Tables

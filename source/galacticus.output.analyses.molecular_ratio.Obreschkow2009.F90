@@ -123,7 +123,7 @@ contains
     !#   <defaultValue>0.4d0</defaultValue>
     !#   <defaultSource>(Obsreschkow, private communication)</defaultSource>
     !#   <source>parameters</source>
-    !#   <description>The scatter (in dex) in the molecular ratio $\log_{10}R_{\mathrm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
+    !#   <description>The scatter (in dex) in the molecular ratio $\log_{10}R_\mathrm{mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>

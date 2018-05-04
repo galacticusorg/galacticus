@@ -99,7 +99,7 @@
      !@     <method>index</method>
      !@     <type>\intone</type>
      !@     <arguments>\intone\ i\argin</arguments>
-     !@     <description>Return the $i^{\mathrm th}$ index of the polynomial coefficient.</description>
+     !@     <description>Return the $i^\mathrm{th}$ index of the polynomial coefficient.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>currentOrder</method>
@@ -819,7 +819,7 @@ contains
   end subroutine gaussianRegressionVariogramModelFD
 
   integer function polynomialCoefficientCount(n,d)
-    !% Return the number of coefficients at {\normalfont \ttfamily n}$^{\mathrm th}$ order in polynomial of dimension {\normalfont \ttfamily d}.
+    !% Return the number of coefficients at {\normalfont \ttfamily n}$^\mathrm{th}$ order in polynomial of dimension {\normalfont \ttfamily d}.
     use Factorials
     implicit none
     integer, intent(in   ) :: n,d

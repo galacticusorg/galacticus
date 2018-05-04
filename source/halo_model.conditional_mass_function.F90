@@ -37,14 +37,14 @@ module Conditional_Mass_Functions
   !#  <default>behroozi2010</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="massFunction" >
-  !#   <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\mathrm halo})$.</description>
+  !#   <description>Return the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   )           :: massHalo  , mass</argument>
   !#   <argument>integer         , intent(in   ), optional :: galaxyType</argument>
   !#  </method>
   !#  <method name="massFunctionVariance" >
-  !#   <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\mathrm halo})$.</description>
+  !#   <description>Return the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: massHalo,massLow,massHigh</argument>

@@ -41,7 +41,7 @@ module Power_Spectra
   !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
   !#  </method>
   !#  <method name="powerLogarithmicDerivative" >
-  !#   <description>Return the logarithmic derivative of the power spectrum, ${\mathrm d}\ln P(k)/{\mathrm d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
+  !#   <description>Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: wavenumber</argument>

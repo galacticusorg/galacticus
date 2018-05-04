@@ -58,7 +58,7 @@ module Mass_Distributions
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>densityRadialMoment</method>
-     !@     <description>Returns the $n^{\mathrm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\mathbf x}) |x|^n {\mathrm d} {\mathbf x}$.</description>
+     !@     <description>Returns the $n^\mathrm{th}$ moment of the integral of the density over radius, $\int_0^\infty \rho(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
      !@   </objectMethod>
@@ -131,7 +131,7 @@ module Mass_Distributions
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>surfaceDensityRadialMoment</method>
-     !@     <description>Returns the $n^{\mathrm th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma({\mathbf x}) |x|^n {\mathrm d} {\mathbf x}$.</description>
+     !@     <description>Returns the $n^\mathrm{th}$ moment of the integral of the surface density over radius, $\int_0^\infty \Sigma(\mathbf{x}) |x|^n \mathrm{d} \mathbf{x}$.</description>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
      !@   </objectMethod>

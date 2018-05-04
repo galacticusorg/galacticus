@@ -37,7 +37,7 @@ contains
     !% \begin{equation}
     !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
     !% \end{equation}
-    !% where $\nu=\delta_{\mathrm c}(t)/\sigma(M)$ is the peak height of the halo.
+    !% where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
     use Cosmological_Density_Field
     implicit none

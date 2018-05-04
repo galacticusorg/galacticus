@@ -317,7 +317,7 @@ contains
   double precision function enzoHydrostaticRotationNormalization(self,node)
     !% Return the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
-    !% normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
+    !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
     implicit none
     class(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type (treeNode                              ), intent(inout) :: node

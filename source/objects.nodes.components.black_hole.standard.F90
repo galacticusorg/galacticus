@@ -180,7 +180,7 @@ contains
           !#   <name>blackHoleWindEfficiency</name>
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>2.4d-3</defaultValue>
-          !#   <description>The efficiency of the black hole-driven wind: $L_{\mathrm wind} = \epsilon_{\mathrm wind} \dot{M}_\bullet \clight^2$.</description>
+          !#   <description>The efficiency of the black hole-driven wind: $L_\mathrm{wind} = \epsilon_\mathrm{wind} \dot{M}_\bullet \clight^2$.</description>
           !#   <group>blackHoles</group>
           !#   <source>globalParameters</source>
           !#   <type>double</type>

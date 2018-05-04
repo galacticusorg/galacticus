@@ -28,15 +28,15 @@
   !#   lightcone as follows. Define a spherical coodinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
   !#   $x$-axis. The solid angle of the field is then  
   !#   \begin{equation}
-  !#    \Omega = 2 \pi \int_0^{\psi/2} \sin\theta {\mathrm d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} {\mathrm d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} {\mathrm d}\phi,
+  !#    \Omega = 2 \pi \int_0^{\psi/2} \sin\theta \mathrm{d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} \mathrm{d}\phi,
   !#   \end{equation}
   !#   which is
   !#   \begin{equation}
-  !#    \Omega = 2 \pi [1-\cos(\psi/2)] + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} {\mathrm d}\theta \sin\theta \left[ {\pi\over 4} - \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right)\right],
+  !#    \Omega = 2 \pi [1-\cos(\psi/2)] + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \left[ {\pi\over 4} - \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right)\right],
   !#   \end{equation}
   !#   or
   !#   \begin{equation}
-  !#    \Omega = 2 \pi [1 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} {\mathrm d}\theta \sin\theta \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right),
+  !#    \Omega = 2 \pi [1 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right),
   !#   \end{equation}
   !#   The final integral can be evaluated (using Mathematica for example) to give
   !#   \begin{eqnarray}

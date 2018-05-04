@@ -414,14 +414,14 @@ where {\normalfont \ttfamily parameterFile} is a file of parameters in \glc's us
 \end{verbatim}
 These datasets contain the following information:
 \begin{description}
- \item [{\normalfont \ttfamily haloMass}] Halo mass [${\mathrm M}_\odot$];
+ \item [{\normalfont \ttfamily haloMass}] Halo mass [$\mathrm{M}_\odot$];
  \item [{\normalfont \ttfamily wavenumber}] Wavenumber corresponding to this halo mass [Mpc$^{-1}$];
  \item [{\normalfont \ttfamily powerSpectrum}] Power spectrum at this wavenumber [Mpc$^3$];
  \item [{\normalfont \ttfamily variance}] The variance, $S(M)\equiv\sigma^2(M)$, at this halo mass;
  \item [{\normalfont \ttfamily barrier}] The excursion set barrier, $B(S)$;
- \item [{\normalfont \ttfamily firstCrossingProbability}] The probability of first crossing this barrier between $S$ and $S+{\mathrm d}S$;
+ \item [{\normalfont \ttfamily firstCrossingProbability}] The probability of first crossing this barrier between $S$ and $S+\mathrm{d}S$;
  \item [{\normalfont \ttfamily firstCrossingRate}] The rate of first crossing of the barrier per unit time [Gyr$^{-1}$] for all pairs of halo mass;
- \item [{\normalfont \ttfamily haloMassFunction}] The halo mass function [${\mathrm M}^{-1}_\odot$~Mpc$^{-3}$].
+ \item [{\normalfont \ttfamily haloMassFunction}] The halo mass function [$\mathrm{M}^{-1}_\odot$~Mpc$^{-3}$].
 \end{description}
 
 \subsection{{\normalfont \ttfamily Halo\_Mass\_Functions}}
@@ -487,8 +487,8 @@ The output file has the following structure:
 \end{verbatim}
 The {\normalfont \ttfamily Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\normalfont \ttfamily Outputs} group contains datasets which give global properties at each requested output time as follows:
 \begin{description}
-\item [{\normalfont \ttfamily outputCharacteristicMass}] The characteristic mass scale (in units of $M_\odot$), $M_*$, at which $\sigma(M)=\delta_{\mathrm c}(z)$;
-\item [{\normalfont \ttfamily outputCriticalOverdensities}] The critical overdensity for collapse of halos, $\delta_{\mathrm c}$;
+\item [{\normalfont \ttfamily outputCharacteristicMass}] The characteristic mass scale (in units of $M_\odot$), $M_*$, at which $\sigma(M)=\delta_\mathrm{c}(z)$;
+\item [{\normalfont \ttfamily outputCriticalOverdensities}] The critical overdensity for collapse of halos, $\delta_\mathrm{c}$;
 \item [{\normalfont \ttfamily outputExpansionFactor}] The expansion factor;
 \item [{\normalfont \ttfamily outputGrowthFactors}] The linear growth factor;
 \item [{\normalfont \ttfamily outputRedshift}] The redshift;
@@ -503,7 +503,7 @@ The {\normalfont \ttfamily haloMassFunctions} group contains datasets which list
 \item [{\normalfont \ttfamily haloMassFunctionCumulative}] The cumulative number of halos per unit volume above the current halo mass (in units of Mpc$^{-3}$);
 \item [{\normalfont \ttfamily haloMassFunctionLnM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3}$);
 \item [{\normalfont \ttfamily haloMassFunctionM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3} M_\odot^{-1}$);
-\item [{\normalfont \ttfamily haloNu}] The peak height of the halo, $\nu = \delta_{\mathrm c}/\sigma(M)$;
+\item [{\normalfont \ttfamily haloNu}] The peak height of the halo, $\nu = \delta_\mathrm{c}/\sigma(M)$;
 \item [{\normalfont \ttfamily haloSigma}] The root-variance of the mass field smoothed in top-hat spheres;
 \item [{\normalfont \ttfamily haloVirialRadius}] The virial radius (in units of Mpc) of the current halo mass;
 \item [{\normalfont \ttfamily haloVirialTemperature}] The virial temperature (in units of Kelvin) of the current halo mass;
@@ -541,8 +541,8 @@ The output file has the following structure:
 \end{verbatim}
 The {\normalfont \ttfamily Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\normalfont \ttfamily powerSpectrum} group contains datasets which give the power spectrum and related properties as follows:
 \begin{description}
-\item [{\normalfont \ttfamily alpha}] The logarithmic slope of $\sigma(M)$: $\alpha = {\mathrm d} \ln \sigma / {\mathrm d} \ln M$;
-\item [{\normalfont \ttfamily mass}] The mass scale, $M$, corresponding to the given wavenumber, $k$, defined such that $M=4 \pi \Omega_{\mathrm M} \rho_{\mathrm crit} / 3 k^3$ (in units of $M_\odot$);
+\item [{\normalfont \ttfamily alpha}] The logarithmic slope of $\sigma(M)$: $\alpha = \mathrm{d} \ln \sigma / \mathrm{d} \ln M$;
+\item [{\normalfont \ttfamily mass}] The mass scale, $M$, corresponding to the given wavenumber, $k$, defined such that $M=4 \pi \Omega_\mathrm{M} \rho_\mathrm{crit} / 3 k^3$ (in units of $M_\odot$);
 \item [{\normalfont \ttfamily powerSpectrum}] The linear theory power spectrum at $z=0$: $P(k)$ in units of Mpc$^3$;
 \item [{\normalfont \ttfamily sigma}] The dimensionless linear theory mass fluctuation at $z=0$: $\sigma(M)$;
 \item [{\normalfont \ttfamily wavenumber}] The wavenumber in units of Mpc$^{-1}$.

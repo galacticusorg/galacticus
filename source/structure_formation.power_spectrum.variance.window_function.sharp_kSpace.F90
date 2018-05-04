@@ -61,10 +61,10 @@ contains
     !#   <variable>normalization</variable>
     !#   <defaultValue>var_str('natural')</defaultValue>
     !#   <description>
-    !#     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
-    !#     the sharp $k$-space window function and $r_{\mathrm s}$ is the radius of a sphere (in real-space) enclosing the
+    !#     The parameter $a$ in the relation $k_\mathrm{s} = a/r_\mathrm{s}$, where $k_\mathrm{s}$ is the cut-off wavenumber for
+    !#     the sharp $k$-space window function and $r_\mathrm{s}$ is the radius of a sphere (in real-space) enclosing the
     !#     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
-    !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$.
+    !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
     !#   </description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>

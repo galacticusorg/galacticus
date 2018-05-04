@@ -101,7 +101,7 @@ contains
     !#   <name>accretionRateTransitionWidth</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The width (in $\ln[\dot{M}/\dot{M}_{\mathrm Eddington}]$) over which transitions between accretion disk states occur.</description>
+    !#   <description>The width (in $\ln[\dot{M}/\dot{M}_\mathrm{Eddington}]$) over which transitions between accretion disk states occur.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>

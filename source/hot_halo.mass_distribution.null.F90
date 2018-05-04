@@ -101,7 +101,7 @@ contains
 
   double precision function nullRotationNormalization(self,node)
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant
-    !% in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} =
+    !% in radius) for {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} =
     !% A J/M$.
     implicit none
     class(hotHaloMassDistributionNull), intent(inout) :: self
