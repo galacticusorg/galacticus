@@ -51,7 +51,7 @@ contains
   end function Cosine_Integral
 
   double complex function Exponential_Integral_Double_Complex(z)
-    !% Exponential integral, $E_{\mathrm i}(z)$, for complex argument {\normalfont \ttfamily z}.
+    !% Exponential integral, $E_\mathrm{i}(z)$, for complex argument {\normalfont \ttfamily z}.
     use Numerical_Constants_Math
     implicit none
     double complex, intent(in   ) :: z

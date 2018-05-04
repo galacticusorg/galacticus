@@ -138,7 +138,7 @@ contains
   end function simpleTime
 
   double precision function simpleGradientDensityLogarithmic(self,temperature,density,gasAbundances,chemicalDensities,radiation)
-    !% Return $\d\ln t_{\mathrm cool}/\d\ln \rho$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
+    !% Return $\d\ln t_\mathrm{cool}/\d\ln \rho$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
@@ -153,7 +153,7 @@ contains
   end function simpleGradientDensityLogarithmic
 
   double precision function simpleGradientTemperatureLogarithmic(self,temperature,density,gasAbundances,chemicalDensities,radiation)
-    !% Return $\d\ln t_{\mathrm cool}/\d\ln T$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
+    !% Return $\d\ln t_\mathrm{cool}/\d\ln T$ for gas at the given {\normalfont \ttfamily temperature} (in Kelvin), {\normalfont \ttfamily density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self

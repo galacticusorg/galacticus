@@ -70,7 +70,7 @@ contains
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType,linearGrowth_,cosmologyFunctions_)
-    !% Tabulate $\delta_{\mathrm crit}$ or $\Delta_{\mathrm vir}$ vs. time.
+    !% Tabulate $\delta_\mathrm{crit}$ or $\Delta_\mathrm{vir}$ vs. time.
     use Linear_Growth
     use Cosmology_Functions
     use Root_Finder

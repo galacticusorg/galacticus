@@ -343,7 +343,7 @@ contains
        !#   <name>hotHaloOutflowStrippingEfficiency</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
-       !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_{\mathrm strip}$ in their eqn.~6).</description>
+       !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
        !#   <source>globalParameters</source>
        !#   <type>double</type>
        !# </inputParameter>

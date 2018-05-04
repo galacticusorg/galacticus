@@ -94,9 +94,9 @@ contains
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} using
     !% the model of \cite{creasey_how_2012}. The outflow rate is given by
     !% \begin{equation}
-    !% \dot{M}_{\mathrm outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_{\mathrm g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r {\mathrm d}r,
+    !% \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     !% \end{equation}
-    !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_{\mathrm g}(r)$ is the gas
+    !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
     !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\tt [beta0]},
     !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\tt [nu]}.
     use Numerical_Constants_Math

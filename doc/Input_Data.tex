@@ -122,7 +122,7 @@ The following should be noted when constructing merger tree files:
 
 The following requirements must be met for the input parameters to \glc\ when using merger trees read from file:
 \begin{itemize}
- \item The cosmological parameters ($\Omega_{\mathrm M}$, $\Omega_\Lambda$, $\Omega_{\mathrm b}$, $H_0$, $\sigma_8$), if defined in the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch;
+ \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch;
  \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\normalfont \ttfamily [allTreesExistAtFinalTime]}$=${\normalfont \ttfamily false}.
 \end{itemize}
 

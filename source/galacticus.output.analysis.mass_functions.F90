@@ -1681,7 +1681,7 @@ contains
           !#   <name>sdssStellarMassFunctionHighMassTransitionLogMass</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>10.8d0</defaultValue>
-          !#   <description>Transition mass, $M_{\mathrm t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <description>Transition mass, $M_\mathrm{t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_\mathrm{t}) \rightarrow \log_{10}(M_\star/M_\mathrm{t}) + [\mu+\kappa\ log_{10}(M_\star/M_\mathrm{t})]/[1+\exp(-\log_{10}(M_\star/M_\mathrm{t})/\Delta\log_{10}M_\mathrm{t})]$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1690,7 +1690,7 @@ contains
           !#   <name>sdssStellarMassFunctionHighMassTransitionWidth</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>0.5d0</defaultValue>
-          !#   <description>Transition mass width, $\Delta M_{\mathrm t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <description>Transition mass width, $\Delta M_\mathrm{t}$, in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_\mathrm{t}) \rightarrow \log_{10}(M_\star/M_\mathrm{t}) + [\mu+\kappa\ log_{10}(M_\star/M_\mathrm{t})]/[1+\exp(-\log_{10}(M_\star/M_\mathrm{t})/\Delta\log_{10}M_\mathrm{t})]$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1699,7 +1699,7 @@ contains
           !#   <name>sdssStellarMassFunctionHighMassSystematic0</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>0.0d0</defaultValue>
-          !#   <description>Parameter $\mu$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <description>Parameter $\mu$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_\mathrm{t}) \rightarrow \log_{10}(M_\star/M_\mathrm{t}) + [\mu+\kappa\ log_{10}(M_\star/M_\mathrm{t})]/[1+\exp(-\log_{10}(M_\star/M_\mathrm{t})/\Delta\log_{10}M_\mathrm{t})]$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1708,7 +1708,7 @@ contains
           !#   <name>sdssStellarMassFunctionHighMassSystematic1</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>0.0d0</defaultValue>
-          !#   <description>Parameter $\kappa$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_{\mathrm t}) \rightarrow \log_{10}(M_\star/M_{\mathrm t}) + [\mu+\kappa\ log_{10}(M_\star/M_{\mathrm t})]/[1+\exp(-\log_{10}(M_\star/M_{\mathrm t})/\Delta\log_{10}M_{\mathrm t})]$.</description>
+          !#   <description>Parameter $\kappa$ in the high-mass stellar mass systematic parameterization for the SDSS stellar mass function: $\log_{10}(M_\star/M_\mathrm{t}) \rightarrow \log_{10}(M_\star/M_\mathrm{t}) + [\mu+\kappa\ log_{10}(M_\star/M_\mathrm{t})]/[1+\exp(-\log_{10}(M_\star/M_\mathrm{t})/\Delta\log_{10}M_\mathrm{t})]$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1754,7 +1754,7 @@ contains
           !#   <name>alfalfaHiMassFunctionZ0.00ErrorA</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>0.1d0</defaultValue>
-          !#   <description>The parameter, $a$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+          !#   <description>The parameter, $a$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right)$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1764,7 +1764,7 @@ contains
           !#   <name>alfalfaHiMassFunctionZ0.00ErrorB</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>5.885d0</defaultValue>
-          !#   <description>The parameter, $b$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+          !#   <description>The parameter, $b$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right)$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1774,7 +1774,7 @@ contains
           !#   <name>alfalfaHiMassFunctionZ0.00ErrorC</name>
           !#   <cardinality>0..1</cardinality>
           !#   <defaultValue>0.505d0</defaultValue>
-          !#   <description>The parameter, $c$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_{\mathrm obs} = a + \exp\left(-{\log_{10}(M_{\mathrm HI}/M_\odot)-b\over c}\right)$.</description>
+          !#   <description>The parameter, $c$, appearing in the model for the HI mass random errors used when constructing the ALFALFA HI mass function. Specifically, $\sigma_\mathrm{obs} = a + \exp\left(-{\log_{10}(M_\mathrm{HI}/M_\odot)-b\over c}\right)$.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1862,7 +1862,7 @@ contains
           !#   <cardinality>0..1</cardinality>
           !#   <defaultSource>(Obsreschkow, private communication)</defaultSource>
           !#   <defaultValue>0.4d0</defaultValue>
-          !#   <description>The scatter in the molecular ratio $\log_{10}R_{\mathrm mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
+          !#   <description>The scatter in the molecular ratio $\log_{10}R_\mathrm{mol}$ of \cite{obreschkow_simulation_2009} compared to observational data.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -1941,7 +1941,7 @@ contains
   end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
 
   double precision function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00(mass,node)
-    !% Compute the molecular ratio, $R_{\mathrm mol}=M_{\mathrm H_2}/M_{\mathrm HI}$ for the ALFALFA survey analysis. Assumes the model of
+    !% Compute the molecular ratio, $R_\mathrm{mol}=M_\mathrm{H_2}/M_\mathrm{HI}$ for the ALFALFA survey analysis. Assumes the model of
     !% \cite{obreschkow_simulation_2009}.
     use Numerical_Constants_Astronomical
     implicit none

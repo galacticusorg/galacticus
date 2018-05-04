@@ -30,14 +30,14 @@ module Output_Analysis_Molecular_Ratios
   !#  <description>Class providing H$_2$ molecular ratios for on-the-fly analysis of outputs.</description>
   !#  <default>obreschkow2009</default>
   !#  <method name="ratio" >
-  !#   <description>Return the molecular ratio, $R_{\mathrm mol}=M_{\mathrm H_2}/M_{\mathrm HI}$.</description>
+  !#   <description>Return the molecular ratio, $R_\mathrm{mol}=M_\mathrm{H_2}/M_\mathrm{HI}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision          , intent(in   ) :: massISM</argument>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="ratioScatter" >
-  !#   <description>Return the scatter in logarithmic molecular ratio, $\log_{10}R_{\mathrm mol}=\log_{10}(M_{\mathrm H_2}/M_{\mathrm HI})$.</description>
+  !#   <description>Return the scatter in logarithmic molecular ratio, $\log_{10}R_\mathrm{mol}=\log_{10}(M_\mathrm{H_2}/M_\mathrm{HI})$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision          , intent(in   ) :: massISM</argument>

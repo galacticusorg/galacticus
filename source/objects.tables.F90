@@ -73,25 +73,25 @@ module Tables
      !@     <method>interpolate</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>interpolateGradient</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>reverse</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table], \logicalzero\ [precise]</arguments>
-     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\normalfont \ttfamily precise} argument is set to {\normalfont \ttfamily true} then the reversal must be precisely invertible---if this is not possible the method will abort.</description>
+     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\normalfont \ttfamily reversedSelf}. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used. If the optional {\normalfont \ttfamily precise} argument is set to {\normalfont \ttfamily true} then the reversal must be precisely invertible---if this is not possible the method will abort.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isMonotonic</method>
      !@     <type>\logicalzero</type>
      !@     <arguments>\enum\ [directionDecreasing|directionIncreasing],\logicalzero\ [allowEqual],\intzero\ [table]</arguments>
-     !@     <description>Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\normalfont \ttfamily direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\normalfont \ttfamily allowEqual} argument. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\normalfont \ttfamily direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\normalfont \ttfamily allowEqual} argument. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>size</method>
@@ -103,13 +103,13 @@ module Tables
      !@     <method>x</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value.</description>
+     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>y</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xs</method>
@@ -121,7 +121,7 @@ module Tables
      !@     <method>ys</method>
      !@     <type>\doubleone</type>
      !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xEffective</method>
@@ -194,7 +194,7 @@ module Tables
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create                          =>Table_Generic_1D_Create
@@ -225,7 +225,7 @@ module Tables
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create              => Table_Linear_1D_Create
@@ -287,7 +287,7 @@ module Tables
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create              => Table_Linear_CSpline_1D_Create
@@ -329,7 +329,7 @@ module Tables
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create              => Table_Linear_Monotone_CSpline_1D_Create
@@ -381,13 +381,13 @@ module Tables
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubletwo\ z,\intzero\ [i],\intzero\ [j],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the indices, {\normalfont \ttfamily i}, {\normalfont \ttfamily j}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the indices, {\normalfont \ttfamily i}, {\normalfont \ttfamily j}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>interpolate</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\doublezero\ y,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\normalfont \ttfamily x}, {\normalfont \ttfamily y} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@     <description>Interpolate to {\normalfont \ttfamily x}, {\normalfont \ttfamily y} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xs</method>
@@ -447,13 +447,13 @@ module Tables
      !@     <method>interpolate</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@     <description>Interpolate to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>interpolateGradient</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
-     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^{\mathrm th}$ table.</description>
+     !@     <description>Interpolate the gradient to {\normalfont \ttfamily x} in the {\normalfont \ttfamily table}$^\mathrm{th}$ table.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>size</method>
@@ -465,19 +465,19 @@ module Tables
      !@     <method>x</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value.</description>
+     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>y</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
-     !@     <description>Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>z</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\intzero\ i,\intzero\ j,\intzero\ [table]</arguments>
-     !@     <description>Return the {\normalfont \ttfamily (i,j)}$^{\mathrm th}$ $z$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $z$-values, otherwise the first table is used.</description>
+     !@     <description>Return the {\normalfont \ttfamily (i,j)}$^\mathrm{th}$ $z$-value. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xs</method>
@@ -489,13 +489,13 @@ module Tables
      !@     <method>ys</method>
      !@     <type>\doubleone</type>
      !@     <arguments></arguments>
-     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@     <description>Return an array of all $y$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>zs</method>
      !@     <type>\doubletwo</type>
      !@     <arguments>\intzero\ [table]</arguments>
-     !@     <description>Return an array of all $z$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^{\mathrm th}$ table is used for the $z$-values, otherwise the first table is used.</description>
+     !@     <description>Return an array of all $z$-values. If {\normalfont \ttfamily table} is specified then the {\normalfont \ttfamily table}$^\mathrm{th}$ table is used for the $z$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isInitialized</method>
@@ -507,7 +507,7 @@ module Tables
      !@     <method>populate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero|\doubletwo\ z,\intzero\ [i],\intzero\ [j],\intzero\ [table]</arguments>
-     !@     <description>Populate the {\normalfont \ttfamily table}$^{\mathrm th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
+     !@     <description>Populate the {\normalfont \ttfamily table}$^\mathrm{th}$ table with elements {\normalfont \ttfamily y}. If {\normalfont \ttfamily y} is a scalar, then the index, {\normalfont \ttfamily i}, of the element to set must also be specified.</description>
      !@   </objectMethod>  
      !@   <objectMethod>
      !@     <method>create</method>
@@ -596,7 +596,7 @@ contains
   end subroutine Table1D_Deserialize_Raw
   
   double precision function Table1D_X(self,i)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a 1D table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a 1D table.
     implicit none
     class  (table1D), intent(inout) :: self
     integer         , intent(in   ) :: i
@@ -619,7 +619,7 @@ contains
   end function Table1D_Xs
 
   double precision function Table1D_Y(self,i,table)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value for a 1D table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value for a 1D table.
     implicit none
     class  (table1D), intent(in   )           :: self
     integer         , intent(in   )           :: i
@@ -1119,7 +1119,7 @@ contains
   end subroutine Table_Logarithmic_1D_Deserialize_Raw
   
   double precision function Table_Logarithmic_1D_X(self,i)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a logarithmic 1D table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
     implicit none
     class  (table1DLogarithmicLinear), intent(inout) :: self
     integer                          , intent(in   ) :: i
@@ -1560,7 +1560,7 @@ contains
   end subroutine Table_Logarithmic_CSpline_1D_Create
 
   double precision function Table_Logarithmic_CSpline_1D_X(self,i)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a logarithmic 1D table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
     implicit none
     class  (table1DLogarithmicCSpline), intent(inout) :: self
     integer                           , intent(in   ) :: i
@@ -1730,7 +1730,7 @@ contains
   end function Table_NonUniform_Linear_Logarithmic_Integration_Weights
   
   double precision function Table_NonUniform_Linear_Logarithmic_1D_Y(self,i,table)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value for a 1D table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value for a 1D table.
     implicit none
     class  (table1DNonUniformLinearLogarithmic), intent(in   )           :: self
     integer                                    , intent(in   )           :: i
@@ -1810,7 +1810,7 @@ contains
   end subroutine Table_2DLogLogLin_Create
 
   double precision function Table_2DLogLogLin_X(self,i)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a 2D log-log table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a 2D log-log table.
     implicit none
     class  (table2DLogLogLin), intent(inout) :: self
     integer                  , intent(in   ) :: i
@@ -1820,7 +1820,7 @@ contains
   end function Table_2DLogLogLin_X
 
   double precision function Table_2DLogLogLin_Y(self,i)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $y$-value for a 2D log-log table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $y$-value for a 2D log-log table.
     implicit none
     class  (table2DLogLogLin), intent(inout) :: self
     integer                  , intent(in   ) :: i
@@ -1830,7 +1830,7 @@ contains
   end function Table_2DLogLogLin_Y
 
   double precision function Table_2DLogLogLin_Z(self,i,j,table)
-    !% Return the {\normalfont \ttfamily (i,j)}$^{\mathrm th}$ $x$-value for a 2D log-log table.
+    !% Return the {\normalfont \ttfamily (i,j)}$^\mathrm{th}$ $x$-value for a 2D log-log table.
     implicit none
     class  (table2DLogLogLin), intent(inout)           :: self
     integer                  , intent(in   )           :: i          , j
@@ -2338,7 +2338,7 @@ contains
   end subroutine Table_Logarithmic_Monotone_CSpline_1D_Create
 
   double precision function Table_Logarithmic_Monotone_CSpline_1D_X(self,i)
-    !% Return the {\normalfont \ttfamily i}$^{\mathrm th}$ $x$-value for a logarithmic 1D table.
+    !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
     implicit none
     class  (table1DLogarithmicMonotoneCSpline), intent(inout) :: self
     integer                                   , intent(in   ) :: i

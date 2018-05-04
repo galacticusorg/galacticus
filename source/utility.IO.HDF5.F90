@@ -3693,7 +3693,7 @@ contains
   !! Dataset routines.
 
   function IO_HDF5_Dataset_Size(datasetObject,dim)
-    !% Return the size of the {\normalfont \ttfamily dim}$^{\mathrm th}$ dimension of dataset {\normalfont \ttfamily datasetObject}.
+    !% Return the size of the {\normalfont \ttfamily dim}$^\mathrm{th}$ dimension of dataset {\normalfont \ttfamily datasetObject}.
     use Galacticus_Error
     implicit none
     integer(kind=HSIZE_T  )                              :: IO_HDF5_Dataset_Size

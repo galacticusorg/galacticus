@@ -90,13 +90,13 @@ module Geometry_Surveys
   !#   <argument>complex         (c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1, windowFunction2</argument>
   !#  </method>
   !#  <method name="angularPower" >
-  !#   <description>Return $C^{ij}_\ell$, where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, and $\Psi^i_{\ell m}$ are the cofficients of the spherical harmonic expansion of the $i^{\mathrm th}$ field.</description>
+  !#   <description>Return $C^{ij}_\ell$, where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, and $\Psi^i_{\ell m}$ are the cofficients of the spherical harmonic expansion of the $i^\mathrm{th}$ field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ) :: i,j,l</argument>
   !#  </method>
   !#  <method name="angularPowerMaximumDegree" >
-  !#   <description>Return the maximum degree, $\ell_{\mathrm max}$, for which the angular power is available.</description>
+  !#   <description>Return the maximum degree, $\ell_\mathrm{max}$, for which the angular power is available.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
   !#   <code>

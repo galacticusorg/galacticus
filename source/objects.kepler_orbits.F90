@@ -208,7 +208,7 @@ module Kepler_Orbits
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>specificReducedMass</method>
-     !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_{\mathrm s} = M_{\mathrm host}/(M_{\mathrm satellite}+M_{\mathrm host})$) of the orbit.</description>
+     !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_\mathrm{s} = M_\mathrm{host}/(M_\mathrm{satellite}+M_\mathrm{host})$) of the orbit.</description>
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>

@@ -144,7 +144,7 @@ contains
           !#   <name>modifiedPressSchechterFirstOrderAccuracy</name>
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>0.1d0</defaultValue>
-          !#   <description>Limits the step in $\delta_{\mathrm crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
+          !#   <description>Limits the step in $\delta_\mathrm{crit}$ when constructing merger trees using the \cite{parkinson_generating_2008}
           !#      algorithm, so that it never exceeds {\normalfont \ttfamily
           !#      modifiedPressSchechterFirstOrderAccuracy}$\sqrt{2[\sigma^2(M_2/2)-\sigma^2(M_2)]}$.</description>
           !#   <source>globalParameters</source>
@@ -170,7 +170,7 @@ contains
           !#   <name>modifiedPressSchechterUseCDMAssumptions</name>
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>.false.</defaultValue>
-          !#   <description>If true, assume that $\alpha(=-{\mathrm d}\log \sigma/{\mathrm d}\log M)&gt;0$ and ${\mathrm d}\alpha/{\mathrm d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
+          !#   <description>If true, assume that $\alpha(=-\mathrm{d}\log \sigma/\mathrm{d}\log M)&gt;0$ and $\mathrm{d}\alpha/\mathrm{d}M&gt;0$ (as is true in the case of \gls{cdm}) when constructing merger trees using the \cite{parkinson_generating_2008}.</description>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
           !# </inputParameter>
@@ -416,7 +416,7 @@ contains
   end function Modified_Press_Schechter_Branch_Mass_Root_Derivative
 
   double precision function Modified_Press_Schechter_Branching_Maximum_Step(haloMass,deltaCritical,massResolution)
-    !% Return the maximum allowed step in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
     implicit none
     double precision                               , intent(in   ) :: deltaCritical                   , haloMass, &
@@ -440,7 +440,7 @@ contains
   end function Modified_Press_Schechter_Branching_Maximum_Step
 
   double precision function Modified_Press_Schechter_Branching_Probability(haloMass,deltaCritical,massResolution,node)
-    !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Numerical_Integration
     implicit none
@@ -491,7 +491,7 @@ contains
   end function Modified_Press_Schechter_Branching_Probability
 
   double precision function Modified_Press_Schechter_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound,node)
-    !% Return the probability per unit change in $\delta_{\mathrm crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
     !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Merger_Tree_Branching_Options
     use Galacticus_Error
@@ -711,7 +711,7 @@ contains
 
   double precision function Modified_Press_Schechter_Subresolution_Fraction(haloMass,deltaCritical,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
-    !% $\delta_{\mathrm crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed analytically in
+    !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed analytically in
     !% terms of the $_2F_1$ hypergeometric function.
     use Hypergeometric_Functions
     implicit none
@@ -812,7 +812,7 @@ contains
   double precision function Modification_Function(childSigma)
     !% Empirical modification of the progenitor mass function from
     !% \cite{parkinson_generating_2008}. The constant factors of $G_0 (\delta_{\rm
-    !% p}/\sigma_{\mathrm p})^{\gamma_2}$ and $1/\sigma_{\mathrm p}^{\gamma_1}$ are not included
+    !% p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
     !% here---instead they are included in a multiplicative prefactor by which integrals over
     !% this function are multiplied.
     implicit none

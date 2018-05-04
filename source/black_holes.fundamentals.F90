@@ -543,9 +543,9 @@ contains
     !% Computes the spin down rate of a black hole due to extraction of rotational energy. Specifically, it returns the factor $S$
     !% in the relation:
     !% \begin{equation}
-    !% s = - S {P_{\mathrm rotation} \over \dot M_{\bullet, 0} \clight^2},
+    !% s = - S {P_\mathrm{rotation} \over \dot M_{\bullet, 0} \clight^2},
     !% \end{equation}
-    !% where $P_{\mathrm rotation}$ is the power of rotational energy extraction and
+    !% where $P_\mathrm{rotation}$ is the power of rotational energy extraction and
     !% \begin{equation}
     !% S = [(1+\sqrt{1-j^2})^2+j^2] {\sqrt{1-j^2}\over j},
     !% \end{equation}

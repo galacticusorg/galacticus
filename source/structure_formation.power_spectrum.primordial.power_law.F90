@@ -22,9 +22,9 @@
   !#  <description>
   !#   Implements a power-law primordial power spectrum, possibly with a running index. It is defined by
   !#   \begin{equation}
-  !#    P(k)\propto k^{n_{\mathrm s} + \ln(k/k_{\mathrm ref}) [\d n /\d\ln k]},
+  !#    P(k)\propto k^{n_\mathrm{s} + \ln(k/k_\mathrm{ref}) [\d n /\d\ln k]},
   !#   \end{equation}
-  !#   where the parameters are specified by input parameters $n_{\mathrm s}\equiv${\normalfont \ttfamily [index]}, $k_{\mathrm ref}\equiv${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k \equiv${\normalfont \ttfamily [running]}.
+  !#   where the parameters are specified by input parameters $n_\mathrm{s}\equiv${\normalfont \ttfamily [index]}, $k_\mathrm{ref}\equiv${\normalfont \ttfamily [wavenumberReference]} and $\d n / \d \ln k \equiv${\normalfont \ttfamily [running]}.
   !#  </description>
   !# </powerSpectrumPrimordial>
   type, extends(powerSpectrumPrimordialClass) :: powerSpectrumPrimordialPowerLaw
@@ -68,7 +68,7 @@ contains
     !#   <source>parameters</source>
     !#   <variable>powerLawConstructorParameters%running</variable>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The running, $\d n_{\mathrm s} / \d \ln k$, of the power spectrum index.</description>
+    !#   <description>The running, $\d n_\mathrm{s} / \d \ln k$, of the power spectrum index.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>

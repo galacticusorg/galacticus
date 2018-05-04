@@ -61,7 +61,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultSource>\citep{covington_predicting_2008}</defaultSource>
        !#   <defaultValue>2.75d0</defaultValue>
-       !#   <description>The coefficient, $C_{\mathrm rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.</description>
+       !#   <description>The coefficient, $C_\mathrm{rad}$ energy used in the \cite{covington_predicting_2008} merger remnant size algorithm.</description>
        !#   <source>globalParameters</source>
        !#   <type>real</type>
        !# </inputParameter>

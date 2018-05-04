@@ -244,7 +244,7 @@ contains
   double precision function isothermalRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc). For an isothermal halo, the circular velocity is constant (and therefore equal to the virial
-    !% velocity). Therefore, $r = j/V_{\mathrm virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
+    !% velocity). Therefore, $r = j/V_\mathrm{virial}$ where $j$(={\normalfont \ttfamily specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -325,9 +325,9 @@ contains
 
   double precision function isothermalFreefallRadius(self,node,time)
     !% Returns the freefall radius in the isothermal density profile at the specified {\normalfont \ttfamily time} (given in Gyr). For an isothermal
-    !% potential, the freefall radius, $r_{\mathrm ff}(t)$, is:
+    !% potential, the freefall radius, $r_\mathrm{ff}(t)$, is:
     !% \begin{equation}
-    !% r_{\mathrm ff}(t) = \sqrt{{2 \over \pi}} V_{\mathrm virial} t.
+    !% r_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial} t.
     !% \end{equation}
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
@@ -344,9 +344,9 @@ contains
 
   double precision function isothermalFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the isothermal density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_{\mathrm ff}(t)$, is:
+    !% Gyr). For an isothermal potential, the rate of increase of the freefall radius, $\dot{r}_\mathrm{ff}(t)$, is:
     !% \begin{equation}
-    !% \dot{r}_{\mathrm ff}(t) = \sqrt{{2 \over \pi}} V_{\mathrm virial}.
+    !% \dot{r}_\mathrm{ff}(t) = \sqrt{{2 \over \pi}} V_\mathrm{virial}.
     !% \end{equation}
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales

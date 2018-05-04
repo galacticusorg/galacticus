@@ -54,7 +54,7 @@
      !@     <method>compute</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ massHalo\argin, \doublezero\ mass\argin, \doublezero\ numberCentrals\argout, \doublezero\ numberSatellites\argout</arguments>
-     !@     <description>Compute the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\mathrm halo})$.</description>
+     !@     <description>Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{halo})$.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                         behroozi2010Destructor
@@ -101,7 +101,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
           !#   <defaultValue>1.0d0</defaultValue>
-          !#   <description>The parameter $\alpha_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <description>The parameter $\alpha_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
           !#   <group>haloModel</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -178,7 +178,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
           !#   <defaultValue>1.47d0</defaultValue>
-          !#   <description>The parameter $B_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <description>The parameter $B_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
           !#   <group>haloModel</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -189,7 +189,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
           !#   <defaultValue>10.62d0</defaultValue>
-          !#   <description>The parameter $B_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <description>The parameter $B_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
           !#   <group>haloModel</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -200,7 +200,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
           !#   <defaultValue>-0.13d0</defaultValue>
-          !#   <description>The parameter $\beta_{\mathrm cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <description>The parameter $\beta_\mathrm{cut}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
           !#   <group>haloModel</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -211,7 +211,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultSource>(\citealt{leauthaud_new_2011}; $z_1$ sample using their {\normalfont \ttfamily SIG\_MOD1} method)</defaultSource>
           !#   <defaultValue>0.859d0</defaultValue>
-          !#   <description>The parameter $\beta_{\mathrm sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
+          !#   <description>The parameter $\beta_\mathrm{sat}$ from the fitting functions of \cite{behroozi_comprehensive_2010}.</description>
           !#   <group>haloModel</group>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
@@ -268,8 +268,8 @@ contains
   end subroutine behroozi2010Destructor
 
   double precision function behroozi2010MassFunction(self,massHalo,mass,galaxyType)
-    !% Compute the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv
-    !% \phi(M_\star|M_{\mathrm halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
+    !% Compute the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv
+    !% \phi(M_\star|M_\mathrm{halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     use Galacticus_Error
     implicit none
     class           (conditionalMassFunctionBehroozi2010), intent(inout)           :: self
@@ -303,8 +303,8 @@ contains
   end function behroozi2010MassFunction
 
   double precision function behroozi2010MassFunctionVariance(self,massHalo,massLow,massHigh)
-    !% Computes the variance in the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv
-    !% \phi(M_\star|M_{\mathrm halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}. Assumes that the number of
+    !% Computes the variance in the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv
+    !% \phi(M_\star|M_\mathrm{halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}. Assumes that the number of
     !% satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that
     !% the numbers of satellites and centrals are uncorrelated.
     implicit none
@@ -326,7 +326,7 @@ contains
   end function behroozi2010MassFunctionVariance
 
   subroutine behroozi2010Compute(self,massHalo,mass,numberCentrals,numberSatellites)
-    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\mathrm halo}) \rangle \equiv \phi(M_\star|M_{\rm
+    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     use Table_Labels
     implicit none

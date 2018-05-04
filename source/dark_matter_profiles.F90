@@ -47,7 +47,7 @@ module Dark_Matter_Profiles
   !#   <argument>double precision          , intent(in   ) :: radius</argument>
   !#  </method>
   !#  <method name="radialMoment" >
-  !#   <description>Returns the {\normalfont \ttfamily m}$^{\mathrm th}$ radial moment of the dark matter profile of {\normalfont \ttfamily node} optionally between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).</description>
+  !#   <description>Returns the {\normalfont \ttfamily m}$^\mathrm{th}$ radial moment of the dark matter profile of {\normalfont \ttfamily node} optionally between the given {\normalfont \ttfamily radiusMinimum} and {\normalfont \ttfamily radiusMaximum} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout)           :: node</argument>
@@ -67,7 +67,7 @@ module Dark_Matter_Profiles
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
   !#  <method name="rotationNormalization" >
-  !#   <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$</description>
+  !#   <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>

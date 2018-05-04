@@ -110,7 +110,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultSource>\citep{birnboim_virial_2003}</defaultSource>
           !#   <defaultValue>0.0126d0</defaultValue>
-          !#   <description>The threshold value, $\epsilon_{\mathrm s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
+          !#   <description>The threshold value, $\epsilon_\mathrm{s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
           !#   <source>globalParameters</source>
           !#   <type>real</type>
           !#   <variable>coldModeShockStabilityThreshold</variable>

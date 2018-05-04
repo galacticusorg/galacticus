@@ -70,10 +70,10 @@ contains
     !#   <variable>normalization</variable>
     !#   <defaultValue>var_str('natural')</defaultValue>
     !#   <description>
-    !#     The parameter $a$ in the relation $k_{\mathrm s} = a/r_{\mathrm s}$, where $k_{\mathrm s}$ is the cut-off wavenumber for
-    !#     the sharp $k$-space window function and $r_{\mathrm s}$ is the radius of a sphere (in real-space) enclosing the
+    !#     The parameter $a$ in the relation $k_\mathrm{s} = a/r_\mathrm{s}$, where $k_\mathrm{s}$ is the cut-off wavenumber for
+    !#     the sharp $k$-space window function and $r_\mathrm{s}$ is the radius of a sphere (in real-space) enclosing the
     !#     requested smoothing mass. Alternatively, a value of {\normalfont \ttfamily natural} will be supplied in which case the normalization
-    !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_{\mathrm s}^{-3}$.
+    !#     is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass of $M=6 \pi^2 \bar{\rho} k_\mathrm{s}^{-3}$.
     !#   </description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
@@ -83,7 +83,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>
-    !#     The parameter $\beta$ in the relation $r_{\mathrm s}=\beta r_{\mathrm th}$ between $k$-space sharp and top-hat window
+    !#     The parameter $\beta$ in the relation $r_\mathrm{s}=\beta r_\mathrm{th}$ between $k$-space sharp and top-hat window
     !#     function radii in the hybrid window function used for computing the variance in the power spectrum.
     !#   </description>
     !#   <type>real</type>
@@ -140,9 +140,9 @@ contains
 
   double precision function topHatSharpKHybridValue(self,wavenumber,smoothingMass)
     !% Computes a window function for calculations of the variance in the power spectrum. Specifically, uses a convolution of
-    !% top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_{\mathrm th}$, while the $k$-space
-    !% cut-off wavenumber is $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are
-    !% chosen such that $r_{\mathrm th}^2 + r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm
+    !% top-hat real-space and sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space
+    !% cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are
+    !% chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_{\mathrm
     !% th}$ where $\beta=${\normalfont \ttfamily [pradiiRatio]}.
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
@@ -192,9 +192,9 @@ contains
   double precision function topHatSharpKHybridWavenumberMaximum(self,smoothingMass)
     !% Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
     !% non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
-    !% is $r_{\mathrm th}$, while the $k$-space cut-off wavenumber is $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\tt
-    !% [normalization]}. The two radii are chosen such that $r_{\mathrm th}^2 + r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$
-    !% and $r_{\mathrm s}=\beta r_{\mathrm th}$ where $\beta=${\tt [radiiRatio]}.
+    !% is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\tt
+    !% [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$
+    !% and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\tt [radiiRatio]}.
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
@@ -208,9 +208,9 @@ contains
 
   subroutine topHatSharpKHybridRadii(self,smoothingMass,radiusTopHat,radiusKSpaceSharp)
     !% Computes the radii of the top-hat and sharp $k$-space filters. Specifically, uses a convolution of top-hat real-space and
-    !% sharp $k$-space window functions. The top-hat radius is $r_{\mathrm th}$, while the $k$-space cut-off wavenumber is
-    !% $k_{\mathrm s}=a/r_{\mathrm s}$, where $a=${\tt [normalization]}. The two radii are chosen such that $r_{\mathrm th}^2 +
-    !% r_{\mathrm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\mathrm s}=\beta r_{\mathrm th}$ where $\beta=${\tt [radiiRatio]}.
+    !% sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is
+    !% $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\tt [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 +
+    !% r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\tt [radiiRatio]}.
     use Numerical_Constants_Math
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self

@@ -254,17 +254,17 @@ contains
     !% Compute a radial moment in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
     !% For this profile we have:
     !% \begin{equation}
-    !% \rho_{\mathrm g}(r) = f \Gamma (r/s)^{3 \Gamma - 3} \rho_{\mathrm DM}(s[r/s]^\Gamma).
+    !% \rho_\mathrm{g}(r) = f \Gamma (r/s)^{3 \Gamma - 3} \rho_\mathrm{DM}(s[r/s]^\Gamma).
     !% \end{equation}
-    !% Defining $R=s[r/s]^\Gamma$, such that $r/s = (R/s)^{1/\Gamma}$, and ${\mathrm d}r = \Gamma^{-1} (R/s)^{1/\Gamma-1} {\mathrm d}R$, then
+    !% Defining $R=s[r/s]^\Gamma$, such that $r/s = (R/s)^{1/\Gamma}$, and $\mathrm{d}r = \Gamma^{-1} (R/s)^{1/\Gamma-1} \mathrm{d}R$, then
     !% \begin{equation}
-    !% \int r^m \rho_{\mathrm g}(r) {\mathrm d}r = f s^{(m-2)(\Gamma-1)/\Gamma} \int R^{(2\Gamma-2+m)/\Gamma} \rho_{\mathrm DM}(R) {\mathrm d}R,
+    !% \int r^m \rho_\mathrm{g}(r) \mathrm{d}r = f s^{(m-2)(\Gamma-1)/\Gamma} \int R^{(2\Gamma-2+m)/\Gamma} \rho_\mathrm{DM}(R) \mathrm{d}R,
     !% \end{equation}
     !% or
     !% \begin{equation}
-    !% \mathcal{R}_{\mathrm g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_{\mathrm DM}(r;(2\Gamma-2+m)/\Gamma),
+    !% \mathcal{R}_\mathrm{g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_\mathrm{DM}(r;(2\Gamma-2+m)/\Gamma),
     !% \end{equation}
-    !% where $\mathcal{R}(r;m)$ is the $m^{\mathrm th}$ radial moment of the density profile.
+    !% where $\mathcal{R}(r;m)$ is the $m^\mathrm{th}$ radial moment of the density profile.
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -307,7 +307,7 @@ contains
   double precision function patejLoeb2015RotationNormalization(self,node)
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
-    !% normalization, $A$, returned is such that $V_{\mathrm rot} = A J/M$.
+    !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
     implicit none
     class(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node

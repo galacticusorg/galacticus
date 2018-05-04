@@ -40,7 +40,6 @@
      !@     <type>\doublezero</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ propertyValue\argin, \doublezero\ propertyValueIntrinsic\argin, \intzero\ propertyType\argin, \intzero\ propertyQuantity\argin, \textcolor{red}{\textless integer(c\_size\_t)\textgreater} outputIndex\argin</arguments>
      !@   </objectMethod>
-     !@   <objectMethod>
      !@ </objectMethods>
      final     ::                 normalDestructor
      procedure :: operate      => normalOperate

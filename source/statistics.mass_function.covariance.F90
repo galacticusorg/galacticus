@@ -432,7 +432,7 @@ contains
   end subroutine Mass_Function_Covariance_Matrix
   
   double precision function Galaxy_Root_Power_Spectrum(iBin,timeMinimum,timeMaximum)
-    !% Computes the quantity $\int_{t_{\mathrm min}}^{t_{\mathrm max}} {\mathrm d} t b(t) \sqrt{P(k,t)} {\mathrm d} V / {\mathrm d}t$, where $b(t)$ is
+    !% Computes the quantity $\int_{t_\mathrm{min}}^{t_\mathrm{max}} \mathrm{d} t b(t) \sqrt{P(k,t)} \mathrm{d} V / \mathrm{d}t$, where $b(t)$ is
     !% galaxy bias, and $P(k,t)$ is the non-linear galaxy power spectrum.
     use, intrinsic :: ISO_C_Binding
     use FGSL

@@ -135,7 +135,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
        !#   <defaultValue>4.54d0</defaultValue>
-       !#   <description>The characteristic pressure (given as $P_0/k_{\mathrm B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.</description>
+       !#   <description>The characteristic pressure (given as $P_0/k_\mathrm{B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky'' star formation timescale calculation.</description>
        !#   <group>starFormation</group>
        !#   <source>globalParameters</source>
        !#   <type>real</type>

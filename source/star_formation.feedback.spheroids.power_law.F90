@@ -78,11 +78,11 @@ contains
 
   double precision function powerLawOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily
-    !% thisNode}. The outflow rate is given by \begin{equation} \dot{M}_{\mathrm outflow} = \left({V_{\mathrm spheroid,outflow} \over
-    !% V_{\mathrm spheroid}}\right)^{\alpha_{\mathrm spheroid,outflow}}, \end{equation} where $V_{\mathrm spheroid,outflow}$(={\normalfont
+    !% thisNode}. The outflow rate is given by \begin{equation} \dot{M}_\mathrm{outflow} = \left({V_\mathrm{spheroid,outflow} \over
+    !% V_\mathrm{spheroid}}\right)^{\alpha_\mathrm{spheroid,outflow}}, \end{equation} where $V_\mathrm{spheroid,outflow}$(={\normalfont
     !% \ttfamily velocityCharacteristic}) is the velocity scale at which outflow rate equals star formation rate and $\alpha_{\mathrm
     !% spheroid,outflow}$(={\normalfont \ttfamily exponent}) controls the scaling with velocity. Note that the velocity
-    !% $V_{\mathrm spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
+    !% $V_\mathrm{spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
     implicit none

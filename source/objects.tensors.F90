@@ -177,13 +177,13 @@ module Tensors
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>contract</method>
-     !@     <description>Contract a tensor, returning ${\mathbf T}^i_i$.</description>
+     !@     <description>Contract a tensor, returning $\mathbf{T}^i_i$.</description>
      !@     <arguments></arguments>
      !@     <type>\doublezero</type>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>doubleContract</method>
-     !@     <description>Return the double contraction of two tensors, ${\mathbf A}^i_j {\mathbf B}^j_i$.</description>
+     !@     <description>Return the double contraction of two tensors, $\mathbf{A}^i_j \mathbf{B}^j_i$.</description>
      !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor1</arguments>
      !@     <type>\doublezero</type>
      !@   </objectMethod>
@@ -527,7 +527,7 @@ contains
   end function Tensor_R2_D3_Sym_Scalar_Divide
 
   double precision function Tensor_R2_D3_Sym_Double_Contract(self,tensor1)
-    !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, ${\mathbf A}:{\mathbf B}$.
+    !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
     implicit none
     class(tensorRank2Dimension3Symmetric), intent(in   ) :: self,tensor1
 

@@ -337,7 +337,7 @@ contains
        !#   <name>mergerTreeReadPresetScaleRadiiConcentrationMinimum</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>3.0d0</defaultValue>
-       !#   <description>The lowest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.</description>
+       !#   <description>The lowest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
@@ -345,7 +345,7 @@ contains
        !#   <name>mergerTreeReadPresetScaleRadiiConcentrationMaximum</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>60.0d0</defaultValue>
-       !#   <description>The largest concentration ($c=r_{\mathrm vir}/r_{\mathrm s}$) allowed when setting scale radii, $r_{\mathrm s}$.</description>
+       !#   <description>The largest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>

@@ -200,8 +200,8 @@ contains
   end function growingRadius
 
   elemental double precision function growingCoreVirialDensityFunction(radiusOverVirialRadius)
-    !% Returns the function $(1+r_{\mathrm c}^2)[1-r_{\mathrm c} \tan^{-1}(1/r_{\mathrm c}]$ which is proportional to the density at the
-    !% virial radius of a cored isothermal profile with core radius $r_{\mathrm c}$ (in units of the virial radius) per unit mass.
+    !% Returns the function $(1+r_\mathrm{c}^2)[1-r_\mathrm{c} \tan^{-1}(1/r_\mathrm{c}]$ which is proportional to the density at the
+    !% virial radius of a cored isothermal profile with core radius $r_\mathrm{c}$ (in units of the virial radius) per unit mass.
     implicit none
     double precision, intent(in   ) :: radiusOverVirialRadius
 
