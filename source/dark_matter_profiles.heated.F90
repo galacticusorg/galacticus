@@ -46,8 +46,6 @@
      !@ </objectMethods>
      final                                             heatedDestructor
      procedure :: calculationReset                  => heatedCalculationReset
-     procedure :: stateStore                        => heatedStateStore
-     procedure :: stateRestore                      => heatedStateRestore
      procedure :: radiusInitial                     => heatedRadiusInitial
      procedure :: density                           => heatedDensity
      procedure :: densityLogSlope                   => heatedDensityLogSlope
@@ -685,29 +683,3 @@ contains
     end if
     return
   end function heatedFreefallRadiusIncreaseRate
-
-  subroutine heatedStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileHeated), intent(inout) :: self
-    integer                         , intent(in   ) :: stateFile
-    type   (fgsl_file              ), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> heated',verbosity=verbosityInfo)
-    call self%unheatedProfile%stateStore(stateFile,fgslStateFile)
-    return
-  end subroutine heatedStateStore
-
-  subroutine heatedStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileHeated), intent(inout) :: self
-    integer                         , intent(in   ) :: stateFile
-    type   (fgsl_file              ), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> heated',verbosity=verbosityInfo)
-    call self%unheatedProfile%stateRestore(stateFile,fgslStateFile)
-    return
-  end subroutine heatedStateRestore

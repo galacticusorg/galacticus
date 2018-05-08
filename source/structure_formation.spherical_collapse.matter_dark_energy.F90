@@ -25,12 +25,10 @@ module Spherical_Collapse_Matter_Dark_Energy
   use Cosmology_Functions
   implicit none
   private
-  public :: Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate,&
-       & Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate, Spherical_Collapse_Matter_Dark_Energy_State_Store,&
-       & Spherical_Collapse_Matter_Dark_Energy_State_Retrieve, Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
+  public :: Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate, Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate, &
+       &    Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
   ! Variables to hold the tabulated critical overdensity data.
-  double precision                                     :: deltaTableTimeMaximum                                    =20.0d0, deltaTableTimeMinimum =1.0d0
   integer                                  , parameter :: deltaTableNPointsPerDecade                               =100
 
   ! Variables used in root finding.
@@ -125,7 +123,8 @@ contains
          &                                                                             maximumExpansionRadius               , maximumExpansionTime                  , &
          &                                                                             normalization                        , q                                     , &
          &                                                                             timeEnergyFixed                      , timeInitial                           , &
-         &                                                                             y
+         &                                                                             y                                    , deltaTableTimeMinimum                 , &
+         &                                                                             deltaTableTimeMaximum
     double complex                                                                  :: a,b,x
     type            (varying_string         )                                       :: message
     character       (len=7                  )                                       :: label
@@ -157,6 +156,16 @@ contains
        cosmologyFunctions__ => cosmologyFunctions()
     end if
     ! Find minimum and maximum times to tabulate.
+    if (allocated(deltaTable)) then
+       ! Use currently tabulated range as the starting point.
+       deltaTableTimeMinimum=deltaTable%x(+1)
+       deltaTableTimeMaximum=deltaTable%x(-1)
+    else
+       ! Specify an initial default range.
+       deltaTableTimeMinimum= 1.0d0
+       deltaTableTimeMaximum=20.0d0
+    end if
+    ! Expand the range to ensure the requested time is included.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
     ! Determine number of points to tabulate.
@@ -382,37 +391,5 @@ contains
     perturbationODEs=FGSL_Success
     return
   end function perturbationODEs
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Spherical_Collapse_Matter_Dark_Energy_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Spherical_Collapse_Matter_Dark_Energy_State_Store(stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: sphericalCollapse -> matterDarkEnergy',verbosity=verbosityInfo)
-    write (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
-    return
-  end subroutine Spherical_Collapse_Matter_Dark_Energy_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Spherical_Collapse_Matter_Dark_Energy_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Spherical_Collapse_Matter_Dark_Energy_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Retrieving state for: sphericalCollapse -> matterDarkEnergy',verbosity=verbosityInfo)
-    read (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
-    return
-  end subroutine Spherical_Collapse_Matter_Dark_Energy_State_Retrieve
 
 end module Spherical_Collapse_Matter_Dark_Energy

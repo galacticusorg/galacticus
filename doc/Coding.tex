@@ -152,7 +152,20 @@ As an example, the following constructor requires an instance of the {\normalfon
   end function myConstructorParameters
 \end{lstlisting}
 
-The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise, the parent parameter set will be checked for a definition of the relevant class, and so on. If no definition is found when the root parameter set is found the default instance will be used. Note that objects created by an {\normalfont \ttfamily objectBuilder} directive a directly associated with the element in the input parameters XML document from which they were created. Therefore, if a later {\normalfont \ttfamily objectBuilder} requires the object from that same XML element, it will reuse the one previously created.
+The {\normalfont \ttfamily objectBuilder} directive will assign a member of the class specified by the {\normalfont \ttfamily class} attribute to the variable specified by the {\normalfont \ttfamily name} attribute. If the parameter set specified by the {\normalfont \ttfamily parameters} attribute contains an explicit definition of the relevant class, that definition will be used to construct the instance. Otherwise, the parent parameter set will be checked for a definition of the relevant class, and so on. If no definition is found when the root parameter set is found the default instance will be used. Note that objects created by an {\normalfont \ttfamily objectBuilder} directive are directly associated with the element in the input parameters XML document from which they were created. Therefore, if a later {\normalfont \ttfamily objectBuilder} requires the object from that same XML element, it will reuse the one previously created.
+
+The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}Method} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
+
+In cases where an explicit {\normalfont \ttfamily parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit {\normalfont \ttfamily parameterName} attribute is given the global default of the class is used.) A default is specified by adding a {\normalfont \ttfamilt default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
+\begin{verbatim}
+ !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters">
+ !#  <default>
+ !#   <diskMassDistribution value="exponentialDisk">
+ !#    <dimensionless value="true"/>
+ !#   </diskMassDistribution>
+ !#  </default>
+ !# </objectBuilder>
+\end{verbatim}
 
 \subsection{Object Destructor}
 
@@ -181,6 +194,39 @@ A common requirement in object constructors is to assign the values of arguments
   end function stellarMassConstructorInternal
 \end{lstlisting}
 will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\normalfont \ttfamily stellarMassConstructorInternal\%massThreshold}. If an argument name is prefixed with {\normalfont \ttfamily \textasteriskcentered} in the variables list, pointer assignment is used instead of standard assignment.
+
+\subsection{State Storing}
+
+\glc\ supports storing its internal state to file to allow restarts (see \S\ref{sec:Restarting}). Code to store and restore the internal state of objects of a given class can be generated automatically through use of the {\normalfont \ttfamily stateStorable} directive. An example is:
+\begin{verbatim}
+ !# <stateStorable class="table">
+ !#  <table1DGeneric>
+ !#   <restoreTo variables="reset" state=".true."/>
+ !#  </table1DGeneric>
+ !#  <table2DLinLinLin>
+ !#   <restoreTo variables="resetX, resetY" state=".true."/>
+ !#  </table2DLinLinLin>  
+ !# </stateStorable>
+\end{verbatim}
+This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the classs or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute.
+
+\subsection{Conditional Call}
+
+In some instances it is useful to be able to call a function with different combinations of optional arguments depending on certain conditions. (For example, if some combinations of optional arguments are mutually exclusive.) This can be achieved using the {\normalfont \ttfamily conditionalCall} directive. An example is:
+\begin{verbatim}
+  !# <conditionalCall>
+  !#  <call>self=massDistributionBetaProfile(beta{conditions})</call>
+  !#  <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
+  !#  <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
+  !#  <argument name="outerRadius"          value="outerRadius"          parameterPresent="parameters"/>
+  !#  <argument name="coreRadius"           value="coreRadius"           parameterPresent="parameters"/>
+  !#  <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
+  !# </conditionalCall>
+  !# <inputParametersValidate source="parameters"/>
+\end{verbatim}
+The {\normalfont \ttfamily call} element specifies the function call, and contains the special sequence {\normalfont \ttfamily \{conditions\}} which will be replaced with the conditionally-present arguments. One or more {\normalfont \ttfamily argument} elements should specify the various arguments which should be included in the call. For each such element the {\normalfont \ttfamily name} attribute specifies the name of the dummy argument in the called function, the {\normalfont \ttfamily value} attribute specifies the value (or variables) to pass this this dummy argument. A condition for inclusion of the argument must also be specified. In the above, the special {\normalfont \ttfamily parameterPresent} condition is used. The argument will be included in the call if a parameter with a name matching the {\normalfont \ttfamily name} attribute exists in the parameter set named in the {\normalfont \ttfamily parameterPresent} attribute. Alternatively a {\normalfont \ttfamily condition} attribute can be given. An argument is included in the call if the expression given in the {\normalfont \ttfamily condition} attribute evaluates to true.
+
+Code will be generated to call the function with all possible combinations of arguments.
 
 \subsection{Optional Arguments}
 
@@ -325,25 +371,6 @@ The directive should contain the following elements:
 \item[{\normalfont \ttfamily description}] A description of the purpose of this function class. This description will be included into the documentation so should be written in \LaTeX\ syntax.
 \item[{\normalfont \ttfamily default}] The default implementation to use for this function class if no choice is made in the input parameter file.
 \item[{\normalfont \ttfamily defaultThreadPrivate}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of this function class will be made OpenMP thread private. Otherwise, the default implementation is shared between threads. A thread private default implementation can be useful if the function class may need to generate look-up tables unique to each thread on the fly for example.
-\item[{\normalfont \ttfamily stateful}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of the function class is deemed to be stateful, in the sense that it may have internal state to be stored and restored from file (see \S\ref{sec:Restarting}). In this case, additional methods are generated for the function class: {\normalfont \ttfamily stateStore}, {\normalfont \ttfamily stateRestore}, and {\normalfont \ttfamily stateSnapshot} with interfaces:
-  \begin{lstlisting}
-    subroutine stateStore(self,stateFile,fgslStateFile)
-      class  (functionClassBaseName), intent(inout) :: self
-      integer                       , intent(in   ) :: stateFile
-      type   (fgsl_file            ), intent(in   ) :: fgslStateFile
-    end subroutine stateStore
-
-    subroutine stateRestore(self,stateFile,fgslStateFile)
-      class  (functionClassBaseName), intent(inout) :: self
-      integer                       , intent(in   ) :: stateFile
-      type   (fgsl_file            ), intent(in   ) :: fgslStateFile
-    end subroutine stateRestore
-
-    subroutine stateSnapshot(self)
-      class  (functionClassBaseName), intent(inout) :: self
-    end subroutine stateSnapshot
-  \end{lstlisting}
-  These methods have null implementations for the base class of the function class, but can be overridden to store/restore the state of any given implementation.
 \item[{\normalfont \ttfamily calculationReset}] \emph{(optional)} If present and set to {\normalfont \ttfamily yes} then the default implementation of the function class is assumed to possibly want to reset its calculations when the active \gls{node} changes (see \S\ref{sec:CalculationResetTask}). In this case, an additional method is generated for the function class: {\normalfont \ttfamily calculationReset} with interface:
   \begin{lstlisting}
     subroutine calculationReset(self,thisNode)
@@ -435,6 +462,8 @@ In the above example, we define a ``simple'' implementation of the {\normalfont 
 \item[Constructors:] The implementation must specify at least one constructor, which takes no arguments (usually known as the default constructor). This constructor must create an instance of the implementation, setting any parameters from the input parameter file as necessary. Additional constructors may be defined as required.
 \item[Procedures:] All required procedures (including constructors and destructors) should be given after a line containing the {\normalfont \ttfamily contains} keyword. \glc\ coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, {\normalfont \ttfamily simple} in this case.
 \end{description}
+
+Functionality to store and restore the state (see \S\ref{sec:Restarting}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute
 
 \subsection{Generic Programming}
 

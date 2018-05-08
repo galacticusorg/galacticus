@@ -28,7 +28,6 @@ module Dark_Matter_Particles
   !#  <description>Class providing dark matter particle physics.</description>
   !#  <default>CDM</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>no</stateful>
   !# </functionClass>
 
 end module Dark_Matter_Particles

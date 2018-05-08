@@ -24,49 +24,48 @@ module Merger_Tree_State_Store
   use Pseudo_Random
   public
 
-  type(mergerTree  ), pointer :: treeStateStore            => null()
-  type(pseudoRandom)          :: treeRandomNumberGenerator
-  !$omp threadprivate(treeStateStore,treeRandomNumberGenerator)
+  type(mergerTree), pointer :: treeStateStore => null()
+  !$omp threadprivate(treeStateStore)
 
 contains
-
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>mergerTreeStateSnapshot</unitName>
-  !# </galacticusStateSnapshotTask> 
-  subroutine mergerTreeStateSnapshot()
-    !% Store a snapshot of the random number generator internal state.
-    use Pseudo_Random
-    implicit none
-
-    if (associated(treeStateStore)) treeRandomNumberGenerator=treeStateStore%randomNumberGenerator%clone()
-    return
-  end subroutine mergerTreeStateSnapshot
 
   !# <galacticusStateStoreTask>
   !#  <unitName>mergerTreeStateStore</unitName>
   !# </galacticusStateStoreTask>
-  subroutine mergerTreeStateStore(stateFile,fgslStateFile)
+  subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    integer            , intent(in   ) :: stateFile    , stateOperatorID
+    type   (fgsl_file ), intent(in   ) :: fgslStateFile
+    type   (mergerTree), pointer       :: tree
+    !GCC$ attributes unused :: stateOperatorID
 
-    call treeRandomNumberGenerator%store(stateFile,fgslStateFile)
+    tree => treeStateStore
+    do while (associated(tree))
+       call tree%randomNumberGenerator%store(stateFile,fgslStateFile)
+       tree => tree%nextTree
+    end do
     return
   end subroutine mergerTreeStateStore
 
   !# <galacticusStateRetrieveTask>
   !#  <unitName>mergerTreeStateRestore</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine mergerTreeStateRestore(stateFile,fgslStateFile)
+  subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    integer            , intent(in   ) :: stateFile    , stateOperatorID
+    type   (fgsl_file ), intent(in   ) :: fgslStateFile
+    type   (mergerTree), pointer       :: tree
+    !GCC$ attributes unused :: stateOperatorID
 
-    call treeStateStore%randomNumberGenerator%restore(stateFile,fgslStateFile)
+    tree => treeStateStore
+    do while (associated(tree))
+       call tree%randomNumberGenerator%restore(stateFile,fgslStateFile)
+       tree => tree%nextTree
+    end do
     return
   end subroutine mergerTreeStateRestore
 

@@ -140,8 +140,6 @@
      !@ </objectMethods>
      final                                             nfwDestructor
      procedure :: calculationReset                  => nfwCalculationReset
-     procedure :: stateStore                        => nfwStateStore
-     procedure :: stateRestore                      => nfwStateRestore
      procedure :: density                           => nfwDensity
      procedure :: densityLogSlope                   => nfwDensityLogSlope
      procedure :: radialMoment                      => nfwRadialMoment
@@ -1277,38 +1275,3 @@ contains
     end function nfwFreefallTimeScaleFreeIntegrand
 
   end function nfwFreefallTimeScaleFree
-
-  subroutine nfwStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileNFW), intent(inout) :: self
-    integer                      , intent(in   ) :: stateFile
-    type   (fgsl_file           ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> NFW',verbosity=verbosityInfo)
-    write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
-    return
-  end subroutine nfwStateStore
-
-  subroutine nfwStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileNFW), intent(inout) :: self
-    integer                      , intent(in   ) :: stateFile
-    type   (fgsl_file           ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    ! Read the minimum and maximum tabulated times.
-    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> NFW',verbosity=verbosityInfo)
-    read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
-    ! Retabulate.
-    self%nfwTableInitialized        =.false.
-    self%nfwInverseTableInitialized =.false.
-    self%nfwFreefallTableInitialized=.false.
-    call self%tabulate              ()
-    call self%inverseAngularMomentum()
-    return
-  end subroutine nfwStateRestore

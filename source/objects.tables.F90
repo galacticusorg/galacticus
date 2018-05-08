@@ -23,11 +23,11 @@ module Tables
   use FGSL
   use Table_Labels
   private
-  public :: table                       , table1D                          , table1DGeneric                    , &
-       &    table1DLinearLinear         , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
-       &    table1DLinearCSpline        , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
-       &    table1DLinearMonotoneCSpline, table1DLogarithmicMonotoneCSpline, table1DDeserializeClassRaw        , &
-       &    table2DLinLinLin
+  public :: table                          , table1D                          , table1DGeneric                    , &
+       &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
+       &    table1DLinearCSpline           , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
+       &    table1DLinearMonotoneCSpline   , table1DLogarithmicMonotoneCSpline, table2DLinLinLin                  , &
+       &    tablesIntegrationWeightFunction
 
   !# <enumeration>
   !#  <name>tableType</name>
@@ -35,7 +35,15 @@ module Tables
   !#  <entry label="linearLinear1D"      />
   !#  <entry label="logarithmicLinear1D" />
   !# </enumeration>
-  
+
+  !# <stateStorable class="table">
+  !#  <table1DGeneric>
+  !#   <restoreTo variables="reset" state=".true."/>
+  !#  </table1DGeneric>
+  !#  <table2DLinLinLin>
+  !#   <restoreTo variables="resetX, resetY" state=".true."/>
+  !#  </table2DLinLinLin>  
+  !# </stateStorable>
   type, abstract :: table
      !% Basic table type.
    contains
@@ -135,24 +143,10 @@ module Tables
      !@     <arguments>\doublezero\ x0\argin, \doublezero\ x1\argin</arguments>
      !@     <description>Return the weights to be applied to the table to integrate (using the trapezium rule) between {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serializeRaw</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileUnit\argin</arguments>
-     !@     <description>Serialize the table to binary file.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserializeRaw</method>
-     !@     <type>\void</type>
-     !@     <arguments>\intzero\ fileUnit\argin</arguments>
-     !@     <description>Deserialize the table from binary file.</description>
-     !@   </objectMethod>
      !@ </objectMethods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
      procedure                                 :: destroy             => Table_1D_Destroy
-     procedure                                 :: serializeRaw        => Table1D_Serialize_Raw
-     procedure                                 :: deserializeRaw      => Table1D_Deserialize_Raw
      procedure                                 :: reverse             => Table_1D_Reverse
      procedure                                 :: isMonotonic         => Table1D_Is_Monotonic
      procedure                                 :: size                => Table1D_Size
@@ -229,8 +223,6 @@ module Tables
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: create              => Table_Linear_1D_Create
-     procedure :: serializeRaw        => Table_Linear_1D_Serialize_Raw
-     procedure :: deserializeRaw      => Table_Linear_1D_Deserialize_Raw
      procedure ::                        Table_Linear_1D_Populate
      procedure ::                        Table_Linear_1D_Populate_Single
      generic   :: populate            => Table_Linear_1D_Populate            , Table_Linear_1D_Populate_Single
@@ -244,8 +236,6 @@ module Tables
      double precision :: xLinearPrevious,xLogarithmicPrevious
    contains
      procedure :: create              => Table_Logarithmic_1D_Create
-     procedure :: serializeRaw        => Table_Logarithmic_1D_Serialize_Raw
-     procedure :: deserializeRaw      => Table_Logarithmic_1D_Deserialize_Raw
      procedure :: interpolate         => Table_Logarithmic_1D_Interpolate
      procedure :: interpolateGradient => Table_Logarithmic_1D_Interpolate_Gradient
      procedure :: x                   => Table_Logarithmic_1D_X
@@ -355,9 +345,9 @@ module Tables
   end type table1DLogarithmicMonotoneCSpline
 
   abstract interface
-     double precision function integrandTemplate(x)
+     double precision function tablesIntegrationWeightFunction(x)
        double precision, intent(in   ) :: x
-     end function integrandTemplate
+     end function tablesIntegrationWeightFunction
   end interface
   
   type, extends(table) :: table2DLinLinLin
@@ -548,53 +538,6 @@ contains
     return
   end subroutine Table_1D_Destroy
 
-  subroutine Table1D_Serialize_Raw(self,fileUnit,includeType)
-    !% Serialize a table object to binary file.
-    use Galacticus_Error
-    implicit none
-    class  (table1D), intent(in   )           :: self
-    integer         , intent(in   )           :: fileUnit
-    logical         , intent(in   ), optional :: includeType
-    !# <optionalArgument name="includeType" defaultsTo=".true." />
-    !GCC$ attributes unused :: self, fileUnit, includeType, includeType_
-    
-    call Galacticus_Error_Report('serialization is not implemented'//{introspection:location})
-    return
-  end subroutine Table1D_Serialize_Raw
-
-  subroutine table1DDeserializeClassRaw(self,fileUnit)
-    !% Deserialize a table object from binary file.
-    use Galacticus_Error
-    implicit none
-    class  (table1D), intent(inout), allocatable :: self
-    integer         , intent(in   )              :: fileUnit
-    integer                                      :: tableType
-
-    read (fileUnit) tableType
-    select case (tableType)
-    case (tableTypeLinearLinear1D)
-       allocate(table1DLinearLinear      :: self)
-    case (tableTypeLogarithmicLinear1d)
-       allocate(table1DLogarithmicLinear :: self)
-    case default
-       call Galacticus_Error_Report('unknown table type'//{introspection:location})
-    end select
-    call self%deserializeRaw(fileUnit)
-    return
-  end subroutine table1DDeserializeClassRaw
-  
-  subroutine Table1D_Deserialize_Raw(self,fileUnit)
-    !% Deserialize a table object from binary file.
-    use Galacticus_Error
-    implicit none
-    class  (table1D), intent(inout) :: self
-    integer         , intent(in   ) :: fileUnit
-    !GCC$ attributes unused :: self, fileUnit
-    
-    call Galacticus_Error_Report('deserialization is not implemented'//{introspection:location})
-    return
-  end subroutine Table1D_Deserialize_Raw
-  
   double precision function Table1D_X(self,i)
     !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a 1D table.
     implicit none
@@ -713,12 +656,12 @@ contains
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
     use Galacticus_Error
     implicit none
-    class           (table1D          ), intent(inout)                               :: self
-    double precision                   , intent(in   )                               :: x0, x1
-    procedure       (integrandTemplate), intent(in   )           , pointer, optional :: integrand
-    double precision                   , dimension(size(self%xv))                    :: Table1D_Integration_Weights
-    double precision                                                                 :: weight, lx0, lx1
-    integer                                                                          :: i
+    class           (table1D                        ), intent(inout)                               :: self
+    double precision                                 , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
+    double precision                                 , dimension(size(self%xv))                    :: Table1D_Integration_Weights
+    double precision                                                                               :: weight, lx0, lx1
+    integer                                                                                        :: i
 
     if (x1 < x0           ) call Galacticus_Error_Report('inverted limits'//{introspection:location})
     if (present(integrand)) call Galacticus_Error_Report('integrands not supported'//{introspection:location})
@@ -896,64 +839,6 @@ contains
     end if
     return
   end subroutine Table_Linear_1D_Create
-
-  subroutine Table_Linear_1D_Serialize_Raw(self,fileUnit,includeType)
-    !% Serialize a table object to binary file.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    class  (table1DLinearLinear), intent(in   )           :: self
-    integer                     , intent(in   )           :: fileUnit
-    logical                     , intent(in   ), optional :: includeType
-    !# <optionalArgument name="includeType" defaultsTo=".true." />
-
-    if (includeType_) write (fileUnit) tableTypeLinearLinear1D
-    write (fileUnit) self%xCount,self%extrapolationType
-    write (fileUnit) self%dxPrevious,self%dyPrevious,self%inverseDeltaX,self%xPrevious,self%yPrevious,self%dTablePrevious,self%tablePrevious
-    if (allocated(self%xv)) then
-       write (fileUnit) .true.
-       write (fileUnit) shape(self%xv,c_size_t)
-       write (fileUnit) self%xv
-    else
-       write (fileUnit) .false.
-    end if
-    if (allocated(self%yv)) then
-       write (fileUnit) .true.
-       write (fileUnit) shape(self%yv,c_size_t)
-       write (fileUnit) self%yv
-    else
-       write (fileUnit) .false.
-    end if
-    return
-  end subroutine Table_Linear_1D_Serialize_Raw
-
-  subroutine Table_Linear_1D_Deserialize_Raw(self,fileUnit)
-    !% Deserialize a table object from binary file.
-    use, intrinsic :: ISO_C_Binding
-    use               Memory_Management
-    implicit none
-    class  (table1DLinearLinear), intent(inout) :: self
-    integer                     , intent(in   ) :: fileUnit
-    logical                                     :: isAllocated
-    integer(c_size_t           ), dimension(2)  :: shapeAllocated
-
-    read (fileUnit) self%xCount,self%extrapolationType
-    read (fileUnit) self%dxPrevious,self%dyPrevious,self%inverseDeltaX,self%xPrevious,self%yPrevious,self%dTablePrevious,self%tablePrevious
-    read (fileUnit) isAllocated
-    if (allocated(self%xv)) call deallocateArray(self%xv)
-    if (isAllocated) then
-       read (fileUnit) shapeAllocated(1:1)
-       call allocateArray(self%xv,shapeAllocated(1:1))
-       read (fileUnit) self%xv
-    end if
-    read (fileUnit) isAllocated
-    if (allocated(self%yv)) call deallocateArray(self%yv)
-    if (isAllocated) then
-       read (fileUnit) shapeAllocated(1:2)
-       call allocateArray(self%yv,shapeAllocated(1:2))
-       read (fileUnit) self%yv
-    end if
-    return
-  end subroutine Table_Linear_1D_Deserialize_Raw
   
   subroutine Table_Linear_1D_Populate(self,y,table)
     !% Populate a 1-D linear table.
@@ -1091,32 +976,6 @@ contains
     call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
   end subroutine Table_Logarithmic_1D_Create
-
-  subroutine Table_Logarithmic_1D_Serialize_Raw(self,fileUnit,includeType)
-    !% Serialize a table object to binary file.
-    implicit none
-    class  (table1DLogarithmicLinear), intent(in   )           :: self
-    integer                          , intent(in   )           :: fileUnit
-    logical                          , intent(in   ), optional :: includeType
-    !# <optionalArgument name="includeType" defaultsTo=".true." />
-
-    if (includeType_) write (fileUnit) tableTypeLogarithmicLinear1D
-    call self%table1DLinearLinear%serializeRaw(fileUnit,includeType=.false.)
-    write (fileUnit) self%previousSet,self%xLinearPrevious,self%xLogarithmicPrevious
-    return
-  end subroutine Table_Logarithmic_1D_Serialize_Raw
-
-  subroutine Table_Logarithmic_1D_Deserialize_Raw(self,fileUnit)
-    !% Deserialize a table object from binary file.
-    use Memory_Management
-    implicit none
-    class  (table1DLogarithmicLinear), intent(inout) :: self
-    integer                          , intent(in   ) :: fileUnit
-
-    call self%table1DLinearLinear%deserializeRaw(fileUnit)
-    read (fileUnit) self%previousSet,self%xLinearPrevious,self%xLogarithmicPrevious
-    return
-  end subroutine Table_Logarithmic_1D_Deserialize_Raw
   
   double precision function Table_Logarithmic_1D_X(self,i)
     !% Return the {\normalfont \ttfamily i}$^\mathrm{th}$ $x$-value for a logarithmic 1D table.
@@ -1176,16 +1035,16 @@ contains
     use Numerical_Integration
     use Galacticus_Error
     implicit none
-    class           (table1DLogarithmicLinear ), intent(inout)                               :: self
-    double precision                           , intent(in   )                               :: x0, x1
-    procedure       (integrandTemplate        ), intent(in   )           , pointer, optional :: integrand
-    double precision                           , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
-    double precision                           , parameter                                   :: logTolerance=1.0d-12
-    double precision                                                                         :: gradientTerm, lx0, lx1, factor0, factor1
-    integer                                                                                  :: i
-    type            (fgsl_function             )                                             :: integrandFunction
-    type            (fgsl_integration_workspace)                                             :: integrationWorkspace
-    logical                                                                                  :: integrationReset
+    class           (table1DLogarithmicLinear               ), intent(inout)                               :: self
+    double precision                                         , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction        ), intent(in   )           , pointer, optional :: integrand
+    double precision                                         , dimension(size(self%xv))                    :: Table_Logarithmic_Integration_Weights
+    double precision                                         , parameter                                   :: logTolerance=1.0d-12
+    double precision                                                                                       :: gradientTerm, lx0, lx1, factor0, factor1
+    integer                                                                                                :: i
+    type            (fgsl_function                           )                                             :: integrandFunction
+    type            (fgsl_integration_workspace              )                                             :: integrationWorkspace
+    logical                                                                                                :: integrationReset
  
     if (x1 < x0) call Galacticus_Error_Report('inverted limits'//{introspection:location})
     Table_Logarithmic_Integration_Weights=0.0d0    
@@ -1623,10 +1482,10 @@ contains
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
     use Galacticus_Error
     implicit none
-    class           (table1DLinearCSpline), intent(inout)                               :: self
-    double precision                      , intent(in   )                               :: x0, x1
-    procedure       (integrandTemplate   ), intent(in   )           , pointer, optional :: integrand
-    double precision                      , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
+    class           (table1DLinearCSpline           ), intent(inout)                               :: self
+    double precision                                 , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
+    double precision                                 , dimension(size(self%xv))                    :: Table_Linear_CSpline_Integration_Weights
     !GCC$ attributes unused :: self, x0, x1, integrand
 
     Table_Linear_CSpline_Integration_Weights=0.0d0
@@ -1720,7 +1579,7 @@ contains
     implicit none
     class           (table1DNonUniformLinearLogarithmic ), intent(inout)                               :: self
     double precision                                     , intent(in   )                               :: x0, x1
-    procedure       (integrandTemplate                  ), intent(in   )           , pointer, optional :: integrand
+    procedure       (tablesIntegrationWeightFunction    ), intent(in   )           , pointer, optional :: integrand
     double precision                                     , dimension(size(self%xv))                    :: Table_NonUniform_Linear_Logarithmic_Integration_Weights
     !GCC$ attributes unused :: self, x0, x1, integrand
 
@@ -2306,10 +2165,10 @@ contains
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
     use Galacticus_Error
     implicit none
-    class           (table1DLinearMonotoneCSpline), intent(inout)                               :: self
-    double precision                              , intent(in   )                               :: x0, x1
-    procedure       (integrandTemplate           ), intent(in   )           , pointer, optional :: integrand
-    double precision                              , dimension(size(self%xv))                    :: Table_Linear_Monotone_CSpline_Integration_Weights
+    class           (table1DLinearMonotoneCSpline   ), intent(inout)                               :: self
+    double precision                                 , intent(in   )                               :: x0, x1
+    procedure       (tablesIntegrationWeightFunction), intent(in   )           , pointer, optional :: integrand
+    double precision                                 , dimension(size(self%xv))                    :: Table_Linear_Monotone_CSpline_Integration_Weights
     !GCC$ attributes unused :: self, x0, x1, integrand
 
     Table_Linear_Monotone_CSpline_Integration_Weights=0.0d0

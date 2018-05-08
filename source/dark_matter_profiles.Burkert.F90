@@ -117,8 +117,6 @@
      !@ </objectMethods>
      final                                             burkertDestructor
      procedure :: calculationReset                  => burkertCalculationReset
-     procedure :: stateStore                        => burkertStateStore
-     procedure :: stateRestore                      => burkertStateRestore
      procedure :: density                           => burkertDensity
      procedure :: enclosedMass                      => burkertEnclosedMass
      procedure :: radiusEnclosingDensity            => burkertRadiusEnclosingDensity
@@ -1023,41 +1021,6 @@ contains
     end function burkertFreefallTimeScaleFreeIntegrand
 
   end function burkertFreefallTimeScaleFree
-
-  subroutine burkertStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileBurkert), intent(inout) :: self
-    integer                          , intent(in   ) :: stateFile
-    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> Burkert',verbosity=verbosityInfo)
-    write (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
-    return
-  end subroutine burkertStateStore
-
-  subroutine burkertStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileBurkert), intent(inout) :: self
-    integer                          , intent(in   ) :: stateFile
-    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    ! Read the minimum and maximum tabulated times.
-    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> Burkert',verbosity=verbosityInfo)
-    read (stateFile) self%concentrationMinimum,self%concentrationMaximum,self%radiusMinimum,self%radiusMaximum,self%freefallRadiusMinimum,self%freefallRadiusMaximum
-    ! Retabulate.
-    self%burkertTableInitialized        =.false.
-    self%burkertInverseTableInitialized =.false.
-    self%burkertFreefallTableInitialized=.false.
-    call self%tabulate              ()
-    call self%inverseAngularMomentum()
-    return
-  end subroutine burkertStateRestore
 
   double precision function burkertRadiusEnclosingDensity(self,node,density)
     !% Null implementation of function to compute the radius enclosing a given density for Burkert dark matter halo profiles.

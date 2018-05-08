@@ -30,7 +30,6 @@ module Halo_Spin_Distributions
   !#  <description>Class providing dark matter halo spin parameter distributions.</description>
   !#  <default>bett2007</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>yes</stateful>
   !#  <method name="sample" >
   !#   <description>Samples a spin parameter from the distribution for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

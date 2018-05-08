@@ -18,13 +18,13 @@
 
   !% An implementation of dark matter halo scales based on virial density contrast.
 
-  !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition">
-  !#  <description>Dark matter halo scales derived from virial density contrasts.</description>
-  !# </darkMatterHaloScale>
   use Kind_Numbers
   use Tables
   use Virial_Density_Contrast
 
+  !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition">
+  !#  <description>Dark matter halo scales derived from virial density contrasts.</description>
+  !# </darkMatterHaloScale>
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
      !% A dark matter halo scale contrast class using virial density contrasts.
      private
@@ -43,7 +43,6 @@
      ! Table for fast lookup of the mean density of halos.
      double precision                                        :: meanDensityTimeMaximum              , meanDensityTimeMinimum   =-1.0d0
      type            (table1DLogarithmicLinear  )            :: meanDensityTable
-     logical                                                 :: resetMeanDensityTable
    contains
      final     ::                                        virialDensityContrastDefinitionDestructor
      procedure :: dynamicalTimescale                  => virialDensityContrastDefinitionDynamicalTimescale
@@ -56,8 +55,6 @@
      procedure :: meanDensity                         => virialDensityContrastDefinitionMeanDensity
      procedure :: meanDensityGrowthRate               => virialDensityContrastDefinitionMeanDensityGrowthRate
      procedure :: calculationReset                    => virialDensityContrastDefinitionCalculationReset
-     procedure :: stateStore                          => virialDensityContrastDefinitionStateStore
-     procedure :: stateRestore                        => virialDensityContrastDefinitionStateRestore
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -98,7 +95,6 @@ contains
     self%virialVelocityComputed    =.false.
     self%meanDensityTimeMaximum    =-1.0d0
     self%meanDensityTimeMinimum    =-1.0d0
-    self%resetMeanDensityTable     =.false.
     self%timePrevious              =-1.0d0
     self%massPrevious              =-1.0d0
     return
@@ -299,8 +295,7 @@ contains
     else
        ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
        ! Retabulate the mean density vs. time if necessary.
-       if (self%resetMeanDensityTable .or. time < self%meanDensityTimeMinimum .or. time > self%meanDensityTimeMaximum) then
-          self%resetMeanDensityTable=.false.
+       if (time < self%meanDensityTimeMinimum .or. time > self%meanDensityTimeMaximum) then
           if (self%meanDensityTimeMinimum <= 0.0d0) then
              self%meanDensityTimeMinimum=                                time/10.0d0
              self%meanDensityTimeMaximum=                                time* 2.0d0
@@ -373,35 +368,3 @@ contains
     end if
     return
   end function virialDensityContrastDefinitionMeanDensityGrowthRate
-
-  subroutine virialDensityContrastDefinitionStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    integer                                                    , intent(in   ) :: stateFile
-    type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: darkMatterHaloScale -> virialDensityContrast',verbosity=verbosityInfo)
-    write (stateFile) self%meanDensityTimeMinimum,self%meanDensityTimeMaximum
-    return
-  end subroutine virialDensityContrastDefinitionStateStore
-
-  subroutine virialDensityContrastDefinitionStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    integer                                                    , intent(in   ) :: stateFile
-    type   (fgsl_file                                         ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: darkMatterHaloScale -> virialDensityContrast',verbosity=verbosityInfo)
-    read (stateFile) self%meanDensityTimeMinimum,self%meanDensityTimeMaximum
-    ! Ensure that interpolation objects will get reset.
-    self%resetMeanDensityTable=.true.
-    return
-  end subroutine virialDensityContrastDefinitionStateRestore

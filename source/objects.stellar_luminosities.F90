@@ -23,7 +23,10 @@ module Stellar_Luminosities_Structure
   use ISO_Varying_String
   implicit none
   private
-  public :: stellarLuminosities, max, abs, operator(*), Stellar_Luminosities_Parameter_Map
+  public :: stellarLuminosities               , max                             , &
+       &    abs                               , operator(*)                     , &
+       &    Stellar_Luminosities_Parameter_Map, Stellar_Luminosities_State_Store, &
+       &    Stellar_Luminosities_State_Restore
 
   ! Interface to parameter mapping functions.
   interface Stellar_Luminosities_Parameter_Map
@@ -1466,4 +1469,86 @@ contains
     return
   end subroutine Stellar_Luminosities_Parameter_Map_Double
   
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Stellar_Luminosities_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Stellar_Luminosities_State_Store(stateFile,fgslStateFile,stateOperationID)
+    !% Write the luminosities state to file.
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile    , stateOperationID
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    integer                           :: i
+    !GCC$ attributes unused :: fgslStateFile, stateOperationID
+
+    write (stateFile) luminositiesInitialized
+    if (luminositiesInitialized) then
+       write (stateFile) luminosityCount
+       write (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
+       do i=1,luminosityCount
+          call luminosityName          (i)%stateStore(stateFile)
+          call luminosityType          (i)%stateStore(stateFile)
+          call luminosityFilter        (i)%stateStore(stateFile)
+          call luminosityPostprocessSet(i)%stateStore(stateFile)
+       end do
+    end if
+    return
+  end subroutine Stellar_Luminosities_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Stellar_Luminosities_State_Restore</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Stellar_Luminosities_State_Restore(stateFile,fgslStateFile,stateOperationID)
+    !% Retrieve the luminosities state from the file.
+    use Instruments_Filters
+    use Stellar_Population_Spectra_Postprocess
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile    , stateOperationID
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    integer                           :: i
+    !GCC$ attributes unused :: fgslStateFile, stateOperationID
+
+    read (stateFile) luminositiesInitialized
+    if (allocated(luminosityFilterIndex                  )) deallocate(luminosityFilterIndex                  )
+    if (allocated(luminosityIndex                        )) deallocate(luminosityIndex                        )
+    if (allocated(luminosityPostprocessingChainIndex     )) deallocate(luminosityPostprocessingChainIndex     )
+    if (allocated(luminosityCosmicTime                   )) deallocate(luminosityCosmicTime                   )
+    if (allocated(luminosityRedshift                     )) deallocate(luminosityRedshift                     )
+    if (allocated(luminosityBandRedshift                 )) deallocate(luminosityBandRedshift                 )
+    if (allocated(luminosityName                         )) deallocate(luminosityName                         )
+    if (allocated(luminosityType                         )) deallocate(luminosityType                         )
+    if (allocated(luminosityFilter                       )) deallocate(luminosityFilter                       )
+    if (allocated(luminosityPostprocessSet               )) deallocate(luminosityPostprocessSet               )
+    if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
+    if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
+    if (luminositiesInitialized) then
+       read (stateFile) luminosityCount
+       allocate(luminosityFilterIndex                  (luminosityCount))
+       allocate(luminosityIndex                        (luminosityCount))
+       allocate(luminosityPostprocessingChainIndex     (luminosityCount))
+       allocate(luminosityCosmicTime                   (luminosityCount))
+       allocate(luminosityRedshift                     (luminosityCount))
+       allocate(luminosityBandRedshift                 (luminosityCount))
+       allocate(luminosityName                         (luminosityCount))
+       allocate(luminosityType                         (luminosityCount))
+       allocate(luminosityFilter                       (luminosityCount))
+       allocate(luminosityPostprocessSet               (luminosityCount))
+       allocate(unitStellarLuminosities%luminosityValue(luminosityCount))
+       allocate(zeroStellarLuminosities%luminosityValue(luminosityCount))
+       unitStellarLuminosities%luminosityValue=1.0d0
+       zeroStellarLuminosities%luminosityValue=0.0d0
+       read (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
+       do i=1,luminosityCount
+          call luminosityName          (i)%stateRestore(stateFile)
+          call luminosityType          (i)%stateRestore(stateFile)
+          call luminosityFilter        (i)%stateRestore(stateFile)
+          call luminosityPostprocessSet(i)%stateRestore(stateFile)
+          luminosityFilterIndex             (i)=Filter_Get_Index                             (luminosityFilter        (i))
+          luminosityPostprocessingChainIndex(i)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(i))
+       end do
+    end if
+    return
+  end subroutine Stellar_Luminosities_State_Restore
+
 end module Stellar_Luminosities_Structure

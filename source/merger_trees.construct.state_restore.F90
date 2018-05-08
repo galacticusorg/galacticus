@@ -86,11 +86,8 @@ contains
     !# <optionalArgument name="snapshot" defaultsTo=".true." />
     !# <optionalArgument name="append"   defaultsTo=".true." />
 
-    ! Take a snapshot of the internal state and store it.
-    if (snapshot_) then
-       call Galacticus_State_Snapshot()
-       call Galacticus_State_Store   ()
-    end if
+    ! Store internal state.
+    if (snapshot_) call Galacticus_State_Store()
     ! Open an output file. (Append to the old file if the file name has not changed.)
     !$omp critical (mergerTreeStateStore)
     if (append_ .and. trim(storeFile) == storeFilePrevious) then

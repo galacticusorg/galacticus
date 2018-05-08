@@ -239,6 +239,7 @@ contains
     use Histories
     use Numerical_Ranges
     use Galacticus_Nodes
+    use Galacticus_Output_Times
     implicit none
     type            (treeNode          ), intent(inout) :: node
     type            (history           ), intent(inout) :: propertiesHistory
@@ -246,9 +247,9 @@ contains
     double precision                                    :: timeBegin         , timeEnd
 
     ! Decide on start and end times for the history.
-    basic => node%basic()
-    timeBegin=basic%time()
-    timeEnd  =historyStorageLatestTime
+    basic     => node %basic()
+    timeBegin =  basic%time ()
+    timeEnd   =  Galacticus_Output_Time(Galacticus_Output_Time_Count())
     ! Create the history.
     call propertiesHistory%create(historyCount,noninstantHistoryTimesCount,timeBegin,timeEnd,rangeTypeLogarithmic)
     return

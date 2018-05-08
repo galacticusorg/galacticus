@@ -26,7 +26,7 @@ module Galacticus_State
   use Tables
   implicit none
   private
-  public :: Galacticus_State_Snapshot, Galacticus_State_Store, Galacticus_State_Retrieve
+  public :: Galacticus_State_Store, Galacticus_State_Retrieve
 
   ! Flag indicating if we have retrieved the internal state already.
   logical                 :: stateHasBeenRetrieved=.false.
@@ -40,25 +40,10 @@ module Galacticus_State
   ! Flag indicating if module has been initialized.
   logical                 :: stateInitialized     =.false.
 
+  ! Counter which tracks state operators, used to ensure objects are stored to file only once per operation.
+  integer                 :: stateOperatorID      =0
+  
 contains
-
-  subroutine Galacticus_State_Snapshot
-    !% Take a snapshot of the internal state.
-    !# <include directive="galacticusStateSnapshotTask" type="moduleUse">
-    include 'galacticus.state.snapshot.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Ensure that module is initialized.
-    call State_Initialize()
-    ! Check if state store is active.
-    if (stateStoreActive) then    
-       !# <include directive="galacticusStateSnapshotTask" type="functionCall" functionType="void">
-       include 'galacticus.state.snapshot.inc'
-       !# </include>
-    end if
-    return
-  end subroutine Galacticus_State_Snapshot
 
   subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
@@ -102,8 +87,10 @@ contains
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
        fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
 
+       !$omp atomic
+       stateOperatorID=stateOperatorID+1
        !# <include directive="galacticusStateStoreTask" type="functionCall" functionType="void">
-       !#  <functionArgs>stateUnit,fgslStateFile</functionArgs>
+       !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID</functionArgs>
        include 'galacticus.state.store.inc'
        !# </include>
 
@@ -153,8 +140,10 @@ contains
           open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
           fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
 
+          !$omp atomic
+          stateOperatorID=stateOperatorID+1
           !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
-          !#  <functionArgs>stateUnit,fgslStateFile</functionArgs>
+          !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID</functionArgs>
           include 'galacticus.state.retrieve.inc'
           !# </include>
 

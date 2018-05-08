@@ -47,7 +47,6 @@ module Stellar_Population_Spectra_Postprocess
   !#  <description>Object providing postprocessors for spectra.</description>
   !#  <default>null</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>no</stateful>
   !#  <method name="apply" >
   !#   <description>Apply postprocessing to a spectrum.</description>
   !#   <type>void</type>

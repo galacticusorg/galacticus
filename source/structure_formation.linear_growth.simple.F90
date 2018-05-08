@@ -46,8 +46,6 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                         simpleDestructor
-     procedure :: stateStore                           => simpleStateStore
-     procedure :: stateRestore                         => simpleStateRestore
      procedure :: value                                => simpleValue
      procedure :: logarithmicDerivativeExpansionFactor => simpleLogarithmicDerivativeExpansionFactor
      procedure :: retabulate                           => simpleRetabulate
@@ -302,35 +300,3 @@ contains
          &                                     /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
     return
   end function simpleLogarithmicDerivativeExpansionFactor
-
-  subroutine simpleStateStore(self,stateFile,fgslStateFile)
-    !% Store the tabulation.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (linearGrowthSimple), intent(inout) :: self
-    integer                    , intent(in   ) :: stateFile
-    type   (fgsl_file         ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: linearGrowth -> simple',verbosity=verbosityInfo)
-    write (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
-    return
-  end subroutine simpleStateStore
-  
-  subroutine simpleStateRestore(self,stateFile,fgslStateFile)
-    !% Reset the tabulation if state is to be retrieved.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (linearGrowthSimple), intent(inout) :: self
-    integer                    , intent(in   ) :: stateFile
-    type   (fgsl_file         ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: linearGrowth -> simple',verbosity=verbosityInfo)
-    read (stateFile) self%tableTimeMinimum,self%tableTimeMaximum
-    self%tableInitialized=.false.
-    call self%retabulate(sqrt(self%tableTimeMinimum*self%tableTimeMaximum))
-    return
-  end subroutine simpleStateRestore

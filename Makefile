@@ -405,6 +405,7 @@ $(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUI
 $(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.pl `pwd`
+	./scripts/build/stateStorables.pl `pwd`
 
 $(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)

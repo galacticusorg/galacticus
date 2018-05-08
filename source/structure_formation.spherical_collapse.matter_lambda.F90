@@ -25,13 +25,11 @@ module Spherical_Collapse_Matter_Lambda
   implicit none
   private
   public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate, Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate, &
-       &    Spherical_Collapse_Matter_Lambda_State_Store                  , Spherical_Collapse_Matter_Lambda_State_Retrieve      , &
        &    Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
 
   ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0
   integer         , parameter :: deltaTableNPointsPerDecade=1000
-  !$omp threadprivate(deltaTableTimeMaximum,deltaTableTimeMinimum)
+
   ! Variables used in root finding.
   double precision            :: OmegaDE                          , OmegaM                      , &
        &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
@@ -93,7 +91,8 @@ contains
          &                                                                             epsilonPerturbationMaximum       , epsilonPerturbationMinimum       , &
          &                                                                             eta                              , normalization                    , &
          &                                                                             radiiRatio                       , radiusMaximum                    , &
-         &                                                                             timeBigCrunch
+         &                                                                             timeBigCrunch                    , deltaTableTimeMinimum            , &
+         &                                                                             deltaTableTimeMaximum
     double complex                                                                  :: a                                , b                                , &
          &                                                                             c                                , d                                , &
          &                                                                             Delta
@@ -110,12 +109,22 @@ contains
        linearGrowth__       => linearGrowth      ()
     end if
     ! Find minimum and maximum times to tabulate.
+    if (allocated(deltaTable)) then
+       ! Use currently tabulated range as the starting point.
+       deltaTableTimeMinimum=deltaTable%x(+1)
+       deltaTableTimeMaximum=deltaTable%x(-1)
+    else
+       ! Specify an initial default range.
+       deltaTableTimeMinimum= 1.0d0
+       deltaTableTimeMaximum=20.0d0
+    end if
+    ! Expand the range to ensure the requested time is included.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
     timeBigCrunch=cosmologyFunctions__%timeBigCrunch()
     if (timeBigCrunch > 0.0d0) then
        ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
-       if (deltaTableTimeMinimum > timeBigCrunch) deltaTableTimeMinimum= 0.5d0                       *timeBigCrunch
+       if (deltaTableTimeMinimum > timeBigCrunch) deltaTableTimeMinimum= 0.5d0                                *timeBigCrunch
        if (deltaTableTimeMaximum > timeBigCrunch) deltaTableTimeMaximum=(1.0d0-timeToleranceRelativeBigCrunch)*timeBigCrunch
     end if
     ! Determine number of points to tabulate.
@@ -586,36 +595,4 @@ contains
     return
   end function Radius_Root
   
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Spherical_Collapse_Matter_Lambda_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Spherical_Collapse_Matter_Lambda_State_Store(stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: sphericalCollapse -> matterLambda',verbosity=verbosityInfo)
-    write (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
-    return
-  end subroutine Spherical_Collapse_Matter_Lambda_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Spherical_Collapse_Matter_Lambda_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: sphericalCollapse -> matterLambda',verbosity=verbosityInfo)
-    read (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
-    return
-  end subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve
-
 end module Spherical_Collapse_Matter_Lambda

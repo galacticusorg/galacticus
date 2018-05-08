@@ -32,7 +32,6 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !#  <description>Object providing dark matter halo mass accretion histories.</description>
   !#  <default>wechsler2002</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>no</stateful>
   !#  <method name="time" >
   !#   <description>Returns the time at which the given halo mass was reached.</description>
   !#   <type>double precision</type>

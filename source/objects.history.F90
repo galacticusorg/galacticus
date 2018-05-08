@@ -23,7 +23,7 @@ module Histories
   use Kind_Numbers
   implicit none
   private
-  public :: history, longIntegerHistory, History_Set_Times, Histories_State_Store, Histories_State_Retrieve, operator(*)
+  public :: history, longIntegerHistory, operator(*)
 
   ! Interface to multiplication operators with history objects as their second argument.
   interface operator(*)
@@ -324,26 +324,12 @@ module Histories
   ! A null history object.
   type            (history)           , public :: nullHistory
 
-  ! Earliest and latest times for history storage.
-  double precision                    , public :: historyStorageEarliestTime=0.1d0
-  double precision                    , public :: historyStorageLatestTime  =15.0d0
-
   ! Labels for targets when adding to histories.
   integer                  , parameter, public :: historyData               =1
   integer                  , parameter, public :: historyRates              =2
   integer                  , parameter, public :: historyScales             =3
 
 contains
-
-  subroutine History_Set_Times(timeEarliest,timeLatest)
-    !% Extend the range of history times to include the given {\normalfont \ttfamily timeEarliest} and {\normalfont \ttfamily timeLatest}.
-    implicit none
-    double precision, intent(in   ), optional :: timeEarliest, timeLatest
-
-    if (present(timeEarliest)) historyStorageEarliestTime=min(historyStorageEarliestTime,timeEarliest)
-    if (present(timeLatest  )) historyStorageLatestTime  =max(historyStorageLatestTime  ,timeLatest  )
-    return
-  end subroutine History_Set_Times
 
   subroutine History_Create(thisHistory,historyCount,timesCount,timeBegin,timeEnd,rangeType)
     !% Create a history object.
@@ -1496,40 +1482,6 @@ contains
      end if
      return
    end subroutine History_Extend
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Histories_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Histories_State_Store(stateFile,fgslStateFile)
-    !% Write the history state to file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: histories',verbosity=verbosityInfo)
-    write (stateFile) historyStorageEarliestTime,historyStorageLatestTime
-    return
-  end subroutine Histories_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Histories_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Histories_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the history state from the file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: histories',verbosity=verbosityInfo)
-    read (stateFile) historyStorageEarliestTime,historyStorageLatestTime
-    return
-  end subroutine Histories_State_Retrieve
 
   subroutine History_Timesteps(thisHistory,timeSteps)
     !% Return an array of time intervals in {\normalfont \ttfamily thisHistory}.

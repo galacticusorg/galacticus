@@ -29,7 +29,6 @@ module Halo_Mass_Functions
   !#  <descriptiveName>Halo Mass Function</descriptiveName>
   !#  <description>Class providing halo mass functions.</description>
   !#  <default>tinker2008</default>
-  !#  <stateful>no</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>double precision                                    :: time_                         </data>
   !#  <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
