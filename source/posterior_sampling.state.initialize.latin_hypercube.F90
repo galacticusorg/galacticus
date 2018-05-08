@@ -102,7 +102,7 @@ contains
     do k=0,self%maximinTrialCount
        do j=1,simulationState%dimension()
           x                =0.0d0
-          x(mpiSelf%rank())=randomNumberGenerator%sample(ompThreadOffset=.true.,mpiRankOffset=.true.)
+          x(mpiSelf%rank())=randomNumberGenerator%uniformSample(ompThreadOffset=.true.,mpiRankOffset=.true.)
           y                =mpiSelf%sum(x)
           call mpiBarrier()  
           order            =Sort_Index_Do(y)-1

@@ -320,7 +320,7 @@ contains
     self%badTest                 =mergerTreeImportSussingBadValueTest
     self%treeSampleRate          =mergerTreeImportSussingTreeSampleRate
     self%scaleRadiiAvailableValue=.true.
-    call self%randomSequence%initialize()
+    self%randomSequence          =pseudoRandom()
     return
   end subroutine sussingInitialize
 
@@ -1021,7 +1021,7 @@ contains
     !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions, requireSpin, requireSpin3D
     
     ! Decide if this tree should be included.
-    if (self%randomSequence%sample() <= self%treeSampleRate) then
+    if (self%randomSequence%uniformSample() <= self%treeSampleRate) then
     ! Validate arguments.
     if (present(structureOnly).and.    structureOnly                ) call Galacticus_Error_Report('import of structure only is not supported'//{introspection:location})
     if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('import of subsets is not supported'       //{introspection:location})

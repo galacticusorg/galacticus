@@ -88,9 +88,9 @@ contains
     
     ! Select random spherical coordinates.
     positionSpherical=[                                                                                                            &
-         &             self%inverseCumulativeMassFunctionRadial(node,         node%hostTree%randomNumberGenerator%sample()      ), &
-         &             acos                                    (     2.0d0   *node%hostTree%randomNumberGenerator%sample()-1.0d0), &
-         &                                                           2.0d0*Pi*node%hostTree%randomNumberGenerator%sample()         &
+         &             self%inverseCumulativeMassFunctionRadial(node,         node%hostTree%randomNumberGenerator%uniformSample()      ), &
+         &             acos                                    (     2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0), &
+         &                                                           2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()         &
          &            ]
     ! Determine the position in Cartesian coordinates and offset to position of host halo.
     nodeHost               =>  node                   %parent

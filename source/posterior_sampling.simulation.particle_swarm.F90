@@ -380,7 +380,7 @@ contains
     else
        ! Simulation is not being resumed, so set an initial velocity for the particle.
        do i=1,self%parameterCount     
-          velocityParticle(i)=(2.0d0*randomNumberGenerator%sample()-1.0d0)*velocityMaximum(i)
+          velocityParticle(i)=(2.0d0*randomNumberGenerator%uniformSample()-1.0d0)*velocityMaximum(i)
        end do
     end if
     ! Begin the simulation.
@@ -448,13 +448,13 @@ contains
        velocityParticle=+self%inertiaWeight                   &
             &           *velocityParticle                     &
             &           +self%accelerationCoefficientPersonal &
-            &           *randomNumberGenerator%sample()       &
+            &           *randomNumberGenerator%uniformSample()       &
             &           *(                                    &
             &             +stateBestPersonal                  &
             &             -stateVector                        &
             &            )                                    &
             &           +self%accelerationCoefficientGlobal   &
-            &           *randomNumberGenerator%sample()       &
+            &           *randomNumberGenerator%uniformSample()       &
             &           *(                                    &
             &             +stateBestGlobal                    &
             &             -stateVector                        &

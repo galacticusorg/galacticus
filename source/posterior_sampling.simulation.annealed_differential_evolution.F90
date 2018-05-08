@@ -201,7 +201,7 @@ contains
     !GCC$ attributes unused :: logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
-    x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+    x=randomNumberGenerator%uniformSample(mpiRankOffset=.true.)
     annealedDifferentialEvolutionAcceptProposal=               &
          &   logPosteriorProposed >      logPosterior          &
          &  .or.                                               &

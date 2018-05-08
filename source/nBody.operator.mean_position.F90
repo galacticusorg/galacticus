@@ -85,8 +85,7 @@ contains
     !% Determine the mean position and velocity of N-body particles.
     use Memory_Management
     use Galacticus_Error
-    use FGSL
-    use Poisson_Random
+    use Pseudo_Random
     implicit none
     class          (nbodyOperatorMeanPosition), intent(inout)                 :: self
     type           (nBodyData                ), intent(inout)                 :: simulation
@@ -95,8 +94,7 @@ contains
     double precision                          , allocatable  , dimension(:,:) :: positionMean               , velocityMean
     double precision                                                          :: weight
     integer         (c_size_t                )                                :: i                          , j
-    type            (fgsl_rng                )                                :: pseudoSequenceObject
-    logical                                                                   :: pseudoSequenceReset =.true.
+    type            (pseudoRandom            )                                :: randomSequence
 
     ! Determine the particle mask to use.
     if (self%selfBoundParticlesOnly) then
@@ -110,7 +108,7 @@ contains
        call allocateArray(selfBoundStatus,[size(simulation%position,dim=2,kind=c_size_t),self%bootstrapSampleCount])
        do i=1,self%bootstrapSampleCount
           do j=1,size(simulation%position,dim=2)
-             selfBoundStatus(j,i)=Poisson_Random_Get(pseudoSequenceObject,sampleRate,pseudoSequenceReset)
+             selfBoundStatus(j,i)=randomSequence%poissonSample(sampleRate)
           end do
        end do
     end if

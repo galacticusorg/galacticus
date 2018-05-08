@@ -42,17 +42,12 @@
           &                                                      alpha                     , beta                 , &
           &                                                      timePrevious              , massPrevious         , &
           &                                                      concentrationMeanPrevious
-     type            (fgsl_rng                              ) :: clonedPseudoSequenceObject, pseudoSequenceObject
-     logical                                                  :: resetSequence             , resetSequenceSnapshot
    contains
      final     ::                                diemerKravtsov2014Destructor
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
      procedure :: darkMatterProfileDefinition => diemerKravtsov2014DarkMatterProfileDefinition
-     procedure :: stateStore                  => diemerKravtsov2014StateStore
-     procedure :: stateRestore                => diemerKravtsov2014StateRestore
-     procedure :: stateSnapshot               => diemerKravtsov2014StateSnapshot
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
@@ -174,7 +169,6 @@ contains
     class           (powerSpectrumClass                              ), intent(in   ), target :: powerSpectrum_
     !# <constructorAssign variables="kappa, phi0, phi1, eta0, eta1, alpha, beta, scatter, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *powerSpectrum_"/>
 
-    self%resetSequence            =.true.
     self%timePrevious             =-1.0d0
     self%massPrevious             =-1.0d0
     self%concentrationMeanPrevious=-1.0d0
@@ -197,7 +191,6 @@ contains
   double precision function diemerKravtsov2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{diemer_universal_2014} algorithm.
-    use Gaussian_Random
     implicit none
     class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout), target  :: self
     type (treeNode                                        ), intent(inout), pointer :: node
@@ -205,14 +198,13 @@ contains
     ! Get the mean concentration.
     diemerKravtsov2014Concentration=self%concentrationMean(node)
     ! Add scatter if necessary.
-    if (self%scatter > 0.0d0)                                      &
-         &  diemerKravtsov2014Concentration                        &
-         & =diemerKravtsov2014Concentration                        &
-         & *10.0d0**Gaussian_Random_Get(                           &
-         &                              self%pseudoSequenceObject, &
-         &                              self%scatter             , &
-         &                              self%resetSequence         &
-         &                             )
+    if (self%scatter > 0.0d0)                                            &
+         &  diemerKravtsov2014Concentration                              &
+         & =diemerKravtsov2014Concentration                              &
+         & *10.0d0**(                                                    &
+         &           +self%scatter                                       &
+         &           *node%hostTree%randomNumberGenerator%normalSample() &
+         &          )
     return
   end function diemerKravtsov2014Concentration
 
@@ -322,43 +314,3 @@ contains
     diemerKravtsov2014DarkMatterProfileDefinition => densityProfileDefinition
     return
   end function diemerKravtsov2014DarkMatterProfileDefinition
-
-  subroutine diemerKravtsov2014StateSnapshot(self)
-    !% Write the tablulation state to file.
-    implicit none
-    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-
-    if (.not.self%resetSequence) self%clonedPseudoSequenceObject=FGSL_Rng_Clone(self%pseudoSequenceObject)
-    self%resetSequenceSnapshot=self%resetSequence
-    return
-  end subroutine diemerKravtsov2014StateSnapshot
-
-  subroutine diemerKravtsov2014StateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-    integer                                                  , intent(in   ) :: stateFile
-    type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: darkMatterProfileConcentration -> diemerKravtsov2014',verbosity=verbosityInfo)
-    write (stateFile) self%resetSequenceSnapshot
-    if (.not.self%resetSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine diemerKravtsov2014StateStore
-
-  subroutine diemerKravtsov2014StateRestore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout) :: self
-    integer                                                  , intent(in   ) :: stateFile
-    type   (fgsl_file                                       ), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: darkMatterProfileConcentration -> diemerKravtsov2014',verbosity=verbosityInfo)
-    read (stateFile) self%resetSequence
-    if (.not.self%resetSequence) call Pseudo_Random_Retrieve(self%pseudoSequenceObject,fgslStateFile)
-   return
-  end subroutine diemerKravtsov2014StateRestore

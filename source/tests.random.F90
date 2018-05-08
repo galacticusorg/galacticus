@@ -22,7 +22,6 @@ program Test_Random
   !% Tests that random number functions work.
   use Memory_Management 
   use Unit_Tests
-  use FGSL
   use Pseudo_Random
   use Input_Parameters
   implicit none
@@ -30,9 +29,8 @@ program Test_Random
   double precision                 , dimension(limitCount) :: upperLimit=[1.0d-5,1.0d-4,1.0d-3,1.0d-2,1.0d-1,0.5d0]
   double precision                 , dimension(limitCount) :: frequency,frequencyError,deviation
   integer                          , dimension(limitCount) :: upperLimitCount
-  type            (fgsl_rng       )                        :: pseudoSequenceObject
+  type            (pseudoRandom   )                        :: randomSequence
   double precision                                         :: x
-  logical                                                  :: reset=.true.
   integer                                                  :: i,j
   type            (inputParameters)                        :: parameters
 
@@ -46,7 +44,7 @@ program Test_Random
   
   upperLimitCount=0
   do i=1,sampleCount
-     x=Pseudo_Random_Get(pseudoSequenceObject,reset)
+     x=randomSequence%uniformSample()
      do j=1,size(upperLimit)
         if (x <= upperLimit(j)) upperLimitCount(j)=upperLimitCount(j)+1
      end do

@@ -51,7 +51,7 @@ program Test_Math_Distributions
   do i=1,trialCount
      k=0
      do j=1,size(p)
-        if (prng%sample() <= p(j)) k=k+1
+        if (prng%uniformSample() <= p(j)) k=k+1
      end do
      trials(k)=trials(k)+1
   end do

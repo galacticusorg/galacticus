@@ -63,14 +63,14 @@ module Statistics_Distributions
   !#     ! Draw a random number uniformly from 0 to 1 and use the inverse of our self to get the
   !#     ! corresponding random variate.
   !#     if (present(randomNumberGenerator)) then
-  !#        uniformRandom=     randomNumberGenerator%sample(                                  &amp;
-  !#             &amp;                                     )
+  !#        uniformRandom=     randomNumberGenerator%uniformSample(                                  &amp;
+  !#             &amp;                                            )
   !#     else
-  !#        uniformRandom=self%randomNumberGenerator%sample(                                  &amp;
-  !#             &amp;                                      ompThreadOffset=ompThreadOffset_, &amp;
-  !#             &amp;                                      mpiRankOffset  =mpiRankOffset_  , &amp;
-  !#             &amp;                                      incrementSeed  =incrementSeed     &amp;
-  !#             &amp;                                     )
+  !#        uniformRandom=self%randomNumberGenerator%uniformSample(                                  &amp;
+  !#             &amp;                                             ompThreadOffset=ompThreadOffset_, &amp;
+  !#             &amp;                                             mpiRankOffset  =mpiRankOffset_  , &amp;
+  !#             &amp;                                             incrementSeed  =incrementSeed     &amp;
+  !#             &amp;                                            )
   !#     end if
   !#     distributionFunction1DSample=self%inverse(uniformRandom)
   !#     return
@@ -81,7 +81,7 @@ module Statistics_Distributions
   !#    <pass>yes</pass>
   !#    <description>Reset the sampler for the distribution.</description>
   !#    <code>
-  !#     call self%randomNumberGenerator%initialize()
+  !#     self%randomNumberGenerator=pseudoRandom()
   !#    </code>
   !#  </method>
   !#  <method name="minimum" >

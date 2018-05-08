@@ -142,7 +142,7 @@ module Merger_Tree_Read
   ! Enumeration of cross-tree event types.
   !# <enumeration>
   !#  <name>pushType</name>
-  !#  <description>Cross-type event type enumeration.</description>
+  !#  <description>Cross-tree event type enumeration.</description>
   !#  <entry label="branchJump"               />
   !#  <entry label="subhaloPromotion"         />
   !# </enumeration>
@@ -705,6 +705,7 @@ contains
     use Numerical_Comparison
     use Vectors
     use Sort
+    use Pseudo_Random
     !$ use OMP_Lib
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: tree                               
@@ -804,9 +805,8 @@ contains
        processTree=.false.
        if (haveTree) then
           ! Retrieve stored internal state if possible.
-          call Galacticus_State_Retrieve
-          ! Take a snapshot of the internal state and store it.
-          call Galacticus_State_Snapshot
+          call Galacticus_State_Retrieve()
+          ! Store internal state.
           message='Storing state for tree #'
           message=message//nextTreeToReadActual
           call Galacticus_State_Store(message)          
@@ -825,8 +825,8 @@ contains
              tree%event => null()
              ! Restart the random number sequence for this tree. We use the tree index modulo the largest number representable by
              ! the integer type.
-             call tree%randomNumberGenerator%initialize()
-             uniformRandom=tree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index,huge(0))))
+             tree%randomNumberGenerator=pseudoRandom()
+             uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index,huge(0))))
              ! Check if the size of this forest exceeds the maximum allowed.
              if     (                                                                                   &
                   &   .not.returnSplitForest                                                            &
@@ -1632,6 +1632,7 @@ contains
     !% Create parent pointer links between isolated nodes and assign times and masses to those nodes.
     use String_Handling
     use Galacticus_Error
+    use Pseudo_Random
     implicit none
     type            (mergerTree        )                       , intent(inout) , target :: tree
     type            (nodeData          )         , dimension(:), intent(inout)          :: nodes
@@ -1664,7 +1665,7 @@ contains
                    ! While it is, create the next tree (unless it already exists), then step to it.
                    if (.not.associated(treeCurrent%nextTree)) then
                       allocate(treeCurrent%nextTree)
-                      call treeCurrent%nextTree%randomNumberGenerator%initialize()                      
+                      treeCurrent%nextTree%randomNumberGenerator=pseudoRandom()
                    end if
                    treeCurrent => treeCurrent%nextTree
                 end do
@@ -1679,7 +1680,7 @@ contains
                 treeCurrent   %initializedUntil =  0.0d0                
                 treeCurrent   %event            => null()
                 ! Initialize a new random number sequence for this tree, using the sum of the tree index and base node index as the seed increment.
-                if (.not.associated(treeCurrent,tree)) uniformRandom=treeCurrent%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index+nodes(iNode)%nodeIndex,huge(0))))
+                if (.not.associated(treeCurrent,tree)) uniformRandom=treeCurrent%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,incrementSeed=int(mod(tree%index+nodes(iNode)%nodeIndex,huge(0))))
              end if
           else
              ! Node is not isolated, so must be an initial satellite.
@@ -3056,22 +3057,17 @@ contains
     !% Initialize subresolution merging calculations.
     use Input_Parameters
     implicit none
-    type(varying_string) :: mergerTreeReadSubresolutionMergingMethod                                     
 
     ! Initialize if necessary.
     if (.not.subresolutionMergingInitialized) then
        !$omp critical(Time_Until_Merging_Subresolution_Initialize)
        if (.not.subresolutionMergingInitialized) then
-          ! Construct the satellite merging timescale object.
-          !# <inputParameter>
-          !#   <name>mergerTreeReadSubresolutionMergingMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of a satellite merging timescale method to be used for computing the extra time until merging for subhalos.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          subresolutionSatelliteMergingTimescales => satelliteMergingTimescales(char(mergerTreeReadSubresolutionMergingMethod))
+          ! Construct the satellite merging timescale object.          
+          !# <objectBuilder class="satelliteMergingTimescales" name="subresolutionSatelliteMergingTimescales" parameterName="mergerTreeReadSubresolutionMergingMethod" source="globalParameters">
+          !#  <default>
+          !#   <mergerTreeReadSubresolutionMergingMethod value="zero"/>
+          !#  </default>
+          !# </objectBuilder>
           ! Record that we are now initialized.
           subresolutionMergingInitialized=.true.
        end if

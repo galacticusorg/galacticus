@@ -73,17 +73,17 @@ contains
 
   subroutine randomPointsWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
     !% Compute the window function for the survey.
-    use FFTW3
-    use Vectors
-    use Pseudo_Random
-    use FGSL
-    use Meshes
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Math
-    use Memory_Management
-    use Galacticus_Display
-    use String_Handling
-    use Galacticus_Error
+    use               FFTW3
+    use               Vectors
+    use               Pseudo_Random
+    use               FGSL
+    use               Meshes
+    use               Numerical_Constants_Math
+    use               Memory_Management
+    use               Galacticus_Display
+    use               String_Handling
+    use               Galacticus_Error
     implicit none
     class           (surveyGeometryRandomPoints), intent(inout)                                           :: self
     double precision                            , intent(in   )                                           :: mass1                   , mass2
@@ -92,8 +92,6 @@ contains
     complex         (c_double_complex          ), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1         , windowFunction2
     double precision                            ,                dimension(3                            ) :: origin                  , position1              , &
          &                                                                                                   position2
-    type            (fgsl_rng                  ), save                                                    :: pseudoSequenceObject
-    logical                                     , save                                                    :: reset=.true.
     integer                                                                                               :: i
     double precision                                                                                      :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
          &                                                                                                   comovingDistanceMinimum1, comovingDistanceMinimum2, &
@@ -101,7 +99,8 @@ contains
     type            (c_ptr                     )                                                          :: plan
     complex         (c_double_complex          ),                dimension(gridCount,gridCount,gridCount) :: selectionFunction1      , selectionFunction2
     complex         (c_double_complex          )                                                          :: normalization
-    
+    type            (pseudoRandom              ), save                                                    :: randomSequence
+
     ! Initialize geometry if necessary.
     if (.not.self%geometryInitialized) then
        call self%randomsInitialize()
@@ -122,29 +121,29 @@ contains
     ! Loop over randoms.
     do i=1,size(self%randomPhi)
        ! Choose random distances.
-       distance1=+(                                               &
-            &       Pseudo_Random_Get(pseudoSequenceObject,reset) &
-            &      *(                                             &
-            &        +comovingDistanceMaximum1**3                 &
-            &        -comovingDistanceMinimum1**3                 &
-            &       )                                             &
-            &        +comovingDistanceMinimum1**3                 &
-            &     )**(1.0d0/3.0d0)                                &
-            &    -min(                                            &
-            &         comovingDistanceMinimum1   ,                &
-            &         comovingDistanceMinimum2                    &
+       distance1=+(                                &
+            &      +randomSequence%uniformSample() &
+            &      *(                              &
+            &        +comovingDistanceMaximum1**3  &
+            &        -comovingDistanceMinimum1**3  &
+            &       )                              &
+            &        +comovingDistanceMinimum1**3  &
+            &     )**(1.0d0/3.0d0)                 &
+            &    -min(                             &
+            &         comovingDistanceMinimum1   , &
+            &         comovingDistanceMinimum2     &
             &        )
-       distance2=+(                                               &
-            &       Pseudo_Random_Get(pseudoSequenceObject,reset) &
-            &      *(                                             &
-            &        +comovingDistanceMaximum2**3                 &
-            &        -comovingDistanceMinimum2**3                 &
-            &       )                                             &
-            &        +comovingDistanceMinimum2**3                 &
-            &     )**(1.0d0/3.0d0)                                &
-            &    -min(                                            &
-            &         comovingDistanceMinimum1   ,                &
-            &         comovingDistanceMinimum2                    &
+       distance2=+(                                &
+            &      +randomSequence%uniformSample() &
+            &      *(                              &
+            &        +comovingDistanceMaximum2**3  &
+            &        -comovingDistanceMinimum2**3  &
+            &       )                              &
+            &        +comovingDistanceMinimum2**3  &
+            &     )**(1.0d0/3.0d0)                 &
+            &    -min(                             &
+            &         comovingDistanceMinimum1   , &
+            &         comovingDistanceMinimum2     &
             &        )
        ! Convert to Cartesian coordinates.
        position1=distance1*[sin(self%randomTheta(i))*cos(self%randomPhi(i)),sin(self%randomTheta(i))*sin(self%randomPhi(i)),cos(self%randomTheta(i))]+origin
