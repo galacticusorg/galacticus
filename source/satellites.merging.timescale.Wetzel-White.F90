@@ -18,37 +18,66 @@
 
 !+    Contributions to this file made by:  Martin White.
 
-  !% Implements calculations of satellite merging times using the \cite{wetzel_what_2010} method.
+  !% Implements a satellite merging timescale class which uses the \cite{wetzel_what_2010} method.
 
+  use Cosmology_Functions
+  
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
   !#  <description>Computes the merging timescale using the method of \cite{wetzel_what_2010}.</description>
   !# </satelliteMergingTimescales>
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
      !% A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.
      private
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
    contains
      final     ::                     wetzelWhite2010Destructor
      procedure :: timeUntilMerging => wetzelWhite2010TimeUntilMerging
   end type satelliteMergingTimescalesWetzelWhite2010
 
+  interface satelliteMergingTimescalesWetzelWhite2010
+     !% Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     module procedure wetzelWhite2010ConstructorParameters
+     module procedure wetzelWhite2010ConstructorInternal
+  end interface satelliteMergingTimescalesWetzelWhite2010
+
 contains
 
-  elemental subroutine wetzelWhite2010Destructor(self)
-    !% Default constructor for the \cite{wetzel_what_2010} merging timescale class.
+  function wetzelWhite2010ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{etzel_what_2010} merging timescale class which builds the object from a parameter set.
+    use Input_Parameters
+    implicit none
+    type (satelliteMergingTimescalesWetzelWhite2010)                :: self
+    type (inputParameters                          ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=satelliteMergingTimescalesWetzelWhite2010(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function wetzelWhite2010ConstructorParameters
+
+  function wetzelWhite2010ConstructorInternal(cosmologyFunctions_) result(self)
+    !% Constructor for the \cite{etzel_what_2010} merging timescale class.
+    implicit none
+    type (satelliteMergingTimescalesWetzelWhite2010)                        :: self
+    class(cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
+
+    return
+  end function wetzelWhite2010ConstructorInternal
+
+  subroutine wetzelWhite2010Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily wetzelWhite2010} satellite merging timescale class.
     implicit none
     type(satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine wetzelWhite2010Destructor
 
   double precision function wetzelWhite2010TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
-    use Galacticus_Nodes
     use Dynamical_Friction_Timescale_Utilities
-    use Cosmology_Functions
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
@@ -56,28 +85,26 @@ contains
     type            (keplerOrbit                              ), intent(inout) :: orbit
     type            (treeNode                                 ), pointer       :: nodeHost
     class           (nodeComponentBasic                       ), pointer       :: basicHost                   , basic
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     double precision                                           , parameter     :: timeScaleNormalization=0.2d0        !   C_dyn from Wetzel & White (2010).
     double precision                                                           :: massRatio
     !GCC$ attributes unused :: self, orbit
     
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
     ! Find the host node.
-    nodeHost => node%parent
+    nodeHost  =>  node     %parent
     ! Compute mass ratio.
-    basic => node%basic()
-    basicHost => nodeHost%basic()
-    massRatio=basicHost%mass()/basic%mass()
+    basic     =>  node     %basic ()
+    basicHost =>  nodeHost %basic ()
+    massRatio =  +basicHost%mass  () &
+         &       /basic    %mass  ()
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
-    wetzelWhite2010TimeUntilMerging= Dynamical_Friction_Timescale_Multiplier()   &
-         &                          *timeScaleNormalization                      &
-         &                          /cosmologyFunctions_%expansionRate(          &
-         &                            cosmologyFunctions_%expansionFactor(       &
-         &                             basic%time()                              &
-         &                                                                     ) &
-         &                                                                  )    &
-         &                          *           massRatio                        &
+    wetzelWhite2010TimeUntilMerging= Dynamical_Friction_Timescale_Multiplier()              &
+         &                          *timeScaleNormalization                                 &
+         &                          /self%cosmologyFunctions_%expansionRate  (              &
+         &                           self%cosmologyFunctions_%expansionFactor (             &
+         &                                                                     basic%time() &
+         &                                                                    )             &
+         &                                                                   )              &
+         &                          *           massRatio                                   &
          &                          /log(1.0d0+massRatio)
     return
   end function wetzelWhite2010TimeUntilMerging

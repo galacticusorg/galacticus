@@ -40,11 +40,8 @@ module Node_Component_Disk_Standard_Data
   double precision                            :: radiusScaleDisk
   !$omp threadprivate(radiusScaleDisk)
 
-  ! Parameter controlling the scale height of the disk.
-  double precision                            :: heightToRadialScaleDisk
-
   ! The mass distribution object.
-  class           (massDistribution), pointer :: diskMassDistribution
+  class           (massDistributionClass), pointer :: diskMassDistribution
   !$omp threadprivate(diskMassDistribution)
   
 contains

@@ -15,14 +15,12 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-!% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
-    
+  
+  !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
+  
   use Tables
-
-  integer         , parameter :: growingCoreRadiusTablePointsPerDecade=100
-  double precision            :: growingCoreRadiusOverScaleRadius             , growingCoreRadiusOverVirialRadiusMaximum
-  logical                     :: growingInitialized                   =.false.
+  use Cosmology_Parameters
+  use Dark_Matter_Halo_Scales
 
   !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
   !#  <description>Provides an implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.</description>
@@ -30,6 +28,8 @@
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
      !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
      private
+     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_
+     class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_
      double precision                                        :: coreRadiusOverScaleRadius      , coreRadiusOverVirialRadiusMaximum
      double precision                                        :: coreRadiusMaximum              , coreRadiusMinimum
      double precision                                        :: hotGasFractionSaved            , coreRadiusOverVirialRadiusInitialSaved, &
@@ -39,67 +39,64 @@
      type            (table1DLogarithmicLinear)              :: coreRadiusTable
      class           (table1D                 ), allocatable :: coreRadiusTableInverse
    contains
-     final     ::                 growingDestructor
-     procedure :: radius       => growingRadius
-     procedure :: stateStore   => growingStateStore
-     procedure :: stateRestore => growingStateRestore
+     final     ::           growingDestructor
+     procedure :: radius => growingRadius
   end type hotHaloMassDistributionCoreRadiusGrowing
 
   interface hotHaloMassDistributionCoreRadiusGrowing
      !% Constructors for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
-     module procedure growingDefaultConstructor
-     module procedure growingConstructor
+     module procedure growingConstructorParameters
+     module procedure growingConstructorInternal
   end interface hotHaloMassDistributionCoreRadiusGrowing
+
+  integer, parameter :: growingTablePointsPerDecade=100
 
 contains
 
-  function growingDefaultConstructor()
-    !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+  function growingConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class which builds the object
+    !% from a parameter set.
     use Input_Parameters
     implicit none
-    type(hotHaloMassDistributionCoreRadiusGrowing) :: growingDefaultConstructor
-
-    if (.not.growingInitialized) then
-       !$omp critical (hotHaloMassDistributionCoreRadiusGrowingInitialize)
-       if (.not.growingInitialized) then
-          !# <inputParameter>
-          !#   <name>hotHaloCoreRadiusOverScaleRadius</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.1d0</defaultValue>
-          !#   <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !#   <variable>growingCoreRadiusOverScaleRadius</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>hotHaloCoreRadiusOverVirialRadiusMaximum</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>10.0d0</defaultValue>
-          !#   <description>The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !#   <variable>growingCoreRadiusOverVirialRadiusMaximum</variable>
-          !# </inputParameter>
-          ! Record that this implementation is now initialized.
-          growingInitialized=.true.
-       end if
-       !$omp end critical (hotHaloMassDistributionCoreRadiusGrowingInitialize)
-    end if
-    growingDefaultConstructor=growingConstructor(growingCoreRadiusOverScaleRadius,growingCoreRadiusOverVirialRadiusMaximum)
+    type            (hotHaloMassDistributionCoreRadiusGrowing)                :: self
+    type            (inputParameters                         ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
+    class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
+    double precision                                                          :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
+    
+    !# <inputParameter>
+    !#   <name>coreRadiusOverScaleRadius</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>coreRadiusOverVirialRadiusMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10.0d0</defaultValue>
+    !#   <description>The maximum core radius in the ``growing'' hot halo density profile in units of the virial radius.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    self=hotHaloMassDistributionCoreRadiusGrowing(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function growingDefaultConstructor
+  end function growingConstructorParameters
 
-  function growingConstructor(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum)
+  function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
-    use Input_Parameters
     use Galacticus_Error
     implicit none
-    type            (hotHaloMassDistributionCoreRadiusGrowing)                :: growingConstructor
-    double precision                                          , intent(in   ) :: coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum
+    type            (hotHaloMassDistributionCoreRadiusGrowing)                        :: self
+    double precision                                          , intent(in   )         :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
+    class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
+    class           (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
+    !# <constructorAssign variables="coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum, *darkMatterHaloScale_, *cosmologyParameters_"/>
 
-    growingConstructor%coreRadiusOverScaleRadius        =coreRadiusOverScaleRadius
-    growingConstructor%coreRadiusOverVirialRadiusMaximum=coreRadiusOverVirialRadiusMaximum
-    growingConstructor%coreRadiusTableInitialized       =.false.
     ! Ensure that the dark matter profile supports the scale property.
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                           &
          & call Galacticus_Error_Report                                                                                     &
@@ -111,8 +108,8 @@ contains
          &                                )                                                                              // &
          &       {introspection:location}                                                                                   &
          &      )    
-   return
-  end function growingConstructor
+    return
+  end function growingConstructorInternal
 
   subroutine growingDestructor(self)
     !% Destructor for the {\normalfont \ttfamily growing} hot halo mass distribution class.
@@ -120,44 +117,41 @@ contains
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
 
     call self%coreRadiusTable%destroy()
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine growingDestructor
 
   double precision function growingRadius(self,node)
     !% Return the core radius of the hot halo mass distribution.
-    use Cosmology_Parameters
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
-    class           (nodeComponentBasic                      ), pointer       :: basicComponent
-    class           (nodeComponentHotHalo                    ), pointer       :: hotHaloComponent
-    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfileComponent
-    class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass)                , pointer       :: darkMatterHaloScale_
+    class           (nodeComponentBasic                      ), pointer       :: basic
+    class           (nodeComponentHotHalo                    ), pointer       :: hotHalo
+    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile
     double precision                                                          :: hotGasFraction                   , coreRadiusOverVirialRadius, &
          &                                                                       coreRadiusOverVirialRadiusInitial, targetValue
     logical                                                                   :: makeTable
 
     ! Get components.
-    basicComponent             => node%basic            ()
-    hotHaloComponent           => node%hotHalo          ()
-    darkMatterProfileComponent => node%darkMatterProfile()
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    darkMatterHaloScale_ => darkMatterHaloScale()
+    basic             => node%basic            ()
+    hotHalo           => node%hotHalo          ()
+    darkMatterProfile => node%darkMatterProfile()
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
-    hotGasFraction=(hotHaloComponent%mass()/basicComponent%mass())*(cosmologyParameters_%OmegaMatter()/cosmologyParameters_%OmegaBaryon())
+    hotGasFraction=+     hotHalo             %mass       () &
+         &         /     basic               %mass       () &
+         &         *self%cosmologyParameters_%OmegaMatter() &
+         &         /self%cosmologyParameters_%OmegaBaryon()
     ! Return an arbitrary value for empty halos.
     if (hotGasFraction <= 0.0d0) then
        growingRadius=self%coreRadiusOverScaleRadius
        return
     end if
     ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
-    coreRadiusOverVirialRadiusInitial=          &
-         &  self%coreRadiusOverScaleRadius      &
-         & *darkMatterProfileComponent%scale()  &
-         & /darkMatterHaloScale_%virialRadius(node)
+    coreRadiusOverVirialRadiusInitial=+self                     %coreRadiusOverScaleRadius       &
+         &                            *     darkMatterProfile   %scale                    (    ) &
+         &                            /self%darkMatterHaloScale_%virialRadius             (node)
     ! Check if the initial core radius and hot gas fraction equal the previously stored values.
     if     (                                                                                        &
          &  .not.                                                                                   &
@@ -173,7 +167,7 @@ contains
        if (makeTable) then
           self%coreRadiusMinimum   =min(self%coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusInitial)
           self%coreRadiusMaximum   =self%coreRadiusOverVirialRadiusMaximum
-          self%coreRadiusTableCount=int(log10(self%coreRadiusMaximum/self%coreRadiusMinimum)*dble(growingCoreRadiusTablePointsPerDecade))+1
+          self%coreRadiusTableCount=int(log10(self%coreRadiusMaximum/self%coreRadiusMinimum)*dble(growingTablePointsPerDecade))+1
           call self%coreRadiusTable%destroy (                                                                       )
           call self%coreRadiusTable%create  (self%coreRadiusMaximum,self%coreRadiusMinimum,self%coreRadiusTableCount)
           call self%coreRadiusTable%populate(growingCoreVirialDensityFunction(self%coreRadiusTable%xs())            )
@@ -195,7 +189,8 @@ contains
        self%coreRadiusOverVirialRadiusSaved       =coreRadiusOverVirialRadius
     end if
     ! Compute the resulting core radius.
-    growingRadius=self%coreRadiusOverVirialRadiusSaved*darkMatterHaloScale_%virialRadius(node)
+    growingRadius=+self                     %coreRadiusOverVirialRadiusSaved       &
+         &        *self%darkMatterHaloScale_%virialRadius                   (node)
     return
   end function growingRadius
 
@@ -205,39 +200,17 @@ contains
     implicit none
     double precision, intent(in   ) :: radiusOverVirialRadius
 
-    growingCoreVirialDensityFunction=(1.0d0+radiusOverVirialRadius**2)*(1.0d0-radiusOverVirialRadius*atan(1.0d0/radiusOverVirialRadius))
+    growingCoreVirialDensityFunction=+(                                 &
+         &                             +      1.0d0                     &
+         &                             +      radiusOverVirialRadius**2 &
+         &                            )                                 &
+         &                           *(                                 &
+         &                             +      1.0d0                     &
+         &                             -      radiusOverVirialRadius    &
+         &                             *atan(                           &
+         &                                   +1.0d0                     &
+         &                                   /radiusOverVirialRadius    &
+         &                                  )                           &
+         &                            )
     return
   end function growingCoreVirialDensityFunction
-
-  subroutine growingStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
-    integer                                          , intent(in   ) :: stateFile
-    type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: hotHaloMassDistributionCoreRadius -> growing',verbosity=verbosityInfo)
-    write (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum
-    return
-  end subroutine growingStateStore
-
-  subroutine growingStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
-    integer                                          , intent(in   ) :: stateFile
-    type   (fgsl_file                               ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: hotHaloMassDistributionCoreRadius -> growing',verbosity=verbosityInfo)
-    ! Read the minimum and maximum tabulated times.
-    read (stateFile) self%coreRadiusMinimum,self%coreRadiusMaximum
-    ! Force retabulation on next evaluation.
-    self%coreRadiusTableInitialized=.false.
-    return
-  end subroutine growingStateRestore

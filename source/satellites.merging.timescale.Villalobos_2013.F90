@@ -16,101 +16,80 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to another
-  !% selected satellite merging time method.
+  !% Implements a satellite merging timescale class which applies the \cite{villalobos_improved_2013} modifier to another selected
+  !% satellite merging time class.
+
+  use Cosmology_Functions
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013">
   !#  <description>Computes the merging timescale using the method of \cite{villalobos_improved_2013} to modify another merging timescale method.</description>
   !# </satelliteMergingTimescales>
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesVillalobos2013
      !% A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to
      !% another selected satellite merging time method.
      private
-     class           (satelliteMergingTimescalesClass), pointer :: baseMethod
-     double precision                                           :: expansionFactorExponent
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
+     class           (satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
+     double precision                                           :: exponent
    contains
      final     ::                     villalobos2013Destructor
      procedure :: timeUntilMerging => villalobos2013TimeUntilMerging
   end type satelliteMergingTimescalesVillalobos2013
 
   interface satelliteMergingTimescalesVillalobos2013
-     !% Constructors for the \cite{villalobos_improved_2013} merging timescale class.
-     module procedure villalobos2013DefaultConstructor
-     module procedure villalobos2013GenericConstructor
+     !% Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     module procedure villalobos2013ConstructorParameters
+     module procedure villalobos2013ConstructorInternal
   end interface satelliteMergingTimescalesVillalobos2013
-
-  ! Record of whether method is initialized.
-  logical                          :: villalobos2013Initialized=.false.
-  ! Default settings for this method.
-  type            (varying_string) :: satelliteMergingTimescaleVillalobos2013BaseMethod
-  double precision                 :: satelliteMergingTimescaleVillalobos2013Exponent
 
 contains
 
-  function villalobos2013DefaultConstructor()
-    !% Default constructor for the \cite{villalobos_improved_2013} merging timescale class.
-    use Galacticus_Display
+  function villalobos2013ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type(satelliteMergingTimescalesVillalobos2013) :: villalobos2013DefaultConstructor
+    type            (satelliteMergingTimescalesVillalobos2013)                :: self
+    type            (inputParameters                         ), intent(inout) :: parameters
+    class           (satelliteMergingTimescalesClass         ), pointer       :: satelliteMergingTimescales_
+    class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    double precision                                                          :: exponent
 
-    ! Initialize if necessary.
-    if (.not.villalobos2013Initialized) then
-       !$omp critical(villalobos2013Initialization)
-       if (.not.villalobos2013Initialized) then
-          ! Read parameter controlling the default base method.
-          !# <inputParameter>
-          !#   <name>satelliteMergingTimescaleVillalobos2013BaseMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('boylanKolchin2008')</defaultValue>
-          !#   <description>The base {\normalfont \ttfamily satelliteMergingTimescales} method to which the \cite{villalobos_improved_2013} modifier for satellite merging timescales should be applied.</description>
-          !#   <group>starFormation</group>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Read parameter controlling the default scaling exponent.
-          !# <inputParameter>
-          !#   <name>satelliteMergingTimescaleVillalobos2013Exponent</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultSource>\citep{villalobos_improved_2013}</defaultSource>
-          !#   <defaultValue>0.44d0</defaultValue>
-          !#   <description>The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.</description>
-          !#   <group>starFormation</group>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Record that this method is now initialized
-          villalobos2013Initialized=.true.
-       end if
-       !$omp end critical(villalobos2013Initialization)
-    end if
-    ! Construct the default object.
-    villalobos2013DefaultConstructor%baseMethod              => satelliteMergingTimescales(char(satelliteMergingTimescaleVillalobos2013BaseMethod))
-    villalobos2013DefaultConstructor%expansionFactorExponent =  satelliteMergingTimescaleVillalobos2013Exponent
+    !# <inputParameter>
+    !#   <name>exponent</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultSource>\citep{villalobos_improved_2013}</defaultSource>
+    !#   <defaultValue>0.44d0</defaultValue>
+    !#   <description>The exponent of $1+z$ appearing in the \cite{villalobos_improved_2013} modifier for satellite merging timescales.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    self=satelliteMergingTimescalesVillalobos2013(exponent,satelliteMergingTimescales_,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function villalobos2013DefaultConstructor
+  end function villalobos2013ConstructorParameters
 
-  function villalobos2013GenericConstructor(baseMethod,expansionFactorExponent)
-    !% Generic constructor for the \cite{villalobos_improved_2013} merging timescale class.
+  function villalobos2013ConstructorInternal(exponent,satelliteMergingTimescales_,cosmologyFunctions_) result(self)
+    !% Constructor for the \cite{lacey_merger_1993} merging timescale class.
     implicit none
-    type            (satelliteMergingTimescalesVillalobos2013)                        :: villalobos2013GenericConstructor
-    class           (satelliteMergingTimescalesClass         ), intent(in   ), target :: baseMethod
-    double precision                                          , intent(in   )         :: expansionFactorExponent
+    type            (satelliteMergingTimescalesVillalobos2013)                        :: self
+    double precision                                          , intent(in   )         :: exponent
+    class           (satelliteMergingTimescalesClass         ), intent(in   ), target :: satelliteMergingTimescales_
+    class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="exponent, *satelliteMergingTimescales_, *cosmologyFunctions_"/>
 
-    ! Construct the object.
-    villalobos2013GenericConstructor%baseMethod              => baseMethod
-    villalobos2013GenericConstructor%expansionFactorExponent =  expansionFactorExponent
     return
-  end function villalobos2013GenericConstructor
+  end function villalobos2013ConstructorInternal
 
-  elemental subroutine villalobos2013Destructor(self)
-    !% Default constructor for the \cite{villalobos_improved_2013} merging timescale class.
+  subroutine villalobos2013Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily villalobos2013} satellite merging timescale class.
     implicit none
     type(satelliteMergingTimescalesVillalobos2013), intent(inout) :: self
 
-    ! Deallocate the base method.
-    deallocate(self%baseMethod)
+    !# <objectDestructor name="self%satelliteMergingTimescales_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"        />
     return
   end subroutine villalobos2013Destructor
 
@@ -125,15 +104,13 @@ contains
     type            (treeNode                                 ), intent(inout) :: node
     type            (keplerOrbit                              ), intent(inout) :: orbit
     class           (nodeComponentBasic                       ), pointer       :: basic
-    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     double precision                                                           :: expansionFactor
 
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions                 (            )
     ! Compute expansion factor.
-    basic               => node               %basic          (            )
-    expansionFactor     =  cosmologyFunctions_%expansionFactor(basic%time())
+    basic           => node                    %basic          (            )
+    expansionFactor =  self%cosmologyFunctions_%expansionFactor(basic%time())
     ! Compute dynamical friction timescale.
-    villalobos2013TimeUntilMerging=self%baseMethod%timeUntilMerging(node,orbit)/expansionFactor**self%expansionFactorExponent
+    villalobos2013TimeUntilMerging=+self%satelliteMergingTimescales_%timeUntilMerging(node,orbit) &
+         &                         /expansionFactor**self%exponent
     return
   end function villalobos2013TimeUntilMerging

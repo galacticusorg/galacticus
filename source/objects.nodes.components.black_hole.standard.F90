@@ -462,14 +462,16 @@ contains
     use Black_Hole_Binary_Initial_Radii
     use Black_Hole_Binary_Recoil_Velocities
    implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentBlackHole)               , pointer :: hostCentralBlackHoleComponent, blackHole
-    integer                                                          :: instance
-    double precision                                                 :: blackHoleMassNew             , blackHoleSpinNew      , &
-         &                                                              massBlackHole1               , massBlackHole2        , &
-         &                                                              radiusInitial                , recoilVelocity        , &
-         &                                                              spinBlackHole1               , spinBlackHole2
+    type            (treeNode                  ), intent(inout), pointer :: node
+    type            (treeNode                  )               , pointer :: hostNode
+    class           (nodeComponentBlackHole    )               , pointer :: blackHoleHostCentral  , blackHole         , &
+         &                                                                  blackHolePrimary      , blackHoleSecondary
+    class           (blackHoleBinaryRecoilClass)               , pointer :: blackHoleBinaryRecoil_
+    integer                                                              :: instance
+    double precision                                                     :: blackHoleMassNew      , blackHoleSpinNew  , &
+         &                                                                  massBlackHole1        , massBlackHole2    , &
+         &                                                                  radiusInitial         , recoilVelocity    , &
+         &                                                                  spinBlackHole1        , spinBlackHole2
 
     ! Check that the standard black hole implementation is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
@@ -480,45 +482,47 @@ contains
        ! If the separation is non-positive, assume that the black holes merge instantaneously.
        if (radiusInitial <= 0.0d0) then
           ! Get the central black hole of the host galaxy.
-          hostCentralBlackHoleComponent => hostNode%blackHole(instance=1,autoCreate=.true.)
+          blackHoleHostCentral => hostNode%blackHole(instance=1,autoCreate=.true.)
           ! Loop over all black holes in the satellite galaxy.
           do instance=1,node%blackHoleCount()
              ! Get the black hole.
              blackHole => node%blackHole(instance=instance)
              ! Compute the outcome of the merger,
-             call Black_Hole_Binary_Merger(blackHole       %mass(), &
-                  &                        hostCentralBlackHoleComponent%mass(), &
-                  &                        blackHole       %spin(), &
-                  &                        hostCentralBlackHoleComponent%spin(), &
-                  &                        blackHoleMassNew                    , &
-                  &                        blackHoleSpinNew                      &
+             call Black_Hole_Binary_Merger(                             &
+                  &                        blackHole           %mass(), &
+                  &                        blackHoleHostCentral%mass(), &
+                  &                        blackHole           %spin(), &
+                  &                        blackHoleHostCentral%spin(), &
+                  &                        blackHoleMassNew           , &
+                  &                        blackHoleSpinNew             &
                   &                       )
              ! Merge the black holes instantaneously.
              ! Check which black hole is more massive in order to compute an appropriate recoil velocity
-             if (hostCentralBlackHoleComponent%mass() >= blackHole%mass()) then
-                massBlackHole1=hostCentralBlackHoleComponent%mass()
-                massBlackHole2=       blackHole%mass()
-                spinBlackHole1=hostCentralBlackHoleComponent%spin()
-                spinBlackHole2=       blackHole%spin()
+             if (blackHoleHostCentral%mass() >= blackHole%mass()) then
+                blackHolePrimary   => blackHoleHostCentral
+                blackHoleSecondary => blackHole
              else
-                massBlackHole2=hostCentralBlackHoleComponent%mass()
-                massBlackHole1=       blackHole%mass()
-                spinBlackHole2=hostCentralBlackHoleComponent%spin()
-                spinBlackHole1=       blackHole%spin()
+                blackHolePrimary   => blackHole
+                blackHoleSecondary => blackHoleHostCentral
              end if
+             massBlackHole1=blackHolePrimary  %mass()
+             massBlackHole2=blackHoleSecondary%mass()
+             spinBlackHole1=blackHolePrimary  %spin()
+             spinBlackHole2=blackHoleSecondary%spin()
              ! Now calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy.
-             recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
+             blackHoleBinaryRecoil_ => blackHoleBinaryRecoil          (                                   )
+             recoilVelocity         =  blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
              if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
                 blackHoleMassNew=0.0d0
                 blackHoleSpinNew=0.0d0
              end if
              ! Move the black hole to the host.
              call Node_Component_Black_Hole_Standard_Output_Merger(node,massBlackHole1,massBlackHole2)
-             call hostCentralBlackHoleComponent%massSet(blackHoleMassNew)
-             call hostCentralBlackHoleComponent%spinSet(blackHoleSpinNew)
+             call blackHoleHostCentral%massSet(blackHoleMassNew           )
+             call blackHoleHostCentral%spinSet(blackHoleSpinNew           )
              ! Reset the satellite black hole to zero mass.
-             call blackHole%massSet(blackHole%massSeed())
-             call blackHole%spinSet(blackHole%spinSeed())
+             call blackHole           %massSet(blackHole       %massSeed())
+             call blackHole           %spinSet(blackHole       %spinSeed())
           end do
        else
           ! Adjust the radii of the black holes in the satellite galaxy.

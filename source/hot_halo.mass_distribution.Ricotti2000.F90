@@ -171,13 +171,11 @@ contains
        mass=0.0d0
        radiusOuter=1.0d0
     end if
-    call self%                                  &
-         & distribution%                        &
-         &  initialize(                         &
-         &             beta       =beta       , &
-         &             coreRadius =radiusCore , &
-         &             mass       =mass       , &
-         &             outerRadius=radiusOuter  &
-         &            )
+     self%distribution=massDistributionBetaProfile(                         &
+         &                                         beta       =beta       , &
+         &                                         coreRadius =radiusCore , &
+         &                                         mass       =mass       , &
+         &                                         outerRadius=radiusOuter  &
+         &                                        )
     return
   end subroutine ricotti2000Initialize

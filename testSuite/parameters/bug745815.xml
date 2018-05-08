@@ -62,7 +62,9 @@
   <imfSalpeterYieldInstantaneous value="0.02"/>
   <imfSelectionFixed value="Salpeter"/>
   <imfSelectionMethod value="fixed"/>
-  <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
+  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.1"/>
+  </hotHaloMassDistributionCoreRadiusMethod>
   <linearGrowthMethod value="simple"/>
   <majorMergerMassRatio value="0.1"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
@@ -87,10 +89,6 @@
   <mergerTreeConstructMethod value="build"/>
   <mergerTreeStructureOutput value="false"/>
   <minorMergerGasMovesTo value="spheroid"/>
-  <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
-  <modifiedPressSchechterG0 value="0.57"/>
-  <modifiedPressSchechterGamma1 value="0.38"/>
-  <modifiedPressSchechterGamma2 value="-0.01"/>
   <nodeMergersMethod value="single level hierarchy"/>
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
@@ -137,7 +135,12 @@
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <treeBranchingMethod value="modifiedPress-Schechter"/>
+  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbabilityMethod>
   <treeNodeMethodBasic value="standard"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
@@ -145,11 +148,15 @@
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatelliteOrbit value="simple"/>
   <treeNodeMethodSpheroid value="standard"/>
-  <spheroidMassDistribution value="hernquist"/>
+  <spheroidMassDistribution value="hernquist">
+    <dimensionless value="true"/>
+  </spheroidMassDistribution>
   <treeNodeMethodSpin value="random"/>
   <verbosityLevel value="1"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <virialOrbitMethod value="benson2005"/>
 
-  <diskMassDistribution value="exponentialDisk"/>
+  <diskMassDistribution value="exponentialDisk">
+    <dimensionless value="true"/>
+  </diskMassDistribution>
 </parameters>

@@ -48,7 +48,7 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   ! Check that the mass distribution is cylindrical.
   select type (diskMassDistribution)
   class is (massDistributionCylindrical)
-     Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%halfMassRadius()
+     Node_Component_Disk_Standard_Half_Mass_Radius=self%radius()*diskMassDistribution%radiusHalfMass()
   class default
      Node_Component_Disk_Standard_Half_Mass_Radius=0.0d0
      call Galacticus_Error_Report('mass distribution should be cylindrical'//{introspection:location})   

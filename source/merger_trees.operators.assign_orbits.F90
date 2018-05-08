@@ -18,12 +18,17 @@
 
 !% Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
+  use Virial_Orbits
+  use Satellite_Merging_Timescales
+  
+  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAssignOrbits
      !% An orbit assigning merger tree operator class.
      private
+     class(virialOrbitClass               ), pointer :: virialOrbit_
+     class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
    contains
      final     ::            assignOrbitsDestructor
      procedure :: operate => assignOrbitsOperate
@@ -32,53 +37,64 @@
   interface mergerTreeOperatorAssignOrbits
      !% Constructors for the orbit assigning merger tree operator class.
      module procedure assignOrbitsConstructorParameters
+     module procedure assignOrbitsConstructorInternal
   end interface mergerTreeOperatorAssignOrbits
 
 contains
 
-  function assignOrbitsConstructorParameters(parameters)
+  function assignOrbitsConstructorParameters(parameters) result(self)
     !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(mergerTreeOperatorAssignOrbits)                :: assignOrbitsConstructorParameters
-    type(inputParameters               ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type (mergerTreeOperatorAssignOrbits )                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(virialOrbitClass               ), pointer       :: virialOrbit_
+    class(satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescales_
 
-    assignOrbitsConstructorParameters=mergerTreeOperatorAssignOrbits()
+    !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+    !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+    self=mergerTreeOperatorAssignOrbits(satelliteMergingTimescales_,virialOrbit_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function assignOrbitsConstructorParameters
 
-  elemental subroutine assignOrbitsDestructor(self)
+  function assignOrbitsConstructorInternal(satelliteMergingTimescales_,virialOrbit_) result(self)
+    !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type (mergerTreeOperatorAssignOrbits )                        :: self
+    class(virialOrbitClass               ), intent(in   ), target :: virialOrbit_
+    class(satelliteMergingTimescalesClass), intent(in   ), target :: satelliteMergingTimescales_
+    !# <constructorAssign variables="*satelliteMergingTimescales_, *virialOrbit_"/>
+    
+    return
+  end function assignOrbitsConstructorInternal
+
+  subroutine assignOrbitsDestructor(self)
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorAssignOrbits), intent(inout) :: self
-    !GCC$ attributes unused :: self
 
-    ! Nothing to do.
+    !# <objectDestructor name="self%satelliteMergingTimescales_"/>
+    !# <objectDestructor name="self%virialOrbit_"               />
     return
   end subroutine assignOrbitsDestructor
 
   subroutine assignOrbitsOperate(self,tree)
     !% Perform a orbit assigning operation on a merger tree.
-    use Virial_Orbits
     use Kepler_Orbits
-    use Satellite_Merging_Timescales
     implicit none
-    class  (mergerTreeOperatorAssignOrbits ), intent(inout)         :: self
-    type   (mergerTree                     ), intent(inout), target :: tree
-    type   (treeNode                       ), pointer               :: node                       , nodeProgenitor, mergee
-    type   (mergerTree                     ), pointer               :: currentTree
-    class  (nodeComponentSatellite         ), pointer               :: satellite                  , satelliteProgenitor
-    class  (nodeComponentBasic             ), pointer               :: basic                      , basicProgenitor
-    class  (satelliteMergingTimescalesClass), pointer               :: satelliteMergingTimescales_
-    class  (virialOrbitClass               ), pointer               :: virialOrbit_
-    type   (keplerOrbit                    )                        :: virialOrbitNode            , virialOrbitProgenitor
-    logical                                                         :: satelliteProgenitorFound
+    class  (mergerTreeOperatorAssignOrbits), intent(inout)         :: self
+    type   (mergerTree                    ), intent(inout), target :: tree
+    type   (treeNode                      ), pointer               :: node                    , nodeProgenitor       , &
+         &                                                            mergee
+    type   (mergerTree                    ), pointer               :: currentTree
+    class  (nodeComponentSatellite        ), pointer               :: satellite               , satelliteProgenitor
+    class  (nodeComponentBasic            ), pointer               :: basic                   , basicProgenitor
+    type   (keplerOrbit                   )                        :: virialOrbitNode         , virialOrbitProgenitor
+    logical                                                        :: satelliteProgenitorFound
     !GCC$ attributes unused :: self
     
-    ! Get required objects.
-    satelliteMergingTimescales_ => satelliteMergingTimescales()
-    virialOrbit_                => virialOrbit               ()
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))   
@@ -91,7 +107,7 @@ contains
                &  .and.                                        &
                &   .not.           node%isPrimaryProgenitor()  &               
                & ) then
-             satellite   => node     %satellite  (autoCreate=.true.)
+             satellite       => node     %satellite  (autoCreate=.true.)
              virialOrbitNode =  satellite%virialOrbit(                 )
              if (.not.virialOrbitNode%isDefined()) then
                 ! Check for a primary progenitor with a pre-existing satellite.
@@ -176,9 +192,9 @@ contains
                    nodeProgenitor => nodeProgenitor%firstChild
                 end do
                 if (.not.satelliteProgenitorFound) then
-                   virialOrbitNode=virialOrbit_%orbit(node,node%parent,.false.)
-                   call satellite%  mergeTimeSet(satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
-                   call satellite%virialOrbitSet(                                                  virialOrbitNode )
+                   virialOrbitNode=self%virialOrbit_%orbit(node,node%parent,.false.)
+                   call satellite%  mergeTimeSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
+                   call satellite%virialOrbitSet(                                                       virialOrbitNode )
                 end if
              else
                 ! The merge target must be reachable at the merge time. If it is not, find a

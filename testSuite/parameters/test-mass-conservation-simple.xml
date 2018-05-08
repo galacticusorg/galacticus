@@ -129,13 +129,15 @@
     <mergerTreeReadSubresolutionMergingMethod value="jiang2008" />
     <mergerTreesBuildFixedThreadAssignment value="true" />
     <mergingTimescaleMultiplier value="1.2035038666749114" />
-    <modifiedPressSchechterFirstOrderAccuracy value="0.025" />
-    <modifiedPressSchechterG0 value="0.57" />
-    <modifiedPressSchechterGamma1 value="0.38" />
-    <modifiedPressSchechterGamma2 value="-0.01" />
-    <modifiedPressSchechterHypergeometricPrecision value="1.0e-6" />
-    <modifiedPressSchechterTabulateHypergeometricFactors value="true" />
-    <modifiedPressSchechterUseCDMAssumptions value="true" />
+    <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+      <G0                 value="+0.570"/>
+      <gamma1             value="+0.380"/>
+      <gamma2             value="-0.010"/>
+      <accuracyFirstOrder value="+0.025"/>
+      <hypergeometricTabulate  value="true"  />
+      <precisionHypergeometric value="1.0e-6"/>
+      <cdmAssumptions          value="true"  />
+    </mergerTreeBranchingProbabilityMethod>
     <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman" />
     <nodeMergersMethod value="singleLevelHierarchy" />
     <odeAlgorithm value="Runge-Kutta-Second-Order" />
@@ -174,7 +176,6 @@
       <neutrinoMassSummed value="0.0" />
       <neutrinoNumberEffective value="3.04" />
     </transferFunctionMethod>
-    <treeBranchingMethod value="modifiedPress-Schechter" />
     <treeEvolveThreadLock value="false" />
     <treeEvolveThreadsMaximum value="processorCount" />
     <treeNodeMethodBasic value="standardExtended" />

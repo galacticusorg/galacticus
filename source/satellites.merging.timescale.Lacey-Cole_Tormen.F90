@@ -22,114 +22,65 @@
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen">
   !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.</description>
   !# </satelliteMergingTimescales>
-  use FGSL
-
   type, extends(satelliteMergingTimescalesLaceyCole1993) :: satelliteMergingTimescalesLaceyCole1993Tormen
      !% A class implementing the \cite{cole_hierarchical_2000} method for satellite merging timescales.
      private
-     type   (fgsl_rng) :: clonedPseudoSequenceObject, randomSequenceObject
-     logical           :: resetRandomSequence       , resetRandomSequenceSnapshot
    contains
-     final     ::                     laceyCole1993TormenDestructor
-     procedure :: stateStore       => laceyCole1993TormenStateStore
-     procedure :: stateRestore     => laceyCole1993TormenStateRestore
-     procedure :: stateSnapshot    => laceyCole1993TormenStateSnapshot
      procedure :: timeUntilMerging => laceyCole1993TormenTimeUntilMerging
   end type satelliteMergingTimescalesLaceyCole1993Tormen
 
   interface satelliteMergingTimescalesLaceyCole1993Tormen
      !% Constructors for the \cite{cole_hierarchical_2000} merging timescale class.
-     module procedure laceyCole1993TormenDefaultConstructor
+     module procedure laceyCole1993TormenConstructorParameters
+     module procedure laceyCole1993TormenConstructorInternal
   end interface satelliteMergingTimescalesLaceyCole1993Tormen
 
 contains
 
-  function laceyCole1993TormenDefaultConstructor()
-    !% Default constructor for the \cite{cole_hierarchical_2000} merging timescale class.
+  function laceyCole1993TormenConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{cole_hierarchical_2000} merging timescale class which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type(satelliteMergingTimescalesLaceyCole1993Tormen) :: laceyCole1993TormenDefaultConstructor
+    type (satelliteMergingTimescalesLaceyCole1993Tormen)                :: self
+    type (inputParameters                              ), intent(inout) :: parameters
 
-    laceyCole1993TormenDefaultConstructor%resetRandomSequence=.true.
+    self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(parameters)
     return
-  end function laceyCole1993TormenDefaultConstructor
-
-  subroutine laceyCole1993TormenDestructor(self)
-    !% Destructor for the \cite{cole_hierarchical_2000} merging timescale class.
-    use Gaussian_Random
+  end function laceyCole1993TormenConstructorParameters
+  
+  function laceyCole1993TormenConstructorInternal(darkMatterHaloScale_) result(self)
+    !% Constructor for the \cite{cole_hierarchical_2000} merging timescale class.
     implicit none
-    type(satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
-
-    ! Destroy the random number object.
-    if (self%resetRandomSequence        ) call Gaussian_Random_Free(self%randomSequenceObject      )
-    if (self%resetRandomSequenceSnapshot) call Gaussian_Random_Free(self%clonedPseudoSequenceObject)
+    type (satelliteMergingTimescalesLaceyCole1993Tormen)                        :: self
+    class(darkMatterHaloScaleClass                     ), intent(in   ), target :: darkMatterHaloScale_
+    
+    self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(darkMatterHaloScale_)
     return
-  end subroutine laceyCole1993TormenDestructor
-
+  end function laceyCole1993TormenConstructorInternal
+  
   double precision function laceyCole1993TormenTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method with a parameterization of orbital
     !% parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}.
-    use Galacticus_Nodes
-    use Kepler_Orbits
-    use Gaussian_Random
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
     type            (keplerOrbit                                  ), intent(inout) :: orbit
     type            (treeNode                                     ), pointer       :: hostNode
-    double precision                                               , parameter     :: orbitalFactorDistributionSigma=0.26d0                          !   Cole et al. (2000).
-    double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                         !   Cole et al. (2000).
-    double precision                                                               :: log10OrbitalFactor                          , randomDeviate, &
+    double precision                                               , parameter     :: orbitalFactorDistributionSigma=+0.26d0                   !   Cole et al. (2000).
+    double precision                                               , parameter     :: orbitalFactorDistributionMean =-0.14d0                   !   Cole et al. (2000).
+    double precision                                                               :: log10OrbitalFactor                    , randomDeviate, &
          &                                                                            orbitalFactor
     !GCC$ attributes unused :: orbit
     
     ! Find the host node.
     hostNode => node%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.
-    randomDeviate=Gaussian_Random_Get(self%randomSequenceObject,orbitalFactorDistributionSigma,self%resetRandomSequence)
-    log10OrbitalFactor=orbitalFactorDistributionMean+randomDeviate
-    orbitalFactor=10.0d0**log10OrbitalFactor
+    randomDeviate     =+orbitalFactorDistributionSigma                     &
+         &             *node%hostTree%randomNumberGenerator%normalSample()
+    log10OrbitalFactor=+orbitalFactorDistributionMean                      &
+         &             +randomDeviate
+    orbitalFactor     =+10.0d0**log10OrbitalFactor
     ! Compute the timescale.
     laceyCole1993TormenTimeUntilMerging=orbitalFactor*self%timeUntilMergingMassDependence(node)
     return
   end function laceyCole1993TormenTimeUntilMerging
-
-  subroutine laceyCole1993TormenStateSnapshot(self)
-    !% Store a snapshot of the random number generator internal state.
-    implicit none
-    class(satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
-
-    if (.not.self%resetRandomSequence) self%clonedPseudoSequenceObject=FGSL_Rng_Clone(self%randomSequenceObject)
-    self%resetRandomSequenceSnapshot=self%resetRandomSequence
-    return
-  end subroutine laceyCole1993TormenStateSnapshot
-
-  subroutine laceyCole1993TormenStateStore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
-    integer                                               , intent(in   ) :: stateFile
-    type   (fgsl_file                                    ), intent(in   ) :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: satelliteMergingTimescale -> laceyCole1993Tormen',verbosity=verbosityInfo)
-    write (stateFile) self%resetRandomSequenceSnapshot
-    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine laceyCole1993TormenStateStore
-  
-  subroutine laceyCole1993TormenStateRestore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
-    integer                                               , intent(in   ) :: stateFile
-    type   (fgsl_file                                    ), intent(in   ) :: fgslStateFile
-    
-    call Galacticus_Display_Message('Retrieving state for: satelliteMergingTimescale -> laceyCole1993Tormen',verbosity=verbosityInfo)
-    read (stateFile) self%resetRandomSequence
-    if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequenceObject,fgslStateFile)
-    return
-  end subroutine laceyCole1993TormenStateRestore
-  

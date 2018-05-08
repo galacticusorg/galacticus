@@ -84,7 +84,9 @@
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="null"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <hotHaloCoreRadiusOverVirialRadius value="0.3"/>
+  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadiusMethod>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <hotHaloOutflowReturnRate value="5.0"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>

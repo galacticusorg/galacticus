@@ -10,11 +10,15 @@
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodDarkMatterProfile value="scale"/>
   <treeNodeMethodDisk value="standard"/>
-  <diskMassDistribution value="exponentialDisk"/>
+  <diskMassDistribution value="exponentialDisk">
+    <dimensionless value="true"/>
+  </diskMassDistribution>
   <treeNodeMethodHotHalo value="standard"/>
   <treeNodeMethodSatellite value="standard"/>
   <treeNodeMethodSpheroid value="standard"/>
-  <spheroidMassDistribution value="hernquist"/>
+  <spheroidMassDistribution value="hernquist">
+    <dimensionless value="true"/>
+  </spheroidMassDistribution>
   <treeNodeMethodSpin value="random"/>
 
   <!-- Cosmological parameters and options -->
@@ -53,11 +57,12 @@
     <accretionLimit   value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
-  <treeBranchingMethod value="modifiedPress-Schechter"/>
-  <modifiedPressSchechterG0 value="0.57"/>
-  <modifiedPressSchechterGamma1 value="0.38"/>
-  <modifiedPressSchechterGamma2 value="-0.01"/>
-  <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
+  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbabilityMethod>
   <mergerTreeBuildHaloMassMaximum value="1.0e13"/>
   <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
   <mergerTreeBuildTreesPerDecade value="5"/>
@@ -86,7 +91,9 @@
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <hotHaloCoreRadiusOverVirialRadius value="0.3"/>
+  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadiusMethod>
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>

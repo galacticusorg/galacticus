@@ -16,15 +16,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method.
+  !% Implements a satellite merging timescale class which uses the \cite{lacey_merger_1993} method.
+
+  use Dark_Matter_Halo_Scales
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
   !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993}.</description>
   !# </satelliteMergingTimescales>
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
      !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
      private
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
    contains
      !@ <objectMethods>
      !@   <object>satelliteMergingTimescalesLaceyCole1993</object>
@@ -40,15 +42,44 @@
      procedure :: timeUntilMergingMassDependence => laceyCole1993TimeUntilMergingMassDependence
   end type satelliteMergingTimescalesLaceyCole1993
 
+  interface satelliteMergingTimescalesLaceyCole1993
+     !% Constructors for the \cite{lacey_merger_1993} merging timescale class.
+     module procedure laceyCole1993ConstructorParameters
+     module procedure laceyCole1993ConstructorInternal
+  end interface satelliteMergingTimescalesLaceyCole1993
+
 contains
 
-  elemental subroutine laceyCole1993Destructor(self)
-    !% Default constructor for the \cite{lacey_merger_1993} merging timescale class.
+  function laceyCole1993ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
+    use Input_Parameters
+    implicit none
+    type (satelliteMergingTimescalesLaceyCole1993)                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+
+   !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=satelliteMergingTimescalesLaceyCole1993(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function laceyCole1993ConstructorParameters
+
+  function laceyCole1993ConstructorInternal(darkMatterHaloScale_) result(self)
+    !% Constructor for the \cite{lacey_merger_1993} merging timescale class.
+    implicit none
+    type (satelliteMergingTimescalesLaceyCole1993)                        :: self
+    class(darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+
+    return
+  end function laceyCole1993ConstructorInternal
+
+  subroutine laceyCole1993Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily laceyCole1993} satellite merging timescale class.
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
     return
   end subroutine laceyCole1993Destructor
 
@@ -56,22 +87,19 @@ contains
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Galacticus_Nodes
     use Kepler_Orbits
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
     type            (keplerOrbit                            ), intent(inout) :: orbit
     type            (treeNode                               ), pointer       :: nodeHost
-    class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
     double precision                                                         :: equivalentCircularOrbitRadius, orbitalCircularity, &
          &                                                                      radialScale                  , velocityScale
 
     ! Find the host node.
     nodeHost => node%parent
     ! Get velocity scale.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Compute radius of orbit with same energy.
     equivalentCircularOrbitRadius=exp(orbit%energy()/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
@@ -94,7 +122,6 @@ contains
     type            (treeNode                               ), intent(inout) :: node
     type            (treeNode                               ), pointer       :: nodeHost
     class           (nodeComponentBasic                     ), pointer       :: basicHost                 , basic
-    class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
     double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
     double precision                                                         :: massRatio
     !GCC$ attributes unused :: self
@@ -112,12 +139,11 @@ contains
        laceyCole1993TimeUntilMergingMassDependence=0.0d0
     else
        ! Compute dynamical friction timescale.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       laceyCole1993TimeUntilMergingMassDependence               &
-            & =Dynamical_Friction_Timescale_Multiplier()         &
-            & *darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
-            & *inverseTwoB1                                      &
-            & *    massRatio                                     &
+       laceyCole1993TimeUntilMergingMassDependence                    &
+            & =Dynamical_Friction_Timescale_Multiplier()              &
+            & *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            & *inverseTwoB1                                           &
+            & *    massRatio                                          &
             & /log(massRatio)
     end if
     return

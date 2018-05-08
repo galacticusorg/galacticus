@@ -23,8 +23,12 @@
     <treeNodeMethodHotHalo value="standard"/>
     <treeNodeMethodSatellite value="standard"/>
     <treeNodeMethodSpheroid value="standard"/>
-    <spheroidMassDistribution value="hernquist"/>
-    <diskMassDistribution value="exponentialDisk"/>
+    <spheroidMassDistribution value="hernquist">
+      <dimensionless value="true"/>
+    </spheroidMassDistribution>
+    <diskMassDistribution value="exponentialDisk">
+      <dimensionless value="true"/>
+    </diskMassDistribution>
     <treeNodeMethodSpin value="random"/>
     <treeNodeMethodPosition value="null"/>
     <treeNodeMethodAgeStatistics value="null"/>
@@ -89,14 +93,15 @@
       <accretionLimit value="0.1"/>
       <randomSeedsFixed value="true"/>
     </mergerTreeBuilderMethod>
-    <treeBranchingMethod value="modifiedPress-Schechter"/>
-    <modifiedPressSchechterFirstOrderAccuracy value="0.025"/>
-    <modifiedPressSchechterTabulateHypergeometricFactors value="true"/>
-    <modifiedPressSchechterHypergeometricPrecision value="1.0e-6"/>
-    <modifiedPressSchechterG0 value="0.57"/>
-    <modifiedPressSchechterGamma1 value="0.38"/>
-    <modifiedPressSchechterGamma2 value="-0.01"/>
-    <modifiedPressSchechterUseCDMAssumptions value="true"/>
+    <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+      <G0                      value="+0.570"/>
+      <gamma1                  value="+0.380"/>
+      <gamma2                  value="-0.010"/>
+      <accuracyFirstOrder      value="+0.025"/>
+      <hypergeometricTabulate  value="true"  />
+      <precisionHypergeometric value="1.0e-6"/>
+      <cdmAssumptions          value="true"  />
+    </mergerTreeBranchingProbabilityMethod>
 
     <!-- Substructure hierarchy options -->
     <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -138,7 +143,9 @@
     <!-- Hot halo gas cooling model options -->
     <hotHaloMassDistributionMethod value="betaProfile"/>
     <hotHaloTemperatureProfileMethod value="virial"/>
-    <hotHaloCoreRadiusOverVirialRadius value="0.3"/>
+    <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+      <coreRadiusOverVirialRadius value="0.1"/>
+    </hotHaloMassDistributionCoreRadiusMethod>
     <hotHaloAngularMomentumLossFraction value="0.3"/>
     <coolingSpecificAngularMomentumMethod value="constantRotation">
       <sourceAngularMomentumSpecificMean value="hotGas"/>

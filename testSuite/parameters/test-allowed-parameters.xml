@@ -110,13 +110,12 @@
     <redshiftMaximum value="30"/>
     <toleranceResolutionParent value="2.0e-2"/>
   </mergerTreeBuilderMethod>
-  <treeBranchingMethod value="generalizedPress-Schechter"/>
-  <generalizedPressSchechterMinimumMass value="1.0e5"/>
-  <treeBranchingModifierMethod value="Parkinson-Cole-Helly2008"/>
-  <modifiedPressSchechterG0 value="0.57"/>
-  <modifiedPressSchechterGamma1 value="0.38"/>
-  <modifiedPressSchechterGamma2 value="-0.01"/>
-  <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
+  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbabilityMethod>
   <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <mergerTreeBuildHaloMassMaximum value="2.0e12"/>
   <mergerTreeBuildTreesPerDecade value="20"/>

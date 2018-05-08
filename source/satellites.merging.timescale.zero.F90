@@ -16,42 +16,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of satellite merging times that are always zero.
+  !% Implements a satellite merging timescale class in which merging timescales are always zero.
  
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesNull">
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesZero">
   !#  <description>Returns a zero timescale for merging.</description>
   !# </satelliteMergingTimescales>
-
-  type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesNull
+  type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesZero
      !% A class implementing satellite merging timescales that are always zero.
      private
    contains
-     final     ::                     nullDestructor
-     procedure :: timeUntilMerging => nullTimeUntilMerging
-  end type satelliteMergingTimescalesNull
+     procedure :: timeUntilMerging => zeroTimeUntilMerging
+  end type satelliteMergingTimescalesZero
+
+  interface satelliteMergingTimescalesZero
+     !% Constructors for the {\normalfont \ttfamily zero} satellite merging timescale class.
+     module procedure zeroConstructorParameters
+  end interface satelliteMergingTimescalesZero
 
 contains
 
-  elemental subroutine nullDestructor(self)
-    !% Default constructor for the nul merging timescale class.
+  function zeroConstructorParameters(parameters) result(self)
+    !% A constructor for the {\normalfont \ttfamily zero} satellite merging timescale class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
     implicit none
-    type(satelliteMergingTimescalesNull), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
-    return
-  end subroutine nullDestructor
+    type(satelliteMergingTimescalesZero)                :: self
+    type(inputParameters               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-  double precision function nullTimeUntilMerging(self,node,orbit)
+    self=satelliteMergingTimescalesZero()
+    return
+  end function zeroConstructorParameters
+
+  double precision function zeroTimeUntilMerging(self,node,orbit)
     !% Return a zero timescale for satellite merging.
-    use Galacticus_Nodes
-    use Kepler_Orbits
     implicit none
-    class(satelliteMergingTimescalesNull), intent(inout) :: self
+    class(satelliteMergingTimescalesZero), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     type (keplerOrbit                   ), intent(inout) :: orbit
     !GCC$ attributes unused :: self, node, orbit
     
-    nullTimeUntilMerging=0.0d0
+    zeroTimeUntilMerging=0.0d0
     return
-  end function nullTimeUntilMerging
+  end function zeroTimeUntilMerging

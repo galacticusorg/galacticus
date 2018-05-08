@@ -18,40 +18,44 @@
 
 !+    Contributions to this file made by:  Markus Haider.
 
-  !% Implements calculations of satellite merging times that are always infinite.
+  !% Implements a satellite merging timescale class in which merging timescales are always infinite.
  
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
   !#  <description>Returns an infinite timescale for merging.</description>
   !# </satelliteMergingTimescales>
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesInfinite
      !% A class implementing satellite merging timescales that are always infinite.
      private
    contains
-     final     ::                     infiniteDestructor
      procedure :: timeUntilMerging => infiniteTimeUntilMerging
   end type satelliteMergingTimescalesInfinite
 
-contains
+  interface satelliteMergingTimescalesInfinite
+     !% Constructors for the {\normalfont \ttfamily infinite} satellite merging timescale class.
+     module procedure infiniteConstructorParameters
+  end interface satelliteMergingTimescalesInfinite
 
-  elemental subroutine infiniteDestructor(self)
-    !% Default constructor for the infinite merging timescale class.
+contains
+  
+  function infiniteConstructorParameters(parameters) result(self)
+    !% A constructor for the {\normalfont \ttfamily infinite} satellite merging timescale class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
     implicit none
-    type(satelliteMergingTimescalesInfinite), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
+    type(satelliteMergingTimescalesInfinite)                :: self
+    type(inputParameters                   ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=satelliteMergingTimescalesInfinite()
     return
-  end subroutine infiniteDestructor
+  end function infiniteConstructorParameters
 
   double precision function infiniteTimeUntilMerging(self,node,orbit)
-    !% Return a zero timescale for satellite merging.
-    use Galacticus_Nodes
-    use Kepler_Orbits
+    !% Return a infinite timescale for satellite merging.
     implicit none
-    class           (satelliteMergingTimescalesInfinite), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    type            (keplerOrbit                       ), intent(inout) :: orbit
+    class(satelliteMergingTimescalesInfinite), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    type (keplerOrbit                       ), intent(inout) :: orbit
     !GCC$ attributes unused :: self, node, orbit
     
     infiniteTimeUntilMerging=satelliteMergeTimeInfinite

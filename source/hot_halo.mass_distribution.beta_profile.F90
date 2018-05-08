@@ -19,15 +19,17 @@
 !% An implementation of the hot halo mass distribution class for $\beta$-profile distributions.
 
   use Mass_Distributions
-  
+  use Hot_Halo_Mass_Distributions_Core_Radii
+
   !# <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
   !#  <description>Provides a $\beta$-profile implementation of the hot halo mass distribution class.</description>
   !# </hotHaloMassDistribution>
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionBetaProfile
      !% A $\beta$-profile implementation of the hot halo mass distribution class.
      private
-     double precision                              :: beta
-     type            (massDistributionBetaProfile) :: distribution
+     double precision                                                  :: beta
+     type            (massDistributionBetaProfile           )          :: distribution
+     class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_
    contains
      !@ <objectMethods>
      !@   <object>hotHaloMassDistributionBetaProfile</object>
@@ -38,6 +40,7 @@
      !@     <description>Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                          betaProfileDestructor
      procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity
      procedure :: densityLogSlope       => betaProfileDensityLogSlope
@@ -61,10 +64,11 @@ contains
     use Array_Utilities
     use Input_Parameters
     implicit none
-    type            (hotHaloMassDistributionBetaProfile)                :: self
-    type            (inputParameters                   ), intent(inout) :: parameters
-    logical                                             , save          :: initialized=.false.
-    double precision                                                    :: beta
+    type            (hotHaloMassDistributionBetaProfile    )                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    logical                                                 , save          :: initialized                       =.false.
+    class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
+    double precision                                                        :: beta
 
     if (.not.initialized) then
        !$omp critical(betaProfileInitialized)
@@ -100,49 +104,56 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=hotHaloMassDistributionBetaProfile(beta)
+    !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
+    self=hotHaloMassDistributionBetaProfile(beta,hotHaloMassDistributionCoreRadius_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function betaProfileConstructorParameters
   
-  function betaProfileConstructorInternal(beta) result(self)
+  function betaProfileConstructorInternal(beta,hotHaloMassDistributionCoreRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
     implicit none
-    type            (hotHaloMassDistributionBetaProfile)                :: self
-    double precision                                    , intent(in   ) :: beta
-    !# <constructorAssign variables="beta"/>
+    type            (hotHaloMassDistributionBetaProfile    )                        :: self
+    double precision                                        , intent(in   )         :: beta
+    class           (hotHaloMassDistributionCoreRadiusClass), intent(in   ), target :: hotHaloMassDistributionCoreRadius_
+    !# <constructorAssign variables="beta, *hotHaloMassDistributionCoreRadius_"/>
 
     return
   end function betaProfileConstructorInternal
   
+  subroutine betaProfileDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    implicit none
+    type(hotHaloMassDistributionBetaProfile), intent(inout) :: self
+
+    !# <objectDestructor name="self%hotHaloMassDistributionCoreRadius_"/>
+    return
+  end subroutine betaProfileDestructor
+
   subroutine betaProfileInitialize(self,node)
     !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
-    use Hot_Halo_Mass_Distributions_Core_Radii
     implicit none
     class           (hotHaloMassDistributionBetaProfile    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
     class           (nodeComponentHotHalo                  ), pointer       :: hotHalo
-    class           (hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
-    double precision                                                        :: radiusScale                       , radiusOuter, &
+    double precision                                                        :: radiusScale, radiusOuter, &
          &                                                                     mass
 
-    hotHaloMassDistributionCoreRadius_ => hotHaloMassDistributionCoreRadius             (    )
-    radiusScale                        =  hotHaloMassDistributionCoreRadius_%radius     (node)
-    hotHalo                            => node                              %hotHalo    (    )
-    radiusOuter                        =  hotHalo                           %outerRadius(    )
-    mass                               =  hotHalo                           %mass       (    )
+    radiusScale =  self%hotHaloMassDistributionCoreRadius_%radius     (node)
+    hotHalo     =>      node                              %hotHalo    (    )
+    radiusOuter =       hotHalo                           %outerRadius(    )
+    mass        =       hotHalo                           %mass       (    )
     if (radiusOuter <= 0.0d0) then
        ! If outer radius is non-positive, set mass to zero and outer radius to an arbitrary value.
        mass=0.0d0
        radiusOuter=1.0d0
     end if
-    call self%                                  &
-         & distribution%                        &
-         &  initialize(                         &
-         &             beta       =self%beta  , &
-         &             coreRadius =radiusScale, &
-         &             mass       =mass       , &
-         &             outerRadius=radiusOuter  &
-         &            )
+    self%distribution=massDistributionBetaProfile(                         &
+         &                                        beta       =self%beta  , &
+         &                                        coreRadius =radiusScale, &
+         &                                        mass       =mass       , &
+         &                                        outerRadius=radiusOuter  &
+         &                                       )
     return
   end subroutine betaProfileInitialize
 
@@ -156,7 +167,7 @@ contains
     type            (coordinateSpherical               )                :: position
 
     call self%initialize(node)
-    position              =[radius,0.0d0,0.0d0]
+    position          =[radius,0.0d0,0.0d0]
     betaProfileDensity=self%distribution%density(position)
     return
   end function betaProfileDensity
@@ -171,7 +182,7 @@ contains
     type            (coordinateSpherical               )                :: position
 
     call self%initialize(node)
-    position                      =[radius,0.0d0,0.0d0]
+    position                  =[radius,0.0d0,0.0d0]
     betaProfileDensityLogSlope=self%distribution%densityGradientRadial(position,logarithmic=.true.)
     return
   end function betaProfileDensityLogSlope

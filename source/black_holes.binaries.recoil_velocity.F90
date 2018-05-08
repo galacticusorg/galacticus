@@ -18,64 +18,26 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements calculations of black hole binary recoil velocities.
+!% Contains a module which implements a class for black hole binary recoil velocities.
 
 module Black_Hole_Binary_Recoil_Velocities
-  !% Implements calculations of black hole binary recoil velocities.
-  use ISO_Varying_String
+  !% Implements a class for black hole binary recoil velocities.
+  use Galacticus_Nodes
   implicit none
   private
-  public :: Black_Hole_Binary_Recoil_Velocity
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                               :: blackHoleBinaryRecoilVelocityInitialized=.false.
-
-  ! Name of mass movement method used.
-  type     (varying_string                   )          :: blackHoleBinaryRecoilVelocityMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Black_Hole_Binary_Recoil_Velocity), pointer :: Black_Hole_Binary_Recoil_Velocity_Get   =>null()
-
-contains
-
-  double precision function Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
-    !% Computes the recoil velocity of a black hole binary.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="moduleUse">
-    include 'black_holes.binary.recoil_velocity.modules.inc'
-    !# </include>
-    implicit none
-    double precision, intent(in   ) :: massBlackHole1, massBlackHole2, spinBlackHole1, spinBlackHole2
-
-    if (.not.blackHoleBinaryRecoilVelocityInitialized) then
-       !$omp critical(blackHoleBinaryRecoilVelocityInitialize)
-       if (.not.blackHoleBinaryRecoilVelocityInitialized) then
-          ! Get the binary black hole recoil velocity method parameter.
-          !# <inputParameter>
-          !#   <name>blackHoleBinaryRecoilVelocityMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used for computing the recoil velocity of black hole binaries.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</functionArgs>
-          include 'black_holes.binaries.recoil_velocity.inc'
-          !# </include>
-          if (.not.associated(Black_Hole_Binary_Recoil_Velocity_Get)) call Galacticus_Error_Report('method '//char(blackHoleBinaryRecoilVelocityMethod)//' is unrecognized'//{introspection:location})
-          ! Flag that the module is now initialized.
-          blackHoleBinaryRecoilVelocityInitialized=.true.
-       end if
-       !$omp end critical(blackHoleBinaryRecoilVelocityInitialize)
-    end if
-
-    ! Call the routine to do the calculation.
-    Black_Hole_Binary_Recoil_Velocity=Black_Hole_Binary_Recoil_Velocity_Get(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
-
-    return
-  end function Black_Hole_Binary_Recoil_Velocity
+  !# <functionClass>
+  !#  <name>blackHoleBinaryRecoil</name>
+  !#  <descriptiveName>Black Hole Binaries Recoil</descriptiveName>
+  !#  <description>Class providing models of black hole binary recoild.</description>
+  !#  <default>zero</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="velocity" >
+  !#   <description>Computes the recoil velocity of the given pair of merging black holes.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole1, blackHole2</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Black_Hole_Binary_Recoil_Velocities

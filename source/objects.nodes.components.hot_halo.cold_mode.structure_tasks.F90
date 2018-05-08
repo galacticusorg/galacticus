@@ -27,7 +27,7 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
        &    Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task, Node_Component_Hot_Halo_Cold_Mode_Density_Task
 
   ! The mass distribution object.
-  class  (massDistribution), pointer, public :: coldModeMassDistribution
+  type(massDistributionBetaProfile), public :: coldModeMassDistribution
   !$omp threadprivate(coldModeMassDistribution)
 
 contains
@@ -38,7 +38,6 @@ contains
   double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for the cold mode hot halo component.
     use Galactic_Structure_Options
-    use Galacticus_Error
     use Galacticus_Nodes
     use Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii
     implicit none
@@ -68,17 +67,12 @@ contains
     radiusOuter =  thisHotHalo%outerRadius()
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
-    select type (coldModeMassDistribution)
-    type is (massDistributionBetaProfile)
-       ! Find the scale length of the cold mode halo.
-       radiusCore  =  Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
-       ! Initialize the mass profile
-       call coldModeMassDistribution%initialize(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
-       ! Compute the enclosed mass.
-       Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=coldModeMassDistribution%massEnclosedBySphere(radius)
-    class default
-       call Galacticus_Error_Report('unsupported mass distribution'//{introspection:location})
-    end select
+    ! Find the scale length of the cold mode halo.
+    radiusCore  =  Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
+    ! Initialize the mass profile
+    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
+    ! Compute the enclosed mass.
+    Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task=coldModeMassDistribution%massEnclosedBySphere(radius)
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task
 
@@ -146,7 +140,6 @@ contains
     use Galactic_Structure_Options
     use Coordinates
     use Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii
-    use Galacticus_Error
     implicit none
     type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType       , massType   , &
@@ -169,18 +162,13 @@ contains
     radiusOuter =  thisHotHalo%outerRadius()
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
-    select type (coldModeMassDistribution)
-    type is (massDistributionBetaProfile)
-       ! Find the scale length of the cold mode halo.
-       radiusCore  =  Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
-       ! Initialize the mass profile
-       call coldModeMassDistribution%initialize(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
-       ! Compute the density.
-       position=[positionSpherical(1)/radiusCore,0.0d0,0.0d0]
-       Node_Component_Hot_Halo_Cold_Mode_Density_Task=coldModeMassDistribution%density(position)
-    class default
-       call Galacticus_Error_Report('unsupported mass distribution'//{introspection:location})
-    end select
+    ! Find the scale length of the cold mode halo.
+    radiusCore  =  Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
+    ! Initialize the mass profile
+    coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
+    ! Compute the density.
+    position=[positionSpherical(1)/radiusCore,0.0d0,0.0d0]
+    Node_Component_Hot_Halo_Cold_Mode_Density_Task=coldModeMassDistribution%density(position)
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Density_Task
 
