@@ -31,7 +31,6 @@ module Cosmological_Density_Field
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>yes</stateful>
   !#  <data>double precision                                         :: criticalOverdensityTarget, mass       , time</data>
   !#  <data>type            (treeNode                     ), pointer :: node                                        </data>
   !#  <data>logical                                                  :: massPresent              , nodePresent      </data>
@@ -162,7 +161,6 @@ module Cosmological_Density_Field
   !#  <descriptiveName>Halo Environment</descriptiveName>
   !#  <description>Class providing halo environment.</description>
   !#  <default>uniform</default>
-  !#  <stateful>no</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="overdensityLinear" >
   !#   <description>Return the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
@@ -231,7 +229,6 @@ module Cosmological_Density_Field
   !#  <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
   !#  <description>Object providing mass variance of the cosmological density field.</description>
   !#  <default>filteredPower</default>
-  !#  <stateful>yes</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="powerNormalization" >
   !#   <description>Return the normalization of the power spectrum.</description>

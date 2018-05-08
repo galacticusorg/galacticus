@@ -65,6 +65,20 @@ module iso_varying_string
      !@   <description>Loads a varying string with the contents of a file.</description>
      !@ </objectMethod>
      procedure :: loadFromFile => load_from_file_VS
+     !@ <objectMethod>
+     !@   <object>varying_string</object>
+     !@   <method>stateStore</method>
+     !@   <arguments>\intzero\ stateFile\argin</arguments>
+     !@   <description>Store the state of a varying string to file.</description>
+     !@ </objectMethod>
+     procedure :: stateStore => vsStateStore
+     !@ <objectMethod>
+     !@   <object>varying_string</object>
+     !@   <method>restoreState</method>
+     !@   <arguments>\intzero\ stateFile\argin</arguments>
+     !@   <description>Restore the state of a varying string from file.</description>
+     !@ </objectMethod>
+     procedure :: stateRestore => vsStateRestore
   end type varying_string
 
 ! Interface blocks
@@ -2673,6 +2687,40 @@ contains
     close(iUnit)
     return
   end subroutine load_from_file_VS
+
+  subroutine vsStateStore(self,stateFile)
+    !% Store the state of a {\normalfont \ttfamily varying\_string} object to file.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    class  (varying_string), intent(inout) :: self
+    integer                , intent(in   ) :: stateFile
+
+    write (stateFile) allocated(self%chars)
+    if (allocated(self%chars)) then
+       write (stateFile) size(self%chars,kind=c_size_t)
+       write (stateFile) self%chars
+    end if
+    return
+  end subroutine vsStateStore
+  
+  subroutine vsStateRestore(self,stateFile)
+    !% Restore the state of a {\normalfont \ttfamily varying\_string} object from file.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    class  (varying_string), intent(inout) :: self
+    integer                , intent(in   ) :: stateFile
+    logical                                :: wasAllocated
+    integer(c_size_t      )                :: charsSize
+
+    read (stateFile) wasAllocated
+    if (allocated(self%chars)) deallocate(self%chars)
+    if (wasAllocated) then
+       read (stateFile) charsSize
+       allocate(self%chars(charsSize))
+       read (stateFile) self%chars
+    end if
+    return
+  end subroutine vsStateRestore
   
 end module iso_varying_string
 

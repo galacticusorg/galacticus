@@ -24,6 +24,9 @@
 
   !# <darkMatterProfile name="darkMatterProfileEinasto">
   !#  <description>``Einasto'' dark matter halo profiles</description>
+  !#  <stateStorable>
+  !#   <restoreTo variables="angularMomentumTableAlphaInterpolationReset, angularMomentumTableRadiusInterpolationReset, freefallRadiusTableAlphaInterpolationReset, freefallRadiusTableRadiusInterpolationReset, energyTableAlphaInterpolationReset, energyTableConcentrationInterpolationReset, fourierProfileTableAlphaInterpolationReset, fourierProfileTableConcentrationInterpolationReset, fourierProfileTableWavenumberInterpolationReset " state=".true."/>
+  !#  </stateStorable>
   !# </darkMatterProfile>
   type, extends(darkMatterProfileClass) :: darkMatterProfileEinasto
      !% A dark matter halo profile class implementing ``Einasto'' dark matter halos.
@@ -146,8 +149,6 @@
      !@ </objectMethods>
      final                                                      einastoDestructor
      procedure :: calculationReset                           => einastoCalculationReset
-     procedure :: stateStore                                 => einastoStateStore
-     procedure :: stateRestore                               => einastoStateRestore
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope
      procedure :: radialMoment                               => einastoRadialMoment
@@ -1559,51 +1560,6 @@ contains
     end function einastoFreefallTimeScaleFreeIntegrand
 
   end function einastoFreefallTimeScaleFree
-
-  subroutine einastoStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileEinasto), intent(inout) :: self
-    integer                          , intent(in   ) :: stateFile
-    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: darkMatterProfile -> Einasto',verbosity=verbosityInfo)
-    write (stateFile) self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum,self%angularMomentumTableAlphaMinimum &
-         &,self%angularMomentumTableAlphaMaximum,self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum &
-         &,self%energyTableAlphaMinimum,self%energyTableAlphaMaximum,self%fourierProfileTableWavenumberMinimum &
-         &,self%fourierProfileTableWavenumberMaximum,self%fourierProfileTableAlphaMinimum,self%fourierProfileTableAlphaMaximum &
-         &,self%fourierProfileTableConcentrationMinimum,self%fourierProfileTableConcentrationMaximum,self%freefallRadiusTableRadiusMinimum&
-         &,self%freefallRadiusTableRadiusMaximum,self%freefallRadiusTableAlphaMinimum ,self%freefallRadiusTableAlphaMaximum
-
-    return
-  end subroutine einastoStateStore
-
-  subroutine einastoStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    implicit none
-    class  (darkMatterProfileEinasto), intent(inout) :: self
-    integer                          , intent(in   ) :: stateFile
-    type   (fgsl_file               ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    ! Read the minimum and maximum tabulated times.
-    call Galacticus_Display_Message('Retrieving state for: darkMatterProfile -> Einasto',verbosity=verbosityInfo)
-    read (stateFile) self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum,self%angularMomentumTableAlphaMinimum &
-         &,self%angularMomentumTableAlphaMaximum,self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum &
-         &,self%energyTableAlphaMinimum,self%energyTableAlphaMaximum,self%fourierProfileTableWavenumberMinimum &
-         &,self%fourierProfileTableWavenumberMaximum,self%fourierProfileTableAlphaMinimum,self%fourierProfileTableAlphaMaximum &
-         &,self%fourierProfileTableConcentrationMinimum,self%fourierProfileTableConcentrationMaximum,self%freefallRadiusTableRadiusMinimum &
-         &,self%freefallRadiusTableRadiusMaximum,self%freefallRadiusTableAlphaMinimum,self%freefallRadiusTableAlphaMaximum
-    ! Retabulate.
-    self%angularMomentumTableInitialized=.false.
-    self%energyTableInitialized         =.false.
-    self%fourierProfileTableInitialized =.false.
-    self%freefallRadiusTableInitialized =.false.
-    return
-  end subroutine einastoStateRestore
 
   double precision function einastoRadiusEnclosingDensity(self,node,density)
     !% Null implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles.

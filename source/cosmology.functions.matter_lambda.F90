@@ -19,9 +19,6 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
-  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.</description>
-  !# </cosmologyFunctions>
   use FGSL
   use Cosmology_Parameters
   !$ use OMP_Lib
@@ -34,6 +31,12 @@
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
   
+  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
+  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.</description>
+  !#  <stateStorable>
+  !#   <restoreTo variables="resetInterpolation, resetInterpolationDistance, resetInterpolationDistanceInverse, resetInterpolationLuminosityDistance, resetInterpolationLuminosityDistanceKCorrected" state=".true."/>
+  !#  </stateStorable>
+  !# </cosmologyFunctions>
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
      !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
      private
@@ -81,8 +84,6 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                  matterLambdaDestructor
-     procedure :: stateStore                    => matterLambdaStateStore
-     procedure :: stateRestore                  => matterLambdaStateRestore
      procedure :: epochValidate                 => matterLambdaEpochValidate 
      procedure :: cosmicTime                    => matterLambdaCosmicTime
      procedure :: timeBigCrunch                 => matterLambdaTimeBigCrunch
@@ -1320,55 +1321,3 @@ contains
     matterLambdaExponentDarkEnergy=0.0d0
     return
   end function matterLambdaExponentDarkEnergy
-
-  subroutine matterLambdaStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    implicit none
-    class  (cosmologyFunctionsMatterLambda), intent(inout) :: self
-    integer                                , intent(in   ) :: stateFile
-    type   (fgsl_file                     ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without
-    ! knowing the path by which they were originally constructed.
-    call Galacticus_Display_Message('Storing state for: cosmoloyFunctions -> matterLambda',verbosity=verbosityInfo)
-    write (stateFile) self%ageTableNumberPoints,self%ageTableTimeMinimum,self%ageTableTimeMaximum
-    write (stateFile) self%ageTableTime,self%ageTableExpansionFactor
-    write (stateFile) self%distanceTableNumberPoints,self%distanceTableTimeMinimum,self%distanceTableTimeMaximum
-    write (stateFile) self%distanceTableTime,self%distanceTableComovingDistance,self%distanceTableComovingDistanceNegated
-    return
-  end subroutine matterLambdaStateStore
-
-  subroutine matterLambdaStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    use Memory_Management
-    implicit none
-    class  (cosmologyFunctionsMatterLambda), intent(inout) :: self
-    integer                                , intent(in   ) :: stateFile
-    type   (fgsl_file                     ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    ! Read the tabulations.
-    call Galacticus_Display_Message('Retrieving state for: cosmoloyFunctions -> matterLambda',verbosity=verbosityInfo)
-    read (stateFile) self%ageTableNumberPoints,self%ageTableTimeMinimum,self%ageTableTimeMaximum
-    if (allocated(self%ageTableTime           )) call deallocateArray(self%ageTableTime           )
-    if (allocated(self%ageTableExpansionFactor)) call deallocateArray(self%ageTableExpansionFactor)
-    call allocateArray(self%ageTableTime           ,[self%ageTableNumberPoints])
-    call allocateArray(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
-    read (stateFile) self%ageTableTime,self%ageTableExpansionFactor
-    read (stateFile) self%distanceTableNumberPoints,self%distanceTableTimeMinimum,self%distanceTableTimeMaximum
-    if (allocated(self%distanceTableTime                   )) call deallocateArray(self%distanceTableTime                   )
-    if (allocated(self%distanceTableComovingDistance       )) call deallocateArray(self%distanceTableComovingDistance       )
-    if (allocated(self%distanceTableComovingDistanceNegated)) call deallocateArray(self%distanceTableComovingDistanceNegated)
-    call allocateArray(self%distanceTableTime                   ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableComovingDistance       ,[self%distanceTableNumberPoints])
-    call allocateArray(self%distanceTableComovingDistanceNegated,[self%distanceTableNumberPoints])
-    read (stateFile) self%distanceTableTime,self%distanceTableComovingDistance,self%distanceTableComovingDistanceNegated
-    ! Ensure that interpolation objects will get reset.
-    self%resetInterpolation               =.true.
-    self%resetInterpolationDistance       =.true.
-    self%resetInterpolationDistanceInverse=.true.
-    return
-  end subroutine matterLambdaStateRestore

@@ -27,7 +27,6 @@ module Cosmology_Functions
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>yes</stateful>
   !#  <method name="epochValidate" >
   !#   <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>
   !#   <type>void</type>

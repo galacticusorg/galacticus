@@ -28,7 +28,6 @@ module Galactic_Filters
   !#  <descriptiveName>Galactic Filter</descriptiveName>
   !#  <description>Object providing boolean filters acting on galaxies.</description>
   !#  <default>always</default>
-  !#  <stateful>yes</stateful>
   !#  <method name="passes" >
   !#   <description>Return true if the given {\normalfont \ttfamily node} passes the filter.</description>
   !#   <type>logical</type>

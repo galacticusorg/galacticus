@@ -19,6 +19,7 @@ use Galacticus::Build::SourceTree::Process::Enumeration;
 use Galacticus::Build::SourceTree::Process::InputParameter;
 use Galacticus::Build::SourceTree::Process::InputParametersValidate;
 use Galacticus::Build::SourceTree::Process::FunctionClass;
+use Galacticus::Build::SourceTree::Process::StateStorable;
 use Galacticus::Build::SourceTree::Process::OptionalArgument;
 use Galacticus::Build::SourceTree::Process::Generics;
 use Galacticus::Build::SourceTree::Process::SourceDigest;
@@ -30,6 +31,7 @@ use Galacticus::Build::SourceTree::Process::ProfileOpenMP;
 use Galacticus::Build::SourceTree::Process::GCCAttributes;
 use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
+use Galacticus::Build::SourceTree::Process::ConditionalCall;
 
 sub ParseFile {    
     # Grab the file name.

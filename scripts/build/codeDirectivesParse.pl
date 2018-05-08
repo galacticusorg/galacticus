@@ -8,6 +8,7 @@ use XML::Simple;
 use Data::Dumper;
 use File::Changes;
 use Galacticus::Build::Directives;
+use List::ExtraUtils;
 
 # Scans source code for "!#" directives and generates a Makefile.
 # Andrew Benson (09-September-2016)
@@ -145,12 +146,20 @@ sub addImplicitDirectives {
     my $filePathName       = shift();
     my %implicitDirectives =
 	(
-	 stateful         => [ "galacticusStateRetrieveTask", "galacticusStateStoreTask", "galacticusStateSnapshotTask" ],
-	 calculationReset => [ "calculationResetTask"                                                                   ]
+	 stateful         => 
+	 {
+	     always => $directive->{'rootElementType'} eq "functionClass"         ,
+	     tasks  => [ "galacticusStateRetrieveTask", "galacticusStateStoreTask" ]
+	 },
+	 calculationReset => 
+	 {
+	     always => 0                                                            ,
+	     tasks  => [ "calculationResetTask"                                    ]
+	 }
 	);
-    foreach my $implicitDirective ( keys(%implicitDirectives) ) {
-	if ( exists($directive->{$implicitDirective}) && $directive->{$implicitDirective} eq "yes" ) {
-	    foreach my $implicitDependency ( @{$implicitDirectives{$implicitDirective}} ) {
+    foreach my $implicitDirective ( &List::ExtraUtils::hashList(\%implicitDirectives, keyAs => "directive") ) {
+	if ( ( exists($directive->{$implicitDirective->{'directive'}}) && $directive->{$implicitDirective->{'directive'}} eq "yes" ) || $implicitDirective->{'always'} ) {
+	    foreach my $implicitDependency ( @{$implicitDirective->{'tasks'}} ) {
 		$nonIncludeDirectives->{$implicitDependency}->{'files'     }->{$filePathName} = 1;
 		$nonIncludeDirectives->{$implicitDependency}->{'dependency'}->{$fileName    } = 1;
 	    }			    

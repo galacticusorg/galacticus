@@ -23,9 +23,10 @@ module Galacticus_Output_Times
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Galacticus_Output_Time_Count, Galacticus_Output_Time         , &
-       &    Galacticus_Next_Output_Time , Galacticus_Previous_Output_Time, &
-       &    Galacticus_Output_Time_Index, Galacticus_Output_Redshift
+  public :: Galacticus_Output_Time_Count       , Galacticus_Output_Time                , &
+       &    Galacticus_Next_Output_Time        , Galacticus_Previous_Output_Time       , &
+       &    Galacticus_Output_Time_Index       , Galacticus_Output_Redshift            , &
+       &    Galacticus_Output_Times_State_Store, Galacticus_Output_Times_State_Retrieve
 
   ! Flag to indicate if output times have been initialized.
   logical                                               :: outputsInitialized=.false.
@@ -96,10 +97,6 @@ contains
                 outputTimes(iOutput)=cosmologyFunctions_%cosmicTime(aExpansion)
              end do
           end if
-
-          ! Set history ranges to include these times.
-          call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
-
           ! Flag that this module is now initialized.
           outputsInitialized=.true.
        end if
@@ -226,5 +223,53 @@ contains
     end if
     return
   end function Galacticus_Previous_Output_Time
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Galacticus_Output_Times_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Galacticus_Output_Times_State_Store(stateFile,fgslStateFile,stateOperatorID)
+    !% Write the tablulation state to file.
+    use Galacticus_Display
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile    , stateOperatorID
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: stateOperatorID, fgslStateFile
+
+    call Galacticus_Display_Indent  ('storing state for "output times"',verbosity=verbosityWorking)
+    write (stateFile) outputsInitialized
+    if (outputsInitialized) then
+       write (stateFile) outputCount
+       write (stateFile) outputTimes,outputRedshifts
+    end if
+    call Galacticus_Display_Unindent('done'                            ,verbosity=verbosityWorking)
+    return
+  end subroutine Galacticus_Output_Times_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Galacticus_Output_Times_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Galacticus_Output_Times_State_Retrieve(stateFile,fgslStateFile,stateOperatorID)
+    !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile    , stateOperatorID
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: stateOperatorID, fgslStateFile
+
+    call Galacticus_Display_Indent  ('restoring state for "output times"',verbosity=verbosityWorking)
+    if (allocated(outputTimes    )) deallocate(outputTimes    )
+    if (allocated(outputRedshifts)) deallocate(outputRedshifts)
+    read (stateFile) outputsInitialized
+    if (outputsInitialized) then
+       read (stateFile) outputCount
+       allocate(outputTimes    (outputCount))
+       allocate(outputRedshifts(outputCount))
+       read (stateFile) outputTimes,outputRedshifts
+    end if
+    call Galacticus_Display_Unindent('done'                              ,verbosity=verbosityWorking)
+    return
+  end subroutine Galacticus_Output_Times_State_Retrieve
 
 end module Galacticus_Output_Times

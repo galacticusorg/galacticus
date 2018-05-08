@@ -27,7 +27,6 @@ module Stellar_Population_Spectra
   !#  <descriptiveName>Stellar Population Spectra</descriptiveName>
   !#  <description>Class providing stellar population spectra.</description>
   !#  <default>FSPS</default>
-  !#  <stateful>no</stateful>
   !#  <method name="luminosity" >
   !#   <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with \gls{imf} specified by {\normalfont \ttfamily imfIndex}, composition {\normalfont \ttfamily abundances}, of the given {\normalfont \ttfamily age} (in Gyr), at the specified {\normalfont \ttfamily wavelength} (in Angstroms).</description>
   !#   <type>double precision</type>

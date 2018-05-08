@@ -25,7 +25,8 @@ module Merger_Tree_Timesteps_History
   use Galacticus_Nodes
   implicit none
   private
-  public :: Merger_Tree_Timestep_History, Merger_Tree_History_Write
+  public :: Merger_Tree_Timestep_History            , Merger_Tree_History_Write                  , &
+       &    Merger_Tree_Timestep_History_State_Store, Merger_Tree_Timestep_History_State_Retrieve
 
   ! Variable inidicating if module is initialized and active.
   logical                                                        :: timestepHistoryInitialized      =.false.
@@ -417,5 +418,91 @@ contains
     end if
     return
   end subroutine Merger_Tree_History_Write
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Merger_Tree_Timestep_History_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Merger_Tree_Timestep_History_State_Store(stateFile,fgslStateFile,stateOperatorID)
+    !% Write the tablulation state to file.
+    use Galacticus_Display
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile    , stateOperatorID
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: stateOperatorID, fgslStateFile
+
+    call Galacticus_Display_Indent  ('storing state for "merger tree history"',verbosity=verbosityWorking)
+    write (stateFile) timestepHistoryInitialized
+    if (timestepHistoryInitialized) then
+       write (stateFile) outputTimestepHistory
+       if (outputTimestepHistory) then
+          write (stateFile) diskActive                      , spheroidActive               , &
+               &            timestepHistorySteps
+          write (stateFile) timestepHistoryBegin            , timestepHistoryEnd           , &
+               &            historyTime                     , historyExpansion             , &
+               &            historyStarFormationRate        , historyDiskStarFormationRate , &
+               &            historySpheroidStarFormationRate, historyStellarDensity        , &
+               &            historyDiskStellarDensity       , historySpheroidStellarDensity, &
+               &            historyGasDensity               , historyHotGasDensity         , &
+               &            historyNodeDensity
+       end if
+    end if
+    call Galacticus_Display_Unindent('done'                                   ,verbosity=verbosityWorking)
+    return
+  end subroutine Merger_Tree_Timestep_History_State_Store
+
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Merger_Tree_Timestep_History_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Merger_Tree_Timestep_History_State_Retrieve(stateFile,fgslStateFile,stateOperatorID)
+    !% Retrieve the tabulation state from the file.
+    use Galacticus_Display
+    use FGSL
+    implicit none
+    integer           , intent(in   ) :: stateFile    , stateOperatorID
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+    !GCC$ attributes unused :: stateOperatorID, fgslStateFile
+
+    call Galacticus_Display_Indent  ('restoring state for "merger tree history"',verbosity=verbosityWorking)
+    if (allocated(historyTime                     )) deallocate(historyTime                     )
+    if (allocated(historyExpansion                )) deallocate(historyExpansion                )
+    if (allocated(historyStarFormationRate        )) deallocate(historyStarFormationRate        )
+    if (allocated(historyDiskStarFormationRate    )) deallocate(historyDiskStarFormationRate    )
+    if (allocated(historySpheroidStarFormationRate)) deallocate(historySpheroidStarFormationRate)
+    if (allocated(historyStellarDensity           )) deallocate(historyStellarDensity           )
+    if (allocated(historyDiskStellarDensity       )) deallocate(historyDiskStellarDensity       )
+    if (allocated(historySpheroidStellarDensity   )) deallocate(historySpheroidStellarDensity   )
+    if (allocated(historyGasDensity               )) deallocate(historyGasDensity               )
+    if (allocated(historyHotGasDensity            )) deallocate(historyHotGasDensity            )
+    if (allocated(historyNodeDensity              )) deallocate(historyNodeDensity              )
+    read (stateFile) timestepHistoryInitialized
+    if (timestepHistoryInitialized) then
+       read (stateFile) outputTimestepHistory
+       if (outputTimestepHistory) then
+          read (stateFile) diskActive          , spheroidActive, &
+               &           timestepHistorySteps
+          allocate(historyTime                     (timestepHistorySteps))
+          allocate(historyExpansion                (timestepHistorySteps))
+          allocate(historyStarFormationRate        (timestepHistorySteps))
+          allocate(historyDiskStarFormationRate    (timestepHistorySteps))
+          allocate(historySpheroidStarFormationRate(timestepHistorySteps))
+          allocate(historyStellarDensity           (timestepHistorySteps))
+          allocate(historyDiskStellarDensity       (timestepHistorySteps))
+          allocate(historySpheroidStellarDensity   (timestepHistorySteps))
+          allocate(historyGasDensity               (timestepHistorySteps))
+          allocate(historyHotGasDensity            (timestepHistorySteps))
+          allocate(historyNodeDensity              (timestepHistorySteps))
+          read (stateFile) timestepHistoryBegin            , timestepHistoryEnd           , &
+               &           historyTime                     , historyExpansion             , &
+               &           historyStarFormationRate        , historyDiskStarFormationRate , &
+               &           historySpheroidStarFormationRate, historyStellarDensity        , &
+               &           historyDiskStellarDensity       , historySpheroidStellarDensity, &
+               &           historyGasDensity               , historyHotGasDensity         , &
+               &           historyNodeDensity
+       end if
+    end if
+    call Galacticus_Display_Unindent('done'                                     ,verbosity=verbosityWorking)
+    return
+  end subroutine Merger_Tree_Timestep_History_State_Retrieve
 
 end module Merger_Tree_Timesteps_History

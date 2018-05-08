@@ -32,7 +32,6 @@ module Atomic_Radiation_Gaunt_Factors
   !#  <description>Class providing Gaunt factors.</description>
   !#  <default>sutherland1998</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>no</stateful>
   !#  <method name="total" >
   !#   <description>Returns the thermally averaged, total Gaunt factor.</description>
   !#   <type>double precision</type>

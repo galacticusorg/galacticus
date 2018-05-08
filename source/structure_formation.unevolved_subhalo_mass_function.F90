@@ -27,7 +27,6 @@ module Unevolved_Subhalo_Mass_Functions
   !#  <descriptiveName>Unevolved Subhalo Mass Function</descriptiveName>
   !#  <description>Class providing unevolved subhalo mass functions.</description>
   !#  <default>giocoli2008</default>
-  !#  <stateful>no</stateful>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="differential" >
   !#   <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} [$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>

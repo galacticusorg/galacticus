@@ -73,8 +73,6 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                       filteredPowerDestructor
-     procedure :: stateStore                         => filteredPowerStateStore
-     procedure :: stateRestore                       => filteredPowerStateRestore
      procedure :: sigma8                             => filteredPowerSigma8
      procedure :: powerNormalization                 => filteredPowerPowerNormalization
      procedure :: rootVariance                       => filteredPowerRootVariance
@@ -498,36 +496,3 @@ contains
     end function varianceIntegrandTopHat
 
   end subroutine filteredPowerRetabulate
-      
-  subroutine filteredPowerStateStore(self,stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    integer                                       , intent(in   ) :: stateFile
-    type   (fgsl_file                            ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: cosmologicalMassVariance -> filteredPower',verbosity=verbosityInfo)
-    write (stateFile) self%massMinimum,self%massMaximum
-    return
-  end subroutine filteredPowerStateStore
-
-  subroutine filteredPowerStateRestore(self,stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    use FGSL
-    implicit none
-    class  (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    integer                                       , intent(in   ) :: stateFile
-    type   (fgsl_file                            ), intent(in   ) :: fgslStateFile
-    !GCC$ attributes unused :: fgslStateFile
-
-    ! Read the minimum and maximum tabulated times.
-    call Galacticus_Display_Message('Retrieving state for: cosmologicalMassVariance -> filteredPower',verbosity=verbosityInfo)
-    read (stateFile) self%massMinimum,self%massMaximum
-    self%initialized=.false.
-    call self%retabulate()
-    return
-  end subroutine filteredPowerStateRestore

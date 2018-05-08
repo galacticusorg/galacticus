@@ -29,7 +29,6 @@ module Cooling_Functions
   !#  <descriptiveName>Cooling Function</descriptiveName>
   !#  <description>Class providing cooling functions.</description>
   !#  <default>atomicCIECloudy</default>
-  !#  <stateful>no</stateful>
   !#  <method name="coolingFunction" >
   !#   <description>Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm$^-3$ s$^{-1}$.</description>
   !#   <type>double precision</type>

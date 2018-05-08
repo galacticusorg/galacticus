@@ -31,7 +31,6 @@ module Virial_Orbits
   !#  <description>Class providing orbital parameters of satellite halos at the time of merging.</description>
   !#  <default>benson2005</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <stateful>yes</stateful>
   !#  <method name="orbit" >
   !#   <description>Returns an orbit object.</description>
   !#   <type>type(keplerOrbit)</type>

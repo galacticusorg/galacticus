@@ -9,7 +9,7 @@ use PDL::NiceSlice;
 # Andrew Benson (23-Jun-2012)
 
 # Run full store model.
-system("export OMP_NUM_THREADS=16; rm -f outputs/state.state.* outputs/state.fgsl.state.*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
+system("export OMP_NUM_THREADS=12; rm -f outputs/state.state.* outputs/state.fgsl.state.*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
 die("FAILED: failed to run store model")
     unless ( $? == 0 );
 # Find which threads ran the final tree.
@@ -54,7 +54,7 @@ my $storeData    = $store   ->group('Outputs')->group('Output1')->group('nodeDat
 my $retrieveData = $retrieve->group('Outputs')->group('Output1')->group('nodeData');
 
 # Find the tree in the store model.
-my $storeTreeIndex   = $store   ->group('Outputs')->group('Output1')->dataset('mergerTreeIndex')->get()        ;
+my $storeTreeIndex   = $store->group('Outputs')->group('Output1')->dataset('mergerTreeIndex')->get();
 my $treeFinal        = which($storeTreeIndex == 15);
 unless ( nelem($treeFinal) == 1 ) {
     print "FAILED: unable to (uniquely) identify final tree in stored model output\n";	
@@ -77,13 +77,16 @@ unless ( $storeTreeSize == $retrieveTreeSize ) {
 my @datasets = $storeData->datasets();
 
 # Check that each dataset is unchanged.
+my $failed = 0;
 foreach my $dataset ( @datasets ) {
     my $storeDataset    = $storeData   ->dataset($dataset)->get()->($storeTreeStart:$storeTreeStart+$storeTreeSize-1);
     my $retrieveDataset = $retrieveData->dataset($dataset)->get();
     my $equal = all($storeDataset == $retrieveDataset);
-    print "FAILED: dataset '".$dataset."' changed after state retrieve\n"
-	unless ( $equal == 1 );
+    unless ( $equal == 1 ) {
+	print "FAILED: dataset '".$dataset."' changed after state retrieve\n";
+	$failed = 1;
+    }
 }
-
-print "SUCCESS!\n";
+print "SUCCESS!\n"
+    unless ( $failed );
 exit;
