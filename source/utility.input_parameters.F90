@@ -108,12 +108,13 @@ module Input_Parameters
 
   type :: inputParameters
      private
-     type   (node           ), pointer, public :: document         => null()
-     type   (node           ), pointer         :: rootNode         => null()
+     type   (node           ), pointer, public :: document               => null()
+     type   (node           ), pointer         :: rootNode               => null()
      type   (hdf5Object     )                  :: outputParameters
-     type   (inputParameter ), pointer         :: parameters       => null()
-     type   (inputParameters), pointer, public :: parent           => null()
-     logical                                   :: global           =  .false., isNull=.false.
+     type   (inputParameter ), pointer         :: parameters             => null()
+     type   (inputParameters), pointer, public :: parent                 => null()
+     logical                                   :: global                 =  .false., isNull=.false., &
+          &                                       outputParametersCopied =  .false.
    contains
      !@ <objectMethods>
      !@   <object>inputParameters</object>
@@ -145,6 +146,12 @@ module Input_Parameters
      !@     <method>parametersGroupOpen</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} outputGroup\arginout</arguments>
+     !@     <description>Open an output group for parameters in the given HDF5 object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>parametersGroupCopy</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(inputParameters)\textgreater} inputParameters\_\argin</arguments>
      !@     <description>Open an output group for parameters in the given HDF5 object.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -227,6 +234,7 @@ module Input_Parameters
      procedure :: markGlobal          => inputParametersMarkGlobal
      procedure :: isGlobal            => inputParametersIsGlobal
      procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
+     procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
      procedure :: validateName        => inputParametersValidateName
      procedure :: checkParameters     => inputParametersCheckParameters
      procedure :: node                => inputParametersNode
@@ -448,7 +456,10 @@ contains
     call inputParametersConstructorNode%resolveReferences(                                                        )
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
-    if (present(outputParametersGroup)) inputParametersConstructorNode%outputParameters=outputParametersGroup%openGroup('Parameters')
+    if (present(outputParametersGroup)) then
+       inputParametersConstructorNode%outputParameters      =outputParametersGroup%openGroup('Parameters')
+       inputParametersConstructorNode%outputParametersCopied=.false.
+    end if
     ! Parse allowed parameters file if available.
     allowedParameterFromFileCount=0
     allowedParameterCount        =0
@@ -641,7 +652,7 @@ contains
     nullify(self%parameters)
     nullify(self%parent    )
     !$omp critical(HDF5_Access)
-    if (self%outputParameters%isOpen()) call self%outputParameters%close()
+    if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) call self%outputParameters%close()
     !$omp end critical(HDF5_Access)
     return
   end subroutine inputParametersFinalize
@@ -922,10 +933,24 @@ contains
 
     !$omp critical(HDF5_Access)
     if (self%outputParameters%isOpen()) call self%outputParameters%close()
-    self%outputParameters=outputGroup%openGroup('Parameters')
+    self%outputParameters      =outputGroup%openGroup('Parameters')
+    self%outputParametersCopied=.false.
     !$omp end critical(HDF5_Access)
     return
   end subroutine inputParametersParametersGroupOpen
+
+  subroutine inputParametersParametersGroupCopy(self,inputParameters_)
+    !% Open an output group for parameters in the given HDF5 object.
+    implicit none
+    class(inputParameters), intent(inout) :: self
+    class(inputParameters), intent(in   ) :: inputParameters_
+
+    !$omp critical(HDF5_Access)
+    self%outputParameters      =inputParameters_%outputParameters
+    self%outputParametersCopied=.true.
+    !$omp end critical(HDF5_Access)
+    return
+  end subroutine inputParametersParametersGroupCopy
 
   subroutine inputParametersValidateName(self,parameterName)
     !% Validate a parameter name.
