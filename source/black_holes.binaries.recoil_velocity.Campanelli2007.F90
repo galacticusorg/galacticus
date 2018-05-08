@@ -18,130 +18,80 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements a black hole binary recoil velocity which follows the formulae in
-!% \cite{campanelli_large_2007}, derived from post-Newtonian evaluations.
-
-module Black_Hole_Binary_Recoil_Velocities_Standard
-  !% Implements a black hole binary recoil velocity which follows the formulae in \cite{campanelli_large_2007}, derived from
+  !% Implements a black hole binary recoil velocity class which follows the formulae in \cite{campanelli_large_2007}, derived from
   !% post-Newtonian evaluations.
-  use FGSL
-  implicit none
-  private
-  public :: Black_Hole_Binary_Recoil_Velocity_Standard_Initialize, Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot,&
-       & Black_Hole_Binary_Recoil_Velocity_Standard_State_Store, Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve
 
-  ! Random sequence objects.
-  type   (fgsl_rng) :: clonedPseudoSequenceObject       , pseudoSequenceObject
-  logical           :: pseudoSequenceReset       =.true., pseudoSequenceResetSnapshot
-  !$omp threadprivate(pseudoSequenceReset,pseudoSequenceObject,pseudoSequenceResetSnapshot,clonedPseudoSequenceObject)
+  !# <blackHoleBinaryRecoil name="blackHoleBinaryRecoilCampanelli2007">
+  !#  <description>A black hole binary recoil class in which the recoil velocity is always campanelli2007.</description>
+  !# </blackHoleBinaryRecoil>
+  type, extends(blackHoleBinaryRecoilClass) :: blackHoleBinaryRecoilCampanelli2007
+     !% A black hole binary recoil class which follows the formulae in \cite{campanelli_large_2007}, derived from post-Newtonian
+     !% evaluations.
+     private
+   contains
+     procedure :: velocity => campanelli2007Velocity
+  end type blackHoleBinaryRecoilCampanelli2007
+  
+  interface blackHoleBinaryRecoilCampanelli2007
+     !% Constructors for the {\normalfont \ttfamily campanelli2007} black hole binary recoil class.
+     module procedure campanelli2007ConstructorParameters
+  end interface blackHoleBinaryRecoilCampanelli2007
+
 contains
 
-  !# <blackHoleBinaryRecoilVelocityMethod>
-  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_Initialize</unitName>
-  !# </blackHoleBinaryRecoilVelocityMethod>
-  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Initialize(blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function campanelli2007ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily campanelli2007} black hole bianry recoild class which takes a parameter list as
+    !% input.
+    use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: blackHoleBinaryRecoilVelocityMethod
-    procedure(Black_Hole_Binary_Recoil_Velocity_Standard), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get
+    type(blackHoleBinaryRecoilCampanelli2007)                :: self
+    type(inputParameters                    ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-    if (blackHoleBinaryRecoilVelocityMethod == 'Campanelli2007') Black_Hole_Binary_Recoil_Velocity_Get => Black_Hole_Binary_Recoil_Velocity_Standard
+    self=blackHoleBinaryRecoilCampanelli2007()
     return
-  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Initialize
+  end function campanelli2007ConstructorParameters
 
-  double precision function Black_Hole_Binary_Recoil_Velocity_Standard(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
+  double precision function campanelli2007Velocity(self,blackHole1,blackHole2)
     !% Returns the recoil velocity of a black hole binary, accounting for the parallel and perpendicular velocities, plus that of
     !% the binary's center of mass. Constants used are retrieved from the articles by: \cite{koppitz_recoil_2007} for $H=(7.3\pm
     !% 0.3)10^3$~km/s, \cite{gonzalez_maximum_2007} for $A=1.2 \times 10^4$~km/s $B=-0.93$, \cite{gonzalez_supermassive_2007} for $K
     !% \cos(\delta\theta)=(6,-5.3)10^4$~km/s and $K=(6.0\pm 0.1)10^4$~km/s.
-    use Pseudo_Random
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: massBlackHole1        , massBlackHole2      , spinBlackHole1          , &
-         &                             spinBlackHole2
-    double precision, parameter     :: A               =1.2d4, B             =-0.93, H                 =7.3d3, &
-         &                             K               =6.0d4
-    double precision                :: q                     , velocityMass        , velocityOrthogonal      , &
-         &                             velocityParallel
-    double precision                :: alpha1Orthogonal      , alpha1Parallel      , alpha2Orthogonal        , &
-         &                             alpha2Parallel
-    double precision                :: phi                   , theta
+    class           (blackHoleBinaryRecoilCampanelli2007), intent(inout) :: self
+    class           (nodeComponentBlackHole             ), intent(inout) :: blackHole1            , blackHole2
+    double precision                                     , parameter     :: A               =1.2d4, B             =-0.93d0, H                 =7.3d3, &
+         &                                                                  K               =6.0d4
+    double precision                                                     :: q                     , velocityMass          , velocityOrthogonal      , &
+         &                                                                  velocityParallel
+    double precision                                                     :: alpha1Orthogonal      , alpha1Parallel        , alpha2Orthogonal        , &
+         &                                                                  alpha2Parallel
+    double precision                                                     :: phi                   , theta
+    !GCC$ attributes unused :: self
 
     ! If either black hole has non-positive mass, recoil velocity must be zero.
-    if (massBlackHole1 <= 0.0d0 .or. massBlackHole2 <= 0.0d0) then
-       Black_Hole_Binary_Recoil_Velocity_Standard=0.0d0
+    if (blackHole1%mass() <= 0.0d0 .or. blackHole2%mass() <= 0.0d0) then
+       campanelli2007Velocity=0.0d0
        return
     end if
-
     ! Select angular coordinates at random for the spin of the black hole.
-    phi  =     2.0d0*Pi*Pseudo_Random_Get(pseudoSequenceObject,reset=pseudoSequenceReset)
-    theta=acos(2.0d0*   Pseudo_Random_Get(pseudoSequenceObject,reset=pseudoSequenceReset)-1.0d0)
-
+    phi  =     2.0d0*Pi*blackHole1%hostNode%hostTree%randomNumberGenerator%uniformSample()
+    theta=acos(2.0d0*   blackHole1%hostNode%hostTree%randomNumberGenerator%uniformSample()-1.0d0)
     ! Compute the mass ratio of the two black holes.
-    q=massBlackHole1/massBlackHole2
-
+    q=blackHole1%mass()/blackHole2%mass()
     ! Compute alpha (and components), the angular momentum of the black hole per unit mass. This is equal to the spin scalar
     ! (since we don't track the direction of spin).
     alpha1Orthogonal=0.0d0
-    alpha1Parallel  =spinBlackHole1
-    alpha2Orthogonal=spinBlackHole2*sin(theta)*cos(phi)
-    alpha2Parallel  =spinBlackHole2*cos(theta)
-
+    alpha1Parallel  =blackHole1%spin()
+    alpha2Orthogonal=blackHole2%spin()*sin(theta)*cos(phi)
+    alpha2Parallel  =blackHole2%spin()*cos(theta)
     ! Compute velocity kicks in each direction.
     velocityOrthogonal=H*(q**2      /(1.0d0+q)**5)*(alpha2Parallel  -q*alpha1Parallel  )
     velocityParallel  =K*(q**2      /(1.0d0+q)**5)*(alpha2Orthogonal-q*alpha1Orthogonal)
     velocityMass      =A*(q**2*(1-q)/(1.0d0+q)**5)*(1.0d0+B*(q/(1.0d0+q)**2))
-
     ! Compute the net recoil velocity.
-    Black_Hole_Binary_Recoil_Velocity_Standard=sqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)
+    campanelli2007Velocity=sqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)
     return
-  end function Black_Hole_Binary_Recoil_Velocity_Standard
-
-  !# <galacticusStateSnapshotTask>
-  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot</unitName>
-  !# </galacticusStateSnapshotTask>
-  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot
-    !% Store a snapshot of the random number generator internal state.
-    implicit none
-
-    if (.not.pseudoSequenceReset) clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
-    pseudoSequenceResetSnapshot=pseudoSequenceReset
-    return
-  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    use Galacticus_Display
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: blackHoleBinaryRecoilVelocityMethod -> Campanelli2007',verbosity=verbosityInfo)
-    write (stateFile) pseudoSequenceResetSnapshot
-    if (.not.pseudoSequenceResetSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve(stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Pseudo_Random
-    use Galacticus_Display
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: blackHoleBinaryRecoilVelocityMethod -> Campanelli2007',verbosity=verbosityInfo)
-    read (stateFile) pseudoSequenceReset
-    if (.not.pseudoSequenceReset) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve
-
-end module Black_Hole_Binary_Recoil_Velocities_Standard
+  end function campanelli2007Velocity
+  

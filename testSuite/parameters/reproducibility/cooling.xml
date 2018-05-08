@@ -14,6 +14,12 @@
   <treeNodeMethodSatellite value="null"/>
   <treeNodeMethodSpheroid value="null"/>
   <treeNodeMethodSpin value="null"/>
+  <diskMassDistribution value="exponentialDisk">
+    <dimensionless value="true"/>
+  </diskMassDistribution>
+  <spheroidMassDistribution value="hernquist">
+    <dimensionless value="true"/>
+  </spheroidMassDistribution>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod value="matterLambda"/>
@@ -58,7 +64,9 @@
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
+  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.1"/>
+  </hotHaloMassDistributionCoreRadiusMethod>
   <coolingFunctionMethod value="CIEFile">
     <fileName value="data/cooling/cooling_function_Atomic_CIE_Cloudy_13.05.hdf5"/>
   </coolingFunctionMethod>

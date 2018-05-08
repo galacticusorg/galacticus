@@ -74,7 +74,6 @@
     <accretionLimit value="0.1"/>
     <branchIntervalStep value="true"/>
     <mergeProbability value="0.1"/>
-    <randomSeedsFixed value="true"/>
     <redshiftMaximum value="10.0"/>
   </mergerTreeBuilderMethod>
   <mergerTreeMassResolutionMethod value="scaled">
@@ -85,14 +84,15 @@
   <mergerTreeBuildHaloMassMinimum value="1.0e09"/>
   <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <mergerTreeBuildTreesPerDecade value="100"/>
-  <treeBranchingMethod value="modifiedPress-Schechter"/>
-  <modifiedPressSchechterFirstOrderAccuracy value="0.025"/>
-  <modifiedPressSchechterG0 value="0.57"/>
-  <modifiedPressSchechterGamma1 value="0.38"/>
-  <modifiedPressSchechterGamma2 value="-0.01"/>
-  <modifiedPressSchechterHypergeometricPrecision value="1.0e-6"/>
-  <modifiedPressSchechterTabulateHypergeometricFactors value="true"/>
-  <modifiedPressSchechterUseCDMAssumptions value="true"/>
+  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+    <G0                      value="+0.570"/>
+    <gamma1                  value="+0.380"/>
+    <gamma2                  value="-0.010"/>
+    <accuracyFirstOrder      value="+0.025"/>
+    <precisionHypergeometric value="1.0e-6"/>
+    <hypergeometricTabulate  value="true"  />
+    <cdmAssumptions          value="true"  />
+  </mergerTreeBranchingProbabilityMethod>
   <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction">
     <abundanceMaximum value="1.0e-1"/>
     <abundanceMinimum value="1.0e-8"/>    
@@ -132,7 +132,7 @@
   <virialOrbitMethod value="fixed">
     <velocityTangential value="+0.842"/>
     <velocityRadial     value="-0.856"/>
-    <virialDensityContrastMethod>
+    <virialDensityContrastMethod value="fixed">
       <densityContrastValue value="200.0"   />
       <densityType          value="critical"/>
     </virialDensityContrastMethod>
@@ -220,7 +220,7 @@
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
-  <mergerTreeOutput value="">
+  <mergerTreeOutput>
     <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
   </mergerTreeOutput>

@@ -16,179 +16,67 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of merger tree branching probabilities.
+!% Contains a module which implements a merger tree branching probability class.
 
 module Merger_Tree_Branching
-  !% Implements calculations of merger tree branching probabilities.
-  use ISO_Varying_String
+  !% Implements a merger tree branching probability class.
   use Pseudo_Random
   use Galacticus_Nodes
   implicit none
   private
-  public :: Tree_Branching_Probability_Bound, Tree_Branching_Probability, Tree_Subresolution_Fraction, Tree_Branch_Mass, Tree_Maximum_Step
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                  :: treeBranchingInitialized            =.false.
-
-  ! Name of branching method used.
-  type     (varying_string                      )          :: treeBranchingMethod
-
-  ! Pointer to the functions that return branching probabilities and templates for the functions.
-  procedure(Tree_Branching_Probability_Bound_Template), pointer :: Tree_Branching_Probability_Bound_Function => null()
-  procedure(Tree_Branching_Probability_Template      ), pointer :: Tree_Branching_Probability_Function       => null()
-  procedure(Tree_Subresolution_Fraction_Template     ), pointer :: Tree_Subresolution_Fraction_Function      => null()
-  procedure(Tree_Branch_Mass_Template                ), pointer :: Tree_Branch_Mass_Function                 => null()
-  procedure(Tree_Maximum_Step_Template               ), pointer :: Tree_Maximum_Step_Function                => null()
-  interface Tree_Branching_Probability_Template
-     double precision function Tree_Branching_Probability_Bound_Template(haloMass,deltaCritical,massResolution,bound,node)
-       import treeNode
-       double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
-       integer                   , intent(in   )         :: bound
-       type            (treeNode), intent(inout), target :: node
-     end function Tree_Branching_Probability_Bound_Template
-  end interface Tree_Branching_Probability_Template
-  interface Tree_Branching_Probability_Template
-     double precision function Tree_Branching_Probability_Template(haloMass,deltaCritical,massResolution,node)
-       import treeNode
-       double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
-       type            (treeNode), intent(inout), target :: node
-     end function Tree_Branching_Probability_Template
-  end interface Tree_Branching_Probability_Template
-  interface Tree_Subresolution_Fraction_Template
-     double precision function Tree_Subresolution_Fraction_Template(haloMass,deltaCritical,massResolution,node)
-       import treeNode
-       double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
-       type            (treeNode), intent(inout), target :: node
-     end function Tree_Subresolution_Fraction_Template
-  end interface Tree_Subresolution_Fraction_Template
-  interface Tree_Branch_Mass_Template
-     double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
-       import pseudoRandom, treeNode
-       double precision              , intent(in   )         :: deltaCritical      , haloMass, massResolution, &
-            &                                                   probabilityFraction
-       type            (pseudoRandom), intent(inout)         :: randomNumberGenerator
-       type            (treeNode    ), intent(inout), target :: node
-     end function Tree_Branch_Mass_Template
-  end interface Tree_Branch_Mass_Template
-  interface Tree_Maximum_Step_Template
-     double precision function Tree_Maximum_Step_Template(haloMass,deltaCritical,massResolution)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
-     end function Tree_Maximum_Step_Template
-  end interface Tree_Maximum_Step_Template
-
-contains
-
-  double precision function Tree_Maximum_Step(haloMass,deltaCritical,massResolution)
-    !% Return the maximum step in $\delta_\mathrm{crit}$ allowed for a halo in a merger tree.
-    implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
-
-    ! Initialize if necessary.
-    call Tree_Branching_Initialize
-
-    ! Interpolate in the tabulated function and return a value.
-    Tree_Maximum_Step=Tree_Maximum_Step_Function(haloMass,deltaCritical,massResolution)
-    return
-  end function Tree_Maximum_Step
-
-  double precision function Tree_Branching_Probability_Bound(haloMass,deltaCritical,massResolution,bound,node)
-    !% Return the branching probability per unit $\delta_\mathrm{crit}$ for a halo in a merger tree.
-    implicit none
-    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
-    integer                   , intent(in   )         :: bound
-    type            (treeNode), intent(inout), target :: node
-
-    ! Initialize if necessary.
-    call Tree_Branching_Initialize
-
-    ! Interpolate in the tabulated function and return a value.
-    Tree_Branching_Probability_Bound=Tree_Branching_Probability_Bound_Function(haloMass,deltaCritical,massResolution,bound,node)
-    return
-  end function Tree_Branching_Probability_Bound
-
-  double precision function Tree_Branching_Probability(haloMass,deltaCritical,massResolution,node)
-    !% Return the branching probability per unit $\delta_\mathrm{crit}$ for a halo in a merger tree.
-    implicit none
-    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
-    type            (treeNode), intent(inout), target :: node
-
-    ! Initialize if necessary.
-    call Tree_Branching_Initialize
-
-    ! Interpolate in the tabulated function and return a value.
-    Tree_Branching_Probability=Tree_Branching_Probability_Function(haloMass,deltaCritical,massResolution,node)
-    return
-  end function Tree_Branching_Probability
-
-  double precision function Tree_Subresolution_Fraction(haloMass,deltaCritical,massResolution,node)
-    !% Return the fraction of mass accreted below the resolution limit per $\delta_\mathrm{crit}$ in a halo in a merger tree.
-    implicit none
-    double precision          , intent(in   )         :: deltaCritical, haloMass, massResolution
-    type            (treeNode), intent(inout), target :: node
-
-    ! Initialize if necessary.
-    call Tree_Branching_Initialize
-
-    ! Interpolate in the tabulated function and return a value.
-    Tree_Subresolution_Fraction=Tree_Subresolution_Fraction_Function(haloMass,deltaCritical,massResolution,node)
-    return
-  end function Tree_Subresolution_Fraction
-
-  double precision function Tree_Branch_Mass(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
-    !% Return the mass of a progenitor halo in a branch split.
-    implicit none
-    double precision              , intent(in   )         :: deltaCritical        , haloMass, massResolution, &
-         &                                                   probabilityFraction
-    type            (pseudoRandom), intent(inout)         :: randomNumberGenerator
-    type            (treeNode    ), intent(inout), target :: node
-
-    ! Initialize if necessary.
-    call Tree_Branching_Initialize
-
-    ! Interpolate in the tabulated function and return a value.
-    Tree_Branch_Mass=Tree_Branch_Mass_Function(haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
-    return
-  end function Tree_Branch_Mass
-
-  subroutine Tree_Branching_Initialize
-    !% Initializes the tree branching module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="treeBranchingMethod" type="moduleUse">
-    include 'merger_trees.branching_probability.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.treeBranchingInitialized) then
-       !$omp critical(Tree_Branching_Initialization)
-       if (.not.treeBranchingInitialized) then
-          ! Get the tree branching method parameter.
-          !# <inputParameter>
-          !#   <name>treeBranchingMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('modifiedPress-Schechter')</defaultValue>
-          !#   <description>The name of the method to be used for computing merger tree branching probabilities when building merger trees.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="treeBranchingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>treeBranchingMethod,Tree_Branching_Probability_Bound_Function,Tree_Branching_Probability_Function,Tree_Subresolution_Fraction_Function,Tree_Branch_Mass_Function,Tree_Maximum_Step_Function</functionArgs>
-          include 'merger_trees.branching_probability.inc'
-          !# </include>
-          if (       .not.associated(Tree_Branching_Probability_Bound_Function )  &
-               & .or..not.associated(Tree_Branching_Probability_Function       )  &
-               & .or..not.associated(Tree_Subresolution_Fraction_Function      )  &
-               & .or..not.associated(Tree_Branch_Mass_Function                 )  &
-               & .or..not.associated(Tree_Maximum_Step_Function                )) &
-               & call Galacticus_Error_Report('method '//char(treeBranchingMethod)//' is unrecognized'//{introspection:location})
-
-          treeBranchingInitialized=.true.
-       end if
-       !$omp end critical(Tree_Branching_Initialization)
-    end if
-    return
-  end subroutine Tree_Branching_Initialize
+  !# <functionClass>
+  !#  <name>mergerTreeBranchingProbability</name>
+  !#  <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
+  !#  <description>Class providing merger tree branching probabilities.</description>
+  !#  <default>parkinsonColeHelly</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="probability" >
+  !#   <description>Computes the probability per unit ``time'' that a branching event occurs.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#  </method>
+  !#  <method name="probabilityBound" >
+  !#   <description>Computes a bound (upper or lower) to the probability per unit ``time'' that a branching event occurs.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>integer                   , intent(in   )         :: bound</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#  </method>
+  !#  <method name="fractionSubresolution" >
+  !#   <description>Computes the fraction of subresolution mass accreted per unit ``time''</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>double precision          , intent(in   )         :: haloMass, deltaCritical, massResolution</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#  </method>
+  !#  <method name="massBranch" >
+  !#   <description>Returns the mass of a new halo created by a branching event.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>double precision              , intent(in   )         :: haloMass             , deltaCritical, massResolution, probabilityFraction</argument>
+  !#   <argument>type            (pseudoRandom), intent(inout)         :: randomNumberGenerator</argument>
+  !#   <argument>type            (treeNode    ), intent(inout), target :: node</argument>
+  !#  </method>
+  !#  <method name="stepMaximum" >
+  !#   <description>Returns the maximum step in ``time'' allowed by this algorithm.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: haloMass, deltaCritical, massResolution</argument>
+  !#  </method>
+  !# </functionClass>
+  
+  !# <enumeration>
+  !#  <name>mergerTreeBranchingBound</name>
+  !#  <description>Upper/lower bound labels used in merger tree branching calculations.</description>
+  !#  <entry label="lower"/>
+  !#  <entry label="upper"/>
+  !# </enumeration>
 
 end module Merger_Tree_Branching

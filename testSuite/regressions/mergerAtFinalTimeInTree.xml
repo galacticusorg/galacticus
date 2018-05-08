@@ -36,12 +36,10 @@
   <barInstabilityMethod value="null"/>
   <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
   <mergerTreeReadPresetOrbits value="true"/>
-  <modifiedPressSchechterG0 value="0.57"/>
   <conditionalMassFunctionBehrooziBSatellite value="19.5579686429"/>
   <mergerTreeBuildTreesPerDecade value="3200"/>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <modifiedPressSchechterGamma2 value="-0.01"/>
   <treeNodeMethodBlackHole value="null"/>
   <treeNodeMethodSpheroid value="standard"/>
   <timestepSimpleRelative value="0.1"/>
@@ -52,7 +50,9 @@
   <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailableMethod>
-  <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
+  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.1"/>
+  </hotHaloMassDistributionCoreRadiusMethod>
   <odeToleranceRelative value="0.01"/>
   <intergalacticMediumStateMethod value="file">
     <fileName value="constraints/data/igmState.xml"/>
@@ -83,7 +83,6 @@
   <mergerTreeReadFileName value="testSuite/data/mergerTrees/mergerAtFinalTimeInTree.hdf5"/>
   <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
-  <modifiedPressSchechterGamma1 value="0.38"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
@@ -110,7 +109,12 @@
   <odeToleranceAbsolute value="0.01"/>
   <starFormationTimescaleDisksMethod value="haloScaling"/>
   <mergerTreeReadPresetMergerNodes value="true"/>
-  <treeBranchingMethod value="modifiedPress-Schechter"/>
+  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbabilityMethod>
   <reionizationSuppressionOpticalDepth value="0.0883790456"/>
   <accretionHaloMethod value="simple"/>
   <hdf5CompressionLevel value="-1"/>
@@ -152,7 +156,6 @@
   <timestepHostAbsolute value="1.0"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
   <mergerTreeConstructMethod value="read"/>
-  <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
   <virialOrbitMethod value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial     value="-0.90"/>

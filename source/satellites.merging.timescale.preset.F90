@@ -16,31 +16,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of satellite merging times using preset values.
+  !% Implements a satellite merging timescale class which uses preset values for the timescale.
 
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesPreset">
-  !#  <description>This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.</description>
+  !#  <description>This class assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time.</description>
   !# </satelliteMergingTimescales>
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesPreset
      !% A class implementing preset satellite merging timescales.
      private
    contains
-     final     ::                     presetDestructor
      procedure :: timeUntilMerging => presetTimeUntilMerging
   end type satelliteMergingTimescalesPreset
 
+  interface satelliteMergingTimescalesPreset
+     !% Constructors for the {\normalfont \ttfamily preset} satellite merging timescale class.
+     module procedure presetConstructorParameters
+  end interface satelliteMergingTimescalesPreset
+
 contains
 
-  elemental subroutine presetDestructor(self)
-    !% Default constructor for the preset merging timescale class.
+  function presetConstructorParameters(parameters) result(self)
+    !% A constructor for the {\normalfont \ttfamily preset} satellite merging timescale class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
     implicit none
-    type(satelliteMergingTimescalesPreset), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
+    type(satelliteMergingTimescalesPreset)                :: self
+    type(inputParameters                 ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=satelliteMergingTimescalesPreset()
     return
-  end subroutine presetDestructor
+  end function presetConstructorParameters
 
   double precision function presetTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the preset value.
@@ -50,11 +56,11 @@ contains
     class(satelliteMergingTimescalesPreset), intent(inout) :: self
     type (treeNode                        ), intent(inout) :: node
     type (keplerOrbit                     ), intent(inout) :: orbit
-    class(nodeComponentSatellite          ), pointer       :: thisSatellite
+    class(nodeComponentSatellite          ), pointer       :: satellite
     !GCC$ attributes unused :: self, orbit
     
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
-    thisSatellite          => node     %satellite()
-    presetTimeUntilMerging =  thisSatellite%mergeTime()
+    satellite              => node     %satellite()
+    presetTimeUntilMerging =  satellite%mergeTime()
     return
   end function presetTimeUntilMerging

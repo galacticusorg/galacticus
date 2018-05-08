@@ -261,12 +261,14 @@ contains
     use Black_Hole_Binary_Recoil_Velocities
     use Black_Hole_Binary_Mergers
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2
-    double precision                                                 :: blackHoleMassNew, blackHoleSpinNew, &
-         &                                                              massBlackHole1  , massBlackHole2  , &
-         &                                                              recoilVelocity  , spinBlackHole1  , &
-         &                                                              spinBlackHole2
+    type            (treeNode                  ), intent(inout), pointer :: node
+    class           (nodeComponentBlackHole    )               , pointer :: blackHole1            , blackHole2        , &
+         &                                                                  blackHolePrimary      , blackHoleSecondary
+    class           (blackHoleBinaryRecoilClass)               , pointer :: blackHoleBinaryRecoil_
+    double precision                                                     :: blackHoleMassNew      , blackHoleSpinNew  , &
+         &                                                                  massBlackHole1        , massBlackHole2    , &
+         &                                                                  recoilVelocity        , spinBlackHole1    , &
+         &                                                                  spinBlackHole2
 
     ! Get the black holes.
     blackHole1 => node%blackHole(instance=              1)
@@ -281,18 +283,19 @@ contains
          &                       )
     ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
     if (blackHole1%mass() >= blackHole2%mass()) then
-       massBlackHole1=blackHole1%mass()
-       massBlackHole2=blackHole2%mass()
-       spinBlackHole1=blackHole1%spin()
-       spinBlackHole2=blackHole2%spin()
+       blackHolePrimary   => blackHole1
+       blackHoleSecondary => blackHole2
     else
-       massBlackHole2=blackHole1%mass()
-       massBlackHole1=blackHole2%mass()
-       spinBlackHole2=blackHole1%spin()
-       spinBlackHole1=blackHole2%spin()
+       blackHolePrimary   => blackHole2
+       blackHoleSecondary => blackHole1
     end if
+    massBlackHole1=blackHolePrimary  %mass()
+    massBlackHole2=blackHoleSecondary%mass()
+    spinBlackHole1=blackHolePrimary  %spin()
+    spinBlackHole2=blackHoleSecondary%spin()
     ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
-    recoilVelocity=Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
+    blackHoleBinaryRecoil_ => blackHoleBinaryRecoil          (                                   )
+    recoilVelocity         =  blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
     if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
        blackHoleMassNew=blackHole1%massSeed()

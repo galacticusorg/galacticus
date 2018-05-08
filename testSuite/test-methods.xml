@@ -175,7 +175,7 @@
       <value>laceyCole1993Tormen</value>
       <value>wetzelWhite2010</value>
       <value>villalobos2013
-      <satelliteMergingTimescaleVillalobos2013BaseMethod value="boylanKolchin2008"/>
+      <satelliteMergingTimescaleMethod value="boylanKolchin2008"/>
       </value>
     </satelliteMergingTimescalesMethod>
   </parameters>
@@ -839,7 +839,9 @@
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodSatellite value="orbiting"/>
     <treeNodeMethodSpheroid value="null"/>
-    <spheroidMassDistribution value="hernquist"/>
+    <spheroidMassDistribution value="hernquist">
+    <dimensionless value="true"/>
+  </spheroidMassDistribution>
     <treeNodeMethodSpin value="random"/>
     <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>    
     <cosmologyFunctionsMethod value="matterLambda"/>
@@ -871,11 +873,12 @@
       <accretionLimit value="0.1"/>
       <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <treeBranchingMethod value="modifiedPress-Schechter"/>
-    <modifiedPressSchechterG0 value="0.57"/>
-    <modifiedPressSchechterGamma1 value="0.38"/>
-    <modifiedPressSchechterGamma2 value="-0.01"/>
-    <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
+    <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+      <G0                 value="+0.57"/>
+      <gamma1             value="+0.38"/>
+      <gamma2             value="-0.01"/>
+      <accuracyFirstOrder value="+0.10"/>
+    </mergerTreeBranchingProbabilityMethod>
     <nodeMergersMethod value="singleLevelHierarchy"/>
     <darkMatterProfileMethod value="tidallyHeated">
       <darkMatterProfileMethod value="NFW"/>
@@ -1113,8 +1116,9 @@
     <redshiftMaximum value="30"/>
     <toleranceResolutionParent value="2.0e-2"/>
   </mergerTreeBuilderMethod>
-  <treeBranchingMethod value="generalizedPress-Schechter"/>
-  <generalizedPressSchechterMinimumMass value="1.0e5"/>
+  <mergerTreeBranchingProbabilityMethod value="gnrlzdPrssSchchtr">
+    <massMinimum value="1.0e5"/>
+  </mergerTreeBranchingProbabilityMethod>
   <treeBranchingModifierMethod value="Parkinson-Cole-Helly2008"/>
   <modifiedPressSchechterG0 value="0.57"/>
   <modifiedPressSchechterGamma1 value="0.38"/>

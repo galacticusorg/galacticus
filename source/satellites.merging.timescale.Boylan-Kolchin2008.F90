@@ -17,28 +17,67 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
- 
+
+  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
+  
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
   !#  <description>Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.</description>
   !# </satelliteMergingTimescales>
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
      !% A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.
      private
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
    contains
      final     ::                     boylanKolchin2008Destructor
      procedure :: timeUntilMerging => boylanKolchin2008TimeUntilMerging
   end type satelliteMergingTimescalesBoylanKolchin2008
 
+  interface satelliteMergingTimescalesBoylanKolchin2008
+     !% Constructors for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+     module procedure boylanKolchin2008ConstructorParameters
+     module procedure boylanKolchin2008ConstructorInternal
+  end interface satelliteMergingTimescalesBoylanKolchin2008
+
 contains
 
-  elemental subroutine boylanKolchin2008Destructor(self)
-    !% Default constructor for the \cite{boylan-kolchin_dynamical_2008} merging timescale class.
+  function boylanKolchin2008ConstructorParameters(parameters) result(self)
+    !% A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    implicit none
+    type (satelliteMergingTimescalesBoylanKolchin2008)                :: self
+    type (inputParameters                            ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
+    class(darkMatterProfileClass                     ), pointer       :: darkMatterProfile_
+
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    self=satelliteMergingTimescalesBoylanKolchin2008(darkMatterHaloScale_,darkMatterProfile_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function boylanKolchin2008ConstructorParameters
+
+  function boylanKolchin2008ConstructorInternal(darkMatterHaloScale_,darkMatterProfile_) result(self)
+    !% Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    use Input_Parameters
+    implicit none
+    type (satelliteMergingTimescalesBoylanKolchin2008)                        :: self
+    class(darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
+    class(darkMatterProfileClass                     ), intent(in   ), target :: darkMatterProfile_
+    !# <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfile_"/>
+
+    return
+  end function boylanKolchin2008ConstructorInternal
+
+  subroutine boylanKolchin2008Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%darkMatterProfile_"  />
     return
   end subroutine boylanKolchin2008Destructor
 
@@ -46,8 +85,6 @@ contains
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
     use Galacticus_Nodes
     use Galacticus_Error
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
     use Kepler_Orbits
     use Satellite_Orbits
@@ -57,8 +94,6 @@ contains
     type            (keplerOrbit                                ), intent(inout) :: orbit
     type            (treeNode                                   ), pointer       :: nodeHost
     class           (nodeComponentBasic                         ), pointer       :: basicHost                            , basic
-    class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass                     ), pointer       :: darkMatterProfile_
     logical                                                      , parameter     :: acceptUnboundOrbits          =.false.
     double precision                                             , parameter     :: expArgumentMaximum           =100.0d0
     double precision                                             , parameter     :: A                            =0.216d0, b                 =1.3d0, &  !   Fitting parameters from eqn. (6) of Boylan-Kolchin et al.
@@ -69,14 +104,11 @@ contains
     integer                                                                      :: errorCode
     !GCC$ attributes unused :: self
     
-    ! Get required objects.
-    darkMatterProfile_   => darkMatterProfile  ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the host node.
     nodeHost => node%parent
     ! Get velocity scale.
-    velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Get the equivalent circular orbit.
     equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,errorCode)
     ! Check error codes.
@@ -92,10 +124,10 @@ contains
        return
     case (errorCodeSuccess          )
        ! Compute orbital circularity.
-       orbitalCircularity                                                                  &
-            & =orbit%angularMomentum()                                                     &
-            & /equivalentCircularOrbitRadius                                               &
-            & /darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
+       orbitalCircularity                                                                       &
+            & =orbit%angularMomentum()                                                          &
+            & /equivalentCircularOrbitRadius                                                    &
+            & /self%darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     case default
        orbitalCircularity=0.0d0
        call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
@@ -110,13 +142,13 @@ contains
     else
        ! Compute dynamical friction timescale.
        expArgument=min(expArgumentMaximum,c*orbitalCircularity)
-       boylanKolchin2008TimeUntilMerging                         &
-            & =Dynamical_Friction_Timescale_Multiplier()         &
-            & *darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
-            & *A                                                 &
-            & *          massRatio**b                            &
-            & /log(1.0d0+massRatio   )                           &
-            & *exp(expArgument)                                  &
+       boylanKolchin2008TimeUntilMerging                              &
+            & =Dynamical_Friction_Timescale_Multiplier()              &
+            & *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            & *A                                                      &
+            & *          massRatio**b                                 &
+            & /log(1.0d0+massRatio   )                                &
+            & *exp(expArgument)                                       &
             & *(equivalentCircularOrbitRadius/radialScale)**d
     end if
     return

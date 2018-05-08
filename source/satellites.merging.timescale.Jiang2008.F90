@@ -17,107 +17,88 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
-  use FGSL
+  
+  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
   
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
   !#  <description>Computes the merging timescale using the method of \cite{jiang_fitting_2008}.</description>
   !# </satelliteMergingTimescales>
-
-  use FGSL
-
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
      private
+     class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_
      ! Scatter (in log(T_merge)) to add to the merger times.
-     double precision           :: scatter
-     ! Random number objects
-     type            (fgsl_rng) :: randomSequenceObject, clonedPseudoSequenceObject
-     logical                    :: resetRandomSequence , resetRandomSequenceSnapshot
+     double precision                                   :: scatter
    contains
      final     ::                     jiang2008Destructor
-     procedure :: stateStore       => jiang2008StateStore
-     procedure :: stateRestore     => jiang2008StateRestore
-     procedure :: stateSnapshot    => jiang2008StateSnapshot
      procedure :: timeUntilMerging => jiang2008TimeUntilMerging
   end type satelliteMergingTimescalesJiang2008
 
   interface satelliteMergingTimescalesJiang2008
      !% Constructors for the \cite{jiang_fitting_2008} merging timescale class.
-     module procedure jiang2008DefaultConstructor
-     module procedure jiang2008Constructor
+     module procedure jiang2008ConstructorParameters
+     module procedure jiang2008ConstructorInternal
   end interface satelliteMergingTimescalesJiang2008
-
-  ! Initialization state.
-  logical          :: jiang2008Initialized=.false.
-
-  ! Default scatter.
-  double precision :: satelliteMergingJiang2008Scatter
 
 contains
 
-  function jiang2008DefaultConstructor()
-    !% Default constructor for the \cite{jiang_fitting_2008} merging timescale class.
+  function jiang2008ConstructorParameters(parameters) result(self)
+    !% Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
     use Galacticus_Display
-    use Input_Parameters
-    use Galacticus_Nodes
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(satelliteMergingTimescalesJiang2008) :: jiang2008DefaultConstructor
+    type            (satelliteMergingTimescalesJiang2008)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
+    double precision                                                     :: scatter
 
-    if (.not.jiang2008Initialized) then
-       !$omp critical (satelliteMergingTimescalesJiang2008Initialize)
-       if (.not.jiang2008Initialized) then
-          !# <inputParameter>
-          !#   <name>satelliteMergingJiang2008Scatter</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.0d0</defaultValue>
-          !#   <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.</description>
-          !#   <group>starFormation</group>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Check that required properties are gettable.
-          if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
-          ! Record that we are now initialized.
-          jiang2008Initialized=.true.
-       end if
-       !$omp end critical (satelliteMergingTimescalesJiang2008Initialize)
-    end if
-    jiang2008DefaultConstructor=jiang2008Constructor(satelliteMergingJiang2008Scatter)
-   return
-  end function jiang2008DefaultConstructor
+    if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
+    !# <inputParameter>
+    !#   <name>scatter</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Specifies whether or not to add random scatter to the dynamical friction timescales in the {\normalfont \ttfamily Jiang2008} satellite merging time implementation.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>       
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    self=satelliteMergingTimescalesJiang2008(scatter,darkMatterHaloScale_,darkMatterProfile_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function jiang2008ConstructorParameters
 
-  function jiang2008Constructor(scatter)
+  function jiang2008ConstructorInternal(scatter,darkMatterHaloScale_,darkMatterProfile_) result(self)
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class.
     implicit none
-    type            (satelliteMergingTimescalesJiang2008)                :: jiang2008Constructor
-    double precision                                     , intent(in   ) :: scatter
+    type            (satelliteMergingTimescalesJiang2008)                        :: self
+    double precision                                     , intent(in   )         :: scatter
+    class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileClass             ), intent(in   ), target :: darkMatterProfile_
+    !# <constructorAssign variables="scatter, *darkMatterHaloScale_, *darkMatterProfile_"/>
 
-    jiang2008Constructor%resetRandomSequence=.true.
-    jiang2008Constructor%scatter            =scatter
     return
-  end function jiang2008Constructor
+  end function jiang2008ConstructorInternal
 
   subroutine jiang2008Destructor(self)
-    !% Destructor for the \cite{jiang_fitting_2008} merging timescale class.
-     use Gaussian_Random
-     implicit none
-     type(satelliteMergingTimescalesJiang2008), intent(inout) :: self
+    !% Destructor for the {\normalfont \ttfamily jiang2008} satellite merging timescale class.
+    implicit none
+    type(satelliteMergingTimescalesJiang2008), intent(inout) :: self
 
-     ! Destroy the random number object.
-     if (self%resetRandomSequence        ) call Gaussian_Random_Free(self%randomSequenceObject      )
-     if (self%resetRandomSequenceSnapshot) call Gaussian_Random_Free(self%clonedPseudoSequenceObject)
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%darkMatterProfile_"  />
     return
   end subroutine jiang2008Destructor
 
   double precision function jiang2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
     use Satellite_Orbits
-    use Gaussian_Random
     use Galacticus_Error
     implicit none
     class           (satelliteMergingTimescalesJiang2008), intent(inout) :: self
@@ -125,8 +106,6 @@ contains
     type            (keplerOrbit                        ), intent(inout) :: orbit
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basicHost                            , basic
-    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
     logical                                              , parameter     :: acceptUnboundOrbits          =.false.
 
     double precision                                     , parameter     :: C                            =0.43d0 , a            =0.94d0, &  !   Fitting parameters from Jiang's paper.
@@ -134,11 +113,8 @@ contains
     integer                                                              :: errorCode
     double precision                                                     :: equivalentCircularOrbitRadius        , massRatio           , &
          &                                                                  orbitalCircularity                   , radialScale         , &
-         &                                                                  velocityScale                        , randomDeviate
+         &                                                                  velocityScale
 
-    ! Get required objects.
-    darkMatterProfile_   => darkMatterProfile  ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Find the host node.
     nodeHost => node%parent
     ! Get the equivalent circular orbit.
@@ -157,12 +133,12 @@ contains
        call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Get velocity scale.
-    velocityScale=darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Compute orbital circularity.
-    orbitalCircularity= orbit%angularMomentum()                                                     &
-         &             /equivalentCircularOrbitRadius                                               &
-         &             /darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
+    orbitalCircularity= orbit%angularMomentum()                                                          &
+         &             /equivalentCircularOrbitRadius                                                    &
+         &             /self%darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     basic => node%basic()
     basicHost => nodeHost%basic()
@@ -173,58 +149,20 @@ contains
        jiang2008TimeUntilMerging=0.0d0
     else
        ! Compute dynamical friction timescale.
-       jiang2008TimeUntilMerging                                 &
-            & =Dynamical_Friction_Timescale_Multiplier(        ) &
-            & *darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
-            & *sqrt(equivalentCircularOrbitRadius/radialScale)   &
-            & *((a*(orbitalCircularity**b)+d)/2.0d0/C)           &
-            & *          massRatio                               &
+       jiang2008TimeUntilMerging                                      &
+            & =Dynamical_Friction_Timescale_Multiplier     (        ) &
+            & *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            & *sqrt(equivalentCircularOrbitRadius/radialScale)        &
+            & *((a*(orbitalCircularity**b)+d)/2.0d0/C)                &
+            & *          massRatio                                   &
             & /log(1.0d0+massRatio)
        ! Add scatter if necessary.
-       if (self%scatter > 0.0d0) then
-          randomDeviate=Gaussian_Random_Get(self%randomSequenceObject,self%scatter,self%resetRandomSequence)
-          jiang2008TimeUntilMerging=jiang2008TimeUntilMerging*exp(randomDeviate)
-       end if 
+       if (self%scatter > 0.0d0)                                                                 &
+            & jiang2008TimeUntilMerging=+jiang2008TimeUntilMerging                               &
+            &                           *exp(                                                    &
+            &                                +self%scatter                                       &
+            &                                *node%hostTree%randomNumberGenerator%normalSample() &
+            &                               )
     end if
     return
   end function jiang2008TimeUntilMerging
-
-  subroutine jiang2008StateSnapshot(self)
-    !% Store a snapshot of the random number generator internal state.
-    implicit none
-    class(satelliteMergingTimescalesJiang2008), intent(inout) :: self
-
-    if (.not.self%resetRandomSequence) self%clonedPseudoSequenceObject=FGSL_Rng_Clone(self%randomSequenceObject)
-    self%resetRandomSequenceSnapshot=self%resetRandomSequence
-    return
-  end subroutine jiang2008StateSnapshot
-
-  subroutine jiang2008StateStore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (satelliteMergingTimescalesJiang2008), intent(inout) :: self
-    integer                                     , intent(in   ) :: stateFile
-    type   (fgsl_file                          ), intent(in   ) :: fgslStateFile
-    
-    call Galacticus_Display_Message('Storing state for: satelliteMergingTimescale -> jiang2008',verbosity=verbosityInfo)
-    write (stateFile) self%resetRandomSequenceSnapshot
-    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequenceObject,fgslStateFile)
-    return
-  end subroutine jiang2008StateStore
-  
-  subroutine jiang2008StateRestore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (satelliteMergingTimescalesJiang2008), intent(inout) :: self
-    integer                                     , intent(in   ) :: stateFile
-    type   (fgsl_file                          ), intent(in   ) :: fgslStateFile
-    
-    call Galacticus_Display_Message('Retrieving state for: satelliteMergingTimescale -> jiang2008',verbosity=verbosityInfo)
-    read (stateFile) self%resetRandomSequence
-    if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequenceObject,fgslStateFile)
-    return
-  end subroutine jiang2008StateRestore

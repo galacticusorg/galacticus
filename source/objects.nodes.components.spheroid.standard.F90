@@ -165,13 +165,11 @@ module Node_Component_Spheroid_Standard
 
   
   ! Spheroid structural parameters.
-  type            (varying_string)            :: spheroidMassDistributionName
-  double precision                            :: spheroidAngularMomentumAtScaleRadius        , spheroidSersicIndex
+  double precision                            :: spheroidAngularMomentumAtScaleRadius
   
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                   =.false., sersicIndexInitialized        =.false., &
-       &                                         angularMomentumInitialized          =.false.
-
+  logical                                     :: moduleInitialized                   =.false., angularMomentumInitialized          =.false.
+  
 contains
 
   !# <nodeComponentInitializationTask>
@@ -191,17 +189,6 @@ contains
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-
-       ! Create the spheroid mass distribution.
-       !# <inputParameter>
-       !#   <name>spheroidMassDistribution</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>var_str('hernquist')</defaultValue>
-       !#   <description>The type of mass distribution to use for the standard spheroid component.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !#   <variable>spheroidMassDistributionName</variable>
-       !# </inputParameter>
 
        ! Bind deferred functions.
        call spheroidStandardComponent%           starFormationRateFunction(Node_Component_Spheroid_Standard_Star_Formation_Rate        )
@@ -259,12 +246,9 @@ contains
     !$omp end critical (Node_Component_Spheroid_Standard_Initialize)
     return
   end subroutine Node_Component_Spheroid_Standard_Initialize
-
-  !# <mergerTreeEvolveThreadInitialize>
-  !#  <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
-  subroutine Node_Component_Spheroid_Standard_Thread_Initialize
-    !% Initializes the tree node hot halo methods module.
+  
+  subroutine Node_Component_Spheroid_Mass_Distribution_Initialize()
+    !% Initalize the mass distribution object for spheroids.
     use Input_Parameters
     use Galacticus_Error
     implicit none
@@ -272,32 +256,18 @@ contains
     double precision :: spheroidMassDistributionDensityMomentum2   , spheroidMassDistributionDensityMomentum3   , &
          &              spheroidAngularMomentumAtScaleRadiusDefault
 
-    ! Check if this implementation is selected. If so, initialize the mass distribution.
-    if (defaultSpheroidComponent%standardIsActive()) then
-       spheroidMassDistribution => Mass_Distribution_Create(char(spheroidMassDistributionName))
-       select type (spheroidMassDistribution)
-       type is (massDistributionHernquist)
-          call spheroidMassDistribution%initialize(                          isDimensionless=.true.)
-       type is (massDistributionSersic   )
-          if (.not.sersicIndexInitialized) then
-             !$omp critical (spheroidStandardInitializeSersic)
-             if (.not.sersicIndexInitialized) then
-                !# <inputParameter>
-                !#   <name>spheroidSersicIndex</name>
-                !#   <cardinality>1</cardinality>
-                !#   <defaultValue>4.0d0</defaultValue>
-                !#   <description>The S\'ersic index to use for the spheroid component mass distribution.</description>
-                !#   <source>globalParameters</source>
-                !#   <type>double</type>
-                !# </inputParameter>
-                sersicIndexInitialized=.true.
-             end if
-             !$omp end critical (spheroidStandardInitializeSersic)
-          end if
-          call spheroidMassDistribution%initialize(index=spheroidSersicIndex,isDimensionless=.true.)
-       class default
-          call Galacticus_Error_Report('unsupported mass distribution'//{introspection:location})
-       end select
+    if (.not.associated(spheroidMassDistribution)) then
+       !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="globalParameters">
+       !#  <default>
+       !#   <spheroidMassDistribution value="hernquist">
+       !#    <dimensionless value="true"/>
+       !#   </spheroidMassDistribution>
+       !#  </default>
+       !# </objectBuilder>
+       if (.not.spheroidMassDistribution%isDimensionless()                                     ) &
+            & call Galacticus_Error_Report('spheroid mass distribution must be dimensionless'        //{introspection:location})
+       if (.not.spheroidMassDistribution%symmetry       () == massDistributionSymmetrySpherical) &
+            & call Galacticus_Error_Report('spheroid mass distribution must be spherically symmetric'//{introspection:location})
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
        ! distribution (assuming a flat rotation curve).
@@ -329,6 +299,18 @@ contains
           !$omp end critical (spheroidStandardInitializeAngularMomentum)
        end if
     end if
+    return
+  end subroutine Node_Component_Spheroid_Mass_Distribution_Initialize
+  
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Spheroid_Standard_Thread_Initialize
+    !% Initializes the standard spheroid module for each thread.
+    implicit none
+
+    ! Check if this implementation is selected. If so, initialize the mass distribution.
+    if (defaultSpheroidComponent%standardIsActive()) call Node_Component_Spheroid_Mass_Distribution_Initialize()
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Initialize
 
@@ -1560,34 +1542,40 @@ contains
   !# <galacticusStateStoreTask>
   !#  <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
   !# </galacticusStateStoreTask>
-  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,fgslStateFile)
+  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,fgslStateFile,stateOperatorID)
     !% Write the tablulation state to file.
     use Galacticus_Display
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
+    integer           , intent(in   ) :: stateFile    , stateOperatorID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
     call Galacticus_Display_Message('Storing state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
     write (stateFile) spheroidAngularMomentumAtScaleRadius
-    call spheroidMassDistribution%stateStore(stateFile,fgslStateFile)
+    write (stateFile) associated(spheroidMassDistribution)
+    if (associated(spheroidMassDistribution)) call spheroidMassDistribution%stateStore(stateFile,fgslStateFile,stateOperatorID)
     return
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Node_Component_Spheroid_Standard_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
-  subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,fgslStateFile)
+  subroutine Node_Component_Spheroid_Standard_State_Retrieve(stateFile,fgslStateFile,stateOperationID)
     !% Retrieve the tabulation state from the file.
     use Galacticus_Display
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
+    integer           , intent(in   ) :: stateFile    , stateOperationID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
+    logical                           :: wasAllocated
 
     call Galacticus_Display_Message('Retrieving state for: treeNodeMethodSpheroid -> standard',verbosity=verbosityInfo)
     read (stateFile) spheroidAngularMomentumAtScaleRadius
-    call spheroidMassDistribution%stateRestore(stateFile,fgslStateFile)
+    read (stateFile) wasAllocated
+    if (wasAllocated) then
+       call Node_Component_Spheroid_Mass_Distribution_Initialize()
+       call spheroidMassDistribution%stateRestore(stateFile,fgslStateFile,stateOperationID)
+    end if
     return
   end subroutine Node_Component_Spheroid_Standard_State_Retrieve
 

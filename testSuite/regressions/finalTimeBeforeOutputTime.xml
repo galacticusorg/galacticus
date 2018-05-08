@@ -46,7 +46,6 @@
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <modifiedPressSchechterG0 value="0.57"/>
   <mergerTreeReadPresetScaleRadii value="false"/>
   <starFormationTimescaleDisksMethod value="haloScaling"/>
   <odeToleranceAbsolute value="0.01"/>
@@ -55,12 +54,16 @@
   <mergerTreeBuildTreesPerDecade value="3200"/>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
-  <treeBranchingMethod value="modifiedPress-Schechter"/>
+  <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
+    <G0                 value="+0.57"/>
+    <gamma1             value="+0.38"/>
+    <gamma2             value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbabilityMethod>
   <hdf5CompressionLevel value="-1"/>
   <accretionHaloMethod value="simple"/>
   <reionizationSuppressionOpticalDepth value="0.0883790456"/>
   <conditionalMassFunctionBehrooziAlphaSatellite value="0.981019943414"/>
-  <modifiedPressSchechterGamma2 value="-0.01"/>
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>
@@ -90,7 +93,9 @@
   <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailableMethod>
-  <hotHaloCoreRadiusOverVirialRadius value="0.1"/>
+  <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.1"/>
+  </hotHaloMassDistributionCoreRadiusMethod>
   <odeToleranceRelative value="0.01"/>
   <intergalacticMediumStateMethod value="file">
     <fileName value="constraints/data/igmState.xml"/>
@@ -133,7 +138,6 @@
   <mergerTreeReadFileName value="testSuite/data/mergerTrees/finalTimeBeforeOutputTime.hdf5"/>
   <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
-  <modifiedPressSchechterGamma1 value="0.38"/>
   <coolingRadiusMethod value="isothermal"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>
@@ -151,7 +155,6 @@
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <conditionalMassFunctionBehrooziDelta value="0.493563322826"/>
   <mergerTreeReadOutputTimeSnapTolerance value="0.001"/>
-  <modifiedPressSchechterFirstOrderAccuracy value="0.1"/>
   <imfChabrierRecycledInstantaneous value="0.46"/>
   <satelliteMergingMassMovementsMethod value="verySimple"/>
 </parameters>

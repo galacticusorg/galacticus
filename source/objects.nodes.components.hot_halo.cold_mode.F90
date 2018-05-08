@@ -78,8 +78,6 @@ module Node_Component_Hot_Halo_Cold_Mode
   logical              :: hotHaloOutflowToColdMode   
   ! Internal count of abundances.
   integer              :: abundancesCount
-  ! Name of the mass distribution to use for cold mode.
-  type(varying_string) :: coldModeMassDistributionName
   ! Record of whether this module has been initialized.
   logical              :: moduleInitialized       =.false.
 
@@ -112,16 +110,6 @@ contains
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
        ! not bind any function and let the parent class handle this behavior.)
        if (hotHaloOutflowToColdMode) call hotHaloComponent%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
-       ! Create the cold mode mass distribution.
-       !# <inputParameter>
-       !#   <name>coldModeMassDistribution</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>var_str('betaProfile')</defaultValue>
-       !#   <description>The type of mass distribution to use for the cold mode component.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>double</type>
-       !#   <variable>coldModeMassDistributionName</variable>
-       !# </inputParameter>
        ! Record that the module is now initialized.
        moduleInitialized=.true.
     end if
@@ -139,10 +127,7 @@ contains
     implicit none
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
-    if (defaultHotHaloComponent%coldModeIsActive()) then
-       call Node_Component_Hot_Halo_Cold_Mode_Initialize()
-       coldModeMassDistribution => Mass_Distribution_Create(char(coldModeMassDistributionName))
-    end if
+    if (defaultHotHaloComponent%coldModeIsActive()) call Node_Component_Hot_Halo_Cold_Mode_Initialize()
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
 
