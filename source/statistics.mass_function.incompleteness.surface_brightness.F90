@@ -29,7 +29,6 @@
           &              surfaceBrightnessModelSlope  , surfaceBrightnessModelOffset, &
           &              surfaceBrightnessModelScatter
    contains
-     final     ::                 surfaceBrightnessDestructor
      procedure :: completeness => surfaceBrightnessSurfaceBrightnessness
   end type massFunctionIncompletenessSurfaceBrightness
 
@@ -128,16 +127,6 @@ contains
     surfaceBrightnessConstructor%surfaceBrightnessModelScatter=surfaceBrightnessModelScatter
    return
   end function surfaceBrightnessConstructor
-
-  subroutine surfaceBrightnessDestructor(self)
-    !% Destructor for the ``surface brightness'' incompleteness class.
-     use Gaussian_Random
-     implicit none
-     type(massFunctionIncompletenessSurfaceBrightness), intent(inout) :: self
-     !GCC$ attributes unused :: self     
-     
-     return
-  end subroutine surfaceBrightnessDestructor
 
   double precision function surfaceBrightnessSurfaceBrightnessness(self,mass)
     !% Return the completeness.

@@ -20,34 +20,31 @@
 
 program Halo_Model_Mock
   !% Generates a mock realization from an input halo catalog and a halo model prescription.
-  use               Command_Arguments
-  use               ISO_Varying_String
-  use               Memory_Management
-  use               Galactic_Structure_Enclosed_Masses
-  use               Galactic_Structure_Options
-  use               Input_Parameters
-  use               Galacticus_Error
-  use               Galacticus_Display
-  use               Geometry_Surveys
-  use               Galacticus_Nodes
-  use               Node_Components
-  use               Cosmology_Functions
-  use               Conditional_Mass_Functions
-  use               Dark_Matter_Profiles_Concentration
-  use               IO_HDF5
-  use               IO_IRATE
-  use               Pseudo_Random
-  use               Root_Finder
-  use               String_Handling
-  use               Numerical_Constants_Prefixes
-  use               Numerical_Constants_Astronomical
-  use               FGSL
-  use               Poisson_Random
-  use               Gaussian_Random
-  use               Dark_Matter_Profile_Scales
-  use               Dark_Matter_Halo_Scales
-  use               Dark_Matter_Profiles
-  use               Galacticus_Calculations_Resets
+  use Command_Arguments
+  use ISO_Varying_String
+  use Memory_Management
+  use Galactic_Structure_Enclosed_Masses
+  use Galactic_Structure_Options
+  use Input_Parameters
+  use Galacticus_Error
+  use Galacticus_Display
+  use Geometry_Surveys
+  use Galacticus_Nodes
+  use Node_Components
+  use Cosmology_Functions
+  use Conditional_Mass_Functions
+  use Dark_Matter_Profiles_Concentration
+  use IO_HDF5
+  use IO_IRATE
+  use Pseudo_Random
+  use Root_Finder
+  use String_Handling
+  use Numerical_Constants_Prefixes
+  use Numerical_Constants_Astronomical
+  use Dark_Matter_Profile_Scales
+  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
+  use Galacticus_Calculations_Resets
   implicit none
   double precision                                , allocatable, dimension(  :) :: haloMass                  , galaxyMass
   double precision                                , allocatable, dimension(:,:) :: haloPosition              , haloVelocity             , &
@@ -75,8 +72,6 @@ program Halo_Model_Mock
        &                                                                           simulationBoxSize         , populatedHaloMassMinimum
   type            (pseudoRandom                  )                              :: randomSequence
   type            (rootFinder                    )                              :: finderCentral             , finderSatellite
-  type            (fgsl_rng                      )                              :: poissonSampler            , gaussianSampler
-  logical                                                                       :: poissonSamplerReset=.true., gaussianSamplerReset=.true.
   character       (len=6                         )                              :: label
   type            (inputParameters               )                              :: parameters
 
@@ -167,16 +162,16 @@ program Halo_Model_Mock
      probabilityCentral=+conditionalMassFunction_%massFunction(haloMass(iHalo),haloModelMockMassMinimum,haloModelGalaxyTypeCentral) &
           &             -conditionalMassFunction_%massFunction(haloMass(iHalo),haloModelMockMassMaximum,haloModelGalaxyTypeCentral)
      ! Test for inclusion.
-     if (randomSequence%sample() <= probabilityCentral) then
+     if (randomSequence%uniformSample() <= probabilityCentral) then
         ! Sample central galaxy mass.        
-        xCentral  =randomSequence%sample()*probabilityCentral
+        xCentral  =randomSequence%uniformSample()*probabilityCentral
         massGalaxy=finderCentral%find(rootGuess=haloModelMockMassMinimum)
         call Galaxy_Add(massGalaxy,haloPosition(:,iHalo),haloVelocity(:,iHalo))
      end if
      ! Get mean number of satellite galaxies.
-     satelliteNumberMean=+conditionalMassFunction_%massFunction(haloMass(iHalo),haloModelMockMassMinimum,haloModelGalaxyTypeSatellite) &
-          &              -conditionalMassFunction_%massFunction(haloMass(iHalo),haloModelMockMassMaximum,haloModelGalaxyTypeSatellite)
-     satelliteNumberActual=Poisson_Random_Get(poissonSampler,satelliteNumberMean,reset=poissonSamplerReset)
+     satelliteNumberMean  =+conditionalMassFunction_%massFunction(haloMass(iHalo),haloModelMockMassMinimum,haloModelGalaxyTypeSatellite) &
+          &                -conditionalMassFunction_%massFunction(haloMass(iHalo),haloModelMockMassMaximum,haloModelGalaxyTypeSatellite)
+     satelliteNumberActual=+randomSequence%poissonSample(satelliteNumberMean)
      if (satelliteNumberActual > 0) then
         ! Construct the dark matter halo profile.
         call basic  %massSet              (haloMass                 (iHalo))
@@ -185,18 +180,18 @@ program Halo_Model_Mock
         call Galacticus_Calculations_Reset(                          node  )
         do iSatellite=1,satelliteNumberActual
            ! Sample satellite galaxy mass.        
-           xSatellite               =     randomSequence%sample()*satelliteNumberMean
+           xSatellite               =     randomSequence%uniformSample()*satelliteNumberMean
            massGalaxy               =finderSatellite%find(rootGuess=haloModelMockMassMinimum)
            ! Sample galaxy radial position.
-           xSatellite               =     randomSequence%sample()
+           xSatellite               =     randomSequence%uniformSample()
            satelliteRadius          =Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=xSatellite,massType=massTypeDark)
            ! Get circular velocity at this radius.
            satelliteVelocityCircular=darkMatterProfile_%circularVelocity(node,satelliteRadius)
            ! Convert radial position to comoving coordinates.
            satelliteRadius          =satelliteRadius*(1.0d0+redshift)
            ! Sample galaxy angular position.
-           satellitePhi             =     randomSequence%sample()*2.0d0*Pi
-           satelliteTheta           =acos(randomSequence%sample()*2.0d0-1.0d0)
+           satellitePhi             =     randomSequence%uniformSample()*2.0d0*Pi
+           satelliteTheta           =acos(randomSequence%uniformSample()*2.0d0-1.0d0)
            ! Set satellite position.
            satellitePosition        =+satelliteRadius                                                         &
                 &                    *[                                                                       &
@@ -215,13 +210,13 @@ program Halo_Model_Mock
               end do
            end do
            ! Set satellite velocity.
-           satelliteVelocity        =+satelliteVelocityCircular                                               &
-                &                    /sqrt(3.0d0)                                                             &
-                &                    *[                                                                       &
-                &                      Gaussian_Random_Get(gaussianSampler,1.0d0,reset=gaussianSamplerReset), &
-                &                      Gaussian_Random_Get(gaussianSampler,1.0d0,reset=gaussianSamplerReset), &
-                &                      Gaussian_Random_Get(gaussianSampler,1.0d0,reset=gaussianSamplerReset)  &
-                &                    ]                                                                        &
+           satelliteVelocity        =+satelliteVelocityCircular       &
+                &                    /sqrt(3.0d0)                     &
+                &                    *[                               &
+                &                      randomSequence%normalSample(), &
+                &                      randomSequence%normalSample(), &
+                &                      randomSequence%normalSample()  &
+                &                    ]                                &
                 &                    +haloVelocity(:,iHalo)
            ! Store the satellite.
            call Galaxy_Add(massGalaxy,satellitePosition,satelliteVelocity)

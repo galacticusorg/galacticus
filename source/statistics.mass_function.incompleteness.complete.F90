@@ -34,7 +34,6 @@ contains
 
   subroutine completeDestructor(self)
     !% Destructor for the ``complete'' incompleteness class.
-     use Gaussian_Random
      implicit none
      type(massFunctionIncompletenessComplete), intent(inout) :: self
      !GCC$ attributes unused :: self

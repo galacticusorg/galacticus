@@ -147,7 +147,7 @@ contains
     temperatureEffective=        dble(self%realizationCount)/dble(realizationCount)
     do i=1,realizationCount
        do j=1,simulationState%dimension()
-          stateStochastic(j)=stateStochastic(j)+2.0d0*stateTrue(j)*self%pseudoRandomSequence%sample()/dble(realizationCount)
+          stateStochastic(j)=stateStochastic(j)+2.0d0*stateTrue(j)*self%pseudoRandomSequence%uniformSample()/dble(realizationCount)
        end do
     end do
     stateStochasticVector=stateStochastic

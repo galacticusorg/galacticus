@@ -26,16 +26,10 @@
      !% A dark matter halo spin distribution concentration class which assumes a
      !% log-normal distribution.
      private
-     double precision           :: median              , sigma
-     type            (fgsl_rng) :: clonedPseudoSequence, randomSequence
-     logical                    :: resetRandomSequence , resetRandomSequenceSnapshot
+     double precision :: median, sigma
    contains
-     final     ::                  logNormalDestructor
      procedure :: sample        => logNormalSample
      procedure :: distribution  => logNormalDistribution
-     procedure :: stateSnapshot => logNormalStateSnapshot
-     procedure :: stateStore    => logNormalStateStore
-     procedure :: stateRestore  => logNormalStateRestore
   end type haloSpinDistributionLogNormal
   
   interface haloSpinDistributionLogNormal
@@ -93,34 +87,18 @@ contains
     return
   end function logNormalConstructorInternal
 
-  subroutine logNormalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
-    !% distribution class.
-    use Pseudo_Random
-    implicit none
-    type(haloSpinDistributionLogNormal), intent(inout) :: self
-
-    if (.not.self%resetRandomSequence        ) call Pseudo_Random_Free(self%randomSequence      )
-    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Free(self%clonedPseudoSequence)
-    return
-  end subroutine logNormalDestructor
-
   double precision function logNormalSample(self,node)
     !% Sample from a log-normal spin parameter distribution for the given {\normalfont
     !% \ttfamily node}.
-    use Gaussian_Random
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
     !GCC$ attributes unused :: node
 
-    logNormalSample=exp(                                               &
-         &              +self%median                                   &
-         &              +Gaussian_Random_Get(                          &
-         &                                   self%randomSequence     , &
-         &                                   self%sigma              , &
-         &                                   self%resetRandomSequence  &
-         &                                   )                         &
+    logNormalSample=exp(                                                    &
+         &              +self%median                                        &
+         &              +self%sigma                                         &
+         &              *node%hostTree%randomNumberGenerator%normalSample() &
          &             )
     return
   end function logNormalSample
@@ -151,43 +129,3 @@ contains
          &                   /spin%spin()
     return
   end function logNormalDistribution
-
-  subroutine logNormalStateSnapshot(self)
-    !% Store a snapshot of the random number generator internal state.
-    implicit none
-    class(haloSpinDistributionLogNormal), intent(inout) :: self
-
-    if (.not.self%resetRandomSequence) self%clonedPseudoSequence=FGSL_Rng_Clone(self%randomSequence)
-    self%resetRandomSequenceSnapshot=self%resetRandomSequence
-    return
-  end subroutine logNormalStateSnapshot
-
-  subroutine logNormalStateStore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (haloSpinDistributionLogNormal), intent(inout) :: self
-    integer                               , intent(in   ) :: stateFile
-    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Storing state for: haloSpinDistribution -> logNormal',verbosity=verbosityInfo)
-    write (stateFile) self%resetRandomSequenceSnapshot
-    if (.not.self%resetRandomSequenceSnapshot) call Pseudo_Random_Store(self%clonedPseudoSequence,fgslStateFile)
-    return
-  end subroutine logNormalStateStore
-
-  subroutine logNormalStateRestore(self,stateFile,fgslStateFile)
-    !% Write the stored snapshot of the random number state to file.
-    use Galacticus_Display
-    use Pseudo_Random
-    implicit none
-    class  (haloSpinDistributionLogNormal), intent(inout) :: self
-    integer                               , intent(in   ) :: stateFile
-    type   (fgsl_file                    ), intent(in   ) :: fgslStateFile
-
-    call Galacticus_Display_Message('Retrieving state for: haloSpinDistribution -> logNormal',verbosity=verbosityInfo)
-    read (stateFile) self%resetRandomSequence
-    if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequence,fgslStateFile)
-    return
-  end subroutine logNormalStateRestore

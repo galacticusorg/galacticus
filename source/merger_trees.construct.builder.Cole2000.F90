@@ -22,6 +22,7 @@
   use Cosmology_Functions
   use Statistics_Distributions
   use Cosmological_Density_Field
+  use Merger_Tree_Branching
 
   !# <mergerTreeBuilder name="mergerTreeBuilderCole2000">
   !#  <description>Merger trees are built using the algorithm of \cite{cole_hierarchical_2000}.</description>
@@ -33,6 +34,7 @@
      class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_
      class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_
      class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_
+     class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                          , timeEarliest             , &
           &                                                                  mergeProbability
@@ -84,15 +86,16 @@ contains
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} merger tree building class which reads parameters from a provided parameter list.
     implicit none
-    type            (mergerTreeBuilderCole2000    )                :: self    
-    type            (inputParameters              ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    class           (mergerTreeMassResolutionClass), pointer       :: mergerTreeMassResolution_
-    class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
-    double precision                                               :: mergeProbability             , accretionLimit         , &
-         &                                                            redshiftMaximum              , toleranceResolutionSelf, &
-         &                                                            toleranceResolutionParent
-    logical                                                        :: branchIntervalStep
+    type            (mergerTreeBuilderCole2000          )                :: self    
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
+    class           (mergerTreeMassResolutionClass      ), pointer       :: mergerTreeMassResolution_
+    class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
+    class           (mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
+    double precision                                                     :: mergeProbability               , accretionLimit         , &
+         &                                                                  redshiftMaximum                , toleranceResolutionSelf, &
+         &                                                                  toleranceResolutionParent
+    logical                                                              :: branchIntervalStep
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -143,37 +146,40 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="mergerTreeMassResolution" name="mergerTreeMassResolution_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    self   =mergerTreeBuilderCole2000(                                                                                                            &
-         &                                                                                                           mergeProbability           , &
-         &                                                                                                           accretionLimit             , &
-         &                            cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum          )), &
-         &                                                                                                           branchIntervalStep         , &
-         &                                                                                                           toleranceResolutionSelf    , &
-         &                                                                                                           toleranceResolutionParent  , &
-         &                                                                                                           mergerTreeMassResolution_  , &
-         &                                                                                                           cosmologyFunctions_        , &
-         &                                                                                                           criticalOverdensity_         &
+    !# <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
+    !# <objectBuilder class="mergerTreeMassResolution"       name="mergerTreeMassResolution_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
+    self   =mergerTreeBuilderCole2000(                                                                                                                  &
+         &                                                                                                           mergeProbability                 , &
+         &                                                                                                           accretionLimit                   , &
+         &                            cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum                )), &
+         &                                                                                                           branchIntervalStep               , &
+         &                                                                                                           toleranceResolutionSelf          , &
+         &                                                                                                           toleranceResolutionParent        , &
+         &                                                                                                           mergerTreeBranchingProbability_  , &
+         &                                                                                                           mergerTreeMassResolution_        , &
+         &                                                                                                           cosmologyFunctions_             , &
+         &                                                                                                           criticalOverdensity_                &
          &                           )
     !# <inputParametersValidate source="parameters"/>
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_) result(self)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     use Galacticus_Error
     implicit none
-    type            (mergerTreeBuilderCole2000    )                        :: self
-    double precision                               , intent(in   )         :: mergeProbability           , accretionLimit         , &
-         &                                                                    timeEarliest               , toleranceResolutionSelf, &
-         &                                                                    toleranceResolutionParent
-    logical                                        , intent(in   )         :: branchIntervalStep
-    class           (mergerTreeMassResolutionClass), intent(in   ), target :: mergerTreeMassResolution_
-    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    class           (criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_
-    !# <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_"/>
+    type            (mergerTreeBuilderCole2000          )                        :: self
+    double precision                                     , intent(in   )         :: mergeProbability           , accretionLimit         , &
+         &                                                                          timeEarliest               , toleranceResolutionSelf, &
+         &                                                                          toleranceResolutionParent
+    logical                                              , intent(in   )         :: branchIntervalStep
+    class           (mergerTreeBranchingProbabilityClass), intent(in   ), target :: mergerTreeBranchingProbability_
+    class           (mergerTreeMassResolutionClass      ), intent(in   ), target :: mergerTreeMassResolution_
+    class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
+    class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
+    !# <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_"/>
     ! Initialize state.
     self%branchingIntervalDistributionInitialized=.false.
     ! Validate parameters.
@@ -186,9 +192,10 @@ contains
     implicit none
     type(mergerTreeBuilderCole2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeMassResolution_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%mergerTreeBranchingProbability_"/>
+    !# <objectDestructor name="self%mergerTreeMassResolution_"      />
+    !# <objectDestructor name="self%cosmologyFunctions_"            />
+    !# <objectDestructor name="self%criticalOverdensity_"           />
     return
   end subroutine cole2000Destructor
 
@@ -196,8 +203,6 @@ contains
     !% Build a merger tree.
     use Galacticus_Nodes
     use Galacticus_Error
-    use Merger_Tree_Branching
-    use Merger_Tree_Branching_Options
     use Pseudo_Random
     use Kind_Numbers
     use ISO_Varying_String
@@ -288,9 +293,9 @@ contains
              branchIsDone=.true.
           else
              ! Find branching probability rate per unit deltaW.
-             branchingProbabilityRate=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundUpper,node)
+             branchingProbabilityRate=self%mergerTreeBranchingProbability_%probabilityBound     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution,mergerTreeBranchingBoundUpper,node)
              ! Find accretion rate.
-             accretionFraction       =Tree_Subresolution_Fraction     (branchMassCurrent,branchDeltaCriticalCurrent,massResolution           ,node)
+             accretionFraction       =self%mergerTreeBranchingProbability_%fractionSubresolution(branchMassCurrent,branchDeltaCriticalCurrent,massResolution                              ,node)
              ! A negative accretion fraction indicates that the node is so close to the resolution limit that
              ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
              ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
@@ -330,7 +335,7 @@ contains
              else
                 ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
                 ! al. (2000) algorithm.
-                deltaW               =Tree_Maximum_Step(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
+                deltaW               =self%mergerTreeBranchingProbability_%stepMaximum(branchMassCurrent,branchDeltaCriticalCurrent,massResolution)
                 snapAccretionFraction=.false.
                 if (accretionFraction > 0.0d0) then
                    deltaWAccretionLimit=(self%accretionLimit-accretionFractionCumulative)/accretionFraction
@@ -395,7 +400,7 @@ contains
                       ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
                       if (branchingInterval < deltaW) then
                          ! It does, so recheck using the actual branching rate.
-                         branchingProbabilityRate=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,node)
+                         branchingProbabilityRate=self%mergerTreeBranchingProbability_%probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,node)
                          branchingInterval       =branchingIntervalScaleFree/branchingProbabilityRate
                          doBranch                =(branchingInterval <= deltaW)
                          if (doBranch) then
@@ -405,7 +410,7 @@ contains
                             snapAccretionFraction=.false.
                             snapEarliestTime     =.false.
                             ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
-                            uniformRandom       =tree%randomNumberGenerator%sample()
+                            uniformRandom       =tree%randomNumberGenerator%uniformSample()
                             branchingProbability=uniformRandom*branchingProbabilityRate
                          end if
                       else
@@ -417,14 +422,14 @@ contains
                 else
                    ! In this case we're using the original Cole et al. (2000) algorithm.
                    if (branchingProbability > 0.0d0) then
-                      uniformRandom=tree%randomNumberGenerator%sample()
+                      uniformRandom=tree%randomNumberGenerator%uniformSample()
                       doBranch=(uniformRandom <= branchingProbability)
                       if (doBranch) then
-                         branchingProbability=Tree_Branching_Probability_Bound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,boundLower,node)*deltaW
+                         branchingProbability=self%mergerTreeBranchingProbability_%probabilityBound(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,mergerTreeBranchingBoundLower,node)*deltaW
                          if (uniformRandom <= branchingProbability) then
                             doBranch=.true.
                          else
-                            branchingProbability=Tree_Branching_Probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,node)*deltaW
+                            branchingProbability=self%mergerTreeBranchingProbability_%probability(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,node)*deltaW
                             doBranch=(uniformRandom <= branchingProbability)
                          end if
                          ! First convert the realized probability back to a rate.               
@@ -458,7 +463,7 @@ contains
                    nodeNew1      => treeNode(nodeIndex,tree)
                    basicNew1     => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes.
-                   nodeMass1     =  Tree_Branch_Mass(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator,node)
+                   nodeMass1     =  self%mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,massResolution,branchingProbability,tree%randomNumberGenerator,node)
                    nodeMass2     =  basic%mass()-nodeMass1
                    nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
                    nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)

@@ -31,7 +31,6 @@ module Geometry_Lightcones
   !#  <default>square</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
-  !#  <stateful>no</stateful>
   !#  <method name="isInLightcone" >
   !#   <description>Returns true if the provided node lies within the lightcone.</description>
   !#   <type>logical</type>

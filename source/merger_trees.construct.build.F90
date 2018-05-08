@@ -90,8 +90,8 @@ contains
          &                                                                                      iTree                                , iTreeFirst                               , &
          &                                                                                      iTreeLast
     type            (fgsl_qrng                        )                                      :: quasiSequenceObject
-    type            (fgsl_rng                         )                                      :: pseudoSequenceObject
-    logical                                                                                  :: quasiSequenceReset           =.true. , pseudoSequenceReset               =.true.
+    type            (pseudoRandom                     )                                      :: randomSequence
+    logical                                                                                  :: quasiSequenceReset           =.true.
     double precision                                                                         :: expansionFactor                      , massFunctionSampleLogPrevious            , &
          &                                                                                      probability
     type            (fgsl_function                    )                                      :: integrandFunction
@@ -208,7 +208,6 @@ contains
           treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
           call allocateArray(treeHaloMass,[treeCount])
           call allocateArray(treeWeight  ,[treeCount])
-
           ! Create a distribution of halo masses.
           select case (char(mergerTreeBuildTreesHaloMassDistribution))
           case ("quasi")
@@ -220,10 +219,10 @@ contains
              call Sort_Do(treeHaloMass)
           case ("random")
              ! Use a pseudo-random sequence to generate halo masses.
+             randomSequence=pseudoRandom()
              do iTree=1,treeCount
-                treeHaloMass(iTree)=Pseudo_Random_Get(pseudoSequenceObject,reset=pseudoSequenceReset)
+                treeHaloMass(iTree)=randomSequence%uniformSample()
              end do
-             call Pseudo_Random_Free(pseudoSequenceObject)
              call Sort_Do(treeHaloMass)
           case ("uniform")
              ! Use a uniform distribution in logarithm of halo mass.
@@ -433,9 +432,8 @@ contains
          &   (      mergerTreesBuildFixedThreadAssignment .and. nextTreeIndexThread <= treeCount) &
          & ) then
        ! Retrieve stored internal state if possible.
-       call Galacticus_State_Retrieve
-       ! Take a snapshot of the internal state and store it.
-       call Galacticus_State_Snapshot
+       call Galacticus_State_Retrieve()
+       ! Store internal state.
        message='Storing state for tree #'
        if (mergerTreesBuildFixedThreadAssignment) then
           message=message//nextTreeIndexThread
@@ -477,8 +475,8 @@ contains
           ! Give the tree an index.
           thisTree%index=thisTreeIndex
           ! Restart the random number sequence.
-          call thisTree%randomNumberGenerator%initialize()
-          uniformRandom=thisTree%randomNumberGenerator%sample(ompThreadOffset=.false.,incrementSeed=int(thisTree%index))
+          thisTree%randomNumberGenerator=pseudoRandom()
+          uniformRandom=thisTree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,incrementSeed=int(thisTree%index))
           ! Create the base node.
           thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
           ! Assign a weight to the tree, computing it if necessary.

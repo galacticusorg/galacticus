@@ -258,7 +258,6 @@ contains
 
   subroutine behroozi2010Destructor(self)
     !% Destructor for the \cite{behroozi_comprehensive_2010} conditional mass function class.
-     use Gaussian_Random
      implicit none
      type(conditionalMassFunctionBehroozi2010), intent(inout) :: self
 

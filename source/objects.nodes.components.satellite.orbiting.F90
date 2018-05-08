@@ -436,16 +436,12 @@ contains
   subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,thisOrbit)
     !% Set the orbit of the satellite at the virial radius.
     use Numerical_Constants_Math
-    use Pseudo_Random
     use Vectors
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: self
     type            (keplerOrbit           ), intent(in   ) :: thisOrbit
     double precision                        , dimension(3)  :: radialVector                    , velocityRadialVector     , &
          &                                                     velocityTangentialVector1       , velocityTangentialVector2
-    type            (fgsl_rng              ), save          :: pseudoSequenceObject
-    logical                                 , save          :: resetSequence            =.true.
-    !$omp threadprivate(pseudoSequenceObject,resetSequence)
     double precision                                        :: orbitalRadius                   , orbitalVelocityRadial    , &
          &                                                     orbitalVelocityTangential       , velocityPhi              , &
          &                                                     orbitalPositionPhi              , orbitalPositionTheta
@@ -462,8 +458,8 @@ contains
        orbitalRadius            =virialOrbit%radius()
        orbitalVelocityRadial    =virialOrbit%velocityRadial()
        orbitalVelocityTangential=virialOrbit%velocityTangential()
-       orbitalPositionPhi       =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
-       orbitalPositionTheta     =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*      Pi
+       orbitalPositionPhi       =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*2.0d0*Pi
+       orbitalPositionTheta     =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*      Pi
        radialVector             =[                                                   &
             &                     sin(orbitalPositionTheta)*cos(orbitalPositionPhi), &
             &                     sin(orbitalPositionTheta)*sin(orbitalPositionPhi), &
@@ -473,7 +469,7 @@ contains
        velocityRadialVector     =orbitalVelocityRadial*radialVector
        velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
        velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
-       velocityPhi              =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*2.0d0*Pi
+       velocityPhi              =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*2.0d0*Pi
        velocityTangentialVector1=velocityTangentialVector1*orbitalVelocityTangential*cos(velocityPhi)
        velocityTangentialVector2=velocityTangentialVector2*orbitalVelocityTangential*sin(velocityPhi)
        call self%velocitySet(velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2)

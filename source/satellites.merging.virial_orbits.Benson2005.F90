@@ -129,8 +129,8 @@ contains
        call benson2005Orbit%massesSet(massSatellite,massHost      )
        call benson2005Orbit%radiusSet(              radiusHostSelf)
        ! Select potential radial and tangential velocities.
-       velocityRadialInternal    =node%hostTree%randomNumberGenerator%sample()*velocityMax
-       velocityTangentialInternal=node%hostTree%randomNumberGenerator%sample()*velocityMax
+       velocityRadialInternal    =node%hostTree%randomNumberGenerator%uniformSample()*velocityMax
+       velocityTangentialInternal=node%hostTree%randomNumberGenerator%uniformSample()*velocityMax
        ! Evaluate distribution function for these parameters.
        b1                  =+a(3)                                                &
             &               *exp(-a (4)*( velocityTangentialInternal-a (5))**2)
@@ -141,7 +141,7 @@ contains
             &               *exp(-a (2)*((velocityTangentialInternal-a (9))**2)) &
             &               *exp(-b1   *( velocityRadialInternal    -b2   )**2)
        if (distributionFunction > pMax) call Galacticus_Error_Report('distribution function exceeds expected peak value'//{introspection:location})
-       uniformRandom=pMax*node%hostTree%randomNumberGenerator%sample()
+       uniformRandom=pMax*node%hostTree%randomNumberGenerator%uniformSample()
        if (uniformRandom <= distributionFunction) then
           foundOrbit=.true.
           ! If requested, check that the orbit is bound. We require it to have E<-boundTolerance to ensure that it is sufficiently

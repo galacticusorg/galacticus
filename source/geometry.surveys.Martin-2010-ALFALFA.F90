@@ -140,7 +140,6 @@ contains
     !% Initialize random points for the survey.
     use FFTW3
     use Vectors
-    use Pseudo_Random
     use File_Utilities
     use FGSL
     use Meshes
@@ -161,8 +160,7 @@ contains
     implicit none
     class           (surveyGeometryMartin2010ALFALFA), intent(inout)                           :: self
     integer                                          , parameter                               :: randomsCount=1000000
-    type            (fgsl_rng                       ), save                                    :: pseudoSequenceObject
-    logical                                          , save                                    :: reset=.true.
+    type            (pseudoRandom                    )                                         :: randomSequence
     integer                                          , parameter                               :: regionCount=3
     ! Survey geometry from Haynes et al. (2011; http://adsabs.harvard.edu/abs/2011AJ....142..170H).
     double precision                                 , parameter    , dimension(2,regionCount) :: regionRightAscensionRange=reshape([22.0d0,03.0d0,07.5d0,16.5d0,07.5d0,16.5d0],[2,regionCount]), &
@@ -189,15 +187,15 @@ contains
     call allocateArray(self%randomPhi  ,[randomsCount])
     do iRandom=1,randomsCount
        ! Select a region at random.
-       uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+       uniformRandom=randomSequence%uniformSample()
        iRegion=1
        do while (uniformRandom > regionSolidAngle(iRegion))
           iRegion=iRegion+1
        end do
        ! Select coordinates at random within this region.
-       uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+       uniformRandom            =randomSequence%uniformSample()
        self%randomPhi  (iRandom)=     uniformRandom*(    regionPhiRange  (2,iRegion) -    regionPhiRange  (1,iRegion)) +    regionPhiRange  (1,iRegion)
-       uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+       uniformRandom            =randomSequence%uniformSample()
        self%randomTheta(iRandom)=acos(uniformRandom*(cos(regionThetaRange(2,iRegion))-cos(regionThetaRange(1,iRegion)))+cos(regionThetaRange(1,iRegion)))
     end do
     return

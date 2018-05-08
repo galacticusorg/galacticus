@@ -91,36 +91,34 @@ contains
 
   subroutine selfBoundOperate(self,simulation)
     !% Determine the subset of N-body particles which are self-bound.
-    use FGSL
     use Memory_Management
     use Numerical_Constants_Physical
     use Galacticus_Error
-    use Poisson_Random
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling
+    use Pseudo_Random
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation
     integer                                 , parameter                              :: countIterationMaximum=30
-    logical                                 , allocatable  , dimension(:  )          :: isBound                      , compute                , &
-         &                                                                              isBoundNew                   , isBoundCompute
-    integer                                 , allocatable  , dimension(:,:), target  :: boundStatus                  , weight
+    logical                                 , allocatable  , dimension(:  )          :: isBound                 , compute                , &
+         &                                                                              isBoundNew              , isBoundCompute
+    integer                                 , allocatable  , dimension(:,:), target  :: boundStatus             , weight
     integer                                                , dimension(:  ), pointer :: boundStatusSingle
-    double precision                        , allocatable  , dimension(:,:)          :: positionRelative             , positionOffset
-    double precision                        , allocatable  , dimension(:  )          :: separation                   , potential              , &
-         &                                                                              energyPotential              , separationSquared      , &
-         &                                                                              velocityPotential            , energyKinetic          , &
-         &                                                                              energyPotentialChange        , velocityPotentialChange, &
+    double precision                        , allocatable  , dimension(:,:)          :: positionRelative        , positionOffset
+    double precision                        , allocatable  , dimension(:  )          :: separation              , potential              , &
+         &                                                                              energyPotential         , separationSquared      , &
+         &                                                                              velocityPotential       , energyKinetic          , &
+         &                                                                              energyPotentialChange   , velocityPotentialChange, &
          &                                                                              sampleWeight
-    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound               , indexVelocityMostBound
-    integer         (c_size_t              )                                         :: particleCount                , i                      , &
-         &                                                                              k                            , iSample                , &
-         &                                                                              countBound                   , countBoundPrevious
-    double precision                                                                 :: weightBound                  , weightBoundPrevious
-    integer                                                                          :: addSubtract                  , countIteration
-    type            (fgsl_rng              )                                         :: pseudoSequenceObject
-    logical                                                                          :: pseudoSequenceReset   =.true.
+    integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound          , indexVelocityMostBound
+    integer         (c_size_t              )                                         :: particleCount           , i                      , &
+         &                                                                              k                       , iSample                , &
+         &                                                                              countBound              , countBoundPrevious
+    double precision                                                                 :: weightBound             , weightBoundPrevious
+    integer                                                                          :: addSubtract             , countIteration
+    type            (pseudoRandom          )                                         :: randomSequence
     type            (varying_string        )                                         :: message
 
     ! Allocate workspaces.
@@ -147,7 +145,7 @@ contains
        call Galacticus_Display_Message(message)
        ! Determine weights for particles.
        do i=1,particleCount
-          sampleWeight(i)=dble(Poisson_Random_Get(pseudoSequenceObject,self%bootstrapSampleRate,pseudoSequenceReset))
+          sampleWeight(i)=dble(randomSequence%poissonSample(self%bootstrapSampleRate))
        end do
        ! Initialize count of bound particles.
        countBoundPrevious =     particleCount

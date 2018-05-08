@@ -508,7 +508,7 @@ contains
        differentialEvolutionChainSelect=min(                                                         &
             &                               int(                                                     &
             &                                   +dble(mpiSelf%count())                               &
-            &                                   *randomNumberGenerator%sample(mpiRankOffset=.true.)  &
+            &                                   *randomNumberGenerator%uniformSample(mpiRankOffset=.true.)  &
             &                                  )                                                   , &
             &                               +mpiSelf%count()                                         &
             &                               -1                                                       &
@@ -733,7 +733,7 @@ contains
     !GCC$ attributes unused :: self, logLikelihoodVariance, logLikelihoodVarianceProposed
 
     ! Decide whether to take step.
-    x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+    x=randomNumberGenerator%uniformSample(mpiRankOffset=.true.)
     differentialEvolutionAcceptProposal= logPosteriorProposed >      logPosterior                       &
          &                              .or.                                                            &
          &                               x                    < exp(-logPosterior+logPosteriorProposed)

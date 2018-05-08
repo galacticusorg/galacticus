@@ -293,10 +293,8 @@ contains
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
     use ISO_Varying_String
     use IO_HDF5
-    use FGSL
     use Numerical_Constants_Math
     use Pseudo_Random
-    use Poisson_Random
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
@@ -333,9 +331,7 @@ contains
          &                                                                          speedEscape                          , distributionFunctionMaximum
     integer                                                                      :: particleCountActual                  , i                          , &
          &                                                                          j                                    , typeIndex
-    type            (fgsl_rng                     )                              :: pseudoSequenceObject
-    logical                                                                      :: pseudoSequenceReset =.true.          , keepSample                 , &
-         &                                                                          isNew
+    logical                                                                      :: isNew                                , keepSample
     type            (coordinateCartesian          )                              :: positionCartesian                    , velocityCartesian
     type            (coordinateSpherical          )                              :: positionSpherical                    , velocitySpherical
     type            (hdf5Object                   )                              :: outputFile                           , header                     , &
@@ -431,7 +427,7 @@ contains
                   &               /self%massParticle
              ! Determine the actual number of particles to use to represent the node.
              if (self%sampleParticleNumber) then
-                particleCountActual=Poisson_Random_Get(pseudoSequenceObject,particleCountMean,pseudoSequenceReset)
+                particleCountActual=tree%randomNumberGenerator%poissonSample(particleCountMean)
              else
                 particleCountActual=nint(particleCountMean)
              end if
@@ -459,7 +455,7 @@ contains
                 ! symmetric.
                 !$omp critical (mergerTreeOperatorParticulateSample)
                 do j=1,3
-                   randomDeviates(j)=Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)
+                   randomDeviates(j)=tree%randomNumberGenerator%uniformSample()
                 end do
                 !$omp end critical (mergerTreeOperatorParticulateSample)
                 call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
@@ -529,10 +525,7 @@ contains
                 do while (.not.keepSample)
                    ! Draw a speed uniformly at random between zero and the escape velocity.
                    !$omp critical (mergerTreeOperatorParticulateSample)
-                   speed               =+Pseudo_Random_Get(                      &
-                        &                                  pseudoSequenceObject, &
-                        &                                  pseudoSequenceReset   &
-                        &                                 )                      &
+                   speed               =+tree%randomNumberGenerator%uniformSample() &
                         &               *speedEscape
                    !$omp end critical (mergerTreeOperatorParticulateSample)
                    energy              =+energyPotential    &
@@ -561,19 +554,16 @@ contains
                       call Galacticus_Error_Report(message//{introspection:location})
                    end if
                    !$omp critical (mergerTreeOperatorParticulateSample)
-                   keepSample= +Pseudo_Random_Get(                     &
-                        &                        pseudoSequenceObject, &
-                        &                        pseudoSequenceReset   &
-                        &                       )                      &
-                        &     <                                        &
-                        &      +distributionFunction                   &
+                   keepSample= +tree%randomNumberGenerator%uniformSample() &
+                        &     <                                     &
+                        &      +distributionFunction                &
                         &      /distributionFunctionMaximum
                    !$omp end critical (mergerTreeOperatorParticulateSample)
                 end do
                 ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
                 !$omp critical (mergerTreeOperatorParticulateSample)
-                call velocitySpherical%  phiSet(     2.0d0*Pi*Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)       )
-                call velocitySpherical%thetaSet(acos(2.0d0   *Pseudo_Random_Get(pseudoSequenceObject,pseudoSequenceReset)-1.0d0))
+                call velocitySpherical%  phiSet(     2.0d0*Pi*tree%randomNumberGenerator%uniformSample()       )
+                call velocitySpherical%thetaSet(acos(2.0d0   *tree%randomNumberGenerator%uniformSample()-1.0d0))
                 !$omp end critical (mergerTreeOperatorParticulateSample)
                 call velocitySpherical%    rSet(speed                                                                           )
                 ! Get the corresponding cartesian coordinates.

@@ -142,7 +142,7 @@ logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior
        &            +logLikelihoodVarianceProposed &
        &      )
   ! Decide whether to take step.
-  x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+  x=randomNumberGenerator%uniformSample(mpiRankOffset=.true.)
   stochasticDifferentialEvolutionAcceptProposal=             &
        &   logPosteriorProposed >      logPosterior          &
        &  .or.                                               &

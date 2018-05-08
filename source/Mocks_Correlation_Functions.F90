@@ -161,7 +161,7 @@ program Mocks_Correlation_Functions
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>mockCorrelationFunctionOrigin</name>
-  !#   <defaultValue>[randomSequence%sample(),randomSequence%sample(),randomSequence%sample()]</defaultValue>
+  !#   <defaultValue>[randomSequence%uniformSample(),randomSequence%uniformSample(),randomSequence%uniformSample()]</defaultValue>
   !#   <defaultSource>Uniformly random distribution within the box.</defaultSource>
   !#   <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
   !#   <type>float</type>
@@ -169,7 +169,7 @@ program Mocks_Correlation_Functions
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>mockCorrelationFunctionRotationVector</name>
-  !#   <defaultValue>[acos(2.0d0*randomSequence%sample()-1.0d0),2.0d0*Pi*randomSequence%sample()]</defaultValue>
+  !#   <defaultValue>[acos(2.0d0*randomSequence%uniformSample()-1.0d0),2.0d0*Pi*randomSequence%uniformSample()]</defaultValue>
   !#   <defaultSource>Isotropically random on the unit sphere.</defaultSource>
   !#   <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
   !#   <type>float</type>
@@ -177,7 +177,7 @@ program Mocks_Correlation_Functions
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>mockCorrelationFunctionRotationAngle</name>
-  !#   <defaultValue>2.0d0*Pi*randomSequence%sample()</defaultValue>
+  !#   <defaultValue>2.0d0*Pi*randomSequence%uniformSample()</defaultValue>
   !#   <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
   !#   <description>The angle through which the mock catalog should be rotated.</description>
   !#   <type>float</type>
@@ -221,7 +221,7 @@ program Mocks_Correlation_Functions
   call allocateArray(randomPosition,[3,randomPointCount])
   do i=1,3
      do j=1,randomPointCount
-        randomPosition(i,j)=randomSequence%sample()*simulationBoxSize
+        randomPosition(i,j)=randomSequence%uniformSample()*simulationBoxSize
      end do
   end do
   ! Shift origin to a random point in the box.
@@ -273,7 +273,7 @@ program Mocks_Correlation_Functions
   call allocateArray  (randomPosition,[3,randomPointCount])
   do i=1,3
      do j=1,randomPointCount
-        randomPosition(i,j)=(randomSequence%sample()-0.5d0)*dble(2*replications+1)*simulationBoxSize
+        randomPosition(i,j)=(randomSequence%uniformSample()-0.5d0)*dble(2*replications+1)*simulationBoxSize
      end do
   end do
   message="Generated "

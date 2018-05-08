@@ -43,7 +43,7 @@ module Merger_Tree_Construction
 
 contains
 
-  function Merger_Tree_Create(skipTree) result(thisTree)
+  function Merger_Tree_Create(skipTree) result(tree)
     !% Creates a merger tree.
     use Input_Parameters
     use Galacticus_Error
@@ -53,7 +53,7 @@ contains
     include 'merger_trees.construct.modules.inc'
     !# </include>
     implicit none
-    type   (mergerTree), pointer       :: thisTree
+    type   (mergerTree), pointer       :: tree
     logical            , intent(in   ) :: skipTree
 
     ! Initialize if necessary.
@@ -80,28 +80,28 @@ contains
     end if
 
     ! Create the object.
-    allocate(thisTree)
-    call Memory_Usage_Record(sizeof(thisTree))
-    thisTree%baseNode => null()
-    thisTree%event    => null()
-    call thisTree%properties%initialize()
+    allocate(tree)
+    call Memory_Usage_Record(sizeof(tree))
+    tree%baseNode => null()
+    tree%event    => null()
+    call tree%properties%initialize()
 
     ! Flag that the tree is uninitialized. Some construction methods may opt to fully initialize the tree, in which case they will
     ! reset this to true.
-    thisTree%initializedUntil=0.0d0
+    tree%initializedUntil=0.0d0
 
     ! Initialize a random number generator, and store a pointer to this tree for purposes of storing state to file.
-    call thisTree%randomNumberGenerator%initialize()
-    treeStateStore => thisTree
+    tree          %randomNumberGenerator =  pseudoRandom()
+    treeStateStore                       => tree
     
     ! Call the routine to construct the merger tree.
-    call Merger_Tree_Construct(thisTree,skipTree)
+    call Merger_Tree_Construct(tree,skipTree)
 
     ! Deallocate the tree if no nodes were created.
-    if (.not.associated(thisTree%baseNode)) then
-       call Memory_Usage_Record(sizeof(thisTree),addRemove=-1)
-       deallocate(thisTree)
-       thisTree => null()
+    if (.not.associated(tree%baseNode)) then
+       call Memory_Usage_Record(sizeof(tree),addRemove=-1)
+       deallocate(tree)
+       tree => null()
     end if
     return
   end function Merger_Tree_Create
