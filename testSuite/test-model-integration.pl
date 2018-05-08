@@ -167,7 +167,15 @@ while ( my $fileName = readdir($testSuite) ) {
 	}
 	print "Probability of this number or fewer failures = ".$probability."\n";
 	my $probabilityExcess = 1.0-$probability;
-	print "Status: ".($probabilityExcess < 0.02 ? "FAILED" : "success")."\n";
+	my $status;
+	if      ( $probabilityExcess < 0.001 ) {
+	    $status = "FAILED";
+	} elsif ( $probabilityExcess < 0.010 ) {
+	    $status = "WARNING";
+	} else {
+	    $status = "success";
+	}
+	print "Status: ".$status."\n";
     }
 }
 closedir($testSuite);    
