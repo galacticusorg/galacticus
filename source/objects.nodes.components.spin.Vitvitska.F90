@@ -134,8 +134,8 @@ contains
              ! If this node has no children, draw its spin from a distribution, and assign a direction which is isotropically
              ! distributed.
              if (.not.associated(node%firstChild)) then
-                theta     =acos(2.0d0   *node%hostTree%randomNumberGenerator%sample()-1.0d0)
-                phi       =     2.0d0*Pi*node%hostTree%randomNumberGenerator%sample()
+                theta     =acos(2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0)
+                phi       =     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()
                 spinValue =haloSpinDistribution_%sample(node)             
                 spinVector=spinValue*[sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
              else
@@ -371,7 +371,7 @@ contains
     p=1.0d0
     do while(Vector_Magnitude(p) > 1.0d0)
        do i=1,3
-          p(i)=node%hostTree%randomNumberGenerator%sample()*2.0d0-1.0d0
+          p(i)=node%hostTree%randomNumberGenerator%uniformSample()*2.0d0-1.0d0
        end do
     end do
     vectorRadial=+                 p  &
@@ -396,7 +396,7 @@ contains
    q=1.0d0
    do while(sqrt(sum(q**2)) > 1.0d0)
       do i=1,2
-         q(i)=node%hostTree%randomNumberGenerator%sample()*2.0d0-1.0d0
+         q(i)=node%hostTree%randomNumberGenerator%uniformSample()*2.0d0-1.0d0
       end do
    end do
    q=q/sqrt(sum(q**2))
