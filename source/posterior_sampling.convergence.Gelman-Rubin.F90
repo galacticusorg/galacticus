@@ -170,6 +170,7 @@ contains
     self%converged           =.false.
     self%convergedAtStepCount=-1
     self%chainMask           =.true.
+    self%stepCount           =testCount
     ! Validate.
     if (mpiSelf%count()-self%outlierCountMaximum < 3) call Galacticus_Error_Report('maximum number of outliers is too large'//{introspection:location})
     ! Open log file.
