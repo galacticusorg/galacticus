@@ -148,7 +148,8 @@ sub ComputeLikelihood {
     my $CInverse;
     my $logDeterminant;
     my $inversionMethod = exists($options{'inversionMethod'}) ? $options{'inversionMethod'} : "svd";
-    if ( $normalized || $inversionMethod eq "inverseMatrix" ) {
+    my $productMethod = exists($options{'productMethod'}) ? $options{'productMethod'} : "inverseMatrix";
+    if ( $normalized || $productMethod eq "inverseMatrix" ) {
 	if      ( $inversionMethod eq "svd"                ) {
 	    ($CInverse, $logDeterminant) = &SVDInvert  ($C,%options);
 	} elsif ( $inversionMethod eq "eigendecomposition" ) {
@@ -158,7 +159,6 @@ sub ComputeLikelihood {
 	}
     }
     # Construct the product of offsets with the inverse covariance matrix.
-    my $productMethod = exists($options{'productMethod'}) ? $options{'productMethod'} : "inverseMatrix";
     my $vCv;
     if ( $productMethod eq "inverseMatrix" ) {
 	$vCv = $d x $CInverse x transpose($d);	
@@ -184,6 +184,13 @@ sub ComputeLikelihood {
 	$logLikelihood = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
     } else {
 	$logLikelihood =      $vCv->((0),(0))                                                      ;
+    }
+    unless ( isfinite($logLikelihood) ) {
+	if ( exists($options{'errorTolerant'}) && $options{'errorTolerant'} ) {
+	    $logLikelihood .= -1.0e30;
+	} else {
+	    die("ComputeLikelihood: likelihood evaluation failed");
+	}
     }
     ${$options{'determinant'}} = $logDeterminant
 	if ( exists($options{'determinant'}) );
