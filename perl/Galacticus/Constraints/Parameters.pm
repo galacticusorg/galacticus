@@ -25,28 +25,28 @@ sub Parse_Config {
     # Get any options.
     my %options;
     (%options) = @_
-	if ( scalar(@_) > 0 );
+    	if ( scalar(@_) > 0 );
     # Get the config.
     my $config;
     if ( exists($options{'useStored'}) && $options{'useStored'} == 1 && -e $configFile.".store" ) {
-	$config = retrieve($configFile.".store");
+    	$config = retrieve($configFile.".store");
     } else {
-	# Parse the content.
-	my $xml    = new XML::Simple;
-	my $parser = XML::LibXML->new();
-	my $dom    = $parser->load_xml(location => $configFile);
-	$parser->process_xincludes($dom);
-	my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
-	$twig->parse($dom->serialize());
-	my $contentCommentless = $twig->sprint();
-	$config = $xml->XMLin($contentCommentless, KeyAttr => 0);
-	if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
-	    my @parameters;
-	    push(@parameters,&List::ExtraUtils::as_array($_->{'parameter'}))
-		foreach (  &List::ExtraUtils::as_array($config->{'parameters'}) );
-	    delete($config->{'parameters'});
-	    @{$config->{'parameters'}->{'parameter'}} = @parameters;
-	}
+    	# Parse the content.
+    	my $xml    = new XML::Simple;
+    	my $parser = XML::LibXML->new();
+    	my $dom    = $parser->load_xml(location => $configFile);
+    	$parser->process_xincludes($dom);
+    	my $twig = XML::Twig->new (comments => 'drop', pretty_print => 'indented');
+    	$twig->parse($dom->serialize());
+    	my $contentCommentless = $twig->sprint();
+    	$config = $xml->XMLin($contentCommentless, KeyAttr => 0);
+    	if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
+    	    my @parameters;
+    	    push(@parameters,&List::ExtraUtils::as_array($_->{'parameter'}))
+    		foreach (  &List::ExtraUtils::as_array($config->{'parameters'}) );
+    	    delete($config->{'parameters'});
+    	    @{$config->{'parameters'}->{'parameter'}} = @parameters;
+    	}
     }
     return $config;
 }
@@ -634,7 +634,7 @@ sub Convert_Parameter_Vector_To_Galacticus {
     my $config          = shift();
     my $parameterVector = shift();
     # Get a hash of the parameter values.
-    (my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'likelihood'}->{'compilation'},$config->{'likelihood'}->{'baseParameters'});
+    (my $constraintsRef, my $parameters) = &Galacticus::Constraints::Parameters::Compilation($config->{'posteriorSampleLikelihoodMethod'}->{'compilation'},$config->{'posteriorSampleLikelihoodMethod'}->{'baseParameters'});
     # Convert vector into a parameter array.
     my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus($config,$parameterVector->list());
     # Apply to parameters.
