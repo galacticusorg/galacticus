@@ -1,0 +1,7 @@
+<!-- Defines a constraint to match to the COCO CDM halo concentrations, distribution number 5. -->
+<constraint>
+  <name>COCO CDM halo concentrations - distribution 5</name>
+  <label>cocoCDMConcentrationsDistribution5</label>
+  <outputRedshift>0.0</outputRedshift>
+  <analysis>constraints/scripts/concentrations_CDM_COCO_distribution5.pl</analysis>
+</constraint>

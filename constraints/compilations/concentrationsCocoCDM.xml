@@ -1,0 +1,34 @@
+<!-- A constraint compilation to constrain to match the N-body concentration distributions from the COCO CDM simulations --> 
+<constraintCompilation>
+
+  <!-- Copernicus Complexio CDM simualtion concentration distributions -->
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution01.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution02.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution03.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution04.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution05.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution06.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/concentrations_CDM_COCO_distribution07.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>
