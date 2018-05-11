@@ -197,6 +197,8 @@ contains
          &     (propertyType == propertyTypeActive   .and.      ageStatisticsStandardIsInactive) &
          &    .or.                                                                               &
          &     (propertyType == propertyTypeInactive .and. .not.ageStatisticsStandardIsInactive) &
+         &    .or.                                                                               &
+         &      propertyType == propertyTypeAll                                                  &
          &   )                                                                                   &
          &  .and.                                                                                &
          &                                                 .not.isGeneric                        &
