@@ -365,18 +365,32 @@ contains
              end if
              ! Store the number of trees at this mass.
              treeHaloMassCount(iTreeFirst:iTreeLast)=iTreeLast-iTreeFirst+1
-             ! For distributions of masses, adjust the masses at the end points so that they are at the
-             ! geometric mean of their range.
-             if     (                                                          &
-                  &   (iTreeFirst == 1 .or.  iTreeLast == treeCount)           &
-                  &  .and..not.                                                &
-                  &   (iTreeFirst == 1 .and. iTreeLast == treeCount)           &
-                  &  .and.                                                     &
-                  &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
-                  & ) treeHaloMass(iTreeFirst:iTreeLast)=sqrt(treeHaloMassMinimum(iTreeFirst:iTreeLast)*treeHaloMassMaximum(iTreeFirst:iTreeLast))
              ! Update to the last tree processed.
              iTreeFirst=iTreeLast
           end do
+          if (char(mergerTreeBuildTreesHaloMassDistribution) /= "read") then
+             iTreeFirst=0
+             do while (iTreeFirst < treeCount)
+                iTreeFirst=iTreeFirst+1
+                ! Find the last tree with the same mass.
+                iTreeLast=iTreeFirst
+                if (iTreeLast < treeCount) then
+                   do while (treeHaloMass(iTreeLast+1) == treeHaloMass(iTreeFirst))
+                      iTreeLast=iTreeLast+1
+                      if (iTreeLast == treeCount) exit
+                   end do
+                end if
+                ! For distributions of masses, adjust the masses at the end points so that they are at the
+                ! geometric mean of their range.
+                if     (                                                          &
+                     &   (iTreeFirst == 1 .or.  iTreeLast == treeCount)           &
+                     &  .and..not.                                                &
+                     &   (iTreeFirst == 1 .and. iTreeLast == treeCount)           &
+                     & ) treeHaloMass(iTreeFirst:iTreeLast)=sqrt(treeHaloMassMinimum(iTreeFirst:iTreeLast)*treeHaloMassMaximum(iTreeFirst:iTreeLast))
+                ! Update to the last tree processed.
+                iTreeFirst=iTreeLast
+             end do
+          end if
        end if
        ! Determine the index of the tree at which to begin.
        if (mergerTreeBuildTreesProcessDescending) then
