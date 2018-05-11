@@ -29,8 +29,9 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
      !% A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
      private
-     class(haloMassFunctionClass), pointer :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
-     class(haloEnvironmentClass ), pointer :: haloEnvironment_
+     class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
+     class           (haloEnvironmentClass ), pointer :: haloEnvironment_
+     double precision                                 :: factorMatching              , timeMatching
    contains
      final     ::                 environmentAveragedDestructor
      procedure :: differential => environmentAveragedDifferential
@@ -73,7 +74,8 @@ contains
     class(cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
     !# <constructorAssign variables="*haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
 
-     return
+    self%timeMatching=-1.0d0
+    return
   end function environmentAveragedConstructorInternal
   
   subroutine environmentAveragedDestructor(self)
@@ -114,16 +116,20 @@ contains
        ! If the halo mass is equal to or greater than the mass of the environment, we simply use the unconditioned mass
        ! function. We include an empirical correction to ensure that the mass function transitions smoothly through the background
        ! mass.
-       environmentAveragedDifferential=+self%haloMassFunctionUnconditioned_%differential(time,mass                                      ,node) &
-            &                          *self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node) &
-            &                          /self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
+       if (time /= self%timeMatching) then
+          self%factorMatching=+self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node) &
+               &              /self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
+          self%timeMatching  =+                                                 time
+       end if
+       environmentAveragedDifferential=+self%haloMassFunctionUnconditioned_%differential(time,mass,node) &
+            &                          *self%factorMatching
     else
        ! Halo mass is less than the mass of the environment - we must average the mass function over environment.
        ! Create a work node.
+       call tree%properties%initialize()
        tree %baseNode          => treeNode               (                 )
        tree %baseNode%hostTree => tree
        basic                   => tree    %baseNode%basic(autoCreate=.true.)
-       call tree%properties%initialize()
        ! Set the properties of the work node.
        call basic%massSet(mass)
        call basic%timeSet(time)
