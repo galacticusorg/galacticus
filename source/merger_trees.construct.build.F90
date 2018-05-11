@@ -479,6 +479,12 @@ contains
           uniformRandom=thisTree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,incrementSeed=int(thisTree%index))
           ! Create the base node.
           thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
+          ! Get the basic component of the base node.
+          baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
+          ! Assign a mass to it.
+          call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
+          ! Assign a time.
+          call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
           ! Assign a weight to the tree, computing it if necessary.
           if (computeTreeWeights) then
              haloMassFunction_                =>  haloMassFunction            (                                             &
@@ -494,12 +500,6 @@ contains
                   &                                                           )
           end if
           thisTree%volumeWeight=treeWeight(thisTreeIndex)
-          ! Get the basic component of the base node.
-          baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
-          ! Assign a mass to it.
-          call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
-          ! Assign a time.
-          call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
        end if
     end if
     !$omp end critical (Merger_Tree_Build_Do)
