@@ -156,7 +156,7 @@ The {\normalfont \ttfamily objectBuilder} directive will assign a member of the 
 
 The {\normalfont \ttfamily objectBuilder} directive by default searches for a parameter named {\normalfont \ttfamily \{class\}Method} where {\normalfont \ttfamily \{class\}} is the value of the {\normalfont \ttfamily class} attribute in the directive. An alternative name may be specified via the addition of a {\normalfont \ttfamily parameterName} attribute.
 
-In cases where an explicit {\normalfont \ttfamily parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit {\normalfont \ttfamily parameterName} attribute is given the global default of the class is used.) A default is specified by adding a {\normalfont \ttfamilt default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
+In cases where an explicit {\normalfont \ttfamily parameterName} attribute is given, it is possible to specify an explicit default for the object if no such named parameter is found. (Where no explicit {\normalfont \ttfamily parameterName} attribute is given the global default of the class is used.) A default is specified by adding a {\normalfont \ttfamily default} element to the directive, which should contain default specification for the object (and any subobjects) in the usual format. For example:
 \begin{verbatim}
  !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters">
  !#  <default>
