@@ -23,6 +23,6 @@ module Models_Likelihoods_Constants
   public
   
   ! A very small log likelihood which is used as an approximation to zero likelihood.
-  double precision, parameter :: logImpossible=-0.5d0*huge(1.0d0)
+  double precision, parameter :: logImpossible=-1.0d-6*huge(1.0d0)
 
 end module Models_Likelihoods_Constants
