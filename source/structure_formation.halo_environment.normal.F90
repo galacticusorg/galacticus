@@ -172,6 +172,7 @@ contains
     type            (treeNode                            ), intent(inout)           :: node
     logical                                               , intent(in   ), optional :: presentDay
     class           (nodeComponentBasic                  ), pointer                 :: basic
+    double precision                                                                :: variance
     !# <optionalArgument name="presentDay" defaultsTo=".false." />
 
     if (node%hostTree%baseNode%uniqueID() /= self%uniqueIDPrevious) then
