@@ -39,6 +39,8 @@ sub Process_ObjectBuilder {
 	    my $parametersDefaultRequired = 0;
 	    my $builderCode;
 	    $builderCode .= "   ! Determine where to build+store or point to the required object....\n";
+	    $builderCode .= "   parametersObjectBuildIsPrivate=.".($node->{'directive'}->{'threadPrivate'} eq "yes" ? "true" : "false").".\n"
+		if ( exists($node->{'directive'}->{'threadPrivate'}) );
 	    $builderCode .= "   parametersCurrent => ".$node->{'directive'}->{'source'}."\n";
 	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
 		if ( exists($node->{'directive'}->{'default'}) ) {

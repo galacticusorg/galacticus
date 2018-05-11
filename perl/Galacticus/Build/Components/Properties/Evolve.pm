@@ -176,12 +176,16 @@ CODE
     $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (rateComputeState == propertyTypeActive) then
+if (rateComputeState == propertyTypeAll          ) then
+ offset={$offsetNameAll}
+else if (rateComputeState == propertyTypeActive  ) then
  if (     nodeInactives({$offsetNameAll})) return
  offset={$offsetNameActive}
-else
+else if (rateComputeState == propertyTypeInactive) then
  if (.not.nodeInactives({$offsetNameAll})) return
  offset={$offsetNameInactive}
+else
+ return
 end if
 CODE
     if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {

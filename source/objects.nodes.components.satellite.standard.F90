@@ -210,7 +210,9 @@ contains
           if     (                                                                                &
                &   (propertyType == propertyTypeActive   .and. .not.satelliteBoundMassIsInactive) &
                &  .or.                                                                            &
-               &   (propertyType == propertyTypeInactive .and.      satelliteBoundMassIsInactive) &
+               &   (propertyType == propertyTypeInactive .and.      satelliteBoundMassIsInactive  &
+               &  .or.                                                                            &
+               &    propertyType == propertyTypeAll)                                              &
                & ) then
              darkMatterHaloMassLossRate_ => darkMatterHaloMassLossRate      (    )
              massLossRate                =  darkMatterHaloMassLossRate_%rate(node)

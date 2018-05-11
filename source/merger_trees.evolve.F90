@@ -54,8 +54,9 @@ module Merger_Trees_Evolve
   
 contains
 
-  subroutine Merger_Tree_Evolve_To(tree,endTime,treeDidEvolve,suspendTree,deadlockReporting)
+  subroutine Merger_Tree_Evolve_To(tree,endTime,treeDidEvolve,suspendTree,deadlockReporting,initializationLock)
     !% Evolves all properties of a merger tree to the specified time.
+    !$ use OMP_Lib
     use Merger_Trees_Evolve_Node
     use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Trees_Initialize
@@ -73,6 +74,7 @@ contains
     double precision                                                   , intent(in   ) :: endTime
     logical                                                            , intent(  out) :: treeDidEvolve                     , suspendTree
     logical                                                            , intent(in   ) :: deadlockReporting
+    integer         (omp_lock_kind                ), optional          , intent(inout) :: initializationLock
     type            (treeNode                     )           , pointer                :: nodeLock                          , nodeNext         , &
          &                                                                                nodeParent                        , node
     class           (nodeEvent                    )           , pointer                :: event
@@ -143,7 +145,9 @@ contains
        ! Skip empty trees.
        if (associated(currentTree%baseNode)) then
           ! Initialize the tree if necessary.
+          !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
           call Merger_Tree_Initialize(currentTree,endTime)
+          !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
           ! Check that the output time is not after the end time of this tree.
           basicBase => currentTree%baseNode%basic()
           if (endTime > basicBase%time()) then

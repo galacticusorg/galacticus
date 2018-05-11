@@ -263,7 +263,7 @@ contains
     double precision :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
     logical          :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
     
-    !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters">
+    !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters" threadPrivate="yes">
     !#  <default>
     !#   <diskMassDistribution value="exponentialDisk">
     !#    <dimensionless value="true"/>
@@ -682,13 +682,15 @@ contains
        ! Determine if luminosities must be computed.
        luminositiesCompute= (propertyType == propertyTypeActive   .and. .not.diskLuminositiesStellarInactive) &
             &              .or.                                                                               &
-            &               (propertyType == propertyTypeInactive .and.      diskLuminositiesStellarInactive)
+            &               (propertyType == propertyTypeInactive .and.      diskLuminositiesStellarInactive) &
+            &              .or.                                                                               &
+            &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=disk%stellarPropertiesHistory()     
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate&
             &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate,luminositiesCompute)
        ! Adjust rates.
-       if (propertyType == propertyTypeActive) then
+       if (propertyType == propertyTypeActive .or. propertyType == propertyTypeAll) then
           if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
           call disk%      massStellarRate(       stellarMassRate)
           call disk%          massGasRate(          fuelMassRate)
@@ -872,8 +874,8 @@ contains
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentDisk    )               , pointer :: disk
     class           (nodeComponentSpheroid)               , pointer :: spheroid
-    double precision                       , parameter              :: massMinimum                   =1.0d0
-    double precision                       , parameter              :: angularMomentumMinimum        =1.0d-2
+    double precision                       , parameter              :: massMinimum                   =1.0d+00
+    double precision                       , parameter              :: angularMomentumMinimum        =1.0d-1
     double precision                       , parameter              :: luminosityMinimum             =1.0d0
     double precision                                                :: angularMomentum                      , mass
     type            (history              )                         :: stellarPopulationHistoryScales

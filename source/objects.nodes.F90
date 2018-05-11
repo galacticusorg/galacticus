@@ -73,6 +73,7 @@ module Galacticus_Nodes
   integer, parameter, public :: propertyTypeAll     =0
   integer, parameter, public :: propertyTypeActive  =1
   integer, parameter, public :: propertyTypeInactive=2
+  integer, parameter, public :: propertyTypeNone    =3
 
   ! State for rate computations.
   integer           , public :: rateComputeState    =propertyTypeActive

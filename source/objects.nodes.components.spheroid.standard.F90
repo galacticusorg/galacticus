@@ -257,7 +257,7 @@ contains
          &              spheroidAngularMomentumAtScaleRadiusDefault
 
     if (.not.associated(spheroidMassDistribution)) then
-       !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="globalParameters">
+       !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="globalParameters" threadPrivate="yes">
        !#  <default>
        !#   <spheroidMassDistribution value="hernquist">
        !#    <dimensionless value="true"/>
@@ -596,6 +596,9 @@ contains
     class           (nodeComponentHotHalo               )               , pointer :: hotHalo
     class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
     class           (starFormationFeedbackSpheroidsClass)               , pointer :: starFormationFeedbackSpheroids_
+    double precision                                     , parameter              :: radiusMinimum                  =1.0d-12
+    double precision                                     , parameter              :: massMinimum                    =1.0d-06
+    double precision                                     , parameter              :: angularMomentumMinimum         =1.0d-20
     type            (abundances                         ), save                   :: fuelAbundances                 , fuelAbundancesRates     , &
          &                                                                           stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -621,9 +624,9 @@ contains
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if     (    spheroid%angularMomentum() <  0.0d0 &
-            & .or. spheroid%radius         () <= 0.0d0 &
-            & .or. spheroid%massGas        () <  0.0d0 &
+       if     (    spheroid%angularMomentum() < angularMomentumMinimum &
+            & .or. spheroid%radius         () <          radiusMinimum &
+            & .or. spheroid%massGas        () <            massMinimum &
             & ) return
        ! Find the star formation timescale.
        starFormationRate=spheroid%starFormationRate()
@@ -635,7 +638,9 @@ contains
        ! Determine if luminosities must be computed.
        luminositiesCompute= (propertyType == propertyTypeActive   .and. .not.spheroidLuminositiesStellarInactive) &
             &              .or.                                                                                   &
-            &               (propertyType == propertyTypeInactive .and.      spheroidLuminositiesStellarInactive)
+            &               (propertyType == propertyTypeInactive .and.      spheroidLuminositiesStellarInactive) &
+            &              .or.                                                                                   &
+            &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=spheroid%stellarPropertiesHistory()
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node    &
@@ -643,7 +648,7 @@ contains
             &,fuelAbundancesRates,energyInputRate,luminositiesCompute)
        if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
        ! Adjust rates.
-       if (propertyType == propertyTypeActive) then
+       if (propertyType == propertyTypeActive .or. propertyType == propertyTypeAll) then
           call spheroid%      massStellarRate(       stellarMassRate)
           call spheroid%          massGasRate(          fuelMassRate)
           call spheroid%abundancesStellarRate(stellarAbundancesRates)
@@ -1284,27 +1289,27 @@ contains
     class(nodeComponentSpheroid), pointer       :: spheroid
 
     ! Return immediately if our method is not selected.
-    if     (                                                    &
-         &  .not.                                               &
-         &   (                                                  &
-         &     defaultSpheroidComponent%standardIsActive     () &
-         &    .and.                                             &
-         &     node                %isPhysicallyPlausible       &
-         &    .and.                                             &
-         &     node                %isSolvable                  &
-         &   )                                                  &
+    if     (                                                &
+         &  .not.                                           &
+         &   (                                              &
+         &     defaultSpheroidComponent%standardIsActive () &
+         &    .and.                                         &
+         &     node                %isPhysicallyPlausible   &
+         &    .and.                                         &
+         &     node                %isSolvable              &
+         &   )                                              &
          & ) return
 
     ! Determine the plausibility of the current spheroid.
     spheroid => node%spheroid()
     select type (spheroid)
-       class is (nodeComponentSpheroidStandard)
-          ! Determine the plausibility of the current spheroid.
-       if        (spheroid%massStellar          ()+spheroid%massGas() < -spheroidMassToleranceAbsolute) then
+    class is (nodeComponentSpheroidStandard)
+       ! Determine the plausibility of the current spheroid.
+       if        (spheroid%massStellar          ()+spheroid%massGas() < spheroidMassToleranceAbsolute) then
           node%isPhysicallyPlausible=.false.
        else
-          if     (      spheroid%massStellar    ()+spheroid%massGas() >  spheroidMassToleranceAbsolute &
-               &  .and. spheroid%angularMomentum()                    <                          0.0d0 &
+          if     (      spheroid%massStellar    ()+spheroid%massGas() > spheroidMassToleranceAbsolute &
+               &  .and. spheroid%angularMomentum()                    <                         0.0d0 &
                & ) node%isPhysicallyPlausible=.false.
        end if
     end select
