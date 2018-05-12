@@ -49,12 +49,20 @@ sub COSMOS2012 {
     my $splineError                  = PDL::GSL::INTERP->init('cspline',$massHaloMeanDataLogarithmic,$massHaloErrorDataLogarithmic);
 
     # Read model data.
-    my $model = new PDL::IO::HDF5($galacticusFileName);
+    my $model                            = new PDL::IO::HDF5($galacticusFileName);
     my $analysis                         = $model   ->group ('analyses'                                            )
     	                                            ->group ('stellarHaloMassRelationLeauthaud2012z'.$redshiftRange)       ;
     my $massHaloModel                    = $analysis->dataset('massHalo'                                           )->get();
     my $massStellarModel                 = $analysis->dataset('massStellar'                                        )->get();
     my $massStellarCovarianceModel       = $analysis->dataset('massStellarCovariance'                              )->get();
+    my $modelParameters                  = $model   ->group('Parameters');
+    my $massResolution = pdl 0.0;
+    if ( grep {$_ eq "mergerTreeMassResolutionMethod"} $modelParameters->groups() ) {
+	my $resolutionGroup = $modelParameters->group('mergerTreeMassResolutionMethod');
+	if ( grep {$_ eq "massResolution"} $resolutionGroup->attrs() ) {
+	    ($massResolution) = $resolutionGroup->attrGet('massResolution');
+	}
+    }
     my $modelEntries                     = 
 	which(
 	    ($massStellarModel                          >  0.0                      ) 
@@ -64,6 +72,8 @@ sub COSMOS2012 {
 	    ($massHaloModel                             >= $massHaloMeanData->(( 0)))
 	    &
 	    ($massHaloModel                             <= $massHaloMeanData->((-1)))
+	    &
+	    ($massHaloModel                             >  20.0*$massResolution     )
 	);
     my $massHaloModelLogarithmic         = log($massHaloModel   ->($modelEntries));
     my $massStellarModelLogarithmic      = log($massStellarModel->($modelEntries));
