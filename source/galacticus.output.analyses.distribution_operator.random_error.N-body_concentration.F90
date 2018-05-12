@@ -102,7 +102,7 @@ contains
   end subroutine randomErrorNbdyCncDestructor
 
   double precision function randomErrorNbdyCncRootVariance(self,propertyValue,node)
-    !% Computes errors on $\log_{10}($halo concentration)$ for N-body halos.
+    !% Computes errors on $\log_{10}($halo concentration$)$ for N-body halos.
     implicit none
     class           (outputAnalysisDistributionOperatorRndmErrNbdyCnc), intent(inout) :: self
     double precision                                                  , intent(in   ) :: propertyValue
