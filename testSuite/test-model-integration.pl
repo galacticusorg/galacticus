@@ -114,6 +114,15 @@ while ( my $fileName = readdir($testSuite) ) {
     	if ( $options{'calibrate'} eq "yes" );
     # If calibrating, aggregate statistics and compute means and variances.
     if ( $options{'calibrate'} eq "yes" ) {
+	for(my $i=0;$i<$options{'calibrateCount'};++$i) {
+	    # Generate test statistics.
+	    print "--> Testing model '".$modelName."' [realization: ".$i."] for model integration testing...\n";
+	    foreach my $test ( @tests ) {
+		print "   --> Test '".$test->{'name'}."'...\n";
+		(my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName.$i,$test->{'label'},$mercurialRevision);
+	    }
+	    print "<-- ...done\n";
+	}
 	foreach my $test ( @tests ) {
 	    print "--> Calibrating test '".$test->{'name'}."'...\n";
 	    my $calibration;
@@ -147,18 +156,16 @@ while ( my $fileName = readdir($testSuite) ) {
 	# Test models.
 	my $failureTotal;
 	my $testTotal;
-	for(my $i=0;$i<($options{'calibrate'} eq "yes" ? $options{'calibrateCount'} : 1);++$i) {
-	    # Generate test statistics.
-	    print "--> Testing model '".$modelName."' ".($options{'calibrate'} eq "yes" ? "[realization: ".$i."]" : "")." for model integration testing...\n";
-	    foreach my $test ( @tests ) {
-		print "   --> Test '".$test->{'name'}."'...\n";
-		(my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName.($options{'calibrate'} eq "yes" ? $i : ""),$test->{'label'},$mercurialRevision);
-		$failureTotal += $failureCount;
-		$testTotal    += $testCount;
-		print "   --> failure rate: ".$failureCount."/".$testCount."\n";
-	    }
-	    print "<-- ...done\n";
+	# Generate test statistics.
+	print "--> Testing model '".$modelName."' for model integration testing...\n";
+	foreach my $test ( @tests ) {
+	    print "   --> Test '".$test->{'name'}."'...\n";
+	    (my $failureCount, my $testCount) = &{$test->{'test'}}($modelName,"outputs/test-model-integration/".$modelName,$test->{'label'},$mercurialRevision);
+	    $failureTotal += $failureCount;
+	    $testTotal    += $testCount;
+	    print "   --> failure rate: ".$failureCount."/".$testCount."\n";
 	}
+	print "<-- ...done\n";
 	# Compute probability of failure count.
 	my $probabilityFailure = 2.0*$options{'calibratePercentile'}/100.0;
 	my $probability        = 0.0;
