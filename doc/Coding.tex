@@ -202,13 +202,14 @@ will cause the value of the {\normalfont \ttfamily massThreshold} argument to {\
  !# <stateStorable class="table">
  !#  <table1DGeneric>
  !#   <restoreTo variables="reset" state=".true."/>
+ !#   <exclude variables="staticData"/>
  !#  </table1DGeneric>
  !#  <table2DLinLinLin>
  !#   <restoreTo variables="resetX, resetY" state=".true."/>
  !#  </table2DLinLinLin>  
  !# </stateStorable>
 \end{verbatim}
-This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the classs or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute.
+This specifies that the {\normalfont \ttfamily table} class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the classs or subclass should be restored to specific values this can be specified through a {\normalfont \ttfamily restoreTo} element placed within an element with the name of the class or subclass (e.g. the {\normalfont \ttfamily table1DGeneric} in the above example). The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
 
 \subsection{Conditional Call}
 
@@ -463,7 +464,7 @@ In the above example, we define a ``simple'' implementation of the {\normalfont 
 \item[Procedures:] All required procedures (including constructors and destructors) should be given after a line containing the {\normalfont \ttfamily contains} keyword. \glc\ coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, {\normalfont \ttfamily simple} in this case.
 \end{description}
 
-Functionality to store and restore the state (see \S\ref{sec:Restarting}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute
+Functionality to store and restore the state (see \S\ref{sec:Restarting}) of classes built via a {\normalfont \ttfamily functionClass} directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a {\normalfont \ttfamily restoreTo} element to the directive declaring the implementation. The {\normalfont \ttfamily restoreTo} element should specify a comma-separated list of one or more variables to set in its {\normalfont \ttfamily variables} attribute, and the state to which they should be restored in its {\normalfont \ttfamily state} attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a {\normalfont \ttfamily exclude} element---a list of variables to exclude should be given as a comma-separated list in its {\normalfont \ttfamily variables} attribute.
 
 \subsection{Generic Programming}
 

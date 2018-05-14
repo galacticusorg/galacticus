@@ -36,6 +36,9 @@
 
   !# <haloMassFunction name="haloMassFunctionTinker2008">
   !#  <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}.</description>
+  !#  <stateStorable>
+  !#   <exclude variables="densityContrast"/>
+  !#  </stateStorable>
   !# </haloMassFunction>
   type, extends(haloMassFunctionClass) :: haloMassFunctionTinker2008
      !% A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}.
