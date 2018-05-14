@@ -97,21 +97,21 @@ contains
     !#   <variable>index_</variable>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>4.0d0</defaultValue>
-    !#   <description>The S\ersic index.</description>
+    !#   <description>The S\'ersic index.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>radiusHalfMass</name>
     !#   <cardinality>1</cardinality>
-    !#   <description>The half mass radius of the S\ersic profile.</description>
+    !#   <description>The half mass radius of the S\'ersic profile.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>mass</name>
     !#   <cardinality>1</cardinality>
-    !#   <description>The mass of the S\ersic profile.</description>
+    !#   <description>The mass of the S\'ersic profile.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -515,7 +515,7 @@ contains
   end subroutine sersicTabulate
 
   double precision function sersicCoefficientRoot(coefficient)
-    !% Root function used in finding the coefficient for S\ersic profiles.
+    !% Root function used in finding the coefficient for S\'ersic profiles.
     use Gamma_Functions
     implicit none
     double precision, intent(in   ) :: coefficient
