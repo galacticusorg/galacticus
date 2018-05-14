@@ -152,6 +152,8 @@ CODE
 		my @staticVariables;
 		my $parentClassName = $className;
 		while ( defined($parentClassName) ) {
+		    # Find any variables to be excluded from state store/restore.
+		    my @excludes = exists($directive->{$parentClassName}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$directive->{$parentClassName}->{'exclude'}->{'variables'}) : ();
 		    my $classNode = $classes{$parentClassName}->{'node'}->{'firstChild'};
 		    while ( $classNode ) {
 			if ( $classNode->{'type'} eq "declaration" ) {
@@ -169,6 +171,8 @@ CODE
 					# This is a non-pointer object which is explicitly stateStorable.
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $labelUsed   = 1;
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
@@ -198,6 +202,8 @@ CODE
 					$transferUsed = 1;
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $outputCode .= "transferredSize=sizeof(self%".$variableName.")\n";
 					    $outputCode .= "if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    $outputCode .= " write (label,'(i16)') transferredSize\n";
@@ -227,6 +233,8 @@ CODE
 					my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
 					my $rank = ($dimensionDeclarator =~ tr/://);
 					foreach my $variableName ( @{$declaration->{'variables'}} ) {
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $labelUsed   = 1;
 					    $outputCode .= "  if (allocated(self%".$variableName.")) then\n";
 					    $outputCode .= "   if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
@@ -254,6 +262,8 @@ CODE
 					# Statically-sized variable.
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    my $store = 1;
 					    if ( exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'restoreTo'}) ) {
 					        foreach ( &List::ExtraUtils::as_array($directive->{$parentClassName}->{'restoreTo'}) ) {

@@ -931,6 +931,8 @@ CODE
 		    if ( $class == $nonAbstractClass && $node->{'opener'} =~ m/,\s*extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
 			$extensionOf = $1;
 		    }
+		    # Find any variables to be excluded from state store/restore.
+		    my @excludes = exists($class->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
 		    # Search the node for declarations.
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
@@ -988,6 +990,8 @@ CODE
 					# Construct code to output.
 					foreach ( @{$declaration->{'variables'}} ) {
 		    			    (my $variableName = $_) =~ s/\s*=.*$//;
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    my $rank = 0;
 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
@@ -1063,6 +1067,8 @@ CODE
 		    			my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
 		    			my $rank = ($dimensionDeclarator =~ tr/://);
 		    			foreach my $variableName ( @{$declaration->{'variables'}} ) {
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $allocatablesFound  = 1;
 					    $dimensionalsFound  = 1;
 					    $stateFileUsed      = 1;
@@ -1093,6 +1099,8 @@ CODE
 		    			# Statically-sized variable.
 		    			foreach ( @{$declaration->{'variables'}} ) {
 		    			    (my $variableName = $_) =~ s/\s*=.*$//;
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    my $store = 1;
 					    if ( exists($class->{'stateStorable'}) && exists($class->{'stateStorable'}->{'restoreTo'}) ) {
 						foreach ( &List::ExtraUtils::as_array($class->{'stateStorable'}->{'restoreTo'}) ) {
@@ -1129,6 +1137,8 @@ CODE
 		    # Move to the parent class.
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		}
+		# Find any variables to be excluded from state store/restore.
+		my @excludes = exists($directive->{'stateStorable'}->{'exclude'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'exclude'}->{'variables'}) : ();
 		# Add any variables declared in the base class.
 		foreach my $data ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		    my $declarationSource;
@@ -1194,6 +1204,8 @@ CODE
 			    # Construct code to output.
 			    foreach ( @{$declaration->{'variables'}} ) {
 				(my $variableName = $_) =~ s/\s*=.*$//;
+				next
+				    if ( grep {lc($_) eq lc($variableName)} @excludes );
 				my $rank = 0;
 				if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
@@ -1269,6 +1281,8 @@ CODE
 			    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
 			    my $rank = ($dimensionDeclarator =~ tr/://);
 			    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+				next
+				    if ( grep {lc($_) eq lc($variableName)} @excludes );
 				$allocatablesFound  = 1;
 				$dimensionalsFound  = 1;
 				$stateFileUsed      = 1;
@@ -1299,6 +1313,8 @@ CODE
 			    # Statically-sized variable.
 			    foreach ( @{$declaration->{'variables'}} ) {
 				(my $variableName = $_) =~ s/\s*=.*$//;
+				next
+				    if ( grep {lc($_) eq lc($variableName)} @excludes );
 				push(@staticVariables,$variableName);
 			    }
 			}
