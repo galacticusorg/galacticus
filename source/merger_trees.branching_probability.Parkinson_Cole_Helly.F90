@@ -453,8 +453,8 @@ contains
   end function parkinsonColeHellyStepMaximum
 
   double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,massResolution,node)
-    !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
-    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
+    !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
+    !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Numerical_Integration
     use FGSL
     implicit none
@@ -558,7 +558,9 @@ contains
   end function parkinsonColeHellyModifier
 
   double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,massResolution,bound,node)
-    !% deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
+    !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
+    !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
+    !% {\normalfont \ttfamily massResolution}.
     use Galacticus_Error
     use Galacticus_Display
     use Hypergeometric_Functions
