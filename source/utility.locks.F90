@@ -23,10 +23,56 @@ module Locks
   !$ use OMP_Lib
   implicit none
   private
-  public :: ompReadWriteLock
+  public :: ompLock, ompReadWriteLock
+
+  type :: ompLock
+     !% OpenMP lock type which allows querying based on thread number.
+     private
+     !$ integer(omp_lock_kind) :: lock
+     integer                   :: ownerThread=-2
+   contains
+     !@ <objectMethods>
+     !@   <object>ompLock</object>
+     !@   <objectMethod>
+     !@     <method>set</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Obtain a lock on the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>unset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Release a lock on the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>(Re)initialize an OpenMP lock object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>ownedByThread</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if the current thread already owns this lock.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                  ompLockDestructor
+     procedure :: initialize    => ompLockInitialize
+     procedure :: set           => ompLockSet
+     procedure :: unset         => ompLockUnset
+     procedure :: ownedByThread => ompLockOwnedByThread
+  end type ompLock
+  
+  interface ompLock
+     !% Interface to constructors for OpenMP locks.
+     module procedure :: ompLockConstructor
+  end interface ompLock
 
   type :: ompReadWriteLock
      !% OpenMP lock type which supports read/write locking.
+     private
      !$ integer(omp_lock_kind), allocatable, dimension(:) :: locks
    contains
      !@ <objectMethods>
@@ -77,6 +123,67 @@ module Locks
 
 contains
   
+  function ompLockConstructor() result (self)
+    !% Constructor for OpenMP lock objects.
+    implicit none
+    type(ompLock) :: self
+
+    call self%initialize()    
+    return
+  end function ompLockConstructor
+
+  subroutine ompLockDestructor(self)
+    !% Destructor for OpenMP lock objects.
+    implicit none
+    type   (ompLock), intent(inout) :: self
+
+    ! Destroy the lock.
+    !$ call OMP_Destroy_Lock(self%lock)
+    return
+  end subroutine ompLockDestructor
+
+  subroutine ompLockInitialize(self)
+    !% (Re)initialize an OpenMP lock object.
+    implicit none
+    class  (ompLock), intent(inout) :: self
+
+    ! Initialize the lock.
+    !$ call OMP_Init_Lock(self%lock)
+    self%ownerThread=-1
+    return
+  end subroutine ompLockInitialize
+
+  subroutine ompLockSet(self)
+    !% Get a lock on an OpenMP lock objects.
+    implicit none
+    class(ompLock), intent(inout) :: self
+    
+    if (self%ownerThread == -2) call self%initialize()
+    !$ call OMP_Set_Lock(self%lock)
+    !$ self%ownerThread=OMP_Get_Thread_Num()
+    return
+  end subroutine ompLockSet
+  
+  subroutine ompLockUnset(self)
+    !% Release a lock on an OpenMP lock objects.
+    implicit none
+    class(ompLock), intent(inout) :: self
+
+    !$ call OMP_Unset_Lock(self%lock)
+    self%ownerThread=-1
+    return
+  end subroutine ompLockUnset
+  
+  logical function ompLockOwnedByThread(self)
+    !% Return true if the lock is owend by the current thread.
+    implicit none
+    class(ompLock), intent(inout) :: self
+
+    ompLockOwnedByThread=.true.
+    !$ ompLockOwnedByThread=self%ownerThread == OMP_Get_Thread_Num()
+    return
+  end function ompLockOwnedByThread
+ 
   function ompReadWriteLockConstructor() result (self)
     !% Constructor for OpenMP read/write lock objects.
     implicit none
