@@ -98,11 +98,11 @@ contains
     type            (hdf5Object                                        )                                :: dataFile
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile   (char(Galacticus_Input_Path()//'data/darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.             )
     call dataFile%readDataset(                              'massHalo'                                                    ,         massHaloLogarithmic)
     call dataFile%close      (                                                                                                                         )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[size(massHaloLogarithmic,kind=c_size_t),Galacticus_Output_Time_Count()])

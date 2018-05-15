@@ -214,7 +214,7 @@ contains
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
     ! Store the filter effective wavelength to the output file.
-    !$omp critical (HDF5_Access)    
+    call hdf5Access%set()    
     filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
     firstFilter =.not.filtersGroup%hasDataset('name')
     word        =filterResponses(filterIndex)%name
@@ -226,7 +226,7 @@ contains
     end if
     call dataset     %close()
     call filtersGroup%close()
-    !$omp end critical (HDF5_Access)    
+    call hdf5Access%unset()    
     return
   end subroutine Filter_Response_Load
 

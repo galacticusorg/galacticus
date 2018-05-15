@@ -343,7 +343,7 @@ contains
     ! Get required objects.
     darkMatterHaloScale_ => darkMatterHaloScale()
     ! Open the HDF5 file for output.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
     ! Check if the Gadget header has already been created.
     if (.not.outputFile%hasGroup('Header')) then
@@ -378,7 +378,7 @@ contains
        call header%close()
     end if
     call outputFile%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     ! Iterate over trees.
     treeCurrent             => tree
     do while (associated(treeCurrent))
@@ -604,7 +604,7 @@ contains
              particlePosition=particlePosition/unitGadgetLength
              particleVelocity=particleVelocity/unitGadgetVelocity
              ! Accumulate the particle data to file.
-             !$omp critical (HDF5_Access)
+             call hdf5Access%set()
              call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
              ! Get current count of particles in file.
              header=outputFile%openGroup('Header','Group containing Gadget metadata.')
@@ -637,7 +637,7 @@ contains
              call header%writeAttribute(particleCounts,'NumPart_Total'   )
              call header%close()
              call outputFile%close()
-             !$omp end critical (HDF5_Access)
+             call hdf5Access%unset()
           end if
           ! Walk to the next node.
           node => node%walkTreeWithSatellites()

@@ -464,7 +464,7 @@ contains
                       select case (trim(metallicityDistributionLabels(j)))
                       case ('sdssStellarMetallicityDistributionZ0.07')
                          ! SDSS z=0.07 stellar-phase metallicity distribution.
-                         !$omp critical(HDF5_Access)
+                         !$ call hdf5Access%set()
                          call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/abundances/stellarPhaseMetallicityGallazzi2005.hdf5",readOnly=.true.)
                          ! Read masses.
                          call dataFile%readDataset("mass",metallicityDistributions(currentAnalysis)%masses)
@@ -613,7 +613,7 @@ contains
                          call parametersGroup%close        (                                     )
                          ! Finished reading data.
                          call dataFile%close()
-                         !$omp end critical(HDF5_Access)
+                         !$ call hdf5Access%unset()
                          ! Create the observed cosmology.
                          allocate(cosmologyParametersObserved)
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
@@ -634,7 +634,7 @@ contains
                          metallicityDistributions(currentAnalysis)%mainBranchGalaxyWeightsSquared   =0.0d0
                       case ('sdssGasMetallicityDistributionZ0.07')
                          ! SDSS z=0.07 gas-phase metallicity distribution.
-                         !$omp critical(HDF5_Access)
+                         !$ call hdf5Access%set()
                          call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.)
                          ! Read masses.
                          call dataFile%readDataset("mass",metallicityDistributions(currentAnalysis)%masses)
@@ -710,7 +710,7 @@ contains
                          call parametersGroup%close        (                                     )
                          ! Finished reading data.
                          call dataFile%close()
-                         !$omp end critical(HDF5_Access)
+                         !$ call hdf5Access%unset()
                          ! Create the observed cosmology.
                          allocate(cosmologyParametersObserved)
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
@@ -1144,7 +1144,7 @@ contains
           deallocate(jacobian                 )
        end select
        ! Output the metallicity distribution.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        analysisGroup               =galacticusOutputFile%openGroup('analysis','Model analysis')
        metallicityDistributionGroup=analysisGroup       %openGroup(trim(metallicityDistributions(k)%descriptor%label),trim(metallicityDistributions(k)%descriptor%comment))
        call        metallicityDistributionGroup%writeDataset  (metallicityDistributions(k)%masses                           ,'mass'                             ,'Mass'                               ,datasetReturned=dataset)
@@ -1156,7 +1156,7 @@ contains
        call        metallicityDistributionGroup%writeDataset  (metallicityDistributions(k)%metallicityDistributionCovariance,'metallicityDistributionCovariance','Metallicity distribution covariance'                            )
        call        metallicityDistributionGroup%close()
        call        analysisGroup               %close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end do
     return
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins_Output

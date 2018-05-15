@@ -432,7 +432,7 @@ contains
        eventNew%task         => Radiation_Intergalactic_Background_Internal_Update
     else
        ! Output the results to file.
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        backgroundRadiationGroup=galacticusOutputFile%openGroup('backgroundRadiation','Cosmic background radiation data.')
        call backgroundRadiationGroup  %writeDataset  (backgroundRadiationWavelength,'wavelength','Wavelength at which the background radiation is tabulated [Å].',datasetReturned=backgroundRadiationDataset)
        call backgroundRadiationDataset%writeAttribute(1.0d0/angstromsPerMeter      ,'unitsInSI'                                                                                                             )
@@ -444,7 +444,7 @@ contains
        call backgroundRadiationDataset%writeAttribute(ergs/centi**2                ,'unitsInSI'                                                                                                             )
        call backgroundRadiationDataset%close()
        call backgroundRadiationGroup  %close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     end if
     ! Display message.
     call Galacticus_Display_Unindent('done')

@@ -111,7 +111,7 @@ contains
     ! Check if data has yet to be read.
     if (.not.self%dataRead) then
        if (.not.File_Exists(char(self%fileName))) call Galacticus_Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        ! Open the file.
        call file%openFile(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
@@ -124,7 +124,7 @@ contains
        call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
        call file%readDataset('matterTemperature',self%temperatureTable            )
        call file%close      (                                                     )
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
        self%redshiftCount=size(self%timeTable)
        ! Get the default cosmology functions object.
        cosmologyFunctions_ => cosmologyFunctions()

@@ -465,7 +465,7 @@ contains
     type            (hdf5Object            )                :: coolingFunctionFile                , metallicityDataset, &
          &                                                     temperatureDataset
     
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     ! Read the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
@@ -530,7 +530,7 @@ contains
     ! Close the file.
     call coolingFunctionFile%close()
     call Galacticus_Display_Unindent('done',verbosityWorking)
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)

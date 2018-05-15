@@ -32,9 +32,9 @@ sub Process_DebugHDF5 {
 	    open(my $content,"<",\$node->{'content'});
 	    while ( my $line = <$content> ) {
 		$line .= "call IO_HDF5_Start_Critical()\n"
-		    if ( $line =~ m /^\s*\!\$omp\s+critical\s*\(HDF5_Access\)\s*$/ );
+		    if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*set\s*\(\s*\)\s*$/   );
 		$line  = "call IO_HDF5_End_Critical()\n".$line
-		    if ( $line =~ m /^\s*\!\$omp\s+end\s+critical\s*\(HDF5_Access\)\s*$/ );
+		    if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)\s*$/ );
 		$newContent .= $line;
 	    }
 	    close($content);

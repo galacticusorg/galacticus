@@ -1520,7 +1520,7 @@ contains
        end forall
     end if
     ! Output the data.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     ! Check if our output group already exists.
     if (galacticusOutputFile%hasGroup(char(self%outputGroupName))) then
        ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
@@ -1728,6 +1728,6 @@ contains
     end if
     call    conditionalMassFunctionGroup%close         (                                                                                                                                               )    
     call    galacticusOutputFile        %flush         (                                                                                                                                               )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine conditionalMFFinalize

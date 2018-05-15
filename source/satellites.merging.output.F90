@@ -84,7 +84,7 @@ contains
     basic     => node%basic()
     basicHost => host%basic()
     ! Open the group to which satellite mergers should be written.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     mergersGroup=galacticusOutputFile%openGroup("satelliteMergers","Satellite mergers data.")    
     ! Append to the datasets.
     call mergersGroup%writeDataset([node              %index()],"indexSatellite","Index of the satellite."               ,appendTo=.true.)
@@ -95,7 +95,7 @@ contains
     call mergersGroup%writeDataset([basicHost         %mass ()],"massHost"      ,"Mass of the host halo [M☉]."           ,appendTo=.true.)
     ! Close the group.
     call mergersGroup%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     return
   end subroutine Satellite_Merging_Output
 

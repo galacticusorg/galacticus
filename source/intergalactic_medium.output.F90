@@ -116,7 +116,7 @@ contains
              temperature  (i)=intergalacticMediumState_%temperature                (                                    time(i) )
              massFiltering(i)=intergalacticMediumState_%filteringMass              (                                    time(i) )
           end do
-          !$omp critical (HDF5_Access)
+          call hdf5Access%set()
           intergalacticMediumGroup=galacticusOutputFile%openGroup('intergalacticMedium','Intergalactic medium state.')
           call intergalacticMediumGroup%writeDataset  (time           ,'time'         ,'Cosmic time'    ,datasetReturned=dataset)
           call dataset                 %writeAttribute('Gyr'          ,'units'                                                  )
@@ -134,7 +134,7 @@ contains
           call dataset                 %writeAttribute(massSolar      ,'unitsInSI'                                              )
           call dataset                 %close()
           call intergalacticMediumGroup%close()
-          !$omp end critical (HDF5_Access)
+          call hdf5Access%unset()
           ! Deallocate arrays.
           call deallocateArray(time         )       
           call deallocateArray(redshift     )       

@@ -744,7 +744,7 @@ contains
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(self%fileName)) return
     ! Open the data file.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile(char(self%fileName))
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
@@ -826,7 +826,7 @@ contains
     end if
     ! Close the data file.
     call dataFile%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine farahiFileRead
 
@@ -841,7 +841,7 @@ contains
     ! Don't write anything if neither table is initialized.
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
     ! Open the data file.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
@@ -863,7 +863,7 @@ contains
     end if
     ! Close the data file.
     call dataFile%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite
 

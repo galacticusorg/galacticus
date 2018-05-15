@@ -162,7 +162,7 @@ contains
     self%logHaloMassMinimum=log10(haloMassMinimum)
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call massFunctionFile%openFile(char(Galacticus_Input_Path())//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
@@ -211,7 +211,7 @@ contains
        end do
     end if
     call massFunctionFile%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Find the inverse covariance matrix.
     self%covariance       =self%covarianceMatrix
     self%inverseCovariance=self%covariance      %invert()

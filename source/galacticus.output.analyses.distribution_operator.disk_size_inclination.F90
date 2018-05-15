@@ -88,13 +88,13 @@ contains
     call File_Lock_Initialize(lockFileDescriptor)
     fileName=Galacticus_Input_Path()//"/data/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
     if (File_Exists(fileName)) then
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
        call file%openFile(char(fileName),readOnly=.true.)
        call file%readDataset('halfMassRadii',halfMassRadii)
        call file%close()
        call File_Unlock(lockFileDescriptor)
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
        call self%inclinationTable%populate(halfMassRadii)
     else
        ! Tabulate dependence of projected half-light radius on disk inclination angle.
@@ -122,13 +122,13 @@ contains
           call self%inclinationTable%populate(log10(halfLightRadius/halfLightRadiusFaceOn),i)
        end do
        !$omp end parallel do
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
        call file%openFile(char(fileName))
        call file%writeDataset(self%inclinationTable%ys(),'halfMassRadii'    )
        call file%close()
        call File_Unlock(lockFileDescriptor)
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     end if
     ! Reverse the table
     call self%inclinationTable%reverse(self%sizeTable)

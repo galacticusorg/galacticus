@@ -96,11 +96,11 @@ contains
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
        if (File_Exists(char(stellarPopulationSpectraFileName))) then
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call stellarPopulationSpectraFile%openFile     (char(stellarPopulationSpectraFileName),readOnly=.true.)
           call stellarPopulationSpectraFile%readAttribute('fileFormat',fileFormatVersion                        )
           if (fileFormatVersion /= Stellar_Population_Spectra_File_Format_Current()) remakeFile=.true.
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
        else
           remakeFile=.true.
        end if

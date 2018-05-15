@@ -56,10 +56,10 @@ contains
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
 
-    !$omp critical (HDF5_Access)
+    !$ call hdf5Access%set()
     if (self%snapshots%isOpen()) call self%snapshots%close()
     if (self%file     %isOpen()) call self%file     %close()
-    !$omp end critical (HDF5_Access)
+    !$ call hdf5Access%unset()
     call sussingDestroy(self)
     return
   end subroutine sussingHDF5Destructor
@@ -102,7 +102,7 @@ contains
     localOmegaDE    =cosmologyParameters_     %OmegaDarkEnergy(                  )
     localOmegaBaryon=cosmologyParameters_     %OmegaBaryon    (                  )
     localSigma8     =cosmologicalMassVariance_%sigma8         (                  )
-    !$omp critical (HDF5_Access)
+    !$ call hdf5Access%set()
     ! Open the HDF5 file.
     call self%file%openFile(char(fileName),overWrite=.false.)
     ! Open the snapshots group.
@@ -124,7 +124,7 @@ contains
     ! Read box size.
     call self%file%readAttribute('BoxsizeMpc' ,self%boxLength ,allowPseudoScalar=.true.)
     self%boxLengthUnits=importerUnits(.true.,megaParsec,-1,0)
-    !$omp end critical (HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Verify cosmological parameters.
     if (Values_Differ(fileOmegaBaryon,localOmegaBaryon,absTol=0.0001d0)) then
        message='OmegaBaryon in merger tree file ['

@@ -198,7 +198,7 @@ contains
     integer(kind_int8                 )                              :: nodeCountCurrent                , singleProgenitorCountCurrent
     integer(kind_int8                 ), dimension(:,:), allocatable :: nonPrimaryProgenitorCountCurrent
     
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     ! Output information content information.
     profilerGroup=galacticusOutputFile%openGroup('treeProfiler','Profiling information on merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
     if (profilerGroup%hasAttribute('nodeCount'                )) then
@@ -219,6 +219,6 @@ contains
     call profilerGroup%writeDataset  (self%mass                     ,'nonPrimaryProgenitorMass' )
     call profilerGroup%writeDataset  (self%time                     ,'nonPrimaryProgenitorTime' )
     call profilerGroup%close         (                                                          )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine profilerFinalize

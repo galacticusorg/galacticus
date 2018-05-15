@@ -91,9 +91,9 @@ contains
           !#   <type>boolean</type>
           !# </inputParameter>
           ! Create an output group if necessary.
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           if (mergerTreeStructureOutput) structureGroup=galacticusOutputFile%openGroup('mergerTreeStructures','Pre-evolution structures of merger trees.')
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
           ! Flag that module is initialized.
           structureOutputModuleInitialized=.true.
        end if
@@ -121,9 +121,9 @@ contains
           groupName   ='mergerTree'
           groupName   =groupName//currentTree%index
           groupComment='Pre-evolution structure of merger tree.'
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           treeGroup   =structureGroup%openGroup(char(groupName),'Pre-evolution structure of merger tree.')
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Extract node indices and output to file.
           nodeCount=0
@@ -133,9 +133,9 @@ contains
              nodeIndex(nodeCount)=node%index()
              node => node%walkTree()
           end do
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Extract child node indices and output to file.
           nodeCount=0
@@ -145,9 +145,9 @@ contains
              nodeIndex(nodeCount)=node%firstChild%index()
              node => node%walkTree()
           end do
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'childIndex','Index of the child node.')
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Extract parent node indices and output to file.
           nodeCount=0
@@ -157,9 +157,9 @@ contains
              nodeIndex(nodeCount)=node%parent%index()
              node => node%walkTree()
           end do
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'parentIndex','Index of the parent node.')
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Extract sibling node indices and output to file.
           nodeCount=0
@@ -169,9 +169,9 @@ contains
              nodeIndex(nodeCount)=node%sibling%index()
              node => node%walkTree()
           end do
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'siblingIndex','Index of the sibling node.')
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Extract node masses and output to file.
           nodeCount=0
@@ -182,11 +182,11 @@ contains
              nodeProperty(nodeCount)=basic%mass()
              node => node%walkTree()
           end do
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(massSolar,"unitsInSI")
           call nodeDataset%close()
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Extract node times and output to file.
           nodeCount=0
@@ -197,11 +197,11 @@ contains
              nodeProperty(nodeCount)=basic%time()
              node => node%walkTree()
           end do
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(gigaYear,"unitsInSI")
           call nodeDataset%close()
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Check whether output of virial quantities is required.
           if (mergerTreeStructureOutputVirialQuantities) then
@@ -214,11 +214,11 @@ contains
                 nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(node)
                 node => node%walkTree()
              end do
-             !$omp critical(HDF5_Access)
+             !$ call hdf5Access%set()
              call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
              call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
              call nodeDataset%close()
-             !$omp end critical(HDF5_Access)
+             !$ call hdf5Access%unset()
 
              ! Extract node virial velocity and output to file.
              nodeCount=0
@@ -228,15 +228,15 @@ contains
                 nodeProperty(nodeCount)=darkMatterHaloScale_%virialVelocity(node)
                 node => node%walkTree()
              end do
-             !$omp critical(HDF5_Access)
+             !$ call hdf5Access%set()
              call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)
              call nodeDataset%writeAttribute(kilo,"unitsInSI")
              call nodeDataset%close()
-             !$omp end critical(HDF5_Access)
+             !$ call hdf5Access%unset()
 
           end if
 
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           ! Call any subroutines that want to attach data to the merger tree output.
           !# <include directive="mergerTreeStructureOutputTask" type="functionCall" functionType="void">
           !#  <functionArgs>currentTree%baseNode,nodeProperty,treeGroup</functionArgs>
@@ -245,7 +245,7 @@ contains
 
           ! Close output group.
           call treeGroup%close()
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
 
           ! Deallocate storage space.
           call deallocateArray(nodeIndex   )

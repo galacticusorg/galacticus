@@ -217,7 +217,7 @@ contains
     case default
        call Galacticus_Error_Report('unknown mass function type'//{introspection:location})
     end select
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call massFunctionFile %openFile(trim(fileName),readOnly=.true.)
     analysisGroup    =massFunctionFile%openGroup('analysis'                                               )
     massFunctionGroup=analysisGroup   %openGroup(trim(typeLabel)//'MassFunctionZ'//trim(adjustl(redshiftLabel)))
@@ -227,7 +227,7 @@ contains
     call massFunctionGroup%close()
     call analysisGroup    %close()
     call massFunctionFile %close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Find a reduced mass function excluding any empty bins.
     massCountReduced=0
     do i=1,size(massOriginal)

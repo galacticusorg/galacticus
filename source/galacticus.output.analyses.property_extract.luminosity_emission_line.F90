@@ -132,7 +132,7 @@ contains
     !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient"/>
 
     ! Read the table of emission line luminosities.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call emissionLinesFile%openFile(char(Galacticus_Input_Path())//"data/hiiRegions/emissionLines.hdf5",readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
@@ -168,7 +168,7 @@ contains
     end do
     call lines            %close      (                                                                 )
     call emissionLinesFile%close      (                                                                 )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Convert parameters and luminosities to log form.
     self%metallicity                 =log10(self%metallicity                 )
     self%densityHydrogen             =log10(self%densityHydrogen             )

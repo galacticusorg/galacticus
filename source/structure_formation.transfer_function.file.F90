@@ -340,7 +340,7 @@ contains
        !$omp end critical (FoX_DOM_Access)
     else
        ! Open and read the HDF5 data file.
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call fileObject%openFile(fileName,readOnly=.true.)
        ! Check that the file has the correct format version number.
        call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
@@ -383,7 +383,7 @@ contains
        call fileObject%readDataset('transferFunction',transfer  )
        ! Close the file.
        call fileObject%close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     end if
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()

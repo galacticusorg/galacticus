@@ -1362,7 +1362,7 @@ contains
     type            (hdf5Object               )                              :: augmentStatisticsGroup
 
     ! Output the data.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     ! Check if our output group already exists.
     if (galacticusOutputFile%hasGroup('augmentStatistics')) then
        ! Our group does exist. Read existing histogram, add them to our own, then write back to file.
@@ -1382,6 +1382,6 @@ contains
     call augmentStatisticsGroup%writeDataset(self%retryHistogram,"retryHistogram","Retry histogram []")
     call augmentStatisticsGroup%writeDataset(self%trialCount    ,"trialCount"    ,"Trial counts []"   )
     call augmentStatisticsGroup%close       (                                                         )    
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine augmentFinalize

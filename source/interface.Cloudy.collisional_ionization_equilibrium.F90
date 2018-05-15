@@ -70,28 +70,28 @@ contains
     ! Determine if we need to compute cooling functions.
     computeCoolingFunctions=.false.
     if (File_Exists(fileNameCoolingFunction)) then
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call outputFile%openFile(char(fileNameCoolingFunction),readOnly=.true.)
        if (outputFile%hasAttribute('fileFormat')) then
           call outputFile%readAttribute('fileFormat',fileFormatFile)
           if (fileFormatFile /= versionFileFormatCurrent) computeCoolingFunctions=.true.
        end if
        call outputFile%close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     else
        computeCoolingFunctions=.true.
     end if
     ! Determine if we need to compute chemical states.
     computeChemicalStates=.false.
     if (File_Exists(fileNameChemicalState)) then
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call outputFile%openFile(char(fileNameChemicalState),readOnly=.true.)
        if (outputFile%hasAttribute('fileFormat')) then
           call outputFile%readAttribute('fileFormat',fileFormatFile)
           if (fileFormatFile /= versionFileFormatCurrent) computeChemicalStates=.true.
        end if
        call outputFile%close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     else
        computeChemicalStates=.true.
     end if
@@ -179,7 +179,7 @@ contains
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Output cooling functions to an HDF5 file.
        if (computeCoolingFunctions) then
-          !$omp critical (HDF5_Access)
+          call hdf5Access%set()
           call outputFile%openFile      (char(fileNameCoolingFunction))
           ! Store data.
           call outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
@@ -198,11 +198,11 @@ contains
           call outputFile%writeAttribute("CIE cooling functions computed by Cloudy "//cloudyVersion,'description'                            )
           call outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
           call outputFile%close         (                                                                                                    )
-          !$omp end critical (HDF5_Access)
+          call hdf5Access%unset()
        end if
        ! Output chemical states to an HDF5 file.
        if (computeChemicalStates) then
-          !$omp critical (HDF5_Access)
+          call hdf5Access%set()
           call outputFile%openFile      (char(fileNameChemicalState))
           ! Store data.
           call outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
@@ -225,7 +225,7 @@ contains
           call outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
           call outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
           call outputFile%close         (                                                                                                    )
-          !$omp end critical (HDF5_Access)
+          call hdf5Access%unset()
        end if
        call File_Unlock(fileLockChemicalState  )    
        call File_Unlock(fileLockCoolingFunction)    

@@ -337,7 +337,7 @@ contains
                       select case (trim(correlationFunctionLabels(j)))
                       case ('sdssClusteringZ0.07')
                          ! Read data for the Hearin et al. (2013) projected correlation function.
-                         !$omp critical(HDF5_Access)
+                         !$ call hdf5Access%set()
                          call dataFile%openFile(char(Galacticus_Input_Path()//'/data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.hdf5'),readOnly=.true.)
                          ! Extract parameters.
                          parameters =dataFile%openGroup('Parameters')
@@ -362,7 +362,7 @@ contains
                          call dataFile%readDataset('integralConstraint',correlationFunctions(currentAnalysis)%integralConstraint)
                          ! Done.
                          call dataFile%close()
-                         !$omp end critical(HDF5_Access)                      
+                         !$ call hdf5Access%unset()                      
                          ! Create the observed cosmology.
                          allocate(cosmologyParametersObserved)
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
@@ -1233,7 +1233,7 @@ contains
        ! Apply the integral constraint.
        binnedProjectedCorrelation=binnedProjectedCorrelation/correlationFunctions(k)%integralConstraint
        ! Output the correlation function.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        analysisGroup           =galacticusOutputFile%openGroup('analysis','Model analysis')
        correlationFunctionGroup=analysisGroup       %openGroup(trim(correlationFunctions(k)%descriptor%label),trim(correlationFunctions(k)%descriptor%comment))
        call correlationFunctionGroup%writeDataset  (correlationFunctions(k)%separation  ,'separation'                   ,'Separation'                      ,datasetReturned=dataset)
@@ -1247,7 +1247,7 @@ contains
        call dataset             %close         (                                                                                                                                   )
        call correlationFunctionGroup%close         (                                                                                                                               )
        call analysisGroup           %close         (                                                                                                                               )
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        call deallocateArray(binnedProjectedCorrelation          )
        call deallocateArray(binnedProjectedCorrelationCovariance)
     end do

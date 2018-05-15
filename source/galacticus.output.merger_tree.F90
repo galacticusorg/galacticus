@@ -312,7 +312,7 @@ contains
              if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
              if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call  Double_Buffer_Dump(iOutput)
              ! Compute the start and length of regions to reference.
-             !$omp critical(HDF5_Access)
+             !$ call hdf5Access%set()
              referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)
              referenceStart (1)=outputGroups(iOutput)%length
              ! Create references to the datasets if requested.
@@ -344,7 +344,7 @@ contains
              call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
              ! Increment the number of nodes written to this output group.
              outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
-             !$omp end critical(HDF5_Access)
+             !$ call hdf5Access%unset()
           end if
           ! Skip to the next tree.
           currentTree => currentTree%nextTree
@@ -353,7 +353,7 @@ contains
        if (present(isLastOutput)) then
           if (isLastOutput) then
              ! Close any open output groups.
-             !$omp critical(HDF5_Access)
+             !$ call hdf5Access%set()
              do iGroup=1,outputGroupsCount
                 if (outputGroups(iGroup)%opened) then
                    if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
@@ -361,7 +361,7 @@ contains
                 end if
              end do
              if (outputsGroup%isOpen()) call outputsGroup%close()
-             !$omp end critical(HDF5_Access)
+             !$ call hdf5Access%unset()
           end if
        end if
        !$omp end critical(Merger_Tree_Output)
@@ -376,7 +376,7 @@ contains
     integer           :: i
 
     ! Close any open output groups.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     do iGroup=1,outputGroupsCount
        if (outputGroups(iGroup)%opened) then
           if (allocated(outputGroups(iGroup)%integerDataset)) then
@@ -394,7 +394,7 @@ contains
        end if
     end do
     if (outputsGroup%isOpen()) call outputsGroup%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Finalize analyses.
     if (allocated(outputAnalysisList)) then
        do i=1,size(outputAnalysisList)
@@ -442,7 +442,7 @@ contains
 
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        do iProperty=1,integerPropertyCount
           if (.not.outputGroups(iOutput)%                          integerDataset         (iProperty)%isOpen())             &
                &   outputGroups(iOutput)%                          integerDataset         (iProperty)=                      &
@@ -461,7 +461,7 @@ contains
        integerPropertiesWritten=integerPropertiesWritten+integerBufferCount
        integerBufferCount=0
        outputGroups(iOutput)%integerAttributesWritten=.true.
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end if
     return
   end subroutine Integer_Buffer_Dump
@@ -507,7 +507,7 @@ contains
 
     ! Write double data from the buffer.
     if (doublePropertyCount > 0) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        do iProperty=1,doublePropertyCount
           if (.not.outputGroups(iOutput)%                           doubleDataset         (iProperty)%isOpen())             &
                &   outputGroups(iOutput)%                           doubleDataset         (iProperty)=                      &
@@ -526,7 +526,7 @@ contains
        doublePropertiesWritten=doublePropertiesWritten+doubleBufferCount
        doubleBufferCount=0
        outputGroups(iOutput)%doubleAttributesWritten=.true.
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end if
     return
   end subroutine Double_Buffer_Dump
@@ -626,7 +626,7 @@ contains
     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
     type            (varying_string         )                              :: commentText              , groupName
 
-    !$omp critical (HDF5_Access)
+    !$ call hdf5Access%set()
     ! Ensure group ID space is large enough.
     if (iOutput > outputGroupsCount) then
        if (allocated(outputGroups)) then
@@ -656,7 +656,7 @@ contains
        outputsGroup=galacticusOutputFile%openGroup('Outputs','Contains all outputs from Galacticus.')
        outputsGroupOpened=.true.
     end if
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
 
     ! Create the group if it has not been created.
     if (.not.outputGroups(iOutput)%opened) then
@@ -668,7 +668,7 @@ contains
        commentText=commentText//iOutput
 
        ! Create a group for the tree.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        !@ <outputType>
        !@   <name>nodeData</name>
        !@   <description>A representation of the state of all nodes in the simulation at a given time. It consists of numerous datasets which gives the properties of nodes in all merger trees at that time.</description>
@@ -685,7 +685,7 @@ contains
        call outputGroups(iOutput)%hdf5Group%writeAttribute(time                                     ,'outputTime'           )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(gigaYear                                 ,'timeUnitInSI'         )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(cosmologyFunctions_%expansionFactor(time),'outputExpansionFactor')
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
 
        ! Establish all other properties.
        !# <include directive="outputGroupOutputTask" type="functionCall" functionType="void">

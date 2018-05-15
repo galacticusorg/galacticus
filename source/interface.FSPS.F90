@@ -169,7 +169,7 @@ contains
     ! Convert ages from loagrithmic form.
     age=10.0d0**(age-9.0d0)
     ! Write output file.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     call spectraFile%openFile(char(spectraFileName))
     ! Add metadata.
     call spectraFile%writeAttribute('Galacticus'                                                                           ,'createdBy'  )
@@ -203,7 +203,7 @@ contains
     call dataset    %writeAttribute(luminositySolar      ,'unitsInSI'                        )
     call dataset    %close         (                                                         )   
     call spectraFile%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
   return
   end subroutine Interface_FSPS_SSPs_Tabulate
   

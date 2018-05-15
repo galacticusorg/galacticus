@@ -146,9 +146,9 @@ contains
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call self%file%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine galacticusDestructor
 
@@ -186,7 +186,7 @@ contains
     localOmegaDE    =cosmologyParameters_     %OmegaDarkEnergy(                  )
     localOmegaBaryon=cosmologyParameters_     %OmegaBaryon    (                  )
     localSigma8     =cosmologicalMassVariance_%sigma8         (                  )
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     ! Open the file.
     call self%file%openFile(char(fileName),readOnly=.true.)
     ! Get the file format version number.
@@ -368,7 +368,7 @@ contains
        end select
        call spinDataset%close()
     end if
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine galacticusOpen
 
@@ -377,11 +377,11 @@ contains
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
     
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (self%particles  %isOpen()) call self%particles  %close()
     if (self%forestHalos%isOpen()) call self%forestHalos%close()
     if (self%file       %isOpen()) call self%file       %close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine galacticusClose
 
@@ -402,13 +402,13 @@ contains
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
     if (.not.self%hasSubhalos%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        if (self%forestHalos%hasAttribute("treesHaveSubhalos")) then
           call self%forestHalos%readAttribute("treesHaveSubhalos",self%hasSubhalos%value,allowPseudoScalar=.true.)
        else
           self%hasSubhalos%value=booleanUnknown
        end if
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        self%hasSubhalos%isSet=.true.
     end if
     galacticusTreesHaveSubhalos=self%hasSubhalos%value
@@ -423,14 +423,14 @@ contains
     integer                                              :: haloMassesIncludeSubhalosInteger
 
     if (.not.self%massesAreInclusive%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        if (self%forestHalos%hasAttribute("haloMassesIncludeSubhalos")) then
           call self%forestHalos%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger,allowPseudoScalar=.true.)
           self%massesAreInclusive%value=(haloMassesIncludeSubhalosInteger == 1)
        else
           call Galacticus_Error_Report('required attribute "haloMassesIncludeSubhalos" not present'//{introspection:location})
        end if
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        self%massesAreInclusive%isSet=.true.
     end if
     galacticusMassesIncludeSubhalos=self%massesAreInclusive%value
@@ -446,13 +446,13 @@ contains
     logical                                              :: attributeExists
 
     if (.not.self%angularMomentaAreInclusive%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        attributeExists=self%forestHalos%hasAttribute("haloAngularMomentaIncludeSubhalos")
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        if (attributeExists) then
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call self%forestHalos%readAttribute("haloAngularMomentaIncludeSubhalos",haloAngularMomentaIncludeSubhalosInteger,allowPseudoScalar=.true.)
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
           self%angularMomentaAreInclusive%value=(haloAngularMomentaIncludeSubhalosInteger == 1)
        else
           self%angularMomentaAreInclusive%value=self%massesIncludeSubhalos()
@@ -470,13 +470,13 @@ contains
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
     if (.not.self%areSelfContained%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        if (self%forestHalos%hasAttribute(trim(self%forestContainmentAttributeName))) then
           call self%forestHalos%readAttribute(trim(self%forestContainmentAttributeName),self%areSelfContained%value,allowPseudoScalar=.true.)
        else
           self%areSelfContained%value=booleanUnknown
        end if
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        self%areSelfContained%isSet=.true.
     end if
     galacticusTreesAreSelfContained=self%areSelfContained%value
@@ -490,13 +490,13 @@ contains
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
     if (.not.self%includesHubbleFlow%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        if (self%forestHalos%hasAttribute("velocitiesIncludeHubbleFlow")) then
           call self%forestHalos%readAttribute("velocitiesIncludeHubbleFlow",self%includesHubbleFlow%value,allowPseudoScalar=.true.)
        else
           self%includesHubbleFlow%value=booleanUnknown
        end if
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        self%includesHubbleFlow%isSet=.true.
     end if
     galacticusVelocitiesIncludeHubbleFlow=self%includesHubbleFlow%value
@@ -510,13 +510,13 @@ contains
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
 
     if (.not.self%periodicPositions%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        if (self%forestHalos%hasAttribute("positionsArePeriodic")) then
           call self%forestHalos%readAttribute("positionsArePeriodic",self%periodicPositions%value,allowPseudoScalar=.true.)
        else
           self%periodicPositions%value=booleanUnknown
        end if
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        self%periodicPositions%isSet=.true.
     end if
     galacticusPositionsArePeriodic=self%periodicPositions%value
@@ -535,7 +535,7 @@ contains
     type            (hdf5Object                  )                          :: simulationGroup
 
     if (.not.self%length%isSet) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        if (self%file%hasGroup("simulation")) then
           simulationGroup=self%file%openGroup("simulation")
           if (simulationGroup%hasAttribute("boxSize")) then
@@ -549,7 +549,7 @@ contains
        else
           self%lengthStatus%value=booleanUnknown
        end if
-       !$omp end critical(HDF5_Access)   
+       !$ call hdf5Access%unset()   
        self%length      %isSet=.true.
        self%lengthStatus%isSet=.true.
     end if
@@ -624,7 +624,7 @@ contains
     logical                                                                   :: hasForestWeights
     
     if (self%forestIndicesRead) return
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (.not.self%file%hasGroup(trim(self%forestIndexGroupName))) &
          & call Galacticus_Error_Report('merger tree file must contain the treeIndex group'//{introspection:location})
     treeIndexGroup=self%file%openGroup(trim(self%forestIndexGroupName))
@@ -632,14 +632,14 @@ contains
     call treeIndexGroup%readDataset("numberOfNodes"                  ,self%nodeCounts   )
     call treeIndexGroup%readDataset(trim(self%forestIndexDatasetName),self%forestIndices)
     hasForestWeights=treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     if (self%reweightTrees) then
        cosmologyFunctions_ => cosmologyFunctions()
        haloMassFunction_   => haloMassFunction  ()
        allocate(self%weights(size(self%firstNodes)))
        allocate(treeMass    (size(self%firstNodes)))
        allocate(treeTime    (size(self%firstNodes)))
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        do i=1,size(self%firstNodes)
           firstNodeIndex(1)=self%firstNodes(i)+1
           nodeCount     (1)=self%nodeCounts(i)
@@ -677,7 +677,7 @@ contains
           deallocate(nodeMass       )
           deallocate(nodeTime       )
        end do
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        ! Sort the trees into mass order.
        sortOrder=Sort_Index_Do(treeMass)
        ! Abort if there is only one tree.
@@ -699,19 +699,19 @@ contains
           ! Get the integral of the halo mass function over this range.
           self%weights(sortOrder(i))=haloMassFunction_%integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
        end do
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        call treeIndexGroup%readDatasetStatic(trim(self%forestWeightDatasetName),self%weights)
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        deallocate(treeMass)
        deallocate(treeTime)
     else if (hasForestWeights) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        call treeIndexGroup%readDataset(trim(self%forestWeightDatasetName),self%weights)
-       !$omp endcritical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end if
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call treeIndexGroup%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     self%forestsCount=size(self%forestIndices)
     ! Reset first node indices to Fortran array standard.
     self%firstNodes=self%firstNodes+1
@@ -761,10 +761,10 @@ contains
     logical                              , intent(in   ) :: positions, velocities
 
     galacticusPositionsAvailable=.true.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (positions .and..not.self%forestHalos%hasDataset("position")) galacticusPositionsAvailable=.false.
     if (velocities.and..not.self%forestHalos%hasDataset("velocity")) galacticusPositionsAvailable=.false.
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end function galacticusPositionsAvailable
 
@@ -773,12 +773,12 @@ contains
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     galacticusScaleRadiiAvailable=                        &
          &  self%forestHalos%hasDataset("halfMassRadius") &
          & .or.                                           &
          &  self%forestHalos%hasDataset("position"      )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end function galacticusScaleRadiiAvailable
 
@@ -787,9 +787,9 @@ contains
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
     
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     galacticusParticleCountAvailable=self%forestHalos%hasDataset("particleCount")
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end function galacticusParticleCountAvailable
 
@@ -798,9 +798,9 @@ contains
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     galacticusVelocityMaximumAvailable=self%forestHalos%hasDataset("velocityMaximum")
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end function galacticusVelocityMaximumAvailable
 
@@ -809,9 +809,9 @@ contains
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     galacticusVelocityDispersionAvailable=self%forestHalos%hasDataset("velocityDispersion")
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end function galacticusVelocityDispersionAvailable
 
@@ -867,11 +867,11 @@ contains
     select type (node)
     type is (nodeDataGalacticus)
        ! Read epoch, position, and velocity data.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        call self%particles%readDatasetStatic(char(self%particleEpochDatasetName),time    ,[            node%particleIndexStart+1],[            node%particleIndexCount])
        call self%particles%readDatasetStatic("position"                         ,position,[1_kind_int8,node%particleIndexStart+1],[3_kind_int8,node%particleIndexCount])
        call self%particles%readDatasetStatic("velocity"                         ,velocity,[1_kind_int8,node%particleIndexStart+1],[3_kind_int8,node%particleIndexCount])
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        ! Convert epochs into times.
        cosmologyFunctions_ => cosmologyFunctions()
        select case (self%particleEpochType)
@@ -974,7 +974,7 @@ contains
        call Memory_Usage_Record(sizeof(nodes))
     end select
     !# </workaround>
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (useNodeSubset) then
        ! nodeIndex, hostIndex, parentNode
        call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex                               ,readSelection=nodeSubsetOffset)
@@ -1037,12 +1037,12 @@ contains
     else
        call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount                               )
     end if
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! If only structure is requested we are done.
     if (present(structureOnly).and.structureOnly) return
     select type (nodes)
     type is (nodeDataGalacticus)
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        ! Scale or half-mass radius.
        if (present(requireScaleRadii).and.requireScaleRadii) then
           if (self%forestHalos%hasDataset("scaleRadius")) then
@@ -1175,7 +1175,7 @@ contains
              end if
           end if
        end if
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        ! Unit conversion.
        if     (                                                                              &
             &   present(requirePositions)                                                    &

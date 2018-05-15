@@ -118,7 +118,7 @@ contains
     !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName"/>
 
     ! Read the projected correlation function file.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call file%openFile(char(Galacticus_Input_Path())//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
@@ -132,7 +132,7 @@ contains
        self%integralConstraint=1.0d0
     end if
     call file%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Allocate storage for the model projected correlation function.
     call allocateArray(self%projectedCorrelationFunction,[size(self%separation),size(self%massMinimum)])
     ! Find the inverse covariance matrix.

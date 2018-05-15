@@ -1563,7 +1563,7 @@ contains
     fileExists=appendActual.and.File_Exists(outputFileName)
 
     ! Open the output file.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write a format version attribute.
@@ -1788,7 +1788,7 @@ contains
 
     ! Close the output file.
     call outputFile%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
 
     return
   end subroutine Merger_Tree_Data_Structure_Export_Galacticus
@@ -1838,7 +1838,7 @@ contains
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report('descendent indices are required for this format'//{introspection:location})
 
     ! Open the output file.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write the IRATE version.
@@ -2071,7 +2071,7 @@ contains
 
     ! Close the output file.
     call outputFile%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
 
     return
   end subroutine Merger_Tree_Data_Structure_Export_IRATE

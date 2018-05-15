@@ -404,7 +404,7 @@
        newEvent%task => Intergalactic_Medium_State_Internal_Update
     else
        ! Output the results to file.
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        igmGroup=galacticusOutputFile%openGroup('igmProperties', 'Properties of the intergalactic medium.')
        call igmGroup  %writeDataset  (redshift            ,'redshift'        ,'Redshift [].'                                  ,datasetReturned=igmDataset)
        call igmDataset%writeAttribute(0.0d0               ,'unitsInSI'                                                                                   )
@@ -437,7 +437,7 @@
        call igmDataset%writeAttribute(1.0d0               ,'unitsInSI'                                                                                   )
        call igmDataset%close()
        call igmGroup  %close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
      end if
      ! Store the past history to the default IGM state class.
      igmState_ => intergalacticMediumState()
