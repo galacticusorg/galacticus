@@ -154,11 +154,11 @@ contains
     type            (hdf5Object                                           )                                :: dataFile
 
     ! Read masses at which fraction was measured.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile   (char(Galacticus_Input_Path())//"data/observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
     call dataFile%readDataset("mass"                                                                                  ,         masses)
     call dataFile%close      (                                                                                                        )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Construct survey geometry.
     surveyGeometry_=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.

@@ -365,7 +365,7 @@ contains
                       select case (trim(blackHoleMassDistributionLabels(j)))
                       case ('blackHoleDistributionKormendyHo')
                          ! Kormendy & Ho black hole mass compilation.
-                         !$omp critical(HDF5_Access)
+                         !$ call hdf5Access%set()
                          call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5",readOnly=.true.)
                          ! Read masses.
                          call dataFile%readDataset("massBulge",masses)
@@ -510,7 +510,7 @@ contains
                          call parametersGroup%close        (                                     )
                          ! Finished reading data.
                          call dataFile%close()
-                         !$omp end critical(HDF5_Access)
+                         !$ call hdf5Access%unset()
                          ! Create the observed cosmology.
                          allocate(cosmologyParametersObserved)
                          cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
@@ -842,7 +842,7 @@ contains
           end if
        end do
        ! Output the blackHoleMass distribution.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        analysisGroup                 =galacticusOutputFile%openGroup('analysis','Model analysis')
        blackHoleMassDistributionGroup=analysisGroup       %openGroup(trim(blackHoleDistributions(k)%descriptor%label),trim(blackHoleDistributions(k)%descriptor%comment))
        call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%masses                             ,'mass'                               ,'Mass'                                   ,datasetReturned=dataset)
@@ -855,7 +855,7 @@ contains
        call blackHoleMassDistributionGroup%writeDataset  (blackHoleDistributions(k)%blackHoleMassDistributionCovariance,'blackHoleMassDistributionCovariance','Black hole mass distribution covariance'                        )
        call blackHoleMassDistributionGroup%close()
        call analysisGroup                 %close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end do
     return
   end subroutine Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins_Output

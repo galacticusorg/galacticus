@@ -651,9 +651,9 @@ contains
     nullify(self%rootNode  )
     nullify(self%parameters)
     nullify(self%parent    )
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) call self%outputParameters%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine inputParametersFinalize
   
@@ -931,11 +931,11 @@ contains
     class(inputParameters), intent(inout) :: self
     type (hdf5Object     ), intent(inout) :: outputGroup
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) call self%outputParameters%close()
     self%outputParameters      =outputGroup%openGroup('Parameters')
     self%outputParametersCopied=.false.
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine inputParametersParametersGroupOpen
 
@@ -945,10 +945,10 @@ contains
     class(inputParameters), intent(inout) :: self
     class(inputParameters), intent(in   ) :: inputParameters_
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     self%outputParameters      =inputParameters_%outputParameters
     self%outputParametersCopied=.true.
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine inputParametersParametersGroupCopy
 
@@ -1146,9 +1146,9 @@ contains
     end if
     inputParametersSubParameters%parent => self
     inputParametersSubParameters%global =  self%global
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) inputParametersSubParameters%outputParameters=self%outputParameters%openGroup(trim(parameterName))
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end function inputParametersSubParameters
 
@@ -1173,9 +1173,9 @@ contains
        parameterValue=defaultValue
        ! Write the parameter file to an HDF5 object.
        if (self%outputParameters%isOpen().and.writeOutput_) then
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
          if (.not.self%outputParameters%hasAttribute(parameterName)) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},parameterName)
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
        end if
     else if (present(errorStatus )) then
        errorStatus   =inputParameterErrorStatusNotPresent
@@ -1252,9 +1252,9 @@ contains
              {Type¦match¦^(Character|VarStr)Rank1$¦call String_Split_Words(parameterValue,char(parameterText))¦}
              ! Write the parameter file to an HDF5 object.
              if (self%outputParameters%isOpen().and.writeOutput_) then
-                !$omp critical(HDF5_Access)
+                !$ call hdf5Access%set()
                 if (.not.self%outputParameters%hasAttribute(getNodeName(parameterNode%content))) call self%outputParameters%writeAttribute({Type¦outputConverter¦parameterValue},getNodeName(parameterNode%content))
-                !$omp end critical(HDF5_Access)
+                !$ call hdf5Access%unset()
              end if
           end if
        end if

@@ -112,7 +112,7 @@ contains
     if (distributionNumber < 1 .or. distributionNumber > 16) call Galacticus_Error_Report('distributionNumber ∈ [1..16] is required'//{introspection:location})
     ! Construct colors matched to those used by Baldry et al. (2004). Also read magnitude range.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile    %openFile     (char(Galacticus_Input_Path()//'data/observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.          )
     distribution=dataFile%openGroup(distributionName)
     call distribution%readDataset  (                              'color'                                                            ,         colors          )
@@ -120,7 +120,7 @@ contains
     call distribution%readAttribute(                              'magnitudeMaximum'                                                 ,         magnitudeMaximum)
     call distribution%close        (                                                                                                                           )
     call dataFile    %close        (                                                                                                                           )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     self %binCount=size(colors)
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)

@@ -136,7 +136,7 @@ contains
     ! Return if no major mergers occurred.
     if (.not.allocated(majorMergerTimes).or.size(majorMergerTimes) == 0) return
     ! Open the output group.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     majorMergersGroup=galacticusOutputFile%openGroup("majorMergers","Major merger times.")
     groupName="Output"
     groupName=groupName//iOutput
@@ -150,7 +150,7 @@ contains
     call treeGroup        %close()
     call outputGroup      %close()
     call majorMergersGroup%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     return
   end subroutine Node_Component_Merging_Statistics_Major_Output
   

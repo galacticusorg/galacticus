@@ -646,7 +646,7 @@ contains
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
 
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     ! Parse the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityDebug)
     call chemicalStateFile%openFile(fileName,readOnly=.true.)
@@ -715,7 +715,7 @@ contains
     ! Close the file.
     call chemicalStateFile%close()
     call Galacticus_Display_Unindent('done',verbosityDebug)
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)

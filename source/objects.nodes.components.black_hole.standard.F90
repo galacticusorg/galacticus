@@ -936,7 +936,7 @@ contains
     basic => node%basic()
 
     ! Open the group to which black hole mergers should be written.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
     call mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
@@ -945,7 +945,7 @@ contains
     call mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
     ! Close the group.
     call mergersGroup%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 
@@ -984,12 +984,12 @@ contains
        ! Get a count of the number of black holes present.
        blackHoleCount=node%blackHoleCount()
        ! Open the output group.
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        blackHolesGroup=galacticusOutputFile%openGroup("blackHole","Black hole data.")
        groupName="Output"
        groupName=groupName//iOutput
        outputGroup=blackHolesGroup%openGroup(char(groupName),"Properties of black holes for all trees at each output.")
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
        ! Allocate array to store profile.
        call allocateArray(radius             ,[blackHoleCount])
        call allocateArray(spin               ,[blackHoleCount])
@@ -1023,7 +1023,7 @@ contains
           end if
        end do
        ! Write dataset to the group, first the arrays containing all data.
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call outputGroup%writeDataset(mass,               "mass"               ,"The black hole masses.",                appendTo=.true.)
        call outputGroup%writeDataset(spin,               "spin"               ,"The black hole spins.",                 appendTo=.true.)
        call outputGroup%writeDataset(radius,             "radius"             ,"The black hole radial positions.",      appendTo=.true.)
@@ -1044,7 +1044,7 @@ contains
        call deallocateArray(mergerTreeIndex    )
        call outputGroup    %close()
        call blackHolesGroup%close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Properties

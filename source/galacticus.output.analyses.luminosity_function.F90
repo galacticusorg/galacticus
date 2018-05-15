@@ -137,11 +137,11 @@ contains
     double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
     type            (hdf5Object                             )                             :: dataFile
     
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile   (fileName           ,readOnly=.true.   )
     call dataFile%readDataset('magnitudeAbsolute',magnitudesAbsolute)
     call dataFile%close      (                                      )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Construct the object.
     self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand)
     return

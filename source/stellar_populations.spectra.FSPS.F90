@@ -119,11 +119,11 @@ contains
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
        if (File_Exists(char(self%fileName(imfIndex)))) then
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call spectraFile%openFile     (char(self%fileName(imfIndex)),readOnly         =.true.)
           call spectraFile%readAttribute('fileFormat'                 ,fileFormatVersion       )
           if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
        else
           remakeFile=.true.
        end if

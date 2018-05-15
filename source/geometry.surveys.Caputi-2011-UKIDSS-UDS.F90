@@ -221,13 +221,13 @@ contains
        if (.not.File_Exists(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call surveyGeometryRandomsFile%openFile(char(Galacticus_Input_Path()//&
          &'constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)
     call surveyGeometryRandomsFile%readDataset('phi'  ,self%randomPhi  )
     call surveyGeometryRandomsFile%close()
-    !$omp end critical(HDF5_Access)    
+    !$ call hdf5Access%unset()    
     return
   end subroutine caputi2011UKIDSSUDSRandomsInitialize

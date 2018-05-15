@@ -333,14 +333,14 @@ contains
           ! Check if a precomputed file exists.
           if (File_Exists(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
              ! Read the results from file.
-             !$omp critical(HDF5_Access)
+             !$ call hdf5Access%set()
              call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
              call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
              call parametersFile%readDataset(             "NKappa",tableNKappa             )
              call parametersFile%readDataset(             "AKappa",tableAKappa             )
              call parametersFile%readDataset(         "omegaKappa",tableOmegaKappa         )
              call parametersFile%close      (                                              )
-             !$omp end critical(HDF5_Access)
+             !$ call hdf5Access%unset()
           else
              ! Create a root-finder to solve the parameters.
              call finder%rootFunction(convergencePdfParameterSolver)
@@ -423,14 +423,14 @@ contains
                      & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
              end do
              ! Store the results to file.
-             !$omp critical(HDF5_Access)
+             !$ call hdf5Access%set()
              call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
              call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableOmegaKappa         ,"omegaKappa"         ,"Parameter omega_kappa from Takahashi et al. (2011)")
              call parametersFile%close()
-             !$omp end critical(HDF5_Access)
+             !$ call hdf5Access%unset()
           end if
           ! Create a table. We fix the extrapolation for large scaled variances. In these cases, the convergence distribution is
           ! extremely narrow (effectively a delta-function) so it doesn't matter much what we do. If we do allow extrapolation, the

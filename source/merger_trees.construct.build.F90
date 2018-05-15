@@ -308,7 +308,7 @@ contains
              call destroy(doc)
              !$omp end critical (FoX_DOM_Access)
           else if (extract(mergerTreeBuildTreeMassesFile,len(mergerTreeBuildTreeMassesFile)-4,len(mergerTreeBuildTreeMassesFile)) == ".hdf5") then
-             !$omp critical (HDF5_Access)
+             call hdf5Access%set()
              call treeFile%openFile(char(mergerTreeBuildTreeMassesFile),overWrite=.false.,readOnly=.true.)
              call treeFile%readDataset('treeRootMass',treeHaloMass)
              treeCount=size(treeHaloMass)
@@ -320,7 +320,7 @@ contains
                 computeTreeWeights=.true.
              end if
              call treeFile%close()
-             !$omp end critical (HDF5_Access)
+             call hdf5Access%unset()
           else
              call Galacticus_Error_Report('unknown file type for halo masses'//{introspection:location})
           end if

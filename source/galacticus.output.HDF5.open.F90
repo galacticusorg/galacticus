@@ -111,7 +111,7 @@ contains
        !# </inputParameter>
        hdf5CacheSizeBytes=cacheSizeBytes
        ! Open the file.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        call galacticusOutputFile%openFile(                                            &
             &                             char(galacticusOutputScratchFileName)     , &
             &                             overWrite          =.true.                , &
@@ -121,7 +121,7 @@ contains
             &                             cacheElementsCount =hdf5CacheElementsCount, &
             &                             cacheSizeBytes     =hdf5CacheSizeBytes      &
             &                            )
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        ! Get file name parameter again and write it to the output file.
        call globalParameters%parametersGroupOpen(galacticusOutputFile)
        call globalParameters%value('galacticusOutputFileName'       ,galacticusOutputFileName       ,defaultValue=var_str('galacticus.hdf5'))
@@ -185,9 +185,9 @@ contains
           ! Close parameters.
           call globalParameters%destroy()          
           ! Close the file.
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call galacticusOutputFile%close()
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
           
           ! Move the scratch file to the final file if necessary.
           if (galacticusOutputFileName /= galacticusOutputScratchFileName) call System_Command_Do("mv "//galacticusOutputScratchFileName//" "//galacticusOutputFileName)

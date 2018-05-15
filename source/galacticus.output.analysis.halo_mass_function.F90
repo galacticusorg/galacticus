@@ -434,7 +434,7 @@ contains
           end forall
        end forall
        ! Output the mass function.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        analysisGroup    =galacticusOutputFile%openGroup('analysis','Model analysis')
        massFunctionGroup=analysisGroup       %openGroup(char(massFunctions(k)%label),"Halo mass function")
        call massFunctionGroup%writeDataset  (massFunctions(k)%masses                ,'mass'                  ,'Mass'                    ,datasetReturned=dataset)
@@ -448,7 +448,7 @@ contains
        call dataset          %close()
        call massFunctionGroup%close()
        call analysisGroup    %close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end do
     return
   end subroutine Galacticus_Output_Analysis_Halo_Mass_Functions_Output

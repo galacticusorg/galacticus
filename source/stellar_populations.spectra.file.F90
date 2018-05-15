@@ -430,7 +430,7 @@ contains
        imfLookupIndex=self%imfLookup(imfIndex)
        ! Check that we have a file name for this IMF.
        if (self%fileName(imfIndex) == "?") call Galacticus_Error_Report("no file name specified for '"//IMF_Name(imfIndex)//"' IMF"//{introspection:location})
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        ! Open the HDF5 file.
        call spectraFile%openFile(char(self%fileName(imfIndex)),readOnly=.true.)
        ! Check that this file has the correct format.
@@ -449,7 +449,7 @@ contains
        call spectraFile%readDataset('spectra'                     ,self%spectra(imfLookupIndex)%Table        )
        ! Close the HDF5 file.
        call spectraFile%close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
        ! Force interpolation accelerators to be reset.
        self%spectra(imfLookupIndex)%resetAge        =.true.
        self%spectra(imfLookupIndex)%resetWavelength =.true.

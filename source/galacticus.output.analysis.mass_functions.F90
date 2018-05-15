@@ -1639,7 +1639,7 @@ contains
           end forall
        end forall
        ! Output the mass function.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        analysisGroup    =galacticusOutputFile%openGroup('analysis','Model analysis')
        massFunctionGroup=analysisGroup       %openGroup(trim(massFunctions(k)%descriptor%label),trim(massFunctions(k)%descriptor%comment))
        call massFunctionGroup%writeDataset  (massFunctions(k)%masses                ,'mass'                  ,'Mass'                    ,datasetReturned=dataset)
@@ -1653,7 +1653,7 @@ contains
        call dataset          %close()
        call massFunctionGroup%close()
        call analysisGroup    %close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end do
     return
   end subroutine Galacticus_Output_Analysis_Mass_Functions_Output
@@ -2106,7 +2106,7 @@ contains
     integer                                                                       :: k
     logical                                                                       :: massBinWidthsAvailable
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile(char(Galacticus_Input_Path()//'/'//massFunctionFileName),readOnly=.true.)
     call dataFile   %readDataset  ('mass'          ,massFunction_%masses)
     massDataset=dataFile%openDataset('mass'        )
@@ -2123,7 +2123,7 @@ contains
     call parameters %readAttribute('Omega_DE'        ,dataOmegaDarkEnergy                                         )
     call parameters %close()
     call dataFile   %close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Create the observed cosmology.
     if     (                                                          &
          &  .not.(                                                    &

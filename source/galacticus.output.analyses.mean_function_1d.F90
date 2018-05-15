@@ -530,7 +530,7 @@ contains
        end if
     end do
     ! Output the resulting mean function.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
     analysisGroup=analysesGroup       %openGroup(char(self%label),char(self%comment))
     call analysisGroup%writeDataset  (binCenter     ,char(self%propertyLabel)              ,char(self%propertyComment)                 ,datasetReturned=dataset)
@@ -547,6 +547,6 @@ contains
     call dataset      %close()
     call analysisGroup%close()
     call analysesGroup%close()
-    !$omp end critical(HDF5_Access)    
+    !$ call hdf5Access%unset()    
     return
   end subroutine meanFunction1DFinalize

@@ -241,9 +241,9 @@ contains
        !@ </outputType>
 
        ! Create a group for halo model data..
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        haloModelGroup=galacticusOutputFile%openGroup('haloModel','Halo model data.')
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
 
        ! Determine how many wavenumbers to tabulate at.
        wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
@@ -262,7 +262,7 @@ contains
        end do
 
        ! Store the power spectrum
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        !@ <outputProperty>
        !@   <name>wavenumber</name>
        !@   <datatype>real</datatype>
@@ -285,15 +285,15 @@ contains
        call haloModelGroup%writeDataset(powerSpectrumValue,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
 
        ! Deallocate arrays.
        call deallocateArray(powerSpectrumValue)
 
        ! Close the halo model group.
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call haloModelGroup%close()
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
 
     end if
     return
@@ -319,10 +319,10 @@ contains
        linearGrowth_         => linearGrowth                                      (    )
        growthFactor          =  linearGrowth_%value                               (time)
        growthFactorDerivative=  linearGrowth_%logarithmicDerivativeExpansionFactor(time)
-       !$omp critical (HDF5_Access)
+       call hdf5Access%set()
        call outputGroup%writeAttribute(growthFactor          ,'linearGrowthFactor'             )
        call outputGroup%writeAttribute(growthFactorDerivative,'linearGrowthFactorLogDerivative')
-       !$omp end critical (HDF5_Access)
+       call hdf5Access%unset()
     end if
 
     return
@@ -370,7 +370,7 @@ contains
        hostNode => hostNode%parent
     end do
     ! Create a group for the profile datasets.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     profilesGroup=galacticusOutputFile%openGroup("haloModel","Halo model data.")
     groupName="Output"
     groupName=groupName//iOutput
@@ -405,7 +405,7 @@ contains
     call treeGroup    %close()
     call outputGroup  %close()
     call profilesGroup%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
     return
   end subroutine Galacticus_Extra_Output_Halo_Fourier_Profile
 

@@ -42,7 +42,7 @@ contains
     ! If no data was collected, simply return.
     if (all(criticalSectionWaitTime == 0.0d0)) return
     ! Open output group.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     metaDataGroup=galacticusOutputFile%openGroup('metaData','Galacticus meta data.'           )
     waitTimeGroup=metaDataGroup       %openGroup('openMP'  ,'Meta-data on OpenMP performance.')
     ! Write wait time data.
@@ -53,7 +53,7 @@ contains
     ! Close output groups.
     call waitTimeGroup%close()
     call metaDataGroup%close()
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
 #endif
     return
   end subroutine OpenMP_Critical_Wait_Times

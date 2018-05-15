@@ -434,7 +434,7 @@ contains
           massFunctionLogLikelihood(i)=logImpossible
        end if
        ! Output the mass function.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        analysisGroup    =galacticusOutputFile%openGroup('analysis'                                                              ,'Model analysis'                     )
        massFunctionGroup=analysisGroup       %openGroup(trim(String_Lower_Case_First(localGroupCentralLabel(i)))//'MassFunction','Stellar mass function of satellites')
        call massFunctionGroup%writeAttribute(massFunctionHaloRadius                   (i),'haloRadius'                                                                                                            )
@@ -448,7 +448,7 @@ contains
        call thisDataset      %close         (                                                                                                                                                                     )
        call massFunctionGroup%close         (                                                                                                                                                                     )
        call analysisGroup    %close         (                                                                                                                                                                     )
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end do
     return
   end subroutine Galacticus_Output_Analysis_LG_Satellite_Mass_Functions_Output

@@ -155,11 +155,11 @@ contains
     type            (hdf5Object                                         )                                :: dataFile
 
     ! Read masses at which fraction was measured.
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile   (char(Galacticus_Input_Path())//"data/observations/abundances/massMetallicityRelationBlanc2017.hdf5",readOnly=.true.)
     call dataFile%readDataset("massStellar"                                                                                      ,         masses)
     call dataFile%close      (                                                                                                                   )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     ! Construct survey geometry. Use a lower redshift limit than actually used by Blanc et al. to ensure that low mass bins have non-zero weight.
     surveyGeometry_=surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.02d0,redshiftMaximum=0.25d0,cosmologyFunctions_=cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.

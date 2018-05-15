@@ -157,11 +157,11 @@ contains
                   & call Galacticus_Error_Report('unable to generate solid angles from mangle files'//{introspection:location})
           end if
           ! Read the solid angles.
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call solidAngleFile%openFile   (char(self%mangleDirectory()//"solidAngles.hdf5"))
           call solidAngleFile%readDataset('solidAngle',self%solidAngles                   )
           call solidAngleFile%close      (                                                )
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
           ! Record that solid angles are now initialized.
           self%solidAnglesInitialized=.true.
        end if
@@ -227,7 +227,7 @@ contains
                   & call Galacticus_Error_Report('unable to generate angular power spectra from mangle files'//{introspection:location})
           end if
           ! Read the angular power spectra.
-          !$omp critical(HDF5_Access)
+          !$ call hdf5Access%set()
           call angularPowerFile%openFile(char(self%mangleDirectory()//"angularPower.hdf5"))
           call angularPowerFile%readDataset('l',degree)
           if (degree(1) /= 0 .or. degree(size(degree)) /= self%angularPowerMaximumDegree())               &
@@ -241,7 +241,7 @@ contains
              end do
           end do
           call angularPowerFile%close()
-          !$omp end critical(HDF5_Access)
+          !$ call hdf5Access%unset()
           ! Record that solid angles are now initialized.
           self%angularPowerInitialized=.true.
        end if

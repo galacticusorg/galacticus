@@ -140,7 +140,7 @@ contains
     include 'galacticus.output.build.environment.inc' ! NO_USES
 
     ! Create a group for build information.
-    !$omp critical (HDF5_Access)
+    call hdf5Access%set()
     buildGroup=galacticusOutputFile%openGroup('Build','Build information for this model.')
 
     ! Write FGSL library version string.
@@ -198,7 +198,7 @@ contains
 
     ! Close the build group.
     call buildGroup%close()
-    !$omp end critical (HDF5_Access)
+    call hdf5Access%unset()
    return
   end subroutine Galacticus_Build_Output
 

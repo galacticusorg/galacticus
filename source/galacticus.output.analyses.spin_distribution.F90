@@ -125,11 +125,11 @@ contains
     !# <constructorAssign variables="*cosmologyFunctions_"/>
     
     ! Construct spins matched to those used by Bett et al. (2007).
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile%openFile   (char(Galacticus_Input_Path()//'data/darkMatter/bett2007HaloSpinDistribution.hdf5'),readOnly=.true.)
     call dataFile%readDataset(                              'spinParameter'                                     ,         spins )
     call dataFile%close      (                                                                                                  )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     self%binCount=size(spins)
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])

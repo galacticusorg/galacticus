@@ -131,7 +131,7 @@ contains
     if (distributionNumber < 1 .or. distributionNumber > 34) call Galacticus_Error_Report('distributionNumber ∈ [1..34] is required'//{introspection:location})
     ! Construct sizes matched to those used by  Shen et al. (2003). Also read stellar mass and Sersic index ranges.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     call dataFile    %openFile     (char(Galacticus_Input_Path()//'data/observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.            )
     distribution=dataFile%openGroup(distributionName)
     call distribution%readDataset  (                              'radius'                                                                 ,         radii             )
@@ -141,7 +141,7 @@ contains
     call distribution%readAttribute(                              'sersicIndexMaximum'                                                     ,         indexSersicMaximum)
     call distribution%close        (                                                                                                                                   )
     call dataFile    %close        (                                                                                                                                   )
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     self %binCount=size(radii)
     ! Determine if this distribution is for late-type galaxies.
     isLateType=(indexSersicMinimum == 0.0d0)

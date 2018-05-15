@@ -284,7 +284,7 @@ contains
                       write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
                       datasetName="redshift"//adjustl(trim(redshiftLabel))
                       ! Open the file and check for the required dataset.
-                      !$omp critical (HDF5_Access)
+                      call hdf5Access%set()
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.true.)
                       call luminositiesFile%openFile(char(luminositiesFileName),readOnly=.true.)
                       if (luminositiesFile%hasDataset(trim(datasetName))) then
@@ -295,7 +295,7 @@ contains
                       end if
                       call luminositiesFile%close()
                       call File_Unlock(lockFileDescriptor)
-                      !$omp end critical (HDF5_Access)
+                      call hdf5Access%unset()
                    end if
                 end if
 
@@ -398,7 +398,7 @@ contains
                       write (redshiftLabel,'(f7.4)') redshift(iLuminosity)
                       datasetName="redshift"//adjustl(trim(redshiftLabel))
                       ! Open the file.
-                      !$omp critical (HDF5_Access)
+                      call hdf5Access%set()
                       call File_Lock(char(luminositiesFileName),lockFileDescriptor,lockIsShared=.false.)
                       call luminositiesFile%openFile(char(luminositiesFileName))
                       ! Write the dataset.
@@ -407,7 +407,7 @@ contains
                       ! Close the file.
                       call luminositiesFile%close()
                       call File_Unlock(lockFileDescriptor)
-                      !$omp end critical (HDF5_Access)
+                      call hdf5Access%unset()
                    end if
                 end if
                 ! Flag that calculations have been performed for this filter.

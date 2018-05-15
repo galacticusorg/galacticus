@@ -393,7 +393,7 @@ contains
 
     ! Check if the node passes any filtering, and output it if it does.
     if (nodePassesFilter) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
 
        ! Write metallicities if not already done.
        if (.not.metallicityTableWritten) then
@@ -429,7 +429,7 @@ contains
        call treeGroup   %close()
        call outputGroup %close()
        call historyGroup%close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end if
 
     timeBegin=historyStarFormation%time(1)

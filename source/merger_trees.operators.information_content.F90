@@ -176,7 +176,7 @@ contains
 
     ! Check if we have data to output.
     if (allocated(self%treeIndex)) then
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        ! Output information content information.
        informationContentGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Cladistic information content of trees.')
        call informationContentGroup%writeDataset  (self%treeIndex         ,'treeIndex'                                 )
@@ -184,7 +184,7 @@ contains
        call dataset                %writeAttribute('bits'                 ,"units"                                     )
        call dataset                %close         (                                                                    )
        call informationContentGroup%close         (                                                                    )
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
     end if
     return
   end subroutine informationContentFinalize

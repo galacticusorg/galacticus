@@ -826,9 +826,9 @@ sub Functions_Generate_Output {
 	    # Add HDF5 debug code.
 	    if ( $debug ) {
 		$rawLine .= "call IO_HDF5_Start_Critical()\n"
-		    if ( $rawLine =~ m /^\s*\!\$omp\s+critical\s*\(HDF5_Access\)\s*$/ );
+		    if ( $rawLine =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*set\s*\(\s*\)\s*$/   );
 		$rawLine  = "call IO_HDF5_End_Critical()\n".$rawLine
-		    if ( $rawLine =~ m /^\s*\!\$omp\s+end\s+critical\s*\(HDF5_Access\)\s*$/ );
+		    if ( $rawLine =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)\s*$/ );
 	    }
 	    # Identify directives.
 	    if ( $rawLine =~ m/^\s*!\#\s+<\s*([a-zA-Z]+)+.*>\s*$/ ) {

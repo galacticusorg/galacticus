@@ -82,7 +82,7 @@ contains
        !# </inputParameter>
 
        ! Open the HDF5 file.
-       !$omp critical(HDF5_Access)
+       !$ call hdf5Access%set()
        call stellarTracks%openFile(char(stellarTracksFile),readOnly=.true.)
 
        ! Check that this file has the correct format.
@@ -173,7 +173,7 @@ contains
 
        ! Close the file.
        call stellarTracks%close()
-       !$omp end critical(HDF5_Access)
+       !$ call hdf5Access%unset()
 
     end if
     return

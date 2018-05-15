@@ -23,9 +23,10 @@
 
 module IO_HDF5
   !% Implements simple and convenient interfaces to a variety of HDF5 functionality.
-  use HDF5
-  use H5TB
-  use ISO_Varying_String
+  use            :: HDF5
+  use            :: H5TB
+  use            :: Locks
+  use            :: ISO_Varying_String
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
@@ -37,6 +38,9 @@ module IO_HDF5
   !$omp threadprivate(inCritical)
 #endif
 
+  ! Lock object to coordinate access to HDF5.
+  type   (ompLock)                              , public :: hdf5Access
+ 
   ! Record of initialization of this module.
   logical                                                :: hdf5IsInitalized       =.false.
   integer                                                :: initializationsCount   =0
@@ -570,7 +574,7 @@ contains
     integer(kind=HSIZE_T), intent(in   ), optional :: chunkSize
     integer              , intent(in   ), optional :: compressionLevel
 
-    !$omp critical(HDF5_Access)
+    !$ call hdf5Access%set()
     if (present(chunkSize)) then
        if (chunkSize        ==  0) call Galacticus_Error_Report('zero chunksize is invalid'//{introspection:location})
        if (chunkSize        <  -1) call Galacticus_Error_Report('chunksize less than -1 is invalid'//{introspection:location})
@@ -580,7 +584,7 @@ contains
        if (compressionLevel <  -1 .or. compressionLevel > 9) call Galacticus_Error_Report('compression level must be in range -1 to 9'//{introspection:location})
        hdf5CompressionLevel=compressionLevel
     end if
-    !$omp end critical(HDF5_Access)
+    !$ call hdf5Access%unset()
     return
   end subroutine IO_HDF5_Set_Defaults
 
