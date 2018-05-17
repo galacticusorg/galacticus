@@ -217,14 +217,15 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
     use Galacticus_Error
+    use Merger_Tree_Walkers    
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile, &
          &                                                                      darkMatterProfileWork
     class           (nodeComponentBasic            )               , pointer :: basicParent            , basic
     type            (treeNode                      )               , pointer :: nodeWork
+    type            (mergerTreeWalkerAllNodes      )                         :: treeWalker
     double precision                                                         :: deltaTime              , radiusScale
-    logical                                                                  :: finished
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
        ! Get the dark matter profile component - creating if if necessary.
@@ -236,16 +237,8 @@ contains
              ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
              ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
              ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-             nodeWork => node%hostTree%baseNode
-             finished =  .false.
-             do while (.not.finished)
-                nodeWork => nodeWork%walkTreeWithSatellites()
-                if (.not.associated(nodeWork)) then
-                   ! When a null pointer is returned, the full tree has been walked. We then have to
-                   ! handle the base node as a special case.
-                   nodeWork => node%hostTree%baseNode
-                   finished =  .true.
-                end if
+             treeWalker=mergerTReeWalkerAllNodes(node%hostTree,spanForest=.false.)
+             do while (treeWalker%next(nodeWork))
                 ! Get the scale radius - this will initialize the radius if necessary.
                 darkMatterProfileWork => nodeWork             %darkMatterProfile(autoCreate=.true.)
                 radiusScale           =  darkMatterProfileWork%scale            (                 )
@@ -338,6 +331,7 @@ contains
     !% Write the scale radius property to a full merger tree output.
     use IO_HDF5
     use Numerical_Constants_Astronomical
+    use Merger_Tree_Walkers
     implicit none
     type            (treeNode                      )              , intent(in   ), pointer :: baseNode
     double precision                                , dimension(:), intent(inout)          :: nodeProperty
@@ -345,8 +339,9 @@ contains
     type            (treeNode                      )                             , pointer :: node
     integer                                                                                :: nodeCount
     class           (nodeComponentDarkMatterProfile)                             , pointer :: darkMatterProfileBase, darkMatterProfile
+    type            (mergerTreeWalkerIsolatedNodes )                                       :: treeWalker
     type            (hdf5Object                    )                                       :: nodeDataset
-
+    
     ! Check if scale radius is to be included in merger tree outputs.
     if (mergerTreeStructureOutputDarkMatterProfileScale) then
        ! Get the dark matter profile component.
@@ -355,13 +350,12 @@ contains
        select type (darkMatterProfileBase)
        class is (nodeComponentDarkMatterProfileScale)
           ! Extract node scale radius and output to file.
-          nodeCount=0
-          node => baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(baseNode%hostTree)
+          do while (treeWalker%next(node))
              darkMatterProfile => node%darkMatterProfile()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=darkMatterProfile%scale()
-             node => node%walkTree()
           end do
           call treeGroup  %writeDataset  (nodeProperty,'darkMatterScaleRadius','Scale radius of the dark matter profile [Mpc].',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(megaParsec,"unitsInSI")

@@ -127,20 +127,22 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     use Multi_Counters
+    use Merger_Tree_Walkers
     implicit none
-    double precision                    , intent(in   )         :: time
-    type            (treeNode          ), intent(inout), target :: thisNode
-    integer                             , intent(inout)         :: doubleBufferCount                    , doubleProperty      , &
+    double precision                               , intent(in   )         :: time
+    type            (treeNode                     ), intent(inout), target :: thisNode
+    integer                                        , intent(inout)         :: doubleBufferCount                    , doubleProperty      , &
          &                                                         integerBufferCount                   , integerProperty
-    integer         (kind=kind_int8    ), intent(inout)         :: integerBuffer            (:,:)
-    double precision                    , intent(inout)         :: doubleBuffer             (:,:)
-    type            (multiCounter      ), intent(inout)         :: instance
-    double precision                    , save                  :: timePrevious                  =-1.0d0
-    integer         (kind=kind_int8    ), save                  :: uniqueIdMatched                      , uniqueIdPrevious=-1
+    integer         (kind=kind_int8               ), intent(inout)         :: integerBuffer            (:,:)
+    double precision                               , intent(inout)         :: doubleBuffer             (:,:)
+    type            (multiCounter                 ), intent(inout)         :: instance
+    double precision                               , save                  :: timePrevious                  =-1.0d0
+    integer         (kind=kind_int8               ), save                  :: uniqueIdMatched                      , uniqueIdPrevious=-1
     !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)
-    type            (treeNode          ), pointer               :: currentNode
-    class           (nodeComponentBasic), pointer               :: currentBasicComponent
-    double precision                                            :: mostMassiveProgenitorMass
+    type            (treeNode                     ), pointer               :: currentNode
+    class           (nodeComponentBasic           ), pointer               :: currentBasicComponent
+    type            (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
+    double precision                                                       :: mostMassiveProgenitorMass
     !GCC$ attributes unused :: doubleBufferCount, doubleProperty, doubleBuffer, instance
     
     ! Ensure the module is initialized.
@@ -159,13 +161,13 @@ contains
           uniqueIdPrevious=currentNode%uniqueId()
           ! Find the most massive progenitor in the tree at this time.
           mostMassiveProgenitorMass=0.0d0
-          do while (associated(currentNode))
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentNode%hostTree)
+          do while (treeWalker%next(currentNode))
              currentBasicComponent => currentNode%basic()
              if (currentBasicComponent%time() == time .and. currentBasicComponent%mass() > mostMassiveProgenitorMass) then
                 uniqueIdMatched          =currentNode          %uniqueId()
                 mostMassiveProgenitorMass=currentBasicComponent%mass    ()
              end if
-             currentNode => currentNode%walkTree()
           end do
        end if
        integerProperty=integerProperty+1

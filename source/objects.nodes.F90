@@ -605,83 +605,6 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Remove_from_Mergee
 
-  function treeNodeWalkTree(self)
-    !% This function provides a mechanism for walking through an entire merger tree. Given a
-    !% pointer {\normalfont \ttfamily self} to a node of the tree, it will return the next node
-    !% that should be visited in the tree. Thus, if {\normalfont \ttfamily self} is initially
-    !% set to the base of the merger tree and {\normalfont \ttfamily Merger\_Tree\_Walk()} is
-    !% called repeatedly it will walk through every node of the tree. Once the entire tree has
-    !% been walked, a {\normalfont \ttfamily null()} pointer will be returned, indicating that
-    !% there are no more nodes to walk. Each node will be visited once and once only if the tree
-    !% is walked in this way.
-    implicit none
-    type (treeNode)               , pointer :: treeNodeWalkTree
-    class(treeNode), intent(inout), target  :: self
-    type (treeNode)               , pointer :: workNode
-
-    workNode => self
-    if (.not.associated(workNode%parent)) then
-       ! This is the base of the merger tree.
-       do while (associated(workNode%firstChild))
-          workNode => workNode%firstChild
-       end do
-       if (associated(workNode,self)) nullify(workNode)
-    else
-       if (associated(workNode%sibling)) then
-          workNode => workNode%sibling
-          do while (associated(workNode%firstChild))
-             workNode => workNode%firstChild
-          end do
-       else
-          workNode => workNode%parent
-          ! Terminate when back at tree base.
-          if (.not.associated(workNode%parent)) workNode => null()
-       end if
-    end if
-    treeNodeWalkTree => workNode
-    return
-  end function treeNodeWalkTree
-  
-  function treeNodeWalkTreeUnderConstruction(self)
-    !% This function provides a mechanism for walking through a merger tree that is being built.
-    implicit none
-    type (treeNode)               , pointer :: treeNodeWalkTreeUnderConstruction
-    class(treeNode), intent(inout), target  :: self
-    type (treeNode)               , pointer :: workNode
-
-    workNode => self
-    if (associated(workNode%firstChild)) then
-       ! Move to the primary child if one exists.
-       do while (associated(workNode%firstChild))
-          workNode => workNode%firstChild
-       end do
-    else
-       if (associated(workNode%sibling)) then
-          workNode => workNode%sibling
-          do while (associated(workNode%firstChild))
-             workNode => workNode%firstChild
-          end do
-       else
-          do while (associated(workNode))
-             if (associated(workNode%parent)) then
-                workNode => workNode%parent
-                if (associated(workNode%sibling)) then
-                   workNode => workNode%sibling
-                   do while (associated(workNode%firstChild))
-                      workNode => workNode%firstChild
-                   end do
-                   exit
-                end if
-             else
-                workNode => null()
-             end if
-          end do
-       end if
-    end if
-    treeNodeWalkTreeUnderConstruction => workNode
-    return
-  end function treeNodeWalkTreeUnderConstruction
-
   function treeNodeWalkTreeWithSatellites(self)
     !% Merger tree walk function which also descends through satellite nodes. Note that it is
     !% important that the walk descends to satellites before descending to children: the
@@ -729,46 +652,6 @@ module Galacticus_Nodes
     treeNodeWalkTreeWithSatellites => workNode
     return
   end function treeNodeWalkTreeWithSatellites
-
-  function treeNodeWalkBranch(self,startNode)
-    !% This function provides a mechanism for walking through the branches of the merger
-    !% tree. Given a pointer {\normalfont \ttfamily self} to a branch of the tree, it will
-    !% return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily
-    !% self} is initially set to the base of the merger tree and {\normalfont \ttfamily
-    !% Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
-    !% branch. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer
-    !% will be returned, indicating that there are no more nodes to walk. Each node will be
-    !% visited once and once only if the branch is walked in this way.
-    implicit none
-    type (treeNode)               , pointer :: treeNodeWalkBranch
-    class(treeNode), intent(inout), target  :: self
-    type (treeNode), intent(inout), target  :: startNode
-    type (treeNode)               , pointer :: workNode          , selfNode, &
-         &                                     branchTip
-
-    selfNode  => self
-    workNode  => self
-    branchTip => startNode
-    if (associated(selfNode,branchTip)) then
-       do while (associated(workNode%firstChild))
-          workNode => workNode%firstChild
-       end do
-       if (associated(workNode,selfNode)) nullify(workNode)
-    else
-       if (associated(workNode%sibling)) then
-          workNode => workNode%sibling
-          do while (associated(workNode%firstChild))
-             workNode => workNode%firstChild
-          end do
-       else
-          workNode => workNode%parent
-          ! Terminate when back at starting node.
-          if (associated(workNode,branchTip)) workNode => null()
-       end if
-    end if
-    treeNodeWalkBranch => workNode
-    return
-  end function treeNodeWalkBranch
 
   function treeNodeWalkBranchWithSatellites(self,startNode)
     !% This function provides a mechanism for walking through the branches of the merger

@@ -186,35 +186,11 @@ sub Build_Tree_Node_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
-	     name        => "walkBranch"                                                                                                      ,
-	     function    => "treeNodeWalkBranch"                                                                                              ,
-	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."  ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranchWithSatellites"                                                                                        ,
 	     function    => "treeNodeWalkBranchWithSatellites"                                                                                ,
 	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."  ,
 	     returnType  => "\\void"                                                                                                          ,
 	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout"
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkTree"                                                                                                        ,
-	     function    => "treeNodeWalkTree"                                                                                                ,
-	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."              ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => ""                                                       
-	 },
-	 {
-	     type        => "procedure"                                                                                                       ,
-	     name        => "walkTreeUnderConstruction"                                                                                       ,
-	     function    => "treeNodeWalkTreeUnderConstruction"                                                                               ,
-	     description => "Return a pointer to the next node when performing a walk of a tree under construction."                          ,
-	     returnType  => "\\void"                                                                                                          ,
-	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,

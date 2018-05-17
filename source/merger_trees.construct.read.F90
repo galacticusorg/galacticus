@@ -1792,17 +1792,18 @@ contains
 
   subroutine Assign_Host_Tree_Pointers(tree)
     !% After tree base nodes have been assigned, walk each tree and set the host tree pointer for each node.
+    use Merger_Tree_Walkers
     implicit none
-    type(mergerTree), intent(inout), target  :: tree
-    type(mergerTree)               , pointer :: treeCurrent
-    type(treeNode  )               , pointer :: node
+    type(mergerTree              ), intent(inout), target  :: tree
+    type(mergerTree              )               , pointer :: treeCurrent
+    type(treeNode                )               , pointer :: node
+    type(mergerTreeWalkerAllNodes)                         :: treeWalker
 
     treeCurrent => tree
     do while(associated(treeCurrent))
-       node => treeCurrent%baseNode
-       do while (associated(node))
+       treeWalker=mergerTreeWalkerAllNodes(treeCurrent,spanForest=.false.)
+       do while (treeWalker%next(node))
           node%hostTree => treeCurrent
-          node          => node       %walkTreeWithSatellites()
        end do
        treeCurrent => treeCurrent%nextTree
     end do

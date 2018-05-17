@@ -25,14 +25,17 @@ program Tests_Bug745815
   use Memory_Management
   use Galacticus_Nodes
   use Kind_Numbers
+  use Merger_Tree_Walkers
   implicit none
-  type   (varying_string )          :: parameterFile
-  type   (treeNodeList   )          :: nodes        (5)
-  logical                           :: nodeFound    (5)
-  type   (treeNode       ), pointer :: thisNode
-  integer(kind=kind_int8 )          :: iNode
-  type   (inputParameters)          :: parameters
-
+  type   (varying_string          )          :: parameterFile
+  type   (treeNodeList            )          :: nodes        (5)
+  logical                                    :: nodeFound    (5)
+  type   (mergerTree              )          :: tree
+  type   (treeNode                ), pointer :: node
+  integer(kind=kind_int8          )          :: i
+  type   (inputParameters         )          :: parameters
+  type   (mergerTreeWalkerAllNodes)          :: treeWalker
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.bug745815.size')
 
@@ -45,8 +48,8 @@ program Tests_Bug745815
   call parameters%markGlobal()
 
   ! Create nodes.
-  do iNode=1,5
-     nodes(iNode)%node => treeNode()
+  do i=1,5
+     nodes(i)%node => treeNode()
   end do
 
   ! Set indices of nodes.
@@ -70,20 +73,22 @@ program Tests_Bug745815
   ! Set satellite nodes.
   nodes(3)%node%firstSatellite => nodes(5)%node
 
+  ! Set the base node of our tree.
+  tree%baseNode => nodes(1)%node
+  
   ! Walk the tree, with satellites.
   nodeFound=.false.
-  thisNode => nodes(1)%node
-  do while (associated(thisNode))
-     do iNode=1,5
-        if (nodes(iNode)%node%index() == thisNode%index()) nodeFound(iNode)=.true.
+  treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.false.)
+  do while (treeWalker%next(node))
+     do i=1,5
+        if (nodes(i)%node%index() == node%index()) nodeFound(i)=.true.
      end do
-     thisNode => thisNode%walkTreeWithSatellites()
   end do
   call Assert('All nodes walked to',all(nodeFound),.true.)
 
   ! Destroy nodes.
-  do iNode=1,5
-     call nodes(iNode)%node%destroy()
+  do i=1,5
+     call nodes(i)%node%destroy()
   end do
 
   ! End unit tests.

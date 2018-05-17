@@ -62,43 +62,34 @@ contains
     !% Perform a clone pruning operation on a merger tree.
     use Merger_Trees_Pruning_Utilities
     use Numerical_Comparison
+    use Merger_Tree_Walkers
     implicit none
     class(mergerTreeOperatorPruneClones), intent(inout)         :: self
     type (mergerTree                   ), intent(inout), target :: tree
-    type (treeNode                     ), pointer               :: node       , nodePrevious
-    class(nodeComponentBasic           ), pointer               :: basic      , basicPrevious
-    type (mergerTree                   ), pointer               :: currentTree
+    type (treeNode                     ), pointer               :: node      , nodePrevious
+    class(nodeComponentBasic           ), pointer               :: basic     , basicPrevious
+    type (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
     !GCC$ attributes unused :: self
 
-    ! Iterate over trees.
-    currentTree => tree
-    do while (associated(currentTree))
-       ! Get root node of the tree.
-       node  => currentTree%baseNode
-       ! Walk the tree, pruning clones.
-       do while (associated(node))
-          ! Skip this node if it has no parent.
-          if (associated(node%parent)) then
-             ! Record the parent node to which we will return.
-             nodePrevious => node%parent
-             ! Get basic components.
-             basic         => node        %basic()
-             basicPrevious => nodePrevious%basic()
-             if (Values_Agree(basic%time(),basicPrevious%time(),relTol=1.0d-5)) then
-                ! Decouple from other nodes.
-                call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,.false.,.false.)
-                ! Clean the branch.
-                call Merger_Tree_Prune_Clean_Branch (node                             )
-                ! Destroy the branch.
-                call node%destroyBranch()
-                ! Return to parent node.
-                node => nodePrevious
-             end if
+    ! Iterate over nodes.
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree)
+    do while (treeWalker%next(node))
+       ! Skip this node if it has no parent.
+       if (associated(node%parent)) then
+          ! Get basic components.
+          basic         => node        %basic()
+          basicPrevious => nodePrevious%basic()
+          if (Values_Agree(basic%time(),basicPrevious%time(),relTol=1.0d-5)) then
+             ! Return to the previous node.
+             call treeWalker%previous(nodePrevious)
+             ! Decouple from other nodes.
+             call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,.false.,.false.)
+             ! Clean the branch.
+             call Merger_Tree_Prune_Clean_Branch (node                             )
+             ! Destroy the branch.
+             call node%destroyBranch()
           end if
-          node => node%walkTree()
-       end do
-       ! Move to the next tree.
-       currentTree => currentTree%nextTree
+       end if
     end do
     return
   end subroutine pruneClonesOperate

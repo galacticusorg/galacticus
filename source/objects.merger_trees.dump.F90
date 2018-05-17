@@ -32,7 +32,7 @@ module Merger_Trees_Dump
   !$omp threadprivate(outputCount,treeIndexPrevious)
 contains
 
-  subroutine Merger_Tree_Dump(treeIndex,nodeBase,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
+  subroutine Merger_Tree_Dump(tree,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
        &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,timeRange,path)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
@@ -40,45 +40,44 @@ contains
     !% specified.
     use Galacticus_Nodes
     use ISO_Varying_String
+    use Merger_Tree_Walkers
     implicit none
-    integer         (kind=kind_int8    )              , intent(in   )                    :: treeIndex
-    type            (treeNode          )              , intent(in   )          , pointer :: nodeBase
-    integer         (kind=kind_int8    ), dimension(:), intent(in   ), optional          :: highlightNodes
-    character       (len=*             )              , intent(in   ), optional          :: backgroundColor          , edgeColor           , &
-         &                                                                                  edgeStyle                , highlightColor      , &
-         &                                                                                  highlightStyle           , nodeColor           , &
-         &                                                                                  nodeStyle
-    logical                                           , intent(in   ), optional          :: edgeLengthsToTimes       , labelNodes          , &
-         &                                                                                  scaleNodesByLogMass      , labelUnique
-    double precision                    , dimension(2), intent(in   ), optional          :: timeRange
-    type            (varying_string    )              , intent(in   ), optional          :: path
-    type            (treeNode          )                                       , pointer :: thisNode
-    class           (nodeComponentBasic)                                       , pointer :: basicParent              , basic
-    logical                                                                              :: edgeLengthsToTimesActual , labelNodesActual    , &
-         &                                                                                  scaleNodesByLogMassActual, labelUniqueActual
-    integer                                                                              :: fileUnit
-    double precision                                                                     :: nodeMass                 , nodeMassMaximum     , &
-         &                                                                                  nodeMassMinimum          , timeDifference      , &
-         &                                                                                  timeMaximum              , timeMinimum
-    character       (len=  16          )                                                 :: label
-    character       (len=  20          )                                                 :: backgroundColorActual    , color               , &
-         &                                                                                  edgeColorActual          , edgeStyleActual     , &
-         &                                                                                  highlightColorActual     , highlightStyleActual, &
-         &                                                                                  nodeColorActual          , nodeStyleActual     , &
-         &                                                                                  outputCountFormatted     , style               , &
-         &                                                                                  treeIndexFormatted
-    character       (len=1024          )                                                 :: fileName
-    type            (varying_string    )                                                 :: fullFileName
+    type            (mergerTree              )              , intent(in   )                    :: tree
+    integer         (kind=kind_int8          ), dimension(:), intent(in   ), optional          :: highlightNodes
+    character       (len=*                   )              , intent(in   ), optional          :: backgroundColor          , edgeColor           , &
+         &                                                                                        edgeStyle                , highlightColor      , &
+         &                                                                                        highlightStyle           , nodeColor           , &
+         &                                                                                        nodeStyle
+    logical                                                 , intent(in   ), optional          :: edgeLengthsToTimes       , labelNodes          , &
+         &                                                                                        scaleNodesByLogMass      , labelUnique
+    double precision                          , dimension(2), intent(in   ), optional          :: timeRange
+    type            (varying_string          )              , intent(in   ), optional          :: path
+    type            (treeNode                )                                       , pointer :: node
+    class           (nodeComponentBasic      )                                       , pointer :: basicParent              , basic
+    type            (mergerTreeWalkerAllNodes)                                                 :: treeWalker
+    logical                                                                                    :: edgeLengthsToTimesActual , labelNodesActual    , &
+         &                                                                                        scaleNodesByLogMassActual, labelUniqueActual
+    integer                                                                                    :: fileUnit
+    double precision                                                                           :: nodeMass                 , nodeMassMaximum     , &
+         &                                                                                        nodeMassMinimum          , timeDifference      , &
+         &                                                                                        timeMaximum              , timeMinimum
+    character       (len=  16                )                                                 :: label
+    character       (len=  20                )                                                 :: backgroundColorActual    , color               , &
+         &                                                                                        edgeColorActual          , edgeStyleActual     , &
+         &                                                                                        highlightColorActual     , highlightStyleActual, &
+         &                                                                                        nodeColorActual          , nodeStyleActual     , &
+         &                                                                                        outputCountFormatted     , style               , &
+         &                                                                                        treeIndexFormatted
+    character       (len=1024                )                                                 :: fileName
+    type            (varying_string          )                                                 :: fullFileName
 
     ! If the tree index differs from the previous one, then reset the output count.
-    if (treeIndex /= treeIndexPrevious) then
-       treeIndexPrevious=treeIndex
+    if (tree%index /= treeIndexPrevious) then
+       treeIndexPrevious=tree%index
        outputCount=0
     end if
-
     ! Increment the count of the number of outputs.
     outputCount=outputCount+1
-
     ! Get optional arguments or set defaults.
     if (present(backgroundColor    )) then
        backgroundColorActual    =backgroundColor
@@ -135,23 +134,21 @@ contains
     else
        edgeLengthsToTimesActual =.false.
     end if
-
     ! If sizes are to be scaled by mass, find the range of masses in the tree. If edges are set to time intervals, find minimum
     ! and maximum times in tree.
     if (scaleNodesByLogMassActual.or.edgeLengthsToTimesActual) then
-       thisNode        => nodeBase
-       basic           => thisNode%basic()
-       nodeMassMinimum =  basic   %mass ()
-       nodeMassMaximum =  basic   %mass ()
-       timeMinimum     =  basic   %time ()
-       timeMaximum     =  basic   %time ()
-       do while (associated(thisNode))
-          basic => thisNode%basic()
+       basic           =>                          tree%baseNode%basic()
+       nodeMassMinimum =                           basic        %mass ()
+       nodeMassMaximum =                           basic        %mass ()
+       timeMinimum     =                           basic        %time ()
+       timeMaximum     =                           basic        %time ()
+       treeWalker      =  mergerTreeWalkerAllNodes(tree                 )
+       do while (treeWalker%next(node))
+          basic => node%basic()
           if (basic%mass() < nodeMassMinimum) nodeMassMinimum=basic%mass()
           if (basic%mass() > nodeMassMaximum) nodeMassMaximum=basic%mass()
           if (basic%time() < timeMinimum    ) timeMinimum    =basic%time()
           if (basic%time() > timeMaximum    ) timeMaximum    =basic%time()
-          thisNode => thisNode%walkTreeWithSatellites()
        end do
        nodeMassMinimum=log(nodeMassMinimum)
        nodeMassMaximum=log(nodeMassMaximum)
@@ -161,9 +158,8 @@ contains
        nodeMassMinimum=0.0d0
        nodeMassMaximum=0.0d0
     end if
-
     ! Open an output file and write the GraphViz opening.
-    write (treeIndexFormatted  ,'(i16)') treeIndex
+    write (treeIndexFormatted  ,'(i16)') tree%index
     write (outputCountFormatted,'(i08)') outputCount
     write (fileName,'(a,a,a,a,a)') 'mergerTreeDump:',trim(adjustl(treeIndexFormatted)),':',trim(adjustl(outputCountFormatted)),'.gv'
     if (present(path)) then
@@ -175,12 +171,11 @@ contains
     write (fileUnit,'(a)'    ) 'digraph Tree {'
     write (fileUnit,'(a,a,a)') 'bgcolor=',trim(backgroundColorActual),';'
     write (fileUnit,'(a)'    ) 'size="8,11";'
-
     ! Loop over all nodes.
-    thisNode => nodeBase
-    do while (associated(thisNode))
+    treeWalker=mergerTreeWalkerAllNodes(tree)
+    do while (treeWalker%next(node))
        ! Get the basic component.
-       basic => thisNode%basic()
+       basic => node%basic()
        ! Skip the node if it lies outside of the specified time range.
        if     (                                             &
             &   .not.present(timeRange)                     &
@@ -196,9 +191,9 @@ contains
           ! Determine node color.
           if (present(highlightNodes)) then
              if     (                                                                           &
-                  &   (     labelUniqueActual .and. any(highlightNodes == thisNode%uniqueID())) &
+                  &   (     labelUniqueActual .and. any(highlightNodes == node%uniqueID())) &
                   &  .or.                                                                       &
-                  &   (.not.labelUniqueActual .and. any(highlightNodes == thisNode%index   ())) &
+                  &   (.not.labelUniqueActual .and. any(highlightNodes == node%index   ())) &
                   & ) then
                 color=highlightColorActual
                 style=highlightStyleActual
@@ -212,53 +207,44 @@ contains
           end if
           ! Create node labels.
           if (labelUniqueActual) then
-             write (      label,'(i16.16)') thisNode       %uniqueID()
+             write (      label,'(i16.16)') node       %uniqueID()
           else
-             write (      label,'(i16.16)') thisNode       %index   ()
+             write (      label,'(i16.16)') node       %index   ()
           end if
           ! Create node.
-          if (thisNode%isSatellite()) then
-             write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%uniqueID(),'" [shape=box   , color=',trim(color),', style=',trim(style),'];'
+          if (node%isSatellite()) then
+             write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',node%uniqueID(),'" [shape=box   , color=',trim(color),', style=',trim(style),'];'
              ! Make a link to the hosting node.
-             write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color=red, style=',trim(edgeStyleActual),'];'
+             write (fileUnit,'(a,i16.16,a,i16.16,a,a,a)') '"',node%uniqueID(),'" -> "',node%parent%uniqueID(),'" [color=red, style=',trim(edgeStyleActual),'];'
           else
-             write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',thisNode%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),'];'
+             write (fileUnit,'(a,i16.16,a,a,a,a,a)') '"',node%uniqueID(),'" [shape=circle, color=',trim(color),', style=',trim(style),'];'
              ! Make a link to the descendent node.
-             if (associated(thisNode%parent)) then
-                write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%uniqueID(),'" -> "',thisNode%parent%uniqueID(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
+             if (associated(node%parent)) then
+                write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',node%uniqueID(),'" -> "',node%parent%uniqueID(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
                 if (edgeLengthsToTimesActual) then
-                   basicParent => thisNode%parent%basic()
+                   basicParent => node%parent%basic()
                    timeDifference=1000.0d0*log10(basicParent%time()/basic%time())/(timeMaximum-timeMinimum)
                    write (fileUnit,'(a,f10.6,$)') ', minlen=',timeDifference
                 end if
                 write (fileUnit,'(a)') '];'
              end if
           end if
-
           ! Set size of node if requested.
           if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
              nodeMass=10.0d0*(log(basic%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
-             write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%uniqueID(),'" [width=',nodeMass,'];'
+             write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',node%uniqueID(),'" [width=',nodeMass,'];'
           end if
-
           ! Remove label if requested.
           if (.not.labelNodesActual) then
-             write (fileUnit,'(a,i16.16,a)'    ) '"',thisNode%uniqueID(),'" [label=""];'
+             write (fileUnit,'(a,i16.16,a)'    ) '"',node%uniqueID(),'" [label=""];'
           else
-             write (fileUnit,'(a,i16.16,a,a,a)') '"',thisNode%uniqueID(),'" [label="',label,'"];'
+             write (fileUnit,'(a,i16.16,a,a,a)') '"',node%uniqueID(),'" [label="',label,'"];'
           end if
-
        end if
-
-       ! Walk the tree, including satellite nodes.
-       thisNode => thisNode%walkTreeWithSatellites()
-
     end do
-
     ! Close the file.
     write (fileUnit,*) '}'
     close(fileUnit)
-
     return
   end subroutine Merger_Tree_Dump
 

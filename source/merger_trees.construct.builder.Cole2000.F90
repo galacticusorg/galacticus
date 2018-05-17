@@ -203,31 +203,33 @@ contains
     !% Build a merger tree.
     use Galacticus_Nodes
     use Galacticus_Error
+    use Merger_Tree_Walkers
     use Pseudo_Random
     use Kind_Numbers
     use ISO_Varying_String
     use Numerical_Comparison
     implicit none
-    class           (mergerTreeBuilderCole2000), intent(inout)         :: self
-    type            (mergerTree               ), intent(inout), target :: tree
-    type            (treeNode                 ), pointer               :: nodeNew1                  , nodeNew2                   , node                      , &
-         &                                                                nodePrevious
-    class           (nodeComponentBasic       ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
-         &                                                                basicParent
-    double precision                           , parameter             :: toleranceDeltaCritical   =1.0d-6
-    integer         (kind=kind_int8           )                        :: nodeIndex
-    double precision                                                   :: accretionFraction         , baseNodeTime               , branchingProbability      , &
-         &                                                                collapseTime              , deltaCritical              , deltaCritical1            , &
-         &                                                                deltaCritical2            , deltaW                     , nodeMass1                 , &
-         &                                                                nodeMass2                 , time                       , uniformRandom             , &
-         &                                                                massResolution            , accretionFractionCumulative, branchMassCurrent         , &
-         &                                                                branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                deltaCriticalEarliest
-    logical                                                            :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
-         &                                                                snapEarliestTime
-    type            (varying_string           )                        :: message
-    character       (len=20                   )                        :: label
+    class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
+    type            (mergerTree                      ), intent(inout), target :: tree
+    type            (treeNode                        ), pointer               :: nodeNew1                  , nodeNew2                   , node
+    class           (nodeComponentBasic              ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
+         &                                                                       basicParent
+    double precision                                  , parameter             :: toleranceDeltaCritical   =1.0d-6
+    type            (mergerTreeWalkerTreeConstruction)                        :: treeWalkerConstruction
+    type            (mergerTreeWalkerIsolatedNodes   )                        :: treeWalkerIsolated
+    integer         (kind=kind_int8                  )                        :: nodeIndex
+    double precision                                                          :: accretionFraction         , baseNodeTime               , branchingProbability      , &
+         &                                                                       collapseTime              , deltaCritical              , deltaCritical1            , &
+         &                                                                       deltaCritical2            , deltaW                     , nodeMass1                 , &
+         &                                                                       nodeMass2                 , time                       , uniformRandom             , &
+         &                                                                       massResolution            , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                                       branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
+         &                                                                       branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                       deltaCriticalEarliest
+    logical                                                                   :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
+         &                                                                       snapEarliestTime
+    type            (varying_string                  )                        :: message
+    character       (len=20                          )                        :: label
     
     ! Begin construction.
     nodeIndex =  1           ! Initialize the node index counter to unity.
@@ -251,8 +253,9 @@ contains
     baseNodeTime =basic%time()
     deltaCritical=self%criticalOverdensity_%value(time=basic%time(),mass=basic%mass(),node=node)
     call basic%timeSet(deltaCritical)
-    ! Begin tree build loop.    
-    do while (associated(node))
+    ! Begin tree build loop.
+    treeWalkerConstruction=mergerTreeWalkerTreeConstruction(tree)
+    do while (treeWalkerConstruction%next(node).and..not.self%shouldAbort(tree))
        ! Get the basic component of the node.
        basic => node%basic()
        ! Initialize the state for this branch.
@@ -522,30 +525,21 @@ contains
              end if
           end if
        end do
-       ! Check if tree should be aborted.
-       if (self%shouldAbort(tree)) then
-          node => null()
-       else
-          ! Walk to the next node.
-          node => node%walkTreeUnderConstruction()
-       end if
     end do
     ! Walk the tree and convert w to time.
-    node => tree%baseNode
-    do while (associated(node))
+    treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
+    do while (treeWalkerIsolated%next(node))
        ! Get the basic component of the node.
        basic    => node%basic()
        ! Compute the collapse time.
        collapseTime =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic%time(),mass=basic%mass(),node=node)       
        call basic%timeSet(collapseTime)
-       node => node%walkTree()
     end do
     basic => tree%baseNode%basic()
     call basic%timeSet(baseNodeTime)
     ! Check for well-ordering in time.
-    node     => tree%baseNode
-    nodePrevious => node
-    do while (associated(node))       
+    treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
+    do while (treeWalkerIsolated%next(node))       
        if (associated(node%parent)) then
           basic       => node       %basic()
           basicParent => node%parent%basic()
@@ -558,7 +552,7 @@ contains
                 ! Parent halo is very close to the resolution limit. Simply prune away the remainder of this branch.
                 call node%destroyBranch()
                 deallocate(node)
-                node => nodePrevious
+                call treeWalkerIsolated%previous(node)
              else
                 ! Parent halo is not close to the resolution limit - this is an error.
                 message="branch is not well-ordered in time:"           //char(10)
@@ -589,8 +583,6 @@ contains
              end if
           end if
        end if
-       nodePrevious => node
-       node         => node%walkTree()
     end do
     return
   end subroutine cole2000Build

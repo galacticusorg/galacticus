@@ -42,16 +42,18 @@ contains
     use Input_Parameters
     use Accretion_Halos
     use Virial_Density_Contrast
+    use Merger_Tree_Walkers
     implicit none
-    type   (mergerTree                ), intent(in   ), target :: tree
-    type   (treeNode                  ), pointer               :: nodeNext              , nodePrevious, &
-         &                                                        node
-    class  (nodeComponentBasic        ), pointer               :: basic
-    type   (mergerTree                ), pointer               :: treeCurrent
-    class  (accretionHaloClass        ), pointer               :: accretionHalo_
-    class  (virialDensityContrastClass), pointer               :: virialDensityContrast_
-    logical                                                    :: didPruning
-    double precision                                           :: densityContrast
+    type   (mergerTree                   ), intent(in   ), target :: tree
+    type   (treeNode                     ), pointer               :: nodeNext              , node, &
+         &                                                           nodePrevious
+    class  (nodeComponentBasic           ), pointer               :: basic
+    type   (mergerTree                   ), pointer               :: treeCurrent
+    class  (accretionHaloClass           ), pointer               :: accretionHalo_
+    class  (virialDensityContrastClass   ), pointer               :: virialDensityContrast_
+    type   (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
+    logical                                                       :: didPruning
+    double precision                                              :: densityContrast
     
     ! Check if module is initialized.
     if (.not.pruneBaryonsModuleInitialized) then
@@ -109,23 +111,21 @@ contains
                 end do
              else
                 ! Walk the tree, pruning branches.
-                do while (associated(node))
+                treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+                do while (treeWalker%next(node))
                    basic => node%basic()
-                   ! Record the parent node to which we will return.
-                   nodePrevious => node%parent
-                   if (.not.accretionHalo_%branchHasBaryons(node).and.node%uniqueID() /= nodePrevious%uniqueID()) then
+                   if (.not.accretionHalo_%branchHasBaryons(node).and.node%uniqueID() /= node%parent%uniqueID()) then
                       didPruning=.true.
+                      ! Return to parent node.
+                      call treeWalker%previous(nodePrevious)
                       ! Decouple from other nodes.
-                      call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,.not.accretionHalo_%branchHasBaryons(nodePrevious),.true.)
+                      call Merger_Tree_Prune_Unlink_Parent(node,node%parent,.not.accretionHalo_%branchHasBaryons(node%parent),.true.)
                       ! Clean the branch.
                       call Merger_Tree_Prune_Clean_Branch(node)
                       ! Destroy the branch.
                       call node%destroyBranch()
                       deallocate(node)
-                      ! Return to parent node.
-                      node => nodePrevious
                    end if
-                   node => node%walkTree()
                 end do
              end if
           end do

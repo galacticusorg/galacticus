@@ -146,44 +146,37 @@ contains
 
   subroutine profilerOperate(self,tree)
     !% Perform a information content operation on a merger tree.
+    use Merger_Tree_Walkers
     implicit none
-    class  (mergerTreeOperatorProfiler), intent(inout)          :: self
-    type   (mergerTree                ), intent(inout), target  :: tree
-    type   (mergerTree                )               , pointer :: treeCurrent
-    type   (treeNode                  )               , pointer :: node
-    class  (nodeComponentBasic        )               , pointer :: basic
-    integer                                                     :: massIndex  , timeIndex
+    class  (mergerTreeOperatorProfiler   ), intent(inout)          :: self
+    type   (mergerTree                   ), intent(inout), target  :: tree
+    type   (treeNode                     )               , pointer :: node
+    class  (nodeComponentBasic           )               , pointer :: basic
+    type   (mergerTreeWalkerIsolatedNodes)                         :: treeWalker
+    integer                                                        :: massIndex  , timeIndex
 
-     ! Iterate over trees.
-     treeCurrent => tree
-     do while (associated(treeCurrent))
-        ! Walk the tree.
-        node => treeCurrent%baseNode
-        do while (associated(node))
-           ! Count nodes.
-           self%nodeCount=self%nodeCount+1_kind_int8
-           ! Check for single progenitor nodes.
-           if (associated(node%firstChild)) then
-              if (associated(node%firstChild%sibling)) then
-                ! Count non-primary progenitors as a function of mass and epoch.
-                basic     => node%basic()
-                massIndex =  int((log10(basic%mass())-self%massMinimumLogarithmic)*self%massLogarithmicDeltaInverse)+1
-                timeIndex =  int((log10(basic%time())-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse)+1
-                if     (                                                     &
-                     &   massIndex > 0 .and. massIndex <= self%massBinsCount &
-                     &  .and.                                                &
-                     &   timeIndex > 0 .and. timeIndex <= self%timeBinsCount &
-                     & ) self%nonPrimaryProgenitorCount(massIndex,timeIndex)=self%nonPrimaryProgenitorCount(massIndex,timeIndex)+1_kind_int8         
-             else
-                ! Check for single progenitor nodes.
-                self%singleProgenitorCount=self%singleProgenitorCount+1_kind_int8
-              end if
-           end if
-           ! Walk to the next node in the tree.
-           node => node%walkTree()
-        end do
-        ! Move to the next tree.
-        treeCurrent => treeCurrent%nextTree
+    ! Iterate over nodes.
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       ! Count nodes.
+       self%nodeCount=self%nodeCount+1_kind_int8
+       ! Check for single progenitor nodes.
+       if (associated(node%firstChild)) then
+          if (associated(node%firstChild%sibling)) then
+             ! Count non-primary progenitors as a function of mass and epoch.
+             basic     => node%basic()
+             massIndex =  int((log10(basic%mass())-self%massMinimumLogarithmic)*self%massLogarithmicDeltaInverse)+1
+             timeIndex =  int((log10(basic%time())-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse)+1
+             if     (                                                     &
+                  &   massIndex > 0 .and. massIndex <= self%massBinsCount &
+                  &  .and.                                                &
+                  &   timeIndex > 0 .and. timeIndex <= self%timeBinsCount &
+                  & ) self%nonPrimaryProgenitorCount(massIndex,timeIndex)=self%nonPrimaryProgenitorCount(massIndex,timeIndex)+1_kind_int8         
+          else
+             ! Check for single progenitor nodes.
+             self%singleProgenitorCount=self%singleProgenitorCount+1_kind_int8
+          end if
+       end if
      end do
     return
   end subroutine profilerOperate

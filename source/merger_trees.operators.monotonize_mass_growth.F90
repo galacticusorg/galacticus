@@ -64,12 +64,14 @@ contains
 
   subroutine monotonizeMassGrowthOperate(self,tree)
     !% Perform a mass growth monotonizing operation on a merger tree.
+    use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout)         :: self
     type            (mergerTree                            ), intent(inout), target :: tree
     type            (treeNode                              ), pointer               :: nodeProgenitor          , node
     class           (nodeComponentBasic                    ), pointer               :: basicProgenitor, basic
     type            (mergerTree                            ), pointer               :: treeCurrent
+    type            (mergerTreeWalkerIsolatedNodes         )                        :: treeWalker
     logical                                                                         :: didModifyTree
     double precision                                                                :: massProgenitor
     !GCC$ attributes unused :: self
@@ -80,10 +82,9 @@ contains
        didModifyTree=.true.
        do while (didModifyTree)
           didModifyTree=.false.
-          ! Get root node of the tree.
-          node => treeCurrent%baseNode
           ! Walk the tree.
-          do while (associated(node))
+          treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+          do while (treeWalker%next(node))
              ! Find nodes that have children.
              if (associated(node%firstChild)) then
                 ! Find the mass of all progenitor nodes.
@@ -102,8 +103,6 @@ contains
                    didModifyTree=.true.
                 end if
              end if
-             ! Walk to the next node in the tree.
-             node => node%walkTree()
           end do
        end do
        ! Move to the next tree.

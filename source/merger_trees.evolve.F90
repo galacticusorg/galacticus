@@ -66,6 +66,7 @@ contains
     use Input_Parameters
     use String_Handling
     use Merger_Trees_Evolve_Deadlock_Status
+    use Merger_Tree_Walkers    
     !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
@@ -86,18 +87,20 @@ contains
     class           (nodeComponentBasic           )           , pointer                :: basicBase                         , basicParent      , &
          &                                                                                basic
     type            (mergerTree                   )           , pointer                :: currentTree
+    type            (mergerTreeWalkerAllNodes     )                                    :: treeWalker
     integer                                                                            :: deadlockStatus                    , nodesEvolvedCount, &
          &                                                                                nodesTotalCount                   , treeWalkCount    , &
          &                                                                                treeWalkCountPreviousOutput
     double precision                                                                   :: earliestTimeInTree                , endTimeThisNode  , &
          &                                                                                finalTimeInTree
-    logical                                                                            :: didEvolve                         , interrupted
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                          , vMessage
     logical                                                                            :: anyTreeExistsAtOutputTime         , hasIntertreeEvent, &
          &                                                                                hasParent                         , treeLimited      , &
-         &                                                                                nodeProgressed                    , nextNodeFound
+         &                                                                                nodeProgressed                    , nextNodeFound    , &
+         &                                                                                didEvolve                         , interrupted      , &
+         &                                                                                nodesRemain
 
     ! Check if this routine is initialized.
     if (.not.mergerTreeEvolveToInitialized) then
@@ -197,31 +200,24 @@ contains
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do
-
     ! If none of these trees exist at the output time, check if they contain any inter-tree events. If they do, we need to evolve
     ! the tree anyway, as it interacts with another tree that may exist at the output time. Otherwise, we can ignore this tree.
     if (.not.anyTreeExistsAtOutputTime) then
+       ! Walk over all trees in the forest.
+       treeWalker       =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
        hasInterTreeEvent=.false.
-       ! Iterate over trees.
-       currentTree => tree
-       do while (associated(currentTree).and..not.hasIntertreeEvent)
-          ! Iterate over nodes.
-          node => currentTree%baseNode
-          do while (associated(node).and..not.hasIntertreeEvent)                   
-             ! Iterate over events.
-             event => node%event
-             do while (associated(event).and..not.hasIntertreeEvent)
-                select type (event)
-                type is (nodeEventSubhaloPromotionInterTree)
-                   hasIntertreeEvent=.true.
-                type is (nodeEventBranchJumpInterTree      )
-                   hasIntertreeEvent=.true.
-                end select
-                event => event%next
-             end do
-             node => node%walkTreeWithSatellites()
+       do while (treeWalker%next(node).and..not.hasIntertreeEvent)
+          ! Iterate over events.
+          event => node%event
+          do while (associated(event).and..not.hasIntertreeEvent)
+             select type (event)
+             type is (nodeEventSubhaloPromotionInterTree)
+                hasIntertreeEvent=.true.
+             type is (nodeEventBranchJumpInterTree      )
+                hasIntertreeEvent=.true.
+             end select
+             event => event%next
           end do
-          currentTree => currentTree%nextTree
        end do
        if (.not.hasInterTreeEvent) then
           ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
@@ -229,7 +225,6 @@ contains
           return
        end if
     end if
-
     ! Outer loop: This causes the tree to be repeatedly walked and evolved until it has been evolved all the way to the specified
     ! end time. We stop when no nodes were evolved, which indicates that no further evolution is possible.
     didEvolve                  =.true.
@@ -266,9 +261,9 @@ contains
              if (associated(currentTree%baseNode)) then
 
                 ! Find the final time in this tree.
-                node           => currentTree%baseNode
-                basic => node%basic()
-                finalTimeInTree    =  basic%time()
+                node            => currentTree%baseNode
+                basic           => node       %basic   ()
+                finalTimeInTree =  basic      %time    ()
 
                 ! Report on current tree if deadlocked.
                 if (deadlockStatus == deadlockStatusIsReporting) then
@@ -284,6 +279,8 @@ contains
                 basic => node%basic()
                    
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
+                treeWalker =mergerTreeWalkerAllNodes(currentTree,spanForest=.false.)
+                nodesRemain=treeWalker%next(node)
                 treeWalkLoop: do while (associated(node))
 
                    ! Get the basic component of the node.
@@ -293,8 +290,15 @@ contains
                    nodesTotalCount=nodesTotalCount+1
                    
                    ! Find the next node that we will process.
-                   nodeNext => node%walkTreeWithSatellites()
-                   
+                   call treeWalker%setNode(node)
+                   ! If the node has no parent but is not the base node of the current tree it must have been removed from the
+                   ! tree. Process it, but then exit the tree walk and start over.
+                   if (.not.associated(node%parent).and..not.associated(node,currentTree%baseNode)) then
+                      nodeNext   => null()
+                   else
+                      nodesRemain=treeWalker%next(nodeNext)
+                   end if
+             
                    ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
                    ! before the output time, has no children (i.e. they've already all been processed), and either exists before
                    ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
@@ -360,7 +364,7 @@ contains
                       nodesEvolvedCount=nodesEvolvedCount+1
                       
                       ! Dump the merger tree structure for later plotting.
-                      if (mergerTreesDumpStructure) call Merger_Tree_Dump(currentTree%index,currentTree%baseNode,[node%index()])
+                      if (mergerTreesDumpStructure) call Merger_Tree_Dump(currentTree,[node%index()])
                       
                       ! Evolve the node, handling interrupt events. We keep on evolving it until no interrupt is returned (in which case
                       ! the node has reached the requested end time) or the node no longer exists (e.g. if it was destroyed).
@@ -427,7 +431,7 @@ contains
                                   call Tree_Node_Promote(node)
                                   ! As this is a node promotion, we want to attempt to continue evolving the same node. Mark the
                                   ! parent as the next node to evolve, and flag that our next node has been identified.
-                                  nodeNext      => nodeParent
+                                  nodeNext      => nodeParent                                  
                                   nextNodeFound =  .true.
                                end if
                             end select
@@ -436,8 +440,10 @@ contains
                       ! Determine the next node to process.
                       if (.not.nextNodeFound) then
                          ! If the node still exists and advanced forward in time, attempt to evolve it again. Set the next node pointer back to the current node so that we will evolve it again.
-                         if (associated(node).and.nodeProgressed) nodeNext => node
-                      end if                      
+                         if (associated(node).and.nodeProgressed) then
+                            nodeNext => node
+                         end if
+                      end if
                    else
                       if (deadlockStatus == deadlockStatusIsReporting) then
                          vMessage="node "
@@ -460,10 +466,8 @@ contains
                          end if
                       end if
                    end if evolveCondition
-
                    ! Step to the next node to consider.
-                   node => nodeNext
-                   
+                   node => nodeNext                   
                 end do treeWalkLoop
                 
                 ! Output tree progress information.
@@ -986,7 +990,7 @@ contains
   end subroutine Perform_Node_Events
 
   subroutine Perform_Tree_Events(tree,deadlockStatus)
-    !% Perform any events associated with {\normalfont \ttfamily node}.
+    !% Perform any events associated with {\normalfont \ttfamily tree}.
     implicit none
     type            (mergerTree        ), intent(inout), target  :: tree
     integer                             , intent(inout)          :: deadlockStatus
@@ -1014,7 +1018,7 @@ contains
                 lastEvent%next => thisEvent%next
              end if
              nextEvent => thisEvent%next
-             if (taskDone) deallocate(thisEvent)
+             deallocate(thisEvent)
              thisEvent => nextEvent
           else
              ! The task was not performed, so simply move to the next event.

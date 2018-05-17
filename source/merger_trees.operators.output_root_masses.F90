@@ -119,96 +119,88 @@ contains
     use Galacticus_Nodes
     use Numerical_Comparison
     use Galacticus_Error
+    use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorOutputRootMasses)         , intent(inout) :: self
     type            (mergerTree                        ), target , intent(inout) :: tree
     type            (treeNode                          ), pointer                :: node             , nodeChild      , &
          &                                                                          nodeSibling
-    type            (mergerTree                        ), pointer                :: treeCurrent
     class           (nodeComponentBasic                ), pointer                :: basic            , basicChild     , &
          &                                                                          basicSibling
     class           (nodeComponentMergingStatistics    ), pointer                :: mergingStatistics
+    type            (mergerTreeWalkerIsolatedNodes     )                         :: treeWalker
     double precision                                                             :: branchBegin      , branchEnd      , &
          &                                                                          branchMassInitial, branchMassFinal, &
          &                                                                          massRoot
 
-    ! Iterate over trees.
-    treeCurrent => tree    
-    do while (associated(treeCurrent))
-       ! Get root node of the tree.       
-       node => treeCurrent%baseNode
-       ! Walk the tree, searching for root nodes.
-       do while (associated(node))
-          ! Get the child node, and process if child exists.
-          if (associated(node%firstChild)) then
-             nodeChild => node%firstChild
-          else
-             nodeChild => node
-          end if
-          ! Check if child should be included.
-          mergingStatistics => nodeChild%mergingStatistics()
-          if     (                                                         &
-               &   .not.self             %alwaysIsolatedHalosOnly          &
-               &  .or.                                                     &
-               &        mergingStatistics%nodeHierarchyLevelMaximum() == 0 &
-               & ) then             
-             ! Get the basic components.
-             basic      => node     %basic()
-             basicChild => nodeChild%basic()
-             ! Determine range of times spanned by this branch.
-             branchBegin=basicChild%time()
-             branchEnd  =basic     %time()
-             ! Does the branch span the search time?
-             if     (                                                     &
-                  &     branchBegin <= self%time                          &
-                  &  .and.                                                &
-                  &   (                                                   &
-                  &     branchEnd   >  self%time                          &
-                  &    .or.                                               &
-                  &     (                                                 &
-                  &       .not.associated(node%parent)                    &
-                  &      .and.                                            &
-                  &       Values_Agree(branchEnd,self%time,relTol=1.0d-6) &
-                  &     )                                                 &
-                  &   )                                                   &
-                  & ) then
-                ! Get the masses on the branch.
-                branchMassInitial=basicChild%mass()
-                branchMassFinal  =basic     %mass()
-                ! Remove the mass in any non-primary progenitors - we don't want to include
-                ! their mass in the estimated mass growth rate of this node.
-                if (associated(node%firstChild)) then
-                   nodeSibling => node%firstChild%sibling
-                   do while (associated(nodeSibling))
-                      basicSibling    => nodeSibling%basic()
-                      branchMassFinal =  branchMassFinal-basicSibling%mass()
-                      nodeSibling     => nodeSibling%sibling
-                   end do
-                end if
-                ! Do not let the parent mass decrease along the branch.
-                branchMassFinal=max(branchMassFinal,branchMassInitial)
-                ! Interpolate to get the mass at the required time.
-                if (branchEnd == branchBegin) then
-                   massRoot=branchMassFinal
-                else
-                   massRoot=                 +branchMassInitial  &
-                        &   +(branchMassFinal-branchMassInitial) &
-                        &   *(self%time      -branchBegin      ) &
-                        &   /(branchEnd      -branchBegin      )
-                end if
-                ! Store the tree data.
-                self%treeCount                =self       %treeCount   +1
-                self%mass     (self%treeCount)=            massRoot
-                self%weight   (self%treeCount)=treeCurrent%volumeWeight
-                ! Flush the buffers to file if necessary.
-                if (self%treeCount == outputRootMassesBufferSize) call self%finalize()
+    ! Iterate over nodes, searching for root nodes.
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       ! Get the child node, and process if child exists.
+       if (associated(node%firstChild)) then
+          nodeChild => node%firstChild
+       else
+          nodeChild => node
+       end if
+       ! Check if child should be included.
+       mergingStatistics => nodeChild%mergingStatistics()
+       if     (                                                         &
+            &   .not.self             %alwaysIsolatedHalosOnly          &
+            &  .or.                                                     &
+            &        mergingStatistics%nodeHierarchyLevelMaximum() == 0 &
+            & ) then             
+          ! Get the basic components.
+          basic      => node     %basic()
+          basicChild => nodeChild%basic()
+          ! Determine range of times spanned by this branch.
+          branchBegin=basicChild%time()
+          branchEnd  =basic     %time()
+          ! Does the branch span the search time?
+          if     (                                                     &
+               &     branchBegin <= self%time                          &
+               &  .and.                                                &
+               &   (                                                   &
+               &     branchEnd   >  self%time                          &
+               &    .or.                                               &
+               &     (                                                 &
+               &       .not.associated(node%parent)                    &
+               &      .and.                                            &
+               &       Values_Agree(branchEnd,self%time,relTol=1.0d-6) &
+               &     )                                                 &
+               &   )                                                   &
+               & ) then
+             ! Get the masses on the branch.
+             branchMassInitial=basicChild%mass()
+             branchMassFinal  =basic     %mass()
+             ! Remove the mass in any non-primary progenitors - we don't want to include
+             ! their mass in the estimated mass growth rate of this node.
+             if (associated(node%firstChild)) then
+                nodeSibling => node%firstChild%sibling
+                do while (associated(nodeSibling))
+                   basicSibling    => nodeSibling%basic()
+                   branchMassFinal =  branchMassFinal-basicSibling%mass()
+                   nodeSibling     => nodeSibling%sibling
+                end do
              end if
+             ! Do not let the parent mass decrease along the branch.
+             branchMassFinal=max(branchMassFinal,branchMassInitial)
+             ! Interpolate to get the mass at the required time.
+             if (branchEnd == branchBegin) then
+                massRoot=branchMassFinal
+             else
+                massRoot=                 +branchMassInitial  &
+                     &   +(branchMassFinal-branchMassInitial) &
+                     &   *(self%time      -branchBegin      ) &
+                     &   /(branchEnd      -branchBegin      )
+             end if
+             ! Store the tree data.
+             self%treeCount                =self         %treeCount   +1
+             self%mass     (self%treeCount)=              massRoot
+             self%weight   (self%treeCount)=node%hostTree%volumeWeight
+             ! Flush the buffers to file if necessary.
+             if (self%treeCount == outputRootMassesBufferSize) call self%finalize()
           end if
-          ! Move to the next node.
-          node => node%walkTree()
-       end do
-       ! Move to the next tree.
-       treeCurrent => treeCurrent%nextTree
+       end if
     end do
     return
   end subroutine outputRootMassesOperate

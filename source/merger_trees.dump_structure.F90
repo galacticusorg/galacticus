@@ -112,8 +112,7 @@ contains
                &   baseNodeBasic%mass() < mergerTreeStructureDumpMassMaximum                 &
                & )                                                                           &
                & call Merger_Tree_Dump(                                                      &
-               &                       currentTree%index                                   , &
-               &                       currentTree%baseNode                                , &
+               &                       currentTree                                         , &
                &                       scaleNodesByLogMass=.true.                          , &
                &                       edgeLengthsToTimes =.true.                          , &
                &                       path               =mergerTreeStructureDumpDirectory  &

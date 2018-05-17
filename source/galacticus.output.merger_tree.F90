@@ -92,6 +92,7 @@ contains
     use               Galactic_Structure_Radii
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
+    use               Merger_Tree_Walkers
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -110,24 +111,25 @@ contains
     ! done automatically. They are defined on separate lines as, currently, the "objectBuilder" preprocessor directive is
     ! insufficiently intelligent to modify the attributes of these variables if they are on a single line.
     implicit none
-    type            (mergerTree        )              , intent(inout), target   :: tree
-    integer         (c_size_t          )              , intent(in   )           :: iOutput
-    double precision                                  , intent(in   )           :: time
-    logical                                           , intent(in   ), optional :: isLastOutput
-    type            (treeNode          ), pointer                               :: node                  , nodeNext
-    integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength       , referenceStart
-    class           (nodeComponentBasic), pointer                               :: basic
-    type            (mergerTree        ), pointer                               :: currentTree
-    integer                                                                     :: doubleProperty        , nodeStatus     , &
-         &                                                                         iProperty             , integerProperty, &
-         &                                                                         i                     , analysisCount
-    integer         (c_size_t          )                                        :: iGroup
-    logical                                                                     :: nodePassesFilter      , finished
-    type            (hdf5Object        )                                        :: toDataset
-    type            (inputParameters   )                                        :: outputParameters
-    type            (inputParameters   )                                        :: outputParametersFilter
-    type            (multiCounter      )                                        :: instance
-    
+    type            (mergerTree              )              , intent(inout), target   :: tree
+    integer         (c_size_t                )              , intent(in   )           :: iOutput
+    double precision                                        , intent(in   )           :: time
+    logical                                                 , intent(in   ), optional :: isLastOutput
+    type            (treeNode                ), pointer                               :: node
+    integer         (kind=HSIZE_T            ), dimension(1)                          :: referenceLength       , referenceStart
+    class           (nodeComponentBasic      ), pointer                               :: basic
+    type            (mergerTree              ), pointer                               :: currentTree
+    type            (mergerTreeWalkerAllNodes)                                        :: treeWalker
+    integer                                                                           :: doubleProperty        , nodeStatus     , &
+         &                                                                               iProperty             , integerProperty, &
+         &                                                                               i                     , analysisCount
+    integer         (c_size_t                )                                        :: iGroup
+    logical                                                                           :: nodePassesFilter
+    type            (hdf5Object              )                                        :: toDataset
+    type            (inputParameters         )                                        :: outputParameters
+    type            (inputParameters         )                                        :: outputParametersFilter
+    type            (multiCounter            )                                        :: instance
+          
     ! Initialize if necessary.
     if (.not.mergerTreeOutputInitialized) then
        !$omp critical(Merger_Tree_Output_Initialization)
@@ -190,18 +192,16 @@ contains
     currentTree => tree
     do while (associated(currentTree))     
        ! Iterate over nodes.
-       node       => currentTree%baseNode
-       nodeStatus =  nodeStatusFirst       
-       do while (associated(node))
-          ! Find the next node.
-          nodeNext => node%walkTreeWithSatellites()
+       nodeStatus=nodeStatusFirst
+       treeWalker=mergerTreeWalkerAllNodes(currentTree,spanForest=.false.)
+       do while (treeWalker%next(node))
           ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
           ! calculations would not be automatically reset because the node unique ID will not have changed).
           call Galacticus_Calculations_Reset (node)
           ! Ensure that galactic structure is up to date.
           call Galactic_Structure_Radii_Solve(node)
           ! Check for final node.
-          if (.not.associated(nodeNext)) nodeStatus=nodeStatusLast
+          if (.not.treeWalker%nodesRemain()) nodeStatus=nodeStatusLast
           ! Get the basic component.
           basic => node%basic()
           if (basic%time() == time) then
@@ -218,10 +218,9 @@ contains
           end if
           ! Move to the next node.
           nodeStatus=nodeStatusNull
-          node => nodeNext
        end do
        ! Record end of tree.
-       node   => currentTree%baseNode
+       node       => currentTree%baseNode
        nodeStatus =  nodeStatusFinal
        include 'galacticus.output.merger_tree.analysis.inc'
        ! Skip to the next tree.
@@ -250,15 +249,8 @@ contains
              ! Loop over all nodes in the tree.
              integerPropertiesWritten=0
              doublePropertiesWritten =0
-             finished                =.false.
-             do while (.not.finished)
-                node => node%walkTreeWithSatellites()
-                if (.not.associated(node)) then
-                   ! When a null pointer is returned, the full tree has been walked. We then have to
-                   ! handle the base node as a special case.
-                   node => currentTree%baseNode
-                   finished =  .true.
-                end if
+             treeWalker=mergerTreeWalkerAllNodes(currentTree)
+             do while (treeWalker%next(node))
                 ! Get the basic component.
                 basic => node%basic()
                 if (basic%time() == time) then

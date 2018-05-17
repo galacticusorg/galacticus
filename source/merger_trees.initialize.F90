@@ -29,27 +29,20 @@ contains
   subroutine Merger_Tree_Initialize(thisTree,endTime)
     !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
     use Galacticus_Nodes
+    use Merger_Tree_Walkers    
     !# <include directive="mergerTreeInitializeTask" type="moduleUse">
     include 'merger_trees.initialize.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (mergerTree        ), intent(inout) :: thisTree
-    double precision                    , intent(in   ) :: endTime
-    type            (treeNode          ), pointer       :: node
-    class           (nodeComponentBasic), pointer       :: basic
-    logical                                             :: finished
+    type            (mergerTree              ), intent(inout) :: thisTree
+    double precision                          , intent(in   ) :: endTime
+    type            (treeNode                ), pointer       :: node
+    class           (nodeComponentBasic      ), pointer       :: basic
+    type            (mergerTreeWalkerAllNodes)                :: treeWalker
 
     if (thisTree%initializedUntil < endTime) then
-       node     => thisTree%baseNode
-       finished =  .false.
-       do while (.not.finished)
-          node => node%walkTreeWithSatellites()
-          if (.not.associated(node)) then
-             ! When a null pointer is returned, the full tree has been walked. We then have to
-             ! handle the base node as a special case.
-             node     => thisTree%baseNode
-             finished =  .true.
-          end if
+       treeWalker=mergerTreeWalkerAllNodes(thisTree,spanForest=.false.)
+       do while (treeWalker%next(node))
           ! Initialize only nodes that exist before the end time.
           basic => node%basic()
           if (basic%time() > thisTree%initializedUntil .and. basic%time() <= endTime) then

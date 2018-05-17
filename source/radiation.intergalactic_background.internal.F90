@@ -222,6 +222,7 @@ contains
     use               Star_Formation_IMF
     use               Galactic_Structure_Options
     use               Galacticus_Error
+    use               Merger_Tree_Walkers
     use               Stellar_Population_Spectra
     use               Accretion_Disk_Spectra
     use               Arrays_Search
@@ -239,7 +240,6 @@ contains
     implicit none
     class           (universeEvent                ), intent(in   ) :: event
     type            (universe                     ), intent(inout) :: universe_
-    type            (mergerTree                   ), pointer       :: tree       
     type            (mergerTreeList               ), pointer       :: forest       
     type            (treeNode                     ), pointer       :: node
     class           (nodeComponentBasic           ), pointer       :: basic
@@ -257,6 +257,7 @@ contains
     type            (fgsl_function                ), save          :: integrandFunction
     type            (fgsl_integration_workspace   ), save          :: integrationWorkspace
     logical                                        , save          :: odeReset                            , integrationReset            =.true.
+    type            (mergerTreeWalkerAllNodes     )                :: treeWalker
     double precision                                               :: starFormationRateDisk               , starFormationRateSpheroid          , &
          &                                                            gasMassDisk                         , gasMassSpheroid                    , &
          &                                                            ageEnd                              , ageStart                           , &
@@ -286,94 +287,89 @@ contains
     treeTimeLatest=0.0d0
     forest => universe_%trees
     do while (associated(forest))
-       tree => forest%tree
-       do while (associated(tree))
-          node => tree%baseNode
-          do while (associated(node))
-             basic => node%basic()
-             treeTimeLatest=max(treeTimeLatest,basic%time())
-             if (basic%time() == event%time) then
-                ! Get the star formation rates and metallicites for this node.
-                disk                  => node    %disk             ()
-                spheroid              => node    %spheroid         ()
-                starFormationRateDisk     =  disk    %starFormationRate()
-                starFormationRateSpheroid =  spheroid%starFormationRate()
-                gasMassDisk               =  disk    %massGas          ()
-                gasMassSpheroid           =  spheroid%massGas          ()
-                gasAbundancesDisk         =  disk    %abundancesGas    ()
-                gasAbundancesSpheroid     =  spheroid%abundancesGas    ()
-                if (starFormationRateDisk     > 0.0d0) gasAbundancesDisk    =gasAbundancesDisk    /gasMassDisk
-                if (starFormationRateSpheroid > 0.0d0) gasAbundancesSpheroid=gasAbundancesSpheroid/gasMassSpheroid
-                if (starFormationRateDisk > 0.0d0 .or. starFormationRateSpheroid > 0.0d0) then
-                   ! Find IMF indices for disk and spheroid.
-                   imfIndexDisk    =IMF_Select(starFormationRateDisk    ,gasAbundancesDisk    ,componentTypeDisk    )
-                   imfIndexSpheroid=IMF_Select(starFormationRateSpheroid,gasAbundancesSpheroid,componentTypeSpheroid)
-                   ! Find the duration of the current timestep.
-                   ! Accumulate emissivity to each timestep.
-                   firstTime=.true.
-                   do iTime=1,backgroundRadiationTimeCount
-                      ! Skip times in the past.
-                      if (backgroundRadiationTime(iTime) < event%time) cycle
-                      ! Compute age of the currently forming population at this time.
-                      ageEnd=backgroundRadiationTime(iTime)-event%time
-                      if (iTime == 1) then
-                         ageStart=0.0d0
-                      else
-                         ageStart=max(backgroundRadiationTime(iTime-1)-event%time,0.0d0)
-                      end if
-                      ! Iterate over wavelength
-                      do iWavelength=1,backgroundRadiationWavelengthCount                         
-                         wavelength              =  backgroundRadiationWavelength(iWavelength)
-                         imfIndex                =  imfIndexDisk
-                         gasAbundances           => gasAbundancesDisk
-                         integrationReset=.true.
-                         stellarSpectrumDisk     =  Integrate(                                                        &
-                              &                               ageStart                                              , &
-                              &                               ageEnd                                                , &
-                              &                               stellarSpectraConvolution                             , &
-                              &                               integrandFunction                                     , &
-                              &                               integrationWorkspace                                  , &
-                              &                               toleranceAbsolute        =integrationToleranceAbsolute, &
-                              &                               toleranceRelative        =integrationToleranceRelative, &
-                              &                               reset                    =integrationReset              &
-                              &                              )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
-                         gasAbundances           => gasAbundancesSpheroid
-                         integrationReset=.true.
-                         stellarSpectrumSpheroid =  Integrate(                                                        &
-                              &                               ageStart                                              , &
-                              &                               ageEnd                                                , &
-                              &                               stellarSpectraConvolution                             , &
-                              &                               integrandFunction                                     , &
-                              &                               integrationWorkspace                                  , &
-                              &                               toleranceAbsolute        =integrationToleranceAbsolute, &
-                              &                               toleranceRelative        =integrationToleranceRelative, &
-                              &                               reset                    =integrationReset              &
-                              &                              )
-                         call Integrate_Done(integrandFunction,integrationWorkspace)
-                         backgroundRadiationEmissivity        (iWavelength,iTime)          &
-                              & =backgroundRadiationEmissivity(iWavelength,iTime)          &
-                              & +(                                                         &
-                              &   +stellarSpectrumDisk                                     &
-                              &   *starFormationRateDisk                                   &
-                              &   +stellarSpectrumSpheroid                                 &
-                              &   *starFormationRateSpheroid                               &
-                              &  )                                                         &
-                              & *tree%volumeWeight
-                         ! Add AGN emission. This accumulates only to the the current time.
-                         if (firstTime)                                                       &
-                              & backgroundRadiationEmissivity  (iWavelength,iTime)            &
-                              &  =backgroundRadiationEmissivity(iWavelength,iTime)            &
-                              &  +accretionDiskSpectra_        %spectrum(node,wavelength) &
-                              &  *tree%volumeWeight
-                      end do
-                      firstTime=.false.
+       treeWalker=mergerTreeWalkerAllNodes(forest%tree,spanForest=.true.)
+       do while (treeWalker%next(node))
+          basic => node%basic()
+          treeTimeLatest=max(treeTimeLatest,basic%time())
+          if (basic%time() == event%time) then
+             ! Get the star formation rates and metallicites for this node.
+             disk                  => node    %disk             ()
+             spheroid              => node    %spheroid         ()
+             starFormationRateDisk     =  disk    %starFormationRate()
+             starFormationRateSpheroid =  spheroid%starFormationRate()
+             gasMassDisk               =  disk    %massGas          ()
+             gasMassSpheroid           =  spheroid%massGas          ()
+             gasAbundancesDisk         =  disk    %abundancesGas    ()
+             gasAbundancesSpheroid     =  spheroid%abundancesGas    ()
+             if (starFormationRateDisk     > 0.0d0) gasAbundancesDisk    =gasAbundancesDisk    /gasMassDisk
+             if (starFormationRateSpheroid > 0.0d0) gasAbundancesSpheroid=gasAbundancesSpheroid/gasMassSpheroid
+             if (starFormationRateDisk > 0.0d0 .or. starFormationRateSpheroid > 0.0d0) then
+                ! Find IMF indices for disk and spheroid.
+                imfIndexDisk    =IMF_Select(starFormationRateDisk    ,gasAbundancesDisk    ,componentTypeDisk    )
+                imfIndexSpheroid=IMF_Select(starFormationRateSpheroid,gasAbundancesSpheroid,componentTypeSpheroid)
+                ! Find the duration of the current timestep.
+                ! Accumulate emissivity to each timestep.
+                firstTime=.true.
+                do iTime=1,backgroundRadiationTimeCount
+                   ! Skip times in the past.
+                   if (backgroundRadiationTime(iTime) < event%time) cycle
+                   ! Compute age of the currently forming population at this time.
+                   ageEnd=backgroundRadiationTime(iTime)-event%time
+                   if (iTime == 1) then
+                      ageStart=0.0d0
+                   else
+                      ageStart=max(backgroundRadiationTime(iTime-1)-event%time,0.0d0)
+                   end if
+                   ! Iterate over wavelength
+                   do iWavelength=1,backgroundRadiationWavelengthCount                         
+                      wavelength              =  backgroundRadiationWavelength(iWavelength)
+                      imfIndex                =  imfIndexDisk
+                      gasAbundances           => gasAbundancesDisk
+                      integrationReset=.true.
+                      stellarSpectrumDisk     =  Integrate(                                                        &
+                           &                               ageStart                                              , &
+                           &                               ageEnd                                                , &
+                           &                               stellarSpectraConvolution                             , &
+                           &                               integrandFunction                                     , &
+                           &                               integrationWorkspace                                  , &
+                           &                               toleranceAbsolute        =integrationToleranceAbsolute, &
+                           &                               toleranceRelative        =integrationToleranceRelative, &
+                           &                               reset                    =integrationReset              &
+                           &                              )
+                      call Integrate_Done(integrandFunction,integrationWorkspace)
+                      gasAbundances           => gasAbundancesSpheroid
+                      integrationReset=.true.
+                      stellarSpectrumSpheroid =  Integrate(                                                        &
+                           &                               ageStart                                              , &
+                           &                               ageEnd                                                , &
+                           &                               stellarSpectraConvolution                             , &
+                           &                               integrandFunction                                     , &
+                           &                               integrationWorkspace                                  , &
+                           &                               toleranceAbsolute        =integrationToleranceAbsolute, &
+                           &                               toleranceRelative        =integrationToleranceRelative, &
+                           &                               reset                    =integrationReset              &
+                           &                              )
+                      call Integrate_Done(integrandFunction,integrationWorkspace)
+                      backgroundRadiationEmissivity        (iWavelength,iTime)          &
+                           & =backgroundRadiationEmissivity(iWavelength,iTime)          &
+                           & +(                                                         &
+                           &   +stellarSpectrumDisk                                     &
+                           &   *starFormationRateDisk                                   &
+                           &   +stellarSpectrumSpheroid                                 &
+                           &   *starFormationRateSpheroid                               &
+                           &  )                                                         &
+                           & *node%hostTree%volumeWeight
+                      ! Add AGN emission. This accumulates only to the the current time.
+                      if (firstTime)                                                   &
+                           & backgroundRadiationEmissivity  (iWavelength,iTime)        &
+                           &  =backgroundRadiationEmissivity(iWavelength,iTime)        &
+                           &  +accretionDiskSpectra_        %spectrum(node,wavelength) &
+                           &  *node%hostTree%volumeWeight
                    end do
-                end if
+                   firstTime=.false.
+                end do
              end if
-             node => node%walkTreeWithSatellites()
-          end do
-          tree => tree%nextTree
+          end if
        end do
        forest => forest%next
     end do

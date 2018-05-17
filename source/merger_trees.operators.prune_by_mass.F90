@@ -93,6 +93,7 @@ contains
   subroutine pruneByMassOperate(self,tree)
     !% Perform a prune-by-mass operation on a merger tree.
     use Merger_Trees_Pruning_Utilities
+    use Merger_Tree_Walkers
     implicit none
     class  (mergerTreeOperatorPruneByMass), intent(inout)         :: self
     type   (mergerTree                   ), intent(inout), target :: tree
@@ -100,6 +101,7 @@ contains
          &                                                           node         , nodeWork
     class  (nodeComponentBasic           ), pointer               :: basic        , basicPrevious
     type   (mergerTree                   ), pointer               :: currentTree
+    type   (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
     logical                                                       :: didPruning
 
     ! Iterate over trees.
@@ -135,7 +137,8 @@ contains
              nullify(node%firstSatellite)
           else
              ! Walk the tree, pruning branches.
-             do while (associated(node))
+             treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+             do while (treeWalker%next(node))
                 basic => node%basic()
                 ! Record the parent node to which we will return.
                 nodePrevious => node%parent
@@ -152,7 +155,6 @@ contains
                    ! Return to parent node.
                    node => nodePrevious
                 end if
-                node => node%walkTree()
              end do
           end if
        end do

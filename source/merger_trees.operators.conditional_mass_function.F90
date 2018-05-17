@@ -626,6 +626,7 @@ contains
     use Memory_Management
     use Numerical_Comparison
     use Galacticus_Error
+    use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)                                  :: self
     type            (mergerTree                     ), intent(inout)                         , target :: tree
@@ -637,6 +638,7 @@ contains
          &                                                                                               basicParent                   , descendentBasic           , &
          &                                                                                               basicParentChild              , basicSibling
     class           (nodeComponentMergingStatistics ), pointer                                        :: mergingStatistics
+    type            (mergerTreeWalkerIsolatedNodes  )                                                 :: treeWalker
     integer                                                                                           :: i                             , binMassParent             , &
          &                                                                                               binMassRatio                  , iPrimary                  , &
          &                                                                                               jPrimary                      , depthHierarchy            , &
@@ -685,7 +687,8 @@ contains
           !$ call OMP_Unset_Lock(self%accumulateLock)
        end if
        ! Walk the tree, accumulating statistics.
-       do while (associated(node))
+       treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+       do while (treeWalker%next(node))
           ! Get the child node, and process if child exists.
           nodeChild => node%firstChild
           do while (associated(nodeChild))
@@ -1007,8 +1010,6 @@ contains
              ! Move to the next child.
              nodeChild => nodeChild%sibling
           end do
-          ! Move to the next node.
-          node => node%walkTree()
        end do
        ! Store the computed primary progenitor mass functions.
        if (self%extendedStatistics.and.self%primaryProgenitorStatisticsValid) then

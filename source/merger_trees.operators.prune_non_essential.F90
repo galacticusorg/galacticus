@@ -23,7 +23,7 @@
   
   !# <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
   !#  <description>
-  !#   Contains a module which implements a merger tree operator which prunes branches that do not directly influence an
+  !#   Implements a merger tree operator which prunes branches that do not directly influence an
   !#   ``essential'' node. Any branch which does not connect to the branch into which the node identified by ID {\normalfont
   !#   \ttfamily [essentialNodeI]} descends by time {\normalfont \ttfamily essetialNodeTime]} will be pruned.
   !#  </description>
@@ -98,6 +98,7 @@ contains
   subroutine pruneNonEssentialOperate(self,tree)
     !% Perform a prune-non-essential operation on a merger tree.
     use Merger_Trees_Pruning_Utilities
+    use Merger_Tree_Walkers
     implicit none
     class  (mergerTreeOperatorPruneNonEssential), intent(inout)          :: self
     type   (mergerTree                         ), intent(inout), target  :: tree
@@ -105,6 +106,7 @@ contains
     type   (treeNode                           )               , pointer :: node          , nodeEssential, &
          &                                                                  nodePrevious
     class  (nodeComponentBasic                 )               , pointer :: basic
+    type   (mergerTreeWalkerIsolatedNodes      )                         :: treeWalker
     
     ! Iterate over trees.
     treeCurrent => tree
@@ -118,12 +120,10 @@ contains
              nodeEssential => nodeEssential%parent
              basic         => nodeEssential%basic ()
           end do
-          ! Get root node of the tree.
-          node => treeCurrent%baseNode
           ! Walk the tree, pruning branches.
-          do while (associated(node))
+          treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+          do while (treeWalker%next(node))
              ! Record the parent node to which we will return.
-             nodePrevious => node%parent
              if     (                                                &
                   &   associated(nodePrevious)                       &
                   &  .and.                                           &
@@ -134,6 +134,8 @@ contains
                   &      nodeEssential%isProgenitorOf(node         ) &
                   &    )                                             &
                   & ) then
+                ! Return to the previous node.
+                call treeWalker%previous(nodePrevious)
                 ! Decouple from other nodes.                
                 call Merger_Tree_Prune_Unlink_Parent(                                                    &
                      &                               node                                              , &
@@ -151,10 +153,7 @@ contains
                 ! Destroy the branch.
                 call node%destroyBranch()
                 deallocate(node)
-                ! Return to parent node.
-                node => nodePrevious
              end if
-             node => node%walkTree()
           end do
        else
           ! Entire tree can be pruned. Destroy all but this base node. (Leaving just

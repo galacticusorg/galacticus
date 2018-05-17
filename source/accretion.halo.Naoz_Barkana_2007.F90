@@ -170,14 +170,16 @@ contains
     use Galacticus_Nodes
     use Accretion_Halo_Totals
     use Cosmology_Parameters
+    use Merger_Tree_Walkers
     implicit none
-    class           (accretionHaloNaozBarkana2007), intent(inout)          :: self
-    type            (treeNode                    ), intent(inout), target  :: node
-    type            (treeNode                    )               , pointer :: branchNode
-    class           (cosmologyParametersClass    )               , pointer :: cosmologyParameters_
-    class           (accretionHaloTotalClass     )               , pointer :: accretionHaloTotal_
-    class           (nodeComponentBasic          )               , pointer :: basic
-    double precision                                                       :: fractionBaryons     , massHaloMinimum
+    class           (accretionHaloNaozBarkana2007       ), intent(inout)          :: self
+    type            (treeNode                           ), intent(inout), target  :: node
+    type            (treeNode                           )               , pointer :: branchNode
+    class           (cosmologyParametersClass           )               , pointer :: cosmologyParameters_
+    class           (accretionHaloTotalClass            )               , pointer :: accretionHaloTotal_
+    class           (nodeComponentBasic                 )               , pointer :: basic
+    type            (mergerTreeWalkerIsolatedNodesBranch)                         :: treeWalker
+    double precision                                                              :: fractionBaryons     , massHaloMinimum
 
     cosmologyParameters_            =>  cosmologyParameters             ()
     accretionHaloTotal_             =>  accretionHaloTotal              ()
@@ -186,14 +188,13 @@ contains
     massHaloMinimum                 =  +self                %massMinimum   &
          &                             /fractionBaryons
     naozBarkana2007BranchHasBaryons =   .false.
-    branchNode                      =>  node
-    do while (associated(branchNode))
+    treeWalker                      =   mergerTreeWalkerIsolatedNodesBranch(node)
+    do while (treeWalker%next(branchNode))
        basic => branchnode%basic()
        if (accretionHaloTotal_%accretedMass(branchNode)*self%filteredFraction(branchNode) >= massHaloMinimum) then
           naozBarkana2007BranchHasBaryons=.true.
           exit
        end if
-       branchNode => branchNode%walkBranch(node)
     end do
     return
   end function naozBarkana2007BranchHasBaryons

@@ -93,27 +93,26 @@ contains
   subroutine pruneHierarchyOperate(self,tree)
     !% Perform a prune-hierarchy operation on a merger tree.
     use Merger_Trees_Pruning_Utilities
+    use Merger_Tree_Walkers
     implicit none
     class  (mergerTreeOperatorPruneHierarchy), intent(inout)          :: self
     type   (mergerTree                      ), intent(inout), target  :: tree
     type   (mergerTree                      )               , pointer :: treeCurrent
     type   (treeNode                        )               , pointer :: node          , nodePrevious, &
          &                                                               nodeWork      , nodeNext
+    type   (mergerTreeWalkerIsolatedNodes   )                         :: treeWalker
     logical                                                           :: didPruning
     integer                                                           :: hierarchyDepth
     
-    ! Iterate over trees.
+    ! Iterate over nodes.
     treeCurrent => tree
     do while (associated(treeCurrent))
        didPruning=.true.
        do while (didPruning)
           didPruning=.false.
-          ! Get root node of the tree.
-          node => treeCurrent%baseNode
           ! Walk the tree, pruning hierarchy.
-          do while (associated(node))
-             ! Record the parent node to which we will return.
-             nodePrevious => node%parent
+          treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+          do while (treeWalker%next(node))
              ! Find the depth in the hierarchy.
              hierarchyDepth =  0
              nodeWork       => node
@@ -143,16 +142,16 @@ contains
                    if (.not.nodeWork%isPrimaryProgenitor().and.associated(nodeWork%parent)) hierarchyDepth=hierarchyDepth+1
                    nodeWork => nodeWork%parent
                 end do
+                ! Return to previous node.
+                call treeWalker%previous(nodePrevious)
+                ! Unlink the node.
                 call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,hierarchyDepth >= self%hierarchyDepth,.true.)
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch(node)
                 ! Destroy the branch.
                 call node%destroyBranch()
                 deallocate(node)
-                ! Return to parent node.
-                node => nodePrevious
              end if
-             node => node%walkTree()
           end do
        end do
        ! Move to the next tree.

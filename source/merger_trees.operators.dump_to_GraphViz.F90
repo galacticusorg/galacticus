@@ -115,17 +115,16 @@ contains
     do while (associated(treeCurrent))
        ! Dump the tree.
        basicBase => treeCurrent%baseNode%basic()
-       if     (                                                     &
-            &   basicBase%mass() >= self%massMinimum                &
-            &  .and.                                                &
-            &   basicBase%mass() <  self%massMaximum                &
-            & )                                                     &
-            & call Merger_Tree_Dump(                                &
-            &                       treeCurrent%index             , &
-            &                       treeCurrent%baseNode          , &
-            &                       scaleNodesByLogMass =.true.   , &
-            &                       edgeLengthsToTimes  =.true.   , &
-            &                       path                =self%path  &
+       if     (                                                    &
+            &   basicBase%mass() >= self%massMinimum               &
+            &  .and.                                               &
+            &   basicBase%mass() <  self%massMaximum               &
+            & )                                                    &
+            & call Merger_Tree_Dump(                               &
+            &                       treeCurrent                  , &
+            &                       scaleNodesByLogMass=.true.   , &
+            &                       edgeLengthsToTimes =.true.   , &
+            &                       path               =self%path  &
             &                      )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree

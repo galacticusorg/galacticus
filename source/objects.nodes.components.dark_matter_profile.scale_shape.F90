@@ -243,6 +243,7 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output(baseNode,nodeProperty,treeGroup)
     !% Write the scale radius property to a full merger tree output.
     use IO_HDF5
+    use Merger_Tree_Walkers
     implicit none
     type            (treeNode                      )              , intent(in   ), pointer :: baseNode
     double precision                                , dimension(:), intent(inout)          :: nodeProperty
@@ -250,27 +251,26 @@ contains
     type            (treeNode                      )                             , pointer :: node
     integer                                                                                :: nodeCount
     class           (nodeComponentDarkMatterProfile)                             , pointer :: darkMatterProfileBase, darkMatterProfile
-
+    type            (mergerTreeWalkerIsolatedNodes )                                       :: treeWalker
+    
     ! Check if scale radius is to be included in merger tree outputs.
     if (mergerTreeStructureOutputDarkMatterProfileShape) then
        ! Get the dark matter profile component.
        darkMatterProfileBase => baseNode%darkMatterProfile()
        ! Ensure it is of the scale+shape class.
        select type (darkMatterProfileBase)
-          class is (nodeComponentDarkMatterProfileScaleShape)
-             ! Extract node shape parameter and output to file.
-          nodeCount=0
-          node => baseNode
-          do while (associated(node))
+       class is (nodeComponentDarkMatterProfileScaleShape)
+          ! Extract node shape parameter and output to file.
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(baseNode%hostTree)         
+          do while (treeWalker%next(node))
              darkMatterProfile => node%darkMatterProfile()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=darkMatterProfile%shape()
-             node => node%walkTree()
           end do
           call treeGroup%writeDataset(nodeProperty,'darkMatterShapeParameter','Shape parameter of the dark matter profile.')
        end select
     end if
-
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output
 
