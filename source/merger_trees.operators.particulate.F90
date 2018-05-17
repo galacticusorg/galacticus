@@ -304,6 +304,7 @@ contains
     use Memory_Management
     use Galacticus_Error
     use Galacticus_Display
+    use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout)               :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree
@@ -311,7 +312,6 @@ contains
     class           (nodeComponentBasic           ), pointer                     :: basic
     class           (nodeComponentPosition        ), pointer                     :: position
     class           (nodeComponentSatellite       ), pointer                     :: satellite
-    type            (mergerTree                   ), pointer                     :: treeCurrent
     class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_
     double precision                               , parameter                   :: tolerance                 =1.0d-06
     double precision                               , parameter                   :: unitGadgetMass            =1.0d+10
@@ -323,6 +323,7 @@ contains
     integer                                        , dimension(6  )              :: particleCounts
     double precision                               , dimension(:,:), allocatable :: particlePosition                     , particleVelocity
     integer         (kind_int8                    ), dimension(  :), allocatable :: particleIDs
+    type            (mergerTreeWalkerAllNodes     )                              :: treeWalker
     double precision                                                             :: particleCountMean                    , distributionFunction       , &
          &                                                                          radiusVirial                         , radiusTruncate             , &
          &                                                                          speedPrevious                        , massTruncate               , &
@@ -379,271 +380,262 @@ contains
     end if
     call outputFile%close()
     call hdf5Access%unset()
-    ! Iterate over trees.
-    treeCurrent             => tree
-    do while (associated(treeCurrent))
-       ! Get root node of the tree.
-       node  => treeCurrent%baseNode
-       ! Walk the tree.
-       do while (associated(node))
-          call Galacticus_Calculations_Reset(node)
-          ! Check if the node exists at the snapshot time.
-          basic => node%basic()
-          if     (                                                               &
-               &   Values_Agree(basic%time(),self%timeSnapshot,relTol=tolerance) &
-               &  .and.                                                          &
-               &   (                                                             &
-               &            self%selection == selectionAll                       &
-               &    .or.                                                         &
-               &     (                                                           &
-               &            self%selection == selectionHosts                     &
-               &      .and.                                                      &
-               &       .not.node%isSatellite()                                   &
-               &     )                                                           &
-               &    .or.                                                         &
-               &     (                                                           &
-               &            self%selection == selectionSatellites                &
-               &      .and.                                                      &
-               &            node%isSatellite()                                   &
-               &     )                                                           &
-               &   )                                                             &
-               & ) then
-             ! Force the energy distribution tables to be rebuilt.
-             particularEnergyDistributionInitialized=.false.
-             ! Determine the virial radius.
-             radiusVirial=darkMatterHaloScale_%virialRadius(node)
-             ! Determine the truncation radius.
-             radiusTruncate=+self%radiusTruncateOverRadiusVirial &
-                  &         *radiusVirial
-             ! Determine the mass within the truncation radius.
-             massTruncate=Galactic_Structure_Enclosed_Mass(                             &
-                  &                                        node                       , &
-                  &                                        radiusTruncate             , &
-                  &                                        massType      =massTypeDark, &
-                  &                                        haloLoaded    =.true.        &
-                  &                                       ) 
-             ! Determine the mean number of particles required to represent this node.          
-             particleCountMean   =+massTruncate      &
-                  &               /self%massParticle
-             ! Determine the actual number of particles to use to represent the node.
-             if (self%sampleParticleNumber) then
-                particleCountActual=tree%randomNumberGenerator%poissonSample(particleCountMean)
-             else
-                particleCountActual=nint(particleCountMean)
-             end if
-             ! Allocate space for particle data.
-             call allocateArray(particlePosition,[3,particleCountActual])
-             call allocateArray(particleVelocity,[3,particleCountActual])
-             call allocateArray(particleIDs     ,[  particleCountActual])
-             ! Get required components.
-             position  => node%position ()
-             satellite => node%satellite()
-             ! Set pointers to module-scope variables.
-             particulateNode            => node
-             particulateRadiusTruncate  =  radiusTruncate
-             particulateLengthSoftening =  self%lengthSoftening
-             particulateSofteningKernel =  self%kernelSoftening
-             ! Iterate over particles.
-             isNew=.true.
-             !$omp parallel do private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
-             do i=1,particleCountActual
-                if (OMP_Get_Thread_Num() == 0) then
-                   call Galacticus_Display_Counter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityStandard)
-                   isNew=.false.
-                end if
-                ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
-                ! symmetric.
-                !$omp critical (mergerTreeOperatorParticulateSample)
-                do j=1,3
-                   randomDeviates(j)=tree%randomNumberGenerator%uniformSample()
-                end do
-                !$omp end critical (mergerTreeOperatorParticulateSample)
-                call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
-                call positionSpherical%thetaSet(acos(2.0d0   *randomDeviates(2)-1.0d0))                
-                call positionSpherical%    rSet(                                                                        &
-                     &                          Galactic_Structure_Radius_Enclosing_Mass(                               &
-                     &                                                                   node                         , &
-                     &                                                                   mass      =+massTruncate       &
-                     &                                                                              *randomDeviates(3), &
-                     &                                                                   massType  =massTypeDark      , &
-                     &                                                                   haloLoaded=.true.              &
-                     &                                                                  )                               &
-                     &                         )
-                ! Get the corresponding cartesian coordinates.
-                positionCartesian=positionSpherical
-                ! Construct the energy distribution function encompassing this radius.
-                call particulateTabulateEnergyDistribution(positionSpherical%r())
-                ! Find the potential energy and escape speed (actually the speed to reach the truncation radius) at this radius.
-                energyPotential=+particulateEnergyDistribution%interpolate(                                        &
-                     &                                                           positionSpherical%r()           , &
-                     &                                                     table=energyDistributionTablePotential  &
-                     &                                                     )
-                speedEscape    =+sqrt(                 &
-                     &                +2.0d0           &
-                     &                *energyPotential &
-                     &               )
-                ! Estimate the maximum of the speed distribution function.
-                distributionFunctionMaximum=+0.0d0
-                speedPrevious              =-1.0d0
-                do j=1,particulateEnergyDistribution%size()
-                   ! Find the energy at this radius in the tabulated profile.
-                   energy=particulateEnergyDistribution%y(j,table=energyDistributionTablePotential)
-                   ! Only consider points with positive kinetic energy and speed below the escape speed (i.e. the speed required
-                   ! to reach the truncation radius).
-                   if (-energy+energyPotential > 0.0d0 .and. speedPrevious < speedEscape) then
-                      ! Compute the speed corresponding to this total energy
-                      speed               =+sqrt(                   &
-                           &                     +2.0d0             &
-                           &                     *(                 &
-                           &                       -energy          &
-                           &                       +energyPotential &
-                           &                      )                 &
-                           &                     )
-                      speedPrevious       =+speed
-                      ! Find the distribution function. This is v²f(E). The tabulated function is the anti-derivative of f(E), so
-                      ! we need to take the derivative with respect to energy. We do this by taking the derivative with respect to
-                      ! radius and dividing by dE/dr.
-                      distributionFunction       =+speed**2                                                                                                                        &
-                           &                      *particulateEnergyDistribution%interpolateGradient(particulateEnergyDistribution%x(j),table=energyDistributionTableDistribution) &
-                           &                      /particulateEnergyDistribution%interpolateGradient(particulateEnergyDistribution%x(j),table=energyDistributionTablePotential   )
-                      ! Track the maximum of this distribution function.
-                      distributionFunctionMaximum=+max(                             &
-                           &                           distributionFunctionMaximum, &
-                           &                           distributionFunction         &
-                           &                          )
-                   end if
-                end do
-                ! Add some buffer to the distribution function maximum.
-                distributionFunctionMaximum=+distributionFunctionMaximum  &
-                     &                      *(                            &
-                     &                        +1.0d0                      &
-                     &                        +distributionFunctionBuffer &
-                     &                       )
-                ! Draw a speed from the distribution function between zero and the escape speed (to the truncation radius) using
-                ! rejection sampling.
-                keepSample=.false.
-                do while (.not.keepSample)
-                   ! Draw a speed uniformly at random between zero and the escape velocity.
-                   !$omp critical (mergerTreeOperatorParticulateSample)
-                   speed               =+tree%randomNumberGenerator%uniformSample() &
-                        &               *speedEscape
-                   !$omp end critical (mergerTreeOperatorParticulateSample)
-                   energy              =+energyPotential    &
-                        &               -0.5d0              &
-                        &               *speed          **2
-                   !$omp critical (mergerTreeOperatorParticulateRadius)
-                   radiusEnergy        =+particulateRadiusDistribution%interpolate        (                                           &
-                        &                                                                        energy                             , &
-                        &                                                                  table=energyDistributionTablePotential     &
-                        &                                                                 )
-                   !$omp end critical (mergerTreeOperatorParticulateRadius)
-                   distributionFunction=+speed**2                                                                                     &
-                        &               *particulateEnergyDistribution%interpolateGradient(                                           &
-                        &                                                                        radiusEnergy                       , &
-                        &                                                                  table=energyDistributionTableDistribution  &
-                        &                                                                 )                                           &
-                        &               /particulateEnergyDistribution%interpolateGradient(                                           &
-                        &                                                                        radiusEnergy                       , &
-                        &                                                                  table=energyDistributionTablePotential     &
-                        &                                                                 )
-                   if (distributionFunction > distributionFunctionMaximum) then
-                      write (label,'(e12.6)') distributionFunction
-                      message='distribution function ['//trim(label)//'] exceeds estimated maximum ['
-                      write (label,'(e12.6)') distributionFunctionMaximum
-                      message=message//trim(label)//']'
-                      call Galacticus_Error_Report(message//{introspection:location})
-                   end if
-                   !$omp critical (mergerTreeOperatorParticulateSample)
-                   keepSample= +tree%randomNumberGenerator%uniformSample() &
-                        &     <                                     &
-                        &      +distributionFunction                &
-                        &      /distributionFunctionMaximum
-                   !$omp end critical (mergerTreeOperatorParticulateSample)
-                end do
-                ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
-                !$omp critical (mergerTreeOperatorParticulateSample)
-                call velocitySpherical%  phiSet(     2.0d0*Pi*tree%randomNumberGenerator%uniformSample()       )
-                call velocitySpherical%thetaSet(acos(2.0d0   *tree%randomNumberGenerator%uniformSample()-1.0d0))
-                !$omp end critical (mergerTreeOperatorParticulateSample)
-                call velocitySpherical%    rSet(speed                                                                           )
-                ! Get the corresponding cartesian coordinates.
-                velocityCartesian=velocitySpherical
-                ! Offset position and velocity to the position and velocity of the node.
-                if (self%positionOffset) then
-                   positionVector=position%position()
-                   velocityVector=position%velocity()
-                   if (self%addHubbleFlow) velocityVector=+velocityVector                                                          &
-                        &                                 +positionVector                                                          &
-                        &                                 *self%cosmologyFunctions_%hubbleParameterEpochal(time=self%timeSnapshot)
-                   call positionCartesian%xSet(positionCartesian%x()+positionVector(1))
-                   call positionCartesian%ySet(positionCartesian%y()+positionVector(2))
-                   call positionCartesian%zSet(positionCartesian%z()+positionVector(3))
-                   call velocityCartesian%xSet(velocityCartesian%x()+velocityVector(1))
-                   call velocityCartesian%ySet(velocityCartesian%y()+velocityVector(2))
-                   call velocityCartesian%zSet(velocityCartesian%z()+velocityVector(3))
-                end if
-                ! Offset position and velocity to position and velocity of satellite.
-                if (self%satelliteOffset) then
-                   positionVector=satellite%position()
-                   velocityVector=satellite%velocity()
-                   call positionCartesian%xSet(positionCartesian%x()+positionVector(1))
-                   call positionCartesian%ySet(positionCartesian%y()+positionVector(2))
-                   call positionCartesian%zSet(positionCartesian%z()+positionVector(3))
-                   call velocityCartesian%xSet(velocityCartesian%x()+velocityVector(1))
-                   call velocityCartesian%ySet(velocityCartesian%y()+velocityVector(2))
-                   call velocityCartesian%zSet(velocityCartesian%z()+velocityVector(3))
-                end if
-                ! Store to particle data.
-                particlePosition(:,i)=[positionCartesian%x(),positionCartesian%y(),positionCartesian%z()]
-                particleVelocity(:,i)=[velocityCartesian%x(),velocityCartesian%y(),velocityCartesian%z()]
-                particleIDs     (  i)=i-1
-             end do
-             !$omp end parallel do
-             call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
-             ! Perform unit conversion.
-             particlePosition=particlePosition/unitGadgetLength
-             particleVelocity=particleVelocity/unitGadgetVelocity
-             ! Accumulate the particle data to file.
-             call hdf5Access%set()
-             call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
-             ! Get current count of particles in file.
-             header=outputFile%openGroup('Header','Group containing Gadget metadata.')
-             call header%readAttributeStatic('NumPart_Total',particleCounts)
-             ! Write particle data.
-             if (self%haloIdToParticleType) then
-                write (groupName,'(a,i1)') 'PartType',node%index()
-                typeIndex=int(node%index())+1
-             else
-                groupName='PartType1'
-                typeIndex=2
-             end if
-             ! Offset particle IDs.
-             if (self%idMultiplier > 0) then
-                particleIDs=particleIDs+node%index()*self%idMultiplier
-             else
-                particleIDs=particleIDs+particleCounts(typeIndex)
-             end if
-             particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
-             call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
-             call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
-             call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
-             call particleGroup%close()
-             call deallocateArray(particlePosition)
-             call deallocateArray(particleVelocity)
-             call deallocateArray(particleIDs     )
-             ! Update particle counts.
-             particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
-             call header%writeAttribute(particleCounts,'NumPart_ThisFile')
-             call header%writeAttribute(particleCounts,'NumPart_Total'   )
-             call header%close()
-             call outputFile%close()
-             call hdf5Access%unset()
+    ! Iterate over nodes.
+    treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       call Galacticus_Calculations_Reset(node)
+       ! Check if the node exists at the snapshot time.
+       basic => node%basic()
+       if     (                                                               &
+            &   Values_Agree(basic%time(),self%timeSnapshot,relTol=tolerance) &
+            &  .and.                                                          &
+            &   (                                                             &
+            &            self%selection == selectionAll                       &
+            &    .or.                                                         &
+            &     (                                                           &
+            &            self%selection == selectionHosts                     &
+            &      .and.                                                      &
+            &       .not.node%isSatellite()                                   &
+            &     )                                                           &
+            &    .or.                                                         &
+            &     (                                                           &
+            &            self%selection == selectionSatellites                &
+            &      .and.                                                      &
+            &            node%isSatellite()                                   &
+            &     )                                                           &
+            &   )                                                             &
+            & ) then
+          ! Force the energy distribution tables to be rebuilt.
+          particularEnergyDistributionInitialized=.false.
+          ! Determine the virial radius.
+          radiusVirial=darkMatterHaloScale_%virialRadius(node)
+          ! Determine the truncation radius.
+          radiusTruncate=+self%radiusTruncateOverRadiusVirial &
+               &         *radiusVirial
+          ! Determine the mass within the truncation radius.
+          massTruncate=Galactic_Structure_Enclosed_Mass(                             &
+               &                                        node                       , &
+               &                                        radiusTruncate             , &
+               &                                        massType      =massTypeDark, &
+               &                                        haloLoaded    =.true.        &
+               &                                       ) 
+          ! Determine the mean number of particles required to represent this node.          
+          particleCountMean   =+massTruncate      &
+               &               /self%massParticle
+          ! Determine the actual number of particles to use to represent the node.
+          if (self%sampleParticleNumber) then
+             particleCountActual=tree%randomNumberGenerator%poissonSample(particleCountMean)
+          else
+             particleCountActual=nint(particleCountMean)
           end if
-          ! Walk to the next node.
-          node => node%walkTreeWithSatellites()
-       end do
-       ! Move to the next tree.
-       treeCurrent => treeCurrent%nextTree
+          ! Allocate space for particle data.
+          call allocateArray(particlePosition,[3,particleCountActual])
+          call allocateArray(particleVelocity,[3,particleCountActual])
+          call allocateArray(particleIDs     ,[  particleCountActual])
+          ! Get required components.
+          position  => node%position ()
+          satellite => node%satellite()
+          ! Set pointers to module-scope variables.
+          particulateNode            => node
+          particulateRadiusTruncate  =  radiusTruncate
+          particulateLengthSoftening =  self%lengthSoftening
+          particulateSofteningKernel =  self%kernelSoftening
+          ! Iterate over particles.
+          isNew=.true.
+          !$omp parallel do private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
+          do i=1,particleCountActual
+             if (OMP_Get_Thread_Num() == 0) then
+                call Galacticus_Display_Counter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityStandard)
+                isNew=.false.
+             end if
+             ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
+             ! symmetric.
+             !$omp critical (mergerTreeOperatorParticulateSample)
+             do j=1,3
+                randomDeviates(j)=tree%randomNumberGenerator%uniformSample()
+             end do
+             !$omp end critical (mergerTreeOperatorParticulateSample)
+             call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
+             call positionSpherical%thetaSet(acos(2.0d0   *randomDeviates(2)-1.0d0))                
+             call positionSpherical%    rSet(                                                                        &
+                  &                          Galactic_Structure_Radius_Enclosing_Mass(                               &
+                  &                                                                   node                         , &
+                  &                                                                   mass      =+massTruncate       &
+                  &                                                                              *randomDeviates(3), &
+                  &                                                                   massType  =massTypeDark      , &
+                  &                                                                   haloLoaded=.true.              &
+                  &                                                                  )                               &
+                  &                         )
+             ! Get the corresponding cartesian coordinates.
+             positionCartesian=positionSpherical
+             ! Construct the energy distribution function encompassing this radius.
+             call particulateTabulateEnergyDistribution(positionSpherical%r())
+             ! Find the potential energy and escape speed (actually the speed to reach the truncation radius) at this radius.
+             energyPotential=+particulateEnergyDistribution%interpolate(                                        &
+                  &                                                           positionSpherical%r()           , &
+                  &                                                     table=energyDistributionTablePotential  &
+                  &                                                     )
+             speedEscape    =+sqrt(                 &
+                  &                +2.0d0           &
+                  &                *energyPotential &
+                  &               )
+             ! Estimate the maximum of the speed distribution function.
+             distributionFunctionMaximum=+0.0d0
+             speedPrevious              =-1.0d0
+             do j=1,particulateEnergyDistribution%size()
+                ! Find the energy at this radius in the tabulated profile.
+                energy=particulateEnergyDistribution%y(j,table=energyDistributionTablePotential)
+                ! Only consider points with positive kinetic energy and speed below the escape speed (i.e. the speed required
+                ! to reach the truncation radius).
+                if (-energy+energyPotential > 0.0d0 .and. speedPrevious < speedEscape) then
+                   ! Compute the speed corresponding to this total energy
+                   speed               =+sqrt(                   &
+                        &                     +2.0d0             &
+                        &                     *(                 &
+                        &                       -energy          &
+                        &                       +energyPotential &
+                        &                      )                 &
+                        &                     )
+                   speedPrevious       =+speed
+                   ! Find the distribution function. This is v²f(E). The tabulated function is the anti-derivative of f(E), so
+                   ! we need to take the derivative with respect to energy. We do this by taking the derivative with respect to
+                   ! radius and dividing by dE/dr.
+                   distributionFunction       =+speed**2                                                                                                                        &
+                        &                      *particulateEnergyDistribution%interpolateGradient(particulateEnergyDistribution%x(j),table=energyDistributionTableDistribution) &
+                        &                      /particulateEnergyDistribution%interpolateGradient(particulateEnergyDistribution%x(j),table=energyDistributionTablePotential   )
+                   ! Track the maximum of this distribution function.
+                   distributionFunctionMaximum=+max(                             &
+                        &                           distributionFunctionMaximum, &
+                        &                           distributionFunction         &
+                        &                          )
+                end if
+             end do
+             ! Add some buffer to the distribution function maximum.
+             distributionFunctionMaximum=+distributionFunctionMaximum  &
+                  &                      *(                            &
+                  &                        +1.0d0                      &
+                  &                        +distributionFunctionBuffer &
+                  &                       )
+             ! Draw a speed from the distribution function between zero and the escape speed (to the truncation radius) using
+             ! rejection sampling.
+             keepSample=.false.
+             do while (.not.keepSample)
+                ! Draw a speed uniformly at random between zero and the escape velocity.
+                !$omp critical (mergerTreeOperatorParticulateSample)
+                speed               =+tree%randomNumberGenerator%uniformSample() &
+                     &               *speedEscape
+                !$omp end critical (mergerTreeOperatorParticulateSample)
+                energy              =+energyPotential    &
+                     &               -0.5d0              &
+                     &               *speed          **2
+                !$omp critical (mergerTreeOperatorParticulateRadius)
+                radiusEnergy        =+particulateRadiusDistribution%interpolate        (                                           &
+                     &                                                                        energy                             , &
+                     &                                                                  table=energyDistributionTablePotential     &
+                     &                                                                 )
+                !$omp end critical (mergerTreeOperatorParticulateRadius)
+                distributionFunction=+speed**2                                                                                     &
+                     &               *particulateEnergyDistribution%interpolateGradient(                                           &
+                     &                                                                        radiusEnergy                       , &
+                     &                                                                  table=energyDistributionTableDistribution  &
+                     &                                                                 )                                           &
+                     &               /particulateEnergyDistribution%interpolateGradient(                                           &
+                     &                                                                        radiusEnergy                       , &
+                     &                                                                  table=energyDistributionTablePotential     &
+                     &                                                                 )
+                if (distributionFunction > distributionFunctionMaximum) then
+                   write (label,'(e12.6)') distributionFunction
+                   message='distribution function ['//trim(label)//'] exceeds estimated maximum ['
+                   write (label,'(e12.6)') distributionFunctionMaximum
+                   message=message//trim(label)//']'
+                   call Galacticus_Error_Report(message//{introspection:location})
+                end if
+                !$omp critical (mergerTreeOperatorParticulateSample)
+                   keepSample=  +tree%randomNumberGenerator%uniformSample() &
+                     &         <                                            &
+                     &          +distributionFunction                       &
+                     &          /distributionFunctionMaximum
+                !$omp end critical (mergerTreeOperatorParticulateSample)
+             end do
+             ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
+             !$omp critical (mergerTreeOperatorParticulateSample)
+             call velocitySpherical%  phiSet(     2.0d0*Pi*tree%randomNumberGenerator%uniformSample()       )
+             call velocitySpherical%thetaSet(acos(2.0d0   *tree%randomNumberGenerator%uniformSample()-1.0d0))
+             !$omp end critical (mergerTreeOperatorParticulateSample)
+             call velocitySpherical%    rSet(speed                                                                           )
+             ! Get the corresponding cartesian coordinates.
+             velocityCartesian=velocitySpherical
+             ! Offset position and velocity to the position and velocity of the node.
+             if (self%positionOffset) then
+                positionVector=position%position()
+                velocityVector=position%velocity()
+                if (self%addHubbleFlow) velocityVector=+velocityVector                                                          &
+                     &                                 +positionVector                                                          &
+                     &                                 *self%cosmologyFunctions_%hubbleParameterEpochal(time=self%timeSnapshot)
+                call positionCartesian%xSet(positionCartesian%x()+positionVector(1))
+                call positionCartesian%ySet(positionCartesian%y()+positionVector(2))
+                call positionCartesian%zSet(positionCartesian%z()+positionVector(3))
+                call velocityCartesian%xSet(velocityCartesian%x()+velocityVector(1))
+                call velocityCartesian%ySet(velocityCartesian%y()+velocityVector(2))
+                call velocityCartesian%zSet(velocityCartesian%z()+velocityVector(3))
+             end if
+             ! Offset position and velocity to position and velocity of satellite.
+             if (self%satelliteOffset) then
+                positionVector=satellite%position()
+                velocityVector=satellite%velocity()
+                call positionCartesian%xSet(positionCartesian%x()+positionVector(1))
+                call positionCartesian%ySet(positionCartesian%y()+positionVector(2))
+                call positionCartesian%zSet(positionCartesian%z()+positionVector(3))
+                call velocityCartesian%xSet(velocityCartesian%x()+velocityVector(1))
+                call velocityCartesian%ySet(velocityCartesian%y()+velocityVector(2))
+                call velocityCartesian%zSet(velocityCartesian%z()+velocityVector(3))
+             end if
+             ! Store to particle data.
+             particlePosition(:,i)=[positionCartesian%x(),positionCartesian%y(),positionCartesian%z()]
+             particleVelocity(:,i)=[velocityCartesian%x(),velocityCartesian%y(),velocityCartesian%z()]
+             particleIDs     (  i)=i-1
+          end do
+          !$omp end parallel do
+          call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+          ! Perform unit conversion.
+          particlePosition=particlePosition/unitGadgetLength
+          particleVelocity=particleVelocity/unitGadgetVelocity
+          ! Accumulate the particle data to file.
+          call hdf5Access%set()
+          call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+          ! Get current count of particles in file.
+          header=outputFile%openGroup('Header','Group containing Gadget metadata.')
+          call header%readAttributeStatic('NumPart_Total',particleCounts)
+          ! Write particle data.
+          if (self%haloIdToParticleType) then
+             write (groupName,'(a,i1)') 'PartType',node%index()
+             typeIndex=int(node%index())+1
+          else
+             groupName='PartType1'
+             typeIndex=2
+          end if
+          ! Offset particle IDs.
+          if (self%idMultiplier > 0) then
+             particleIDs=particleIDs+node%index()*self%idMultiplier
+          else
+             particleIDs=particleIDs+particleCounts(typeIndex)
+          end if
+          particleGroup=outputFile%openGroup(groupName,'Group containing particle data for halos',chunkSize=self%chunkSize)
+          call particleGroup%writeDataset(particlePosition,'Coordinates','Particle coordinates',appendTo=self%chunkSize /= -1,appendDimension=2)
+          call particleGroup%writeDataset(particleVelocity,'Velocities' ,'Particle velocities' ,appendTo=self%chunkSize /= -1,appendDimension=2)
+          call particleGroup%writeDataset(particleIDs     ,'ParticleIDs','Particle IDs'        ,appendTo=self%chunkSize /= -1                  )
+          call particleGroup%close()
+          call deallocateArray(particlePosition)
+          call deallocateArray(particleVelocity)
+          call deallocateArray(particleIDs     )
+          ! Update particle counts.
+          particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
+          call header%writeAttribute(particleCounts,'NumPart_ThisFile')
+          call header%writeAttribute(particleCounts,'NumPart_Total'   )
+          call header%close()
+          call outputFile%close()
+          call hdf5Access%unset()
+       end if
     end do
     return
   end subroutine particulateOperate

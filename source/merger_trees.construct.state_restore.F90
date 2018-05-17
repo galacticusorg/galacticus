@@ -70,19 +70,21 @@ contains
     use               Galacticus_Nodes
     use               Galacticus_State
     use               Galacticus_Error
+    use               Merger_Tree_Walkers
     implicit none
-    type     (mergerTree    ), intent(in   ), target       :: tree
-    character(len=*         ), intent(in   )               :: storeFile
-    logical                  , intent(in   ), optional     :: snapshot         , append
-    type     (mergerTree    ), pointer                     :: treeCurrent
-    type     (treeNode      ), pointer                     :: currentNodeInTree, thisNode
-    class    (nodeEvent     ), pointer                     :: event
-    integer  (kind=kind_int8), allocatable  , dimension(:) :: nodeIndices
-    integer                  , allocatable  , dimension(:) :: nodeCountTree
-    type     (varying_string), save                        :: storeFilePrevious
-    integer  (c_size_t      )                              :: nodeCount
-    integer                                                :: fileUnit         , eventCount, &
-         &                                                    treeCount        , iTree
+    type     (mergerTree                          ), intent(in   ), target       :: tree
+    character(len=*                               ), intent(in   )               :: storeFile
+    logical                                        , intent(in   ), optional     :: snapshot         , append
+    type     (mergerTree                          ), pointer                     :: treeCurrent
+    type     (treeNode                            ), pointer                     :: node
+    class    (nodeEvent                           ), pointer                     :: event
+    integer  (kind=kind_int8                      ), allocatable  , dimension(:) :: nodeIndices
+    integer                                        , allocatable  , dimension(:) :: nodeCountTree
+    type     (varying_string                      ), save                        :: storeFilePrevious
+    type     (mergerTreeWalkerAllAndFormationNodes)                              :: treeWalker
+    integer  (c_size_t                            )                              :: nodeCount
+    integer                                                                      :: fileUnit         , eventCount, &
+         &                                                                          treeCount        , iTree
     !# <optionalArgument name="snapshot" defaultsTo=".true." />
     !# <optionalArgument name="append"   defaultsTo=".true." />
 
@@ -112,12 +114,10 @@ contains
     iTree         =  0
     treeCurrent   => tree
     do while (associated(treeCurrent))
-       iTree             =  iTree               +1
-       thisNode          => treeCurrent%baseNode
-       currentNodeInTree => null()
-       do while (associated(thisNode))
+       iTree     =iTree+1
+       treeWalker=mergerTreeWalkerAllAndFormationNodes(treeCurrent,spanForest=.false.)
+       do while (treeWalker%next(node))
           nodeCountTree(iTree)=nodeCountTree(iTree)+1
-          call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
        end do
        treeCurrent => treeCurrent%nextTree
     end do
@@ -125,17 +125,11 @@ contains
     write (fileUnit) nodeCountTree
     ! Allocate and populate an array of node indices in the order in which the tree will be traversed.
     allocate(nodeIndices(nodeCount))
-    nodeCount   =  0
-    treeCurrent => tree
-    do while (associated(treeCurrent))
-       thisNode          => treeCurrent%baseNode
-       currentNodeInTree => null()
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeIndices(nodeCount)=thisNode%uniqueID()
-          call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
-       end do
-       treeCurrent => treeCurrent%nextTree
+    nodeCount =0
+    treeWalker=mergerTreeWalkerAllAndFormationNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       nodeCount=nodeCount+1
+       nodeIndices(nodeCount)=node%uniqueID()
     end do
     ! Write basic tree information.
     treeCurrent => tree
@@ -144,51 +138,42 @@ contains
        treeCurrent => treeCurrent%nextTree
     end do
     ! Output nodes.
-    treeCurrent => tree
-    do while (associated(treeCurrent))
-       ! Start at the base of the tree.
-       thisNode          => treeCurrent%baseNode
-       currentNodeInTree => null()
-       ! Loop over all nodes.
-       do while (associated(thisNode))
-          ! Write all node information.
-          ! Indices.
-          write (fileUnit) thisNode%index(),thisNode%uniqueID()
-          ! Pointers to other nodes.
-          write (fileUnit)                                                            &
-               & Node_Array_Position(thisNode%parent        %uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%firstChild    %uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%sibling       %uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%firstSatellite%uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%mergeTarget   %uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%firstMergee   %uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%siblingMergee %uniqueID(),nodeIndices), &
-               & Node_Array_Position(thisNode%formationNode %uniqueID(),nodeIndices)
-          ! Store the node.
-          call thisNode%serializeRaw(fileUnit)
-          ! Store any events attached to the node.
-          eventCount =  0
-          event      => thisNode%event
-          do while (associated(event))
-             eventCount =  eventCount+1
-             event      => event%next
-          end do
-          write (fileUnit) eventCount
-          event => thisNode%event
-          do while (associated(event))
-             call event%serializeRaw(fileUnit)
-             if (associated(event%node)) then
-                write (fileUnit) Node_Array_Position(event%node%uniqueID(),nodeIndices)
-             else
-                write (fileUnit) -1
-             end if
-             event => event%next
-          end do
-          ! Move to the next node in the tree.
-          call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
+    treeWalker=mergerTreeWalkerAllAndFormationNodes(tree,spanForest=.true.)
+    ! Iterate over all nodes.
+    do while (treeWalker%next(node))
+       ! Write all node information.
+       ! Indices.
+       write (fileUnit) node%index(),node%uniqueID()
+       ! Pointers to other nodes.
+       write (fileUnit)                                                        &
+            & Node_Array_Position(node%parent        %uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%firstChild    %uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%sibling       %uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%firstSatellite%uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%mergeTarget   %uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%firstMergee   %uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%siblingMergee %uniqueID(),nodeIndices), &
+            & Node_Array_Position(node%formationNode %uniqueID(),nodeIndices)
+       ! Store the node.
+       call node%serializeRaw(fileUnit)
+       ! Store any events attached to the node.
+       eventCount =  0
+       event      => node%event
+       do while (associated(event))
+          eventCount =  eventCount+1
+          event      => event%next
        end do
-       ! Move to the next tree.
-       treeCurrent => treeCurrent%nextTree
+       write (fileUnit) eventCount
+       event => node%event
+       do while (associated(event))
+          call event%serializeRaw(fileUnit)
+          if (associated(event%node)) then
+             write (fileUnit) Node_Array_Position(event%node%uniqueID(),nodeIndices)
+          else
+             write (fileUnit) -1
+          end if
+          event => event%next
+       end do
     end do
     close(fileUnit)
     ! Destroy the temporary array of indices.
@@ -264,25 +249,6 @@ contains
     end if
     return
   end function Pointed_At_Node
-
-  subroutine Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
-    !% Walk a merger tree for the purposes of storing the full state to file. Includes walking of formation nodes.
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout), pointer :: currentNodeInTree, thisNode
-
-    if (associated(thisNode%formationNode)) then
-       if (.not.associated(currentNodeInTree)) currentNodeInTree => thisNode
-       thisNode => thisNode%formationNode
-    else
-       if (associated(currentNodeInTree)) then
-          thisNode => currentNodeInTree
-          currentNodeInTree => null()
-       end if
-       thisNode => thisNode%walkTreeWithSatellites()
-    end if
-    return
-  end subroutine Merger_Tree_State_Walk_Tree
 
   subroutine Merger_Tree_State_From_File(tree,fileName,deleteAfterRead)
     !% Read the state of a merger tree from file.

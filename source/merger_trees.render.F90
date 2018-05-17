@@ -40,16 +40,18 @@ contains
     use IO_HDF5
     use Numerical_Constants_Astronomical
     use Memory_Management
+    use Merger_Tree_Walkers
     implicit none
-    type            (mergerTree        ), intent(inout)                          :: tree
-    type            (treeNode          )                               , pointer :: node
-    class           (nodeComponentBasic)                               , pointer :: basic
-    integer         (kind=kind_int8    ), allocatable  , dimension(:  )          :: childIndex     , nodeIndex   , parentIndex
-    double precision                    , allocatable  , dimension(:  )          :: expansionFactor, radiusVirial, time
-    double precision                    , allocatable  , dimension(:,:)          :: position
-    integer                                                                      :: iNode          , nodesInTree
-    character       (len=39            )                                         :: fileName
-    type            (hdf5Object        )                                         :: fileObject     , treeDataset
+    type            (mergerTree              ), intent(inout)                          :: tree
+    type            (treeNode                )                               , pointer :: node
+    class           (nodeComponentBasic      )                               , pointer :: basic
+    type            (mergerTreeWalkerAllNodes)                                         :: treeWalker
+    integer         (kind=kind_int8          ), allocatable  , dimension(:  )          :: childIndex     , nodeIndex   , parentIndex
+    double precision                          , allocatable  , dimension(:  )          :: expansionFactor, radiusVirial, time
+    double precision                          , allocatable  , dimension(:,:)          :: position
+    integer                                                                            :: iNode          , nodesInTree
+    character       (len=39                  )                                         :: fileName
+    type            (hdf5Object              )                                         :: fileObject     , treeDataset
 
     ! Reset output incremental counter if this tree is not the same as the previous one.
     if (tree%index /= treeIndexPrevious) then
@@ -65,10 +67,9 @@ contains
 
     ! Count the number of nodes in the tree.
     nodesInTree=0
-    node => tree%baseNode
-    do while (associated(node))
+    treeWalker =mergerTreeWalkerAllNodes(tree)
+    do while (treeWalker%next(node))
        nodesInTree=nodesInTree+1
-       call node%walkTreeWithSatellites(node)
     end do
 
     ! Allocate arrays for temporary storage.
@@ -81,11 +82,11 @@ contains
     call allocateArray(position       ,[3,nodesInTree])
 
     ! Populate arrays with data.
-    node => tree%baseNode
-    iNode=0
-    do while (associated(node))
+    iNode     =0
+    treeWalker=mergerTreeWalkerAllNodes(tree)
+     do while (treeWalker%next(node))
        iNode=iNode+1
-       basic              => node           %basic()
+       basic                  => node           %basic()
        nodeIndex      (iNode) =  node           %index()
        parentIndex    (iNode) =  node%parent    %index()
        childIndex     (iNode) =  node%firstChild%index()
@@ -93,7 +94,6 @@ contains
        expansionFactor(iNode) =  cosmologyFunctions_ %expansionFactor(basic%time())
        radiusVirial   (iNode) =  darkMatterHaloScale_%virialRadius   (node        )
        call Tree_Node_Position(node,position(:,iNode))
-       call node%walkTreeWithSatellites(node)
     end do
 
     ! Open an HDF5 file.

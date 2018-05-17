@@ -308,27 +308,29 @@ contains
     use               Galacticus_Display
     use               String_Handling
     use               Merger_Trees_Pruning_Utilities
+    use               Merger_Tree_Walkers
     use               Sort
     implicit none
-    class           (mergerTreeOperatorAugment), intent(inout)                :: self
-    type            (mergerTree               ), intent(inout ), target       :: tree
-    type            (treeNode                 ), pointer                      :: node
-    class           (nodeComponentBasic       ), pointer                      :: basic
-    type            (mergerTree               ), pointer                      :: treeCurrent
-    type            (treeNodeList             ), allocatable   , dimension(:) :: anchorNodes
-    double precision                           , allocatable   , dimension(:) :: anchorTimes
-    integer         (c_size_t                 ), allocatable   , dimension(:) :: anchorIndex
-    type            (varying_string           )                               :: message
-    type            (mergerTree               )                               :: treeBest
-    integer                                                                   :: nodeCount                     , i                             , &
-         &                                                                       retryCount                    , treeBuilt                     , &
-         &                                                                       attemptsRemaining             , rescaleCount                  , &
-         &                                                                       massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining
-    double precision                                                          :: tolerance                     , treeBestWorstFit              , &
-         &                                                                       massCutoffScale               , massOvershootScale
-    logical                                                                   :: treeBestOverride              , treeNewHasNodeAboveResolution , &
-         &                                                                       treeBestHasNodeAboveResolution, newRescale                    , &
-         &                                                                       nodeBranches
+    class           (mergerTreeOperatorAugment    ), intent(inout)                :: self
+    type            (mergerTree                   ), intent(inout ), target       :: tree
+    type            (treeNode                     ), pointer                      :: node
+    class           (nodeComponentBasic           ), pointer                      :: basic
+    type            (mergerTree                   ), pointer                      :: treeCurrent
+    type            (treeNodeList                 ), allocatable   , dimension(:) :: anchorNodes
+    double precision                               , allocatable   , dimension(:) :: anchorTimes
+    integer         (c_size_t                     ), allocatable   , dimension(:) :: anchorIndex
+    type            (varying_string               )                               :: message
+    type            (mergerTree                   )                               :: treeBest
+    type            (mergerTreeWalkerIsolatedNodes)                               :: treeWalker
+    integer                                                                       :: nodeCount                     , i                             , &
+         &                                                                           retryCount                    , treeBuilt                     , &
+         &                                                                           attemptsRemaining             , rescaleCount                  , &
+         &                                                                           massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining
+    double precision                                                              :: tolerance                     , treeBestWorstFit              , &
+         &                                                                           massCutoffScale               , massOvershootScale
+    logical                                                                       :: treeBestOverride              , treeNewHasNodeAboveResolution , &
+         &                                                                           treeBestHasNodeAboveResolution, newRescale                    , &
+         &                                                                           nodeBranches
     
     ! Iterate over all linked trees in this forest.
     call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)
@@ -346,12 +348,13 @@ contains
           allocate(anchorTimes(nodeCount))
           allocate(anchorIndex(nodeCount))
           ! Build pointers to all anchor nodes.
-          node => treeCurrent%baseNode
-          do i=1,nodeCount
+          i         =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+          do while(treeWalker%next(node))
+             i                   =  i               +1
              basic               => node %basic   ()
              anchorNodes(i)%node => node
              anchorTimes(i)      =  basic%time    ()
-             node                => node %walkTree()
           end do
           anchorIndex=Sort_Index_Do(anchorTimes)
           deallocate(anchorTimes)
@@ -745,40 +748,41 @@ contains
     use Galacticus_Nodes
     use Galacticus_Display
     use Merger_Trees_Builders
+    use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorAugment), intent(inout)                      :: self
-    type            (treeNode                 ), intent(inout)            , pointer :: node                         , primaryProgenitorNode
-    type            (treeNode                 )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
-         &                                                                             nodeNonOverlap               , nodeNonOverlapFirst           , &
-         &                                                                             nodeSatellite
-    class           (nodeComponentBasic       )                           , pointer :: basicCurrent                 , basicSort
-    type            (mergerTree               ), intent(inout)            , target  :: tree                         , treeBest
-    logical                                    , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
-         &                                                                             newTreeBest                  
-    logical                                    , intent(in   )                      :: treeBestOverride             , extendingEndNode              , &
-         &                                                                             primaryProgenitorIsClone
-    double precision                           , intent(inout)                      :: treeBestWorstFit             , massCutoffScale               , &
-         &                                                                             massOvershootScale
-    double precision                           , intent(in   )                      :: tolerance
-    integer                                    , intent(inout)                      :: nodeChildCount
-    type            (treeNodeList             ), dimension(nodeChildCount)          :: endNodes
-    integer                                                                         :: i                            , j                             , &
-         &                                                                             endNodesSorted
-    logical                                                                         :: treeAccepted                 , nodeMassesAgree               , &
-         &                                                                             nodeCurrentBelowAll
-    double precision                                                                :: treeCurrentWorstFit
-    type            (varying_string           )                                     :: message
-    character       (len=12                   )                                     :: label
+    class           (mergerTreeOperatorAugment    ), intent(inout)                      :: self
+    type            (treeNode                     ), intent(inout)            , pointer :: node                         , primaryProgenitorNode
+    type            (treeNode                     )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
+         &                                                                                 nodeNonOverlap               , nodeNonOverlapFirst           , &
+         &                                                                                 nodeSatellite
+    class           (nodeComponentBasic           )                           , pointer :: basicCurrent                 , basicSort
+    type            (mergerTree                   ), intent(inout)            , target  :: tree                         , treeBest
+    logical                                        , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
+         &                                                                                 newTreeBest                  
+    logical                                        , intent(in   )                      :: treeBestOverride             , extendingEndNode              , &
+         &                                                                                 primaryProgenitorIsClone
+    double precision                               , intent(inout)                      :: treeBestWorstFit             , massCutoffScale               , &
+         &                                                                                 massOvershootScale
+    double precision                               , intent(in   )                      :: tolerance
+    integer                                        , intent(inout)                      :: nodeChildCount
+    type            (treeNodeList                 ), dimension(nodeChildCount)          :: endNodes
+    type            (mergerTreeWalkerIsolatedNodes) :: treeWalker
+    integer                                                                             :: i                            , j                             , &
+         &                                                                                 endNodesSorted
+    logical                                                                             :: treeAccepted                 , nodeMassesAgree               , &
+         &                                                                                 nodeCurrentBelowAll
+    double precision                                                                    :: treeCurrentWorstFit
+    type            (varying_string               )                                     :: message
+    character       (len=12                       )                                     :: label
     
     ! Initialize.
     treeNewHasNodeAboveResolution =  .false.
     nodeNonOverlapFirst           => null()
     i                             =  1
     endNodesSorted                =  1
-    nodeCurrent                   => tree        %baseNode
-    basicCurrent                  => nodeCurrent %basic   ()
     ! Walk through the tree identifying end-nodes.
-    do while (associated(nodeCurrent))
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree)
+    do while (treeWalker%next(nodeCurrent))
        ! Initialize the current node.
        basicCurrent         => nodeCurrent%basic   ()
        nodeCurrent%hostTree => node       %hostTree
@@ -865,8 +869,6 @@ contains
           end if
           endNodesSorted=endNodesSorted+1 
        end if
-       ! Walk to the next node.
-       nodeCurrent => nodeCurrent%walkTree()
        ! Add the non-overlap node (which is either the current node, or the one it pushed off the end of the most-massive nodes
        ! list) to the list of non-overlap nodes.
        if (.not.extendingEndNode) call augmentNonOverlapListAdd(nodeNonOverlap,nodeNonOverlapFirst)
@@ -1009,11 +1011,10 @@ contains
           treeBest                      %baseNode%hostTree => treeBest
           treeBestWorstFit                                 =  treeCurrentWorstFit
           treeBestHasNodeAboveResolution                   =  treeNewHasNodeAboveResolution
-          nodeCurrent                                      => treeBest                     %baseNode
-          do while (associated(nodeCurrent))
+          treeWalker                                       =  mergerTreeWalkerIsolatedNodes         (treeBest)
+          do while (treeWalker%next(nodeCurrent))
              nodeCurrent%event    => null()
-             nodeCurrent%hostTree => treeBest  %baseNode %hostTree
-             nodeCurrent          => nodeCurrent%walkTree         ()
+             nodeCurrent%hostTree => treeBest%baseNode%hostTree
           end do
        end if
     else
@@ -1323,19 +1324,20 @@ contains
     !% returns that information.
     use Galacticus_Nodes
     use Galacticus_Error
+    use Merger_Tree_Walkers
     implicit none
-    type   (mergerTree), intent(in   ), target  :: tree
-    integer            , intent(in   )          :: desiredOutput
-    type   (treeNode  )               , pointer :: node
-    integer                                     :: nodeCount    , endNodeCount
+    type   (mergerTree                   ), intent(in   ), target  :: tree
+    integer                               , intent(in   )          :: desiredOutput
+    type   (treeNode                     )               , pointer :: node
+    type   (mergerTreeWalkerIsolatedNodes)                         :: treeWalker
+    integer                                                        :: nodeCount    , endNodeCount
 
-    nodeCount    =  0
-    endNodeCount =  0
-    node         => tree%baseNode
-    do while (associated(node))
+    nodeCount   =0
+    endNodeCount=0
+    treeWalker  =mergerTreeWalkerIsolatedNodes(tree)
+    do while (treeWalker%next(node))
        nodeCount                                         =   nodeCount+1
        if (.not.associated(node%firstChild)) endNodeCount=endNodeCount+1
-       node => node%walkTree()
     end do
     ! Return the requested quantity.
     select case (desiredOutput)

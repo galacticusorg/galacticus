@@ -89,7 +89,9 @@ sub Tree_Node_Class_Get {
 	recursive   => 1,
 	modules     =>
 	    [
-	     "Galacticus_Error"
+	     "Galacticus_Error",
+	     "ISO_Varying_String",
+	     "String_Handling"
 	    ],
 	variables   =>
 	    [
@@ -116,6 +118,11 @@ sub Tree_Node_Class_Get {
 	     {
 		 intrinsic  => "logical",
 		 variables  => [ "autoCreateActual" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",
+		 variables  => [ "message" ]
 	     }
 	    ]
     };
@@ -132,7 +139,9 @@ if (.not.allocated(self%component{ucfirst($class->{'name'})})) then
   if (autoCreateActual) then
      call self%{$class->{'name'}}Create()
   else
-     call Galacticus_Error_Report('component is not allocated'//\{introspection:location\})
+     message='component is not allocated in node '
+     message=message//self%index()
+     call Galacticus_Error_Report(message//\{introspection:location\})
   end if
 end if
 component => self%component{ucfirst($class->{'name'})}(instanceActual)

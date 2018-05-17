@@ -29,14 +29,16 @@ contains
   subroutine Merger_Tree_Prune_Clean_Branch(node)
     !% Cleans pointers in a branch about to be pruned to avoid dangling pointer problems during tree evolution.
     use Galacticus_Nodes
+    use Merger_Tree_Walkers
     implicit none
-    type(treeNode), pointer, intent(inout) :: node
-    type(treeNode), pointer                :: workNode  , mergeeNode, &
-         &                                    nextMergee
+    type(treeNode                      ), pointer, intent(inout) :: node
+    type(treeNode                      ), pointer                :: workNode  , mergeeNode, &
+         &                                                          nextMergee
+    type(mergerTreeWalkerAllNodesBranch)                         :: treeWalker
 
     ! Walk the branch to be pruned.
-    workNode => node
-    do while (associated(workNode))
+    treeWalker=mergerTreeWalkerAllNodesBranch(node)
+    do while (treeWalker%next(workNode))
        ! Remove the current node from any merge target it may have.
        call workNode%removeFromMergee()
        ! If the current node has any mergees, unlink them from it.
@@ -50,7 +52,6 @@ contains
              mergeeNode => nextMergee
           end do
        end if
-       workNode => workNode%walkBranchWithSatellites(node)
     end do
     return
   end subroutine Merger_Tree_Prune_Clean_Branch
@@ -102,22 +103,16 @@ contains
   subroutine Merger_Tree_Prune_Uniqueify_IDs(tree)
     !% Ensure that nodes cloned during tree pruning have unique IDs.
     use Galacticus_Nodes
+    use Merger_Tree_Walkers
     implicit none
-    type(mergerTree), target , intent(in   ) :: tree
-    type(treeNode  ), pointer                :: node
-    type(mergerTree), pointer                :: currentTree
-
+    type(mergerTree                   ), target , intent(in   ) :: tree
+    type(treeNode                     ), pointer                :: node
+    type(mergerTreeWalkerIsolatedNodes)                         :: treeWalker
+    
     ! Iterate over trees.
-    currentTree => tree
-    do while (associated(currentTree))
-       ! Iterate over nodes.
-       node => currentTree%baseNode
-       do while (associated(node))
-          if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
-          node => node%walkTree()
-       end do
-       ! Move to the next tree.
-       currentTree => currentTree%nextTree
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       if (node%uniqueID() == node%parent%uniqueID()) call node%uniqueIDSet()
     end do
     return
   end subroutine Merger_Tree_Prune_Uniqueify_IDs

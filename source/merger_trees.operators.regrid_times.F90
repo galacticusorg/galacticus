@@ -247,12 +247,12 @@ contains
     use               Numerical_Comparison
     use               Kind_Numbers
     use               Merger_Trees_Dump
+    use               Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorRegridTimes), intent(inout)                        :: self
     type            (mergerTree                   ), intent(inout), target                :: tree
-    type            (treeNode                     )                             , pointer :: nodeChild                       , nodeNext   , &
-         &                                                                                   nodeSibling                     , node       , &
-         &                                                                                   mergee
+    type            (treeNode                     )                             , pointer :: nodeChild                       , mergee     , &
+         &                                                                                   nodeSibling                     , node
     type            (treeNodeList                 ), allocatable  , dimension(:)          :: newNodes
     integer         (kind=kind_int8               ), allocatable  , dimension(:)          :: highlightNodes
     class           (nodeComponentBasic           )                             , pointer :: basicChild                      , basicParent, &
@@ -260,6 +260,8 @@ contains
     class           (nodeComponentSatellite       )                             , pointer :: mergeeSatellite
     type            (mergerTree                   )                             , pointer :: currentTree
     class           (nodeEvent                    )                             , pointer :: event                           , pairedEvent
+    type            (mergerTreeWalkerAllNodes     )                                       :: treeWalkerAllNodes
+    type            (mergerTreeWalkerIsolatedNodes)                                       :: treeWalkerIsolatedNodes
     logical                                                                               :: mergeTargetWarningIssued=.false.
     type            (fgsl_interp_accel            )                                       :: interpolationAccelerator
     logical                                                                               :: interpolationReset
@@ -274,28 +276,27 @@ contains
     currentTree => tree
     do while (associated(currentTree))
        ! Dump the unprocessed tree if required.
-       if (self%dumpTrees) call Merger_Tree_Dump(                               &
-            &                                    currentTree%index            , &
-            &                                    currentTree%baseNode         , &
-            &                                    backgroundColor     ='white' , &
-            &                                    nodeColor           ='black' , &
-            &                                    highlightColor      ='black' , &
-            &                                    edgeColor           ='black' , &
-            &                                    nodeStyle           ='solid' , &
-            &                                    highlightStyle      ='filled', &
-            &                                    edgeStyle           ='solid' , &
-            &                                    labelNodes          =.false. , &
-            &                                    scaleNodesByLogMass =.true.  , &
-            &                                    edgeLengthsToTimes  =.true.    &
+       if (self%dumpTrees) call Merger_Tree_Dump(                              &
+            &                                    currentTree                 , &
+            &                                    backgroundColor    ='white' , &
+            &                                    nodeColor          ='black' , &
+            &                                    highlightColor     ='black' , &
+            &                                    edgeColor          ='black' , &
+            &                                    nodeStyle          ='solid' , &
+            &                                    highlightStyle     ='filled', &
+            &                                    edgeStyle          ='solid' , &
+            &                                    labelNodes         =.false. , &
+            &                                    scaleNodesByLogMass=.true.  , &
+            &                                    edgeLengthsToTimes =.true.    &
             &                                   )
        ! Ensure interpolation accelerator gets reset.
        interpolationReset=.true.
        ! Iterate through to tree to:
        !  a) Find the current maximum node index in the tree, and;
        !  b) Snap halos to snapshot times if requested.
-       nodeIndex =  0_kind_int8
-       node      => currentTree%baseNode
-       do while (associated(node))
+       nodeIndex =0_kind_int8
+       treeWalkerAllNodes=mergerTreeWalkerAllNodes(currentTree)
+       do while (treeWalkerAllNodes%next(node))
           nodeIndex=max(nodeIndex,node%index())
           ! Check for merge targets being set - these are not supported under the regridding transformation, so issue a warning.
           if (associated(node%mergeTarget).and..not.mergeTargetWarningIssued) then
@@ -360,12 +361,11 @@ contains
                 end do
              end if
           end if
-          node => node%walkTreeWithSatellites()
        end do
        firstNewNode=nodeIndex+1
        ! Walk the tree, locating branches which intersect grid times.
-       node => currentTree%baseNode
-       do while (associated(node))
+       treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
+       do while (treeWalkerIsolatedNodes%next(node))
           ! Skip this node if it is the root node.
           if (associated(node%parent)) then
              basic       => node       %basic()
@@ -448,8 +448,6 @@ contains
                 deallocate(newNodes)
              end if
           end if
-          ! Step to the next node.
-          node => node%walkTree()
        end do       
        ! Dump the intermediate tree if required.
        if (self%dumpTrees) then
@@ -459,8 +457,7 @@ contains
              highlightNodes(nodeIndex+1)=firstNewNode+nodeIndex-1
           end do
           call Merger_Tree_Dump(                                    &
-               &                currentTree%index,                  &
-               &                currentTree%baseNode              , &
+               &                currentTree                       , &
                &                highlightNodes     =highlightNodes, &
                &                backgroundColor    ='white'       , &
                &                nodeColor          ='black'       , &
@@ -476,11 +473,9 @@ contains
           deallocate(highlightNodes)
        end if
        ! Walk the tree removing nodes not at grid times.
-       node => currentTree%baseNode
-       do while (associated(node))
+       treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
+       do while (treeWalkerIsolatedNodes%next(node))
           basic => node%basic()
-          ! Record the next node to walk to.
-          nodeNext => node%walkTree()
           ! Get the time for this node.
           timeNow=basic%time()
           ! Find the closest time in the new time grid.
@@ -543,26 +538,24 @@ contains
              ! Destroy the node.
              call node%destroy()
              deallocate(node)
+             call treeWalkerIsolatedNodes%previous(node)
           end if
-          ! Step to the next node.
-          node => nodeNext
        end do       
        ! Clean up interpolation objects.
        call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
        ! Dump the processed tree if required.
-       if (self%dumpTrees) call Merger_Tree_Dump(                               &
-            &                                    currentTree%index,             &
-            &                                    currentTree%baseNode         , &
-            &                                    backgroundColor     ='white' , &
-            &                                    nodeColor           ='black' , &
-            &                                    highlightColor      ='black' , &
-            &                                    edgeColor           ='black' , &
-            &                                    nodeStyle           ='solid' , &
-            &                                    highlightStyle      ='filled', &
-            &                                    edgeStyle           ='solid' , &
-            &                                    labelNodes          =.false. , &
-            &                                    scaleNodesByLogMass =.true.  , &
-            &                                    edgeLengthsToTimes  =.true.    &
+       if (self%dumpTrees) call Merger_Tree_Dump(                              &
+            &                                    currentTree                 , &
+            &                                    backgroundColor    ='white' , &
+            &                                    nodeColor          ='black' , &
+            &                                    highlightColor     ='black' , &
+            &                                    edgeColor          ='black' , &
+            &                                    nodeStyle          ='solid' , &
+            &                                    highlightStyle     ='filled', &
+            &                                    edgeStyle          ='solid' , &
+            &                                    labelNodes         =.false. , &
+            &                                    scaleNodesByLogMass=.true.  , &
+            &                                    edgeLengthsToTimes =.true.    &
             &                                   )
        ! Move to the next tree.
        currentTree => currentTree%nextTree

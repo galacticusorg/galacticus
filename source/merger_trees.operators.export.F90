@@ -116,6 +116,7 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
+    use Merger_Tree_Walkers
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
@@ -124,28 +125,29 @@ contains
     use System_Command
     use Cosmological_Density_Field
     implicit none
-    class           (mergerTreeOperatorExport), intent(inout)                 :: self
-    type            (mergerTree              ), intent(inout), target         :: tree
-    integer         (kind=size_t             ), parameter                     :: hdfChunkSize                   =1024
-    integer                                   , parameter                     :: hdfCompressionLevel            =   9
-    double precision                          , allocatable  , dimension(:  ) :: nodeMass                            , nodeRedshift         , &
-         &                                                                       snapshotTime                        , snapshotTimeTemp     , &
-         &                                                                       treeWeight
-    double precision                          , allocatable  , dimension(:,:) :: nodePosition                        , nodeVelocity
-    integer         (kind=kind_int8          ), allocatable  , dimension(:  ) :: descendentIndex                     , nodeIndex            , &
-         &                                                                       nodeSnapshot                        , treeIndex
-    type            (treeNode                ), pointer                       :: node
-    class           (nodeComponentBasic      ), pointer                       :: basic
-    class           (nodeComponentPosition   ), pointer                       :: position
-    type            (mergerTree              ), pointer                       :: treeCurrent
-    class           (cosmologyParametersClass), pointer                       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                       :: cosmologyFunctions_
+    class           (mergerTreeOperatorExport     ), intent(inout)                 :: self
+    type            (mergerTree                   ), intent(inout), target         :: tree
+    integer         (kind=size_t                  ), parameter                     :: hdfChunkSize                   =1024
+    integer                                        , parameter                     :: hdfCompressionLevel            =   9
+    double precision                               , allocatable  , dimension(:  ) :: nodeMass                            , nodeRedshift         , &
+         &                                                                            snapshotTime                        , snapshotTimeTemp     , &
+         &                                                                            treeWeight
+    double precision                               , allocatable  , dimension(:,:) :: nodePosition                        , nodeVelocity
+    integer         (kind=kind_int8               ), allocatable  , dimension(:  ) :: descendentIndex                     , nodeIndex            , &
+         &                                                                            nodeSnapshot                        , treeIndex
+    type            (treeNode                     ), pointer                       :: node
+    class           (nodeComponentBasic           ), pointer                       :: basic
+    class           (nodeComponentPosition        ), pointer                       :: position
+    type            (mergerTree                   ), pointer                       :: treeCurrent
+    class           (cosmologyParametersClass     ), pointer                       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), pointer                       :: cosmologyFunctions_
     class           (cosmologicalMassVarianceClass), pointer                                               :: cosmologicalMassVariance_
-    integer                                   , parameter                     :: snapshotCountIncrement         = 100
-    integer                                                                   :: nodeCount                           , snapshotCount
-    type            (mergerTreeData          )                                :: mergerTrees
-    logical                                                                   :: snapshotInterpolatorReset
-    type            (fgsl_interp_accel       )                                :: snapshotInterpolatorAccelerator
+    integer                                        , parameter                     :: snapshotCountIncrement         = 100
+    type            (mergerTreeWalkerIsolatedNodes)                                :: treeWalker
+    integer                                                                        :: nodeCount                           , snapshotCount
+    type            (mergerTreeData               )                                :: mergerTrees
+    logical                                                                        :: snapshotInterpolatorReset
+    type            (fgsl_interp_accel            )                                :: snapshotInterpolatorAccelerator
 
     ! Iterate over trees.
     treeCurrent => tree
@@ -179,10 +181,9 @@ contains
        call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))       
        ! Count nodes in the tree.
        nodeCount=0
-       node => treeCurrent%baseNode
-       do while (associated(node))
+       treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+       do while (treeWalker%next(node))
           nodeCount=nodeCount+1
-          node => node%walkTree()
        end do
        call mergerTrees%nodeCountSet(nodeCount)
        ! Allocate arrays for serialization.
@@ -198,11 +199,12 @@ contains
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (self%snapshotsRequired) then
           call allocateArray(snapshotTime,[snapshotCountIncrement])
-          node           => treeCurrent%baseNode
-          basic => node%basic()
-          snapshotCount=1
-          snapshotTime(snapshotCount)=basic%time()
-          do while (associated(node))
+          node                        => treeCurrent%baseNode
+          basic                       => node       %basic   ()
+          snapshotCount               =  1
+          snapshotTime(snapshotCount) =  basic      %time    ()
+          treeWalker                  =  mergerTreeWalkerIsolatedNodes(treeCurrent)
+          do while (treeWalker%next(node))
              basic => node%basic()
              if (all(snapshotTime(1:snapshotCount) /= basic%time())) then
                 snapshotCount=snapshotCount+1
@@ -214,7 +216,6 @@ contains
                 end if
                 snapshotTime(snapshotCount)=basic%time()
              end if
-             node => node%walkTree()
           end do
           call Sort_Do(snapshotTime(1:snapshotCount))
        else
@@ -223,12 +224,12 @@ contains
        ! Get the default cosmology functions object.
        cosmologyFunctions_ => cosmologyFunctions()
        ! Serialize node data to arrays and write to merger tree data structure.
-       treeIndex =treeCurrent%index
-       treeWeight=treeCurrent%volumeWeight
-       nodeCount =0
-       node  => treeCurrent%baseNode
+       treeIndex                =                              treeCurrent%index
+       treeWeight               =                              treeCurrent%volumeWeight
+       treeWalker               =mergerTreeWalkerIsolatedNodes(treeCurrent             )
+       nodeCount                =0
        snapshotInterpolatorReset=.true.
-       do while (associated(node))
+       do while (treeWalker%next(node))
           nodeCount=nodeCount+1
           nodeIndex      (nodeCount)=  node       %index   ()
           descendentIndex(nodeCount)=  node%parent%index   ()
@@ -246,7 +247,6 @@ contains
                &                                            reset  =snapshotInterpolatorReset                            , &
                &                                            closest=.true.                                                 &
                &                                           )
-          node => node%walkTree()
        end do
        call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
        call mergerTrees%setProperty(propertyTypeTreeWeight     ,treeWeight     )

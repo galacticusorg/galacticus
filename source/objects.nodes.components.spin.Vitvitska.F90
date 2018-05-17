@@ -185,21 +185,14 @@ contains
 
   subroutine Node_Component_Spin_Vitvitska_Branch_Initialize(self)
     !% Ensure a branch of a merger tree is initialized with spins in the Vitvitska model.
+    use Merger_Tree_Walkers
     implicit none
-    class  (nodeComponentSpinVitvitska), intent(inout) :: self
-    type   (treeNode                  ), pointer       :: node
-    logical                                            :: finished
+    class  (nodeComponentSpinVitvitska         ), intent(inout) :: self
+    type   (treeNode                           ), pointer       :: node
+    type   (mergerTreeWalkerIsolatedNodesBranch)                :: treeWalker
 
-    node     => self%hostNode
-    finished =  .false.
-    do while (.not.finished)
-       node => node%walkBranch(self%hostNode)
-       if (.not.associated(node)) then
-          ! When a null pointer is returned, the full branch has been walked. We then have to
-          ! handle the base node of the branch as a special case.
-          node     => self%hostNode
-          finished =  .true.
-       end if
+    treeWalker=mergerTreeWalkerIsolatedNodesBranch(self%hostNode)
+    do while (treeWalker%next(node))
        call Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     end do
     return

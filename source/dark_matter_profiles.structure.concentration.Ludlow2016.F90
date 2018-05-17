@@ -173,6 +173,7 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Dark_Matter_Profile_Mass_Definitions
+    use Merger_Tree_Walkers
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016), intent(inout), target       :: self
     type            (treeNode                                ), intent(inout), pointer      :: node
@@ -181,6 +182,7 @@ contains
     class           (nodeComponentDarkMatterProfile          )               , pointer      :: darkMatterProfile_
     integer                                                   , parameter                   :: iterationCountMaximum =100
     type            (ludlow2016State                         ), allocatable  , dimension(:) :: states
+    type            (mergerTreeWalkerIsolatedNodesBranch     )                              :: treeWalker
     double precision                                                                        :: massHaloCharacteristic    , timeBranchEarliest , &
          &                                                                                     densityMeanScaleRadius    , timeFormation      , &
          &                                                                                     radiusScale               , radiusScalePrevious, &
@@ -239,12 +241,11 @@ contains
           allocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_,mold=self%cosmologyFunctions_)
           call self%cosmologyFunctions_%deepCopy(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_)
           ! Find the earliest time in the branch.
-          nodeBranch         => node
-          timeBranchEarliest =  huge(0.0d0)
-          do while (associated(nodeBranch))
-             basicBranch        =>                        nodeBranch %basic     (    )
-             timeBranchEarliest =  min(timeBranchEarliest,basicBranch%time      (    ))
-             nodeBranch         =>                        nodeBranch %walkBranch(node)
+          timeBranchEarliest=huge                               (0.0d0)
+          treeWalker        =mergerTreeWalkerIsolatedNodesBranch(node )
+          do while (treeWalker%next(nodeBranch))
+             basicBranch        =>                        nodeBranch %basic(    )
+             timeBranchEarliest =  min(timeBranchEarliest,basicBranch%time (    ))
           end do
           ! Test if the formation time is before the earliest time in the branch.
           if (self%formationTimeRoot(timeBranchEarliest) > 0.0d0) then
@@ -328,18 +329,20 @@ contains
   double precision function ludlow2016FormationTimeRoot(timeFormation)
     !% Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2016} concentration algorithm.
     use Dark_Matter_Profile_Mass_Definitions
+    use Merger_Tree_Walkers
     implicit none
-    double precision                    , intent(in   ) :: timeFormation
-    type            (treeNode          ), pointer       :: nodeBranch   , nodeChild        , &
-         &                                                 nodeSibling
-    class           (nodeComponentBasic), pointer       :: basicBranch  , basicChild       , &
-         &                                                 basicSibling
-    double precision                                    :: massBranch   , massAccretionRate, &
-         &                                                 massSiblings , massProgenitor
+    double precision                                     , intent(in   ) :: timeFormation
+    type            (treeNode                           ), pointer       :: nodeBranch   , nodeChild        , &
+         &                                                                  nodeSibling
+    class           (nodeComponentBasic                 ), pointer       :: basicBranch  , basicChild       , &
+         &                                                                  basicSibling
+    type            (mergerTreeWalkerIsolatedNodesBranch)                :: treeWalker
+    double precision                                                     :: massBranch   , massAccretionRate, &
+         &                                                                  massSiblings , massProgenitor
 
-    nodeBranch => ludlow2016States(ludlow2016StateCount)%node
-    massBranch =  0.0d0
-    do while (associated(nodeBranch))
+    treeWalker=mergerTreeWalkerIsolatedNodesBranch(ludlow2016States(ludlow2016StateCount)%node)
+    massBranch=0.0d0
+    do while (treeWalker%next(nodeBranch))
        basicBranch => nodeBranch%basic()
        if (associated(nodeBranch%firstChild).and.basicBranch%time() >= timeFormation) then
           nodeChild => nodeBranch%firstChild
@@ -429,7 +432,6 @@ contains
                & massBranch=+massBranch              &
                &            +massProgenitor
        end if
-       nodeBranch => nodeBranch%walkBranch(ludlow2016States(ludlow2016StateCount)%node)
     end do
     ludlow2016FormationTimeRoot=+massBranch                       &
          &                      -ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic

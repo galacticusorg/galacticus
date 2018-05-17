@@ -213,20 +213,21 @@ contains
   logical function simpleBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
     use Galacticus_Nodes
+    use Merger_Tree_Walkers
     implicit none
-    class(accretionHaloSimple), intent(inout)          :: self
-    type (treeNode           ), intent(inout), target  :: node
-    type (treeNode           )               , pointer :: branchNode
-
+    class(accretionHaloSimple                ), intent(inout)          :: self
+    type (treeNode                           ), intent(inout), target  :: node
+    type (treeNode                           )               , pointer :: branchNode
+    type (mergerTreeWalkerIsolatedNodesBranch)                         :: treeWalker
+    
     simpleBranchHasBaryons=.false.
-    branchNode => node
-    do while (associated(branchNode))
+    treeWalker             =mergerTreeWalkerIsolatedNodesBranch(node)
+    do while (treeWalker%next(branchNode))
        if (self%failedFraction(branchNode) < 1.0d0) then
           simpleBranchHasBaryons=.true.
           exit
        end if
-       branchNode => branchNode%walkBranch(node)
-    end do
+    end do    
     return
   end function simpleBranchHasBaryons
 

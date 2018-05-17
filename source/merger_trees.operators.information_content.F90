@@ -101,6 +101,7 @@ contains
     use Factorials
     use Merger_Trees_Pruning_Utilities
     use Memory_Management
+    use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorInformationContent), intent(inout)               :: self
     type            (mergerTree                          ), intent(inout), target       :: tree
@@ -108,6 +109,7 @@ contains
     type            (treeNode                            )               , pointer      :: nodeChild                    , node
     integer         (c_size_t                            )               , parameter    :: treeCountIncrement      =1000
     integer         (kind=kind_int8                      ), allocatable  , dimension(:) :: treeIndexTmp
+    type            (mergerTreeWalkerIsolatedNodes       )                              :: treeWalker
     double precision                                      , allocatable  , dimension(:) :: informationContentTmp
     integer                                                                             :: childCount                   , leafCount
     double precision                                                                    :: logPermittedBifurcations     , logPossibleBifurcations, &
@@ -119,8 +121,8 @@ contains
        ! Walk the tree, counting the number of leaves and accumulated the log of the number of permitted bifurcations.
        leafCount                =  0
        logPermittedBifurcations =  0.0d0
-       node                     => treeCurrent%baseNode
-       do while (associated(node))
+       treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
+       do while (treeWalker%next(node))
           ! Check for leaf nodes.
           if (.not.associated(node%firstChild)) then
              ! Increment leaf node counter.
@@ -136,7 +138,6 @@ contains
              ! Increment the number of permitted bifurcations based on this number of children.
              logPermittedBifurcations=logPermittedBifurcations+Logarithmic_Double_Factorial(2*childCount-3)
           end if
-          node => node%walkTree()
        end do
        ! Compute logarithm of the possible bifurcations.
        logPossibleBifurcations=Logarithmic_Double_Factorial(2*leafCount-3)

@@ -1,0 +1,124 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a tree walker for trees under construction.
+
+  !# <mergerTreeWalker name="mergerTreeWalkerTreeConstruction">
+  !#  <description>Provides a merger tree walker for trees under construction.</description>
+  !# </mergerTreeWalker>
+  type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerTreeConstruction
+     !% A merger tree walker for trees under construction.
+     private
+     type   (mergerTree), pointer :: tree
+     type   (treeNode  ), pointer :: node
+     logical                      :: nodesRemain_
+   contains
+     procedure :: next        => treeConstructionNext
+     procedure :: nodesRemain => treeConstructionNodesRemain
+  end type mergerTreeWalkerTreeConstruction
+
+  interface mergerTreeWalkerTreeConstruction
+     !% Constructors for the {\normalfont \ttfamily treeConstruction} merger tree walker class.
+     module procedure treeConstructionParameters
+     module procedure treeConstructionInternal
+  end interface mergerTreeWalkerTreeConstruction
+
+contains
+
+  function treeConstructionParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class which takes a parameter set as input.
+    use Galacticus_Error
+    use Input_Parameters
+    implicit none
+    type(mergerTreeWalkerTreeConstruction)                :: self
+    type(inputParameters         ), intent(inout) :: parameters
+    !GCC$ attributes unused :: self, parameters
+
+    call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
+    return
+  end function treeConstructionParameters
+
+  function treeConstructionInternal(tree) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class.
+    implicit none
+    type   (mergerTreeWalkerTreeConstruction)                        :: self
+    type   (mergerTree                      ), intent(in   ), target :: tree
+
+    self%tree        => tree
+    self%node        => null()
+    self%nodesRemain_ = .true.
+    return
+  end function treeConstructionInternal
+  
+  logical function treeConstructionNext(self,node)
+    implicit none
+    class(mergerTreeWalkerTreeConstruction), intent(inout)          :: self
+    type (treeNode                        ), intent(inout), pointer :: node
+
+    if (.not.self%nodesRemain_) then
+       node                 => null()
+       treeConstructionNext =  .false.
+       return
+    end if
+    treeConstructionNext=.true.
+    if (associated(self%node)) then
+       if (associated(self%node%firstChild)) then
+          ! Move to the primary child if one exists.
+          do while (associated(self%node%firstChild))
+             self%node => self%node%firstChild
+          end do
+       else
+          if (associated(self%node%sibling)) then
+             self%node => self%node%sibling
+             do while (associated(self%node%firstChild))
+                self%node => self%node%firstChild
+             end do
+          else
+             do while (associated(self%node))
+                if (associated(self%node%parent)) then
+                   self%node => self%node%parent
+                   if (associated(self%node%sibling)) then
+                      self%node => self%node%sibling
+                      do while (associated(self%node%firstChild))
+                         self%node => self%node%firstChild
+                      end do
+                      exit
+                   end if
+                else
+                   self%node            => null()
+                   self%nodesRemain_    = .false.
+                   treeConstructionNext = .false.
+                end if
+             end do
+          end if
+       end if
+    else
+       self%node => self%tree%baseNode
+    end if
+    node => self%node
+    return
+  end function treeConstructionNext
+
+  logical function treeConstructionNodesRemain(self)
+    !% Returns true if more nodes remain to be walked to.
+    implicit none
+    class(mergerTreeWalkerTreeConstruction), intent(inout) :: self
+
+    treeConstructionNodesRemain=self%nodesRemain_
+    return
+  end function treeConstructionNodesRemain

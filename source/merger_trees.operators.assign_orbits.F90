@@ -17,7 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
-
+  
   use Virial_Orbits
   use Satellite_Merging_Timescales
   
@@ -83,177 +83,170 @@ contains
   subroutine assignOrbitsOperate(self,tree)
     !% Perform a orbit assigning operation on a merger tree.
     use Kepler_Orbits
+    use Merger_Tree_Walkers
     implicit none
     class  (mergerTreeOperatorAssignOrbits), intent(inout)         :: self
     type   (mergerTree                    ), intent(inout), target :: tree
     type   (treeNode                      ), pointer               :: node                    , nodeProgenitor       , &
          &                                                            mergee
-    type   (mergerTree                    ), pointer               :: currentTree
     class  (nodeComponentSatellite        ), pointer               :: satellite               , satelliteProgenitor
     class  (nodeComponentBasic            ), pointer               :: basic                   , basicProgenitor
+    type   (mergerTreeWalkerIsolatedNodes  )                        :: treeWalker
     type   (keplerOrbit                   )                        :: virialOrbitNode         , virialOrbitProgenitor
     logical                                                        :: satelliteProgenitorFound
     !GCC$ attributes unused :: self
-    
-    ! Iterate over trees.
-    currentTree => tree
-    do while (associated(currentTree))   
-       ! Walk the tree.
-       node => currentTree%baseNode
-       do while (associated(node))
-          ! An orbit must be assigned to non-primary progenitors which do not have an orbit already assigned.
-          if     (                                             &
-               &        associated(node%parent               ) &
-               &  .and.                                        &
-               &   .not.           node%isPrimaryProgenitor()  &               
-               & ) then
-             satellite       => node     %satellite  (autoCreate=.true.)
-             virialOrbitNode =  satellite%virialOrbit(                 )
-             if (.not.virialOrbitNode%isDefined()) then
-                ! Check for a primary progenitor with a pre-existing satellite.
-                satelliteProgenitorFound =  .false.
-                nodeProgenitor           => node
-                do while (associated(nodeProgenitor))
-                   satelliteProgenitor   => nodeProgenitor     %satellite  ()
-                   virialOrbitProgenitor =  satelliteProgenitor%virialOrbit()
-                   if (virialOrbitProgenitor%isDefined()) then
-                      ! A satellite exists in this progenitor.
-                      satellite =  satelliteProgenitor
-                      basic     => node               %basic()                      
-                      if (satellite%timeOfMerging() < basic%time()) call satellite%timeOfMergingSet(basic%time())
-                      if (associated(nodeProgenitor%mergeTarget)) then
-                         mergee => nodeProgenitor%mergeTarget%firstMergee
-                         if (associated(mergee,nodeProgenitor)) then
-                            nodeProgenitor%mergeTarget%firstMergee => node
-                         else
-                            do while (.not.associated(mergee%siblingMergee,nodeProgenitor))
-                               mergee => mergee%siblingMergee
+
+    ! Iterate over nodes in forest.
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       ! An orbit must be assigned to non-primary progenitors which do not have an orbit already assigned.
+       if     (                                             &
+            &        associated(node%parent               ) &
+            &  .and.                                        &
+            &   .not.           node%isPrimaryProgenitor()  &               
+            & ) then
+          satellite   => node     %satellite  (autoCreate=.true.)
+          virialOrbitNode =  satellite%virialOrbit(                 )
+          if (.not.virialOrbitNode%isDefined()) then
+             ! Check for a primary progenitor with a pre-existing satellite.
+             satelliteProgenitorFound =  .false.
+             nodeProgenitor           => node
+             do while (associated(nodeProgenitor))
+                satelliteProgenitor   => nodeProgenitor     %satellite  ()
+                virialOrbitProgenitor =  satelliteProgenitor%virialOrbit()
+                if (virialOrbitProgenitor%isDefined()) then
+                   ! A satellite exists in this progenitor.
+                   satellite =  satelliteProgenitor
+                   basic     => node               %basic()                      
+                   if (satellite%timeOfMerging() < basic%time()) call satellite%timeOfMergingSet(basic%time())
+                   if (associated(nodeProgenitor%mergeTarget)) then
+                      mergee => nodeProgenitor%mergeTarget%firstMergee
+                      if (associated(mergee,nodeProgenitor)) then
+                         nodeProgenitor%mergeTarget%firstMergee => node
+                      else
+                         do while (.not.associated(mergee%siblingMergee,nodeProgenitor))
+                            mergee => mergee%siblingMergee
+                         end do
+                         mergee%siblingMergee => node
+                      end if
+                      node          %siblingMergee => nodeProgenitor%siblingMergee
+                      node          %mergeTarget   => nodeProgenitor%mergeTarget
+                      nodeProgenitor%mergeTarget   => null()
+                      nodeProgenitor%siblingMergee => null()
+                      ! The merge target must be reachable at the merge time. If it is not, find a progenitor of it which is
+                      ! reachable at that time.
+                      if (associated(node%mergeTarget%firstChild)) then
+                         nodeProgenitor  => node          %mergeTarget
+                         basicProgenitor => nodeProgenitor%firstChild %basic()
+                         if (basicProgenitor%time() > satellite%timeOfMerging()) then
+                            ! Shift to an earlier progenitor as merge target.
+                            do while (basicProgenitor%time() > satellite%timeOfMerging())
+                               nodeProgenitor  => nodeProgenitor%firstChild
+                               basicProgenitor => nodeProgenitor%firstChild%basic()
                             end do
-                            mergee%siblingMergee => node
-                         end if
-                         node          %siblingMergee => nodeProgenitor%siblingMergee
-                         node          %mergeTarget   => nodeProgenitor%mergeTarget
-                         nodeProgenitor%mergeTarget   => null()
-                         nodeProgenitor%siblingMergee => null()
-                         ! The merge target must be reachable at the merge time. If it is not, find a progenitor of it which is
-                         ! reachable at that time.
-                         if (associated(node%mergeTarget%firstChild)) then
-                            nodeProgenitor  => node          %mergeTarget
-                            basicProgenitor => nodeProgenitor%firstChild %basic()
-                            if (basicProgenitor%time() > satellite%timeOfMerging()) then
-                               ! Shift to an earlier progenitor as merge target.
-                               do while (basicProgenitor%time() > satellite%timeOfMerging())
-                                  nodeProgenitor  => nodeProgenitor%firstChild
-                                  basicProgenitor => nodeProgenitor%firstChild%basic()
+                            ! Remove our mergee from its merge target.
+                            call node%removeFromMergee()
+                            if (associated(nodeProgenitor%firstMergee)) then
+                               mergee => nodeProgenitor%firstMergee
+                               do while (associated(mergee%siblingMergee))
+                                  mergee => mergee%siblingMergee
                                end do
-                               ! Remove our mergee from its merge target.
-                               call node%removeFromMergee()
-                               if (associated(nodeProgenitor%firstMergee)) then
-                                  mergee => nodeProgenitor%firstMergee
-                                  do while (associated(mergee%siblingMergee))
-                                     mergee => mergee%siblingMergee
-                                  end do
-                                  mergee%siblingMergee => node
-                               else
-                                  nodeProgenitor%firstMergee => node
-                               end if
-                               node%mergeTarget   => nodeProgenitor
-                               node%siblingMergee => null()
+                               mergee%siblingMergee => node
+                            else
+                               nodeProgenitor%firstMergee => node
                             end if
-                         end if
-                         ! The mergee must be a satellite by the time it is due to merge. If it is not (which implies it is merging with a
-                         ! halo in a different branch of the tree), reset it to be merging with the appropriate halo in its own branch of
-                         ! the tree.
-                         if (.not.node%isProgenitorOf(node%mergeTarget)) then
-                            nodeProgenitor  => node          %parent
-                            basicProgenitor => nodeProgenitor%basic ()
-                            if (basicProgenitor%time() > satellite%timeOfMerging()) then                               
-                               ! Adjust the time of merging.
-                               call satellite%timeOfMergingSet(basicProgenitor%time())
-                               ! Remove our mergee from its merge target.
-                               call node%removeFromMergee()
-                               if (associated(nodeProgenitor%firstMergee)) then
-                                  mergee => nodeProgenitor%firstMergee
-                                  do while (associated(mergee%siblingMergee))
-                                     mergee => mergee%siblingMergee
-                                  end do
-                                  mergee%siblingMergee => node
-                               else
-                                  nodeProgenitor%firstMergee => node
-                               end if
-                               node%mergeTarget   => nodeProgenitor
-                               node%siblingMergee => null()
-                            end if
+                            node%mergeTarget   => nodeProgenitor
+                            node%siblingMergee => null()
                          end if
                       end if
-                      satelliteProgenitorFound=.true.
-                      exit
+                      ! The mergee must be a satellite by the time it is due to merge. If it is not (which implies it is merging with a
+                      ! halo in a different branch of the tree), reset it to be merging with the appropriate halo in its own branch of
+                      ! the tree.
+                      if (.not.node%isProgenitorOf(node%mergeTarget)) then
+                         nodeProgenitor  => node          %parent
+                         basicProgenitor => nodeProgenitor%basic ()
+                         if (basicProgenitor%time() > satellite%timeOfMerging()) then                               
+                            ! Adjust the time of merging.
+                            call satellite%timeOfMergingSet(basicProgenitor%time())
+                            ! Remove our mergee from its merge target.
+                            call node%removeFromMergee()
+                            if (associated(nodeProgenitor%firstMergee)) then
+                               mergee => nodeProgenitor%firstMergee
+                               do while (associated(mergee%siblingMergee))
+                                  mergee => mergee%siblingMergee
+                               end do
+                               mergee%siblingMergee => node
+                            else
+                               nodeProgenitor%firstMergee => node
+                            end if
+                            node%mergeTarget   => nodeProgenitor
+                            node%siblingMergee => null()
+                         end if
+                      end if
                    end if
-                   nodeProgenitor => nodeProgenitor%firstChild
-                end do
-                if (.not.satelliteProgenitorFound) then
+                   satelliteProgenitorFound=.true.
+                   exit
+                end if
+                nodeProgenitor => nodeProgenitor%firstChild
+             end do
+             if (.not.satelliteProgenitorFound) then
                    virialOrbitNode=self%virialOrbit_%orbit(node,node%parent,.false.)
                    call satellite%  mergeTimeSet(self%satelliteMergingTimescales_%timeUntilMerging(node,virialOrbitNode))
                    call satellite%virialOrbitSet(                                                       virialOrbitNode )
-                end if
-             else
-                ! The merge target must be reachable at the merge time. If it is not, find a
-                ! progenitor of it which is reachable at that time.
-                if (associated(node%mergeTarget).and.associated(node%mergeTarget%firstChild)) then
-                   nodeProgenitor  => node          %mergeTarget
-                   basicProgenitor => nodeProgenitor%firstChild %basic()                   
-                   if (basicProgenitor%time() > satellite%timeOfMerging()) then
-                      ! Shift to an earlier progenitor as merge target.
-                      do while (basicProgenitor%time() > satellite%timeOfMerging())
-                         nodeProgenitor  => nodeProgenitor%firstChild
-                         basicProgenitor => nodeProgenitor%firstChild%basic()
+             end if
+          else
+             ! The merge target must be reachable at the merge time. If it is not, find a
+             ! progenitor of it which is reachable at that time.
+             if (associated(node%mergeTarget).and.associated(node%mergeTarget%firstChild)) then
+                nodeProgenitor  => node          %mergeTarget
+                basicProgenitor => nodeProgenitor%firstChild %basic()                   
+                if (basicProgenitor%time() > satellite%timeOfMerging()) then
+                   ! Shift to an earlier progenitor as merge target.
+                   do while (basicProgenitor%time() > satellite%timeOfMerging())
+                      nodeProgenitor  => nodeProgenitor%firstChild
+                      basicProgenitor => nodeProgenitor%firstChild%basic()
+                   end do
+                   ! Remove our mergee from its merge target.
+                   call node%removeFromMergee()
+                   if (associated(nodeProgenitor%firstMergee)) then
+                      mergee => nodeProgenitor%firstMergee
+                      do while (associated(mergee%siblingMergee))
+                         mergee => mergee%siblingMergee
                       end do
-                      ! Remove our mergee from its merge target.
-                      call node%removeFromMergee()
-                      if (associated(nodeProgenitor%firstMergee)) then
-                         mergee => nodeProgenitor%firstMergee
-                         do while (associated(mergee%siblingMergee))
-                            mergee => mergee%siblingMergee
-                         end do
-                         mergee%siblingMergee => node
-                      else
-                         nodeProgenitor%firstMergee => node
-                      end if
-                      node%mergeTarget   => nodeProgenitor
-                      node%siblingMergee => null()
-                   end if                   
-                end if
-                ! The mergee must be a satellite by the time it is due to merge. If it is not (which implies it is merging with a
-                ! halo in a different branch of the tree), reset it to be merging with the appropriate halo in its own branch of
-                ! the tree.
-                if (associated(node%mergeTarget).and..not.node%isProgenitorOf(node%mergeTarget)) then
-                   nodeProgenitor  => node          %parent
-                   basicProgenitor => nodeProgenitor%basic ()
-                   if (basicProgenitor%time() > satellite%timeOfMerging()) then
-                      ! Adjust the time of merging.
-                      call satellite%timeOfMergingSet(basicProgenitor%time())
-                      ! Remove our mergee from its merge target.
-                      call node%removeFromMergee()
-                      if (associated(nodeProgenitor%firstMergee)) then
-                         mergee => nodeProgenitor%firstMergee
-                         do while (associated(mergee%siblingMergee))
-                            mergee => mergee%siblingMergee
-                         end do
-                         mergee%siblingMergee => node
-                      else
-                         nodeProgenitor%firstMergee => node
-                      end if
-                      node%mergeTarget   => nodeProgenitor
-                      node%siblingMergee => null()
+                      mergee%siblingMergee => node
+                   else
+                      nodeProgenitor%firstMergee => node
                    end if
+                   node%mergeTarget   => nodeProgenitor
+                   node%siblingMergee => null()
+                end if
+             end if
+             ! The mergee must be a satellite by the time it is due to merge. If it is not (which implies it is merging with a
+             ! halo in a different branch of the tree), reset it to be merging with the appropriate halo in its own branch of
+             ! the tree.
+             if (associated(node%mergeTarget).and..not.node%isProgenitorOf(node%mergeTarget)) then
+                nodeProgenitor  => node          %parent
+                basicProgenitor => nodeProgenitor%basic ()
+                if (basicProgenitor%time() > satellite%timeOfMerging()) then
+                   ! Adjust the time of merging.
+                   call satellite%timeOfMergingSet(basicProgenitor%time())
+                   ! Remove our mergee from its merge target.
+                   call node%removeFromMergee()
+                   if (associated(nodeProgenitor%firstMergee)) then
+                      mergee => nodeProgenitor%firstMergee
+                      do while (associated(mergee%siblingMergee))
+                         mergee => mergee%siblingMergee
+                      end do
+                      mergee%siblingMergee => node
+                   else
+                      nodeProgenitor%firstMergee => node
+                   end if
+                   node%mergeTarget   => nodeProgenitor
+                   node%siblingMergee => null()
                 end if
              end if
           end if
-          ! Walk to the next node.
-          node => node%walkTree()
-       end do
-       ! Move to the next tree.
-       currentTree => currentTree%nextTree
+       end if
     end do
     return
   end subroutine assignOrbitsOperate

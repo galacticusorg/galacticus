@@ -52,21 +52,23 @@ contains
     use String_Handling
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
+    use Merger_Tree_Walkers
     !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (mergerTree              ), intent(in   ), target                :: tree
-    type            (treeNode                )                             , pointer :: node
-    integer         (kind=kind_int8          ), allocatable  , dimension(:)          :: nodeIndex
-    double precision                          , allocatable  , dimension(:)          :: nodeProperty
-    class           (nodeComponentBasic      )                             , pointer :: basic
-    type            (mergerTree              )                             , pointer :: currentTree
-    class           (darkMatterHaloScaleClass)                             , pointer :: darkMatterHaloScale_
-    integer                                                                          :: nodeCount
-    type            (varying_string          )                                       :: groupComment        , groupName
-    type            (hdf5Object              )                                       :: nodeDataset         , treeGroup
-
+    type            (mergerTree                   ), intent(in   ), target                :: tree
+    type            (treeNode                     )                             , pointer :: node
+    integer         (kind=kind_int8               ), allocatable  , dimension(:)          :: nodeIndex
+    double precision                               , allocatable  , dimension(:)          :: nodeProperty
+    class           (nodeComponentBasic           )                             , pointer :: basic
+    type            (mergerTree                   )                             , pointer :: currentTree
+    class           (darkMatterHaloScaleClass     )                             , pointer :: darkMatterHaloScale_
+    integer                                                                               :: nodeCount
+    type            (varying_string               )                                       :: groupComment        , groupName
+    type            (hdf5Object                   )                                       :: nodeDataset         , treeGroup
+    type            (mergerTreeWalkerIsolatedNodes)                                       :: treeWalker
+    
     ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
        !$omp critical(structureOutputModuleInitialize)
@@ -108,11 +110,10 @@ contains
        currentTree => tree
        do while (associated(currentTree))
           ! Count up number of nodes in the tree.
-          nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              nodeCount=nodeCount+1
-             node => node%walkTree()
           end do
           ! Allocate storage space.
           call allocateArray(nodeIndex   ,[nodeCount])
@@ -126,24 +127,22 @@ contains
           !$ call hdf5Access%unset()
 
           ! Extract node indices and output to file.
-          nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=node%index()
-             node => node%walkTree()
           end do
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
           !$ call hdf5Access%unset()
 
           ! Extract child node indices and output to file.
-          nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=node%firstChild%index()
-             node => node%walkTree()
           end do
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'childIndex','Index of the child node.')
@@ -151,36 +150,33 @@ contains
 
           ! Extract parent node indices and output to file.
           nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=node%parent%index()
-             node => node%walkTree()
           end do
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'parentIndex','Index of the parent node.')
           !$ call hdf5Access%unset()
 
           ! Extract sibling node indices and output to file.
-          nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              nodeCount=nodeCount+1
              nodeIndex(nodeCount)=node%sibling%index()
-             node => node%walkTree()
           end do
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeIndex,'siblingIndex','Index of the sibling node.')
           !$ call hdf5Access%unset()
 
           ! Extract node masses and output to file.
-          nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              basic => node%basic()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=basic%mass()
-             node => node%walkTree()
           end do
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
@@ -189,14 +185,13 @@ contains
           !$ call hdf5Access%unset()
 
           ! Extract node times and output to file.
-          nodeCount=0
-          node => currentTree%baseNode
-          do while (associated(node))
+          nodeCount =0
+          treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+          do while (treeWalker%next(node))
              basic => node%basic()
              nodeCount=nodeCount+1
              nodeProperty(nodeCount)=basic%time()
-             node => node%walkTree()
-          end do
+          end do          
           !$ call hdf5Access%set()
           call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
           call nodeDataset%writeAttribute(gigaYear,"unitsInSI")
@@ -207,12 +202,11 @@ contains
           if (mergerTreeStructureOutputVirialQuantities) then
 
              ! Extract node virial radii and output to file.
-             nodeCount=0
-             node => currentTree%baseNode
-             do while (associated(node))
+             nodeCount =0
+             treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+             do while (treeWalker%next(node))
                 nodeCount=nodeCount+1
-                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(node)
-                node => node%walkTree()
+                nodeProperty(nodeCount)=darkMatterHaloScale_%virialRadius(node)                
              end do
              !$ call hdf5Access%set()
              call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
@@ -221,12 +215,11 @@ contains
              !$ call hdf5Access%unset()
 
              ! Extract node virial velocity and output to file.
-             nodeCount=0
-             node => currentTree%baseNode
-             do while (associated(node))
+             nodeCount =0
+             treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
+             do while (treeWalker%next(node))
                 nodeCount=nodeCount+1
                 nodeProperty(nodeCount)=darkMatterHaloScale_%virialVelocity(node)
-                node => node%walkTree()
              end do
              !$ call hdf5Access%set()
              call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)
