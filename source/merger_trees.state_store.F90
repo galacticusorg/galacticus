@@ -24,8 +24,9 @@ module Merger_Tree_State_Store
   use Pseudo_Random
   public
 
-  type(mergerTree), pointer :: treeStateStore => null()
-  !$omp threadprivate(treeStateStore)
+  type   (mergerTree), pointer :: treeStateStore         => null()
+  integer                      :: treeStateStoreSequence =  -1
+  !$omp threadprivate(treeStateStore,treeStateStoreSequence)
 
 contains
 
@@ -41,6 +42,7 @@ contains
     type   (mergerTree), pointer       :: tree
     !GCC$ attributes unused :: stateOperatorID
 
+    write (stateFile) treeStateStoreSequence
     tree => treeStateStore
     do while (associated(tree))
        call tree%randomNumberGenerator%store(stateFile,fgslStateFile)
@@ -61,6 +63,7 @@ contains
     type   (mergerTree), pointer       :: tree
     !GCC$ attributes unused :: stateOperatorID
 
+    read (stateFile) treeStateStoreSequence
     tree => treeStateStore
     do while (associated(tree))
        call tree%randomNumberGenerator%restore(stateFile,fgslStateFile)
