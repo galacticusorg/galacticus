@@ -209,7 +209,7 @@ contains
     return
   end subroutine sedFitDestructor
   
-  double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the SED fitting likelihood function.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Error
@@ -233,6 +233,7 @@ contains
          &                                                                                 logPriorCurrent                                 , logPriorProposed
     real                                                , intent(inout)                 :: timeEvaluate
     double precision                                    , intent(  out), optional       :: logLikelihoodVariance
+    logical                                             , intent(inout), optional       :: forceAcceptance
     double precision                                    , allocatable  , dimension(:  ) :: stateVector                                     , ages                         , &
          &                                                                                 weights
     double precision                                    , allocatable  , dimension(:,:) :: massToLightRatios
@@ -258,7 +259,7 @@ contains
     type            (fgsl_function             )                                        :: integrandFunction
     type            (fgsl_integration_workspace)                                        :: integrationWorkspace
     logical                                                                             :: integrationReset                                , useRapidEvaluation
-    !GCC$ attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_
+    !GCC$ attributes unused :: simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0

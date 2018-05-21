@@ -20,9 +20,9 @@
 
   type, public :: posteriorSampleLikelihoodList
      class  (posteriorSampleLikelihoodClass), pointer                   :: modelLikelihood_
-     integer                                , dimension(:), allocatable :: parameterMap
-     type   (modelParameterList            ), dimension(:), allocatable :: modelParametersActive_
-     type   (varying_string                ), dimension(:), allocatable :: parameterMapNames
+     integer                                , dimension(:), allocatable :: parameterMap                     , parameterMapInactive
+     type   (modelParameterList            ), dimension(:), allocatable :: modelParametersActive_           , modelParametersInactive_
+     type   (varying_string                ), dimension(:), allocatable :: parameterMapNames                , parameterMapNamesInactive
      type   (posteriorSampleLikelihoodList ), pointer                   :: next                    => null()
      type   (posteriorSampleStateSimple    )                            :: simulationState
      logical                                                            :: parameterMapInitialized
@@ -59,7 +59,8 @@ contains
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                :: self
     type   (inputParameters                                ), intent(inout) :: parameters
     type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_
-    integer                                                                 :: i                 , parameterMapCount
+    integer                                                                 :: i                 , parameterMapCount, &
+         &                                                                     errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
     
     if     (                                                                                   &
@@ -87,6 +88,19 @@ contains
        allocate(modelLikelihood_%modelParametersActive_(parameterMapCount))
        call String_Split_Words(modelLikelihood_%parameterMapNames,char(parameterMapJoined)," ")
        call modelLikelihood_%simulationState%parameterCountSet(parameterMapCount)
+       call parameters%value('parameterInactiveMap',parameterMapJoined,copyInstance=i,errorStatus=errorStatus)
+       if      (errorStatus == inputParameterErrorStatusSuccess   ) then
+          parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
+          allocate(modelLikelihood_%parameterMapInactive     (parameterMapCount))
+          allocate(modelLikelihood_%parameterMapNamesInactive(parameterMapCount))
+          allocate(modelLikelihood_%modelParametersInactive_ (parameterMapCount))
+          call String_Split_Words(modelLikelihood_%parameterMapNamesInactive,char(parameterMapJoined)," ")
+       else if (errorStatus == inputParameterErrorStatusEmptyValue) then
+          ! Empty value is acceptable.
+          allocate(modelLikelihood_%modelParametersInactive_ (                0))
+       else
+          call Galacticus_Error_Report('invalid parameter'//{introspection:location})
+       end if
     end do
     return
   end function independentLikelihoodsConstructorParameters
@@ -98,7 +112,7 @@ contains
     type(posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
     !# <constructorAssign variables="*modelLikelihoods"/>
 
-   return
+    return
   end function independentLikelihoodsConstructorInternal
   
   elemental subroutine independentLikelihoodsDestructor(self)
@@ -119,7 +133,7 @@ contains
     return
   end subroutine independentLikelihoodsDestructor
   
-  double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
     use Galacticus_Error
     implicit none
@@ -131,11 +145,13 @@ contains
          &                                                                                            logPriorCurrent       , logPriorProposed
     real                                                             , intent(inout)               :: timeEvaluate
     double precision                                                 , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                          , intent(inout), optional     :: forceAcceptance
     type            (posteriorSampleLikelihoodList                  ), pointer                     :: modelLikelihood_
     double precision                                                 , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
     double precision                                                                               :: logLikelihoodVariance_, timeEvaluate_
     integer                                                                                        :: i                     , j
-    
+    !GCC$ attributes unused :: forceAcceptance
+
     allocate(stateVector      (simulationState%dimension()))
     allocate(stateVectorMapped(simulationState%dimension()))
     stateVector                                                =  simulationState%get()
@@ -159,6 +175,22 @@ contains
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
              call modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersActive_(i)%modelParameter_)
           end do
+          if (allocated(modelLikelihood_%parameterMapInactive)) then
+             do i=1,size(modelLikelihood_%parameterMapInactive)
+                ! Determine the mapping of the inactive parameters to this likelihood.
+                modelLikelihood_%parameterMapInactive(i)=-1
+                do j=1,size(modelParametersInActive_)
+                   if (modelParametersInactive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNamesInactive(i)) then
+                      modelLikelihood_%parameterMapInactive(i)=j
+                      exit
+                   end if
+                end do
+                if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
+                ! Copy the model parameter definition.
+                allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                call modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersInactive_(i)%modelParameter_)
+             end do
+          end if
           ! Mark the likelihood as initialized.
           modelLikelihood_%parameterMapInitialized=.true.
        end if
@@ -172,7 +204,7 @@ contains
             &                                                        +modelLikelihood_%modelLikelihood_%evaluate(                                           &
             &                                                                                                    modelLikelihood_%simulationState         , &
             &                                                                                                    modelLikelihood_%modelParametersActive_  , &
-            &                                                                                                                     modelParametersInactive_, &
+            &                                                                                                    modelLikelihood_%modelParametersInactive_, &
             &                                                                                                                     simulationConvergence   , &
             &                                                                                                                     temperature             , &
             &                                                                                                                     logLikelihoodCurrent    , &

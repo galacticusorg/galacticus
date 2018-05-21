@@ -299,7 +299,8 @@ contains
          &                                                                                                   convergenceFileUnit            , i                                , &
          &                                                                                                   ioStatus                       , interactionFile                  , &
          &                                                                                                   stateCount                     , mpiRank
-    logical                                                                                               :: isConverged                    , accept
+    logical                                                                                               :: isConverged                    , accept                           , &
+         &                                                                                                   forceAcceptance
     character       (len=32                                )                                              :: label
 
     ! Write start-up message.
@@ -314,8 +315,9 @@ contains
        ! Evaluate the posterior in the initial state.
        timeEvaluate        =-1.0
        timeEvaluatePrevious=real(timeEvaluateInitial)
+       forceAcceptance     =.false.
        call CPU_Time(timePreEvaluate )
-       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
        call CPU_Time(timePostEvaluate)
        if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
        timeEvaluatePrevious=timeEvaluate
@@ -468,12 +470,15 @@ contains
        ! Evaluate posterior.
        timeEvaluatePrevious=timeEvaluate
        timeEvaluate        =-1.0
+       forceAcceptance     =.false.
        call CPU_Time(timePreEvaluate )
-       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+       call self%posterior(self%posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
        call CPU_Time(timePostEvaluate)
        if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
        ! Update personal best state.
-       accept=(logPosterior > logPosteriorBestPersonal)
+       accept= forceAcceptance                         &
+            & .or.                                     &
+            &  logPosterior > logPosteriorBestPersonal
        if (accept) then
           logPosteriorBestPersonal         =logPosterior
           logLikelihoodVarianceBestPersonal=logLikelihoodVariance
@@ -534,7 +539,7 @@ contains
     return
   end subroutine particleSwarmSimulate
 
-  subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+  subroutine particleSwarmPosterior(self,posteriorSampleState_,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
     use, intrinsic :: ISO_C_Binding
     use               Models_Likelihoods_Constants
@@ -550,6 +555,7 @@ contains
          &                                                                                   logLikelihood
     real                                                    , intent(inout)               :: timeEvaluate
     real                                                    , intent(in   )               :: timeEvaluatePrevious
+    logical                                                 , intent(inout)               :: forceAcceptance
     double precision                                        , dimension(:  ), allocatable :: timesEvaluate             , nodeWork                , &
          &                                                                                   stateVectorSelf           , timesEvaluateActual
     double precision                                        , dimension(:,:), allocatable :: stateVectorWork
@@ -670,7 +676,8 @@ contains
          &                                                                       logImpossible                        , &
          &                                                                       logPriorWork                    (1,1), &
          &                                                                       timeEvaluate                         , &
-         &                                                 logLikelihoodVariance=logLikelihoodVariance                  &
+         &                                                 logLikelihoodVariance=logLikelihoodVariance                , &
+         &                                                 forceAcceptance      =forceAcceptance                        &
          &                                                )
     call mpiBarrier()
     ! Distribute likelihoods back to origins.

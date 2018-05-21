@@ -259,7 +259,7 @@ contains
     return
   end subroutine gaussianRegressionDestructor
 
-  double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function gaussianRegressionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a Gaussian regression likelihood function.
     use, intrinsic :: ISO_C_Binding
     use Posterior_Sampling_State
@@ -281,6 +281,7 @@ contains
          &                                                                                            logPriorCurrent                           , logPriorProposed
     real                                                         , intent(inout)                   :: timeEvaluate
     double precision                                             , intent(  out), optional         :: logLikelihoodVariance
+    logical                                                      , intent(inout), optional         :: forceAcceptance
     double precision                                             , allocatable  , dimension(:,:,:) :: states
     double precision                                             , allocatable  , dimension(  :,:) :: likelihoods                               , workspace2D
     double precision                                             , allocatable  , dimension(    :) :: likelihoodsCombined                       , workspace                , &
@@ -307,6 +308,7 @@ contains
     logical                                                                                        :: likelihoodIsSimulated
     character       (len=8                                      )                                  :: label
     type            (varying_string                             )                                  :: message                            , fileName
+    !GCC$ attributes unused :: forceAcceptance
 
     ! Report on emulation efficiency.
     if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then

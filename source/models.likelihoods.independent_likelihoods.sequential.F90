@@ -1,0 +1,255 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
+  
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl" defaultThreadPrivate="yes">
+  !#  <description>
+  !#   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
+  !#   begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without
+  !#   evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions
+  !#   applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
+  !#   likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is
+  !#   evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of
+  !#   likelihoods to be specified which must be sequentially made sufficiently ``good'' before evaluating the next. The approach
+  !#   is intended to allow crude, but rapid constraints to be placed on parameters before progressing to more detailed, but slow
+  !#   to evaluate constraints.
+  !#  </description>
+  !# </posteriorSampleLikelihood>
+  type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndpndntLklhdsSqntl
+     !% Implementation of a posterior sampling likelihood class which sequanetially combines other likelihoods assumed to be independent.
+     private
+     integer :: evaluateCount                , evaluateCountGlobal, &
+          &     forceCount
+     logical :: finalLikelihoodFullEvaluation
+   contains
+     procedure :: evaluate => independentLikelihoodsSequantialEvaluate
+  end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
+
+  interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
+     !% Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     module procedure independentLikelihoodsSequentialConstructorParameters
+     module procedure independentLikelihoodsSequentialConstructorInternal
+  end interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
+
+contains
+
+  function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
+    !% parameter set.
+    use Input_Parameters
+    implicit none
+    type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                :: self
+    type   (inputParameters                             ), intent(inout) :: parameters
+
+    !# <inputParameter>
+    !#   <name>finalLikelihoodFullEvaluation</name>
+    !#   <variable>self%finalLikelihoodFullEvaluation</variable>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true the final likelihood is evaluated fully, and not treated as a ``lock in'' likelihood.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    ! Initialize the parent class.
+    self%posteriorSampleLikelihoodIndependentLikelihoods=posteriorSampleLikelihoodIndependentLikelihoods(parameters)
+    ! The evaluateCount value is the likelihood number at which we have achieved success so far.
+    self%evaluateCount                                  =0
+    self%evaluateCountGlobal                            =0
+    self%forceCount                                     =0
+    return
+  end function independentLikelihoodsSequentialConstructorParameters
+
+  function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation) result(self)
+    !% Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    implicit none
+    type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                        :: self
+    type   (posteriorSampleLikelihoodList               ), target, intent(in   ) :: modelLikelihoods
+    logical                                                      , intent(in   ) :: finalLikelihoodFullEvaluation
+    !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation"/>
+    
+    ! The evaluateCount value is the likelihood number at which we have achieved success so far.
+    self%evaluateCount      =0
+    self%evaluateCountGlobal=0
+    self%forceCount         =0
+    return
+  end function independentLikelihoodsSequentialConstructorInternal
+
+  double precision function independentLikelihoodsSequantialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
+    !% Return the log-likelihood for the halo mass function likelihood function.
+    use Galacticus_Error
+    use Galacticus_Display
+    use Models_Likelihoods_Constants
+    use MPI_Utilities
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
+    class           (posteriorSampleStateClass                   ), intent(inout)               :: simulationState
+    type            (modelParameterList                          ), intent(in   ), dimension(:) :: modelParametersActive_, modelParametersInactive_
+    class           (posteriorSampleConvergenceClass             ), intent(inout)               :: simulationConvergence
+    double precision                                              , intent(in   )               :: temperature           , logLikelihoodCurrent   , &
+         &                                                                                         logPriorCurrent       , logPriorProposed
+    real                                                          , intent(inout)               :: timeEvaluate
+    double precision                                              , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                       , intent(inout), optional     :: forceAcceptance
+    type            (posteriorSampleLikelihoodList               ), pointer                     :: modelLikelihood_
+    integer                                                       , allocatable  , dimension(:) :: evaluateCounts        , chainIndices           , &
+         &                                                                                         forceCounts
+    double precision                                              , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
+    double precision                                                                            :: logLikelihoodVariance_, timeEvaluate_          , &
+         &                                                                                         logLikelihood
+    integer                                                                                     :: i                     , j                      , &
+         &                                                                                         likelihoodCount       , evaluateCount          , &
+         &                                                                                         forceCount
+    type            (varying_string                              )                              :: message
+    logical                                                                                     :: finalLikelihood
+
+    allocate(stateVector      (  simulationState%dimension()  ))
+    allocate(stateVectorMapped(  simulationState%dimension()  ))
+    allocate(evaluateCounts   (0:mpiSelf        %count    ()-1))
+    allocate(forceCounts      (0:mpiSelf        %count    ()-1))
+    allocate(chainIndices     (0:mpiSelf        %count    ()-1))
+    stateVector                                                =  simulationState%get()
+    independentLikelihoodsSequantialEvaluate                   =  0.0d0
+    likelihoodCount                                            =  0
+    evaluateCounts                                             =  mpiSelf%gather(self%evaluateCount)
+    forceCounts                                                =  mpiSelf%gather(self%forceCount   )
+    evaluateCount                                              =  minval(evaluateCounts)
+    modelLikelihood_                                           => self%modelLikelihoods
+    timeEvaluate_                                              =  0.0d0
+    if (present(logLikelihoodVariance)) logLikelihoodVariance_ =  0.0d0
+    ! If a new global likelihood has been reached, report on it.
+    if (mpiSelf%isMaster().and.evaluateCount > self%evaluateCountGlobal) then
+       self%evaluateCountGlobal=evaluateCount
+       message="sequential likelihood number "
+       message=message//evaluateCount//" has been reached globally"
+       call Galacticus_Display_Message(message)
+    end if
+    if (evaluateCounts(simulationState%chainIndex()) > evaluateCount) then
+       ! This chain has already reached beyond the current evaluate level. Simply return an impossible likelihood to keep it
+       ! locked into its current state.
+       independentLikelihoodsSequantialEvaluate=logImpossible
+    else
+       ! Iterate through likelihoods, until none remain, or until we reach the maximum to currently evaluate (we do not evaluate
+       ! further than the least likelihood reached over all chains).
+       do while (associated(modelLikelihood_).and.likelihoodCount <= evaluateCount)
+          likelihoodCount=likelihoodCount+1
+          finalLikelihood=.not.associated(modelLikelihood_%next)
+          if (.not.modelLikelihood_%parameterMapInitialized) then
+             do i=1,size(modelLikelihood_%parameterMap)
+                ! Determine the mapping of the simulation state vector to this likelihood.
+                modelLikelihood_%parameterMap(i)=-1
+                do j=1,size(modelParametersActive_)
+                   if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
+                      modelLikelihood_%parameterMap(i)=j
+                      exit
+                   end if
+                end do
+                if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})             
+                ! Copy the model parameter definition.
+                allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
+                call modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersActive_(i)%modelParameter_)
+             end do
+             if (allocated(modelLikelihood_%parameterMapInactive)) then
+                do i=1,size(modelLikelihood_%parameterMapInactive)
+                   ! Determine the mapping of the inactive parameters to this likelihood.
+                   modelLikelihood_%parameterMapInactive(i)=-1
+                   do j=1,size(modelParametersInActive_)
+                      if (modelParametersInactive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNamesInactive(i)) then
+                         modelLikelihood_%parameterMapInactive(i)=j
+                         exit
+                      end if
+                   end do
+                   if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
+                   ! Copy the model parameter definition.
+                   allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                   call modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersInactive_(i)%modelParameter_)
+                end do
+             end if
+             ! Mark the likelihood as initialized.
+             modelLikelihood_%parameterMapInitialized=.true.
+          end if
+          ! Map the overall simulation state to the state for this likelihood.
+          forall(i=1:size(modelLikelihood_%parameterMap))
+             stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
+          end forall
+          call modelLikelihood_%simulationState%update(stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
+          ! Evaluate this likelihood
+          logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &
+               &                                                                                                 modelLikelihood_%simulationState         , &
+               &                                                                                                 modelLikelihood_%modelParametersActive_  , &
+               &                                                                                                 modelLikelihood_%modelParametersInactive_, &
+               &                                                                                                                  simulationConvergence   , &
+               &                                                                                                                  temperature             , &
+               &                                                                                                                  logLikelihoodCurrent    , &
+               &                                                                                                                  logPriorCurrent         , &
+               &                                                                                                                  logPriorProposed        , &
+               &                                                                                                                  timeEvaluate            , &
+               &                                                                                                                  logLikelihoodVariance     &
+               &                                                                                                                 )
+          independentLikelihoodsSequantialEvaluate                  =+independentLikelihoodsSequantialEvaluate &
+               &                                                     +logLikelihood
+          if (present(logLikelihoodVariance)) logLikelihoodVariance_=+logLikelihoodVariance_                   &
+               &                                                     +logLikelihoodVariance
+          timeEvaluate_                                             =+timeEvaluate_                            &
+               &                                                     +timeEvaluate
+          if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
+             if (likelihoodCount > evaluateCounts(simulationState%chainIndex())) then                
+                ! We have matched or exceeded the previous number of likelihoods evaluated.
+                ! Force acceptance if this is the first time we have reached this far.
+                if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex())) then
+                   if (.not.present(forceAcceptance)) call Galacticus_Error_Report('"forceAcceptance" argument must be present'//{introspection:location})
+                   forceCounts    (simulationState%chainIndex())=evaluateCounts(simulationState%chainIndex())
+                   forceAcceptance                              =.true.
+                end if
+                ! Check for acceptable likelihood.
+                if (logLikelihood > 0.0d0) then
+                   ! We have achieved a match at a new likelihood.
+                   evaluateCounts(simulationState%chainIndex())=likelihoodCount                   
+                else
+                   ! We have evaluated at least as many likelihoods as previously, but now have a negative likelihood. Do not evaluate
+                   ! further.
+                   exit
+                end if
+             else if (logLikelihood < 0.0d0) then
+                ! We have a negative likelihood and have not yet exceeded the maximum number of likelihoods previously
+                ! acheived. Return an impossible likelihood to prevent this state from being accepted.
+                independentLikelihoodsSequantialEvaluate=logImpossible
+                exit
+             end if
+          end if
+          modelLikelihood_ =>  modelLikelihood_%next
+       end do
+    end if
+    ! Retrieve the evaluation count for this process back frmo whichever process ran our chain.
+    evaluateCount =evaluateCounts(simulationState%chainIndex())
+    forceCount    =forceCounts   (simulationState%chainIndex())
+    evaluateCounts=mpiSelf%gather(evaluateCount)
+    forceCounts   =mpiSelf%gather(forceCount   )
+    chainIndices  =mpiSelf%gather(simulationState%chainIndex())
+    do i=0,mpiSelf%count()-1
+       if (chainIndices(i) == mpiSelf%rank()) then
+          self%evaluateCount=evaluateCounts(i)
+          self%forceCount   =forceCounts   (i)
+          exit
+       end if
+    end do
+    return    
+  end function independentLikelihoodsSequantialEvaluate
+

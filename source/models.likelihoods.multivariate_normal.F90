@@ -84,7 +84,7 @@ contains
     return
   end function multivariateNormalConstructorInternal
 
-  double precision function multivariateNormalEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function multivariateNormalEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a multivariate-normal likelihood function.
     use Posterior_Sampling_State
     use Posterior_Sampling_Convergence
@@ -97,10 +97,11 @@ contains
          &                                                                                        logPriorCurrent       , logPriorProposed
     real                                                         , intent(inout)               :: timeEvaluate
     double precision                                             , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                      , intent(inout), optional     :: forceAcceptance
     double precision                                             , allocatable  , dimension(:) :: stateArray
     integer                                                                                    :: i
     type            (vector                                     )                              :: stateVector          , difference
-    !GCC$ attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorProposed, logPriorCurrent, logLikelihoodCurrent, modelParametersInactive_
+    !GCC$ attributes unused :: timeEvaluate, temperature, simulationConvergence, logPriorProposed, logPriorCurrent, logLikelihoodCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0

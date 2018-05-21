@@ -345,7 +345,7 @@ contains
     timeEvaluate        =-1.0
     timeEvaluatePrevious=real(timeEvaluateInitial)
     call CPU_Time(timePreEvaluate )
-    call self%posterior(self%posteriorSampleState_,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+    call self%posterior(self%posteriorSampleState_,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     call CPU_Time(timePostEvaluate)
     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
     timeEvaluatePrevious=timeEvaluate     
@@ -420,7 +420,7 @@ contains
        timeEvaluatePrevious=timeEvaluate
        timeEvaluate        =-1.0
        call CPU_Time(timePreEvaluate )
-       call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed,logLikelihoodVarianceProposed,timeEvaluate,timeEvaluatePrevious)
+       call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed,logLikelihoodVarianceProposed,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
        call CPU_Time(timePostEvaluate)
        if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
        ! Decide whether to take step.
@@ -534,7 +534,7 @@ contains
     return
   end function differentialEvolutionLogging
 
-  subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious)
+  subroutine differentialEvolutionPosterior(self,posteriorSampleState_,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     !% Return the log of the posterior for the current state.
     use, intrinsic :: ISO_C_Binding
     use               MPI_Utilities
@@ -550,6 +550,7 @@ contains
          &                                                                                           logLikelihoodVariance
     real                                                            , intent(inout)               :: timeEvaluate
     real                                                            , intent(in   )               :: timeEvaluatePrevious
+    logical                                                         , intent(inout)               :: forceAcceptance
     double precision                                                , dimension(:  ), allocatable :: timesEvaluate         , nodeWork                , &
          &                                                                                           stateVectorSelf       , timesEvaluateActual
     double precision                                                , dimension(:,:), allocatable :: stateVectorWork
@@ -560,9 +561,11 @@ contains
     double precision                                                , dimension(1,1)              :: logLikelihoodSelf     , logLikelihoodCurrentWork, &
          &                                                                                           logPriorCurrentWork   , logPriorWork            , &
          &                                                                                           timeEvaluateSelf
+    logical                                                         , dimension(1,1)              :: forceAcceptanceSelf
     double precision                                                , dimension(1  )              :: logLikelihoodWork     , logLikelihoodCurrentSelf, &
          &                                                                                           logPriorCurrentSelf   , logPriorSelf            , &
          &                                                                                           timeEvaluateWork
+    logical                                                         , dimension(1  )              :: forceAcceptanceWork
     double precision                                                                              :: logPrior              , timeEvaluateEffective
     integer                                                                                       :: i                     , processTrial            , &
          &                                                                                           nodeTrial
@@ -665,20 +668,24 @@ contains
     call posteriorSampleState_%update       (stateVectorWork(:,1),logState=.false.,isConverged=.false.)
     call posteriorSampleState_%chainIndexSet( chainIndexWork(1,1)                                     )
     ! Evaluate the likelihood.
-    logLikelihood=self%posteriorSampleLikelihood_%evaluate(posteriorSampleState_,self%modelParametersActive_,self%modelParametersInactive_,self%posteriorSampleConvergence_,self%temperature(),logLikelihoodCurrentWork(1,1),logPriorCurrentWork(1,1),logPriorWork(1,1),timeEvaluate,logLikelihoodVariance=logLikelihoodVariance)
+    logLikelihood=self%posteriorSampleLikelihood_%evaluate(posteriorSampleState_,self%modelParametersActive_,self%modelParametersInactive_,self%posteriorSampleConvergence_,self%temperature(),logLikelihoodCurrentWork(1,1),logPriorCurrentWork(1,1),logPriorWork(1,1),timeEvaluate,logLikelihoodVariance=logLikelihoodVariance,forceAcceptance=forceAcceptance)
     call mpiBarrier()
     ! Distribute likelihoods back to origins.
     logLikelihoodWork    =                                                                         logLikelihood
-    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork      )
-    logLikelihood        =                                                                         logLikelihoodSelf(1,1)
+    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork        )
+    logLikelihood        =                                                                         logLikelihoodSelf  (1,1)
     ! Distribute likelihood variances back to origins.
     logLikelihoodWork    =                                                                         logLikelihoodVariance
-    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork      )
-    logLikelihoodVariance=                                                                         logLikelihoodSelf(1,1)
+    logLikelihoodSelf    =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     logLikelihoodWork        )
+    logLikelihoodVariance=                                                                         logLikelihoodSelf  (1,1)
     ! Distribute evaluation times back to origins.
-    timeEvaluateWork     =                                                                    dble(timeEvaluate          )
-    timeEvaluateSelf     =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork       )
-    timeEvaluate     =                                                                        real(timeEvaluateSelf (1,1))
+    timeEvaluateWork     =                                                                    dble(timeEvaluate            )
+    timeEvaluateSelf     =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork         )
+    timeEvaluate         =                                                                    real(timeEvaluateSelf   (1,1))
+    ! Distribute force acceptances back to origins.
+    forceAcceptanceWork  =                                                                         forceAcceptance
+    forceAcceptanceSelf  =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     forceAcceptanceWork      )
+    forceAcceptance      =                                                                         forceAcceptanceSelf(1,1)
     ! Restore state and chain index.
     call posteriorSampleState_%update       (stateVectorSelf   ,logState=.false.,isConverged=.false.)
     call posteriorSampleState_%chainIndexSet( chainIndexSelf(1)                                     )
