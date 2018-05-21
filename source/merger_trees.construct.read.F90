@@ -696,6 +696,7 @@ contains
   subroutine Merger_Tree_Read_Do(tree,skipTree)
     !% Read a merger tree from file.
     use Galacticus_State
+    use Merger_Tree_State_Store
     use Cosmology_Functions
     use Galacticus_Error
     use String_Handling
@@ -727,7 +728,25 @@ contains
     type            (varying_string                )                                                     :: message
     integer                                                                                              :: nextTreeToReadActual
     double precision                                                                                     :: uniformRandom
-    
+
+    ! Snapshot the state of the next tree to read.
+    !$ if (mergerTreeReadFixedThreadAssignment) then
+    !$    treeStateStoreSequence=nextTreeToReadThread
+    !$ else
+          treeStateStoreSequence=nextTreeToRead
+    !$ end if
+    ! Retrieve stored internal state if possible.
+    call Galacticus_State_Retrieve()
+    ! Recover the state of the next tree to read.
+    !$ if (mergerTreeReadFixedThreadAssignment) then
+    !$    nextTreeToReadThread  =treeStateStoreSequence
+    !$ else
+          nextTreeToRead        =treeStateStoreSequence
+    !$ end if
+    ! Store internal state.
+    message='Storing state for tree #'
+    message=message//treeStateStoreSequence
+    call Galacticus_State_Store(message)          
     ! Obtain a lock on split forest data if necessary.
     !$ if (mergerTreeReadForestSizeMaximum > 0) call OMP_Set_Lock(splitForestLock)
     ! Enter loop which suspends threads when a new tree file is needed.
@@ -804,12 +823,6 @@ contains
        ! Continue only if we have a tree.
        processTree=.false.
        if (haveTree) then
-          ! Retrieve stored internal state if possible.
-          call Galacticus_State_Retrieve()
-          ! Store internal state.
-          message='Storing state for tree #'
-          message=message//nextTreeToReadActual
-          call Galacticus_State_Store(message)          
           ! If the tree is to be skipped, do not read it.
           if (skipTree) then
              ! Simply allocate a base node to indicate that the tree exists.

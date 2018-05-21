@@ -422,6 +422,7 @@ contains
     use Kind_Numbers
     use String_Handling
     use Merger_Trees_Builders
+    use Merger_Tree_State_Store
     use Halo_Mass_Functions
     use Pseudo_Random
     !$ use OMP_Lib
@@ -436,19 +437,30 @@ contains
     type            (varying_string        )                        :: message
     logical                                                         :: finished
     double precision                                                :: uniformRandom
-    
+
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
     !$omp critical (Merger_Tree_Build_Do)
+    ! Prepare to store/restore internal state.
+    message='Storing state for tree #'
+    if (mergerTreesBuildFixedThreadAssignment) then
+       treeStateStoreSequence=nextTreeIndexThread
+    else
+       treeStateStoreSequence=nextTreeIndex
+    end if
+    ! Retrieve stored internal state if possible.
+    call Galacticus_State_Retrieve()
+    if (mergerTreesBuildFixedThreadAssignment) then
+       nextTreeIndexThread   =treeStateStoreSequence
+    else
+       nextTreeIndex         =treeStateStoreSequence
+    end if
     if     (                                                                                      &
          &   (.not. mergerTreesBuildFixedThreadAssignment .and. nextTreeIndex       <= treeCount) &
          &  .or.                                                                                  &
          &   (      mergerTreesBuildFixedThreadAssignment .and. nextTreeIndexThread <= treeCount) &
          & ) then
-       ! Retrieve stored internal state if possible.
-       call Galacticus_State_Retrieve()
-       ! Store internal state.
-       message='Storing state for tree #'
+       ! Store the internal state.
        if (mergerTreesBuildFixedThreadAssignment) then
           message=message//nextTreeIndexThread
        else
