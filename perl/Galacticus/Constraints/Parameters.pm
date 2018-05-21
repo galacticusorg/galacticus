@@ -286,8 +286,16 @@ sub Convert_Parameters_To_Galacticus {
     while ( $failCount > 0 ) {
 	$failCount = 0;
 	++$iterations;
-	die("Convert_Parameters_To_Galacticus: Failed to resolve parameter definitions")
-	    if ( $iterations > 100000 );
+	if ( $iterations > 100000 ) {
+	    for(my $i=0;$i<scalar(@parameters);++$i) {
+		if ( exists($parameters[$i]->{'definition'}) && $parameters[$i]->{'definition'} =~ m/\%\[([a-zA-Z0-9_\.:]+)\]/ ) {
+		    print "--> Parameter: ".$parameters[$i]->{'name'}."\n";
+		    print "  --> Definition: ".$parameters[$i]->{'definition'}."\n";
+		    print "<--\n";
+		}
+	    }
+	    die("Convert_Parameters_To_Galacticus: Failed to resolve parameter definitions");
+	}
 	for(my $i=0;$i<scalar(@parameters);++$i) {
 	    if ( exists($parameters[$i]->{'definition'}) ) {
 		# Attempt to replace named parameters in the definition with their values.
