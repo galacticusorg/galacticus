@@ -265,12 +265,12 @@ contains
        ! Evolve the branch until mass falls below the resolution limit, the earliest time is reached, or the branch ends.       
        branchIsDone=.false.
        do while (.not.branchIsDone)
-          if     (                                                                                                                                     &
-               &   branchMassCurrent                       <= massResolution                                                                           &
-               &  .or.                                                                                                                                 &
-               &   branchDeltaCriticalCurrent              >= self%criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent,node=node) &
-               &  .or.                                                                                                                                 &
-               &   .not.self%shouldFollowBranch(tree,node)                                                                                             &
+          if     (                                                                                                                                                                    &
+               &   branchMassCurrent                       <= massResolution                                                                                                          &
+               &  .or.                                                                                                                                                                &
+               &   branchDeltaCriticalCurrent              >= self%criticalOverdensity_%value(time=self%timeEarliest,mass=branchMassCurrent,node=node)*(1.0d0-toleranceDeltaCritical) &
+               &  .or.                                                                                                                                                                &
+               &   .not.self%shouldFollowBranch(tree,node)                                                                                                                            &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
@@ -475,7 +475,7 @@ contains
                    ! Set properties of first new node.
                    deltaCritical1=  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
-                   if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=1.0d-6)) deltaCritical1=deltaCritical
+                   if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical1=deltaCritical
                    call basicNew1%massSet(nodeMass1     )
                    call basicNew1%timeSet(deltaCritical1)
                    ! Create second progenitor.
@@ -485,7 +485,7 @@ contains
                    ! Set properties of second new node.
                    deltaCritical2=self%criticalOverdensity_%value(time=time,mass=nodeMass2,node=nodeNew2)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
-                   if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=1.0d-6)) deltaCritical2=deltaCritical
+                   if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
                    call basicNew2%massSet(nodeMass2     )
                    call basicNew2%timeSet(deltaCritical2)
                    ! Create links from old to new nodes and vice-versa. (Ensure that child node is the more massive progenitor.)
