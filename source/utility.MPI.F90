@@ -87,8 +87,8 @@ module MPI_Utilities
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>requestData</method>
-     !@     <type>\doubletwo|\inttwo</type>
-     !@     <arguments>\intone requestFrom\argin, \doubleone|\intone array</arguments>
+     !@     <type>\doubletwo|\inttwo|\logicaltwo</type>
+     !@     <arguments>\intone requestFrom\argin, \doubleone|\intone|\logicalone array</arguments>
      !@     <description>Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -129,8 +129,8 @@ module MPI_Utilities
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>minval</method>
-     !@     <type>\doubleone</type>
-     !@     <arguments>(\doublezero|\doubleone) array\argin</arguments>
+     !@     <type>\doublezero|\doubleone|\intzero|\intone</type>
+     !@     <arguments>(\doublezero|\doubleone|\intzero|\intone) array\argin</arguments>
      !@     <description>Return the minimum value of {\normalfont \ttfamily array} over all processes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -154,10 +154,10 @@ module MPI_Utilities
      procedure :: nodeCount      => mpiGetNodeCount
      procedure :: nodeAffinity   => mpiGetNodeAffinity
      procedure :: hostAffinity   => mpiGetHostAffinity
-     procedure ::                   mpiRequestData1D   , mpiRequestData2D, &
-          &                         mpiRequestDataInt1D
-     generic   :: requestData    => mpiRequestData1D   , mpiRequestData2D, &
-          &                         mpiRequestDataInt1D
+     procedure ::                   mpiRequestData1D   , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D, mpiRequestDataLogical1D
+     generic   :: requestData    => mpiRequestData1D   , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D, mpiRequestDataLogical1D
      procedure :: messageWaiting => mpiMessageWaiting
      procedure ::                   mpiAverageScalar   , mpiAverageArray
      generic   :: average        => mpiAverageScalar   , mpiAverageArray
@@ -165,18 +165,22 @@ module MPI_Utilities
      generic   :: median         => mpiMedianArray
      procedure ::                   mpiSumScalarInt    , mpiSumArrayInt
      procedure ::                   mpiSumScalarDouble , mpiSumArrayDouble
-     generic   :: sum            => mpiSumScalarInt    , mpiSumArrayInt   , &
+     generic   :: sum            => mpiSumScalarInt    , mpiSumArrayInt         , &
           &                         mpiSumScalarDouble , mpiSumArrayDouble
      procedure :: maxloc         => mpiMaxloc
      procedure ::                   mpiMaxvalScalar    , mpiMaxvalArray
      generic   :: maxval         => mpiMaxvalScalar    , mpiMaxvalArray
      procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar    , mpiMinvalArray
-     generic   :: minval         => mpiMinvalScalar    , mpiMinvalArray
-     procedure ::                   mpiGather1D        , mpiGather2D      , &
-          &                         mpiGatherScalar    , mpiGatherInt1D
-     generic   :: gather         => mpiGather1D        , mpiGather2D      , &
-          &                         mpiGatherScalar    , mpiGatherInt1D
+     procedure ::                   mpiMinvalScalar    , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar , mpiMinvalIntArray
+     generic   :: minval         => mpiMinvalScalar    , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar , mpiMinvalIntArray
+     procedure ::                   mpiGather1D        , mpiGather2D            , &
+          &                         mpiGatherScalar    , mpiGatherInt1D         , &
+          &                         mpiGatherIntScalar
+     generic   :: gather         => mpiGather1D        , mpiGather2D            , &
+          &                         mpiGatherScalar    , mpiGatherInt1D         , &
+          &                         mpiGatherIntScalar
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -668,6 +672,86 @@ contains
     return
   end function mpiRequestDataInt1D
 
+  function mpiRequestDataLogical1D(self,requestFrom,array)
+    !% Request and receive data from other MPI processes.
+    implicit none
+    class  (mpiObject), intent(in   )                                           :: self
+    integer           , intent(in   ), dimension(                            :) :: requestFrom
+    logical           , intent(in   ), dimension(          :                  ) :: array
+    logical                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataLogical1D
+#ifdef USEMPI
+    logical                          , dimension(size(array)                  ) :: receivedData
+    integer                          , dimension(                            1) :: requester       , requestedBy
+    integer                          , dimension(         0: self%countValue-1) :: requestFromID
+    integer           , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    integer                          , dimension(              MPI_Status_Size) :: messageStatus
+    integer                                                                     :: i               , iError       , &
+         &                                                                         iRequest        , j            , &
+         &                                                                         receivedFrom
+#endif
+    
+#ifdef USEMPI
+    ! Record our own rank as the requester.
+    requester=self%rank()
+    ! Send requests.
+    call mpiBarrier()
+    do i=0,self%count()-1
+       if (any(requestFrom == i)) then
+          call MPI_ISend(requester    ,1,MPI_Logical,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       else
+          call MPI_ISend(nullRequester,1,MPI_Logical,i,tagRequestForData,MPI_Comm_World,requestFromID(i),iError)
+       end if
+    end do
+    call mpiBarrier()
+    ! Check for waiting requests.
+    allocate(requestID(size(requestFrom)))
+    iRequest=0
+    do i=0,self%count()-1
+       ! Receive the request.
+       call MPI_Recv(requestedBy,1,MPI_Logical,MPI_Any_Source,tagRequestForData,MPI_Comm_World,messageStatus,iError)
+       ! Check for a non-null request.
+       if (requestedBy(1) /= nullRequester) then
+          ! Expand the requestID buffer as required.
+          iRequest=iRequest+1
+          if (iRequest > size(requestID)) then
+             call Move_Alloc(requestID,requestIDtemp)
+             allocate(requestID(2*iRequest))
+             requestID(1:size(requestIDtemp))=requestIDtemp
+             deallocate(requestIDtemp)
+          end if
+          ! Send our data in reply.
+          call MPI_ISend(array,size(array),MPI_Logical,requestedBy(1),tagState,MPI_Comm_World,requestID(iRequest),iError)
+       end if
+    end do
+    call mpiBarrier()
+    ! Wait until all of our sends have been received.
+    do i=0,self%count()-1
+       call MPI_Wait(requestFromID(i),messageStatus,iError)
+    end do
+    ! Receive data.
+    do i=1,size(requestFrom)
+       call MPI_Recv(receivedData,size(array),MPI_Logical,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
+       ! Find who sent this data and apply to the relevant part of the results array.
+       receivedFrom=messageStatus(MPI_SOURCE)
+       do j=1,size(requestFrom)
+          if (requestFrom(j) == receivedFrom) mpiRequestDataLogical1D(:,j)=receivedData
+       end do
+    end do
+    ! Wait until all of our sends have been received.
+    do i=1,iRequest
+       call MPI_Wait(requestID(i),messageStatus,iError)
+    end do
+    call mpiBarrier()
+    ! Deallocate request ID workspace.
+    deallocate(requestID)
+#else
+    !GCC$ attributes unused :: self, requestFrom, array
+    mpiRequestDataLogical1D=.false.
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiRequestDataLogical1D
+
   function mpiSumArrayInt(self,array,mask)
     !% Sum an integer array over all processes, returning it to all processes.
     use Galacticus_Error
@@ -983,6 +1067,34 @@ contains
     return
   end function mpiMinvalArray
 
+  function mpiMinvalIntArray(self,array,mask)
+    !% Find the minimum values of an array over all processes, returning it to all processes.
+    implicit none
+    class           (mpiObject), intent(in   )                                    :: self
+    integer                    , intent(in   ), dimension( :          )           :: array
+    logical                    , intent(in   ), dimension(0:          ), optional :: mask
+    integer                                   , dimension(size(array) )           :: mpiMinvalIntArray
+#ifdef USEMPI
+    integer                                   , dimension(size(array) )           :: maskedArray
+    integer                                                                       :: iError
+#endif
+    
+#ifdef USEMPI
+   ! Find the minimum over all processes.
+    maskedArray=array
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=-huge(1)
+    end if
+    call MPI_AllReduce(maskedArray,mpiMinvalIntArray,size(array),MPI_Integer,MPI_Min,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, array, mask
+    mpiMinvalIntArray=0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiMinvalIntArray
+  
   double precision function mpiMinvalScalar(self,scalar,mask)
     !% Find the minimum values of a scalar over all processes, returning it to all processes.
     implicit none
@@ -1003,6 +1115,27 @@ contains
 #endif
     return
   end function mpiMinvalScalar
+
+  integer function mpiMinvalIntScalar(self,scalar,mask)
+    !% Find the minimum values of a scalar over all processes, returning it to all processes.
+    implicit none
+    class           (mpiObject), intent(in   )                         :: self
+    integer                    , intent(in   )                         :: scalar
+    logical                    , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
+    integer                                   , dimension(1)           :: array
+#endif
+    
+#ifdef USEMPI
+    array=self%minval([scalar],mask)
+    mpiMinvalIntScalar=array(1)
+#else
+    !GCC$ attributes unused :: self, scalar, mask
+    mpiMinvalIntScalar=0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiMinvalIntScalar
 
   function mpiMinloc(self,array,mask)
     !% Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
@@ -1089,6 +1222,27 @@ contains
     return
   end function mpiGather2D
 
+  function mpiGatherIntScalar(self,scalar)
+    !% Gather an integre scalar from all processes, returning it as a 1-D array.
+    implicit none
+    class           (mpiObject), intent(in   )                :: self
+    integer                    , intent(in   )                :: scalar
+    integer                    , dimension(  self%countValue) :: mpiGatherIntScalar
+#ifdef USEMPI
+    integer                    , dimension(1,self%countValue) :: array
+#endif
+    
+#ifdef USEMPI
+    array=self%requestData(self%allRanks,[scalar])
+    mpiGatherIntScalar=array(1,:)
+#else
+    !GCC$ attributes unused :: self, scalar
+    mpiGatherIntScalar=0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiGatherIntScalar
+  
   function mpiGatherInt1D(self,array)
     !% Gather an integer 1-D array from all processes, returning it as a 2-D array.
     implicit none
