@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z=0.48-0.74 COSMOS stellar mass vs. halo mass relation with fast rejection -->
+<constraint>
+  <name>COSMOS $$0.48$$--$$0.74$$ stellar mass vs. halo mass relation</name>
+  <label>cosmosStellarHaloMassRelationZ0.61FastReject</label>
+  <outputRedshift>0.61</outputRedshift>
+  <haloMassResolution>1.0e10</haloMassResolution>
+  <haloMassMinimum>1.0e11</haloMassMinimum>
+  <haloMassMaximum>1.0e11</haloMassMaximum>
+  <analysis>constraints/scripts/stellarHaloMassRelation_COSMOS_Leauthaud2012_Z2_FastReject.pl</analysis>
+</constraint>
