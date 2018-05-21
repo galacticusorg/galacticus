@@ -13,6 +13,7 @@ use PDL::IO::HDF5;
 use File::Slurp;
 use Galacticus::Constraints::Parameters;
 use Galacticus::Options;
+use List::ExtraUtils;
 use Scalar::Util 'reftype';
 
 # Run the current maximum likelihood model from a constraint run.
@@ -30,50 +31,12 @@ my %arguments = (
     chain      => "all"
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
-
 # Parse the constraint config file.
 my $xml = new XML::Simple();
 my $config = $xml->XMLin($parameterFile);
-
-# Validate the config file.
-die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) 
-    unless ( exists($config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'workPath'      }) );
-die("maximumLikelihoodModel.pl: compilation must be specified in config file"   )
-    unless ( exists($config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'compilation'   }) );
-die("maximumLikelihoodModel.pl: baseParameters must be specified in config file") 
-    unless ( exists($config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'baseParameters'}) );
-
-# Determine the work directory.
-my $workPath  = $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'workPath'}->{'value'};
-
 # Determine the MCMC directory.
 my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
-(my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;
-
-# Determine the maximum likelihood model directory.
-my $maximumLikelihoodDirectory  = ($arguments{'directory'} =~ m/^\// ? $arguments{'directory'} : $mcmcDirectory."/".$arguments{'directory'})."/";
-
-# Get a hash of the parameter values.
-(my $constraintsRef, my $parameters) =
-    &Galacticus::Constraints::Parameters::Compilation(
-    $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'compilation'   }->{'value'},
-    $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'baseParameters'}->{'value'},
-    $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'adjustMasses'  }->{'value'},
-    $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'adjustOutputs' }->{'value'}
-    );
-my @constraints = @{$constraintsRef};
-
-# Apply any command line parameters.
-&Galacticus::Constraints::Parameters::Apply_Command_Line_Parameters($parameters,\%arguments);
-
-# Set an output file name.
-system("mkdir -p ".$maximumLikelihoodDirectory);
-$parameters->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
-
-# Set a random number seed.
-$parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
-    if ( exists($config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'randomize'}) && $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'randomize'}->{'value'} eq "true" );
-
+(my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
 # Determine number of chains.
 my $chainCount = 0;
 while () {
@@ -82,7 +45,6 @@ while () {
     last
 	unless ( -e $chainFileName );
 }
-
 # Parse the chains to find the maximum likelihood model.
 my $maximumLikelihood = -1e30;
 my @maximumLikelihoodParameters;
@@ -109,8 +71,7 @@ for(my $i=0;$i<$chainCount;++$i) {
     close(iHndl);
 }
 print "Maximum likelihood: ".$maximumLikelihood."\n";
-print "  Model parameters:\n".join("\t",@maximumLikelihoodParameters)."\n";
-
+print "  Model parameters:\n".join("\t",@maximumLikelihoodParameters)."\n";    
 # Convert these values into a parameter array.
 my @parameterDefinitions;
 my @modelParameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
@@ -124,154 +85,191 @@ foreach my $modelParameter ( @modelParameters ) {
     }
 }
 my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus(\@parameterDefinitions);
-
-# Apply to parameters.
-for my $newParameterName ( keys(%{$newParameters}) ) {
-    my $parameter = $parameters;
-    my $valueIndex;
-    if ( $newParameterName =~ m/^(.*)\{(\d+)\}$/ ) {
-	$newParameterName = $1;
-	$valueIndex = $2;
-    }
-    foreach ( split(/::/,$newParameterName) ) {
-	# Check if the parameter name contains an array reference.
-	if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
-	    # Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
-	    # not an array, allow this only if the array index given is zero.
-	    if ( reftype($parameter->{$1}) eq "ARRAY" ) {
-		$parameter->{$1}->[$2]->{'value'} = undef()
-		    unless ( scalar(@{$parameter->{$1}}) > $2 );
-		$parameter = $parameter->{$1}->[$2];
+# Begin building a stack of likelihood models to evaluate.
+my @modelStack = ( $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'} );
+my $singleModel = $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'value'} eq "galacticus";
+# Iterate over likelihood models.
+my $modelCount = 0;
+while ( scalar(@modelStack) > 0 ) {
+    # Pop a model off of the stack.
+    my $model = shift(@modelStack);
+    # Add any sub-models to the stack.
+    push(@modelStack,&List::ExtraUtils::as_array($model->{'posteriorSampleLikelihoodMethod'}))
+	if ( exists($model->{'posteriorSampleLikelihoodMethod'}) );
+    # Ignore non-Galacticus likelihood models.
+    next
+	unless ( $model->{'value'} eq "galacticus" );
+    # Validate the likelihood model.
+    die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) 
+	unless ( exists($model->{'workPath'      }) );
+    die("maximumLikelihoodModel.pl: compilation must be specified in config file"   )
+	unless ( exists($model->{'compilation'   }) );
+    die("maximumLikelihoodModel.pl: baseParameters must be specified in config file") 
+	unless ( exists($model->{'baseParameters'}) );
+    # Determine the work directory.
+    my $workPath  = $model->{'workPath'}->{'value'};
+    # Determine the maximum likelihood model directory.
+    my $maximumLikelihoodDirectory  = ($arguments{'directory'} =~ m/^\// ? $arguments{'directory'} : $mcmcDirectory."/".$arguments{'directory'});
+    ++$modelCount;
+    $maximumLikelihoodDirectory .= "_".$modelCount
+	unless ( $singleModel );
+    $maximumLikelihoodDirectory .= "/";
+    # Get a hash of the parameter values.
+    (my $constraintsRef, my $parameters) =
+	&Galacticus::Constraints::Parameters::Compilation(
+	$model->{'compilation'   }->{'value'},
+	$model->{'baseParameters'}->{'value'},
+	$model->{'adjustMasses'  }->{'value'},
+	$model->{'adjustOutputs' }->{'value'}
+	);
+    my @constraints = @{$constraintsRef};
+    # Apply any command line parameters.
+    &Galacticus::Constraints::Parameters::Apply_Command_Line_Parameters($parameters,\%arguments);
+    # Set an output file name.
+    system("mkdir -p ".$maximumLikelihoodDirectory);
+    $parameters->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
+    # Set a random number seed.
+    $parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
+	if ( exists($model->{'randomize'}) && $model->{'randomize'}->{'value'} eq "true" );    
+    # Apply to parameters.
+    for my $newParameterName ( keys(%{$newParameters}) ) {
+	my $parameter = $parameters;
+	my $valueIndex;
+	if ( $newParameterName =~ m/^(.*)\{(\d+)\}$/ ) {
+	    $newParameterName = $1;
+	    $valueIndex = $2;
+	}
+	foreach ( split(/::/,$newParameterName) ) {
+	    # Check if the parameter name contains an array reference.
+	    if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
+		# Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
+		# not an array, allow this only if the array index given is zero.
+		if ( reftype($parameter->{$1}) eq "ARRAY" ) {
+		    $parameter->{$1}->[$2]->{'value'} = undef()
+			unless ( scalar(@{$parameter->{$1}}) > $2 );
+		    $parameter = $parameter->{$1}->[$2];
+		} else {
+		    die('constrainGalacticus.pl: attempt to access non-existant array')
+			unless ( $2 == 0 );
+		    $parameter->{$1}->{'value'} = undef()
+			unless ( exists($parameter->{$1}) );
+		    $parameter = $parameter->{$1};
+		}
 	    } else {
-		die('constrainGalacticus.pl: attempt to access non-existant array')
-		    unless ( $2 == 0 );
-		$parameter->{$1}->{'value'} = undef()
-		    unless ( exists($parameter->{$1}) );
-		$parameter = $parameter->{$1};
+		# Parameter does not contain an array reference - so simply step through to the named parameter.
+		$parameter->{$_}->{'value'} = undef()
+		    unless ( exists($parameter->{$_}) );
+		$parameter = $parameter->{$_};
 	    }
+	}
+	# Test if the parameter name contains a value index.
+	if ( defined($valueIndex) ) {
+	    # A value index is given - set the relevant entry.
+	    my @values = split(" ",$parameter->{'value'});
+	    $values[$valueIndex] = $newParameters->{$newParameterName."{".$valueIndex."}"};
+	    $parameter->{'value'} = join(" ",@values);
 	} else {
-	    # Parameter does not contain an array reference - so simply step through to the named parameter.
-	    $parameter->{$_}->{'value'} = undef()
-		unless ( exists($parameter->{$_}) );
-	    $parameter = $parameter->{$_};
-	}
+	    # No value index is given - simply set the value of the parameter.
+	    $parameter->{'value'} = $newParameters->{$newParameterName};
+	}    
     }
-    # Test if the parameter name contains a value index.
-    if ( defined($valueIndex) ) {
-	# A value index is given - set the relevant entry.
-	my @values = split(" ",$parameter->{'value'});
-	$values[$valueIndex] = $newParameters->{$newParameterName."{".$valueIndex."}"};
-	$parameter->{'value'} = join(" ",@values);
-    } else {
-	# No value index is given - simply set the value of the parameter.
-	$parameter->{'value'} = $newParameters->{$newParameterName};
-    }    
-}
-
-# Apply any parameters from command line.
-foreach my $argument ( keys(%arguments) ) {
-    if ( $argument =~ m/^parameter:(.*)/ ) {
-	my @parametersSet = split(":",$1);
-	my $parameter     = $parameters;
-	foreach my $parameterSet ( @parametersSet ) {
-	    if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
-		my $parameterName  = $1;
-		my $parameterValue = $3;
-		$parameter->{$parameterName}->{'value'} = $parameterValue
-		    if ( defined($2) );
-		$parameter = $parameter->{$parameterName};
-	    } else {
-		die("malformed parameter definition");
+    # Apply any parameters from command line.
+    foreach my $argument ( keys(%arguments) ) {
+	if ( $argument =~ m/^parameter:(.*)/ ) {
+	    my @parametersSet = split(":",$1);
+	    my $parameter     = $parameters;
+	    foreach my $parameterSet ( @parametersSet ) {
+		if ( $parameterSet =~ m/([^\{]*)(\{{0,1}([^\}]*)\}{0,1})/ ) {
+		    my $parameterName  = $1;
+		    my $parameterValue = $3;
+		    $parameter->{$parameterName}->{'value'} = $parameterValue
+			if ( defined($2) );
+		    $parameter = $parameter->{$parameterName};
+		} else {
+		    die("malformed parameter definition");
+		}
 	    }
+	    $parameter->{'value'} = $arguments{$argument};
 	}
-	$parameter->{'value'} = $arguments{$argument};
     }
-}
-
-# If fixed sets of trees are to be used, modify parameters to use them.
-my $useFixedTrees = $arguments{'fixedTrees'} eq "config" ? $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'useFixedTrees'}->{'value'} : $arguments{'fixedTrees'};
-if ( $useFixedTrees eq "true" ) {
-    # Get a lock on the tree file.
-    my $fixedTreeDirectory;
-    if ( exists($config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'fixedTreesInScratch'}) && $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'fixedTreesInScratch'}->{'value'} eq "true" ) {
-	$fixedTreeDirectory = $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'scratchPath'}->{'value'}."/";
-    } else {
-	$fixedTreeDirectory = $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'workPath'   }->{'value'}."/trees/";
+    # If fixed sets of trees are to be used, modify parameters to use them.
+    my $useFixedTrees = $arguments{'fixedTrees'} eq "config" ? $model->{'useFixedTrees'}->{'value'} : $arguments{'fixedTrees'};
+    if ( $useFixedTrees eq "true" ) {
+	# Get a lock on the tree file.
+	my $fixedTreeDirectory;
+	if ( exists($model->{'fixedTreesInScratch'}) && $model->{'fixedTreesInScratch'}->{'value'} eq "true" ) {
+	    $fixedTreeDirectory = $model->{'scratchPath'}->{'value'}."/";
+	} else {
+	    $fixedTreeDirectory = $model->{'workPath'   }->{'value'}."/trees/";
+	}
+	my $fixedTreeFile      = $fixedTreeDirectory."fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
+	# Modify parameters to use the tree file.
+	$parameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
+	$parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
     }
-    my $fixedTreeFile      = $fixedTreeDirectory."fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
-    # Modify parameters to use the tree file.
-    $parameters->{'mergerTreeConstructMethod'}->{'value'} = "read";
-    $parameters->{'mergerTreeReadFileName'   }->{'value'} = $fixedTreeFile;
-}
-
-# Write the modified parameters to file.
-system("mkdir -p ".$maximumLikelihoodDirectory);
-&Galacticus::Constraints::Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");
-
-# Finish if we're not to run the model.
-exit
-    if ( $arguments{'runModel'} eq "no" );
-
-# Run the Galacticus model.
-my $executable = exists($config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'executable'}) ? $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'executable'}->{'value'} : "Galacticus.exe";
-$executable = $arguments{'executable'}
+    # Write the modified parameters to file.
+    system("mkdir -p ".$maximumLikelihoodDirectory);
+    &Galacticus::Constraints::Parameters::Output($parameters,$maximumLikelihoodDirectory."/parameters.xml");    
+    # Finish if we're not to run the model.
+    next
+	if ( $arguments{'runModel'} eq "no" );    
+    # Run the Galacticus model.
+    my $executable = exists($model->{'executable'}) ? $model->{'executable'}->{'value'} : "Galacticus.exe";
+    $executable = $arguments{'executable'}
     if ( exists($arguments{'executable'}) );
-system("make Galacticus.exe")
-    unless ( -e "Galacticus.exe" || $executable ne "Galacticus.exe" );
-die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
-    unless ( $? == 0 );
-my $glcCommand;
-$glcCommand .= "time ./".$executable." ".$maximumLikelihoodDirectory."/parameters.xml";
-my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
-&System::Redirect::tofile($glcCommand,$logFile);
-die("maximumLikelihoodModel.pl: Galacticus model failed")
-    unless ( $? == 0 );
-
-# Store raw XML parameter file in the model.
-&storeXML($maximumLikelihoodDirectory."/galacticus.hdf5",$maximumLikelihoodDirectory."/parameters.xml");
-
-# Perform processing of the model, accumulating likelihood as we go.
-my $logLikelihood = 0.0;
-foreach my $constraint ( @constraints ) {
-    # Parse the definition file.
-    my $xml = new XML::Simple;
-    my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
-    # Run the analysis code.
-    my $analysisCode = $constraintDefinition->{'analysis'};
-    my $plotFile = $constraintDefinition->{'label'};
-    $plotFile =~ s/\./_/g;
-    my $options = "";
-    $options = " ".$constraintDefinition->{'analysisArguments'}
-        if ( exists($constraintDefinition->{'analysisArguments'}) );
-    $options .= " --modelDiscrepancies ".$workPath."/modelDiscrepancy"
-	if ( -e $workPath."/modelDiscrepancy" );
-    system($analysisCode." ".$maximumLikelihoodDirectory."/galacticus.hdf5 --outputFile ".$maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --plotFile ".$maximumLikelihoodDirectory."/".$plotFile.".pdf --resultsFile ".$maximumLikelihoodDirectory."/".$constraintDefinition->{'label'}.":results.hdf5".$options);
-    die("maximumLikelihoodModel.pl: analysis code failed")
+    system("make Galacticus.exe")
+	unless ( -e "Galacticus.exe" || $executable ne "Galacticus.exe" );
+    die("maximumLikelihoodModel.pl: failed to build Galacticus.exe")
 	unless ( $? == 0 );
-    # Read the likelihood.
-    my $likelihood = $xml->XMLin($maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml");
-    die("maximumLikelihoodModel.pl: likelihood calculation failed")
-    	if ( $likelihood->{'logLikelihood'} eq "nan" );
-    # Extract the likelihood and weight it.
-    my $thisLogLikelihood = $likelihood->{'logLikelihood'};
-    $thisLogLikelihood *= $constraintDefinition->{'weight'}
+    my $glcCommand;
+    $glcCommand .= "time ./".$executable." ".$maximumLikelihoodDirectory."/parameters.xml";
+    my $logFile = $maximumLikelihoodDirectory."/galacticus.log";
+    &System::Redirect::tofile($glcCommand,$logFile);
+    die("maximumLikelihoodModel.pl: Galacticus model failed")
+	unless ( $? == 0 );
+    # Store raw XML parameter file in the model.
+    &storeXML($maximumLikelihoodDirectory."/galacticus.hdf5",$maximumLikelihoodDirectory."/parameters.xml");
+    # Perform processing of the model, accumulating likelihood as we go.
+    my $logLikelihood = 0.0;
+    foreach my $constraint ( @constraints ) {
+	# Parse the definition file.
+	my $xml = new XML::Simple;
+	my $constraintDefinition = $xml->XMLin($constraint->{'definition'});
+	# Run the analysis code.
+	my $analysisCode = $constraintDefinition->{'analysis'};
+	my $plotFile = $constraintDefinition->{'label'};
+	$plotFile =~ s/\./_/g;
+	my $options = "";
+	$options = " ".$constraintDefinition->{'analysisArguments'}
+        if ( exists($constraintDefinition->{'analysisArguments'}) );
+	$options .= " --modelDiscrepancies ".$workPath."/modelDiscrepancy"
+	    if ( -e $workPath."/modelDiscrepancy" );
+	system($analysisCode." ".$maximumLikelihoodDirectory."/galacticus.hdf5 --outputFile ".$maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml --plotFile ".$maximumLikelihoodDirectory."/".$plotFile.".pdf --resultsFile ".$maximumLikelihoodDirectory."/".$constraintDefinition->{'label'}.":results.hdf5".$options);
+	die("maximumLikelihoodModel.pl: analysis code failed")
+	    unless ( $? == 0 );
+	# Read the likelihood.
+	my $likelihood = $xml->XMLin($maximumLikelihoodDirectory."/likelihood".ucfirst($constraintDefinition->{'label'}).".xml");
+	die("maximumLikelihoodModel.pl: likelihood calculation failed")
+	    if ( $likelihood->{'logLikelihood'} eq "nan" );
+	# Extract the likelihood and weight it.
+	my $thisLogLikelihood = $likelihood->{'logLikelihood'};
+	$thisLogLikelihood *= $constraintDefinition->{'weight'}
         if ( defined($constraintDefinition->{'weight'}) );
-    # Accumulate the likelihood.
-    $logLikelihood += $thisLogLikelihood;
+	# Accumulate the likelihood.
+	$logLikelihood += $thisLogLikelihood;
+    }
+    # Write the final likelihood to file.
+    open(oHndl,">".$maximumLikelihoodDirectory."/likelihood.xml");
+    print oHndl $logLikelihood."\n";
+    close(oHndl);
 }
-
-# Write the final likelihood to file.
-open(oHndl,">".$maximumLikelihoodDirectory."/likelihood.xml");
-print oHndl $logLikelihood."\n";
-close(oHndl);
-
 exit;
 
 sub storeXML {
     my $galacticusFileName = shift();
     my $parametersFileName = shift();
-    my $galacticusModel = new PDL::IO::HDF5(">".$galacticusFileName);
-    my $parametersGroup = $galacticusModel->group('Parameters');
-    my $parametersRaw   = read_file($parametersFileName);
+    my $galacticusModel    = new PDL::IO::HDF5(">".$galacticusFileName);
+    my $parametersGroup    = $galacticusModel->group('Parameters');
+    my $parametersRaw      = read_file($parametersFileName);
     $parametersGroup->attrSet('rawXML' => $parametersRaw);    
 }
