@@ -307,7 +307,7 @@ if ( defined($newParameters) ) {
 			unless ( scalar(@{$parameter->{$1}}) > $2 );
 		    $parameter = $parameter->{$1}->[$2];
 		} else {
-		    die('galacticusLikelihood.pl: attempt to access non-existant array')
+		    die('galacticusLikelihood.pl: attempt to access non-existant array "'.$newParameterName.'"')
 			unless ( $2 == 0 );
 		    $parameter->{$1}->{'value'} = undef()
 			unless ( exists($parameter->{$1}) );
@@ -518,7 +518,7 @@ foreach my $constraint ( @constraints ) {
 	&reportFailure($options{'scratchPath'},$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
 	&outputLikelihood($badLogLikelihood,$badLogLikelihoodVariance);
-	print "galacticusLikelihood.pl: likelihood calculation failed";
+	print "galacticusLikelihood.pl: likelihood calculation failed\n";
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( $options{'cleanUp'} eq "T" && scalar(@temporaryFiles) > 0 );
 	my $ignoredResults = $_->{'thread'}->join()
@@ -531,7 +531,7 @@ foreach my $constraint ( @constraints ) {
 	&reportFailure($options{'scratchPath'},$logFile,$stateFileRoot,0);
 	# Display the final likelihood.
 	&outputLikelihood($badLogLikelihood,$badLogLikelihoodVariance);
-	print "galacticusLikelihood.pl: likelihood calculation failed";
+	print "galacticusLikelihood.pl: likelihood calculation failed\n";
 	system("rm ".join(" ",@temporaryFiles))
 	    if ( $options{'cleanUp'} eq "T" && scalar(@temporaryFiles) > 0 );
 	my $ignoredResults = $_->{'thread'}->join()
