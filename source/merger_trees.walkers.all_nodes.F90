@@ -188,8 +188,8 @@ contains
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
-
-    if (associated(self%nodePrevious)) then
+    
+    if (associated(self%treePrevious)) then
        self%tree         => self%treePrevious
        self%node         => self%nodePrevious
        node              => self%node
