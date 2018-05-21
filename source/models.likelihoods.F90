@@ -39,6 +39,7 @@ module Models_Likelihoods
   !#   <argument>double precision                                 , intent(in   )               :: temperature, logLikelihoodCurrent, logPriorCurrent, logPriorProposed</argument>
   !#   <argument>real                                             , intent(inout)               :: timeEvaluate</argument>
   !#   <argument>double precision                                 , intent(  out), optional     :: logLikelihoodVariance</argument>
+  !#   <argument>logical                                          , intent(inout), optional     :: forceAcceptance</argument>
   !#  </method>
   !#  <method name="willEvaluate" >
   !#   <description>Returns true if the likelihood will be evaluated for this state.</description>

@@ -100,7 +100,7 @@ contains
     return
   end function multivariateNormalStochasticConstructorInternal
 
-  double precision function multivariateNormalStochasticEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function multivariateNormalStochasticEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a multivariate-normal likelihood function.
     use Posterior_Sampling_State
     use Posterior_Sampling_Convergence
@@ -114,6 +114,7 @@ contains
          &                                                                                               logPriorCurrent       , logPriorProposed
     real                                                              , intent(inout)                 :: timeEvaluate
     double precision                                                  , intent(  out), optional       :: logLikelihoodVariance
+    logical                                                           , intent(inout), optional       :: forceAcceptance
     type            (vector                                          )                                :: stateVector           , difference              , &
          &                                                                                               stateStochasticVector
     type            (matrix                                          )                                :: covarianceMatrix      , covarianceMatrixInverse
@@ -124,7 +125,7 @@ contains
          &                                                                                               realizationCount
     double precision                                                                                  :: temperatureEffective  , likelihoodEffective     , &
          &                                                                                               logDeterminant
-    !GCC$ attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate, modelParametersInactive_
+    !GCC$ attributes unused :: self, logLikelihoodCurrent, logPriorCurrent, logPriorProposed, simulationConvergence, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! Report zero variance, as this class is designed specifically for testing for unaccounted-for randomness in the likelihood
     ! estimate.

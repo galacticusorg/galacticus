@@ -237,7 +237,7 @@ contains
     return
   end subroutine massFunctionDestructor
   
-  double precision function massFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function massFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the mass function likelihood function.
     use Posterior_Sampling_State
     use Models_Likelihoods_Constants
@@ -255,6 +255,7 @@ contains
          &                                                                                        logPriorCurrent                , logPriorProposed
     real                                                         , intent(inout)               :: timeEvaluate
     double precision                                             , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                      , intent(inout), optional     :: forceAcceptance
     double precision                                             , allocatable  , dimension(:) :: stateVector
     type            (conditionalMassFunctionBehroozi2010        )                              :: conditionalMassFunction_
     type            (massFunctionIncompletenessSurfaceBrightness)                              :: massFunctionIncompletenessModel
@@ -267,7 +268,7 @@ contains
          &                                                                                        distanceMaximum                 , time                              , &
          &                                                                                        massFunction                    , normalization
     logical                                                                                    :: integrationReset                , integrationResetNormalization
-    !GCC$ attributes unused :: logLikelihoodCurrent, logPriorCurrent, simulationConvergence, temperature, timeEvaluate, modelParametersInactive_
+    !GCC$ attributes unused :: logLikelihoodCurrent, logPriorCurrent, simulationConvergence, temperature, timeEvaluate, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0

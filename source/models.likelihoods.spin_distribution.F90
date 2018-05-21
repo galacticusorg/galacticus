@@ -208,7 +208,7 @@ contains
     return
   end subroutine spinDistributionDestructor
 
-  double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo spin distribution likelihood function.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
@@ -228,6 +228,7 @@ contains
          &                                                                                      logPriorCurrent       , logPriorProposed
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                    , intent(inout), optional     :: forceAcceptance
     double precision                                           , allocatable  , dimension(:) :: stateVector           , distribution
     type            (treeNode                                 ), pointer                     :: node
     class           (nodeComponentBasic                       ), pointer                     :: nodeBasic
@@ -238,7 +239,7 @@ contains
     type            (fgsl_function                            )                              :: integrandFunction
     type            (fgsl_integration_workspace               )                              :: integrationWorkspace
     integer                                                                                  :: i
-    !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_
+    !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0

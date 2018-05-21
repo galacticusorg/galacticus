@@ -306,7 +306,7 @@ contains
     return
   end subroutine haloMassFunctionDestructor
   
-  double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function haloMassFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the halo mass function likelihood function.
     use MPI_Utilities
     use Posterior_Sampling_State
@@ -324,6 +324,7 @@ contains
          &                                                                                      logPriorCurrent                 , logPriorProposed
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                    , intent(inout), optional     :: forceAcceptance
     double precision                                           , allocatable  , dimension(:) :: stateVector                     , massFunction
     double precision                                           , parameter                   :: errorFractionalMaximum    =1.0d1
     class           (nbodyHaloMassErrorClass                  ), pointer                     :: nbodyHaloMassError_
@@ -331,7 +332,7 @@ contains
          &                                                                                      haloMassFunctionConvolved_      , haloMassFunctionUnconditioned_
     type            (vector                                   )                              :: difference
     integer                                                                                  :: i
-    !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_
+    !GCC$ attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0

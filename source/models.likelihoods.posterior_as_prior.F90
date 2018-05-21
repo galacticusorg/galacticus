@@ -256,7 +256,7 @@ contains
     return
   end subroutine posteriorAsPriorInitialize
 
-  double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function posteriorAsPriorEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for a ``posterior as prior'' likelihood function.
     use Posterior_Sampling_State
     use Posterior_Sampling_Convergence
@@ -270,9 +270,11 @@ contains
          &                                                                                      logPriorCurrent       , logPriorProposed
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
+    logical                                                    , intent(inout), optional     :: forceAcceptance
     double precision                                           , allocatable  , dimension(:) :: stateVector           , stateVectorPacked
     double precision                                                                         :: kernelScale           , weight
     integer                                                                                  :: i
+    !GCC$ attributes unused :: forceAcceptance
 
     ! Initialize.
     call self%initialize(modelParametersActive_)

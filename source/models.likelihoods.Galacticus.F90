@@ -275,7 +275,7 @@ contains
     return
   end function galacticusConstructorInternal
 
-  double precision function galacticusEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance)
+  double precision function galacticusEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
     !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\normalfont
     !% \ttfamily tmpfs} for this likelihood file so that no disk I/O is required.
@@ -296,6 +296,7 @@ contains
          &                                                                                logPriorCurrent       , logPriorProposed
     real                                                 , intent(inout)               :: timeEvaluate
     double precision                                     , intent(  out), optional     :: logLikelihoodVariance
+    logical                                              , intent(inout), optional     :: forceAcceptance
     double precision                                     , allocatable  , dimension(:) :: stateVector
     type            (varying_string                     )                              :: wrapperCommand        , likelihoodFileName      , &
          &                                                                                timingFileName        , message
@@ -309,7 +310,7 @@ contains
          &                                                                                timingFileUnit        , status
     logical                                                                            :: storeModel
     real                                                                               :: timeSystem            , timeUser
-    !GCC$ attributes unused :: logPriorCurrent, logLikelihoodCurrent
+    !GCC$ attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance
 
     ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
     if (logPriorProposed <= logImpossible) then
