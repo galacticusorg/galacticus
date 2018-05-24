@@ -55,7 +55,7 @@ contains
     use Input_Parameters
     implicit none
     type(mergerTreeWalkerAllNodesBranch)                :: self
-    type(inputParameters                    ), intent(inout) :: parameters
+    type(inputParameters               ), intent(inout) :: parameters
     !GCC$ attributes unused :: self, parameters
     
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
@@ -93,6 +93,7 @@ contains
     ! If the node is currently null, set to the head node of the branch, and descend to children.
     if (.not.associated(self%node)) then
        ! This is the base of the branch.
+       self%node => self%branchHead
        ! Descend through satellites and children.
        call self%descend()
     else
