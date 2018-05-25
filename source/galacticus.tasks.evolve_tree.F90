@@ -102,7 +102,7 @@ contains
          &                                                                              outputTimeNext
     type            (varying_string               )                           , save :: message
     character       (len=20                       )                           , save :: label
-    !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,universalEvolveToTime,outputTimeNext)
+    !$omp threadprivate(thisTree,finished,skipTree,iOutput,evolveToTime,message,label,treeIsNew,treeTimeEarliest,outputTimeNext)
     integer                                                                          :: iTree                                     , treeCount
     integer                                                                   , save :: activeTasks                               , totalTasks
     double precision                                            , dimension(3), save :: loadAverage
@@ -110,7 +110,7 @@ contains
          &                                                                              treeIsFinished                            , evolutionIsEventLimited     , &
          &                                                                              success                                   , removeTree                  , &
          &                                                                              suspendTree                               , treesDidEvolve              , &
-         &                                                                              treeDidEvolve
+         &                                                                              treeDidEvolve                             , treesCouldEvolve
     type            (mergerTree                   ), pointer                  , save :: currentTree                               , previousTree                , &
          &                                                                              nextTree
     type            (mergerTreeWalkerIsolatedNodes)                                  :: treeWalker
@@ -310,7 +310,8 @@ contains
     universeProcessed%trees => null()
 
     ! Set record of whether any trees were evolved to false initially.
-    treesDidEvolve=.false.
+    treesDidEvolve  =.false.
+    treesCouldEvolve=.false.
 
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
@@ -431,6 +432,7 @@ contains
                       thisEvent => thisEvent%next
                    end do
                    !$omp end critical(universeTransform)
+                   if (thisTree%earliestTime() <= evolveToTime) treesCouldEvolve=.true.
                 end if singleForestMaximumTime
                 ! For single forest evolution, block all threads until master thread has determined the maximum evolution time.
                 if (treeEvolveSingleForest) then
@@ -455,9 +457,13 @@ contains
                                   countBranch=countBranch+1
                                   allocate(branchNew      )
                                   allocate(branchNew%branch)
+                                  ! Build the new branch. Ensure that our node, which forms the base node of the new branch, has
+                                  ! its hostTree pointer set to point to the new branch so that merger tree walkers can correctly
+                                  ! navigate the branch without straying into a neighboring branch.
                                   branchNew%branch            =  node%hostTree
                                   branchNew%branch%baseNode   => node
                                   branchNew       %nodeParent => node%parent
+                                  node            %hostTree   => branchNew%branch                                  
                                   if (associated(branchList_)) then
                                      branchNew%next => branchList_
                                   else
@@ -513,13 +519,16 @@ contains
                             end do
                             branchNew%branch%baseNode%parent =>                           null ()
                             basic                            => branchNew%branch%baseNode%basic()
-                            call Merger_Tree_Evolve_To(                         &
-                                    &                   branchNew    %branch  , &
-                                    &                   min(basic        %time  (),evolveToTimeForest), &
-                                    &                   treeDidEvolve         , &
-                                    &                   suspendTree           , &
-                                    &                   deadlockReport          &
-                                 !$ &                  ,initializationLock      &
+                            call Merger_Tree_Evolve_To(                                         &
+                                    &                       branchNew    %branch              , &
+                                    &                   min(                                    &
+                                    &                       basic        %time              (), &
+                                    &                                     evolveToTimeForest    &
+                                    &                      )                                  , &
+                                    &                       treeDidEvolve                     , &
+                                    &                       suspendTree                       , &
+                                    &                       deadlockReport                      &
+                                 !$ &                      ,initializationLock                  &
                                     &                 )
                             !$omp critical (universeStatus)
                             if (treeDidEvolve) treesDidEvolve         =.true.
@@ -534,8 +543,9 @@ contains
                          ! Clean up.
                          branchNew => branchList_
                          do while (associated(branchNew))
-                            branchNew%branch%baseNode%parent => branchNew%nodeParent
-                            branchNew%branch%baseNode        => null()
+                            branchNew%branch%baseNode%hostTree => branchNew%nodeParent%hostTree
+                            branchNew%branch%baseNode%parent   => branchNew%nodeParent
+                            branchNew%branch%baseNode          => null()
                             call branchNew%branch%destroy()
                             branchNext => branchNew%next
                             deallocate(branchNew)
@@ -721,7 +731,7 @@ contains
              ! (and sharing of the "finished" status back to other threads) explicitly if needed.             
              !$omp master
              ! Check whether any tree evolution occurred. If it did not, we have a universe-level deadlock.
-             if (.not.treesDidEvolve.or.deadlockReport) then
+             if ((.not.treesDidEvolve.and.treesCouldEvolve).or.deadlockReport) then
                 ! If we already did the deadlock reporting pass it's now time to finish that report and exit. Otherwise, set deadlock
                 ! reporting status to true and continue for one more pass through the universe.
                 if (deadlockReport) then
@@ -794,7 +804,7 @@ contains
           if (OMP_Get_Thread_Num() == 0 .and. disableSingleForestEvolution) &
                & treeEvolveSingleForest=.false.
           !$omp barrier
-       end if
+       end if       
     end do treeProcess
     ! Finalize any merger tree operator.
     call mergerTreeOperator_%finalize()
