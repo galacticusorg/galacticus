@@ -172,19 +172,22 @@ contains
     use IO_HDF5
     use Galacticus_HDF5
     implicit none
-    class(mergerTreeOperatorInformationContent), intent(inout) :: self
-    type (hdf5Object                          )                :: informationContentGroup, dataset
+    class  (mergerTreeOperatorInformationContent), intent(inout) :: self
+    integer                                      , parameter     :: chunkSize              =1024
+    type   (hdf5Object                          )                :: informationContentGroup     , dataset
+    logical                                                      :: preexisting
 
     ! Check if we have data to output.
     if (allocated(self%treeIndex)) then
        !$ call hdf5Access%set()
        ! Output information content information.
-       informationContentGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Cladistic information content of trees.')
-       call informationContentGroup%writeDataset  (self%treeIndex         ,'treeIndex'                                 )
-       call informationContentGroup%writeDataset  (self%informationContent,'informationContent',datasetReturned=dataset)
-       call dataset                %writeAttribute('bits'                 ,"units"                                     )
-       call dataset                %close         (                                                                    )
-       call informationContentGroup%close         (                                                                    )
+       informationContentGroup   =galacticusOutputFile   %openGroup     (char(self%outputGroupName),'Cladistic information content of trees.'                                       )
+       preexisting               =informationContentGroup%hasDataset    (                           'treeIndex'                                                                     )
+       call                       informationContentGroup%writeDataset  (self%treeIndex            ,'treeIndex'                                 ,appendTo=.true.,chunkSize=chunkSize)
+       call                       informationContentGroup%writeDataset  (self%informationContent   ,'informationContent',datasetReturned=dataset,appendTo=.true.,chunkSize=chunkSize)
+       if (.not.preexisting) call dataset                %writeAttribute('bits'                    ,"units"                                                                         )
+       call                       dataset                %close         (                                                                                                           )
+       call                       informationContentGroup%close         (                                                                                                           )
        !$ call hdf5Access%unset()
     end if
     return
