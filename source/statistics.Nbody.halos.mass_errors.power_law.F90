@@ -126,10 +126,21 @@ contains
     !% Return the correlation of the masses of a pair of N-body halos.
     implicit none
     class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
-    type (treeNode                  ), intent(inout) :: node1, node2
-    !GCC$ attributes unused :: self, node1, node2
+    type (treeNode                  ), intent(inout) :: node1 , node2
+    class(nodeComponentBasic        ), pointer       :: basic1, basic2
+    !GCC$ attributes unused :: self
 
-    powerLawCorrelation=0.0d0
+    basic1 => node1%basic()
+    basic2 => node2%basic()
+    if     (                                &
+         &   basic1%mass() == basic2%mass() &
+         &  .and.                           &
+         &   basic1%time() == basic2%time() &
+         & ) then
+       powerLawCorrelation=1.0d0
+    else
+       powerLawCorrelation=0.0d0
+    end if
     return
   end function powerLawCorrelation
   
