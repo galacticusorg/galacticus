@@ -118,11 +118,11 @@ contains
           ! Convert redshift to a time.
           spectraTimes(iSpectrum)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
        end do
-       ! Reverse times if necessary.
-       if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Check if the times are monotonically ordered.
        if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
        timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
+       ! Reverse times if necessary.
+       if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Read spectra into arrays.
        do iSpectrum=1,spectraTimesCount
           ! Determine where to store this spectrum, depending on whether the times were stored in increasing or decreasing order.
