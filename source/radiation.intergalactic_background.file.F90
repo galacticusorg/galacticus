@@ -109,6 +109,17 @@ contains
        spectraTimesCount=getLength(spectraList)
        call allocateArray(spectra     ,[spectraWavelengthsCount,spectraTimesCount])
        call allocateArray(spectraTimes,[                        spectraTimesCount])
+       ! Read times.
+       do iSpectrum=1,spectraTimesCount
+          ! Get the data.
+          thisSpectrum => item(spectraList,iSpectrum-1)
+          ! Extract the redshift.
+          call extractDataContent(XML_Get_First_Element_By_Tag_Name(thisSpectrum,"redshift"),spectraTimes(iSpectrum))
+          ! Convert redshift to a time.
+          spectraTimes(iSpectrum)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
+       end do
+       ! Reverse times if necessary.
+       if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Check if the times are monotonically ordered.
        if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('spectra must be monotonically ordered in time'//{introspection:location})
        timesIncreasing=Array_Is_Monotonic(spectraTimes,direction=directionIncreasing)
@@ -126,13 +137,7 @@ contains
           if (XML_Array_Length(thisSpectrum,"datum") /= spectraWavelengthsCount) call Galacticus_Error_Report('all spectra must contain the same number of wavelengths'//{introspection:location})
           ! Extract the data.
           call XML_Array_Read_Static(thisSpectrum,"datum",spectra(:,jSpectrum))
-          ! Extract the redshift.
-          call extractDataContent(XML_Get_First_Element_By_Tag_Name(thisSpectrum,"redshift"),spectraTimes(iSpectrum))
-          ! Convert redshift to a time.
-          spectraTimes(iSpectrum)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
        end do     
-       ! Reverse times if necessary.
-       if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
