@@ -145,8 +145,7 @@ contains
     !#   <type>boolean</type>
     !# </inputParameter>
     !# <conditionalCall>
-    !#  <call>self=massDistributionExponentialDisk({conditions})</call>
-    !#  <argument name="scaleHeight"   value="scaleHeight"   parameterPresent="parameters"/>
+    !#  <call>self=massDistributionExponentialDisk(scaleHeight=scaleHeight{conditions})</call>
     !#  <argument name="mass"          value="mass"          parameterPresent="parameters"/>
     !#  <argument name="scaleRadius"   value="scaleRadius"   parameterPresent="parameters"/>
     !#  <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
