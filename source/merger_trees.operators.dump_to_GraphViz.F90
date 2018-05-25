@@ -25,7 +25,8 @@
      !% A dump to \gls{graphviz} merger tree operator class.
      private
      type            (varying_string) :: path
-     double precision                 :: massMinimum, massMaximum
+     double precision                 :: massMinimum        , massMaximum
+     logical                          :: scaleNodesByLogMass, edgeLengthsToTimes
    contains
      final     ::            dumpToGraphVizDestructor
      procedure :: operate => dumpToGraphVizOperate
@@ -73,6 +74,24 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>scaleNodesByLogMass</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <variable>dumpToGraphVizConstructorParameters%scaleNodesByLogMass</variable>
+    !#   <description>Specifies whether or not node sizes should be scaled by the logarithm of their mass.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>edgeLengthsToTimes</name>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <variable>dumpToGraphVizConstructorParameters%edgeLengthsToTimes</variable>
+    !#   <description>Specifies whether or not the lengths of edges in the graph should be scaled to time differences between nodes.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <inputParametersValidate source="parameters"/>
     return
   end function dumpToGraphVizConstructorParameters
@@ -115,16 +134,16 @@ contains
     do while (associated(treeCurrent))
        ! Dump the tree.
        basicBase => treeCurrent%baseNode%basic()
-       if     (                                                    &
-            &   basicBase%mass() >= self%massMinimum               &
-            &  .and.                                               &
-            &   basicBase%mass() <  self%massMaximum               &
-            & )                                                    &
-            & call Merger_Tree_Dump(                               &
-            &                       treeCurrent                  , &
-            &                       scaleNodesByLogMass=.true.   , &
-            &                       edgeLengthsToTimes =.true.   , &
-            &                       path               =self%path  &
+       if     (                                                                   &
+            &   basicBase%mass() >= self%massMinimum                              &
+            &  .and.                                                              &
+            &   basicBase%mass() <  self%massMaximum                              &
+            & )                                                                   &
+            & call Merger_Tree_Dump(                                              &
+            &                       treeCurrent                                 , &
+            &                       scaleNodesByLogMass=self%scaleNodesByLogMass, &
+            &                       edgeLengthsToTimes =self%edgeLengthsToTimes , &
+            &                       path               =self%path                 &
             &                      )
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
