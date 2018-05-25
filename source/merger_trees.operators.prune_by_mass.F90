@@ -97,9 +97,9 @@ contains
     implicit none
     class  (mergerTreeOperatorPruneByMass), intent(inout)         :: self
     type   (mergerTree                   ), intent(inout), target :: tree
-    type   (treeNode                     ), pointer               :: nodeNext     , nodePrevious, &
+    type   (treeNode                     ), pointer               :: nodeNext     , nodePrevious , &
          &                                                           node         , nodeWork
-    class  (nodeComponentBasic           ), pointer               :: basic        , basicPrevious
+    class  (nodeComponentBasic           ), pointer               :: basic        , basicParent
     type   (mergerTree                   ), pointer               :: currentTree
     type   (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
     logical                                                       :: didPruning
@@ -140,20 +140,18 @@ contains
              treeWalker=mergerTreeWalkerIsolatedNodes(currentTree)
              do while (treeWalker%next(node))
                 basic => node%basic()
-                ! Record the parent node to which we will return.
-                nodePrevious => node%parent
                 if (basic%mass() < self%massThreshold) then
                    didPruning=.true.
+                   ! Step tree walker back to the previous node.
+                   call treeWalker%previous(nodePrevious)
                    ! Decouple from other nodes.
-                   basicPrevious => nodePrevious%basic()
-                   call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,basicPrevious%mass() < self%massThreshold,self%preservePrimaryProgenitor)
+                   basicParent => node%parent%basic()
+                   call Merger_Tree_Prune_Unlink_Parent(node,node%parent,basicParent%mass() < self%massThreshold,self%preservePrimaryProgenitor)
                    ! Clean the branch.
                    call Merger_Tree_Prune_Clean_Branch (node)
                    ! Destroy the branch.
                    call node%destroyBranch()
                    deallocate(node)
-                   ! Return to parent node.
-                   node => nodePrevious
                 end if
              end do
           end if
