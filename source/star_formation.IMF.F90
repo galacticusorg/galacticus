@@ -578,6 +578,7 @@ contains
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
+          !$omp critical (FoX_DOM_Access)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse recycled fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
           ! Check the version number.
@@ -592,6 +593,7 @@ contains
              call destroy(doc)
              call Galacticus_Display_Unindent('done',verbosityDebug)
           end if
+          !$omp end critical (FoX_DOM_Access)
        else
           makeFile=.true.
        end if
@@ -599,6 +601,7 @@ contains
        if (.not.makeFile) then
 
           ! Find the ages element and extract data.
+          !$omp critical (FoX_DOM_Access)
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
           if (XML_Array_Length(thisItem,"data") /= recycledFractionTableAgeCount) &
                & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
@@ -642,13 +645,14 @@ contains
           ! Destroy the document.
           call destroy(doc)
           call Galacticus_Display_Unindent('done',verbosityDebug)
-
+          !$omp end critical (FoX_DOM_Access)
        else
 
           call Galacticus_Display_Indent('Tabulating mass recycling rate for '//char(imfNames(imfSelected))//' IMF',verbosityWorking)
           call Galacticus_Display_Counter(0,.true.,verbosityWorking)
 
           ! Open an XML file to output the data to.
+          !$omp critical (FoX_DOM_Access)
           call xml_OpenFile(char(fileName),recycledFractionDoc)
           call xml_NewElement(recycledFractionDoc,"stellarPopulation")
           call xml_NewElement(recycledFractionDoc,"fileFormat")
@@ -692,7 +696,8 @@ contains
              call xml_EndElement(recycledFractionDoc,"data")
           end do
           call xml_EndElement(recycledFractionDoc,"metallicities")
-
+          !$omp end critical (FoX_DOM_Access)
+          
           ! Loop over ages and metallicities and compute the recycled fraction.
           imfSelectedGlobal=imfSelected
           call xml_NewElement(recycledFractionDoc,"recycledFraction")
@@ -730,6 +735,7 @@ contains
              end do
           end do
           !$omp end parallel do
+          !$omp critical (FoX_DOM_Access)
           do iAge=1,recycledFractionTableAgeCount
              do iMetallicity=1,recycledFractionTableMetallicityCount
                 ! Enforce monotonicity in the recycled fraction. Non-monotonicity can arise due to the vagaries of interpolating
@@ -751,6 +757,7 @@ contains
           call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           call xml_EndElement(recycledFractionDoc,"stellarPopulation")
           call xml_Close(recycledFractionDoc)
+          !$omp end critical (FoX_DOM_Access)
        end if
 
        ! Flag that this IMF has now been tabulated.
@@ -948,6 +955,7 @@ contains
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
+          !$omp critical (FoX_DOM_Access)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse remnant fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
           ! Check the version number.
@@ -962,6 +970,7 @@ contains
              call destroy(doc)
              call Galacticus_Display_Unindent('done',verbosityDebug)
           end if
+          !$omp end critical (FoX_DOM_Access)
        else
           makeFile=.true.
        end if
@@ -969,6 +978,7 @@ contains
        if (.not.makeFile) then
 
           ! Find the ages element and extract data.
+          !$omp critical (FoX_DOM_Access)
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
           if (XML_Array_Length(thisItem,"data") /= remnantFractionTableAgeCount) &
                & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
@@ -1012,6 +1022,7 @@ contains
           ! Destroy the document.
           call destroy(doc)
           call Galacticus_Display_Unindent('done',verbosityDebug)
+          !$omp end critical (FoX_DOM_Access)
 
        else
 
@@ -1019,6 +1030,7 @@ contains
           call Galacticus_Display_Counter(0,.true.,verbosityWorking)
 
           ! Open an XML file to output the data to.
+          !$omp critical (FoX_DOM_Access)
           call xml_OpenFile(char(fileName),remnantFractionDoc)
           call xml_NewElement(remnantFractionDoc,"stellarPopulation")
           call xml_NewElement(remnantFractionDoc,"fileFormat")
@@ -1066,6 +1078,7 @@ contains
           ! Loop over ages and metallicities and compute the recycled fraction.
           imfSelectedGlobal=imfSelected
           call xml_NewElement(remnantFractionDoc,"remnantFraction")
+          !$omp end critical (FoX_DOM_Access)
           loopCountTotal=remnantFractionTableMetallicityCount*remnantFractionTableAgeCount
           loopCount     =0
           !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin(imfSelectedGlobal)
@@ -1099,6 +1112,7 @@ contains
              end do
           end do
           !$omp end parallel do
+          !$omp critical (FoX_DOM_Access)
           do iAge=1,remnantFractionTableAgeCount
              do iMetallicity=1,remnantFractionTableMetallicityCount
                 ! Enforce monotonicity in the remnant fraction. Non-monotonicity can arise due to the vagaries of interpolating
@@ -1120,6 +1134,7 @@ contains
           call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           call xml_EndElement(remnantFractionDoc,"stellarPopulation")
           call xml_Close(remnantFractionDoc)
+          !$omp end critical (FoX_DOM_Access)
        end if
 
        ! Flag that this IMF has now been tabulated.
@@ -1347,6 +1362,7 @@ contains
           if (File_Exists(fileName)) then
              ! Open the XML file containing energy input.
              call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
+             !$omp critical (FoX_DOM_Access)
              doc => parseFile(char(fileName),iostat=ioErr)
              if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse metal yields file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
              ! Check the version number.
@@ -1361,6 +1377,7 @@ contains
                 call destroy(doc)
                 call Galacticus_Display_Unindent('done',verbosityDebug)
              end if
+             !$omp end critical (FoX_DOM_Access)
           else
              makeFile=.true.
           end if
@@ -1368,6 +1385,7 @@ contains
           fileBuildCheck : if (.not.makeFile) then
 
              ! Find the ages element and extract data.
+             !$omp critical (FoX_DOM_Access)
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
              if (XML_Array_Length(thisItem,"data") /= metalYieldTableAgeCount) &
                   & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
@@ -1418,6 +1436,7 @@ contains
              ! Destroy the document.
              call destroy(doc)
              call Galacticus_Display_Unindent('done',verbosityDebug)
+             !$omp end critical (FoX_DOM_Access)
 
           else
 
@@ -1432,6 +1451,7 @@ contains
              call Galacticus_Display_Counter(0,.true.,verbosityWorking)
 
              ! Open an XML file to output the data to.
+             !$omp critical (FoX_DOM_Access)
              call xml_OpenFile(char(fileName),metalYieldDoc)
              call xml_NewElement(metalYieldDoc,"stellarPopulation")
              call xml_NewElement(metalYieldDoc,"fileFormat")
@@ -1492,6 +1512,7 @@ contains
                 ! Individual element.
                 call xml_NewElement(metalYieldDoc,"elementYield")
              end select
+             !$omp end critical (FoX_DOM_Access)
              loopCountTotal=metalYieldTableMetallicityCount*metalYieldTableAgeCount
              loopCount     =0
              !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin(imfSelectedGlobal,atomIndexGlobal)
@@ -1525,6 +1546,7 @@ contains
                 end do
              end do
              !$omp end parallel do
+             !$omp critical (FoX_DOM_Access)
              do iAge=1,metalYieldTableAgeCount
                 do iMetallicity=1,metalYieldTableMetallicityCount
                    ! Enforce monotonicity in the metal yield. Non-monotonicity can arise due to the vagaries of interpolating
@@ -1550,6 +1572,7 @@ contains
              call Galacticus_Display_Unindent     ('finished',verbosityWorking)
              call xml_EndElement(metalYieldDoc,"stellarPopulation")
              call xml_Close(metalYieldDoc)
+             !$omp end critical (FoX_DOM_Access)
           end if fileBuildCheck
 
        end do elementsLoop
@@ -1783,8 +1806,9 @@ contains
        fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Energy_Input_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
-           ! Open the XML file containing energy input.
+          ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
+          !$omp critical (FoX_DOM_Access)
           doc => parseFile(char(fileName),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse energy input file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus'//{introspection:location})
           ! Check the version number.
@@ -1799,6 +1823,7 @@ contains
              call destroy(doc)
              call Galacticus_Display_Unindent('done',verbosityDebug)
           end if
+          !$omp end critical (FoX_DOM_Access)
        else
           makeFile=.true.
        end if
@@ -1806,6 +1831,7 @@ contains
        if (.not.makeFile) then
 
           ! Find the ages element and extract data.
+          !$omp critical (FoX_DOM_Access)
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
           if (XML_Array_Length(thisItem,"data") /= energyInputTableAgeCount) &
                & call Galacticus_Error_Report('ages array in XML file does not match internal expectation'//{introspection:location})
@@ -1845,6 +1871,7 @@ contains
           ! Destroy the document.
           call destroy(doc)
           call Galacticus_Display_Unindent('done',verbosityDebug)
+          !$omp end critical (FoX_DOM_Access)
 
        else
 
@@ -1852,6 +1879,7 @@ contains
           call Galacticus_Display_Counter(0,.true.,verbosityWorking)
 
           ! Open an XML file to output the data to.
+          !$omp critical (FoX_DOM_Access)
           call xml_OpenFile(char(fileName),energyInputDoc)
           call xml_NewElement(energyInputDoc,"stellarPopulation")
           call xml_NewElement(energyInputDoc,"fileFormat")
@@ -1898,6 +1926,7 @@ contains
           ! Loop over ages and metallicities and compute the recycled fraction.
           imfSelectedGlobal=imfSelected
           call xml_NewElement(energyInputDoc,"energyInput")
+          !$omp end critical (FoX_DOM_Access)
           loopCountTotal=energyInputTableMetallicityCount*energyInputTableAgeCount
           loopCount     =0
           !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin (imfSelectedGlobal)
@@ -1931,6 +1960,7 @@ contains
              end do
           end do
           !$omp end parallel do
+          !$omp critical (FoX_DOM_Access)
           do iAge=1,energyInputTableAgeCount
              do iMetallicity=1,energyInputTableMetallicityCount
                 ! Enforce monotonicity in the cumulative energy input. Non-monotonicity can arise due to the vagaries of
@@ -1949,6 +1979,7 @@ contains
           call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           call xml_EndElement(energyInputDoc,"stellarPopulation")
           call xml_Close(energyInputDoc)
+          !$omp end critical (FoX_DOM_Access)
        end if
 
        ! Flag that this IMF has now been tabulated.
