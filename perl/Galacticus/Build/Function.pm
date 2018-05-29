@@ -844,7 +844,7 @@ sub Functions_Generate_Output {
 		$nullifyDirective = 0
 		    if ( $xmlTag eq $directive );
 	    }
-	    if ( $rawLine =~ m/^\s*!\#\s+<\s*([a-zA-Z]+)\s*\/>\s*$/ ) {
+	    if ( $rawLine =~ m/^\s*!\#\s+<\s*([a-zA-Z]+).*\/>\s*$/ ) {
  		my $xmlTag = $1;
 		$nullifyDirective = 0
 		    if ( $xmlTag eq $directive );
