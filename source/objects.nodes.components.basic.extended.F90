@@ -172,15 +172,15 @@ contains
     end if
     ! Compute Bertschinger mass and turnaround radius.
     selfNode => self%hostNode
-    call self%massBertschingerSet(                                                                                               &
-         &                        Dark_Matter_Profile_Mass_Definition(                                                           &
-         &                                                                   selfNode                                          , &
-         &                                                                   virialDensityContrast_%densityContrast(             &
-         &                                                                                                          self%mass(), &
-         &                                                                                                          self%time()  &
-         &                                                                                                         )           , &
-         &                                                            radius=radiusVirial                                        &
-         &                                                           )                                                           &
+    call self%massBertschingerSet(                                                                                                           &
+         &                        Dark_Matter_Profile_Mass_Definition(                                                                       &
+         &                                                                   selfNode                                                      , &
+         &                                                                   virialDensityContrast_%densityContrast(                         &
+         &                                                                                                          self%mass            (), &
+         &                                                                                                          self%timeLastIsolated()  &
+         &                                                                                                         )                       , &
+         &                                                            radius=radiusVirial                                                    &
+         &                                                           )                                                                       &
          &                       )
     call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=self%time())*radiusVirial)
     return

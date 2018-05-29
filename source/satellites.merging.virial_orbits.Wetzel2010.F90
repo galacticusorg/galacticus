@@ -176,8 +176,8 @@ contains
     ! Find virial density contrast under Wetzel (2010) definition.
     virialDensityContrast_ => self%densityContrastDefinition()
     ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHostSelf,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                            )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
     deallocate(virialDensityContrast_)
     ! Get the time at which this node exists.
     timeNode=basic%time()

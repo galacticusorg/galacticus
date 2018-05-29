@@ -126,10 +126,10 @@ contains
          &                                                                                 densityContrast
 
     ! Compute the characteristic mass at formation time.
-    basic                  =>  node                               %basic                    (                                   )
-    virialDensityContrast_ =>  self                               %densityContrastDefinition(                                   )
-    densityContrast        =   virialDensityContrast_             %densityContrast          (basic%mass(),basic          %time())
-    massHalo               =   Dark_Matter_Profile_Mass_Definition                          (node        ,densityContrast       )
+    basic                  =>  node                               %basic                    (                                               )
+    virialDensityContrast_ =>  self                               %densityContrastDefinition(                                               )
+    densityContrast        =   virialDensityContrast_             %densityContrast          (basic%mass(),basic          %timeLastIsolated())
+    massHalo               =   Dark_Matter_Profile_Mass_Definition                          (node        ,densityContrast                   )
     massHaloFormation      =  +self%F*massHalo
     ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
     sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation              )
