@@ -130,6 +130,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
+    use Galacticus_Error
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen  , temperature
@@ -165,9 +166,14 @@ contains
             &                                                                           )
        coolant => coolant%next
     end do
-    summationCoolingFunctionDensityLogSlope=+coolingFunctionGradient   &
-         &                                  *numberDensityHydrogen     &
-         &                                  /coolingFunctionCumulative
+    if (coolingFunctionCumulative > 0.0d0) then
+       summationCoolingFunctionDensityLogSlope=+coolingFunctionGradient   &
+            &                                  *numberDensityHydrogen     &
+            &                                  /coolingFunctionCumulative
+    else
+       summationCoolingFunctionDensityLogSlope=0.0d0
+       if (coolingFunctionGradient /= 0.0d0) call Galacticus_Error_Report('cooling function is zero but has non-zero gradient with density - logarithmic slope is undefined'//{introspection:location})
+    end if
     return
   end function summationCoolingFunctionDensityLogSlope
   
@@ -177,6 +183,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
+    use Galacticus_Error
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen                       , temperature
@@ -212,9 +219,14 @@ contains
             &                                                                               )
        coolant => coolant%next
     end do
-    summationCoolingFunctionTemperatureLogSlope=+coolingFunctionGradient   &
-         &                                      *temperature               &
-         &                                      /coolingFunctionCumulative
+    if (coolingFunctionCumulative > 0.0d0) then
+       summationCoolingFunctionTemperatureLogSlope=+coolingFunctionGradient   &
+            &                                      *temperature               &
+            &                                      /coolingFunctionCumulative
+    else
+       summationCoolingFunctionTemperatureLogSlope=0.0d0
+       if (coolingFunctionGradient /= 0.0d0) call Galacticus_Error_Report('cooling function is zero but has non-zero gradient with temperature - logarithmic slope is undefined'//{introspection:location})
+    end if
     return
   end function summationCoolingFunctionTemperatureLogSlope
 
