@@ -123,8 +123,8 @@ contains
     basic     => node%basic()
     hostBasic => host%basic()
     ! Find mass, radius, and velocity in the host corresponding to the our virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%time()),radiusHost,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(    basic%mass(),    basic%time())                        )
+    massHost     =Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massSatellite=Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
     ! Set basic properties of the orbit - do not allow the satellite mass to exceed the host mass.
     call fixedOrbit%massesSet(min(massSatellite,massHost),massHost)
     call fixedOrbit%radiusSet(radiusHost)

@@ -355,85 +355,85 @@ contains
                    nodeSibling  => nodeChild
                    do while (associated(nodeSibling))
                       basicSibling =>  nodeSibling %basic  ()
-                      massSiblings =  +massSiblings                                                                                                                              &
-                           &          +Dark_Matter_Profile_Mass_Definition(                                                                                                      &
-                           &                                                  nodeSibling                                                                                      , &
-                           &                                               +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                                 &
-                           &                                               *(                                                                                                    &
+                      massSiblings =  +massSiblings                                                                                                                                                      &
+                           &          +Dark_Matter_Profile_Mass_Definition(                                                                                                                              &
+                           &                                                  nodeSibling                                                                                                              , &
+                           &                                               +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                            &
+                           &                                               *(                                                                                                                            &
                            &                                                 +ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicSibling%time())     &
                            &                                                 /ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=             1.0d0 )     &
-                           &                                                )                                                                                               **2  &
+                           &                                                )                                                                                               **2                          &
                            &                                               *  ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%expansionFactor       (                basicSibling%time())**3  &
                            &                                              )
                       nodeSibling  =>  nodeSibling %sibling
                    end do
-                   massAccretionRate=+(                                                                                                                                          &
-                        &              +Dark_Matter_Profile_Mass_Definition(                                                                                                     &
-                        &                                                      nodeBranch                                                                                      , &
-                        &                                                   +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                                &
-                        &                                                   *(                                                                                                   &
+                   massAccretionRate=+(                                                                                                                                                                  &
+                        &              +Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+                        &                                                      nodeBranch                                                                                                              , &
+                        &                                                   +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                           &
+                        &                                                   *(                                                                                                                           &
                         &                                                     +ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicBranch%time())     &
                         &                                                     /ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=            1.0d0 )     &
-                        &                                                    )                                                                                              **2  &
+                        &                                                    )                                                                                              **2                          &
                         &                                                   *  ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%expansionFactor       (                basicBranch%time())**3  &
-                        &                                                  )                                                                                                     &
-                        &              -massSiblings                                                                                                                             &
-                        &             )                                                                                                                                          &
-                        &            /(                                                                                                                                          &
-                        &              +basicBranch%time()                                                                                                                       &
-                        &              -basicChild %time()                                                                                                                       &
+                        &                                                  )                                                                                                                             &
+                        &              -massSiblings                                                                                                                                                     &
+                        &             )                                                                                                                                                                  &
+                        &            /(                                                                                                                                                                  &
+                        &              +basicBranch%time()                                                                                                                                               &
+                        &              -basicChild %time()                                                                                                                                               &
                         &             )
-                   massProgenitor   =+Dark_Matter_Profile_Mass_Definition(                                                                                                    &
-                        &                                                    nodeChild                                                                                      , &
-                        &                                                 +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                               &
-                        &                                                 *(                                                                                                  &
+                   massProgenitor   =+Dark_Matter_Profile_Mass_Definition(                                                                                                                            &
+                        &                                                    nodeChild                                                                                                              , &
+                        &                                                 +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                          &
+                        &                                                 *(                                                                                                                          &
                         &                                                   +ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicChild%time())     &
                         &                                                   /ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=           1.0d0 )     &
-                        &                                                  )                                                                                             **2  &
+                        &                                                  )                                                                                             **2                          &
                         &                                                 *  ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%expansionFactor       (                basicChild%time())**3  &
-                        &                                                )                                                                                                    &
-                        &            +massAccretionRate                                                                                                                       &
-                        &            *(                                                                                                                                       &
-                        &              +timeFormation                                                                                                                         &
-                        &              -basicChild   %time()                                                                                                                  &
+                        &                                                )                                                                                                                            &
+                        &            +massAccretionRate                                                                                                                                               &
+                        &            *(                                                                                                                                                               &
+                        &              +timeFormation                                                                                                                                                 &
+                        &              -basicChild   %time()                                                                                                                                          &
                         &             )
                    if (massProgenitor >= ludlow2016States(ludlow2016StateCount)%massLimit) &
-                        & massBranch=+massBranch              &
+                        & massBranch=+massBranch                                           &
                         &            +massProgenitor
                 else
                    ! No interpolation in mass for non-primary progenitors.
-                   massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                    &
-                        &                                                nodeChild                                                                                      , &
-                        &                                             +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                               &
-                        &                                             *(                                                                                                  &
+                   massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                                            &
+                        &                                                nodeChild                                                                                                              , &
+                        &                                             +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                          &
+                        &                                             *(                                                                                                                          &
                         &                                               +ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicChild%time())     &
                         &                                               /ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=           1.0d0 )     &
-                        &                                              )                                                                                             **2  &
+                        &                                              )                                                                                             **2                          &
                         &                                             *  ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%expansionFactor       (                basicChild%time())**3  &
                         &                                            )
                    if (massProgenitor >= ludlow2016States(ludlow2016StateCount)%massLimit) &
-                        & massBranch=+massBranch              &
+                        & massBranch=+massBranch                                           &
                         &            +massProgenitor 
                 end if
              end if
              nodeChild => nodeChild%sibling
           end do
        else if (.not.associated(nodeBranch%firstChild).and.basicBranch%time() == timeFormation) then
-          massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                     & 
-               &                                                nodeBranch                                                                                      , &
-               &                                             +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                                &
-               &                                             *(                                                                                                   &
+          massProgenitor=Dark_Matter_Profile_Mass_Definition(                                                                                                                             & 
+               &                                                nodeBranch                                                                                                              , &
+               &                                             +  ludlow2016States(ludlow2016StateCount)%self                    %densityContrast                                           &
+               &                                             *(                                                                                                                           &
                &                                               +ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicBranch%time())     &
                &                                               /ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=            1.0d0 )     &
-               &                                              )                                                                                              **2  &
+               &                                              )                                                                                              **2                          &
                &                                             *  ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_%expansionFactor       (                basicBranch%time())**3  &
                &                                            )
           if (massProgenitor >= ludlow2016States(ludlow2016StateCount)%massLimit) &
-               & massBranch=+massBranch              &
+               & massBranch=+massBranch                                           &
                &            +massProgenitor
        end if
     end do
-    ludlow2016FormationTimeRoot=+massBranch                       &
+    ludlow2016FormationTimeRoot=+massBranch                                                    &
          &                      -ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic
     return
   end function ludlow2016FormationTimeRoot

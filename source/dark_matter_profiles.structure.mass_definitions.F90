@@ -33,36 +33,62 @@ contains
     use Dark_Matter_Profiles
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
+    use Numerical_Comparison
+    use Virial_Density_Contrast
+    use Math_Exponentiation
     implicit none
-    double precision                                                    :: massHalo
-    type            (treeNode                )          , intent(inout) :: node
-    double precision                                    , intent(in   ) :: densityContrast
-    double precision                          , optional, intent(  out) :: radius              , velocity
-    class           (nodeComponentBasic      ), pointer                 :: basic
-    class           (cosmologyParametersClass), pointer                 :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                 :: cosmologyFunctions_
-    class           (darkMatterProfileClass  ), pointer                 :: darkMatterProfile_
-    double precision                                                    :: radiusHalo          , density
-    
+    double precision                                                      :: massHalo
+    type            (treeNode                  )          , intent(inout) :: node
+    double precision                                      , intent(in   ) :: densityContrast
+    double precision                            , optional, intent(  out) :: radius                , velocity
+    class           (nodeComponentBasic        ), pointer                 :: basic
+    class           (cosmologyParametersClass  ), pointer                 :: cosmologyParameters_
+    class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
+    class           (darkMatterProfileClass    ), pointer                 :: darkMatterProfile_
+    double precision                                                      :: radiusHalo            , density
+    class           (virialDensityContrastClass), pointer                 :: virialDensityContrast_
+
     ! Get required objects.
-    cosmologyParameters_ =>  cosmologyParameters      ()
-    cosmologyFunctions_  =>  cosmologyFunctions       ()
-    darkMatterProfile_   =>  darkMatterProfile        ()
-    basic                =>  node               %basic()
+    cosmologyParameters_   =>  cosmologyParameters        ()
+    cosmologyFunctions_    =>  cosmologyFunctions         ()
+    darkMatterProfile_     =>  darkMatterProfile          ()
+    virialDensityContrast_ =>  virialDensityContrast      ()
+    basic                  =>  node                 %basic()
     ! Compute the density from the density contrast.
-    density              =  +densityContrast                                       &
-         &                  *cosmologyParameters_%omegaMatter    (            )    &
-         &                  *cosmologyParameters_%densityCritical(            )    &
-         &                  /cosmologyFunctions_ %expansionFactor(basic%time())**3
-    ! Get the radius in the halo enclosing this density.
-    radiusHalo           =   darkMatterProfile_%radiusEnclosingDensity(node,density   )
-    ! Find the mass within that radius - this is computable directly from the mean density and the radius enclosing that mean
-    ! density.
-    massHalo             =  +4.0d0         &
-         &                  *Pi            &
-         &                  *density       &
-         &                  *radiusHalo**3 &
-         &                  /3.0d0    
+    density                =  +densityContrast                                       &
+         &                    *cosmologyParameters_%omegaMatter    (            )    &
+         &                    *cosmologyParameters_%densityCritical(            )    &
+         &                    /cosmologyFunctions_ %expansionFactor(basic%time())**3
+    ! Check if requested density contrast matches the virial density contrast.
+    if     (                                                                                                   &
+         &  Values_Agree(                                                                                      &
+         &                      virialDensityContrast_%densityContrast(basic%mass(),basic%timeLastIsolated()), &
+         &                                             densityContrast                                       , &
+         &               relTol=1.0d-6                                                                         &
+         &              )                                                                                      &
+         & ) then
+       ! Requested density contrast is just the virial density contrast.
+       massHalo=basic%mass()
+       if (present(radius).or.present(velocity)) &
+            & radiusHalo=+cubeRoot(              &
+            &                      +3.0d0        &
+            &                      /4.0d0        &
+            &                      /Pi           &
+            &                      *massHalo     &
+            &                      /density      &
+            &                     )
+    else
+       ! Mismatched density contrast definitions - compute the mass directly.
+       ! Get the radius in the halo enclosing this density.
+       radiusHalo           =   darkMatterProfile_%radiusEnclosingDensity(node,density   )
+       ! Find the mass within that radius - this is computable directly from the mean density and the radius enclosing that mean
+       ! density.
+       massHalo             =  +4.0d0         &
+            &                  *Pi            &
+            &                  *density       &
+            &                  *radiusHalo**3 &
+            &                  /3.0d0    
+    end if
     ! If necesary, return the radius and circular velocity also.
     if (present(radius  )) radius  =radiusHalo
     if (present(velocity)) velocity=sqrt(gravitationalConstantGalacticus*massHalo/radiusHalo)
