@@ -61,7 +61,7 @@ module Input_Parameters
   type :: genericObjectList
      !% A list-type for unlimited polymorphic pointers.
      private
-     class(*), pointer :: object
+     class(*), pointer :: object => null()
   end type genericObjectList
 
   type :: inputParameter
@@ -708,7 +708,7 @@ contains
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
        !$ if (parametersObjectBuildIsPrivate) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(0)+1
+       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
        !$ else
              instance=                               0
        !$ end if
@@ -732,7 +732,7 @@ contains
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
        !$ if (parametersObjectBuildIsPrivate) then
-       !$    instance=OMP_Get_Ancestor_Thread_Num(0)+1
+       !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
        !$ else
              instance=                               0
        !$ end if
@@ -754,7 +754,7 @@ contains
     
     !$omp critical (inputParameterObjects)
     !$ if (parametersObjectBuildIsPrivate) then
-    !$    instance=OMP_Get_Ancestor_Thread_Num(0)+1
+    !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
     !$ else
           instance=                               0 
     !$ end if
