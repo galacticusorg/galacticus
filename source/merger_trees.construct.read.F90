@@ -160,7 +160,8 @@ module Merger_Tree_Read
 
   ! Subresolution merging.
   logical                                                                                              :: subresolutionMergingInitialized          =.false.
-  class           (satelliteMergingTimescalesClass    ), pointer                                       :: subresolutionSatelliteMergingTimescales                                               
+  class           (satelliteMergingTimescalesClass    ), pointer                                       :: subresolutionSatelliteMergingTimescales
+  !$omp threadprivate(subresolutionMergingInitialized,subresolutionSatelliteMergingTimescales)
 
   ! Iterator object for iterating over progenitor nodes.
   type :: progenitorIterator
@@ -247,8 +248,8 @@ contains
        !# <inputParameter>
        !#   <name>mergerTreeReadForestSizeMaximum</name>
        !#   <cardinality>1</cardinality>
-       !#   <defaultValue>huge(0_c_size_t)</defaultValue>
-       !#   <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually.</description>
+       !#   <defaultValue>0_c_size_t</defaultValue>
+       !#   <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.</description>
        !#   <source>globalParameters</source>
        !#   <type>integer</type>
        !# </inputParameter>
@@ -3076,8 +3077,8 @@ contains
     if (.not.subresolutionMergingInitialized) then
        !$omp critical(Time_Until_Merging_Subresolution_Initialize)
        if (.not.subresolutionMergingInitialized) then
-          ! Construct the satellite merging timescale object.          
-          !# <objectBuilder class="satelliteMergingTimescales" name="subresolutionSatelliteMergingTimescales" parameterName="mergerTreeReadSubresolutionMergingMethod" source="globalParameters">
+          ! Construct the satellite merging timescale object.
+          !# <objectBuilder class="satelliteMergingTimescales" name="subresolutionSatelliteMergingTimescales" parameterName="mergerTreeReadSubresolutionMergingMethod" source="globalParameters" threadPrivate="yes">
           !#  <default>
           !#   <mergerTreeReadSubresolutionMergingMethod value="zero"/>
           !#  </default>
