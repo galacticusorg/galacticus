@@ -116,17 +116,21 @@ contains
     class           (mergerTreeOperatorPruneByTime), intent(inout)          :: self
     type            (mergerTree                   ), intent(inout), target  :: tree
     type            (treeNode                     )               , pointer :: node              , nodeChild   , &
-         &                                                                     nodeNew           , nodePrevious
+         &                                                                     nodeNew           , nodeNext
     class           (nodeComponentBasic           )               , pointer :: basic             , basicParent , &
          &                                                                     basicChild
     type            (mergerTreeWalkerIsolatedNodes)                         :: treeWalker
     double precision                                                        :: massNow           , massParent  , &
          &                                                                     timeNow           , timeParent  , &
          &                                                                     massAtTimeEarliest
+    logical                                                                    nodesRemain
     
     ! Iterate over nodes.
-    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
-    do while (treeWalker%next(node))
+    treeWalker =mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    nodesRemain=treeWalker%next(nodeNext)
+    do while (nodesRemain)
+       node        =>                 nodeNext
+       nodesRemain =  treeWalker%next(nodeNext)
        ! Skip this node if it is the root node.
        if (associated(node%parent)) then
           ! Get basic components.
@@ -161,8 +165,6 @@ contains
                   &  .and.                                   &
                   &   massAtTimeEarliest <= self%massMaximum &
                   & ) then
-                ! Update walker to the previous node.
-                call treeWalker%previous(nodePrevious)
                 ! Create new node.
                 nodeNew => treeNode(hostTree=node%hostTree)
                 call nodeNew%indexSet(node%index())
