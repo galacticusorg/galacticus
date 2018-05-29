@@ -754,7 +754,7 @@ contains
     type            (treeNode                     ), intent(inout)            , pointer :: node                         , primaryProgenitorNode
     type            (treeNode                     )                           , pointer :: nodeCurrent                  , nodePrevious                  , &
          &                                                                                 nodeNonOverlap               , nodeNonOverlapFirst           , &
-         &                                                                                 nodeSatellite
+         &                                                                                 nodeSatellite                , nodeNext
     class           (nodeComponentBasic           )                           , pointer :: basicCurrent                 , basicSort
     type            (mergerTree                   ), intent(inout)            , target  :: tree                         , treeBest
     logical                                        , intent(inout)                      :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
@@ -766,11 +766,11 @@ contains
     double precision                               , intent(in   )                      :: tolerance
     integer                                        , intent(inout)                      :: nodeChildCount
     type            (treeNodeList                 ), dimension(nodeChildCount)          :: endNodes
-    type            (mergerTreeWalkerIsolatedNodes) :: treeWalker
+    type            (mergerTreeWalkerIsolatedNodes)                                     :: treeWalker
     integer                                                                             :: i                            , j                             , &
          &                                                                                 endNodesSorted
     logical                                                                             :: treeAccepted                 , nodeMassesAgree               , &
-         &                                                                                 nodeCurrentBelowAll
+         &                                                                                 nodeCurrentBelowAll          , nodesRemain
     double precision                                                                    :: treeCurrentWorstFit
     type            (varying_string               )                                     :: message
     character       (len=12                       )                                     :: label
@@ -782,7 +782,10 @@ contains
     endNodesSorted                =  1
     ! Walk through the tree identifying end-nodes.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree)
-    do while (treeWalker%next(nodeCurrent))
+    nodesRemain=treeWalker%next(nodeNext)
+    do while (nodesRemain)
+       nodeCurrent =>                 nodeNext
+       nodesRemain =  treeWalker%next(nodeNext)
        ! Initialize the current node.
        basicCurrent         => nodeCurrent%basic   ()
        nodeCurrent%hostTree => node       %hostTree
@@ -871,7 +874,7 @@ contains
        end if
        ! Add the non-overlap node (which is either the current node, or the one it pushed off the end of the most-massive nodes
        ! list) to the list of non-overlap nodes.
-       if (.not.extendingEndNode) call augmentNonOverlapListAdd(nodeNonOverlap,nodeNonOverlapFirst)
+       if (.not.extendingEndNode) call augmentNonOverlapListAdd(nodeNonOverlap,nodeNonOverlapFirst)       
     end do
     endNodesSorted=endNodesSorted-1
     ! Test for mass-matches between overlap nodes.
