@@ -9,7 +9,7 @@
   <baseParameters>testSuite/test-outputs-base.xml</baseParameters>
   <launchMethod>pbs</launchMethod>
   <pbs>
-    <ompThreads>12</ompThreads>
+    <ompThreads>16</ompThreads>
     <maxJobsInQueue>40</maxJobsInQueue>
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
@@ -20,14 +20,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputDensityContrastData value="true"/>
-    <outputDensityContrastDataDarkOnly>
-      <value>false</value>
-      <value>true</value>
-    </outputDensityContrastDataDarkOnly>
-    <outputDensityContrastValues>
-      <value>200</value>
-      <value>200 500</value>
-    </outputDensityContrastValues>
+    <outputDensityContrastDataDarkOnly value="false"/>
+    <outputDensityContrastDataDarkOnly value="true"/>
+    <outputDensityContrastValues value="200"/>
+    <outputDensityContrastValues value="200 500"/>
   </parameters>
 
   <!-- Mass accretion histories -->
@@ -49,14 +45,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputHalfMassData>
-      <value>true
-      <outputVirialData>
-	<value>false</value>
-	<value>true</value>
-      </outputVirialData>
-      </value>
-    </outputHalfMassData>
+    <outputHalfMassData value="true"/>
+    <outputVirialData value="false"/>
+    <outputVirialData value="true"/>
   </parameters>
   
   <!-- Rotation curves -->
@@ -65,8 +56,7 @@
     <version>0.9.4</version>
     <outputRotationCurveData value="true"/>
     <outputVirialData value="true"/>
-    <outputRotationCurveRadii>
-      <value>
+    <outputRotationCurveRadii value="
 	diskHalfMassRadius:all:all:loaded:0.1
 	diskHalfMassRadius:all:all:loaded:0.173
 	diskHalfMassRadius:all:all:loaded:0.3
@@ -283,8 +273,7 @@
 	darkMatterScaleRadius:spheroid:baryonic:loaded:3.0
 	darkMatterScaleRadius:spheroid:baryonic:loaded:5.477
 	darkMatterScaleRadius:spheroid:baryonic:loaded:10.0
-      </value>
-    </outputRotationCurveRadii>
+      "/>
   </parameters>
 
   <!-- Velocity dispersions -->
@@ -301,12 +290,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputProjectedDensityData value="true"/>
-    <outputProjectedDensityRadii>
-      <value>
+    <outputProjectedDensityRadii value="
 	virialRadius:all:dark:loaded:1.0
 	darkMatterScaleRadius:all:dark:loaded:1.0
-      </value>
-    </outputProjectedDensityRadii>
+	"/>
   </parameters>
 
   <!-- Satellite orbits -->

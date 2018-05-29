@@ -20,6 +20,19 @@ system("find aux/Grasil -type f -not -name \"grasilExample.par\" -delete");
 system("cd ..; export OMP_NUM_THREADS=1; scripts/aux/launch.pl testSuite/parameters/test-Grasil.xml");
 system("cd ..; bunzip2 testSuite/outputs/test-Grasil/galacticus_*/galacticus.hdf5.bz2");
 
+# Check for failed models.
+system("grep -q -i fatal outputs/test-Grasil/galacticus_*/galacticus.log");
+if ( $? == 0 ) {
+    # Failures were found. Output their reports.
+    my @failures = split(" ",`grep -l -i fatal outputs/test-Grasil/galacticus_*/galacticus.log`);
+    foreach my $failure ( @failures ) {
+	print "FAILED: log from ".$failure.":\n";
+	system("cat ".$failure);
+    }
+} else {
+    print "SUCCESS!\n";
+}
+
 # Open the model output.
 my $model = new PDL::IO::HDF5("outputs/test-Grasil/galacticus_0:1/galacticus.hdf5");
 

@@ -198,45 +198,40 @@ The {\normalfont \ttfamily runFile} is an XML file with the following structure:
                   
  <parameters>
   <label>modelLabel</label>
-  <stabilityThresholdStellar</stabilityThresholdStellar>
-   <value>1.1</value>
-   <value>0.9</value>
-  </stabilityThresholdStellar>
+  <stabilityThresholdStellar value="1.1"/>
+  <stabilityThresholdStellar value="0.9"/>
  </parameters>
+
  <parameters>
-  <stabilityThresholdGaseous>
-   <value>1.1</value>
-   <value>0.9</value>
-  </stabilityThresholdGaseous>
-  <imfSalpeterYieldInstantaneous>
-   <value>0.02</value>
-   <value>0.04</value>
-  </imfSalpeterYieldInstantaneous>
-  <imfSelectionFixed>
-   <value>Salpeter</value>
-   <value>Chabrier</value>
-  </imfSelectionFixed>
-  <starFormationTimescaleDisksMethod>
-   <value>Kennicutt-Schmidt
-    <starFormationKennicuttSchmidtTruncate>
-     <value>true</value>
-     <value>false
-     <imfSelectionFixed>
-      <modify>
-        <find>^(.*)</find>
-        <replace>\1Truncated</replace>
-      </modify>
-     </imfSelectionFixed>
-    </starFormationKennicuttSchmidtTruncate>
-   </value>
-   <value>dynamicalTime</value>
-  </starFormationTimescaleDisksMethod>
+  <starFormationFeedbackDisksMethod value="powerLaw">
+   <exponent value="2.5"/>
+   <exponent value="3.0"/>
+  </starFormationFeedbackDisksMethod>
+  <starFormationFeedbackDisksMethod value="creasey2012"/>
  </parameters>
+
+ <parameters>
+  <imfSelectionMethod value="fixed">
+    <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
+    <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
+  </imfSelectionMethod>
+  <imfSelectionMethod value="diskSpheroid">
+    <imfSelectionDisk     value="Chabrier"  parameterLevel="top"/>
+    <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
+  </imfSelectionMethod>
+ </parameters>
+
+ <parameters>
+   <coolingFunctionMethod value="summation">
+     <coolingFunctionMethod value="atomicCIECloudy"             iterable="no"/>
+     <coolingFunctionMethod value="CMBCompton"                  iterable="no"/>
+     <coolingFunctionMethod value="molecularHydrogenGalliPalla" iterable="no"/>
+   </coolingFunctionMethod>
+ </parameters>
+
 </parameterGrid>
 \end{verbatim}
-Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\normalfont \ttfamily values}. A model will be run for all possible combinations of these values. Additionally, any {\normalfont \ttfamily value} element may contain further parameter elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\normalfont \ttfamily [starFormationKennicuttSchmidtTruncate]}$=${\normalfont \ttfamily true} and {\normalfont \ttfamily false} only when {\normalfont \ttfamily [starFormationTimescaleDisksMethod]}$=${\normalfont \ttfamily Kennicutt-Schmidt} and not when {\normalfont \ttfamily [starFormationTimescaleDisksMethod]}$=${\normalfont \ttfamily dynamicalTime}.
-
-It is also possible to set the value of a parameter by modifying the current value using a Perl regular expression. This is done by given a {\normalfont \ttfamily modify} element instead of a {\normalfont \ttfamily value} element in the parameter definition. The {\normalfont \ttfamily modify} element must contain {\normalfont \ttfamily find} and {\normalfont \ttfamily replace} elements, the first of which must be a valid Perl regular expression, and the second of which must specify the replacement text. In the above example, the {\normalfont \ttfamily parameters} block specifies that models are two be run for {\normalfont \ttfamily [imfSelectionFixed]}$=${\normalfont \ttfamily Salpeter} and {\normalfont \ttfamily Chabrier}. However, for the case of {\normalfont \ttfamily [starFormationKennicuttSchmidtTruncate]}$=${\normalfont \ttfamily false} these parameters will be modified by suffixing them with ``{\normalfont \ttfamily Truncated}''.
+Each {\normalfont \ttfamily parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can appear multiple times, each time with a different {\normalfont \ttfamily value} attribute, as is the case for {\normalfont \ttfamily stabilityThresholdStellar} in the first {\normalfont \ttfamily parameters} element in the above. A model will be run for all possible combinations of these values. For nested parameters with multiple values, all possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the second {\normalfont \ttfamily parameters} element in the above example, models will be run with subparameter {\normalfont \ttfamily [exponent]}$=${\normalfont \ttfamily 2.5} and {\normalfont \ttfamily 3.5} for the {\normalfont \ttfamily starFormationFeedbackDisksMethod} element only when {\normalfont \ttfamily [starFormationFeedbackDisksMethod]}$=${\normalfont \ttfamily powerLaw} and not when {\normalfont \ttfamily [starFormationFeedbackDisksMethod]}$=${\normalfont \ttfamily creasey2012}. It is also possible to specify that subparameter should be promoted to the top-level of the parameter file. In the third {\normalfont \ttfamily parameters} element in the above example, {\normalfont \ttfamily imfSelectionFixed} will take on values of {\normalfont \ttfamily Chabrier} and {\normalfont \ttfamily Salpeter} only when {\normalfont \ttfamily imfSelectionMethod}$=${\normalfont \ttfamily fixed}, and the {\normalfont \ttfamily imfSelectionFixed} element will be promoted from a sub-parameter of {\normalfont \ttfamily imfSelectionMethod} to the top-level of the parameter file due to the presence of the \verb|parameterLevel="top"| attribute. Finally in some cases a parameter which appears multiple times is not to be iterated over. In the fourth {\normalfont \ttfamily parameters} element in the above example, this is the case for the {\normalfont \ttfamily coolingFunctionMethod} subparameters. The addition of an \verb|iterable="no"| attribute specifies that these parameters are not to be iterated over, but simply left as they are.
 
 Some variables, which are expanded at run time, are available. These include:
 \begin{description}

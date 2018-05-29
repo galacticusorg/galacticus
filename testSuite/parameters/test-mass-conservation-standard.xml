@@ -91,7 +91,6 @@
       <mergeProbability value="0.1"/>
       <redshiftMaximum value="10.0"/>
       <accretionLimit value="0.1"/>
-      <randomSeedsFixed value="true"/>
     </mergerTreeBuilderMethod>
     <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
       <G0                      value="+0.570"/>

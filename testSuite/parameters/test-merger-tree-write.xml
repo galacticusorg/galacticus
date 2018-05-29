@@ -9,7 +9,7 @@
   <baseParameters>testSuite/parameters/test-merger-tree-write-base.xml</baseParameters>
   <launchMethod>pbs</launchMethod>
   <pbs>
-    <ompThreads>12</ompThreads>
+    <ompThreads>16</ompThreads>
     <maxJobsInQueue>1</maxJobsInQueue>
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
@@ -17,50 +17,37 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructMethod>
-      <value>build
-      <mergerTreeOperatorMethod value="export">
+    <mergerTreeConstructMethod value="build">
+      <mergerTreeOperatorMethod value="export" parameterLevel="top">
 	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
 	<exportFormat   value="galacticus"                                                    />
       </mergerTreeOperatorMethod>
-      </value>
-      <value>read
-      <mergerTreeReadFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
-      <mergerTreeReadPresetSubhaloIndices value="false"/>
-      <mergerTreeReadPresetOrbits value="false"/>
-      <mergerTreeReadPresetMergerTimes value="false"/>
-      <mergerTreeReadPresetMergerNodes value="false"/>
-      <mergerTreeReadPresetSubhaloMasses value="false"/>
-      <mergerTreeReadPresetPositions value="false"/>
-      <mergerTreeReadPresetScaleRadii value="false"/>
-      <mergerTreeReadPresetSpins value="false"/>
-      </value>
-      <value>read
-      <mergerTreeReadFileName value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5"/>
-      <allTreesExistAtFinalTime value="false"/>
-      <cosmologyParametersMethod value="simple">
+    </mergerTreeConstructMethod>
+    <mergerTreeConstructMethod value="read">
+      <mergerTreeReadFileName value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5" parameterLevel="top"/>
+      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
+      <cosmologyParametersMethod value="simple" parameterLevel="top">
 	<OmegaMatter value="0.25"/>
 	<OmegaDarkEnergy value="0.75"/>
 	<OmegaBaryon value="0.045"/>
 	<HubbleConstant value="73.0"/>
       </cosmologyParametersMethod>
-      <cosmologicalMassVarianceMethod value="filteredPower">
+      <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
 	<sigma_8 value="0.9"/>
       </cosmologicalMassVarianceMethod>
-      <treeNodeMethodPosition value="preset"/>
-      <mergerTreeOperatorMethod value="export">
+      <treeNodeMethodPosition value="preset" parameterLevel="top"/>
+      <mergerTreeOperatorMethod value="export" parameterLevel="top">
 	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
 	<exportFormat   value="irate"                                                           />
       </mergerTreeOperatorMethod>
-      <mergerTreeReadPresetOrbits value="false"/>
-      <mergerTreeReadPresetMergerTimes value="false"/>
-      <mergerTreeReadPresetSubhaloIndices value="false"/>
-      <mergerTreeReadPresetMergerNodes value="false"/>
-      <mergerTreeReadPresetSubhaloMasses value="false"/>
-      <mergerTreeReadPresetPositions value="true"/>
-      <mergerTreeReadPresetScaleRadii value="false"/>
-      <mergerTreeReadPresetSpins value="false"/>
-      </value>
+      <mergerTreeReadPresetOrbits value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetMergerTimes value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetSubhaloIndices value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetMergerNodes value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetSubhaloMasses value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetPositions value="true" parameterLevel="top"/>
+      <mergerTreeReadPresetScaleRadii value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetSpins value="false" parameterLevel="top"/>
     </mergerTreeConstructMethod>
   </parameters>
 </parameterGrid>

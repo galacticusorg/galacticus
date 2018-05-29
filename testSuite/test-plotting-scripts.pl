@@ -10,6 +10,21 @@ system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-plotting-scripts.
 system("cd ..; bunzip2 testSuite/outputs/test-plotting-scripts/galacticus_*/galacticus.hdf5.bz2")
     if ( -e "../testSuite/outputs/test-plotting-scripts/galacticus_*/galacticus.hdf5.bz2" );
 
+
+# Check for failed models.
+system("grep -q -i fatal outputs/test-plotting-scripts/galacticus_*/galacticus.log");
+if ( $? == 0 ) {
+    # Failures were found. Output their reports.
+    my @failures = split(" ",`grep -l -i fatal outputs/test-plotting-scripts/galacticus_*/galacticus.log`);
+    foreach my $failure ( @failures ) {
+	print "FAILED: log from ".$failure.":\n";
+	system("cat ".$failure);
+    }
+} else {
+    print "SUCCESS!\n";
+}
+
+
 # Run plotting commands.
 my @plottingScripts =
     (
