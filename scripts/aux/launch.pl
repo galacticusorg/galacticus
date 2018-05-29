@@ -16,6 +16,7 @@ use Galacticus::Launch::PBS;
 use Galacticus::Launch::MonolithicPBS;
 use Galacticus::Launch::Slurm;
 use List::ExtraUtils;
+use Scalar::Util 'reftype';
 
 # Script to launch sets of Galacticus models, iterating over sets of parameters and performing analysis
 # on the results. Supports launching on a variety of platforms via modules.
@@ -66,7 +67,7 @@ exit;
 sub Construct_Models {
     # Constructs model directories and parameter files. Returns an array of model jobs.
     # Get arguments script.
-    my $launchScript  = shift;
+    my $launchScript = shift();
     # Set initial value of random seed.
     my $randomSeed   = 219;
     # Initialize a model counter.
@@ -83,11 +84,11 @@ sub Construct_Models {
 	$modelBaseName    = $parameterSet->{'label'}
 	   if ( exists($parameterSet->{'label'}) );
 	# Create an array of hashes giving the parameters for this parameter set.
-	my @parameterHashes = &Create_Parameter_Hashes($parameterSet);
+	my @parameterSets = &unfoldParameters($parameterSet);
 	# Loop over all models and run them.
 	my $iModel     = 0;
 	my $mergeGroup = 0;
-	foreach my $parameterData ( @parameterHashes ) {
+	foreach my $parameterData ( @parameterSets ) {
 	    ++$mergeGroup;
 	    # Split the job across multiple workers if needed.
 	    for(my $workerInstance=1;$workerInstance<=$launchScript->{'splitModels'};++$workerInstance) {
@@ -104,16 +105,13 @@ sub Construct_Models {
 		    $parameterData->{'treeEvolveWorkerCount' }->{'value'} = $launchScript->{'splitModels'};
 		}
 		# Specify the output directory.
-		my $modelLabel    = exists($parameterData->{'label'}) ? $parameterData->{'label'}->[0]->{'value'} : $iModelSet.":".$iModel;
+		my $modelLabel    = exists($parameterData->{'label'}) ? $parameterData->{'label'}->{'value'} : $iModelSet.":".$iModel;
 		my $galacticusOutputDirectory = $launchScript->{'modelRootDirectory'}
 		."/".$modelBaseName."_".$modelLabel;
 		# Change output directory name to an md5 hash if so requested.
 		my $descriptor;
 		if ( $launchScript->{'md5Names'} eq "yes" ) {
-		    foreach my $parameter ( keys(%{$parameterData}) ) {
-			$descriptor .= $parameter.":".$parameterData->{$parameter}->{'value'}.":";
-		    }
-		    my $md5 = md5_hex($descriptor);
+		    my $md5 = md5_hex(Dumper($parameterData));
 		    $galacticusOutputDirectory =  $launchScript->{'modelRootDirectory'}
 		    ."/".$modelBaseName."_".$md5;
 		}
@@ -136,43 +134,28 @@ sub Construct_Models {
 		    my $parameters;
 		    unless ( $launchScript->{'baseParameters'} eq "" ) {
 			my $xml  = new XML::Simple;
-			my $data = $xml->XMLin($launchScript->{'baseParameters'});
-			foreach my $parameterName ( keys(%{$data}) ) {
-			    $parameters->{$parameterName}->[0] = $data->{$parameterName}
-			        if ( reftype($data->{$parameterName}) );
-			}
+			$parameters = $xml->XMLin($launchScript->{'baseParameters'});
 		    }
 		    # Set the output file name.
-		    $parameters->{'galacticusOutputFileName'}->[0]->{'value'} 
+		    $parameters->{'galacticusOutputFileName'}->{'value'} 
 		        = &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'outputFileName'}}
 		           ($galacticusOutputFile,$launchScript);
 		    # Set the random seed.
-		    $parameters->{'randomSeed'}->[0]->{'value'} = $randomSeed 
+		    $parameters->{'randomSeed'}->{'value'} = $randomSeed 
 			unless ( exists($parameters->{'randomSeed'}) );
 		    # Set a state restore file.
 		    if ( $launchScript->{'useStateFile'} eq "yes" ) {
-			(my $stateFile = $parameters->{'galacticusOutputFileName'}->[0]->{'value'}) =~ s/\.hdf5//;
-			$parameters->{'stateFileRoot'}->[0]->{'value'} = $stateFile;
+			(my $stateFile = $parameters->{'galacticusOutputFileName'}->{'value'}) =~ s/\.hdf5//;
+			$parameters->{'stateFileRoot'}->{'value'} = $stateFile;
 		    }
-		    # Transfer parameters for this model from the array of model parameter hashes to the
-		    # active hash.
+		    # Transfer parameters for this model to the active parameter set.
 		    foreach my $parameter ( keys(%{$parameterData}) ) {
-			$parameters->{$parameter} = $parameterData->{$parameter}
-			   unless ( $parameterData->{$parameter} =~ m/^\s*\%\%nochange\%\%\s*$/ );
+		    	$parameters->{$parameter} = $parameterData->{$parameter};
 		    }
-		    # Transfer values from the active hash to an array suitable for XML output.
-		    my $data;
-		    foreach my $name ( sort(keys(%{$parameters})) ) {
-			$data->{$name} = $parameters->{$name};
-			foreach ( @{$data->{$name}} ) {			    
-			    $_->{'value'} =~ s/\%\%galacticusOutputPath\%\%/$galacticusOutputDirectory/g
-				unless ( ! exists($_->{'value'}) || $name eq "label" );
-			}
-		    }  
 		    # Output the parameters as an XML file.
 		    my $xmlOutput = new XML::Simple (RootName=>"parameters");
 		    open(outHndl,">".$galacticusOutputDirectory."/parameters.xml");
-		    print outHndl $xmlOutput->XMLout($data);
+		    print outHndl $xmlOutput->XMLout($parameters);
 		    close(outHndl);
 		    undef($parameters);
 		    # Generate analysis code for this job.
@@ -202,197 +185,128 @@ sub Construct_Models {
     return @jobs;
 }
 
-sub Create_Parameter_Hashes {
+sub unfoldParameters {
     # Create an array of hashes which give the parameter values for each model.
-    # Get the input parameters structure.
-    my $parameterSet = shift;
-    # Convert to a more convenient hash structure.
-    my $hash = &Parameters_To_Hash($parameterSet);
-    # Populate an array of hashes with this initial hash.
-    my @toProcessHashes = ( $hash );
-    my @processedHashes;
-    # Flatten the hash.
-    while ( scalar(@toProcessHashes) > 0 ) {
-	# Shift the first hash off the array.
-	my $hash = shift(@toProcessHashes);
-	# Record of whether this hash is flat. Assume it is initially.
-	my $isFlat = 1;
-	# Create a stack of parameters.
-	my @stack = map {$hash->{$_}} keys(%{$hash});
-	# Iterate over parameters.
-	while ( scalar(@stack) > 0 ) {
-	    # Pop a node array from the stack.
-	    my $nodeArray = pop(@stack);
-	    # Iterate over nodes.
-	    foreach my $node ( @{$nodeArray} ) {		
-		# Push any subparameters onto the stack.
-		push(@stack,map {$node->{'subParameters'}->{$_}} keys(%{$node->{'subParameters'}}))
-		    if ( exists($node->{'subParameters'}) );
-		# Check for non-flat structure.
-		if ( exists($node->{'values'}) && scalar(@{$node->{'values'}}) > 1 ) {
-		    # Parameter has multiple values. Iterate over them, generating a new hash for each value, and
-		    # push these new hashes back onto the stack.
-		    my @values = @{$node->{'values'}};
-		    foreach my $value ( @values ) {
-			@{$node->{'values'}} = ( $value );
-			my $newHash = clone($hash);
-			push(
-			    @toProcessHashes,
-			    $newHash
-			);
-		    }
-		    $isFlat = 0;
-		} elsif ( exists(${$node->{'values'}}[0]->{'subtree'}) ) {
-		    # Parameter has only one value, but it has sub-structure. Promote that substructure and push
-		    # the hash back onto the stack.
-		    foreach my $subName ( keys(%{${$node->{'values'}}[0]->{'subtree'}}) ) {		
-			# Look for parameter definitions which modify existing values, and apply them.			
-			my $subValuesCount = -1;
-			foreach my $subValues ( @{${$node->{'values'}}[0]->{'subtree'}->{$subName}}  ) {
-			    ++$subValuesCount;
-			    foreach my $subValue ( @{$subValues->{'values'}} ) {
-				if ( $subValue->{'value'} =~ m/\%\%modify\%\%([^\%]+)\%\%([^\%]+)\%\%/ ) {
-				    my $find        = $1;
-				    my $replaceBase = $2;
-				    my @newValues = @{$hash->{$subName}->{'values'}};
-				    foreach my $newValue ( @newValues ) {
-					if ( my @captures = $newValue->{'value'} =~ m/$find/ ) {
-					    my $replace = $replaceBase;
-					    for(my $i=scalar(@captures)-1;$i>=0;--$i) {
-						my $j = $i+1;
-						$replace =~ s/\\$j/$captures[$i]/g;
-					    }
-					    $newValue->{'value'} =~ s/$find/$replace/;
-					}
-				    }
-				    @{$subValues} = @newValues;
-				}
-			    }
-			    if ( $subName eq "label" && exists($hash->{$subName}) ) {
-				$hash->{$subName}->[$subValuesCount]->{'values'}->[0]->{'value'} .= "_".$subValues->{'values'}->[0]->{'value'};
-			    } else {
-				@{$hash->{$subName}->[$subValuesCount]->{'values'}} = @{$subValues->{'values'}};
-			    }
-			    $hash->{$subName}->[$subValuesCount]->{'subParameters'} = $subValues->{'subParameters'}
-			        if ( exists($subValues->{'subParameters'}) );
-			}
-		    }
-		    delete(${$node->{'values'}}[0]->{'subtree'});
-		    push(
-			@toProcessHashes,
-			$hash
-		    );
-		    $isFlat = 0;	
-		}
-	    }
-	    # Exit parameter iteration if the hash was found to be not flat.
-	    last
-		if ( $isFlat == 0 );
+    my $parameterSet = shift();
+    # Walk through the parameter structure, identifying any parameters which are arrays.
+    my @parametersIn  = (
+	{
+	    parameter => $parameterSet,
+	    parent    => undef(),
+	    name      => undef()
 	}
-	# If the hash is flat, then push it onto the processed hashes array.
-	push(
-	    @processedHashes,
-	    $hash
-	    ) if ( $isFlat == 1 );	
-    }
-    # Hashes are now flattened. Convert to simple form.
-    foreach my $hash ( @processedHashes ) {
-    	my @stack = map {$hash->{$_}} keys(%{$hash});	
-    	while ( scalar(@stack) > 0 ) {
-	    # Pop a node array from the stack.
-	    my $nodeArray = pop(@stack);
-	    # Iterate over nodes.
-	    foreach my $node ( @{$nodeArray} ) {
-		if ( exists($node->{'values'}->[0]->{'value'}) ) {
-		    my $value = $node->{'values'}->[0]->{'value'};
-		    $value =~ s/^\s*//;
-		    $value =~ s/\s*$//;
-		    $node->{'value'} = $value;
-		    delete($node->{'values'});
-		}
-		# Handle sub-parameters:
-		#  --> Transfer them out of the "subParameters" element so that they will be in the correct location in the output XML;
-		#  --> Push them onto the stack for conversion to simple form.
-		if ( exists($node->{'subParameters'}) ) {
-		    foreach ( keys(%{$node->{'subParameters'}}) ) {		    
-			$node->{$_} = $node->{'subParameters'}->{$_};		   
-			push(@stack,$node->{$_});
+	);
+    my @parametersIntermediate;
+    while ( scalar(@parametersIn) > 0 ) {
+	# Get a parameter set from the input list.
+	my $parameters = shift(@parametersIn);
+	# Walk through all parameters.
+	my @parameterStack = ( $parameters );
+	my $cloned         = 0;
+	while ( scalar(@parameterStack) > 0 ) {
+	    my $parameter = shift(@parameterStack);
+	    if ( ! reftype($parameter->{'parameter'}) ) {
+		# Simple parameter lacking subparameters - ignore.
+	    } elsif ( reftype($parameter->{'parameter'}) eq "ARRAY" ) {
+		# Duplicate the parameter structure, making a copy for each array element and push back onto the stack, unless
+		# explicitly forbidden, in which case just push the parameter onto the stack.
+		my $clonesAdded = 0;
+		my $parameterCopy = clone($parameter->{'parameter'});
+		foreach my $element ( @{$parameterCopy} ) {
+		    if ( exists($element->{'iterable'}) && $element->{'iterable'} eq "no" ) {
+			# Element is non-iterable, push onto the stack.
+			push(
+			    @parameterStack,
+			    {
+				parameter => $element              ,
+				parent    => $parameter->{'parent'},
+				name      => $parameter->{'name'  } 
+			    }
+			    );
+		    } else {
+			# Element is iterable - clone parameters.
+			$parameter->{'parent'}->{$parameter->{'name'}} = $element;
+			push(@parametersIn,clone($parameters));
+			$clonesAdded = 1;
 		    }
-		    delete($node->{'subParameters'});
 		}
+		if ( $clonesAdded ) {
+		    $cloned = 1;
+		    last;
+		}
+	    } elsif ( reftype($parameter->{'parameter'}) eq "HASH" ) {
+		# Contains sub-parameters. Push them to the parameter stack.
+		push(
+		    @parameterStack,
+		    {
+			parameter => $parameter->{'parameter'}->{$_},
+			parent    => $parameter->{'parameter'}      ,
+			name      =>                             $_
+		    }
+		    )
+		    foreach ( keys(%{$parameter->{'parameter'}}) );
 	    }
-    	}
+	}
+	push(@parametersIntermediate,$parameters->{'parameter'})
+	    unless ( $cloned );
     }
-    # Return the result.
-    return @processedHashes;
-}
-
-sub Parameters_To_Hash {
-    # Convert an input parameter structure (as read from a Galacticus parameters XML file) into a more convenient internal hash.
-    my $parameters = shift;
-    my $hash;
-    foreach my $name ( keys(%{$parameters}) ) {
-	next
-	    unless ( reftype($parameters->{$name}) );
-	# Iterate over all subelements of this node.
-	my $elementCounter = -1;
-	foreach my $element ( &List::ExtraUtils::as_array($parameters->{$name}) ) {
-	    my $subParameters;
-	    ++$elementCounter;
-	    foreach my $subElementName ( keys(%{$element}) ) { 
-		if ( $subElementName eq "value" ) {
-		    foreach my $value ( &List::ExtraUtils::as_array($element->{'value'}) ) {
-			if ( UNIVERSAL::isa($value,"HASH") ) {
-			    # This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
-			    push(
-				@{$hash->{$name}->[$elementCounter]->{'values'}},
-				{
-				    value   => $value->{'content'},
-				    subtree => &Parameters_To_Hash($value)
-				}
-				);
-			} else {
-			    # This value has no subtree, so just store the value.
-			    push(
-				@{$hash->{$name}->[$elementCounter]->{'values'}},
-				{
-				    value   => $value
-				}
-				);
-			}
+    # Parameter sets all now have single values of each parameter. Search for cases where a parameter's position in the parameter
+    # hierarchy should be moved.
+    my @parametersOut;
+    while ( scalar(@parametersIntermediate) > 0 ) {
+	my $parameters = shift(@parametersIntermediate);
+	my $modified   = 0;
+  	# Walk through all parameters.
+	my @parameterStack = 
+	    (
+	     {
+		 parameter => $parameters,
+		 parent    => undef(),
+		 name      => undef()
+	     }
+	    );
+	while ( scalar(@parameterStack) > 0 ) {
+	    my $parameter = shift(@parameterStack);
+	    if ( ! reftype($parameter->{'parameter'}) ) {
+		# Simple parameter lacking subparameters - ignore.
+	    } elsif ( reftype($parameter->{'parameter'}) eq "HASH" ) {
+		# Check for a hierarchy level attribute.
+		if ( exists($parameter->{'parameter'}->{'parameterLevel'}) ) {
+		    if ( $parameter->{'parameter'}->{'parameterLevel'} eq "top" ) {
+			# Move this parameter to the top of the parameter hierarchy.
+			delete($parameter->{'parameter'}->{'parameterLevel'});
+			$parameters->{$parameter->{'name'}} = $parameter->{'parameter'};
+			delete($parameter->{'parent'}->{$parameter->{'name'}});
+		    } else {
+			die("unknown parameterLevel");
 		    }
-		} elsif ( $subElementName eq "modify" ) {
-		    foreach my $modify ( &List::ExtraUtils::as_array($element->{'modify'}) ) {
-			if ( exists($modify->{'parameter'}) ) {
-			    # This modify of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
-			    push(
-				@{$hash->{$name}->[$elementCounter]->{'values'}},
-				{
-				    modify  => $modify->{'content'},
-				    subtree => &Parameters_To_Hash($modify)
-				}
-				);
-			} else {
-			    # This modify has no subtree, so just store the value.
-			    push(
-				@{$hash->{$name}->[$elementCounter]->{'values'}},
-				{
-				    value   => "\%\%modify\%\%".$modify->{'find'}."\%\%".$modify->{'replace'}."\%\%"
-				}
-				);
-			}
-		    }
+		    # Mark the parameters as modified and exit the parameter walk.
+		    $modified = 1;
+		    last;
 		} else {
-		    # For any other element, accumulate to set of subparameters.
-		    $subParameters->{$subElementName} = $element->{$subElementName};
+		    # Contains sub-parameters. Push them to the parameter stack.
+		    push(
+			@parameterStack,
+			{
+			    parameter => $parameter->{'parameter'}->{$_},
+			    parent    => $parameter->{'parameter'}      ,
+			    name      =>                             $_
+			}
+			)
+			foreach ( keys(%{$parameter->{'parameter'}}) );
 		}
 	    }
-	    # Process and attach any subparameters.
-	    $hash->{$name}->[$elementCounter]->{'subParameters'} = &Parameters_To_Hash($subParameters)
-		if ( $subParameters );	
- 	}
+	}
+	# Transfer parameters to the output list unless modified, in which case push them back onto our stack for further
+	# processing.
+	if ( $modified ) {
+	    push(@parametersIntermediate,$parameters);
+	} else {
+	    push(@parametersOut         ,$parameters);
+	}
     }
-    return $hash;
+    # Return the list of parameters.
+    return @parametersOut;
 }
 
 sub Parse_Launch_Script {

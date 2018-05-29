@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Defines a set of Galacticus models which explore exporting of merger trees. -->
+<!-- Andrew Benson                                                               -->
+<!-- 12-October-2012                                                             -->
+<parameterGrid>
+  <emailReport>no</emailReport>
+  <doAnalysis>no</doAnalysis>
+  <modelRootDirectory>testSuite/outputs/test-merger-tree-write-secondary</modelRootDirectory>
+  <baseParameters>testSuite/parameters/test-merger-tree-write-base.xml</baseParameters>
+  <launchMethod>pbs</launchMethod>
+  <pbs>
+    <ompThreads>16</ompThreads>
+    <maxJobsInQueue>1</maxJobsInQueue>
+    <postSubmitSleepDuration>1</postSubmitSleepDuration>
+    <jobWaitSleepDuration>10</jobWaitSleepDuration>
+  </pbs>
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <mergerTreeConstructMethod value="read">
+      <mergerTreeReadFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5" parameterLevel="top"/>
+      <mergerTreeReadPresetSubhaloIndices value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetOrbits value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetMergerTimes value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetMergerNodes value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetSubhaloMasses value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetPositions value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetScaleRadii value="false" parameterLevel="top"/>
+      <mergerTreeReadPresetSpins value="false" parameterLevel="top"/>
+    </mergerTreeConstructMethod>
+  </parameters>
+</parameterGrid>

@@ -9,7 +9,20 @@ use File::Which;
 # Andrew Benson (12-October-2012)
 
 # Run models.
-system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write.xml");
+system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write.xml; scripts/aux/launch.pl testSuite/parameters/test-merger-tree-write-secondary.xml");
+
+# Check for failed models.
+system("grep -q -i fatal outputs/test-merger-tree-write/galacticus_*/galacticus.log");
+if ( $? == 0 ) {
+    # Failures were found. Output their reports.
+    my @failures = split(" ",`grep -l -i fatal outputs/test-merger-tree-write/galacticus_*/galacticus.log`);
+    foreach my $failure ( @failures ) {
+	print "FAILED: log from ".$failure.":\n";
+	system("cat ".$failure);
+    }
+} else {
+    print "SUCCESS: model run\n";
+}
 
 # Validate the IRATE-format output.
 my $validator = &File::Which::which('iratevalidate');

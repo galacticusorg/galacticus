@@ -102,7 +102,6 @@
       <accretionLimit value="0.1" />
       <branchIntervalStep value="true" />
       <mergeProbability value="0.1" />
-      <randomSeedsFixed value="true" />
       <redshiftMaximum value="10.0" />
     </mergerTreeBuilderMethod>
     <mergerTreeConstructMethod value="build" />
@@ -192,7 +191,7 @@
     <virialOrbitMethod value="fixed" >
       <velocityRadial     value="-0.856" />
       <velocityTangential value="+0.842" />
-      <virialDensityContrastMethod>
+      <virialDensityContrastMethod value="fixed">
 	<densityContrastValue value="200.0"   />
 	<densityType          value="critical"/>
       </virialDensityContrastMethod>
