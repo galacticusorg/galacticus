@@ -30,12 +30,12 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
      !% A critical overdensity class based on spherical collapse in a matter plus cosmological constant universe.
      private
-     logical                                                :: tableInitialized
-     double precision                                       :: tableTimeMinimum   , tableTimeMaximum
+     logical                                                :: tableInitialized    = .false.
+     double precision                                       :: tableTimeMinimum             , tableTimeMaximum
      double precision                                       :: normalization
      class           (table1D                ), allocatable :: overdensityCritical
-     class           (linearGrowthClass      ), pointer     :: linearGrowth_
-     class           (darkMatterParticleClass), pointer     :: darkMatterParticle_
+     class           (linearGrowthClass      ), pointer     :: linearGrowth_       => null()
+     class           (darkMatterParticleClass), pointer     :: darkMatterParticle_ => null()
    contains
      !@ <objectMethods>
      !@   <object>criticalOverdensitySphericalCollapseMatterLambda</object>
