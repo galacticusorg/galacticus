@@ -15,70 +15,221 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-!% Contains a module which implements the task of evolving merger trees.
-
-module Galacticus_Tasks_Evolve_Tree
-  !% Implements the task of evolving merger trees.
-  use ISO_Varying_String
+  
   use Galacticus_Nodes
-  implicit none
-  private
-  public :: Galacticus_Task_Evolve_Tree
 
-  ! Flag to indicate if output times have been initialized.
-  logical                          :: treeEvolveInitialized       =.false.
+  !# <task name="taskEvolveForests">
+  !#  <description>A task which evolves galaxies within a set of merger tree forests.</description>
+  !# </task>
+  type, extends(taskClass) :: taskEvolveForests
+     !% Implementation of a task which evolves galaxies within a set of merger tree forests. 
+     private
+     ! Parameters controlling which trees will be processed.
+     integer                          :: workerCount       , workerNumber
+     ! Parameters controlling load averaging and thread locking.
+     logical                          :: limitLoadAverage  , threadLock
+     double precision                 :: loadAverageMaximum
+     integer                          :: threadsMaximum
+     type            (varying_string) :: threadLockName
+     ! Parameters controlling tree suspension.
+     logical                          :: suspendToRAM
+     type            (varying_string) :: suspendPath
+     ! Parameters controlling how threads process forests.
+     logical                          :: evolveSingleForest
+     integer                          :: evolveSingleForestSections
+     double precision                 :: evolveSingleForestMassMinimum
+     ! Tree universes used while processing all trees.
+     type            (universe      ) :: universeWaiting              , universeProcessed
+   contains
+     procedure :: perform     => evolveForestsPerform
+     procedure :: suspendTree => evolveForestsSuspendTree
+     procedure :: resumeTree  => evolveForestsResumeTree
+     procedure :: getForest   => evolveForestsGetForest
+  end type taskEvolveForests
 
-  ! Parameters controlling which trees will be processed.
-  integer                          :: treeEvolveWorkerCount               , treeEvolveWorkerNumber
+  interface taskEvolveForests
+     !% Constructors for the {\normalfont \ttfamily evolveForests} task.
+     module procedure evolveForestsParameters
+     module procedure evolveForestsInternal
+  end interface taskEvolveForests
 
-  ! Parameters controlling load averaging and thread locking.
-  logical                          :: treeEvolveLimitLoadAverage          , treeEvolveThreadLock
-  double precision                 :: treeEvolveLoadAverageMaximum
-  integer                          :: treeEvolveThreadsMaximum
-  type            (varying_string) :: treeEvolveThreadLockName
-
-  ! Tree universes used while processing all trees.
-  type            (universe      ) :: universeWaiting                     , universeProcessed
-
-  ! Parameters controlling tree suspension.
-  logical                          :: treeEvolveSuspendToRAM
-  type            (varying_string) :: treeEvolveSuspendPath
-
-  ! Object used to build lists of tree branches which get processed independently.
-  type :: branchList
-     type(treeNode  ), pointer :: nodeParent
-     type(mergerTree), pointer :: branch
-     type(branchList), pointer :: next
-  end type branchList
+  ! Class used to build lists of tree branches which get processed independently.
+  type :: evolveForestsBranchList
+     type(treeNode               ), pointer :: nodeParent
+     type(mergerTree             ), pointer :: branch
+     type(evolveForestsBranchList), pointer :: next
+  end type evolveForestsBranchList
 
 contains
 
-  !# <galacticusTask>
-  !#  <unitName>Galacticus_Task_Evolve_Tree</unitName>
-  !#  <after>Galacticus_Task_Start</after>
-  !#  <before>Galacticus_Task_End</before>
-  !# </galacticusTask>
-  logical function Galacticus_Task_Evolve_Tree()
+  function evolveForestsParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
+    use System_Load
+    use Galacticus_Error
+    implicit none
+    type            (taskEvolveForests)                :: self
+    type            (inputParameters  ), intent(inout) :: parameters
+    logical                                            :: evolveSingleForest           , limitLoadAverage  , &
+         &                                                threadLock                   , suspendToRAM
+    integer                                            :: evolveSingleForestSections   , workerCount       , &
+         &                                                workerNumber                 , threadsMaximum
+    double precision                                   :: evolveSingleForestMassMinimum, loadAverageMaximum
+    type            (varying_string   )                :: loadAverageMaximumText       , threadsMaximumText, &
+         &                                                threadLockName               , suspendPath
+    character       (len=32           )                :: text
+ 
+    !# <inputParameter>
+    !#   <name>evolveSingleForest</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>evolveSingleForestSections</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>100</defaultValue>
+    !#   <description>The number of timesteps into which forests should be split when processing single forests in parallel.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>evolveSingleForestMassMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The minimum tree mass for which forests should be processed in parallel.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>workerCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1</defaultValue>
+    !#   <description>The number of workers that will work on this calculation.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>workerNumber</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1</defaultValue>
+    !#   <description>The number of this worker.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>limitLoadAverage</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether or not to limit the load average</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>loadAverageMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('processorCount')</defaultValue>
+    !#   <description>The maximum load average for which new trees will be processed.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !#   <variable>loadAverageMaximumText</variable>
+    !# </inputParameter>
+    if (loadAverageMaximumText == "processorCount" ) then
+       loadAverageMaximum=dble(System_Processor_Count())
+    else
+       text=char(loadAverageMaximumText)
+       read (text,*) loadAverageMaximum
+    end if
+    !# <inputParameter>
+    !#   <name>threadLock</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether or not to limit the number of threads across all \glc\ processes.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>threadsMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('processorCount')</defaultValue>
+    !#   <description>The maximum number of active threads across all \glc\ processes.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !#   <variable>threadsMaximumText</variable>
+    !# </inputParameter>
+    if (threadsMaximumText == "processorCount") then
+       threadsMaximum=System_Processor_Count()
+    else
+       text=char(threadsMaximumText)
+       read (text,*) threadsMaximum
+    end if
+    !# <inputParameter>
+    !#   <name>threadLockName</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('galacticus')</defaultValue>
+    !#   <description>The name to use for the semaphore used to lock threads across all \glc\ processes.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>suspendToRAM</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    if (.not.suspendToRAM) then
+       !# <inputParameter>
+       !#   <name>suspendPath</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The path to which tree suspension files will be stored.</description>
+       !#   <source>parameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+    end if
+    self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,workerCount,workerNumber,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function evolveForestsParameters
+
+  function evolveForestsInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,workerCount,workerNumber,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
+    implicit none
+    type            (taskEvolveForests)                :: self
+    logical                            , intent(in   ) :: evolveSingleForest           , limitLoadAverage  , &
+         &                                                threadLock                   , suspendToRAM
+    integer                            , intent(in   ) :: evolveSingleForestSections   , workerCount       , &
+         &                                                workerNumber                 , threadsMaximum 
+    double precision                   , intent(in   ) :: evolveSingleForestMassMinimum, loadAverageMaximum
+    type            (varying_string   ), intent(in   ) :: threadLockName               , suspendPath
+    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, workerCount, workerNumber, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath"/>
+    
+    return
+  end function evolveForestsInternal
+
+  subroutine evolveForestsPerform(self)
     !% Evolves the complete set of merger trees as specified.
     use, intrinsic :: ISO_C_Binding
-    use String_Handling
-    use Merger_Tree_Operators
-    use Merger_Trees_Evolve
-    use Merger_Tree_Walkers
-    use Galacticus_Output_Merger_Tree
-    use Galacticus_Display
-    use Node_Components
-    use Input_Parameters
-    use Galacticus_Output_Times
-    use Galacticus_Error
-    use Memory_Management
-    use System_Load
-    use Semaphores
-    use Node_Events_Inter_Tree
-    use Sort
-    use Merger_Trees_Initialize
-    !$ use omp_lib
+    use               String_Handling
+    use               Merger_Tree_Operators
+    use               Merger_Trees_Evolve
+    use               Merger_Tree_Walkers
+    use               Galacticus_Output_Open
+    use               Galacticus_Output_Merger_Tree
+    use               Galacticus_Display
+    use               Node_Components
+    use               Input_Parameters
+    use               Galacticus_Output_Times
+    use               Galacticus_Error
+    use               Memory_Management
+    use               System_Load
+    use               Semaphores
+    use               Node_Events_Inter_Tree
+    use               Sort
+    use               Merger_Trees_Initialize
+    !$ use            OMP_Lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preEvolveTask.moduleUse.inc'
@@ -93,6 +244,7 @@ contains
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
     !# </include>
     implicit none
+    class           (taskEvolveForests            ), intent(inout)                   :: self
     type            (mergerTree                   ), pointer                  , save :: thisTree
     logical                                                                   , save :: finished                                  , skipTree                    , &
          &                                                                              treeIsNew
@@ -121,8 +273,6 @@ contains
     class           (mergerTreeOperatorClass      ), pointer                  , save :: mergerTreeOperator_              => null()
     !$omp threadprivate(mergerTreeOperator_)
     type            (semaphore                    ), pointer                         :: galacticusMutex                  => null()
-    type            (varying_string               )                                  :: treeEvolveLoadAverageMaximumText          , treeEvolveThreadsMaximumText
-    character       (len=32                       )                                  :: text
     !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree)
     type            (universeEvent                ), pointer                  , save :: thisEvent
     !$omp threadprivate(thisEvent)
@@ -130,7 +280,7 @@ contains
     double precision                                                          , save :: timeBranchSplit
     type            (treeNode                     ), pointer                  , save :: node
     class           (nodeComponentBasic           ), pointer                  , save :: basic                                     , basicChild
-    type            (branchList                   ), pointer                  , save :: branchList_                               , branchNew                   , &
+    type            (evolveForestsBranchList      ), pointer                  , save :: branchList_                               , branchNew                   , &
          &                                                                              branchNext
     logical                                                                   , save :: branchAccept
     integer         (c_size_t                     )                           , save :: iBranch                                   , i                           , &
@@ -139,138 +289,18 @@ contains
     double precision                               , allocatable, dimension(:), save :: massBranch
     integer                                                                   , save :: forestSection
     double precision                                                          , save :: timeSectionForestBegin
-    logical                                                                          :: treeEvolveSingleForest                    , triggerFinishUniverse       , &
+    logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
          &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
-         &                                                                              triggerFinish                             , triggerExit
+         &                                                                              triggerFinish
     integer         (c_size_t                     )                                  :: iBranchAcceptedLast
-    integer                                                                          :: treeEvolveSingleForestSections
     integer         (omp_lock_kind                )                                  :: initializationLock
-    double precision                                                                 :: treeEvolveSingleForestMassMinimum         , evolveToTimeForest
+    double precision                                                                 :: evolveToTimeForest
     !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection)
     
-    ! Initialize the task if necessary.
-    if (.not.treeEvolveInitialized) then
-       !$omp critical (Tasks_Evolve_Tree_Initialize)
+    call Galacticus_Display_Indent('Begin task: merger tree evolution')
 
-       if (.not.treeEvolveInitialized) then
-
-          ! Get parameters controlling which trees will be processed.
-          !# <inputParameter>
-          !#   <name>treeEvolveSingleForest</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>If true then each forest is processed sequentially, with multiple parallel threads (if available) working on the same forest. If false, multiple forests are processed simultaneously, with a single parallel thread (if available) working on each.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>integer</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveSingleForestSections</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>100</defaultValue>
-          !#   <description>The number of timesteps into which forests should be split when processing single forests in parallel.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>integer</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveSingleForestMassMinimum</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.0d0</defaultValue>
-          !#   <description>The minimum tree mass for which forests should be processed in parallel.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>integer</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveWorkerCount</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1</defaultValue>
-          !#   <description>The number of workers that will work on this calculation.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>integer</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveWorkerNumber</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1</defaultValue>
-          !#   <description>The number of this worker.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>integer</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveLimitLoadAverage</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether or not to limit the load average</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveLoadAverageMaximum</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('processorCount')</defaultValue>
-          !#   <description>The maximum load average for which new trees will be processed.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !#   <variable>treeEvolveLoadAverageMaximumText</variable>
-          !# </inputParameter>
-          if (treeEvolveLoadAverageMaximumText == "processorCount" ) then
-             treeEvolveLoadAverageMaximum=dble(System_Processor_Count())
-          else
-             text=char(treeEvolveLoadAverageMaximumText)
-             read (text,*) treeEvolveLoadAverageMaximum
-          end if
-          !# <inputParameter>
-          !#   <name>treeEvolveThreadLock</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether or not to limit the number of threads across all \glc\ processes.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveThreadsMaximum</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('processorCount')</defaultValue>
-          !#   <description>The maximum number of active threads across all \glc\ processes.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>treeEvolveThreadsMaximumText</variable>
-          !# </inputParameter>
-          if (treeEvolveThreadsMaximumText == "processorCount") then
-             treeEvolveThreadsMaximum=System_Processor_Count()
-          else
-             text=char(treeEvolveThreadsMaximumText)
-             read (text,*) treeEvolveThreadsMaximum
-          end if
-          !# <inputParameter>
-          !#   <name>treeEvolveThreadLockName</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('galacticus')</defaultValue>
-          !#   <description>The name to use for the semaphore used to lock threads across all \glc\ processes.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>treeEvolveSuspendToRAM</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether trees should be suspended to RAM (otherwise they are suspend to file).</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          if (.not.treeEvolveSuspendToRAM) then
-             !# <inputParameter>
-             !#   <name>treeEvolveSuspendPath</name>
-             !#   <cardinality>1</cardinality>
-             !#   <description>The path to which tree suspension files will be stored.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>string</type>
-             !# </inputParameter>
-          end if
-          ! Flag that this task is now initialized.
-          treeEvolveInitialized=.true.
-       end if
-       !$omp end critical (Tasks_Evolve_Tree_Initialize)
-    end if
+    ! Open the Galacticus output file.
+    call Galacticus_Output_Open_File()
 
     ! Ensure the nodes objects are initialized.
     call nodeClassHierarchyInitialize()
@@ -286,9 +316,9 @@ contains
     !$ call OMP_Init_Lock(initializationLock)
 
     ! Allow events to be attached to the universe.
-    universeWaiting%event => null()
+    self%universeWaiting%event => null()
     !# <include directive="universePreEvolveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>universeWaiting</functionArgs>
+    !#  <functionArgs>self%universeWaiting</functionArgs>
     include 'galacticus.tasks.evolve_tree.universePreEvolveTask.inc'
     !# </include>
 
@@ -302,12 +332,12 @@ contains
     iTree                       =0
 
     ! Create a semaphore if threads are being locked.
-    if (treeEvolveThreadLock) galacticusMutex => Semaphore_Open("/"//char(treeEvolveThreadLockName),treeEvolveThreadsMaximum)
+    if (self%threadLock) galacticusMutex => Semaphore_Open("/"//char(self%threadLockName),self%threadsMaximum)
 
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
-    universeWaiting  %trees => null()
-    universeProcessed%trees => null()
+    self%universeWaiting  %trees => null()
+    self%universeProcessed%trees => null()
 
     ! Set record of whether any trees were evolved to false initially.
     treesDidEvolve  =.false.
@@ -317,32 +347,32 @@ contains
     !$omp parallel copyin(finished)
     treeProcess : do while (.not.finished)
        ! For single forest evolution, only the master thread should retrieve a merger tree.
-       singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+       singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
           ! Get required objects.
           if (.not.associated(mergerTreeOperator_)) mergerTreeOperator_ => mergerTreeOperator()
           ! If locking threads, claim one.
-          if (treeEvolveThreadLock) call galacticusMutex%wait()
+          if (self%threadLock) call galacticusMutex%wait()
           ! Attempt to get a new tree to process. We first try to get a new tree. If no new trees exist, we will look for a tree on
           ! the stack waiting to be processed.
-          if (treeEvolveWorkerCount == 1) then
-             call Get_Tree(iTree,skipTree,thisTree,finished)
+          if (self%workerCount == 1) then
+             call self%getForest(iTree,skipTree,thisTree,finished)
           else
              !$omp critical(Tree_Sharing)
-             call Get_Tree(iTree,skipTree,thisTree,finished)
+             call self%getForest(iTree,skipTree,thisTree,finished)
              !$omp end critical(Tree_Sharing)
           end if
           treeIsNew=.not.finished
           ! If no new tree was available, attempt to pop one off the universe stack.
           if (finished) then
-             call treeResume(thisTree)
+             call self%resumeTree(thisTree)
              skipTree =.false.
              treeIsNew=.false.
              finished =.not.associated(thisTree)
           end if
-          if (treeEvolveSingleForest .and. finished) triggerFinish=.true.
+          if (self%evolveSingleForest .and. finished) triggerFinish=.true.
        end if singleForestTreeFetch
        ! For single forest evolution, block threads until master has retrieved a merger tree.
-       if (treeEvolveSingleForest) then
+       if (self%evolveSingleForest) then
           !$omp barrier
           finished=triggerFinish
           !$omp barrier
@@ -353,14 +383,14 @@ contains
           ! Skip this tree if necessary.
           if (.not.skipTree) then
              ! For single forest evolution, only the master thread should determine evolution time.
-             singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+             singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! Spin while the system is overloaded.
-                overloaded=treeEvolveLimitLoadAverage
+                overloaded=self%limitLoadAverage
                 do while (overloaded)
                    ! Get the load average.
                    call System_Load_Get(loadAverage,activeTasks,totalTasks)
                    ! If load is above allowed tolerances, sleep for a while.
-                   overloaded=(loadAverage(1) > treeEvolveLoadAverageMaximum)
+                   overloaded=(loadAverage(1) > self%loadAverageMaximum)
                    if (overloaded)                         &
                         & call Sleep( 5                    &
                         !$ &         +OMP_Get_Thread_Num() &
@@ -381,9 +411,9 @@ contains
                 message=message//thisTree%index//" {"//thisTree%baseNode%index()//"}"
                 call Galacticus_Display_Indent(message)
                 ! Determine if this will be the final forest evolved by multiple threads.
-                if (treeEvolveSingleForest) then
+                if (self%evolveSingleForest) then
                    basic =>thisTree%baseNode%basic()
-                   if (basic%mass() < treeEvolveSingleForestMassMinimum) disableSingleForestEvolution=.true.
+                   if (basic%mass() < self%evolveSingleForestMassMinimum) disableSingleForestEvolution=.true.
                 end if
                 ! Get the next time to which the tree should be evolved.
                 treeTimeEarliest=thisTree%earliestTime()
@@ -407,21 +437,21 @@ contains
                 end if
              end if singleForestEvolveTime
              ! For single forest evolution, block threads until master thread has determined evolution time.
-             if (treeEvolveSingleForest) then
+             if (self%evolveSingleForest) then
                 if (OMP_Get_Thread_Num() == 0) triggerExit=.false.
                 !$omp barrier
              end if
              ! Iterate evolving the tree until no more outputs are required.
              treeEvolveLoop : do while (iOutput <= Galacticus_Output_Time_Count())
                 ! For single forest evolution, maximum evolution time is determined by the master thread only.
-                singleForestMaximumTime : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+                singleForestMaximumTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                    ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
                    ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
                    ! perform the event task). Find the next output time.
                    evolveToTime=Galacticus_Output_Time(iOutput)
                    ! Find the earliest universe event.
                    !$omp critical(universeTransform)
-                   thisEvent               => universeWaiting%event
+                   thisEvent               => self%universeWaiting%event
                    evolutionIsEventLimited =  .false.
                    do while (associated(thisEvent))
                       if (thisEvent%time < evolveToTime) then
@@ -435,17 +465,17 @@ contains
                    if (thisTree%earliestTime() <= evolveToTime) treesCouldEvolve=.true.
                 end if singleForestMaximumTime
                 ! For single forest evolution, block all threads until master thread has determined the maximum evolution time.
-                if (treeEvolveSingleForest) then
+                if (self%evolveSingleForest) then
                    !$omp barrier
                 end if
                 ! If single trees are to be broken between multiple threads and processed in parallel, then do that here. Begin by
                 ! finding evolvable branches at some earlier time.
-                if (treeEvolveSingleForest) then
+                if (self%evolveSingleForest) then
                    timeSectionForestBegin=thisTree%earliestTimeEvolving()
-                   do forestSection=1,treeEvolveSingleForestSections
+                   do forestSection=1,self%evolveSingleForestSections
                       ! Master thread alone performs the splitting of the tree into branches.
                       singleForestTreeSplit : if (OMP_Get_Thread_Num() == 0) then
-                         timeBranchSplit    =  timeSectionForestBegin+(evolveToTime-timeSectionForestBegin)*dble(forestSection)/dble(treeEvolveSingleForestSections)
+                         timeBranchSplit    =  timeSectionForestBegin+(evolveToTime-timeSectionForestBegin)*dble(forestSection)/dble(self%evolveSingleForestSections)
                          countBranch        =  0
                          evolveToTimeForest =  evolveToTime
                          treeWalker=mergerTreeWalkerIsolatedNodes(thisTree,spanForest=.true.)
@@ -560,7 +590,7 @@ contains
                    end do
                 end if
                 ! For single forest evolution, only the master thread should finalize evolution of the merger tree.
-                singleForestFinalizeEvolution : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+                singleForestFinalizeEvolution : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                    ! Evolve the tree to the computed time.
                    call Merger_Tree_Evolve_To(thisTree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport)
                    !$omp critical (universeStatus)
@@ -650,7 +680,7 @@ contains
                          ! For single forest evolution, record that we are exiting the evolution loop. This will be used to inform
                          ! all non-master threads to exit also.  Note that this barrier corresponds with the one labelled
                          ! "singleForestExitEvolutionOther" below (which will be seen by all non-master threads).
-                         singleForestExitEvolutionMaster : if (treeEvolveSingleForest) then
+                         singleForestExitEvolutionMaster : if (self%evolveSingleForest) then
                             triggerExit=.true.
                             !$omp barrier
                          end if singleForestExitEvolutionMaster
@@ -660,22 +690,22 @@ contains
                 end if singleForestFinalizeEvolution
                 ! For single forest evolution, block until the master thread has finished finalizing evolution and, if no more
                 ! evolution is required, exit the evolution loop. Note that this barrier corresponds with the one labelled
-                ! "treeEvolveSingleForest" above (which will be seen by the master thread alone).
-                singleForestExitEvolutionOther : if (treeEvolveSingleForest) then
+                ! "self%evolveSingleForest" above (which will be seen by the master thread alone).
+                singleForestExitEvolutionOther : if (self%evolveSingleForest) then
                    !$omp barrier
                    if (triggerExit) exit
                 end if singleForestExitEvolutionOther
              end do treeEvolveLoop
              ! For single forest evolution, block threads until all have completed evolution of the forest.
-             if (treeEvolveSingleForest) then
+             if (self%evolveSingleForest) then
                 !$omp barrier
              end if
              ! For single forest evolution, only the master thread handles suspension of the tree.
-             singleForstSuspend : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+             singleForstSuspend : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! If tree could not evolve further, but is not finished, push it to the universe stack.
                 if (.not.treeIsFinished) then
                    ! Suspend the tree.
-                   call treeSuspend(thisTree)
+                   call self%suspendTree(thisTree)
                    ! Unindent messages.
                    call Galacticus_Display_Unindent('Suspending tree')
                 else
@@ -684,12 +714,12 @@ contains
                 end if
              end if singleForstSuspend
              ! For single forest evolution, block all threads until the master thread has completed tree suspension.
-             if (treeEvolveSingleForest) then
+             if (self%evolveSingleForest) then
                 !$omp barrier
              end if
           end if
           ! For single forest evolution, only the master thread performs tree destruction.
-          singleForestTreeDestroy : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+          singleForestTreeDestroy : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
              ! Destroy the tree.
              if (associated(thisTree)) then
                 currentTree => thisTree
@@ -711,17 +741,17 @@ contains
              end if
           end if singleForestTreeDestroy
           ! For single forest evolution, block all threads until tree destruction is completed by the master thread.
-          if (treeEvolveSingleForest) then
+          if (self%evolveSingleForest) then
              !$omp barrier
           end if
        end if
        ! For single forest evolution, only the master thread handles universe events.
-       singleForestUniverseEvents : if (OMP_Get_Thread_Num() == 0 .or. .not.treeEvolveSingleForest) then
+       singleForestUniverseEvents : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
           ! If locking threads, release ours.
-          if (treeEvolveThreadLock) call galacticusMutex%post()
+          if (self%threadLock) call galacticusMutex%post()
           ! If any trees were pushed onto the processed stack, then there must be an event to process.
           if (finished) then
-             if (.not.treeEvolveSingleForest) then
+             if (.not.self%evolveSingleForest) then
                 !$omp barrier
              end if
              ! The following section - which transfers processed trees back to the active universe - is done within an OpenMP
@@ -738,9 +768,9 @@ contains
                    message="Universe appears to be deadlocked"//char(10)
                    !$omp critical(universeTransform)
                    treeCount=0
-                   if (associated(universeProcessed%trees)) then
-                      do while (associated(universeProcessed%trees))
-                         thisTree => universeProcessed%popTree()
+                   if (associated(self%universeProcessed%trees)) then
+                      do while (associated(self%universeProcessed%trees))
+                         thisTree => self%universeProcessed%popTree()
                          treeCount=treeCount+1
                       end do
                       message=message//" --> There are "//treeCount//" trees pending further processing"
@@ -757,18 +787,18 @@ contains
              end if
              treesDidEvolve=.false.
              !$omp critical(universeTransform)
-             if (associated(universeProcessed%trees)) then
+             if (associated(self%universeProcessed%trees)) then
                 ! Transfer processed trees back to the waiting universe.
-                universeWaiting  %trees => universeProcessed%trees
-                universeProcessed%trees => null()
+                self%universeWaiting  %trees => self%universeProcessed%trees
+                self%universeProcessed%trees => null()
                 ! Find the event to process.
-                thisEvent => universeWaiting%event
+                thisEvent => self%universeWaiting%event
                 do while (associated(thisEvent))
                    if (thisEvent%time < universalEvolveToTime) then
                       call Galacticus_Error_Report('a universal event exists in the past - this should not happen'//{introspection:location})
                    else if (thisEvent%time == universalEvolveToTime) then
-                      success=thisEvent%task(universeWaiting)
-                      if (success) call universeWaiting%removeEvent(thisEvent)
+                      success=thisEvent%task(self%universeWaiting)
+                      if (success) call self%universeWaiting%removeEvent(thisEvent)
                       exit
                    end if
                    thisEvent => thisEvent%next
@@ -779,11 +809,11 @@ contains
              end if
              !$omp end critical(universeTransform)
              !$omp end master
-             if (.not.treeEvolveSingleForest) then
+             if (.not.self%evolveSingleForest) then
                 !$omp barrier
              end if
              if (triggerFinishUniverse) finished=.false.
-             if (.not.treeEvolveSingleForest) then
+             if (.not.self%evolveSingleForest) then
                 !$omp barrier
                 !$omp master
                 triggerFinishUniverse=.false.
@@ -792,17 +822,17 @@ contains
           end if
        end if singleForestUniverseEvents
        ! For single forest evolution, block all threads until universe events are processed by the master thread.
-       if (treeEvolveSingleForest) then
+       if (self%evolveSingleForest) then
           !$omp barrier
           if (OMP_Get_Thread_Num() == 0 .and. finished) triggerFinishFinal=.true.
           !$omp barrier
           finished=triggerFinishFinal
        end if
        ! Decide whether to switch off single forest evolution.
-       if (treeEvolveSingleForest) then
+       if (self%evolveSingleForest) then
           !$omp barrier
           if (OMP_Get_Thread_Num() == 0 .and. disableSingleForestEvolution) &
-               & treeEvolveSingleForest=.false.
+               & self%evolveSingleForest=.false.
           !$omp barrier
        end if       
     end do treeProcess
@@ -814,33 +844,41 @@ contains
     !$ call OMP_Destroy_Lock(initializationLock)
 
     ! Close the semaphore.
-    if (treeEvolveThreadLock) call galacticusMutex%close()
+    if (self%threadLock) call galacticusMutex%close()
+
+    ! Finalize outputs.
+    call Galacticus_Merger_Tree_Output_Finalize()
 
     ! Perform any post universe evolve tasks
     !# <include directive="universePostEvolveTask" type="functionCall" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.inc'
     !# </include>
 
-    Galacticus_Task_Evolve_Tree=.false.
-    return
-  end function Galacticus_Task_Evolve_Tree
+    ! Close the output file.
+    call Galacticus_Output_Close_File()
 
-  subroutine Get_Tree(iTree,skipTree,thisTree,finished)
+    call Galacticus_Display_Unindent('Done task: merger tree evolution')
+
+    return
+  end subroutine evolveForestsPerform
+
+  subroutine evolveForestsGetForest(self,iTree,skipTree,thisTree,finished)
     !% Get a tree to process.
     use Merger_Tree_Construction
     !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
     !# </include>
     implicit none
-    integer            , intent(inout)          :: iTree
-    logical            , intent(  out)          :: skipTree
-    logical            , intent(inout)          :: finished
-    type   (mergerTree), intent(  out), pointer :: thisTree
+    class  (taskEvolveForests), intent(inout)          :: self
+    integer                   , intent(inout)          :: iTree
+    logical                   , intent(  out)          :: skipTree
+    logical                   , intent(inout)          :: finished
+    type   (mergerTree       ), intent(  out), pointer :: thisTree
 
     ! Increment the tree counter.
     iTree=iTree+1
     ! Decide whether or not to skip this tree.
-    skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)
+    skipTree=.not.(modulo(iTree-1+(iTree-1)/self%workerCount,self%workerCount) == self%workerNumber-1)
     ! Perform any pre-tree construction tasks.
     !# <include directive="mergerTreePreTreeConstructionTask" type="functionCall" functionType="void">
     include 'galacticus.tasks.evolve_tree.preConstructionTask.inc'
@@ -850,26 +888,27 @@ contains
     thisTree => Merger_Tree_Create(skipTree)
     finished=finished.or..not.associated(thisTree)
     return
-  end subroutine Get_Tree
+  end subroutine evolveForestsGetForest
 
-  subroutine treeSuspend(tree)
+  subroutine evolveForestsSuspendTree(self,tree)
     !% Suspend processing of a tree.
     use String_Handling
     use Merger_Trees_State_Store
     use Kind_Numbers
     use ISO_Varying_String
     implicit none
-    type   (mergerTree    ), pointer, intent(inout) :: tree
-    type   (mergerTree    ), pointer                :: treeCurrent     , branchNext
-    integer(kind_int8     )                         :: baseNodeUniqueID
-    type   (varying_string)                         :: fileName
+    class  (taskEvolveForests)         , intent(inout) :: self
+    type   (mergerTree       ), pointer, intent(inout) :: tree
+    type   (mergerTree       ), pointer                :: treeCurrent     , branchNext
+    integer(kind_int8        )                         :: baseNodeUniqueID
+    type   (varying_string   )                         :: fileName
 
     ! If the tree is to be suspended to file do so now.
-    if (.not.treeEvolveSuspendToRAM) then
+    if (.not.self%suspendToRAM) then
        ! Make a copy of the unique ID of the base node.
        baseNodeUniqueID=tree%baseNode%uniqueID()
        ! Generate a suitable file name.
-       fileName=treeEvolveSuspendPath//'/suspendedTree_'//baseNodeUniqueID
+       fileName=self%suspendPath//'/suspendedTree_'//baseNodeUniqueID
        ! Store the tree to file.
        call Merger_Tree_State_Store(tree,char(fileName),snapshot=.false.,append=.false.)
        ! Destroy the tree(s).
@@ -883,32 +922,31 @@ contains
        tree%index=baseNodeUniqueID
     end if
     !$omp critical(universeTransform)
-    call universeProcessed%pushTree(tree)
+    call self%universeProcessed%pushTree(tree)
     !$omp end critical(universeTransform)
     tree => null()    
     return
-  end subroutine treeSuspend
+  end subroutine evolveForestsSuspendTree
 
-  subroutine treeResume(tree)
+  subroutine evolveForestsResumeTree(self,tree)
     !% Resume processing of a tree.
     use Merger_Trees_State_Store
     use String_Handling
     use ISO_Varying_String
     implicit none
-    type(mergerTree    ), pointer, intent(  out) :: tree
-    type(varying_string)                         :: fileName
+    class(taskEvolveForests)         , intent(inout) :: self
+    type (mergerTree       ), pointer, intent(  out) :: tree
+    type (varying_string   )                         :: fileName
 
     !$omp critical(universeTransform)
-    tree => universeWaiting%popTree()
+    tree => self%universeWaiting%popTree()
     !$omp end critical(universeTransform)
     ! If the tree was suspended to file, restore it now.
-    if (.not.treeEvolveSuspendToRAM.and.associated(tree)) then
+    if (.not.self%suspendToRAM.and.associated(tree)) then
        ! Generate the file name.
-       fileName=treeEvolveSuspendPath//'/suspendedTree_'//tree%index
+       fileName=self%suspendPath//'/suspendedTree_'//tree%index
        ! Read the tree from file.
        call Merger_Tree_State_From_File(tree,char(fileName),deleteAfterRead=.true.)
     end if
     return
-  end subroutine treeResume
-
-end module Galacticus_Tasks_Evolve_Tree
+  end subroutine evolveForestsResumeTree

@@ -800,7 +800,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <treeEvolveSingleForest value="true"/>
+    <taskMethod value="evolveForests">
+      <evolveSingleForest value="true"/>
+    </taskMethod>
   </parameters>
 
   <!-- Merger tree augmenting -->

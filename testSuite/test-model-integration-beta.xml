@@ -101,10 +101,6 @@
   <!-- Merger tree operators -->
   <mergerTreePruneBaryons value="true"/>
   
-  <!-- Merger tree evolution flow control -->
-  <treeEvolveThreadLock value="false"/>
-  <treeEvolveThreadsMaximum value="processorCount"/>
-  
   <!-- Merger tree halo hierarchy -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
   

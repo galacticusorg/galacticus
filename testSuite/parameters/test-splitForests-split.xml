@@ -6,7 +6,9 @@
   <version>0.9.4</version>
 
   <!-- Forest split options -->
-  <treeEvolveSuspendToRAM value="false"/>
+  <taskMethod value="evolveForests">
+    <suspendToRAM value="false"/>
+  </taskMethod>
   <mergerTreeReadSubresolutionMergingMethod value="infinite"/>
   <mergerTreeReadForestSizeMaximum value="1000"/>
 
