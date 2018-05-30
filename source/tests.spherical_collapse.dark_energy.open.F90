@@ -58,13 +58,13 @@ program Tests_Spherical_Collapse_Dark_Energy_Open
   criticalOverdensity_ => criticalOverdensity()
   linearGrowth_        => linearGrowth       ()
   do iExpansion=1,size(redshift)
-     expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift       (iExpansion))
-     age                        =cosmologyFunctions_%cosmicTime                 (expansionFactor            )
-     criticalOverdensityValue   =criticalOverdensity_     %value                      (age                        )
+     expansionFactor            =cosmologyFunctions_ %expansionFactorFromRedshift(redshift       (iExpansion))
+     age                        =cosmologyFunctions_ %cosmicTime                 (expansionFactor            )
+     criticalOverdensityValue   =criticalOverdensity_%value                      (age                        )
      etaf                       =acosh(2.0d0/cosmologyFunctions_%omegaMatterEpochal(age)-1.0d0)
      criticalOverdensityExpected=1.5d0*(3.0d0*sinh(etaf)*(sinh(etaf)-etaf)/(cosh(etaf)-1.0d0)**2-2.0d0)*(1.0d0+(2.0d0*Pi/(sinh(etaf)-etaf))**(2.0d0/3.0d0))/linearGrowth_%value(age)
      write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
-     call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=2.0d-4)
+     call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=2.1d-4)
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()

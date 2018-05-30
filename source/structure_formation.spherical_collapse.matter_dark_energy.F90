@@ -29,29 +29,30 @@ module Spherical_Collapse_Matter_Dark_Energy
        &    Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
   ! Variables to hold the tabulated critical overdensity data.
-  integer                                  , parameter :: deltaTableNPointsPerDecade                               =100
+  integer                                  , parameter     :: deltaTableNPointsPerDecade                               =100
 
   ! Variables used in root finding.
-  double precision                                     :: OmegaDE                                                         , OmegaM                      , &
-       &                                                  epsilonPerturbationShared                                       , hubbleParameterInvGyr       , &
-       &                                                  perturbationRadiusInitial                                       , tNow
-
+  double precision                                         :: OmegaDE                                                         , OmegaM                      , &
+       &                                                      epsilonPerturbationShared                                       , hubbleParameterInvGyr       , &
+       &                                                      perturbationRadiusInitial                                       , tNow
+  !$omp threadprivate(OmegaDE,OmegaM,hubbleParameterInvGyr,tNow,epsilonPerturbationShared,perturbationRadiusInitial)
+  
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
-  double precision                         , parameter :: expansionFactorInitialFraction                           =1.0d-6
+  double precision                         , parameter     :: expansionFactorInitialFraction                           =1.0d-6
 
   ! Calculation types.
-  integer                                  , parameter :: calculationDeltaCrit                                     =0     , calculationDeltaVirial=1, &
-       &                                                  calculationTurnaround                                    =2
+  integer                                  , parameter     :: calculationDeltaCrit                                     =0     , calculationDeltaVirial=1, &
+       &                                                      calculationTurnaround                                    =2
 
   ! Parameter controlling the epoch at which the energy of a perturbation is fixed when computing virial overdensities.
-  type            (varying_string         )            :: virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt
+  type            (varying_string         )                :: virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt
 
   ! Pointer to the default cosmology functions object.
-  class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctions__
-  !$omp threadprivate(cosmologyFunctions__)
+  class           (cosmologyFunctionsClass), allocatable   :: cosmologyFunctions___
+  !$omp threadprivate(cosmologyFunctions___)
 
   ! Module initialization state.
-  logical                                              :: moduleInitialized                                        =.false.
+  logical                                                  :: moduleInitialized                                        =.false.
 
 contains
 
@@ -111,13 +112,16 @@ contains
     integer                                                , intent(in   )           :: calculationType
     class           (table1D                ), allocatable , intent(inout)           :: deltaTable
     class           (cosmologyFunctionsClass), target      , intent(in   ), optional :: cosmologyFunctions_    
+    class           (cosmologyFunctionsClass), pointer                               :: cosmologyFunctions__
     class           (linearGrowthClass      ), target      , intent(in   ), optional :: linearGrowth_    
     class           (linearGrowthClass      ), pointer                               :: linearGrowth__
+    class           (linearGrowthClass      ), allocatable                           :: linearGrowth___
     double precision                         , parameter                             :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
     double precision                         , dimension(2)                          :: timeRange
     type            (rootFinder             ), save                                  :: finder                               , maximumExpansionFinder
     !$omp threadprivate(finder,maximumExpansionFinder)
-    integer                                                                          :: deltaTableNumberPoints               , iTime
+    integer                                                                          :: deltaTableNumberPoints               , iTime                                 , &
+         &                                                                              iCount
     double precision                                                                 :: aExpansionNow                        , epsilonPerturbation                   , &
          &                                                                              epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
          &                                                                              maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
@@ -128,7 +132,7 @@ contains
          &                                                                              deltaTableTimeMaximum
     double complex                                                                   :: a,b,x
     type            (varying_string         )                                        :: message
-    character       (len=7                  )                                        :: label
+    character       (len=13                 )                                        :: label
 
     ! Initialize the module if this is not already done.
     if (.not.moduleInitialized) then
@@ -179,35 +183,53 @@ contains
     allocate(table1DLogarithmicLinear :: deltaTable)
     select type (deltaTable)
     type is (table1DLogarithmicLinear)
+       ! Get the relevant linear growth object.
+       if (present(linearGrowth_      )) then
+          linearGrowth__ => linearGrowth_      
+       else
+          linearGrowth__ => linearGrowth()
+       end if
        ! Create the table.
        call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Solve ODE to get corresponding overdensities.
        message="Solving spherical collapse model for dark energy universe for "
-       write (label,'(f7.3)') deltaTableTimeMinimum
+       write (label,'(e12.6)') deltaTableTimeMinimum
        message=message//trim(adjustl(label))//" ≤ t/Gyr ≤ "
-       write (label,'(f7.3)') deltaTableTimeMaximum
+       write (label,'(e12.6)') deltaTableTimeMaximum
        message=message//trim(adjustl(label))
        call Galacticus_Display_Indent(message,verbosity=verbosityWorking)
+       iCount=0
+       call Galacticus_Display_Counter(                            &
+            &                                    iCount          , &
+            &                          isNew    =.true.          , &
+            &                          verbosity=verbosityWorking  &
+            &                         )
+       !$omp parallel private(aExpansionNow,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,maximumExpansionExpansionFactor,q,y,timeEnergyFixed,a,b,x,linearGrowth___)       
+       allocate(linearGrowth___      ,mold=linearGrowth__      )
+       allocate(cosmologyFunctions___,mold=cosmologyFunctions__)
+       call linearGrowth__      %deepCopy(linearGrowth___      )
+       call cosmologyFunctions__%deepCopy(cosmologyFunctions___)
+       !$omp do schedule(dynamic)
        do iTime=1,deltaTableNumberPoints
           call Galacticus_Display_Counter(                                                         &
-               &                          int(100.0d0*dble(iTime-1)/dble(deltaTableNumberPoints)), &
-               &                          isNew=(iTime==1)                                       , &
+               &                          int(100.0d0*dble(iCount-1)/dble(deltaTableNumberPoints)), &
+               &                          isNew=.false.                                          , &
                &                          verbosity=verbosityWorking                               &
                &                         )
           ! Get the current expansion factor.
-          aExpansionNow=cosmologyFunctions__%expansionFactor(deltaTable%x(iTime))
+          aExpansionNow=cosmologyFunctions___%expansionFactor(deltaTable%x(iTime))
           ! In the case of dark energy we cannot (easily) determine the largest (i.e. least negative) value of epsilonPerturbation
           ! for which a perturbation can collapse. So, use no perturbation.
           epsilonPerturbationMaximum=  0.0d0
           ! Estimate a suitably negative minimum value for epsilon.
           epsilonPerturbationMinimum=-10.0d0
           ! Evaluate cosmological parameters at the present time.
-          OmegaM               =cosmologyFunctions__%omegaMatterEpochal    (expansionFactor=aExpansionNow)
-          OmegaDE              =cosmologyFunctions__%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
-          hubbleParameterInvGyr=cosmologyFunctions__%expansionRate         (                aExpansionNow)
+          OmegaM               =cosmologyFunctions___%omegaMatterEpochal    (expansionFactor=aExpansionNow)
+          OmegaDE              =cosmologyFunctions___%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)
+          hubbleParameterInvGyr=cosmologyFunctions___%expansionRate         (                aExpansionNow)
           tNow                 =deltaTable%x(iTime)
           ! Check dark energy equation of state is within acceptable range.
-          if (cosmologyFunctions__%equationOfStateDarkEnergy(time=tNow) >= -1.0d0/3.0d0) &
+          if (cosmologyFunctions___%equationOfStateDarkEnergy(time=tNow) >= -1.0d0/3.0d0) &
                & call Galacticus_Error_Report('ω<-1/3 required'//{introspection:location})
           ! Find the value of epsilon for which the perturbation just collapses at this time.
           if (.not.finder%isInitialized()) then
@@ -215,13 +237,7 @@ contains
              call finder%tolerance   (toleranceAbsolute,toleranceRelative)
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
-          ! Compute the corresponding critical overdensity.
-          if (present(linearGrowth_      )) then
-             linearGrowth__ => linearGrowth_      
-          else
-             linearGrowth__ => linearGrowth()
-          end if
-          normalization=linearGrowth__%value(tNow,normalize=normalizeMatterDominated)/linearGrowth__%value(tNow)/aExpansionNow
+          normalization=linearGrowth___%value(tNow,normalize=normalizeMatterDominated)/linearGrowth___%value(tNow)/aExpansionNow
           select case (calculationType)
           case (calculationDeltaCrit)
              ! Critical linear overdensity.
@@ -245,27 +261,22 @@ contains
                   &                                  )
              epsilonPerturbationShared=epsilonPerturbation
              ! Compute the corresponding time of maximum expansion.
-             timeInitial                    =cosmologyFunctions__%cosmicTime(cosmologyFunctions__%expansionFactor(tNow)*expansionFactorInitialFraction)
-             if (iTime == 1) then
-                ! For first step, guess that the time of maximum expansion occurred at close to half of the current time.
-                timeRange=[0.4d0,0.6d0]*tNow
-             else
-                ! For subsequent steps, guess that the time of maximum expansion is close to the previous result.
-                timeRange=[1.0d0,1.0d0+1.0d-4]*(deltaTable%x(iTime)/deltaTable%x(iTime-1))*maximumExpansionTime
-             end if
+             timeInitial                    =cosmologyFunctions___%cosmicTime(cosmologyFunctions___%expansionFactor(tNow)*expansionFactorInitialFraction)
+             ! Guess that the time of maximum expansion occurred at close to half of the current time.
+             timeRange                      =[0.45d0,0.55d0]*tNow
              maximumExpansionTime           =maximumExpansionFinder%find(rootRange=timeRange)
-             maximumExpansionExpansionFactor=cosmologyFunctions__%expansionFactor(maximumExpansionTime)
+             maximumExpansionExpansionFactor=cosmologyFunctions___%expansionFactor(maximumExpansionTime)
              ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
              call Perturbation_Dynamics_Solver(epsilonPerturbation,maximumExpansionTime,maximumExpansionRadius)
              ! Compute the density contrast of the perturbation at maximum expansion.
              maximumExpansionDensityContrast=(maximumExpansionExpansionFactor/aExpansionNow/maximumExpansionRadius)**3
              ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38) to give the ratio of virial to turnaround radii,
              ! x.
-             q=      cosmologyFunctions__%omegaDarkEnergyEpochal(time=maximumExpansionTime) &
-                  & /cosmologyFunctions__%omegaMatterEpochal    (time=maximumExpansionTime) &
+             q=      cosmologyFunctions___%omegaDarkEnergyEpochal(time=maximumExpansionTime) &
+                  & /cosmologyFunctions___%omegaMatterEpochal    (time=maximumExpansionTime) &
                   & /maximumExpansionDensityContrast
-             y=      maximumExpansionExpansionFactor**cosmologyFunctions__%exponentDarkEnergy(time=maximumExpansionTime) &
-                  & /aExpansionNow                  **cosmologyFunctions__%exponentDarkEnergy(time=tNow                )
+             y=      maximumExpansionExpansionFactor**cosmologyFunctions___%exponentDarkEnergy(time=maximumExpansionTime) &
+                  & /aExpansionNow                  **cosmologyFunctions___%exponentDarkEnergy(time=tNow                )
              select case (char(virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt))
              case ('turnaround'   )
                 timeEnergyFixed=maximumExpansionTime
@@ -274,11 +285,11 @@ contains
              case default
                 call Galacticus_Error_Report('unrecognized epoch'//{introspection:location})
              end select
-             a=1.0d0-(1.0d0+3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=timeEnergyFixed))*q/2.0d0
-             b=      (1.0d0+3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=tNow           ))*q/y
+             a=1.0d0-(1.0d0+3.0d0*cosmologyFunctions___%equationOfStateDarkEnergy(time=timeEnergyFixed))*q/2.0d0
+             b=      (1.0d0+3.0d0*cosmologyFunctions___%equationOfStateDarkEnergy(time=tNow           ))*q/y
              ! Check for special cases.
              if (q == 0.0d0) then
-                ! No dark energy, the ratio of radii is always 1/2.
+                ! No dark energy, the ratio of radii is always ½.
                 x=0.5d0
              else
                 ! General case, use the appropriate root of the cubic equation.
@@ -304,7 +315,12 @@ contains
                      &                  )
              end select
           end select
+          !$omp atomic
+          iCount=iCount+1
        end do
+       !$omp end do
+       deallocate(cosmologyFunctions___)
+       !$omp end parallel
        call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
        call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
     end select
@@ -352,7 +368,7 @@ contains
     ! Specify a sufficiently early time.
     expansionFactorInitial=expansionFactorInitialFraction
     ! Find the corresponding cosmic time.
-    timeInitial=cosmologyFunctions__%cosmicTime(cosmologyFunctions__%expansionFactor(time)*expansionFactorInitial)
+    timeInitial=cosmologyFunctions___%cosmicTime(cosmologyFunctions___%expansionFactor(time)*expansionFactorInitial)
     ! Find the overdensity of the perturbation at early time (Percival, 2005, A&A, 443, 819, eqn. 25).
     perturbationOverdensityInitial=0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)*((3.0d0/2.0d0/OmegaM)*(hubbleParameterInvGyr&
          &*timeInitial))**(2.0d0/3.0d0)
@@ -398,10 +414,10 @@ contains
     if (y(1) <= 0.0d0) then
        dydt(1:2)=0.0d0
     else
-       expansionFactor=cosmologyFunctions__%expansionFactor(time)/cosmologyFunctions__%expansionFactor(tNow)
+       expansionFactor=cosmologyFunctions___%expansionFactor(time)/cosmologyFunctions___%expansionFactor(tNow)
        dydt(1)=y(2)
-       dydt(2)=-0.5d0*y(1)*(hubbleParameterInvGyr**2)*(OmegaM/y(1)**3+(3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=time)&
-            &+1.0d0)*OmegaDE*expansionFactor**cosmologyFunctions__%exponentDarkEnergy(time=time))
+       dydt(2)=-0.5d0*y(1)*(hubbleParameterInvGyr**2)*(OmegaM/y(1)**3+(3.0d0*cosmologyFunctions___%equationOfStateDarkEnergy(time=time)&
+            &+1.0d0)*OmegaDE*expansionFactor**cosmologyFunctions___%exponentDarkEnergy(time=time))
     end if
     ! Return success.
     perturbationODEs=FGSL_Success
