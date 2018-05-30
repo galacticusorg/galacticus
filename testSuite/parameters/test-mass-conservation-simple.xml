@@ -175,8 +175,6 @@
       <neutrinoMassSummed value="0.0" />
       <neutrinoNumberEffective value="3.04" />
     </transferFunctionMethod>
-    <treeEvolveThreadLock value="false" />
-    <treeEvolveThreadsMaximum value="processorCount" />
     <treeNodeMethodBasic value="standardExtended" />
     <treeNodeMethodBlackHole value="null" />
     <treeNodeMethodDarkMatterProfile value="scale" />

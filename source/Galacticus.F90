@@ -21,39 +21,44 @@
 
 program Galacticus
   !% The main {\normalfont \scshape Galacticus} program.
+  !$ use OMP_Lib
   use Galacticus_Banner
   use Galacticus_Error
-  use Galacticus_Tasks
+  use Tasks
+  use Galacticus_Display_Verbosity
   use Galacticus_HDF5
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters
+  use Functions_Global_Utilities  
   implicit none
   integer                             , parameter :: fileNameLengthMaximum =1024
+  class    (taskClass                ), pointer   :: task_
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
 
   ! Show the Galacticus banner.
-  call Galacticus_Banner_Show
-
+  call Galacticus_Banner_Show()
   ! Register error handlers.
-  call Galacticus_Error_Handler_Register
-
+  call Galacticus_Error_Handler_Register()
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Galacticus.size')
-
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)
   if (len_trim(parameterFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Galacticus.exe <parameterFile>")
   parameterFile=parameterFileCharacter
-
   ! Open the parameter file.
   parameters=inputParameters(parameterFile,allowedParametersFile='Galacticus.parameters.xml')
   call parameters%markGlobal()
-
-  ! Perform tasks, until all tasks are done.
-  call Galacticus_Task_Do
-
+  ! Tell OpenMP that nested parallelism is allowed.
+  !$ call OMP_Set_Nested(.true.)
+  ! Establish global functions.
+  call Functions_Global_Set()
+  ! Set verbosity.
+  call Galacticus_Verbosity_Set_From_Parameters()
+  ! Perform task.
+  task_ => task()
+  call task_%perform()
   ! All done, finish.
 end program Galacticus

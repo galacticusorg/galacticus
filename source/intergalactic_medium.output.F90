@@ -26,11 +26,10 @@ module Intergalactic_Medium_Outputs
 
 contains
 
-  !# <galacticusTask>
+  !# <universePostEvolveTask>
   !#  <unitName>Intergalactic_Medium_Output</unitName>
-  !#  <before>Galacticus_Task_End</before>
-  !# </galacticusTask>
-  logical function Intergalactic_Medium_Output()
+  !# </universePostEvolveTask>
+  subroutine Intergalactic_Medium_Output()
     !% Output \gls{igm} state to the \glc\ output file.
     use IO_HDF5
     use Galacticus_HDF5
@@ -43,107 +42,102 @@ contains
     implicit none
     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
     class           (intergalacticMediumStateClass), pointer                   :: intergalacticMediumState_
-    double precision                               , allocatable, dimension(:) :: time                            , redshift       , &
-         &                                                                        temperature                     , massFiltering
-    logical                                        , save                      :: outputDone               =.false.
-    double precision                                                           :: redshiftMinimum                 , redshiftMaximum, &
-         &                                                                        timeMinimum                     , timeMaximum
-    type            (hdf5Object                   )                            :: intergalacticMediumGroup        , dataSet
+    double precision                               , allocatable, dimension(:) :: time                     , redshift       , &
+         &                                                                        temperature              , massFiltering
+    double precision                                                           :: redshiftMinimum          , redshiftMaximum, &
+         &                                                                        timeMinimum              , timeMaximum
+    type            (hdf5Object                   )                            :: intergalacticMediumGroup , dataSet
     logical                                                                    :: intergalacticMediumOutput
-    integer                                                                    :: stepsPerDecade                   , stepCount      , &
+    integer                                                                    :: stepsPerDecade           , stepCount      , &
          &                                                                        i
     type            (inputParameters              )                            :: subParameters
-
-    if (.not.outputDone) then
-       outputDone=.true.
-       ! Test for output.
+    
+    ! Test for output.
+    !# <inputParameter>
+    !#   <name>intergalacticMediumOutput</name>
+    !#   <source>globalParameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <variable>intergalacticMediumOutput</variable>
+    !#   <description>If true, intergalactic medium state will be output.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    if (intergalacticMediumOutput) then
+       ! Get output epochs.
+       subParameters=globalParameters%subParameters('intergalacticMediumOutput')
        !# <inputParameter>
-       !#   <name>intergalacticMediumOutput</name>
-       !#   <source>globalParameters</source>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <variable>intergalacticMediumOutput</variable>
-       !#   <description>If true, intergalactic medium state will be output.</description>
-       !#   <type>boolean</type>
+       !#   <name>redshiftMinimum</name>
+       !#   <source>subParameters</source>
+       !#   <defaultValue>0.0d0</defaultValue>
+       !#   <variable>redshiftMinimum</variable>
+       !#   <description>Minimum redshift for which \gls{igm} properties should be output.</description>
+       !#   <type>real</type>
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
-       if (intergalacticMediumOutput) then
-          ! Get output epochs.
-          subParameters=globalParameters%subParameters('intergalacticMediumOutput')
-          !# <inputParameter>
-          !#   <name>redshiftMinimum</name>
-          !#   <source>subParameters</source>
-          !#   <defaultValue>0.0d0</defaultValue>
-          !#   <variable>redshiftMinimum</variable>
-          !#   <description>Minimum redshift for which \gls{igm} properties should be output.</description>
-          !#   <type>real</type>
-          !#   <cardinality>1</cardinality>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>redshiftMaximum</name>
-          !#   <source>subParameters</source>
-          !#   <defaultValue>1000.0d0</defaultValue>
-          !#   <variable>redshiftMaximum</variable>
-          !#   <description>Maximum redshift for which \gls{igm} properties should be output.</description>
-          !#   <type>real</type>
-          !#   <cardinality>1</cardinality>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>stepsPerDecade</name>
-          !#   <source>subParameters</source>
-          !#   <defaultValue>10</defaultValue>
-          !#   <variable>stepsPerDecade</variable>
-          !#   <description>Number of steps per decade of time for at which \gls{igm} properties should be output.</description>
-          !#   <type>integer</type>
-          !#   <cardinality>1</cardinality>
-          !# </inputParameter>
-          ! Get required objects.
-          cosmologyFunctions_       => cosmologyFunctions      ()
-          intergalacticMediumState_ => intergalacticMediumState()
-          ! Determine number of output epochs.
-          timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
-          timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
-          stepCount  =int(log10(timeMaximum/timeMinimum)*dble(stepsPerDecade))+1
-          ! Allocate IGM state arrays.
-          call allocateArray(time         ,[stepCount])
-          call allocateArray(redshift     ,[stepCount])
-          call allocateArray(temperature  ,[stepCount])
-          call allocateArray(massFiltering,[stepCount])
-          ! Build array of times.
-          time=Make_Range(timeMinimum,timeMaximum,stepCount,rangeType=rangeTypeLogarithmic)
-          ! Populate arrays with IGM state.
-          do i=1,stepCount
-             redshift     (i)=cosmologyFunctions_      %redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(time(i)))
-             temperature  (i)=intergalacticMediumState_%temperature                (                                    time(i) )
-             massFiltering(i)=intergalacticMediumState_%filteringMass              (                                    time(i) )
-          end do
-          call hdf5Access%set()
-          intergalacticMediumGroup=galacticusOutputFile%openGroup('intergalacticMedium','Intergalactic medium state.')
-          call intergalacticMediumGroup%writeDataset  (time           ,'time'         ,'Cosmic time'    ,datasetReturned=dataset)
-          call dataset                 %writeAttribute('Gyr'          ,'units'                                                  )
-          call dataset                 %writeAttribute(gigayear       ,'unitsInSI'                                              )
-          call dataset                 %close()
-          call intergalacticMediumGroup%writeDataset  (redshift       ,'redshift'     ,'Redshift'       ,datasetReturned=dataset)
-          call dataset                 %writeAttribute('dimensionless','units'                                                  )
-          call dataset                 %close()
-          call intergalacticMediumGroup%writeDataset  (temperature    ,'temperature'  ,'IGM temperature',datasetReturned=dataset)
-          call dataset                 %writeAttribute('K'            ,'units'                                                  )
-          call dataset                 %writeAttribute(1.0d0          ,'unitsInSI'                                              )
-          call dataset                 %close()
-          call intergalacticMediumGroup%writeDataset  (massFiltering  ,'massFiltering','Filtering mass' ,datasetReturned=dataset)
-          call dataset                 %writeAttribute('M☉'          ,'units'                                                  )
-          call dataset                 %writeAttribute(massSolar      ,'unitsInSI'                                              )
-          call dataset                 %close()
-          call intergalacticMediumGroup%close()
-          call hdf5Access%unset()
-          ! Deallocate arrays.
-          call deallocateArray(time         )       
-          call deallocateArray(redshift     )       
-          call deallocateArray(temperature  )       
-          call deallocateArray(massFiltering)       
-       end if
+       !# <inputParameter>
+       !#   <name>redshiftMaximum</name>
+       !#   <source>subParameters</source>
+       !#   <defaultValue>1000.0d0</defaultValue>
+       !#   <variable>redshiftMaximum</variable>
+       !#   <description>Maximum redshift for which \gls{igm} properties should be output.</description>
+       !#   <type>real</type>
+       !#   <cardinality>1</cardinality>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>stepsPerDecade</name>
+       !#   <source>subParameters</source>
+       !#   <defaultValue>10</defaultValue>
+       !#   <variable>stepsPerDecade</variable>
+       !#   <description>Number of steps per decade of time for at which \gls{igm} properties should be output.</description>
+       !#   <type>integer</type>
+       !#   <cardinality>1</cardinality>
+       !# </inputParameter>
+       ! Get required objects.
+       cosmologyFunctions_       => cosmologyFunctions      ()
+       intergalacticMediumState_ => intergalacticMediumState()
+       ! Determine number of output epochs.
+       timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
+       timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
+       stepCount  =int(log10(timeMaximum/timeMinimum)*dble(stepsPerDecade))+1
+       ! Allocate IGM state arrays.
+       call allocateArray(time         ,[stepCount])
+       call allocateArray(redshift     ,[stepCount])
+       call allocateArray(temperature  ,[stepCount])
+       call allocateArray(massFiltering,[stepCount])
+       ! Build array of times.
+       time=Make_Range(timeMinimum,timeMaximum,stepCount,rangeType=rangeTypeLogarithmic)
+       ! Populate arrays with IGM state.
+       do i=1,stepCount
+          redshift     (i)=cosmologyFunctions_      %redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(time(i)))
+          temperature  (i)=intergalacticMediumState_%temperature                (                                    time(i) )
+          massFiltering(i)=intergalacticMediumState_%filteringMass              (                                    time(i) )
+       end do
+       call hdf5Access%set()
+       intergalacticMediumGroup=galacticusOutputFile%openGroup('intergalacticMedium','Intergalactic medium state.')
+       call intergalacticMediumGroup%writeDataset  (time           ,'time'         ,'Cosmic time'    ,datasetReturned=dataset)
+       call dataset                 %writeAttribute('Gyr'          ,'units'                                                  )
+       call dataset                 %writeAttribute(gigayear       ,'unitsInSI'                                              )
+       call dataset                 %close()
+       call intergalacticMediumGroup%writeDataset  (redshift       ,'redshift'     ,'Redshift'       ,datasetReturned=dataset)
+       call dataset                 %writeAttribute('dimensionless','units'                                                  )
+       call dataset                 %close()
+       call intergalacticMediumGroup%writeDataset  (temperature    ,'temperature'  ,'IGM temperature',datasetReturned=dataset)
+       call dataset                 %writeAttribute('K'            ,'units'                                                  )
+       call dataset                 %writeAttribute(1.0d0          ,'unitsInSI'                                              )
+       call dataset                 %close()
+       call intergalacticMediumGroup%writeDataset  (massFiltering  ,'massFiltering','Filtering mass' ,datasetReturned=dataset)
+       call dataset                 %writeAttribute('M☉'          ,'units'                                                  )
+       call dataset                 %writeAttribute(massSolar      ,'unitsInSI'                                              )
+       call dataset                 %close()
+       call intergalacticMediumGroup%close()
+       call hdf5Access%unset()
+       ! Deallocate arrays.
+       call deallocateArray(time         )       
+       call deallocateArray(redshift     )       
+       call deallocateArray(temperature  )       
+       call deallocateArray(massFiltering)       
     end if
-    Intergalactic_Medium_Output=.false.
     return
-  end function Intergalactic_Medium_Output
+  end subroutine Intergalactic_Medium_Output
 
 end module Intergalactic_Medium_Outputs
