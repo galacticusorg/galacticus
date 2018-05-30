@@ -31,11 +31,11 @@ module Cosmological_Density_Field
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <data>double precision                                         :: criticalOverdensityTarget, mass       , time</data>
-  !#  <data>type            (treeNode                     ), pointer :: node                                        </data>
-  !#  <data>logical                                                  :: massPresent              , nodePresent      </data>
-  !#  <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_                         </data>
-  !#  <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_                   </data>
+  !#  <data>double precision                                         :: criticalOverdensityTarget          , mass       , time</data>
+  !#  <data>type            (treeNode                     ), pointer :: node                                                  </data>
+  !#  <data>logical                                                  :: massPresent                        , nodePresent      </data>
+  !#  <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                   </data>
+  !#  <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                   </data>
   !#  <data>
   !#   <scope>module</scope>
   !#   <threadprivate>yes</threadprivate>
