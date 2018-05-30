@@ -1241,6 +1241,13 @@
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="73.0"/>
+      <OmegaMatter value="0.25"/>
+      <OmegaDarkEnergy value="0.75"/>
+      <OmegaBaryon value="0.045"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
     <mergerTreeReadFileName value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
     <mergerTreeReadPresetMergerTimes value="false" />
     <mergerTreeReadPresetMergerNodes value="false" />
@@ -1278,6 +1285,13 @@
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="73.0"/>
+      <OmegaMatter value="0.25"/>
+      <OmegaDarkEnergy value="0.75"/>
+      <OmegaBaryon value="0.045"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
     <mergerTreeReadFileName value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
     <mergerTreeReadPresetMergerTimes value="false" />
     <mergerTreeReadPresetMergerNodes value="false" />
@@ -1310,6 +1324,13 @@
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="73.0"/>
+      <OmegaMatter value="0.25"/>
+      <OmegaDarkEnergy value="0.75"/>
+      <OmegaBaryon value="0.045"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
     <mergerTreeConstructMethod value="read" />
     <mergerTreeReadFileName value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
     <mergerTreeReadPresetMergerTimes value="false" />
@@ -1372,7 +1393,6 @@
       </powerSpectrumWindowFunctionMethod>
     </cosmologicalMassVarianceMethod>
     <transferFunctionMethod value="bode2001">
-      <scaleCutOff value="0.08725"/> <!-- Do we really need this??? -->
       <epsilon value="0.359"/>
       <nu value="1.1"/>
       <eta value="3.81"/>
@@ -1389,9 +1409,17 @@
       </criticalOverdensityMethod>
     </criticalOverdensityMethod>
     <haloMassFunctionMethod value="pressSchechter"/>
-    <excursionSetBarrierRemapMethods value="Sheth-Mo-Tormen"/>
-    <excursionSetBarrierRemapScalingFactor value="1.1965"/>
-    <excursionSetBarrierMethod value="criticalOverdensity"/>
+    <excursionSetBarrierMethod value="remapScale">
+      <factor value="1.1965"/>
+      <applyTo value="nonRates"/>
+      <excursionSetBarrierMethod value="remapShethMoTormen">
+	<a value="0.707"/>
+	<b value="0.500"/>
+	<c value="0.600"/>
+	<applyTo value="nonRates"/>
+	<excursionSetBarrierMethod value="criticalOverdensity"/>
+      </excursionSetBarrierMethod>
+    </excursionSetBarrierMethod>
     <excursionSetFirstCrossingMethod value="farahi">
       <timeStepFractional value="0.01"/>
       <fileName value="excursionSetsWdmMx2.0Gx1.5.hdf5"/>
