@@ -107,27 +107,28 @@ contains
     use Galacticus_Display
     use Input_Parameters
     implicit none
-    double precision                                      , intent(in   )           :: time
-    integer                                               , intent(in   )           :: calculationType
-    class           (table1D                ), allocatable, intent(inout)           :: deltaTable
-    class           (cosmologyFunctionsClass), target     , intent(in   ), optional :: cosmologyFunctions_    
-    class           (linearGrowthClass      ), target     , intent(in   ), optional :: linearGrowth_    
-    class           (linearGrowthClass      ), pointer                              :: linearGrowth__
-    double precision                         , parameter                            :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
-    type            (rootFinder             ), save                                 :: finder                               , maximumExpansionFinder
+    double precision                                       , intent(in   )           :: time
+    integer                                                , intent(in   )           :: calculationType
+    class           (table1D                ), allocatable , intent(inout)           :: deltaTable
+    class           (cosmologyFunctionsClass), target      , intent(in   ), optional :: cosmologyFunctions_    
+    class           (linearGrowthClass      ), target      , intent(in   ), optional :: linearGrowth_    
+    class           (linearGrowthClass      ), pointer                               :: linearGrowth__
+    double precision                         , parameter                             :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
+    double precision                         , dimension(2)                          :: timeRange
+    type            (rootFinder             ), save                                  :: finder                               , maximumExpansionFinder
     !$omp threadprivate(finder,maximumExpansionFinder)
-    integer                                                                         :: deltaTableNumberPoints               , iTime
-    double precision                                                                :: aExpansionNow                        , epsilonPerturbation                   , &
-         &                                                                             epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
-         &                                                                             maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
-         &                                                                             maximumExpansionRadius               , maximumExpansionTime                  , &
-         &                                                                             normalization                        , q                                     , &
-         &                                                                             timeEnergyFixed                      , timeInitial                           , &
-         &                                                                             y                                    , deltaTableTimeMinimum                 , &
-         &                                                                             deltaTableTimeMaximum
-    double complex                                                                  :: a,b,x
-    type            (varying_string         )                                       :: message
-    character       (len=7                  )                                       :: label
+    integer                                                                          :: deltaTableNumberPoints               , iTime
+    double precision                                                                 :: aExpansionNow                        , epsilonPerturbation                   , &
+         &                                                                              epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
+         &                                                                              maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
+         &                                                                              maximumExpansionRadius               , maximumExpansionTime                  , &
+         &                                                                              normalization                        , q                                     , &
+         &                                                                              timeEnergyFixed                      , timeInitial                           , &
+         &                                                                              y                                    , deltaTableTimeMinimum                 , &
+         &                                                                              deltaTableTimeMaximum
+    double complex                                                                   :: a,b,x
+    type            (varying_string         )                                        :: message
+    character       (len=7                  )                                        :: label
 
     ! Initialize the module if this is not already done.
     if (.not.moduleInitialized) then
@@ -162,7 +163,7 @@ contains
        deltaTableTimeMaximum=deltaTable%x(-1)
     else
        ! Specify an initial default range.
-       deltaTableTimeMinimum= 1.0d0
+       deltaTableTimeMinimum= 0.1d0
        deltaTableTimeMaximum=20.0d0
     end if
     ! Expand the range to ensure the requested time is included.
@@ -234,10 +235,25 @@ contains
                 call maximumExpansionFinder%rootFunction(expansionRatePerturbation          )
                 call maximumExpansionFinder%tolerance   (toleranceAbsolute,toleranceRelative)
              end if
+             call maximumExpansionFinder%rangeExpand (                                                             &
+                  &                                   rangeExpandDownward          =1.0d0-1.0d-2                 , &
+                  &                                   rangeExpandUpward            =1.0d0+1.0d-2                 , &
+                  &                                   rangeExpandType              =rangeExpandMultiplicative    , &
+                  &                                   rangeUpwardLimit             =tNow                         , &
+                  &                                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+                  &                                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+                  &                                  )
              epsilonPerturbationShared=epsilonPerturbation
              ! Compute the corresponding time of maximum expansion.
              timeInitial                    =cosmologyFunctions__%cosmicTime(cosmologyFunctions__%expansionFactor(tNow)*expansionFactorInitialFraction)
-             maximumExpansionTime           =maximumExpansionFinder%find(rootRange=[timeInitial,tNow])
+             if (iTime == 1) then
+                ! For first step, guess that the time of maximum expansion occurred at close to half of the current time.
+                timeRange=[0.4d0,0.6d0]*tNow
+             else
+                ! For subsequent steps, guess that the time of maximum expansion is close to the previous result.
+                timeRange=[1.0d0,1.0d0+1.0d-4]*(deltaTable%x(iTime)/deltaTable%x(iTime-1))*maximumExpansionTime
+             end if
+             maximumExpansionTime           =maximumExpansionFinder%find(rootRange=timeRange)
              maximumExpansionExpansionFactor=cosmologyFunctions__%expansionFactor(maximumExpansionTime)
              ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
              call Perturbation_Dynamics_Solver(epsilonPerturbation,maximumExpansionTime,maximumExpansionRadius)
