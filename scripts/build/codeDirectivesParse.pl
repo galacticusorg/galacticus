@@ -148,7 +148,7 @@ sub addImplicitDirectives {
 	(
 	 stateful         => 
 	 {
-	     always => $directive->{'rootElementType'} eq "functionClass"         ,
+	     always => $directive->{'rootElementType'} eq "functionClass" && ! exists($directive->{'stateful'}),
 	     tasks  => [ "galacticusStateRetrieveTask", "galacticusStateStoreTask" ]
 	 },
 	 calculationReset => 
