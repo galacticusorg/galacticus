@@ -38,22 +38,31 @@
 
 contains
 
-  function sphericalCollapseMatterDEConstructorParameters(parameters)
+  function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class
     !% which takes a parameter set as input.
     use Input_Parameters
     use Dark_Matter_Particles
     use Galacticus_Error
     implicit none
-    type (criticalOverdensitySphericalCollapseMatterDE)                :: sphericalCollapseMatterDEConstructorParameters
+    type (criticalOverdensitySphericalCollapseMatterDE)                :: self
     type (inputParameters                             ), intent(inout) :: parameters
 
-    !# <objectBuilder class="linearGrowth"             name="sphericalCollapseMatterDEConstructorParameters%linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="sphericalCollapseMatterDEConstructorParameters%cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="sphericalCollapseMatterDEConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"       name="sphericalCollapseMatterDEConstructorParameters%darkMatterParticle_"       source="parameters"/>
-    sphericalCollapseMatterDEConstructorParameters%tableInitialized=.false.
-    select type (darkMatterParticle_ => sphericalCollapseMatterDEConstructorParameters%darkMatterParticle_)
+    !# <inputParameter>
+    !#   <name>normalization</name>
+    !#   <source>parameters</source>
+    !#   <variable>self%normalization</variable>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>A normalizing factor to be applied to the critical overdensity.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="linearGrowth"             name="self%linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"       name="self%darkMatterParticle_"       source="parameters"/>
+    self%tableInitialized=.false.
+    select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
@@ -63,22 +72,25 @@ contains
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_)
+  function sphericalCollapseMatterDEConstructorInternal(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity class.
     use Dark_Matter_Particles
     use Galacticus_Error
     implicit none
-    type (criticalOverdensitySphericalCollapseMatterDE)                        :: sphericalCollapseMatterDEConstructorInternal
-    class(cosmologyFunctionsClass                     ), target, intent(in   ) :: cosmologyFunctions_    
-    class(linearGrowthClass                           ), target, intent(in   ) :: linearGrowth_    
-    class(cosmologicalMassVarianceClass               ), target, intent(in   ) :: cosmologicalMassVariance_
-    class(darkMatterParticleClass                     ), target, intent(in   ) :: darkMatterParticle_
+    type            (criticalOverdensitySphericalCollapseMatterDE)                          :: self
+    class           (cosmologyFunctionsClass                     ), target  , intent(in   ) :: cosmologyFunctions_    
+    class           (linearGrowthClass                           ), target  , intent(in   ) :: linearGrowth_    
+    class           (cosmologicalMassVarianceClass               ), target  , intent(in   ) :: cosmologicalMassVariance_
+    class           (darkMatterParticleClass                     ), target  , intent(in   ) :: darkMatterParticle_
+    double precision                                              , optional, intent(in   ) :: normalization
+    !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
 
-    sphericalCollapseMatterDEConstructorInternal%tableInitialized          =  .false.
-    sphericalCollapseMatterDEConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
-    sphericalCollapseMatterDEConstructorInternal%linearGrowth_             => linearGrowth_
-    sphericalCollapseMatterDEConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
-    sphericalCollapseMatterDEConstructorInternal%darkMatterParticle_       => darkMatterParticle_
+    self%tableInitialized          =  .false.
+    self%cosmologyFunctions_       => cosmologyFunctions_
+    self%linearGrowth_             => linearGrowth_
+    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    self%darkMatterParticle_       => darkMatterParticle_
+    self%normalization             =  normalization_
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
