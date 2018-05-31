@@ -127,7 +127,7 @@ contains
     end if
     Count_Lines_in_File_Char=0
     do while (io_status == 0)
-       read (i_unit,*,iostat=io_status) first_char
+       read (i_unit,'(a1)',iostat=io_status) first_char
        if (io_status == 0) then
           if (present(comment_char)) then
              if (first_char /= comment_char) Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
