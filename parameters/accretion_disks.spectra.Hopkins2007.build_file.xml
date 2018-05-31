@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameters to build the file for the Hopkins2007 AGN spectra class -->
+<!-- 30-May-2018                                                        -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <verbosityLevel value="2"                             />
+  <taskMethod     value="AGNSpectraHopkins2008BuildFile"/>
+  
+</parameters>

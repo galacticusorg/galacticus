@@ -15,6 +15,7 @@ use DateTime;
 use Galacticus::HDF5;
 use Galacticus::ColumnDensity;
 use Galacticus::ISMCrossSections;
+use Galacticus::Path;
 use Galacticus::Filters;
 
 %Galacticus::HDF5::galacticusFunctions = 
@@ -23,163 +24,6 @@ use Galacticus::Filters;
      "^agnLuminosity:[^:]+:[^:]+:z[\\d\\.]+(:noAbsorption)?(:alpha[0-9\\-\\+\\.]+)??\$" => \&Galacticus::AGNLuminosities::Get_AGN_Luminosity
     );
 
-# AGN SED data.
-our $SEDs;
-our $wavelengths;
-our $luminositiesBolometric;
-our $fileFormatCurrent = pdl long(1);
-
-sub Build_AGN_Spectra {
-    # Get file format.
-    my $fileFormat = shift;
-    die('Build_AGN_Spectra: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
-	unless ( $fileFormat == $fileFormatCurrent );
-
-    # Define constants.
-    my $speedOfLight        = pdl 2.99792458000e+08; # m/s
-    my $angstroms           = pdl 1.00000000000e-10; # m
-    my $plancksConstant     = pdl 6.62606800000e-34; # J s.
-    my $electronVolt        = pdl 1.60217646000e-19; # J.
-    my $luminositySolar     = pdl 3.83900000000e+26; # W
-    my $luminosityAB        = pdl 4.46592015000e+13; # W/Hz
-    my $massSolar           = pdl 1.98892000000e+30; # kg
-    my $gigaYear            = pdl 3.15569260000e+16; # s
-    my $kilo                = pdl 1.00000000000e+03;
-    my $luminosityABSolar   = $luminosityAB/$luminositySolar;
-
-    # Ensure AGN SED data is loaded.
-    unless ( defined($SEDs) ) {
-
-	# Determine whether or not we should (re)make the file.
-	my $makeFile = 0;
-	if ( -e "data/blackHoles/AGN_SEDs_Hopkins2007.hdf5" ) {
-	    my $hdfFile = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
-	    my @attributes = $hdfFile->attrs();
-	    if ( grep {$_ eq "fileFormat"} @attributes  ) {
-		my @fileFormatCurrentFile = $hdfFile->attrGet('fileFormat');
-		$makeFile = 1 unless ( $fileFormatCurrentFile[0] == $fileFormatCurrent );
-	    } else {
-		$makeFile = 1;
-	    }
-	} else {
-	    $makeFile = 1;
-	}
-
-	# Make the file if necessary.
-	if ( $makeFile == 1 ) {
-
-	    # Download the AGN SED code.
-	    unless ( -e "aux/AGN_Spectrum/agn_spectrum.c" ) {
-		system("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O aux/AGN_Spectrum/agn_spectrum.c");
-	    }
-	    die("Get_AGN_Luminosity(): failed to download agn_spectrum.c")
-		unless ( -e "aux/AGN_Spectrum/agn_spectrum.c" );
-	    
-	    # Compile the AGN SED code.
-	    unless ( -e "aux/AGN_Spectrum/agn_spectrum.x" ) {
-		system("cd aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
-	    }
-	    die("Get_AGN_Luminosity(): failed to compile agn_spectrum.c")
-		unless ( -e "aux/AGN_Spectrum/agn_spectrum.x" );
-	    
-	    # Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-	    system("mkdir -p data/blackHoles");
-	    my $luminosityBolometricMinimum = pdl  6.0;
-	    my $luminosityBolometricMaximum = pdl 28.0;
-	    my $luminosityBolometricCount   = 200;
-	    $luminositiesBolometric = pdl [];
-	    for(my $i=0;$i<$luminosityBolometricCount;++$i) {
-		my $luminosityBolometric = ($luminosityBolometricMaximum-$luminosityBolometricMinimum)*$i/($luminosityBolometricCount-1)+$luminosityBolometricMinimum;
-		$luminositiesBolometric = $luminositiesBolometric->append($luminosityBolometric);
-		my $wavelength = pdl [];
-		my $SED        = pdl [];
-		open(pHndl,"aux/AGN_Spectrum/agn_spectrum.x ".$luminosityBolometric."|");
-		while ( my $line = <pHndl> ) {
-		    unless ( $line =~ m/^\s*\;/ ) {
-			$line =~ s/^\s*//;
-			$line =~ s/\s*$//;
-			my @columns = split(/\s+/,$line);
-			my $frequency  = $columns[0];
-			my $nuLnuSolar = $columns[1];
-			if ( $frequency > 0.0 ) {
-			    $wavelength = $wavelength->append(
-				$speedOfLight/
-				(10.0**$frequency)/
-				$angstroms
-				);
-			    $SED        = $SED       ->append(
-				(10.0**$nuLnuSolar)/
-				(10.0**$frequency)
-				);
-			}
-		    }
-		}
-		close(pHndl);
-		# Construct a PDL to hold the SEDs.
-		unless ( defined($SEDs) ) {
-		    $SEDs        = pdl zeroes(nelem($SED),$luminosityBolometricCount);
-		    $wavelengths = $wavelength(-1:0);
-		}
-		# Store the SED.
-		$SEDs(:,($i)) .= $SED(-1:0);
-	    }
-	    
-	    # Store the data to file.
-	    my $hdfFile = new PDL::IO::HDF5(">data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
-	    my $wavelengthDataSet = new PDL::IO::HDF5::Dataset(
-		name    => "wavelength",
-		parent  => $hdfFile,
-		fileObj => $hdfFile
-		);
-	    $wavelengthDataSet->set($wavelengths);
-	    $wavelengthDataSet->attrSet(
-		units     => "Angstroms (Å)",
-		unitsInSI => 1.0e-10
-		);
-	    my $luminosityDataSet = new PDL::IO::HDF5::Dataset(
-		name    => "bolometricLuminosity",
-		parent  => $hdfFile,
-		fileObj => $hdfFile
-		);
-	    $luminosityDataSet->set($luminositiesBolometric);
-	    $luminosityDataSet->attrSet(
-		units     => "L☉",
-		unitsInSI => 3.827e33
-		);
-	    my $sedDataSet = new PDL::IO::HDF5::Dataset(
-		name    => "SED",
-		parent  => $hdfFile,
-		fileObj => $hdfFile
-		);
-	    $sedDataSet->set($SEDs);
-	    $sedDataSet->attrSet(
-		units     => "L☉/Hz",
-		unitsInSI => 3.827e33
-		);
-	    
-	    # Add some metadata.
-	    my $dt = DateTime->now->set_time_zone('local');
-	    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
-	    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
-	    $hdfFile->attrSet(
-		source       => "Computed using agn_spectrum.c downloaded from https://www.cfa.harvard.edu/~phopkins/Site/qlf.html",
-		URL          => "http://adsabs.harvard.edu/abs/2007ApJ...654..731H",
-		reference    => "Hopkins et al. (2007)",
-		creationTime => $now,
-		fileFormat   => $fileFormatCurrent
-		);
-	} else {
-	    # Read the AGN SEDs from file.
-	    my $hdfFile             = new PDL::IO::HDF5("data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
-	    $wavelengths            = $hdfFile->dataset('wavelength'          )->get();
-	    $luminositiesBolometric = $hdfFile->dataset('bolometricLuminosity')->get();
-	    $SEDs                   = $hdfFile->dataset('SED'                 )->get();
-	}
-	die("Build_AGN_Spectra(): failed to created data/blackHoles/AGN_SEDs_Hopkins2007.hdf5")
-	    unless ( -e "data/blackHoles/AGN_SEDs_Hopkins2007.hdf5" );
-    }
-}
-
 sub Get_AGN_Luminosity {
     my $model       = shift;
     my $dataSetName = $_[0];
@@ -187,7 +31,7 @@ sub Get_AGN_Luminosity {
     # Define constants.
     my $speedOfLight      = pdl 2.99792458e+08; # m/s
     my $angstroms         = pdl 1.00000000e-10; # m
-    my $luminositySolar   = pdl 3.83900000e+26; # W
+    my $luminositySolar   = pdl 3.84500000e+26; # W
     my $luminosityAB      = pdl 4.46592015e+13; # W/Hz
     my $massSolar         = pdl 1.98892000e+30; # kg
     my $gigaYear          = pdl 3.15569260e+16; # s
@@ -197,7 +41,15 @@ sub Get_AGN_Luminosity {
     my $electronVolt      = pdl 1.60217646000e-19; # J.
 
     # Ensure spectra file exists.
-    &Build_AGN_Spectra($fileFormatCurrent);
+    system(&galacticusPath()."Galacticus.exe ".&galacticusPath()."parameters/accretion_disks.spectra.Hopkins2007.build_file.xml")
+	if ( -e &galacticusPath()."Galacticus.exe" );
+    
+    # Read the AGN SEDs from file.
+    my $hdfFile                      = new PDL::IO::HDF5(&galacticusPath()."data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
+    my $wavelengths                  = $hdfFile->dataset('wavelength'          )->get();
+    my $luminositiesBolometricLinear = $hdfFile->dataset('bolometricLuminosity')->get();
+    my $SEDs                         = $hdfFile->dataset('SED'                 )->get();
+    my $luminositiesBolometric       = log10($luminositiesBolometricLinear);
 
     # Determine the filter, frame and redshift for which the luminosity is required.
     if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)(:noAbsorption)?(:alpha[0-9\-\+\.]+)??$/ ) {

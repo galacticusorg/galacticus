@@ -18,13 +18,26 @@
 
   !% An implementation of the accretion disk spectra class using the model of \cite{hopkins_observational_2007}.
 
+  use File_Utilities
+
   !# <accretionDiskSpectra name="accretionDiskSpectraHopkins2007">
   !#  <description>Accretion disk spectra using the model of \cite{hopkins_observational_2007}.</description>
   !# </accretionDiskSpectra>
   type, extends(accretionDiskSpectraFile) :: accretionDiskSpectraHopkins2007
      !% An accretion disk spectra class which uses the algorithm of \cite{hopkins_observational_2007}.
      private
+     type(lockDescriptor) :: fileLock
    contains
+     !@ <objectMethods>
+     !@   <object>accretionDiskSpectraHopkins2007</object>
+     !@   <objectMethod>
+     !@     <method>buildFile</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Build the tabulation file containing AGN spectra.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: buildFile => hopkins2007BuildFile
   end type accretionDiskSpectraHopkins2007
   
   interface accretionDiskSpectraHopkins2007
@@ -32,37 +45,159 @@
      module procedure hopkins2007ConstructorParameters
      module procedure hopkins2007ConstructorInternal
   end interface accretionDiskSpectraHopkins2007
-
+  
 contains
 
-  function hopkins2007ConstructorParameters(parameters)
+  function hopkins2007ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
     use Input_Parameters
     implicit none
-    type(accretionDiskSpectraHopkins2007)                :: hopkins2007ConstructorParameters
+    type(accretionDiskSpectraHopkins2007)                :: self
     type(inputParameters                ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
     
-    hopkins2007ConstructorParameters=hopkins2007ConstructorInternal()
+    self=accretionDiskSpectraHopkins2007()
     return
   end function hopkins2007ConstructorParameters
 
-  function hopkins2007ConstructorInternal()
+  function hopkins2007ConstructorInternal() result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use System_Command
     use Galacticus_Input_Paths
-    use String_Handling
     implicit none
-    type(accretionDiskSpectraHopkins2007) :: hopkins2007ConstructorInternal
-    type(varying_string                 ) :: command
- 
-    ! Ensure that the data file is generated.
-    command=Galacticus_Input_Path()//'scripts/aux/Hopkins2007_AGN_SED_Driver.pl '//fileFormatCurrent
-    call System_Command_Do(command)
+    type(accretionDiskSpectraHopkins2007) :: self
+
+    ! Initialize the file lock.
+    call File_Lock_Initialize(                    self%fileLock                    )
+    ! Set the file name.
+    self%fileName=Galacticus_Input_Path()//"data/blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    ! Build the file.
+    call self%buildFile()
     ! Load the file.
-    call hopkins2007ConstructorInternal%loadFile(char(Galacticus_Input_Path()//"/data/blackHoles/AGN_SEDs_Hopkins2007.hdf5"))
+    call File_Lock           (char(self%fileName),self%fileLock,lockIsShared=.true.)
+    call self%loadFile       (char(self%fileName)                                  )
+    call File_Unlock         (                    self%fileLock                    )
     ! Initialize interpolators.
-    hopkins2007ConstructorInternal%resetLuminosity=.true.
-    hopkins2007ConstructorInternal%resetWavelength=.true.
+    self%resetLuminosity=.true.
+    self%resetWavelength=.true.
     return
   end function hopkins2007ConstructorInternal
+
+  subroutine hopkins2007BuildFile(self)
+    !% Build a file containing a tabulation of the \cite{hopkins_observational_2007} model AGN spectra.
+    use, intrinsic :: ISO_Fortran_Env
+    use               Galacticus_Input_Paths
+    use               System_Command
+    use               Galacticus_Error
+    use               Galacticus_Display
+    use               String_Handling
+    use               IO_HDF5
+    use               Dates_and_Times
+    use               Numerical_Constants_Units
+    use               Numerical_Constants_Astronomical
+    use               Numerical_Ranges
+    implicit none
+    class           (accretionDiskSpectraHopkins2007), intent(inout)               :: self
+    double precision                                 , dimension(:  ), allocatable :: wavelength                        , luminosityBolometric
+    double precision                                 , dimension(:,:), allocatable :: SED
+    double precision                                 , parameter                   :: luminosityBolometricMinimum=1.0d06
+    double precision                                 , parameter                   :: luminosityBolometricMaximum=1.0d28
+    integer                                          , parameter                   :: luminosityBolometricCount  =200
+    logical                                                                        :: makeFile
+    type            (hdf5Object                     )                              :: file                              , dataset
+    integer                                                                        :: fileFormatCurrentFile             , sedUnit             , &
+         &                                                                            i                                 , j                   , &
+         &                                                                            ioStatus                          , wavelengthCount
+    character       (len= 16                        )                              :: label
+    character       (len=256                        )                              :: line
+    double precision                                                               :: frequencyLogarithmic              , spectrumLogarithmic
+    
+    ! Determine if we need to make the file.
+    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+    makeFile=.false.
+    if (File_Exists(self%fileName)) then
+       !$ call hdf5Access%set()
+       call file%openFile(char(self%fileName),readOnly=.true.)
+       if (file%hasAttribute('fileFormat')) then
+          call file%readAttribute('fileFormat',fileFormatCurrentFile,allowPseudoScalar=.true.)
+          makeFile=fileFormatCurrentFile /= fileFormatCurrent
+       else
+          makeFile=.true.
+       end if
+       call file%close()
+       !$ call hdf5Access%unset()
+    else
+       makeFile=.true.
+    end if
+    call File_Unlock(self%fileLock)
+    ! Make the file if necessary.
+    if (makeFile) then
+       call Galacticus_Display_Indent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityWorking)
+       call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
+       ! Download the AGN SED code.
+       if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.c")) then
+          call System_Command_Do("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(Galacticus_Input_Path())//"aux/AGN_Spectrum/agn_spectrum.c");
+          if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+       end if
+       ! Compile the AGN SED code.
+       if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.x")) then
+          call System_Command_Do("cd "//char(Galacticus_Input_Path())//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
+          if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
+       end if
+       ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
+       call System_Command_Do("mkdir -p "//char(Galacticus_Input_Path())//"data/blackHoles")
+       allocate(luminosityBolometric(luminosityBolometricCount))
+       luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
+       do i=1,luminosityBolometricCount
+          call Galacticus_Display_Counter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityWorking)
+          write (label,'(e12.6)') log10(luminosityBolometric(i))
+          call System_Command_Do(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.x "//label//" > "//Galacticus_Input_Path()//"aux/AGN_Spectrum/SED.txt")
+          wavelengthCount=Count_Lines_in_File(Galacticus_Input_Path()//"aux/AGN_Spectrum/SED.txt",";")-4
+          if (allocated(wavelength)) then
+             if (wavelengthCount /= size(wavelength)) call Galacticus_Error_Report('inconsistent number of wavelengths'//{introspection:location})
+          else
+             allocate(wavelength(wavelengthCount                          ))
+             allocate(SED       (wavelengthCount,luminosityBolometricCount))
+          end if
+          open(newUnit=sedUnit,file=char(Galacticus_Input_Path())//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
+          j=wavelengthCount+1
+          do
+             read(sedUnit,'(a)',iostat=ioStatus) line
+             if (ioStatus             == iostat_end) exit
+             if (line(1:1)            == ";"       ) cycle
+             read (line,*) frequencyLogarithmic,spectrumLogarithmic
+             if (frequencyLogarithmic <  0.0d0     ) cycle
+             j=j-1
+             wavelength(j)=speedLight/10.0d0**frequencyLogarithmic*angstromsPerMeter
+             SED(j,i)=10.0d0**spectrumLogarithmic/10.0**frequencyLogarithmic
+          end do
+          close(sedUnit)
+       end do
+       call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+       ! Store the data to file.
+       !$ call hdf5Access%set()
+       call file   %openFile      (char(self%fileName)                                                     )
+       call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
+       call dataset%writeAttribute("Angstroms (Å)"          ,"units"                                       )
+       call dataset%writeAttribute(1.0d0/angstromsPerMeter  ,"unitsInSI"                                   )
+       call dataset%close         (                                                                        )
+       call file   %writeDataset  (luminosityBolometric     ,"bolometricLuminosity",datasetReturned=dataset)
+       call dataset%writeAttribute("Solar luminosities (L☉)","units"                                       )
+       call dataset%writeAttribute(luminositySolar          ,"unitsInSI"                                   )
+       call dataset%close         (                                                                        )
+       call file   %writeDataset  (SED                      ,"SED"                 ,datasetReturned=dataset)
+       call dataset%writeAttribute("L☉/Hz"                  ,"units"                                       )
+       call dataset%writeAttribute(luminositySolar          ,"unitsInSI"                                   )
+       call dataset%close         (                                                                        )
+       ! Add some metadata.
+       call file%writeAttribute("Computed using agn_spectrum.c downloaded from  http://www.tapir.caltech.edu/~phopkins/Site/qlf.html","source"      )
+       call file%writeAttribute("http://adsabs.harvard.edu/abs/2007ApJ...654..731H"                                                  ,"URL"         )
+       call file%writeAttribute("Hopkins et al. (2007)"                                                                              ,"reference"   )
+       call file%writeAttribute(Formatted_Date_and_Time()                                                                            ,"creationTime")
+       call file%writeAttribute(fileFormatCurrent                                                                                    ,"fileFormat"  )
+       call file%close         (                                                                                                                    )
+       !$ call hdf5Access%unset()
+       call File_Unlock(self%fileLock)
+       call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+    end if
+    return
+  end subroutine hopkins2007BuildFile

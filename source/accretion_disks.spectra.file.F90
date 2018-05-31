@@ -150,6 +150,8 @@ contains
     ! Close the file.
     call spectraFile%close()
     !$ call hdf5Access%unset()
+    ! Convert luminosities to logarithmic form for interpolation.
+    self%luminosity=log(self%luminosity)
     return
   end subroutine fileLoadFile
 
@@ -183,10 +185,10 @@ contains
          &   wavelength > self%wavelength(size(self%wavelength)) &
          & ) return
     ! Get the interpolating factors.
-    iLuminosity=Interpolate_Locate                 (self%luminosity,self%interpolationAcceleratorLuminosity,log10(luminosityBolometric),self%resetLuminosity)
-    iWavelength=Interpolate_Locate                 (self%wavelength,self%interpolationAcceleratorWavelength,      wavelength           ,self%resetWavelength)
-    hLuminosity=Interpolate_Linear_Generate_Factors(self%luminosity,iLuminosity                            ,log10(luminosityBolometric)                     )
-    hWavelength=Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength                            ,      wavelength                                )
+    iLuminosity=Interpolate_Locate                 (self%luminosity,self%interpolationAcceleratorLuminosity,log(luminosityBolometric),self%resetLuminosity)
+    iWavelength=Interpolate_Locate                 (self%wavelength,self%interpolationAcceleratorWavelength,    wavelength           ,self%resetWavelength)
+    hLuminosity=Interpolate_Linear_Generate_Factors(self%luminosity,iLuminosity                            ,log(luminosityBolometric)                     )
+    hWavelength=Interpolate_Linear_Generate_Factors(self%wavelength,iWavelength                            ,    wavelength                                )
     ! Do the interpolation.
     do jLuminosity=0,1
        do jWavelength=0,1
