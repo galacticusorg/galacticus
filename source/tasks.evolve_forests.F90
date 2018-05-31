@@ -41,6 +41,21 @@
      ! Tree universes used while processing all trees.
      type            (universe      ) :: universeWaiting              , universeProcessed
    contains
+     !@ <objectMethods>
+     !@   <object>taskEvolveForests</object>
+     !@   <objectMethod>
+     !@     <method>resumeTree</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\argout</arguments>
+     !@     <description>Restore a suspended tree.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>getForest</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ iTree\arginout, \logicalzero\ skipTree\argout, \logicalzero\ finished\arginout, \textcolor{red}{\textless type(mergerTree)\textgreater} *tree\argout</arguments>
+     !@     <description>Get a tree to process.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: perform     => evolveForestsPerform
      procedure :: suspendTree => evolveForestsSuspendTree
      procedure :: resumeTree  => evolveForestsResumeTree
@@ -862,7 +877,7 @@ contains
     return
   end subroutine evolveForestsPerform
 
-  subroutine evolveForestsGetForest(self,iTree,skipTree,thisTree,finished)
+  subroutine evolveForestsGetForest(self,iTree,skipTree,tree,finished)
     !% Get a tree to process.
     use Merger_Tree_Construction
     !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
@@ -873,7 +888,7 @@ contains
     integer                   , intent(inout)          :: iTree
     logical                   , intent(  out)          :: skipTree
     logical                   , intent(inout)          :: finished
-    type   (mergerTree       ), intent(  out), pointer :: thisTree
+    type   (mergerTree       ), intent(  out), pointer :: tree
 
     ! Increment the tree counter.
     iTree=iTree+1
@@ -885,8 +900,8 @@ contains
     !# </include>
 
     ! Get a tree.
-    thisTree => Merger_Tree_Create(skipTree)
-    finished=finished.or..not.associated(thisTree)
+    tree => Merger_Tree_Create(skipTree)
+    finished=finished.or..not.associated(tree)
     return
   end subroutine evolveForestsGetForest
 
