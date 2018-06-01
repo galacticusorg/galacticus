@@ -23,7 +23,8 @@
      !% Implementation of a task which builds a file containing a tabulation of AGN spectra from the model of \cite{hopkins_observational_2007}.
      private
    contains
-      procedure :: perform => agnSpectraHopkins2008BuildFilePerform
+     procedure :: perform            => agnSpectraHopkins2008BuildFilePerform
+     procedure :: requiresOutputFile => agnSpectraHopkins2008BuildFileRequiresOutputFile
   end type taskAGNSpectraHopkins2008BuildFile
 
   interface taskAGNSpectraHopkins2008BuildFile
@@ -59,3 +60,13 @@ contains
     call Galacticus_Display_Unindent('Done task: hopkins2007 AGN spectra file build')
     return
   end subroutine agnSpectraHopkins2008BuildFilePerform
+
+  logical function agnSpectraHopkins2008BuildFileRequiresOutputFile(self)
+    !% Specifies that this task does not requires the main output file.
+    implicit none
+    class(taskAGNSpectraHopkins2008BuildFile), intent(inout) :: self    
+    !GCC$ attributes unused :: self
+
+    agnSpectraHopkins2008BuildFileRequiresOutputFile=.false.
+    return
+  end function agnSpectraHopkins2008BuildFileRequiresOutputFile

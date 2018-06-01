@@ -44,6 +44,12 @@
      !@ <objectMethods>
      !@   <object>taskEvolveForests</object>
      !@   <objectMethod>
+     !@     <method>suspendTree</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\argout</arguments>
+     !@     <description>Suspend a tree (to memory or to file).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>resumeTree</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless type(mergerTree)\textgreater} tree\argout</arguments>
@@ -231,7 +237,6 @@ contains
     use               Merger_Tree_Operators
     use               Merger_Trees_Evolve
     use               Merger_Tree_Walkers
-    use               Galacticus_Output_Open
     use               Galacticus_Output_Merger_Tree
     use               Galacticus_Display
     use               Node_Components
@@ -313,9 +318,6 @@ contains
     !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection)
     
     call Galacticus_Display_Indent('Begin task: merger tree evolution')
-
-    ! Open the Galacticus output file.
-    call Galacticus_Output_Open_File()
 
     ! Ensure the nodes objects are initialized.
     call nodeClassHierarchyInitialize()
@@ -868,9 +870,6 @@ contains
     !# <include directive="universePostEvolveTask" type="functionCall" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.inc'
     !# </include>
-
-    ! Close the output file.
-    call Galacticus_Output_Close_File()
 
     call Galacticus_Display_Unindent('Done task: merger tree evolution')
 

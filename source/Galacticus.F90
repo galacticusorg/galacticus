@@ -24,13 +24,14 @@ program Galacticus
   !$ use OMP_Lib
   use Galacticus_Banner
   use Galacticus_Error
-  use Tasks
+  use Galacticus_Output_Open
   use Galacticus_Display_Verbosity
   use Galacticus_HDF5
+  use Tasks
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters
-  use Functions_Global_Utilities  
+  use Functions_Global_Utilities
   implicit none
   integer                             , parameter :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer   :: task_
@@ -59,6 +60,8 @@ program Galacticus
   call Galacticus_Verbosity_Set_From_Parameters()
   ! Perform task.
   task_ => task()
+  if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
   call task_%perform()
+  if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! All done, finish.
 end program Galacticus

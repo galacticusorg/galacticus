@@ -32,6 +32,15 @@ module Tasks
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="requiresOutputFile" >
+  !#   <description>Should return true if the task requires the main output file to be open.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self
+  !#    taskRequiresOutputFile=.true.
+  !#   </code>
+  !#  </method>
   !# </functionClass>
 
 end module Tasks
