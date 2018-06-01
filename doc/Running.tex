@@ -378,9 +378,125 @@ If {\normalfont \ttfamily [treeEvolveLimitLoadAverage]}$=${\normalfont \ttfamily
 
 An alternative is to use Linux's semaphoring system to share processors between multiple instances of \glc\ running on a single machine. To activiate this mode, set {\normalfont \ttfamily [treeEvolveThreadLock]} to the total number of threads that should be active at any one time across all instances of \glc\ running on a machine. You can also set this parameter to {\normalfont \ttfamily processorCount} to set a a value equal to the total number of processors on the machine. With this parameter set, each instance of \glc\ running on a machine will request a semaphore for each thread that it attempts to run, with the maximum number of semaphores set to the value of {\normalfont \ttfamily [treeEvolveThreadLock]}. This means that, if one instance of \glc\ has claimed 6 semaphores when {\normalfont \ttfamily [treeEvolveThreadLock]}$=${\normalfont \ttfamily 8}, then a second instance of \glc\ will only run 2 threads. Once the first instance releases its semaphores, the second instance will claim them and begin running more threads.
 
-\section{Additional Codes}
+\section{Tasks}
 
-The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.
+By default, \glc\ executes a single ``task'' when run---to evolve a set of merger tree forests and output the resulting halo and galaxy properties. Different tasks can be performed however, controlled by the {\normalfont \ttfamily taskMethod} parameter.
+
+\subsection{{\normalfont \ttfamily evolveForests}}
+
+This is the standard task performed by \glc. It takes a set of merger tree forests, evolves them, and outputs the resulting halo and galaxy properties.
+
+\subsection{{\normalfont \ttfamily multi}}
+
+This task allows multiple sub-tasks to be run. For example:
+\begin{verbatim}
+  <taskMethod value="multi">
+    <taskMethod value="haloMassFunction"/>
+    <taskMethod value="evolveForests"   />
+  </taskMethod>
+\end{verbatim}
+would result in the {\normalfont \ttfamily haloMassFunction} task being performed, followed by the {\normalfont \ttfamily evolveForests} task.
+
+\subsection{{\normalfont \ttfamily haloMassFunction}}
+
+The {\normalfont \ttfamily haloMassFunction} task code will tabulate the halo mass function and related quantities and output them to the main \glc\ output file. The tabulation is controlled by three sub- parameters:
+\begin{description}
+\item [{\normalfont \ttfamily [haloMassMinimum]}] The lowest mass halo (in units of $M_\odot$) at which to tabulate;
+\item [{\normalfont \ttfamily [haloMassMaximum]}] The highest mass halo (in units of $M_\odot$) at which to tabulate;
+\item [{\normalfont \ttfamily [pointsPerDecade]}] The number of points per decade of halo mass at which to tabulate.
+\end{description}T
+The halo mass function is computed at each output specified by the {\normalfont \ttfamily [outputRedshifts]} parameter, and written to the corresponding {\normalfont \ttfamily Outputs/OutputN} group with the following structure:
+\begin{verbatim}
++-> Outputs
+|   |
+|   +-> OutputN
+|       |
+|       +-> massHaloCharacteristic         [attribute]
+|       |
+|       +-> criticalOverdensity            [attribute]
+|       |
+|       +-> outputExpansionFactor          [attribute]
+|       |
+|       +-> growthFactor                   [attribute]
+|       |
+|       +-> outputRedshift                 [attribute]
+|       |
+|       +-> outputTime                     [attribute]
+|       |
+|       +-> virialDensityContrast          [attribute]
+|       |
+|       +-> haloMass                       [dataset]
+|       |
+|       +-> haloSigma                      [dataset]
+|       | 
+|       +-> haloAlpha                      [dataset]
+|       |
+|       +-> haloPeakHeightNu               [dataset]
+|       |
+|       +-> haloMassFunctionM              [dataset]
+|       |
+|       +-> haloMassFunctionLnM            [dataset]
+|       |
+|       +-> haloMassFunctionLnMBinAveraged [dataset]
+|       |
+|       +-> haloMassFunctionNuFNu          [dataset]
+|       |
+|       +-> haloMassFunctionCumulative     [dataset]
+|       |
+|       +-> haloMassFractionCumulative     [dataset]
+|       |
+|       +-> subhaloMassFunctionCumulative  [dataset]
+|       |
+|       +-> haloBias                       [dataset]
+|       |
+|       +-> haloVirialRadius               [dataset]
+|       |
+|       +-> haloVirialTemperature          [dataset]
+|       |
+|       +-> haloVirialVelocity             [dataset]
+|       |
+|       +-> haloScaleRadius                [dataset]
+|       |
+|       +-> haloVelocityMaximum            [dataset]
+|    
++-> cosmology
+|   |
+|   +-> densityCritical                    [attribute]
+|    
++-> powerSpectrum
+    |
+    +-> massHalfMode                       [attribute]
+\end{verbatim}
+The {\normalfont \ttfamily Outputs/OutputN} groups contain atrributes and datasets which give properties at the corresponding output time as follows:
+\begin{description}
+\item [{\normalfont \ttfamily massHaloCharacteristic}] The characteristic mass scale (in units of $\mathrm{M}_\odot$), $M_*$, at which $\sigma(M)=\delta_\mathrm{c}(z)$;
+\item [{\normalfont \ttfamily criticalOverdensity}] The critical overdensity for collapse of halos, $\delta_\mathrm{c}$;
+\item [{\normalfont \ttfamily outputExpansionFactor}] The expansion factor;
+\item [{\normalfont \ttfamily growthFactor}] The linear growth factor;
+\item [{\normalfont \ttfamily outputRedshift}] The redshift;
+\item [{\normalfont \ttfamily outputTime}] The cosmic time (in units of Gyr);
+\item [{\normalfont \ttfamily virialDensityContrast}] The virial density contrast of halos.
+\item [{\normalfont \ttfamily haloMass}] The mass of the halo, $M_\mathrm{halo}$ (in $\mathrm{M}_\odot$);
+\item [{\normalfont \ttfamily haloSigma}] The root-variance of the mass field smoothed in top-hat spheres, $\sigma(M)$;
+\item [{\normalfont \ttfamily haloAlpha}] The loagrithmic gradient of the root-variance of the mass field smoothed in top-hat spheres with mass, $\mathrm{d}\log\sigma(M)/\mathrm{d}\log M_\mathrm{halo}$;
+\item [{\normalfont \ttfamily haloPeakHeightNu}] The peak height of the halo, $\nu = \delta_\mathrm{c}/\sigma(M)$;
+\item [{\normalfont \ttfamily haloMassFunctionM}] The halo mass function per halo mass, $\mathrm{d}n/\mathrm{d}M_\mathrm{halo}$ (in units of Mpc$^{-3} \mathrm{M}_\odot^{-1}$);
+\item [{\normalfont \ttfamily haloMassFunctionLnM}] The halo mass function per logarithmic halo mass, $\mathrm{d}n/\mathrm{d}\log M_\mathrm{halo}$ (in units of Mpc$^{-3}$);
+\item [{\normalfont \ttfamily haloMassFunctionLnMBinAveraged}] The halo mass function per logarithmic halo mass averaged over the finite width of the bin (in units of Mpc$^{-3}$);
+\item [{\normalfont \ttfamily haloMassFunctionNuFNu}] The halo mass function defined in terms of the peak-height parameter, $\nu F(\nu)$;
+\item [{\normalfont \ttfamily haloMassFractionCumulative}] The mass fraction in halos above the current halo mass;
+\item [{\normalfont \ttfamily haloMassFunctionCumulative}] The cumulative number of halos per unit volume above the current halo mass (in units of Mpc$^{-3}$);
+\item [{\normalfont \ttfamily subhaloMassFunctionCumulative}] The cumulative number of sub-halos per unit volume above the current halo mass (in units of Mpc$^{-3}$);
+\item [{\normalfont \ttfamily haloBias}] The large scale linear theory bias of the halo;
+\item [{\normalfont \ttfamily haloVirialRadius}] The virial radius (in units of Mpc) of the current halo mass;
+\item [{\normalfont \ttfamily haloVirialTemperature}] The virial temperature (in units of Kelvin) of the current halo mass;
+\item [{\normalfont \ttfamily haloVirialVelocity}] The virial velocity (in units of km/s) of the current halo mass;
+\item [{\normalfont \ttfamily haloScaleRadius}] The scale radius (in units of Mpc) of the current halo mass;
+\item [{\normalfont \ttfamily haloVelocityMaximum}] The peak of the rotation curve (in units of km/s) of the current halo mass;
+\end{description}
+Dimensionful datasets have an {\normalfont \ttfamily unitsInSI} attribute that gives their units in the SI system.
+
+Additionally, an attribute giving the critical density of the universe (in units of $\mathrm{M}_\odot \mathrm{Mpc}^{-3}$) is written to the {\normalfont \ttfamily cosmology} group and, if such a scale is well-defined, an attribute given the mass corresponding to the scale at which the power spectrum is reduce by half relative to a \gls{cdm} power spectrum in units of $\mathrm{M}_\odot$ is written as {\normalfont \ttfamily massHalfMode} to the {\normalfont \ttfamily powerSpectrum} group.
 
 \subsection{{\normalfont \ttfamily Excursion\_Sets}}\index{excursion sets}
 
@@ -419,93 +535,6 @@ These datasets contain the following information:
  \item [{\normalfont \ttfamily haloMassFunction}] The halo mass function [$\mathrm{M}^{-1}_\odot$~Mpc$^{-3}$].
 \end{description}
 
-\subsection{{\normalfont \ttfamily Halo\_Mass\_Functions}}
-
-The {\normalfont \ttfamily Halo\_Mass\_Functions} code will generate an HDF5 output file which contains a variety of measures of the dark matter halo mass function tabulated as a function of mass and at a variety of redshifts. The code is built and run as follows:
-\begin{verbatim}
-make Halo_Mass_Functions.exe
-Halo_Mass_Functions.exe <parameterFile> <outputFile>
-\end{verbatim}
-where {\normalfont \ttfamily parameterFile} is a file of parameters in \glc's usual XML format and {\normalfont \ttfamily outputFile} is the name of the file to which the halo mass function data will be written. The parameter file can specify any parameters needed for computing the mass function (they will be set to default values in cases where a paramter is not included). The redshifts at which to output halo mass functions are given by the {\normalfont \ttfamily [outputRedshifts]} parameter. In addition to the usual \glc\ parameters three additional parameters control behavior:
-\begin{description}
-\item [{\normalfont \ttfamily [haloMassFunctionsMassMinimum]}] The lowest mass halo (in units of $M_\odot$) at which to tabulate;
-\item [{\normalfont \ttfamily [haloMassFunctionsMassMaximum]}] The highest mass halo (in units of $M_\odot$) at which to tabulate;
-\item [{\normalfont \ttfamily [haloMassFunctionsPointsPerDecade]}] The number of points per decade of halo mass at which to tabulate.
-\end{description}
-The output file has the following structure:
-\begin{verbatim}
-+-> Outputs
-|   |
-|   +-> outputCharacteristicMass      [dataset]
-|   |
-|   +-> outputCriticalOverdensities   [dataset]
-|   |
-|   +-> outputExpansionFactor         [dataset]
-|   |
-|   +-> outputGrowthFactors           [dataset]
-|   |
-|   +-> outputRedshift                [dataset]
-|   |
-|   +-> outputTime                    [dataset]
-|   |
-|   +-> outputVirialDensityContrast   [dataset]
-|    
-+-> Parameters
-|   |
-|   +-> parameter1                    [attribute]
-|   |
-|   +-> parameterN                    [attribute]
-|    
-+-> haloMassFunctions
-    |
-    +-> haloBias                      [dataset]
-    |
-    +-> haloMass                      [dataset]
-    |
-    +-> haloMassFractionCumulative    [dataset]
-    |
-    +-> haloMassFunctionCumulative    [dataset]
-    |
-    +-> haloMassFunctionLnM           [dataset]
-    |
-    +-> haloMassFunctionM             [dataset]
-    |
-    +-> haloNu                        [dataset]
-    |
-    +-> haloSigma                     [dataset]
-    |
-    +-> haloVirialRadius              [dataset]
-    |
-    +-> haloVirialTemperature         [dataset]
-    |
-    +-> haloVirialVelocity            [dataset]
-\end{verbatim}
-The {\normalfont \ttfamily Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\normalfont \ttfamily Outputs} group contains datasets which give global properties at each requested output time as follows:
-\begin{description}
-\item [{\normalfont \ttfamily outputCharacteristicMass}] The characteristic mass scale (in units of $M_\odot$), $M_*$, at which $\sigma(M)=\delta_\mathrm{c}(z)$;
-\item [{\normalfont \ttfamily outputCriticalOverdensities}] The critical overdensity for collapse of halos, $\delta_\mathrm{c}$;
-\item [{\normalfont \ttfamily outputExpansionFactor}] The expansion factor;
-\item [{\normalfont \ttfamily outputGrowthFactors}] The linear growth factor;
-\item [{\normalfont \ttfamily outputRedshift}] The redshift;
-\item [{\normalfont \ttfamily outputTime}] The cosmic time (in units of Gyr);
-\item [{\normalfont \ttfamily outputVirialDensityContrast}] The virial density contrast of halos.
-\end{description}
-The {\normalfont \ttfamily haloMassFunctions} group contains datasets which list the properties of halos as a function of mass at each requested output time as follows:
-\begin{description}
-\item [{\normalfont \ttfamily haloBias}] The large scale linear theory bias of the halo;
-\item [{\normalfont \ttfamily haloMass}] The mass of the halo (in $M_\odot$);
-\item [{\normalfont \ttfamily haloMassFractionCumulative}] The mass fraction in halos above the current halo mass;
-\item [{\normalfont \ttfamily haloMassFunctionCumulative}] The cumulative number of halos per unit volume above the current halo mass (in units of Mpc$^{-3}$);
-\item [{\normalfont \ttfamily haloMassFunctionLnM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3}$);
-\item [{\normalfont \ttfamily haloMassFunctionM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3} M_\odot^{-1}$);
-\item [{\normalfont \ttfamily haloNu}] The peak height of the halo, $\nu = \delta_\mathrm{c}/\sigma(M)$;
-\item [{\normalfont \ttfamily haloSigma}] The root-variance of the mass field smoothed in top-hat spheres;
-\item [{\normalfont \ttfamily haloVirialRadius}] The virial radius (in units of Mpc) of the current halo mass;
-\item [{\normalfont \ttfamily haloVirialTemperature}] The virial temperature (in units of Kelvin) of the current halo mass;
-\item [{\normalfont \ttfamily haloVirialVelocity}] The virial velocity (in units of km/s) of the current halo mass;
-\end{description}
-Dimensionful datasets have an {\normalfont \ttfamily unitsInSI} attribute that gives their units in the SI system.
-
 \subsection{{\normalfont \ttfamily Power\_Spectra}}\index{power spectrum!outputting}
 
 The {\normalfont \ttfamily Power\_Spectra} code will generate an HDF5 output file which contains a variety of measures of the matter power spectrum tabulated as a function of wavenumber. The code is built and run as follows:
@@ -537,7 +566,7 @@ The output file has the following structure:
 The {\normalfont \ttfamily Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\normalfont \ttfamily powerSpectrum} group contains datasets which give the power spectrum and related properties as follows:
 \begin{description}
 \item [{\normalfont \ttfamily alpha}] The logarithmic slope of $\sigma(M)$: $\alpha = \mathrm{d} \ln \sigma / \mathrm{d} \ln M$;
-\item [{\normalfont \ttfamily mass}] The mass scale, $M$, corresponding to the given wavenumber, $k$, defined such that $M=4 \pi \Omega_\mathrm{M} \rho_\mathrm{crit} / 3 k^3$ (in units of $M_\odot$);
+\item [{\normalfont \ttfamily mass}] The mass scale, $M$, corresponding to the given wavenumber, $k$, defined such that $M=4 \pi \Omega_\mathrm{M} \rho_\mathrm{crit} / 3 k^3$ (in units of $\mathrm{M}_\odot$);
 \item [{\normalfont \ttfamily powerSpectrum}] The linear theory power spectrum at $z=0$: $P(k)$ in units of Mpc$^3$;
 \item [{\normalfont \ttfamily sigma}] The dimensionless linear theory mass fluctuation at $z=0$: $\sigma(M)$;
 \item [{\normalfont \ttfamily wavenumber}] The wavenumber in units of Mpc$^{-1}$.

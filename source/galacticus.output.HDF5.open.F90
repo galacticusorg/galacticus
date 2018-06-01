@@ -115,7 +115,7 @@ contains
        call galacticusOutputFile%openFile(                                            &
             &                             char(galacticusOutputScratchFileName)     , &
             &                             overWrite          =.true.                , &
-            &                             objectsOverwritable=.false.               , &
+            &                             objectsOverwritable=.true.                , &
             &                             sieveBufferSize    =hdf5SieveBufferSize   , &
             &                             useLatestFormat    =hdf5UseLatestFormat   , &
             &                             cacheElementsCount =hdf5CacheElementsCount, &
