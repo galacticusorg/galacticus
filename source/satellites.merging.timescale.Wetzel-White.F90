@@ -43,7 +43,7 @@
 contains
 
   function wetzelWhite2010ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{etzel_what_2010} merging timescale class which builds the object from a parameter set.
+    !% Constructor for the \cite{wetzel_what_2010} merging timescale class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
     type (satelliteMergingTimescalesWetzelWhite2010)                :: self
@@ -57,7 +57,7 @@ contains
   end function wetzelWhite2010ConstructorParameters
 
   function wetzelWhite2010ConstructorInternal(cosmologyFunctions_) result(self)
-    !% Constructor for the \cite{etzel_what_2010} merging timescale class.
+    !% Constructor for the \cite{wetzel_what_2010} merging timescale class.
     implicit none
     type (satelliteMergingTimescalesWetzelWhite2010)                        :: self
     class(cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
