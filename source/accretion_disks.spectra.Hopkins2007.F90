@@ -175,7 +175,7 @@ contains
        call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
        ! Store the data to file.
        !$ call hdf5Access%set()
-       call file   %openFile      (char(self%fileName)                                                     )
+       call file   %openFile      (char(self%fileName)                             ,overWrite      =.true. )
        call file   %writeDataset  (wavelength               ,"wavelength"          ,datasetReturned=dataset)
        call dataset%writeAttribute("Angstroms (Å)"          ,"units"                                       )
        call dataset%writeAttribute(1.0d0/angstromsPerMeter  ,"unitsInSI"                                   )

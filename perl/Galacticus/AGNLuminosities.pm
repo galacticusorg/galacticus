@@ -39,17 +39,21 @@ sub Get_AGN_Luminosity {
     my $plancksConstant   = pdl 6.62606800000e-34; # J s.
     my $kilo              = pdl 1.00000000000e+03;
     my $electronVolt      = pdl 1.60217646000e-19; # J.
-
+    my $fileFormatCurrent = pdl 2;
+    
     # Ensure spectra file exists.
     system(&galacticusPath()."Galacticus.exe ".&galacticusPath()."parameters/accretion_disks.spectra.Hopkins2007.build_file.xml")
 	if ( -e &galacticusPath()."Galacticus.exe" );
     
     # Read the AGN SEDs from file.
-    my $hdfFile                      = new PDL::IO::HDF5(&galacticusPath()."data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
-    my $wavelengths                  = $hdfFile->dataset('wavelength'          )->get();
-    my $luminositiesBolometricLinear = $hdfFile->dataset('bolometricLuminosity')->get();
-    my $SEDs                         = $hdfFile->dataset('SED'                 )->get();
-    my $luminositiesBolometric       = log10($luminositiesBolometricLinear);
+    my $hdfFile                        = new PDL::IO::HDF5(&galacticusPath()."data/blackHoles/AGN_SEDs_Hopkins2007.hdf5");
+    (my $fileFormat                 )  = $hdfFile->attrGet('fileFormat'          )       ;
+    die("Galacticus::AGNLuminosities::Get_AGN_Luminosity: file format is version ".$fileFormat." but was expecting version ".$fileFormatCurrent)
+	unless ( $fileFormat == $fileFormatCurrent );
+    my $wavelengths                    = $hdfFile->dataset('wavelength'          )->get();
+    my $luminositiesBolometricLinear   = $hdfFile->dataset('bolometricLuminosity')->get();
+    my $SEDs                           = $hdfFile->dataset('SED'                 )->get();
+    my $luminositiesBolometric         = log10($luminositiesBolometricLinear);
 
     # Determine the filter, frame and redshift for which the luminosity is required.
     if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)(:noAbsorption)?(:alpha[0-9\-\+\.]+)??$/ ) {
