@@ -4,9 +4,9 @@
 # Andrew Benson (20-February-2011)
 
 # Clear out old build files.
-rm -f doc/enumerations/*.tex
-rm -f doc/inputParameters/*.tex
-rm -f doc/methods/*.tex
+rm -f                                                                                                                                     \
+   doc/methods/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
+   doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex doc/dataParameters.tex
 
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
 make all
