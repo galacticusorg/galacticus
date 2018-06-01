@@ -54,7 +54,7 @@
   end interface accretionDiskSpectraFile
 
   ! Supported file format.
-  integer :: fileFormatCurrent=1
+  integer :: fileFormatCurrent=2
 
 contains
 
