@@ -81,8 +81,8 @@ contains
     !% \begin{equation}
     !% \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical, spheroid} \left( {V_\mathrm{spheroid} \over 200\hbox{km/s}} \right)^{\alpha_\star},
     !% \end{equation}
-    !% where $\epsilon_\star$(={\normalfont \ttfamily starFormationSpheroidEfficiency}) is a star formation efficiency and $\alpha_\star$(={\tt
-    !% starFormationSpheroidVelocityExponent}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical,spheroid}=R_{\rm
+    !% where $\epsilon_\star$(={\normalfont \ttfamily starFormationSpheroidEfficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily
+    !% starFormationSpheroidVelocityExponent}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical,spheroid}=R_\mathrm{
     !% spheroid}/V_\mathrm{spheroid}$ where the radius and velocity are whatever characteristic values returned by the spheroid method. This
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.

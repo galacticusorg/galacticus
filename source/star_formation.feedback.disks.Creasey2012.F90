@@ -97,8 +97,8 @@ contains
     !% \dot{M}_\mathrm{outflow} = \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
     !% \end{equation}
     !% where $\Sigma_{g,1}(r)$ is the surface density of gas in units of $M_\odot$ pc$^{-2}$, $f_\mathrm{g}(r)$ is the gas
-    !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\tt [beta0]},
-    !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\tt [nu]}.
+    !% fraction, $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\normalfont \ttfamily [beta0]},
+    !% $\mu=${\normalfont \ttfamily [mu]}, and $\nu=${\normalfont \ttfamily [nu]}.
     use Numerical_Constants_Math
     use Stellar_Feedback
     use Numerical_Integration

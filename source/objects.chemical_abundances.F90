@@ -273,7 +273,7 @@ contains
   end subroutine Chemical_Abundances_Initialize
 
   integer function Chemicals_Property_Count()
-    !% Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, {\tt
+    !% Return the number of properties required to track chemicals. This is equal to the number of chemicals tracked, {\normalfont \ttfamily
     !% chemicalsCount}.
     implicit none
 

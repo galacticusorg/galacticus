@@ -325,7 +325,7 @@ contains
   end function behroozi2010MassFunctionVariance
 
   subroutine behroozi2010Compute(self,massHalo,mass,numberCentrals,numberSatellites)
-    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_{\rm
+    !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_\mathrm{halo}) \rangle \equiv \phi(M_\star|M_\mathrm{
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     use Table_Labels
     implicit none

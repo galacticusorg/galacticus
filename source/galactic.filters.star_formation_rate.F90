@@ -23,7 +23,7 @@
   !#  A galactic high-pass filter for star formation rate. Galaxies with a combined disk plus
   !#  spheroid star formation rate greater than or equal to a mass-dependent threshold. The threshold is given by
   !#  \begin{equation}
-  !#  \log_{10} \left( { \dot{\phi}_{\rm t} \over M_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
+  !#  \log_{10} \left( { \dot{\phi}_\mathrm{t} \over M_\odot\,\hbox{Gyr}^{-1}} \right) = \alpha_0 + \alpha_1  \left( \log_{10} M_\star - \log_{10} M_0 \right),
   !#  \end{equation}
   !#  where $M_0=${\normalfont \ttfamily [starFormationRateThresholdLogM0]}, $\alpha_0=${\normalfont
   !#  \ttfamily [starFormationRateThresholdLogSFR0]}, and $\alpha_1=${\normalfont \ttfamily

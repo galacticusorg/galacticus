@@ -58,20 +58,20 @@ contains
     !% Compute initial conditions for a system of three variables used to solve for the evolution of the filtering mass. The ODE system to be solved is
     !% \begin{eqnarray}
     !%  \dot{y}_1 &=& y_2 \\
-    !%  \dot{y}_2 &=& -2 (\dot{a}/a) D(t) (1+r_{\rm LSS}(t)) y_2 f_{\rm DM} {\rm k}_{\rm B} T(t)/\mu m_{\rm H} a^2 \\
-    !%  \dot{y}_3 &=& 4 \pi^4 \bar{\rho}(t) \dot{k}_{\rm F}(t)/ k_{\rm F}^4(t)
+    !%  \dot{y}_2 &=& -2 (\dot{a}/a) D(t) (1+r_\mathrm{LSS}(t)) y_2 f_\mathrm{DM} \mathrm{k}_\mathrm{B} T(t)/\mu m_\mathrm{H} a^2 \\
+    !%  \dot{y}_3 &=& 4 \pi^4 \bar{\rho}(t) \dot{k}_\mathrm{F}(t)/ k_\mathrm{F}^4(t)
     !% \end{eqnarray}
     !% with initial conditions
     !% \begin{eqnarray}
-    !%  y_1 &=& D(t)/k_{\rm F}^2(t) \\
+    !%  y_1 &=& D(t)/k_\mathrm{F}^2(t) \\
     !%  y_2 &=& \dot{y}_1 \\
-    !%  y_3 &=& M_{\rm F}(t)
+    !%  y_3 &=& M_\mathrm{F}(t)
     !% \end{eqnarray}
     !% and where
     !% \begin{equation}
-    !%  k_{\rm F}(t) = \pi / [M_{\rm F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
+    !%  k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
     !% \end{equation},
-    !% and $r_{\rm LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
+    !% and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
     use Cosmology_Parameters
     use Cosmology_Functions
     use Linear_Growth

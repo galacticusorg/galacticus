@@ -222,7 +222,7 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <variable>particulateConstructorParameters%lengthSoftening</variable>
-    !#   <description>The Plummer-equivalent softening length. That is, the parameter $\epsilon$ in the softening gravitational potential $\phi(r) = -{\rm G}m/\sqrt{r^2+\epsilon^2}$. If set to zero, softening is ignored when constructing the particle representation of the halo. For non-zero values softening is accounted for when constructing the velocity distribution following the procedure of \cite{barnes_gravitational_2012}.</description>
+    !#   <description>The Plummer-equivalent softening length. That is, the parameter $\epsilon$ in the softening gravitational potential $\phi(r) = -\mathrm{G}m/\sqrt{r^2+\epsilon^2}$. If set to zero, softening is ignored when constructing the particle representation of the halo. For non-zero values softening is accounted for when constructing the velocity distribution following the procedure of \cite{barnes_gravitational_2012}.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -645,11 +645,11 @@ contains
     !% isotropic velocity dispersion. We solve Eddington's formula
     !% \citep[][eqn. 4.43a]{binney_galactic_2008}.    
     !% \begin{equation}
-    !%  f(E) = {1 \over \sqrt{8} \pi^2} {{\rm d}\over {\rm d}E} \int_E^0 {{\rm d}\Phi \over \sqrt{\Phi-E}} {{\rm d}\rho \over {\rm d} \Phi}.
+    !%  f(E) = {1 \over \sqrt{8} \pi^2} {\mathrm{d}\over \mathrm{d}E} \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi}.
     !% \end{equation}
     !% In practice, we tabulate:
     !% \begin{equation}
-    !%  F(E) = \int_E^0 {{\rm d}\Phi \over \sqrt{\Phi-E}} {{\rm d}\rho \over {\rm d} \Phi},
+    !%  F(E) = \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi},
     !% \end{equation}
     !% which we can then take the derivative of numerically to obtain the distribution function.
     use FGSL

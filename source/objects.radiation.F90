@@ -229,7 +229,7 @@ contains
   end function Radiation_Temperature
 
   double precision function Radiation_Flux(radiation,wavelength,radiationType)
-    !% Return the flux of the {\normalfont \ttfamily radiation} object in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$ at the specified {\tt
+    !% Return the flux of the {\normalfont \ttfamily radiation} object in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$ at the specified {\normalfont \ttfamily
     !% wavelength} (in \AA).
     !# <include directive="radiationFlux" type="moduleUse">
     include 'objects.radiation.flux.modules.inc'

@@ -68,7 +68,7 @@ module Multi_Counters
      !@     <method>state</method>
      !@     <type>\intzero</type>
      !@     <arguments>\intzero\ i\argin</arguments>
-     !@     <description>Return the state of the {\normalfont \ttfamily i}$^{\rm th}$ counter.</description>
+     !@     <description>Return the state of the {\normalfont \ttfamily i}$^\mathrm{th}$ counter.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::              multiCounterDestructor

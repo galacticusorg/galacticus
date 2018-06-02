@@ -78,7 +78,7 @@ contains
   !#  <unitName>Node_Component_Basic_Standard_Tracking_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Basic_Standard_Tracking_Promote(node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\tt
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\normalfont \ttfamily
     !% node} to be that of its parent.
     use Galacticus_Error
     implicit none

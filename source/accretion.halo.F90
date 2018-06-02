@@ -46,7 +46,7 @@ module Accretion_Halos
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="branchHasBaryons" >
-  !#   <description>Returns {\tt true} if this tree branch may accrete baryons, and {\tt false} otherwise.</description>
+  !#   <description>Returns {\normalfont \ttfamily true} if this tree branch may accrete baryons, and {\normalfont \ttfamily false} otherwise.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), target :: node</argument>

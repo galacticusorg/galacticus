@@ -103,7 +103,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set(node)
-    !% Set scales for properties of {\tt node}.
+    !% Set scales for properties of {\normalfont \ttfamily node}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales

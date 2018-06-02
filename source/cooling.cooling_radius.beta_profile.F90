@@ -29,12 +29,12 @@
   !# <coolingRadius name="coolingRadiusBetaProfile" defaultThreadPrivate="yes">
   !#  <description>
   !#   A cooling radius class for $\beta$-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a
-  !#   $\beta$-profile ($\rho(r) \propto [r^2+r_{\rm c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
+  !#   $\beta$-profile ($\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
   !#   \rho^2$, such that the cooling time scales as inverse density, $t_\mathrm{cool} \propto \rho^{-1}$. Consequently, the cooling radius is given by
   !#   \begin{equation}
-  !#    r_{\rm cool} = r_{\rm virial} \left( \left[ {t_{\rm avail} \over t_0} - 1 \right] \left[ {t_{\rm virial} \over t_0} - 1 \right]^{-1} \right)^{1/2},
+  !#    r_\mathrm{cool} = r_\mathrm{virial} \left( \left[ {t_\mathrm{avail} \over t_0} - 1 \right] \left[ {t_\mathrm{virial} \over t_0} - 1 \right]^{-1} \right)^{1/2},
   !#   \end{equation}
-  !#   where $t_0$, and $t_{\rm virial}$ are the cooling times at zero radius and the virial radius respectively.
+  !#   where $t_0$, and $t_\mathrm{virial}$ are the cooling times at zero radius and the virial radius respectively.
   !#  </description>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusBetaProfile

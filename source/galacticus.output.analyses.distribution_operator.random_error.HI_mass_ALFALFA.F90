@@ -100,8 +100,8 @@ contains
   end function randomErrorHIALFALFAConstructorInternal
 
   double precision function randomErrorHIALFALFARootVariance(self,propertyValue,node)
-    !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See {\tt
-    !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
+    !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See
+    !% {\normalfont \ttfamily constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self
     double precision                                                    , intent(in   ) :: propertyValue

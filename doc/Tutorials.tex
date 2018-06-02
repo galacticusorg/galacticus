@@ -18,7 +18,7 @@ The first of these {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\norma
 
 In order to choose sensible settings for the various parameters that control merger trees read from file, it is recommended that you read through each of the items below and follow the guidance given.
 
-{\bf Cosmology:} In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message unless you set {\normalfont \ttfamily [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
+{\normalfont \bfseries Cosmology:} In addition to specifying that trees should be read from a file, it's also important to ensure that the values of cosmological parameters in \glc\ match those in the merger tree file. (If they don't match, \glc\ will stop with an error message unless you set {\normalfont \ttfamily [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch.) In our case of using merger trees from the Millennium Simulation, the correct cosmological parameter values can be set as follows:
 \begin{verbatim}
   <!-- Use Millennium Simulation cosmology. -->
   <cosmologyParametersMethod value="simple"/>
@@ -37,23 +37,23 @@ In order to choose sensible settings for the various parameters that control mer
   </powerSpectrumPrimordialMethod>
 \end{verbatim}
 
-{\bf Existance at Final Time:} Normally, \glc\ assumes that all merger trees will exist (i.e. have at least one node present) at the final output time. This may not be true of trees extracted from an N-body simulation---in this case \glc\ can be informed of this fact by setting:
+{\normalfont \bfseries Existance at Final Time:} Normally, \glc\ assumes that all merger trees will exist (i.e. have at least one node present) at the final output time. This may not be true of trees extracted from an N-body simulation---in this case \glc\ can be informed of this fact by setting:
 \begin{verbatim}
   <allTreesExistAtFinalTime value="false"/>
 \end{verbatim}
 
-{\bf Snapping Nodes to Snapshots:} N-body merger trees are often built from ``snapshots'' of the simulation, i.e. all of the nodes exist at a set of discrete times. Often we want to output nodes at precisely these output times. In such cases it is useful to set:
+{\normalfont \bfseries Snapping Nodes to Snapshots:} N-body merger trees are often built from ``snapshots'' of the simulation, i.e. all of the nodes exist at a set of discrete times. Often we want to output nodes at precisely these output times. In such cases it is useful to set:
 \begin{verbatim}
   <mergerTreeReadOutputTimeSnapTolerance value="1.0d-3"/>
 \end{verbatim}
 which ensures that the times of nodes are adjusted to lie at precisely the output time if that time is within the specified relative tolerance (this avoids any small differences between node times and output times that can arises due to rounding errors when converting from redshifts to times and vice-versa).
 
-{\bf Missing Hosts:} \glc\ expects to find each \gls{node}'s host \gls{node} present in a merger tree \gls{forest}. If a \gls{node}'s host is not found this is cause for a fatal error to be issued, since it is impossible to correctly construct and evolve the corresponding \gls{forest}. If you absolutely want to run a \gls{forest} for which one or more host \glspl{node} are missing, you can allow this by setting {\normalfont \ttfamily [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false}---in this case missing host \glspl{node} trigger a warning only and \glspl{node} without a host are forced to become isolated \glspl{node}. This will lead to incorrect tree evolution however, so the recommended setting is:
+{\normalfont \bfseries Missing Hosts:} \glc\ expects to find each \gls{node}'s host \gls{node} present in a merger tree \gls{forest}. If a \gls{node}'s host is not found this is cause for a fatal error to be issued, since it is impossible to correctly construct and evolve the corresponding \gls{forest}. If you absolutely want to run a \gls{forest} for which one or more host \glspl{node} are missing, you can allow this by setting {\normalfont \ttfamily [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false}---in this case missing host \glspl{node} trigger a warning only and \glspl{node} without a host are forced to become isolated \glspl{node}. This will lead to incorrect tree evolution however, so the recommended setting is:
 \begin{verbatim}
 <mergerTreeReadMissingHostsAreFatal value="true"/>
 \end{verbatim}
 
-{\bf Branch Jumps and Subhalo Promotions:} If your merger trees contain subhalos they will most likely exhibit two specific behaviors\footnote{These two behaviors are called out as they specifically \emph{do not} occur in merger trees created using Press-Schechter-based algorithms for example.}: i) \glspl{node} which are subhalos in one timestep may become non-subhalos (isolated halos) in a subsequent timestep (``subhalo promotion''), and ii) \glspl{node} which are subhalos in one branch of the tree may ``jump'' to another branch\footnote{That is, the subhalo's descendented is hosted by a \gls{node} other than the descendent of the subhalo's host.} of the tree becoming a subhalo there (``branch jumping''). These behaviors are fully supported by \glc\ and so we recommend the following settings:
+{\normalfont \bfseries Branch Jumps and Subhalo Promotions:} If your merger trees contain subhalos they will most likely exhibit two specific behaviors\footnote{These two behaviors are called out as they specifically \emph{do not} occur in merger trees created using Press-Schechter-based algorithms for example.}: i) \glspl{node} which are subhalos in one timestep may become non-subhalos (isolated halos) in a subsequent timestep (``subhalo promotion''), and ii) \glspl{node} which are subhalos in one branch of the tree may ``jump'' to another branch\footnote{That is, the subhalo's descendented is hosted by a \gls{node} other than the descendent of the subhalo's host.} of the tree becoming a subhalo there (``branch jumping''). These behaviors are fully supported by \glc\ and so we recommend the following settings:
 \begin{verbatim}
 <mergerTreeReadAllowSubhaloPromotions value="true"/>
 <mergerTreeReadAllowBranchJumps       value="true"/>
@@ -62,7 +62,7 @@ You may choose to disallow these behaviors by setting either of the above parame
 
 Note that for trees which do not contain subhalos these two parameters are irrelevant.
 
-{\bf Subhalo Masses:} If your trees contain subhalos, the mass evolution of those subhalos can be preset in the satellite component of each \gls{node}. In this way, the subhalo mass in \glc\ will track that specified by the merger tree file. This requires the use of a satellite component which allows presetting of subhalo masses. Recommended settings are therefore:
+{\normalfont \bfseries Subhalo Masses:} If your trees contain subhalos, the mass evolution of those subhalos can be preset in the satellite component of each \gls{node}. In this way, the subhalo mass in \glc\ will track that specified by the merger tree file. This requires the use of a satellite component which allows presetting of subhalo masses. Recommended settings are therefore:
 \begin{verbatim}
 <treeNodeMethodSatellite           value="preset"/>
 <mergerTreeReadPresetSubhaloMasses value="true"  />
@@ -73,7 +73,7 @@ If your trees do not contain subhalos, recommended settings are instead:
 <mergerTreeReadPresetSubhaloMasses value="false"   />
 \end{verbatim}
 
-{\bf Halo Positions/Velocities:} If your trees contain position and velocity information for halos, those positions and velocities can be preset in the position component of each \gls{node}. This requires the use of a position component which allows presetting of positions and velocities. Recommended settings are therefore:
+{\normalfont \bfseries Halo Positions/Velocities:} If your trees contain position and velocity information for halos, those positions and velocities can be preset in the position component of each \gls{node}. This requires the use of a position component which allows presetting of positions and velocities. Recommended settings are therefore:
 \begin{verbatim}
 <treeNodeMethodPosition        value="preset"/>
 <mergerTreeReadPresetPositions value="true"  />
@@ -84,7 +84,7 @@ If your trees do not contain position information recommended settings are:
 <mergerTreeReadPresetPositions value="false"/>
 \end{verbatim}
 
-{\bf Subhalo Orbits:} If your trees contain position and velocity information they can be used to preset initial orbit information for subhalos. Note that it is not required that your trees contain subhalos for this orbit presetting to be performed---\glc\ can follow subhalo orbits even if subhalos are not included in the trees themselves. The following settings are recommended:
+{\normalfont \bfseries Subhalo Orbits:} If your trees contain position and velocity information they can be used to preset initial orbit information for subhalos. Note that it is not required that your trees contain subhalos for this orbit presetting to be performed---\glc\ can follow subhalo orbits even if subhalos are not included in the trees themselves. The following settings are recommended:
 \begin{verbatim}
 <mergerTreeReadPresetOrbits             value="true"/>
 <mergerTreeReadPresetOrbitsSetAll       value="true"/>
@@ -93,7 +93,7 @@ If your trees do not contain position information recommended settings are:
 \end{verbatim}
 These options will cause an orbit to be preset for each subhalo based on the relative position and velocity of merging halos and assuming that the orbital energy and angular momentum are conserved between the time immediately prior to the merger and the time of virial radius crossing. If the computed orbit does not cross the virial radius of the larger halo or if the computed orbit is unbound, the above options cause an orbit to be preset by drawing orbital parameters at random from the chosen cosmological distribution (see \S\ref{sec:SatelliteVirialOrbits}).
 
-{\bf Subhalo Merging:} If your merger trees contain subhalo information, that information can be used to specify when, and with which other node, each subhalo merges. Specifically, a subhalo is assumed to merge at the time at which it is not the primary progenitor of its descendent halo---possibly with some other delay to be described below. Recommended settings are:
+{\normalfont \bfseries Subhalo Merging:} If your merger trees contain subhalo information, that information can be used to specify when, and with which other node, each subhalo merges. Specifically, a subhalo is assumed to merge at the time at which it is not the primary progenitor of its descendent halo---possibly with some other delay to be described below. Recommended settings are:
 \begin{verbatim}
 <mergerTreeReadPresetMergerTimes          value="true"             />
 <mergerTreeReadPresetMergerNodes          value="true"             />
@@ -101,7 +101,7 @@ These options will cause an orbit to be preset for each subhalo based on the rel
 \end{verbatim}
 The first two options cause subhalos to merge at the time described above, and with their descendent node. The final option accounts for the possibility that the subhalo should not actually merge immediately at this time. For example, in N-body simulations, the subhalo may have simply been lost due to limitations of resolution or halo finder algorithms. The final option specifies that some additional time until merging be added based on the subhalo merging timescale algorithm of \citeauthor{boylan-kolchin_dynamical_2008}~[\citeyear{boylan-kolchin_dynamical_2008}; see \S\ref{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}], and computed using the last known orbital properties of the subhalo.
 
-{\bf Halo Scale Radii:} If your merger trees contain information on halo scale radii or half-mass radii, these can be used to preset the scale radius of each \gls{node}. This requires the use of a dark matter profile component which allows presetting of scale length. Recommended settings are therefore:
+{\normalfont \bfseries Halo Scale Radii:} If your merger trees contain information on halo scale radii or half-mass radii, these can be used to preset the scale radius of each \gls{node}. This requires the use of a dark matter profile component which allows presetting of scale length. Recommended settings are therefore:
 \begin{verbatim}
 <mergerTreeReadPresetScaleRadii                     value="true"     />
 <mergerTreeReadPresetScaleRadiiFailureIsFatal       value="true"     />
@@ -113,7 +113,7 @@ Minimum and maximum concentrations are specified---these are used to restrict th
 
 Finally, you can set a minimum halo mass via the {\normalfont \ttfamily [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter below which the scale radii or half-mass radii in your file should be considered not reliable. For halos below this mass, scale radii will instead be assigned via the selected dark matter halo concentration method (see \S\ref{sec:DarkMatterProfileConcentration}).
 
-{\bf Halo Angular Momenta:} If your merger trees contain spin or angular momentum information these can be preset for each node. Recommended settings are:
+{\normalfont \bfseries Halo Angular Momenta:} If your merger trees contain spin or angular momentum information these can be preset for each node. Recommended settings are:
 \begin{verbatim}
 <treeNodeMethodSpin                  value="preset"/>
 <mergerTreeReadPresetSpins           value="true"  />
@@ -137,7 +137,7 @@ If your merger tree file contains 3D spin or angular momentum information, you c
 <mergerTreeReadPresetSpins3D value="true"    />
 \end{verbatim}
 
-{\bf Subhalo Indices:} If your merger trees contain subhalos, you can tell \glc\ to keep track of the indices of subhalos by setting:
+{\normalfont \bfseries Subhalo Indices:} If your merger trees contain subhalos, you can tell \glc\ to keep track of the indices of subhalos by setting:
 \begin{verbatim}
 <treeNodeMethodSatellite            value="preset"/>
 <mergerTreeReadPresetSubhaloIndices value="true"  />

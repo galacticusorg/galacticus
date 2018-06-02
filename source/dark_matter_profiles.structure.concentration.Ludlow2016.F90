@@ -441,7 +441,7 @@ contains
   function ludlow2016DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of concentration in the
     !% \cite{ludlow_mass-concentration-redshift_2016} algorithm. While \cite{ludlow_mass-concentration-redshift_2016} used $\Delta
-    !% = 200 \rho_{\rm crit}$ to define halos, their model actually predicts the scale radius, $r_{-2}$, rather than the
+    !% = 200 \rho_\mathrm{crit}$ to define halos, their model actually predicts the scale radius, $r_{-2}$, rather than the
     !% concentration. Therefore, here we report that the \cite{ludlow_mass-concentration-redshift_2016} concentrations are defined
     !% using the model's own virial density contrast definition --- this ensures that the predicted scale radii are applied
     !% directly to model halos.

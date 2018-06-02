@@ -12,7 +12,7 @@ This solver, which can be activated by setting {\normalfont \ttfamily [diskVeryS
 \item The satellite component must be of type {\normalfont \ttfamily verySimple};
 \item The disk component must be of type {\normalfont \ttfamily verySimple};
 \item Properties of all other components must not change for satellite galaxies (with the exception of the {\normalfont \ttfamily time} property of the basic component), or else the component must be {\normalfont \ttfamily null};
-  \item Disk star formation and outflow rates must scale as $M_{\rm gas}/\tau$ where $M_{\rm gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
+  \item Disk star formation and outflow rates must scale as $M_\mathrm{gas}/\tau$ where $M_\mathrm{gas}$ is the instantaneous mass of gas in the galaxy disk, and $\tau$ is a fixed timescale for any given satellite galaxy.
 \end{itemize}
 Under these conditions, the flow of mass between gas, stellar, and outflowed phases is analytically solvable.
 
@@ -56,25 +56,25 @@ where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the g
 
 \subsection{Naoz \& Barkana (2007)}\label{phys:accretionHalo:accretionHaloNaozBarkana2007}
 
-Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily naozBarkana2007} this method uses the filtering mass prescription of \cite{naoz_formation_2007} to compute the accreted rate of baryonic material. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by $M_{\rm g}(M_{\rm 200b},M_{\rm F}) = (\Omega_{\rm b} / \Omega_{\rm M}) f(M_{\rm 200b}/M_{\rm F}) M_{\rm 200b}$ where $M_{\rm F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined following \cite{naoz_formation_2007}, $M_{\rm 200b}$ is the halo mass defined by a density threshold of 200 times the mean background, and
+Selected using {\normalfont \ttfamily accretionHaloMethod}$=${\normalfont \ttfamily naozBarkana2007} this method uses the filtering mass prescription of \cite{naoz_formation_2007} to compute the accreted rate of baryonic material. Specifically, \cite{naoz_formation_2007} assume that the gas mass content of halos is given by $M_\mathrm{g}(M_\mathrm{200b},M_\mathrm{F}) = (\Omega_\mathrm{b} / \Omega_\mathrm{M}) f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b}$ where $M_\mathrm{F}$ is the filtering mass, as first introduced by \cite{gnedin_effect_2000} but defined following \cite{naoz_formation_2007}, $M_\mathrm{200b}$ is the halo mass defined by a density threshold of 200 times the mean background, and
 \begin{equation}
   f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
 \end{equation}
 The accretion rate onto the halo is therefore assumed to be
 \begin{equation}
-  \dot{M}_{\rm g} = {\Omega_{\rm b} \over \Omega_{\rm M}} {{\rm d} \over {\rm d} M_{\rm 200b}} \left[ f(M_{\rm 200b}/M_{\rm F}) M_{\rm 200b} \right]  \dot{M}_{\rm total}.
+  \dot{M}_\mathrm{g} = {\Omega_\mathrm{b} \over \Omega_\mathrm{M}} {\mathrm{d} \over \mathrm{d} M_\mathrm{200b}} \left[ f(M_\mathrm{200b}/M_\mathrm{F}) M_\mathrm{200b} \right]  \dot{M}_\mathrm{total}.
 \end{equation}
 This would result in a precise match to the \cite{naoz_formation_2007} assumption if:
 \begin{enumerate}
 \item The filtering mass is constant in time;
-\item $M_{\rm total}$ corresponds to $M_{\rm 200b}$; and
+\item $M_\mathrm{total}$ corresponds to $M_\mathrm{200b}$; and
 \item The growth of halos occurs through smooth accretion, not through merging of smaller halos.
 \end{enumerate}
-In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from $f(M_{\rm 200b}/M_{\rm F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir to the unaccreted mass reservoir at a rate:
+In practice all three assumptions are violated. As such, the mass fraction in the halo will differ from $f(M_\mathrm{200b}/M_\mathrm{F})$. To address this issue, mass is additionally assumed to flow from the hot halo reservoir to the unaccreted mass reservoir at a rate:
 \begin{equation}
-\dot{M}_{\rm hot} = - {\alpha_{\rm adjust} \over \tau_{\rm dyn}} [M_{\rm hot}+M_{\rm unaccreted}] [f_{\rm accreted}-f(M_{\rm 200b}/M_{\rm F})],
+\dot{M}_\mathrm{hot} = - {\alpha_\mathrm{adjust} \over \tau_\mathrm{dyn}} [M_\mathrm{hot}+M_\mathrm{unaccreted}] [f_\mathrm{accreted}-f(M_\mathrm{200b}/M_\mathrm{F})],
 \end{equation}
-where $\alpha_{\rm adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
+where $\alpha_\mathrm{adjust} = $[{\normalfont \ttfamily accretionHaloNaozBarkana2007RateAdjust}].
 
 \section{Accretion of Total Mass into Halos}\label{sec:AccretionTotal}\index{accretion!total}
 
@@ -122,7 +122,7 @@ spin is used:
 
 \subsection{``Switched'' Disks}
 
-Selected with {\normalfont \ttfamily accretionDisksMethod}$=${\normalfont \ttfamily switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (\gls{adaf}) modes. This is intended to crudely model the fact that accretion disks are expected to be radiatively inefficient at both high accretion rates (i.e. as they approach the Eddington luminosity the radiation pressure from a radiatively efficient flow would begin to disrupt the flow itself by definition), while accretion flows at low accretion rates ($\dot{M}_{\rm acc} < \alpha^2 \dot{M}_{\rm Edd}$, where $\alpha\sim 0.1$ is the usual parameter controlling the rate of angular momentum transport in a \cite{shakura_black_1973} accretion disk) are also radiatively inefficient as radiative processes are too inefficient at the associated low densities to radiate energy at the rate it is being liberated. A more thorough discussion is given by \cite{begelman_accreting_2014}.
+Selected with {\normalfont \ttfamily accretionDisksMethod}$=${\normalfont \ttfamily switched}, this method allows for accretion disks to switched between radiatively efficient (Shakura-Sunyaev) and inefficient (\gls{adaf}) modes. This is intended to crudely model the fact that accretion disks are expected to be radiatively inefficient at both high accretion rates (i.e. as they approach the Eddington luminosity the radiation pressure from a radiatively efficient flow would begin to disrupt the flow itself by definition), while accretion flows at low accretion rates ($\dot{M}_\mathrm{acc} < \alpha^2 \dot{M}_\mathrm{Edd}$, where $\alpha\sim 0.1$ is the usual parameter controlling the rate of angular momentum transport in a \cite{shakura_black_1973} accretion disk) are also radiatively inefficient as radiative processes are too inefficient at the associated low densities to radiate energy at the rate it is being liberated. A more thorough discussion is given by \cite{begelman_accreting_2014}.
 
 The properties of the switched disk (e.g. radiative efficiency, jet power), are a linear combination of those of the Shakura-Sunyaev and \gls{adaf} modes, with the \gls{adaf} fraction being given by:
 \begin{equation}
@@ -398,7 +398,7 @@ Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttf
                                                                                                                                               
 Selected with {\normalfont \ttfamily haloMassFunctionMethod}$=${\normalfont \ttfamily simpleSystematic} this method modifies another mass function (specified as a subparameter) as follows:
 \begin{equation}
-  {{\rm d} n\over {\rm d}M}(M) \rightarrow {{\rm d} n\over {\rm d}M}(M) \left( 1 + \alpha + \beta \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
+  {\mathrm{d} n\over \mathrm{d}M}(M) \rightarrow {\mathrm{d} n\over \mathrm{d}M}(M) \left( 1 + \alpha + \beta \log_{10}\left[ {M \over 10^{12}M_\odot} \right] \right)
 \end{equation}
 where $\alpha=${\normalfont \ttfamily [alpha]}, and $\beta=${\normalfont \ttfamily [beta]}.
 
@@ -556,9 +556,9 @@ Selected with {\normalfont \ttfamily coolingRateMethod}$=${\normalfont \ttfamily
 \end{equation}
 where 
 \begin{equation}
-\tau_\mathrm{cool}=\hbox{max}\left[ \tau_{\rm infall} \left({V_{\rm max} \over 200 \hbox{km/s}}\right)^{-\gamma_{\rm infall}} (1+z)^{\alpha_{\rm infall}} \left( 1 + \exp\left[ {\log_{10}(V_{\rm max}/(1+z)^{\delta_{\rm infall}}\mathcal{V}_{\rm infall})] \over \Delta \log_{10} \mathcal{V}_{\rm infall}}\right]\right)^{\beta_{\rm infall}}, \tau_{\rm infall,min} \right],
+\tau_\mathrm{cool}=\hbox{max}\left[ \tau_\mathrm{infall} \left({V_\mathrm{max} \over 200 \hbox{km/s}}\right)^{-\gamma_\mathrm{infall}} (1+z)^{\alpha_\mathrm{infall}} \left( 1 + \exp\left[ {\log_{10}(V_\mathrm{max}/(1+z)^{\delta_\mathrm{infall}}\mathcal{V}_\mathrm{infall})] \over \Delta \log_{10} \mathcal{V}_\mathrm{infall}}\right]\right)^{\beta_\mathrm{infall}}, \tau_\mathrm{infall,min} \right],
 \end{equation}
-with $\tau_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescale]}, $\tau_{\rm infall,min}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleMinimum]}, $\alpha_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleExponent]}, $\beta_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffExponent]}, $\gamma_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingVelocityExponent]}, $\delta_{\rm infall}=${\normalfont \ttfamily []coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent}, $\mathcal{V}_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffVelocity]}, and $\Delta \log_{10} \mathcal{V}_{\rm infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffWidth]}.
+with $\tau_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescale]}, $\tau_\mathrm{infall,min}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleMinimum]}, $\alpha_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingTimescaleExponent]}, $\beta_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffExponent]}, $\gamma_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingVelocityExponent]}, $\delta_\mathrm{infall}=${\normalfont \ttfamily []coolingRateVelocityMaximumScalingCutOffVelocityRedshiftExponent}, $\mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffVelocity]}, and $\Delta \log_{10} \mathcal{V}_\mathrm{infall}=${\normalfont \ttfamily [coolingRateVelocityMaximumScalingCutOffWidth]}.
 
 \subsubsection{White \& Frenk}
 
@@ -759,21 +759,21 @@ normalized such that the total mass of the \gls{node} is enclosed with the viria
 
 Selected with {\normalfont \ttfamily darkMatterProfileMethod}$=${\normalfont \ttfamily Burkert}, under this method the \gls{nfw} density profile \citep{burkert_structure_1995} is used
 \begin{equation}
-  \rho_{\rm dark matter}(r) \propto \left(1+{r\over r_\mathrm{s}}\right)^{-1} \left(1+[{r\over r_\mathrm{s}}]^2\right)^{-1},
+  \rho_\mathrm{dark matter}(r) \propto \left(1+{r\over r_\mathrm{s}}\right)^{-1} \left(1+[{r\over r_\mathrm{s}}]^2\right)^{-1},
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the scale length $r_\mathrm{s} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The mass enclosed within radius $r$ is given by
 \begin{equation}
-M(<r) = M_{\rm virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
+M(<r) = M_\mathrm{virial} {2 \log(1 + R) + \log(1 + R^2) -2 \tan^{-1}(R) \over 2 \log(1 + c) + \log(1 + c^2) -2 \tan^{-1}(c)},
 \end{equation}
-where $R=r/r_{\rm s}$. The associated gravitational potential is
+where $R=r/r_\mathrm{s}$. The associated gravitational potential is
 \begin{equation}
-\Phi(r) = -{\rm G} \left(1+{1 \over R}\right) { 2 \tan^{-1}(R) - 2 \log(1 + R) + \log(1 + R^2) \over -2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2) }.
+\Phi(r) = -\mathrm{G} \left(1+{1 \over R}\right) { 2 \tan^{-1}(R) - 2 \log(1 + R) + \log(1 + R^2) \over -2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2) }.
 \end{equation}
-The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numerical solution), and the Fourier transform of the profile, $F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) {\rm d} r / k r$ (needed in calculations of clustering using the halo model) is given by
+The peak of the rotation curve occurs at $R=3.2446257246042642$ (found by numerical solution), and the Fourier transform of the profile, $F(k) = \int_0^c 4 \pi r^2 \exp(-i k r) \rho(r) \mathrm{d} r / k r$ (needed in calculations of clustering using the halo model) is given by
 \begin{eqnarray}
-  F(k) &=& \left\{2 \exp(-i k) {\rm C}_{\rm i}(k) - 2 \exp(-i k) {\rm C}_{\rm i}(k[1 + c]) + (1 + i) \left[-i \exp(k) \pi - \exp(k) {\rm E}_{\rm i}(-k) \right. \right. \nonumber \\
-    & & +i \exp(-k) {\rm E}_{\rm i}(k) + \exp(k) {\rm E}_{\rm i}(i [i + c] k) - i \exp(-k) {\rm E}_{\rm i}(k [1 + i c ]) + (1 + i) \exp(-i k) {\rm S}_{\rm i}(k) \nonumber \\
-    & & \left. \left. - (1 + i) \exp(-i k) {\rm S}_{\rm i}(k[1 + c])\right]\right\}/\left[k \left\{-2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
+  F(k) &=& \left\{2 \exp(-i k) \mathrm{C}_\mathrm{i}(k) - 2 \exp(-i k) \mathrm{C}_\mathrm{i}(k[1 + c]) + (1 + i) \left[-i \exp(k) \pi - \exp(k) \mathrm{E}_\mathrm{i}(-k) \right. \right. \nonumber \\
+    & & +i \exp(-k) \mathrm{E}_\mathrm{i}(k) + \exp(k) \mathrm{E}_\mathrm{i}(i [i + c] k) - i \exp(-k) \mathrm{E}_\mathrm{i}(k [1 + i c ]) + (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k) \nonumber \\
+    & & \left. \left. - (1 + i) \exp(-i k) \mathrm{S}_\mathrm{i}(k[1 + c])\right]\right\}/\left[k \left\{-2 \tan^{-1}(c) + 2 \log(1 + c) + \log(1 + c^2)\right\}\right].
 \end{eqnarray}
 
 \subsubsection{Tidally-heated}\index{tidally-heated dark matter density profile}\index{dark matter density profile!tidally-heated}\label{phys:darkMatterProfile:darkMatterProfileTidallyHeated}
@@ -895,11 +895,11 @@ where $c_\mathrm{min}=\phi_0+\phi_1 n$, $\nu_\mathrm{min}=\eta_0+\eta_1 n$, $n$ 
 
 \subsubsection{Schneider (2015)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationSchneider2015}
 
-Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily schneider2015}, under this method the concentration using the algorithm of \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of collapse, $z_{\rm c}$ for the halo by solving:
+Selected with {\normalfont \ttfamily darkMatterProfileConcentrationMethod}$=${\normalfont \ttfamily schneider2015}, under this method the concentration using the algorithm of \cite{schneider_structure_2015}. Specifically, a reference model for concentrations in defined in a specific cosmological model. The concentration for a halo of given mass, $M$, and redshift, $z_0$, is then found by finding the redshift of collapse, $z_\mathrm{c}$ for the halo by solving:
 \begin{equation}
-  \delta_{\rm c}(z_{\rm c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M)  \right]  \right)^{1/2}+\delta_{\rm c})(z_0),
+  \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M)  \right]  \right)^{1/2}+\delta_\mathrm{c})(z_0),
 \end{equation}
-where $\delta_{\rm c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to compute the concentration of a halo of that mass. 
+where $\delta_\mathrm{c}(z)$ is the critical overdensity for collapse at redshift $z$, and $f$ is the fraction of a halo's mass assembled at formation time (given by the {\normalfont \ttfamily [massFractionFormation]} parameter. From this, the mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to compute the concentration of a halo of that mass. 
 
 \subsubsection{WDM}
 
@@ -1631,11 +1631,11 @@ The \href{http://www.bpass.org.uk/}{\normalfont \ttfamily BPASS} \gls{imf} is de
 The {\normalfont \ttfamily Chabrier} \gls{imf} is defined by \citep{chabrier_galactic_2001}:
 \begin{equation}
  \phi(M) \propto \left\{ \begin{array}{ll}
- M^{-1} \exp(-[\log_{10}(M/M_\mathrm{c})/\sigma_\mathrm{c}]^2/2) & \hbox{ for } M_{\rm l} < M < M_{\rm t}  \\
- M^\alpha & \hbox{ for } M_{\rm t} < M < M_{\rm u} \\
+ M^{-1} \exp(-[\log_{10}(M/M_\mathrm{c})/\sigma_\mathrm{c}]^2/2) & \hbox{ for } M_\mathrm{l} < M < M_\mathrm{t}  \\
+ M^\alpha & \hbox{ for } M_\mathrm{t} < M < M_\mathrm{u} \\
  0 & \hbox {otherwise,} \end{array} \right.
 \end{equation}
-where $\sigma_\mathrm{c}=${\normalfont \ttfamily [imfChabrierSigma]}, $M_\mathrm{c}=${\normalfont \ttfamily [imfChabrierMass]}$M_\odot$, $\alpha=${\normalfont \ttfamily [imfChabrierExponent]}, $M_{\rm t}=${\normalfont \ttfamily [imfChabrierMassTransition]}$M_\odot$, $M_{\rm l}=${\normalfont \ttfamily [imfChabrierMassLower]}$M_\odot$, and $M_{\rm u}=${\normalfont \ttfamily [imfChabrierMassUpper]}$M_\odot$.
+where $\sigma_\mathrm{c}=${\normalfont \ttfamily [imfChabrierSigma]}, $M_\mathrm{c}=${\normalfont \ttfamily [imfChabrierMass]}$M_\odot$, $\alpha=${\normalfont \ttfamily [imfChabrierExponent]}, $M_\mathrm{t}=${\normalfont \ttfamily [imfChabrierMassTransition]}$M_\odot$, $M_\mathrm{l}=${\normalfont \ttfamily [imfChabrierMassLower]}$M_\odot$, and $M_\mathrm{u}=${\normalfont \ttfamily [imfChabrierMassUpper]}$M_\odot$.
 
 \subsubsection{Kennicutt}
 
@@ -2061,7 +2061,7 @@ The minimum halo mass that the algorithm will follow is determined by the select
 
 \subsubsection{Modifications}
 
-In the original \cite{cole_hierarchical_2000}, when a branch split occurred masses, $M_2$ and $M_3$, of the two new halos were selected by first drawing the mass $M_2$ from the branching distribution function in the range $M_{\rm res}$ to $M_1/2$ (where $M_1$ is the mass of the parent halo, and $M_{\rm res}$ is the mass resolution being used for the tree), and then setting
+In the original \cite{cole_hierarchical_2000}, when a branch split occurred masses, $M_2$ and $M_3$, of the two new halos were selected by first drawing the mass $M_2$ from the branching distribution function in the range $M_\mathrm{res}$ to $M_1/2$ (where $M_1$ is the mass of the parent halo, and $M_\mathrm{res}$ is the mass resolution being used for the tree), and then setting
 \begin{equation}
   M_3 = M_1 (1-F) - M_2
 \end{equation}
@@ -2258,9 +2258,9 @@ Selected by default with {\normalfont \ttfamily satelliteTidalStrippingMethod}$=
 \end{equation}
 where $\alpha=${\normalfont \ttfamily [satelliteTidalStrippingZentnerRate]},
 \begin{equation}
-T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_{\rm r}/r)},
+T_\mathrm{orb} = {1 \over \hbox{max}(\omega/2\pi,v_\mathrm{r}/r)},
 \end{equation}
-where $\omega$ is the angular velocity of the satellite, $v_{\rm r}$ is the radial velocity, $r$ is the orbital radius, and $r_\mathrm{tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
+where $\omega$ is the angular velocity of the satellite, $v_\mathrm{r}$ is the radial velocity, $r$ is the orbital radius, and $r_\mathrm{tidal}$ is the tidal radius of the satellite, given by the \cite{king_structure_1962} formula:
 \begin{equation}
 r_\mathrm{tidal}=\left(\frac{GM_\mathrm{sat}}{\omega^2-d^2\Phi/dr^2}\right)^{1/3},
 \end{equation}

@@ -124,7 +124,7 @@ contains
     !% \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
     !% ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
     !% \end{equation}
-    !% where $A=${\normalfont \ttfamily [starFormationExtendedSchmidtNormalization]} and $N_1=${\tt
+    !% where $A=${\normalfont \ttfamily [starFormationExtendedSchmidtNormalization]} and $N_1=${\normalfont \ttfamily
     !% [starFormationExtendedSchmidtGasExponent]}. $N_2=${\normalfont \ttfamily [starFormationExtendedSchmidtStarExponent]}.
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities

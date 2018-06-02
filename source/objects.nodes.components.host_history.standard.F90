@@ -79,7 +79,7 @@ contains
   !# <unitName>Node_Component_Host_History_Standard_Update_History</unitName>
   !# </postEvolveTask>
   subroutine Node_Component_Host_History_Standard_Update_History(thisNode)
-    !% Record any major merger of {\tt thisNode}.
+    !% Record any major merger of {\normalfont \ttfamily thisNode}.
     implicit none
     type (treeNode                ), pointer, intent(inout) :: thisNode
     class(nodeComponentHostHistory), pointer                :: thisHostHistory

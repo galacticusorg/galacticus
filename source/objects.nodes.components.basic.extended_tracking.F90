@@ -79,7 +79,7 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Basic_Extended_Tracking_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum
-    !% mass of {\tt node} to be that of its parent.
+    !% mass of {\normalfont \ttfamily node} to be that of its parent.
     use Galacticus_Error
     implicit none
     type (treeNode          ), intent(inout), pointer :: node

@@ -459,7 +459,7 @@ contains
   end subroutine Atomic_Rate_Ionization_Collisional_Verner_Initialize
 
   double precision function Atomic_Rate_Ionization_Collisional_Verner(atomicNumber,ionizationState,temperature)
-    !% Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified {\tt
+    !% Computes the rate coefficient of direct collisional ionization (in units of cm$^3$ s$^{-1}$) at the specified {\normalfont \ttfamily
     !% temperature} for all ions of atoms with $Z<28$ by use of the fits from
     !% \citeauthor{voronov_practical_1997}~(\citeyear{voronov_practical_1997}; Version 2, March 24, 1997). Based on the
     !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code} originally written by Dima Verner. The ionization state passed to

@@ -22,10 +22,10 @@
   !$ use OMP_Lib
   
   !# <massDistribution name="massDistributionExponentialDisk">
-  !#  <description>The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_{\rm s}) \hbox{sech}^2(z/z_{\rm s})$.</description>
+  !#  <description>The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.</description>
   !# </massDistribution>
   type, public, extends(massDistributionCylindrical) :: massDistributionExponentialDisk
-     !% The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_{\rm s}) \hbox{sech}^2(z/z_{\rm s})$.
+     !% The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
      double precision                           :: scaleRadius                           , scaleHeight                           , &
           &                                        densityNormalization                  , surfaceDensityNormalization           , &
           &                                        mass

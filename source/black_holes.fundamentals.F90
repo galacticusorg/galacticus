@@ -525,7 +525,7 @@ contains
   end function A2
 
   double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(thisBlackHole)
-    !% Wrapper function for \href{func:black_hole_rotational_energy_spin_down_spin}{{\tt
+    !% Wrapper function for \href{func:black_hole_rotational_energy_spin_down_spin}{{\normalfont \ttfamily
     !% Black\_Hole\_Rotational\_Energy\_Spin\_Down\_Node}} which takes a tree node as input.
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole

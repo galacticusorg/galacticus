@@ -528,8 +528,9 @@ contains
   end function vernerConstructorParameters
 
   double precision function vernerPotential(self,atomicNumber,electronNumber)
-    !% Return the ionization potential (in units of electon volts) for the ion with given {\normalfont \ttfamily atomicNumber} and {\tt
-    !% electronNumber} using data taken from Dima Verner's \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
+    !% Return the ionization potential (in units of electon volts) for the ion with given {\normalfont \ttfamily atomicNumber} and
+    !% {\normalfont \ttfamily electronNumber} using data taken from Dima Verner's
+    !% \href{ftp://gradj.pa.uky.edu//dima//col//cfit.f}{code}.
     implicit none
     class  (atomicIonizationPotentialVerner), intent(inout) :: self
     integer                                 , intent(in   ) :: atomicNumber, electronNumber

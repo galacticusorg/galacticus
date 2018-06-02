@@ -1877,7 +1877,7 @@ contains
   end subroutine ALFALFA_HI_Mass_Function_Z0_00_Initialize
 
   subroutine Mass_Error_ALFALFA_HI_Mass_Function_Z0_00(mass,node,error,weight)
-    !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See {\tt
+    !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See {\normalfont \ttfamily
     !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     double precision          , intent(in   )                            :: mass
     type            (treeNode), intent(inout), pointer                   :: node
@@ -1991,7 +1991,7 @@ contains
   end function Molecular_Ratio_ALFALFA_HI_Mass_Function_Z0_00
 
   subroutine Mass_Error_PRIMUS_Stellar_Mass_Function(mass,node,error,weight)
-    !% Computes errors on $\log_{10}($HI masses$)$ for the PRIMUS survey analysis. Uses a simple fitting function. See {\tt
+    !% Computes errors on $\log_{10}($HI masses$)$ for the PRIMUS survey analysis. Uses a simple fitting function. See {\normalfont \ttfamily
     !% constraints/dataAnalysis/stellarMassFunctions\_PRIMUS\_z0\_1/massErrors.pl} for details.
     use Cosmology_Functions
     use Geometry_Surveys

@@ -268,7 +268,7 @@ contains
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Promote</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Promote(node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
+    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
     implicit none
     type (treeNode            ), intent(inout), pointer :: node

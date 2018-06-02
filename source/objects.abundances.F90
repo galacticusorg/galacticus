@@ -586,7 +586,7 @@ contains
   end function Abundances_Divide
 
   integer function Abundances_Property_Count()
-    !% Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\tt
+    !% Return the number of properties required to track abundances. This is equal to the number of elements tracked, {\normalfont \ttfamily
     !% elementsCount}, plus one since we always track a total metallicity.
     implicit none
 
