@@ -183,7 +183,7 @@ contains
   end function caputi2011UKIDSSUDSVolumeMaximum
 
   double precision function caputi2011UKIDSSUDSSolidAngle(self,field)
-    !% Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\tt
+    !% Return the solid angle of the \cite{caputi_stellar_2011} sample. Computed from survey mask (see {\normalfont \ttfamily
     !% constraints/dataAnalysis/stellarMassFunctions\_UKIDSS\_UDS\_z3\_5/surveyGeometryRandoms.pl}).
     use Galacticus_Error
     implicit none

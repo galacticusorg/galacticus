@@ -192,9 +192,9 @@ contains
   double precision function topHatSharpKHybridWavenumberMaximum(self,smoothingMass)
     !% Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
     !% non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
-    !% is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\tt
+    !% is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily
     !% [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$
-    !% and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\tt [radiiRatio]}.
+    !% and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
@@ -209,8 +209,8 @@ contains
   subroutine topHatSharpKHybridRadii(self,smoothingMass,radiusTopHat,radiusKSpaceSharp)
     !% Computes the radii of the top-hat and sharp $k$-space filters. Specifically, uses a convolution of top-hat real-space and
     !% sharp $k$-space window functions. The top-hat radius is $r_\mathrm{th}$, while the $k$-space cut-off wavenumber is
-    !% $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\tt [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 +
-    !% r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\tt [radiiRatio]}.
+    !% $k_\mathrm{s}=a/r_\mathrm{s}$, where $a=${\normalfont \ttfamily [normalization]}. The two radii are chosen such that $r_\mathrm{th}^2 +
+    !% r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_\mathrm{s}=\beta r_\mathrm{th}$ where $\beta=${\normalfont \ttfamily [radiiRatio]}.
     use Numerical_Constants_Math
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self

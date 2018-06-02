@@ -556,23 +556,23 @@ contains
   end subroutine Galacticus_Output_Tree_Velocity_Dispersion
 
   double precision function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1(radius)
-    !% Integrand function used for integrating the $\lambda_{\rm R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
+    !% Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
     !% want to evaluate
     !% \begin{equation}
-    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) \sqrt{\sigma^2(r^\prime)+V^2(r^\prime)} {\rm d}r^\prime,
+    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) \sqrt{\sigma^2(r^\prime)+V^2(r^\prime)} \mathrm{d}r^\prime,
     !% \end{equation}
     !% where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, $\sigma^2(r)$ is the
     !% measured velocity dispersion and $V(r)$ the measured rotation speed. Assuming that the selected component is purely
-    !% dispersion dominated with velocity dispersion $\sigma_{\rm s}(r)$, and that rotation is present in only the disk component
-    !% with rotation curve $V_{\rm d}(r)$ then we can model the velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of
-    !% width $\sigma_{\rm s}(r)$ and normalized area $\Sigma_{\rm s}(r)$, and a delta function at $V_{\rm d}(r)$ with normalized
-    !% area $\Sigma_{\rm d}(r)$. The measured rotation speed is then:
+    !% dispersion dominated with velocity dispersion $\sigma_\mathrm{s}(r)$, and that rotation is present in only the disk component
+    !% with rotation curve $V_\mathrm{d}(r)$ then we can model the velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of
+    !% width $\sigma_\mathrm{s}(r)$ and normalized area $\Sigma_\mathrm{s}(r)$, and a delta function at $V_\mathrm{d}(r)$ with normalized
+    !% area $\Sigma_\mathrm{d}(r)$. The measured rotation speed is then:
     !% \begin{equation}
-    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {\Sigma_{\rm d}(r) V_{\rm d}(r) \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]},
+    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]},
     !% \end{equation}
     !% and the measured velocity dispersion is:
     !% \begin{equation}
-    !% \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {  \Sigma_{\rm s}(r) [\sigma_{\rm s}^2(r)] + \Sigma_{\rm d}(r) [V_{\rm d}(r)-V(r)]^2  \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]}.
+    !% \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {  \Sigma_\mathrm{s}(r) [\sigma_\mathrm{s}^2(r)] + \Sigma_\mathrm{d}(r) [V_\mathrm{d}(r)-V(r)]^2  \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
     !% \end{equation}
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
@@ -672,19 +672,19 @@ contains
   end function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd1
   
   double precision function Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2(radius)
-    !% Integrand function used for integrating the $\lambda_{\rm R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
+    !% Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
     !% want to evaluate
     !% \begin{equation}
-    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) V(r^\prime) {\rm d}r^\prime,
+    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) V(r^\prime) \mathrm{d}r^\prime,
     !% \end{equation}
     !% where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, and $V(r)$ the measured
-    !% rotation speed. Assuming that the selected component is purely dispersion dominated with velocity dispersion $\sigma_{\rm
-    !% s}(r)$, and that rotation is present in only the disk component with rotation curve $V_{\rm d}(r)$ then we can model the
-    !% velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of width $\sigma_{\rm s}(r)$ and normalized area
-    !% $\Sigma_{\rm s}(r)$, and a delta function at $V_{\rm d}(r)$ with normalized area $\Sigma_{\rm d}(r)$. The measured rotation
+    !% rotation speed. Assuming that the selected component is purely dispersion dominated with velocity dispersion $\sigma_\mathrm{
+    !% s}(r)$, and that rotation is present in only the disk component with rotation curve $V_\mathrm{d}(r)$ then we can model the
+    !% velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of width $\sigma_\mathrm{s}(r)$ and normalized area
+    !% $\Sigma_\mathrm{s}(r)$, and a delta function at $V_\mathrm{d}(r)$ with normalized area $\Sigma_\mathrm{d}(r)$. The measured rotation
     !% speed is then:
     !% \begin{equation}
-    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V {\rm d}V \right/ \int_{-\infty}^{+\infty} P(V) {\rm d}V = {\Sigma_{\rm d}(r) V_{\rm d}(r) \over [\Sigma_{\rm d}(r)+\Sigma_{\rm s}(r)]}.
+    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
     !% \end{equation}
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
@@ -780,7 +780,7 @@ contains
   end function Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
 
   double precision function Spherical_Shell_Solid_Angle_In_Cylcinder(radius)
-    !% Computes the solid angle of a spherical shelll of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\tt
+    !% Computes the solid angle of a spherical shelll of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\normalfont \ttfamily
     !% radiusImpact}.
     use Numerical_Constants_Math
     implicit none
@@ -850,27 +850,27 @@ contains
   double precision function Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd(radius)
     !% Integrand function used for computing line-of-sight velocity dispersions. Specifically, we wish to evaluate the integral:
     !% \begin{equation}
-    !% \int_{r_{\rm i}}^{r_{\rm o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_{\rm i}^2}} {\rm d}r,
+    !% \int_{r_\mathrm{i}}^{r_\mathrm{o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_\mathrm{i}^2}} \mathrm{d}r,
     !% \label{eq:velocityDispersionDensityIntegral}
     !% \end{equation}
-    !% where $r_{\rm i}$ is the impact parameter, $r_{\rm o}$ is an outer radius at which we assume $\rho(r_{\rm
-    !% o})\sigma^2(r_{\rm o}) = 0$ (i.e. it is the radius at which we begin integrating the Jeans equation), $\rho(r)$ is density,
+    !% where $r_\mathrm{i}$ is the impact parameter, $r_\mathrm{o}$ is an outer radius at which we assume $\rho(r_\mathrm{
+    !% o})\sigma^2(r_\mathrm{o}) = 0$ (i.e. it is the radius at which we begin integrating the Jeans equation), $\rho(r)$ is density,
     !% and $\sigma(r)$ is the velocity dispersion at radius $r$. Assuming spherical symmetry and isotropic velocity dispersion,
     !% the Jeans equation tells us
     !% \begin{equation}
-    !% \rho(r) \sigma^2(r) = \int^{r_{\rm o}}_r {{\rm G} M(<r^\prime) \over r^{\prime 2}} \rho(r^\prime) {\rm d}r^\prime,
+    !% \rho(r) \sigma^2(r) = \int^{r_\mathrm{o}}_r {\mathrm{G} M(<r^\prime) \over r^{\prime 2}} \rho(r^\prime) \mathrm{d}r^\prime,
     !% \label{eq:sphericalIsotropicJeans}
     !% \end{equation}
-    !% where ${\rm G}$ is the gravitational constant, and $M(<r)$ is the total mass contained within radius
+    !% where $\mathrm{G}$ is the gravitational constant, and $M(<r)$ is the total mass contained within radius
     !% $r$. Equation~(\ref{eq:velocityDispersionDensityIntegral}) can then be simplified using integration by parts to give:
     !% \begin{equation}
-    !% \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_{\rm i}^2}\right]_{r_{\rm i}}^{r_{\rm o}} + \int_{r_{\rm i}}^{r_{\rm o}} {{\rm d}\over {\rm d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_{\rm i}^2} {\rm d}r.
+    !% \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_\mathrm{i}^2}\right]_{r_\mathrm{i}}^{r_\mathrm{o}} + \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{d}\over \mathrm{d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     !% \end{equation}
-    !% The first term is zero at both limits (due to the constraint $\rho(r_{\rm o})\sigma^2(r_{\rm o}) = 0$ at $r_{\rm o}$ and
-    !% due to $sqrt{r^2-r_{\rm i}^2}=0$ at $r_{\rm i}$), and the second term can be simplified using
+    !% The first term is zero at both limits (due to the constraint $\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0$ at $r_\mathrm{o}$ and
+    !% due to $sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
     !% eqn.~(\ref{eq:sphericalIsotropicJeans}) to give
     !% \begin{equation}
-    !% \int_{r_{\rm i}}^{r_{\rm o}} {{\rm G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_{\rm i}^2} {\rm d}r.
+    !% \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
     !% \end{equation}
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses

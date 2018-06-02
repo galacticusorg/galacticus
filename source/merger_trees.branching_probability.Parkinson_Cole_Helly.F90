@@ -320,7 +320,7 @@ contains
 
     double precision function massBranchGeneric()
       !% Determine the mass of one of the halos to which the given halo branches, given the branching probability, {\normalfont
-      !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\tt probability}
+      !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
       use FGSL
@@ -424,7 +424,7 @@ contains
   end function parkinsonColeHellyMassBranchRootDerivative
 
   double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,massResolution)
-    !% Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\tt
+    !% Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
     !% deltaCritical} should be allowed to take.
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
@@ -548,7 +548,7 @@ contains
 
   double precision function parkinsonColeHellyModifier(childSigma)
     !% Empirical modification of the progenitor mass function from \cite{parkinson_generating_2008}. The constant factors of
-    !% $G_0 (\delta_{\rm p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
+    !% $G_0 (\delta_\mathrm{p}/\sigma_\mathrm{p})^{\gamma_2}$ and $1/\sigma_\mathrm{p}^{\gamma_1}$ are not included
     !% here---instead they are included in a multiplicative prefactor by which integrals over this function are multiplied.
     implicit none
     double precision, intent(in   ) :: childSigma

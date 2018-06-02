@@ -75,8 +75,8 @@ contains
     !% \begin{equation}
     !% \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{spheroid} < V_\mathrm{spheroid,SW} \\ (V_\mathrm{spheroid,SW}/V_\mathrm{spheroid})^2 &  \hbox{ if } V_\mathrm{spheroid} \ge V_\mathrm{spheroid,SW} \end{array} \right. ,
     !% \end{equation}
-    !%  where $V_\mathrm{spheroid,SW}=${\tt
-    !% [spheroidSuperwindVelocity]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily [spheroidSuperwindMassLoading]}. Note that the velocity $V_{\rm
+    !%  where $V_\mathrm{spheroid,SW}=${\normalfont \ttfamily
+    !% [spheroidSuperwindVelocity]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily [spheroidSuperwindMassLoading]}. Note that the velocity $V_\mathrm{
     !% spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005}, except that they specifically used the
     !% circular velocity at half-mass radius.

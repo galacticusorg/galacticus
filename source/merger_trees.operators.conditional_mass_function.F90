@@ -24,7 +24,7 @@
   !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF" defaultThreadPrivate="yes">
   !#  <description>
   !#   Provides a merger tree operator which accumulates conditional mass functions for trees. In
-  !#   addition to the cumulative mass function, 1$^{\rm st}$ through $n^{\rm th}$ most-massive
+  !#   addition to the cumulative mass function, 1$^\mathrm{st}$ through $n^\mathrm{th}$ most-massive
   !#   progenitor mass functions, formation rate functions, and unevolved subhalo mass functions \citep{jiang_generating_2014}
   !#   split by hierarchy depth are computed and output. Mass functions are accumulated in
   !#   logarithmically-spaced bins of parent halo mass, logarithmically-spaced bins of mass ratio
@@ -39,7 +39,7 @@
   !#   \item[{\normalfont \ttfamily massRatioMaximum}] The maximum mass ratio to consider;
   !#   \item[{\normalfont \ttfamily parentRedshifts}] A list of redshifts at which to identify parent halos;
   !#   \item[{\normalfont \ttfamily progenitorRedshifts}] A corresponding list of redshifts at which to identify progenitor halos;
-  !#   \item[{\normalfont \ttfamily primaryProgenitorDepth}] The number of $i^{\rm th}$ most-massive progenitor mass functions to compute (starting from the 1$^{\rm st}$ most-massive);
+  !#   \item[{\normalfont \ttfamily primaryProgenitorDepth}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
   !#   \item[{\normalfont \ttfamily subhaloHierarchyDepth}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
   !#   \item[{\normalfont \ttfamily formationRateTimeFraction}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
   !#   \item[{\normalfont \ttfamily outputGroupName}] The name of the \gls{hdf5} group to which mass functions will be written.
@@ -139,7 +139,7 @@
   !#   formation rate function. The first uses the mass of the forming halo at the time of formation,
   !#   the second uses the mass of the node immediately prior to it becoming a subhalo.
   !#  
-  !#   Mass functions are output as ${\rm d}N/{\rm d}\log_{10}m$ where $N$ is the number of halos per
+  !#   Mass functions are output as $\mathrm{d}N/\mathrm{d}\log_{10}m$ where $N$ is the number of halos per
   !#   parent halo, and $m$ is the mass ratio.  
   !#  </description>
   !# </mergerTreeOperator>
@@ -319,7 +319,7 @@ contains
     !#   <name>extendedStatistics</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Compute extended statistics (formation rate function, $N^{\rm th}$ most-massive progenitor mass functions, etc.)?</description>
+    !#   <description>Compute extended statistics (formation rate function, $N^\mathrm{th}$ most-massive progenitor mass functions, etc.)?</description>
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>

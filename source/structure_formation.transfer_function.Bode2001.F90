@@ -67,7 +67,7 @@ contains
     !#   <name>epsilon</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.359d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_{\rm eq}$]{barkana_constraints_2001}</defaultSource>
+    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
     !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
@@ -76,7 +76,7 @@ contains
     !#   <name>eta</name>
     !#   <source>parameters</source>
     !#   <defaultValue>3.81d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_{\rm eq}$]{barkana_constraints_2001}</defaultSource>
+    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
     !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
@@ -85,7 +85,7 @@ contains
     !#   <name>nu</name>
     !#   <source>parameters</source>
     !#   <defaultValue>1.1d0</defaultValue>
-    !#   <defaultSource>\citep[][for the transfer function at $z=z_{\rm eq}$]{barkana_constraints_2001}</defaultSource>
+    !#   <defaultSource>\citep[][for the transfer function at $z=z_\mathrm{eq}$]{barkana_constraints_2001}</defaultSource>
     !#   <description>The parameter $\epsilon$ appearing in the warm dark matter transfer function \citep{barkana_constraints_2001}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>

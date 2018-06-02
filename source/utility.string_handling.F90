@@ -345,7 +345,7 @@ contains
   end function String_Superscript
 
   integer function String_Levenshtein_Distance(s,t)
-    !% Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\normalfont \ttfamily a} and {\tt
+    !% Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\normalfont \ttfamily a} and {\normalfont \ttfamily
     !% b}.
     implicit none
     character(len=*), intent(in   )                :: s, t

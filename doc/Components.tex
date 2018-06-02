@@ -515,7 +515,7 @@ N/A---disk radii are computed using the selected galactic structure solver.
 
 This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:MassDistributions}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
 \begin{description}
-\item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_{\rm s}) \hbox{sech}^2(z/z_{\rm s})$, for the disk \gls{component} of a galaxy. The thickness, $z_{\rm s}/r_{\rm s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
+\item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$, for the disk \gls{component} of a galaxy. The thickness, $z_\mathrm{s}/r_\mathrm{s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
 \end{description}
 
 \subsubsection{Properties}
@@ -1193,7 +1193,7 @@ The Vitvitska dark matter halo spin implementation follows the \cite{vitvitska_o
 
 The spin parameters of nodes having no children are drawn at random from the selected spin distribution function. For other nodes, their angular momentum is set equal to the sum of the spin angular momentum of their primary progenitor and the orbital angular momenta of all non-primary progenitors (which are determined from the orbital parameters) modulated by a factor dependent on the mass ratio of the merging halos:
 \begin{equation}
- {\bf J}^{\rm (spin)}_{\rm parent} = {\bf J}^{\rm (spin)}_{1} + \sum_{i=2}^N \left(1+{m_i \over m_{1}}\right)^{-\alpha} {\bf J}^{\rm (orbit)}_{i}.
+ \mathbf{J}^\mathrm{(spin)}_\mathrm{parent} = \mathbf{J}^\mathrm{(spin)}_{1} + \sum_{i=2}^N \left(1+{m_i \over m_{1}}\right)^{-\alpha} \mathbf{J}^\mathrm{(orbit)}_{i}.
 \end{equation}
 where $\alpha=${\normalfont \ttfamily [spinVitvitskaMergerRatioExponent]}. 
 

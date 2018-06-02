@@ -513,7 +513,7 @@ sub Functions_Generate_Output {
 
     # Create destructor.
     $buildData->{'content'} .= "   subroutine ".$directive."Destructor(self)\n";
-    $buildData->{'content'} .= "      !%  {\\tt ".$directive."} object.\n";
+    $buildData->{'content'} .= "      !%  {\\normalfont \ttfamily ".$directive."} object.\n";
     $buildData->{'content'} .= "      use Galacticus_Error\n";
     $buildData->{'content'} .= "      implicit none\n";
     $buildData->{'content'} .= "      type(".$directive."Class), intent(in   ) :: self\n\n";

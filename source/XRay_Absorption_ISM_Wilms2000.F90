@@ -19,7 +19,7 @@
 !% Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
 !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
 !% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
-!% downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
+!% downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
 !% Galacticus::ISMCrossSections} module.
 
 ! Add explicit dependencies on the XSpec files.
@@ -28,9 +28,10 @@
 
 program XRay_Absorption_ISM_Wilms2000
   !% Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
-  !% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have
-  !% been downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\tt
+  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
+  !% cross-sections in the \gls{ism}. This program assumes that various files from
+  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
+  !% \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
   !% Galacticus::ISMColumnDensity} module.
   use Numerical_Ranges
   use Numerical_Constants_Units

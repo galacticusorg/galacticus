@@ -88,7 +88,7 @@
 contains
 
   subroutine mangleInitialize(self)
-    !% Internal constructor for the {\sc mangle} conditional mass function class.
+    !% Internal constructor for the {\normalfont \scshape mangle} conditional mass function class.
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
  

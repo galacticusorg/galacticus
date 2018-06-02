@@ -88,7 +88,7 @@
      !@      \begin{description}
      !@      \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
      !@      \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} is the given position appears in \emph{any} replicant in the lightcone;
-     !@      \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^{\rm th}$ replicant in which this position appears in the lightcone.
+     !@      \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
      !@      \end{description}
      !@     </description>
      !@   </objectMethod>

@@ -640,8 +640,8 @@ contains
   end subroutine matterDarkEnergyMakeExpansionFactorTable
 
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
-    !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily expansionFactorStart} at time {\tt
-    !% timeStart}.
+    !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily
+    !% expansionFactorStart} at time {\normalfont \ttfamily timeStart}.
     use ODE_Solver
     implicit none
     double precision                    , intent(in   ) :: expansionFactorStart       , timeEnd                     , &

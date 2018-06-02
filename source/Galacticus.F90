@@ -16,8 +16,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% {\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson \href{mailto:abenson@carnegiescience.edu}{{\tt
-!% <abenson@carnegiescience.edu>}}.
+!% {\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson
+!% \href{mailto:abenson@carnegiescience.edu}{{\normalfont \ttfamily <abenson@carnegiescience.edu>}}.
 
 program Galacticus
   !% The main {\normalfont \scshape Galacticus} program.

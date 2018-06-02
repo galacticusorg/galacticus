@@ -4,7 +4,7 @@
 
 \section{Halo Masses and Dark Matter Mass}
 
-Halo masses require some care in specifying exactly what mass they represent due to the way in which merger trees are typically created. For example, when merger trees are extracted from N-body simulations, those simulations frequently represent \emph{all} matter as collisionless. That is, the simulation contains a density $\Omega_{\rm M}=\Omega_{\rm DM}+\Omega_{\rm b}$ which is the sum of dark and baryonic matter densities, but all of this mass is represented as collisionless particles. Similarly, masses in merger trees built through Monte Carlo techniques typically represent all mass as collisionless.
+Halo masses require some care in specifying exactly what mass they represent due to the way in which merger trees are typically created. For example, when merger trees are extracted from N-body simulations, those simulations frequently represent \emph{all} matter as collisionless. That is, the simulation contains a density $\Omega_\mathrm{M}=\Omega_\mathrm{DM}+\Omega_\mathrm{b}$ which is the sum of dark and baryonic matter densities, but all of this mass is represented as collisionless particles. Similarly, masses in merger trees built through Monte Carlo techniques typically represent all mass as collisionless.
 
 The exact way in which masses within \glc\ are defined and used in specified in the following subsections.
 
@@ -18,7 +18,7 @@ The dark matter profile functions (see \S\ref{phys:darkMatterProfile}) return ma
 
 \subsection{Galactic Structure Functions}
 
-The various galactic structure functions assume that the masses/densities/etc. reported by the dark matter profile functions should be scaled by a factor $(\Omega_{\rm M}-\Omega_{\rm b})/\Omega_{\rm b}$ to leave only the dark matter part of the profile. Baryonic contributions to the mass/density/etc. will be provided by the components representing those mass distributions.
+The various galactic structure functions assume that the masses/densities/etc. reported by the dark matter profile functions should be scaled by a factor $(\Omega_\mathrm{M}-\Omega_\mathrm{b})/\Omega_\mathrm{b}$ to leave only the dark matter part of the profile. Baryonic contributions to the mass/density/etc. will be provided by the components representing those mass distributions.
 
 \subsection{Satellite Virial Orbits}
 
@@ -52,7 +52,7 @@ where $\mathrm{d}\eta = \mathrm{d}t/a$ is conformal time.
 
 \section{Gravitational Potentials}\index{potential!gravitational}\index{gravitational potential}
 
-Gravitational potentials are measured in velocity units (i.e. km$^2$/s$^2$), and the arbitrary constant offset is chosen such that the total gravitational potential in any halo at the virial radius is $\Phi(r_{\rm virial})=-V_{\rm virial}^2$. This choice is made for two reasons:
+Gravitational potentials are measured in velocity units (i.e. km$^2$/s$^2$), and the arbitrary constant offset is chosen such that the total gravitational potential in any halo at the virial radius is $\Phi(r_\mathrm{virial})=-V_\mathrm{virial}^2$. This choice is made for two reasons:
 \begin{enumerate}
 \item some mass distributions used have potentials which diverge as $r\rightarrow\infty$, so the usual choice of $\Phi(r) \rightarrow 0$ as $r \rightarrow \infty$ is not applicable;
 \item this choice is consistent with the potential at the virial radius of the halo considered as a point mass as is used in Keplerian orbit calculations.
