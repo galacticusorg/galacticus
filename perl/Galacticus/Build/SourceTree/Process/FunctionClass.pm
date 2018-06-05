@@ -111,7 +111,9 @@ sub Process_FunctionClass {
 		    unless ( exists($class->{'abstract'}            ) );
 		$class->{'defaultThreadPrivate'} = "default"
 		    unless ( exists($class->{'defaultThreadPrivate'}) );
-		# Store to set of all classes.
+	        # Store to set of all classes.
+		die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
+		    unless ( defined($class->{'type'}) );
 		$classes{$class->{'type'}} = $class;
 	    }
 	    my @unsortedClasses = keys(%classes);
