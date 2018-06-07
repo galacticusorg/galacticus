@@ -85,252 +85,313 @@ my %pbsOptions =
      waitSleepDuration   =>  10
     );
 
-# Define a list of executables to run. Each hash must give the name of the executable and should specify whether or not the
+# Define a list of executables to run. Each hash must give the name of the executable, should specify whether or not the
 # executable should be run inside of Valgrind (this is useful for detecting errors which lead to misuse of memory but which don't
-# necessary cause a crash).
+# necessary cause a crash), and should specify if the executable should be built and run under mpi.
 my @executablesToRun = (
     {
 	name     => "tests.nodes.exe",                                                    # Tests of Galacticus nodes.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.parameters.exe",                                               # Tests of parameter input.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.IO.HDF5.exe",                                                  # Tests of HDF5 IO routines.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.IO.XML.exe",                                                   # Tests of XML IO routines.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.ODE_solver.exe",                                               # Tests of ODE solver routines.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.random.exe",                                                   # Tests of random number generators.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.arrays.exe",                                                   # Tests of array functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.meshes.exe",                                                   # Tests of mesh functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.comparisons.exe",                                              # Tests of comparison functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.geometry.coordinate_systems.exe",                              # Tests of coordinate system functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.hashes.exe",                                                   # Tests of hashing utilities.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.hashes.perfect.exe",                                           # Tests of perfect hashing utilities.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.regular_expressions.exe",                                      # Tests of regular expression utilities.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.hashes.cryptographic.exe",                                     # Tests of cryptographic hashing utilities.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.integration.exe",                                              # Tests of integration functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.integration2.exe",                                             # Tests of integration functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.tables.exe",                                                   # Tests of table functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.interpolation.exe",                                            # Tests of interpolation functions.
-	valgrind => 0             
+	valgrind => 0,
+	mpi      => 0             
     },
     {
 	name     => "tests.interpolation.2D.exe",                                         # Tests of 2D interpolation function.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.make_ranges.exe",                                              # Tests of numerical range building functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.mass_distributions.exe",                                       # Tests of mass distributions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.math_special_functions.exe",                                   # Tests of mathematical special functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.math_distributions.exe",                                       # Tests of mathematical distributions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.math.fast.exe",                                                # Tests of fast mathematical functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.root_finding.exe",                                             # Tests of root finding functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.search.exe",                                                   # Tests of searching functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.sort.exe",                                                     # Tests of sorting functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.string_utilities.exe",                                         # Tests of string handling utilities.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.vectors.exe",                                                  # Tests of vector functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.multi_counters.exe",                                           # Tests of multi-counters.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.tensors.exe",                                                  # Tests of tensor functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {	name     => "tests.cosmic_age.exe",                                               # Tests of cosmic age calculations.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.open.exe",                                  # Tests of spherical collapse calculations.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.flat.exe",                                  # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.dark_energy.EdS.exe",                       # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.dark_energy.open.exe",                      # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.dark_energy.lambda.exe",                    # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe", # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe",       # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe",       # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spherical_collapse.nonlinear.exe",                             # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.linear_growth.cosmological_constant.exe",                      # Tests of linear growth factor.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.linear_growth.EdS.exe",                                        # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.linear_growth.open.exe",                                       # .
- 	valgrind => 0
+ 	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.linear_growth.dark_energy.exe",                                # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.halo_mass_function.Tinker.exe",                                # Tests of dark matter halo mass functions.
- 	valgrind => 0
+ 	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     =>"tests.comoving_distance.exe",                                         # Tests of comoving distance calculations.
- 	valgrind => 0
+ 	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.mass_accretion_history.Correa2015.exe",                        # Tests of mass accretion histories.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.Zhao2009_algorithms.dark_energy.exe",                          # Tests of Zhao et al. (2009) algorithms.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.Zhao2009_algorithms.EdS.exe",                                  # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.Zhao2009_algorithms.open.exe",                                 # .
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.NFW96_concentration.dark_energy.exe",                          # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.Prada2011_concentration.exe",                                  # Tests of Prada et al. (2011) halo concentration algorithm.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.DiemerKravtsov2014_concentration.exe",                         # Tests of Diemer & Kravtsov (2014) halo concentration algorithm.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.concentration.Correa2015.exe",                                # Tests of Correa et al. (2015) halo concentration algorithm.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.kepler_orbits.exe",                                            # Keplerian orbital parameter conversions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.abundances.exe",                                               # Abundances objects.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.sigma.exe",                                                    # Sigma(M).
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.power_spectrum.exe",                                           # Power spectrum.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.black_hole_fundamentals.exe",                                  # Black hole fundamentals.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.bug745815.exe",                                                # Regresssions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.tree_branch_destroy.exe",                                      # Tests of merger tree walking.
@@ -339,29 +400,45 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.gaunt_factors.exe",                                            # Tests of Gaunt factors.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.cooling_functions.exe",                                        # Tests of cooling functions.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.accretion_disks.exe",                                          # Tests of accretion disks.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.dark_matter_profiles.exe",                                     # Tests of dark matter profiles.
-	valgrind => 0
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
+	valgrind => 0,
+	mpi      => 4
     }
     );
 
 # Build all executables.
+my @executablesNonMPI  = map {$_->{'mpi'} == 0 ? $_->{'name'} : ()} @executablesToRun;
+my @executablesMPI     = map {$_->{'mpi'} >  0 ? $_->{'name'} : ()} @executablesToRun;
+my $compileCommand     = "rm -rf ./work/build ./work/buildMPI\n";
+$compileCommand       .= "make -j16 "                            .join(" ",@executablesNonMPI)."\n"
+    if ( scalar(@executablesNonMPI) > 0 );
+$compileCommand       .= "make -j16 GALACTICUS_BUILD_OPTION=MPI ".join(" ",@executablesMPI   )."\n"
+    if ( scalar(@executablesMPI   ) > 0 );
 my %testBuildJob =
     (
      launchFile   => "testSuite/compileTests.pbs",
      label        => "testSuite-compileTests"    ,
      logFile      => "testSuite/compileTests.log",
-     command      => "rm -rf ./work/build; make -j16 ".join(" ",map {$_->{'name'}} @executablesToRun),
+     command      =>  $compileCommand,
      ppn          => 16,
      onCompletion => 
      {
@@ -397,8 +474,10 @@ foreach my $executable ( @executablesToRun ) {
 	    );
 	if ( $executable->{'valgrind'} == 1 ) {	    
 	    $job{'command'} = "valgrind --error-exitcode=1 ".$executable->{'valgrindOptions'}." ".$executable->{'name'};
+	} elsif ( $executable->{'mpi'} > 0 ) {
+	    $job{'command'} = "mpirun -np "                 .$executable->{'mpi'            }." ".$executable->{'name'};
 	} else {
-	    $job{'command'} = $executable->{'name'};
+	    $job{'command'} =                                                                     $executable->{'name'};
 	}
 	push(@jobStack,\%job);
     }
