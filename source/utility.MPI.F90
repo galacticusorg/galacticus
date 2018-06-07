@@ -21,19 +21,21 @@
 module MPI_Utilities
   !% Implements useful MPI utilities.
 #ifdef USEMPI
-  use MPI
+  use               MPI
 #endif
-  use ISO_Varying_String
-  use Galacticus_Error
+  use, intrinsic :: ISO_C_Binding
+  use               ISO_Varying_String
+  use               Galacticus_Error
   private
-  public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf
+  public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
 
   ! Define a type for interacting with MPI.
   type :: mpiObject
      private
-     integer                                            :: rankValue, countValue    , nodeCountValue
+     integer                                            :: rankValue     , countValue    , &
+          &                                                nodeCountValue
      type   (varying_string)                            :: hostName
-     integer                , allocatable, dimension(:) :: allRanks , nodeAffinities
+     integer                , allocatable, dimension(:) :: allRanks      , nodeAffinities
    contains
      !@ <objectMethods>
      !@   <object>mpiObject</object>
@@ -182,10 +184,41 @@ module MPI_Utilities
           &                         mpiGatherScalar    , mpiGatherInt1D         , &
           &                         mpiGatherIntScalar
   end type mpiObject
-
+  
   ! Declare an object for interaction with MPI.
   type(mpiObject) :: mpiSelf
 
+  ! Define an MPI counter type.
+  type :: mpiCounter
+     !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
+     integer                                      :: window , typeClass
+     integer(c_size_t), allocatable, dimension(:) :: counter
+   contains
+     !@ <objectMethods>
+     !@   <object>mpiCounter</object>
+     !@   <objectMethod>
+     !@     <method>increment</method>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Increment the counter and return the new value.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>get</method>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@     <description>Get the current value of the counter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@ </objectMethods>
+     final     ::              counterDestructor
+     procedure :: increment => counterIncrement
+     procedure :: get       => counterGet
+  end type mpiCounter
+
+  interface mpiCounter
+     module procedure counterConstructor
+  end interface mpiCounter
+  
   ! Record of whether we're running under MPI or not.
   logical         :: mpiIsActiveValue=.false.
 
@@ -195,26 +228,31 @@ module MPI_Utilities
 
 contains
 
-  subroutine mpiInitialize()
+  subroutine mpiInitialize(mpiThreadingRequired)
     !% Initialize MPI.
 #ifdef USEMPI
     use Memory_Management
     use Galacticus_Error
     use Hashes
     implicit none
-    integer                                                          :: i, iError, MPI_Threading_Provided, processorNameLength, iProcess
-    character(len=MPI_MAX_PROCESSOR_NAME), dimension(1)              :: processorName
-    character(len=MPI_MAX_PROCESSOR_NAME), dimension(:), allocatable :: processorNames
-    type     (integerScalarHash         )                            :: processCount
+    integer                                                            :: i                   , iError             , &
+         &                                                                mpiThreadingProvided, processorNameLength, &
+         &                                                                iProcess
+    character(len=MPI_MAX_PROCESSOR_NAME), dimension(1)                :: processorName
+    character(len=MPI_MAX_PROCESSOR_NAME), dimension(:), allocatable   :: processorNames
+    integer                              , optional    , intent(in   ) :: mpiThreadingRequired
+    type     (integerScalarHash         )                              :: processCount
+    !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_THREAD_FUNNELED" />
     
-    call MPI_Init_Thread(MPI_THREAD_FUNNELED,MPI_Threading_Provided,iError)
-    if (iError /= 0) call Galacticus_Error_Report('failed to initialize MPI'//{introspection:location})
-    call MPI_Comm_Size(MPI_Comm_World,mpiSelf%countValue,iError)
-    if (iError /= 0) call Galacticus_Error_Report('failed to determine MPI count'//{introspection:location})
-    call MPI_Comm_Rank(MPI_Comm_World,mpiSelf% rankValue,iError)
-    if (iError /= 0) call Galacticus_Error_Report('failed to determine MPI rank'//{introspection:location})
-    call MPI_Get_Processor_Name(processorName(1),processorNameLength,iError)
-    if (iError /= 0) call Galacticus_Error_Report('failed to get MPI processor name'//{introspection:location})
+    call MPI_Init_Thread       (mpiThreadingRequired_,mpiThreadingProvided,iError)
+    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to initialize MPI'                                        //{introspection:location})
+    if (mpiThreadingProvided <  mpiThreadingRequired_) call Galacticus_Error_Report('MPI library does not provide required level of threading support'//{introspection:location})
+    call MPI_Comm_Size         (MPI_Comm_World       ,mpiSelf%countValue  ,iError)
+    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to determine MPI count'                                   //{introspection:location})
+    call MPI_Comm_Rank         (MPI_Comm_World       ,mpiSelf% rankValue  ,iError)
+    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to determine MPI rank'                                    //{introspection:location})
+    call MPI_Get_Processor_Name(processorName(1)     ,processorNameLength ,iError)
+    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to get MPI processor name'                                //{introspection:location})
     mpiSelf%hostName=trim(processorName(1))
     call mpiBarrier()
     ! Construct an array containing all ranks.
@@ -1259,5 +1297,99 @@ contains
 #endif
     return
   end function mpiGatherInt1D
+
+  function counterConstructor() result(self)
+    !% Constructor for MPI counter class.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Error
+    implicit none
+    type   (mpiCounter      ) :: self
+#ifdef USEMPI
+    integer                   :: mpiSize, iError
+
+    call MPI_SizeOf(0_c_size_t,mpiSize,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to get type size'//{introspection:location})
+    call MPI_Type_Match_Size(MPI_TypeClass_Integer,mpiSize,self%typeClass,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to get type'     //{introspection:location})
+    if (mpiSelf%rank() == 0) then
+       ! The rank-0 process allocates space for the counter and creates its window.
+       allocate(self%counter(1))
+       self%counter=0
+       call MPI_Win_Create(self%counter,int(mpiSize,kind=MPI_Address_Kind),mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
+    else
+       ! Other processes create a zero-size window.
+       call MPI_Win_Create(C_Null_Ptr  ,               0_MPI_Address_Kind,mpiSize,MPI_Info_Null,MPI_Comm_World,self%window,iError)
+       if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
+    end if
+#else
+    self%window=-1
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function counterConstructor
+
+  subroutine counterDestructor(self)
+    !% Destructor for the MPI counter class.
+    implicit none
+    type   (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer                            :: iError
+
+    call MPI_Win_Free(self%window,iError)
+#endif
+    return
+  end subroutine counterDestructor
+
+  function counterIncrement(self)
+    !% Increment an MPI counter.
+    use Galacticus_Error
+    implicit none
+    integer(c_size_t  )                :: counterIncrement
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer(c_size_t  ), dimension(1)  :: counterIn       , counterOut
+    integer                            :: iError
+    
+    counterIn=1
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'          //{introspection:location})
+    call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to accumulate to MPI counter'//{introspection:location})
+    call MPI_Win_Unlock(0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'        //{introspection:location})
+    counterIncrement=counterOut(1)
+#else
+    !GCC$ attributes unused :: self
+    counterIncrement=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function counterIncrement
+
+ function counterGet(self)
+    !% Return the current value of an MPI counter.
+    use Galacticus_Error
+    implicit none
+    integer(c_size_t  )                :: counterGet
+    class  (mpiCounter), intent(inout) :: self
+#ifdef USEMPI
+    integer(c_size_t  ), dimension(1)  :: counterOut
+    integer                            :: iError
+    
+    call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'           //{introspection:location})
+    call MPI_Get(counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to get value from MPI counter'//{introspection:location})
+    call MPI_Win_Unlock(0,self%window,iError)
+    if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'         //{introspection:location})
+    counterGet=counterOut(1)-1
+#else
+    !GCC$ attributes unused :: self
+    counterGet=0_c_size_t
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function counterGet
 
 end module MPI_Utilities
