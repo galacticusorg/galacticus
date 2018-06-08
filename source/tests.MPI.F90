@@ -27,12 +27,10 @@ program Test_MPI
 #ifdef USEMPI
   use               MPI
   use               MPI_Utilities
-#endif
   implicit none
   type   (mpiCounter) :: counter
   integer(c_size_t  ) :: i
 
-#ifdef USEMPI
   call mpiInitialize(MPI_Thread_Multiple)
   if (mpiSelf%rank() == 0) call Unit_Tests_Begin_Group("MPI")
   ! Test MPI/OpenMP counters.
