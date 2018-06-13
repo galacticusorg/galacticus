@@ -380,7 +380,7 @@ Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bund
 $(BUILDPATH)/galacticus.hg.patch:
 	hg diff > $(BUILDPATH)/galacticus.hg.patch | true
 $(BUILDPATH)/galacticus.hg.bundle:
-	hg bundle -t none $(BUILDPATH)/galacticus.hg.bundle https://abensonca@bitbucket.org/abensonca/galacticus | true
+	hg bundle -t none $(BUILDPATH)/galacticus.hg.bundle https://abensonca@bitbucket.org/galacticusdev/galacticus | true
 
 # Rules for cleaning up.
 clean: tidy
