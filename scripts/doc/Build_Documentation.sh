@@ -9,6 +9,7 @@ rm -f                                                                           
    doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex doc/dataParameters.tex
 
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
+rm -rf work/build
 make all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
