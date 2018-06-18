@@ -34,6 +34,9 @@
      module procedure logarithmConstructorParameters
   end interface operatorUnaryLogarithm
 
+  ! Largest argument to exp().
+  double precision, parameter :: expArgumentHuge=log(huge(0.0d0))
+
 contains
 
   function logarithmConstructorParameters(parameters) result(self)
@@ -67,6 +70,10 @@ contains
     double precision                        , intent(in   ) :: f
     !GCC$ attributes unused :: self
 
-    logarithmUnoperate=exp(f)
+    if (f < expArgumentHuge) then
+       logarithmUnoperate=exp (f)
+    else
+       logarithmUnoperate=huge(f)
+    end if
     return
   end function logarithmUnoperate
