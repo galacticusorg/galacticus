@@ -230,6 +230,7 @@ contains
 
   subroutine mpiInitialize(mpiThreadingRequired)
     !% Initialize MPI.
+    integer                              , optional    , intent(in   ) :: mpiThreadingRequired
 #ifdef USEMPI
     use Memory_Management
     use Galacticus_Error
@@ -240,7 +241,6 @@ contains
          &                                                                iProcess
     character(len=MPI_MAX_PROCESSOR_NAME), dimension(1)                :: processorName
     character(len=MPI_MAX_PROCESSOR_NAME), dimension(:), allocatable   :: processorNames
-    integer                              , optional    , intent(in   ) :: mpiThreadingRequired
     type     (integerScalarHash         )                              :: processCount
     !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_THREAD_FUNNELED" />
     
@@ -283,6 +283,8 @@ contains
     deallocate(processorNames)    
     ! Record that MPI is active.
     mpiIsActiveValue=.true.
+#else
+    !GCC$ attributes unused :: mpiThreadingRequired
 #endif
     return
   end subroutine mpiInitialize
@@ -1337,6 +1339,8 @@ contains
     integer                            :: iError
 
     call MPI_Win_Free(self%window,iError)
+#else
+    !GCC$ attributes unused :: self
 #endif
     return
   end subroutine counterDestructor
