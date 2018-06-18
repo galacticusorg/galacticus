@@ -57,7 +57,7 @@ contains
     double precision, parameter                :: cosinePhi         =1.0d0   , cosineTheta       =1.0d0   , cosineXi              =1.0d0
     double precision                           :: blackHoleMass1             , blackHoleMass2             , blackHoleSpin1                 , &
          &                                        blackHoleSpin2             , massRatio                  , orbitalAngularMomentum         , &
-         &                                        symmetricMassRatio
+         &                                        symmetricMassRatio         , argumentSqrt
 
     ! Check for case of two zero-mass black holes.
     if (blackHoleMassA <= 0.0d0 .and. blackHoleMassB <= 0.0d0) then
@@ -92,10 +92,24 @@ contains
          &+blackHoleSpin2*massRatio**2*cosinePhi)+2.0d0*sqrt(3.0d0)+t2*symmetricMassRatio+t3*symmetricMassRatio**2
 
     ! Compute the spin of the final black hole by evaluating the fitting formula.
-    blackHoleSpinFinal=sqrt(blackHoleSpin1**2+blackHoleSpin2**2*massRatio**4+2.0d0*blackHoleSpin2*blackHoleSpin1*massRatio**2&
-         &*cosinePhi+2.0d0*(blackHoleSpin1*cosineTheta+blackHoleSpin2*massRatio**2*cosineXi)*orbitalAngularMomentum*massRatio&
-         &+(orbitalAngularMomentum*massRatio)**2)/(1.0d0+massRatio)**2
-
+    argumentSqrt      =+max(                                                                  &
+         &                  +0.0d0                                                          , &
+         &                  +      blackHoleSpin1               **2                           &
+         &                  +                     blackHoleSpin2**2*massRatio**4              &
+         &                  +2.0d0*blackHoleSpin1*blackHoleSpin2   *massRatio**2*cosinePhi    &
+         &                  +2.0d0                                                            &
+         &                  *(                                                                & 
+         &                    +    blackHoleSpin1                               *cosineTheta  &
+         &                    +                   blackHoleSpin2   *massRatio**2*cosineXi     &
+         &                   )                                                                &
+         &                  * orbitalAngularMomentum*massRatio                                &
+         &                  +(orbitalAngularMomentum*massRatio)**2                            &
+         &                  )
+    blackHoleSpinFinal=+sqrt(argumentSqrt)                                                    &
+         &             /(                                                                     &
+         &               +1.0d0                                                               &
+         &               +massRatio                                                           &
+         &              )**2
     return
   end subroutine Black_Hole_Binary_Merger_Rezzolla
 
