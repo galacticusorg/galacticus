@@ -86,7 +86,13 @@ foreach my $modelParameter ( @modelParameters ) {
 }
 my $newParameters = &Galacticus::Constraints::Parameters::Convert_Parameters_To_Galacticus(\@parameterDefinitions);
 # Begin building a stack of likelihood models to evaluate.
-my @modelStack = ( $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'} );
+my @allParameterNames = map {$_->{'name'}->{'value'}} &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
+my @modelStack = ( 
+    {
+	likelihood => $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'},
+	parameters => \@allParameterNames
+    } 
+    );
 my $singleModel = $config->{'posteriorSampleSimulationMethod'}->{'posteriorSampleLikelihoodMethod'}->{'value'} eq "galacticus";
 # Iterate over likelihood models.
 my $modelCount = 0;
@@ -94,20 +100,39 @@ while ( scalar(@modelStack) > 0 ) {
     # Pop a model off of the stack.
     my $model = shift(@modelStack);
     # Add any sub-models to the stack.
-    push(@modelStack,&List::ExtraUtils::as_array($model->{'posteriorSampleLikelihoodMethod'}))
-	if ( exists($model->{'posteriorSampleLikelihoodMethod'}) );
+    if ( exists($model->{'likelihood'}->{'posteriorSampleLikelihoodMethod'}) ) {
+	my @likelihoods           = &List::ExtraUtils::as_array($model->{'likelihood'}->{'posteriorSampleLikelihoodMethod'});
+	my @parameterMapsActive   = &List::ExtraUtils::as_array($model->{'likelihood'}->{'parameterMap'                   })
+	    if ( exists($model->{'likelihood'}->{'parameterMap'        }) );
+	my @parameterMapsInactive = &List::ExtraUtils::as_array($model->{'likelihood'}->{'parameterInactiveMap'           })
+	    if ( exists($model->{'likelihood'}->{'parameterInactiveMap'}) );
+	for(my $i=0;$i<scalar(@likelihoods);++$i) {
+	    my @parameterNames;
+	    push(@parameterNames,split(" ",$parameterMapsActive  [$i]->{'value'}))
+		if ( @parameterMapsActive   );
+	    push(@parameterNames,split(" ",$parameterMapsInactive[$i]->{'value'}))
+		if ( @parameterMapsInactive );
+	    my $childModel;
+	    $childModel->{'likelihood'} = $likelihoods[$i];
+	    $childModel->{'parameters'} = \@parameterNames;
+	    push(
+		@modelStack,
+		$childModel
+		);
+	}
+    }
     # Ignore non-Galacticus likelihood models.
     next
-	unless ( $model->{'value'} eq "galacticus" );
+	unless ( $model->{'likelihood'}->{'value'} eq "galacticus" );
     # Validate the likelihood model.
     die("maximumLikelihoodModel.pl: workDirectory must be specified in config file" ) 
-	unless ( exists($model->{'workPath'      }) );
+	unless ( exists($model->{'likelihood'}->{'workPath'      }) );
     die("maximumLikelihoodModel.pl: compilation must be specified in config file"   )
-	unless ( exists($model->{'compilation'   }) );
+	unless ( exists($model->{'likelihood'}->{'compilation'   }) );
     die("maximumLikelihoodModel.pl: baseParameters must be specified in config file") 
-	unless ( exists($model->{'baseParameters'}) );
+	unless ( exists($model->{'likelihood'}->{'baseParameters'}) );
     # Determine the work directory.
-    my $workPath  = $model->{'workPath'}->{'value'};
+    my $workPath  = $model->{'likelihood'}->{'workPath'}->{'value'};
     # Determine the maximum likelihood model directory.
     my $maximumLikelihoodDirectory  = ($arguments{'directory'} =~ m/^\// ? $arguments{'directory'} : $mcmcDirectory."/".$arguments{'directory'});
     ++$modelCount;
@@ -117,10 +142,10 @@ while ( scalar(@modelStack) > 0 ) {
     # Get a hash of the parameter values.
     (my $constraintsRef, my $parameters) =
 	&Galacticus::Constraints::Parameters::Compilation(
-	$model->{'compilation'   }->{'value'},
-	$model->{'baseParameters'}->{'value'},
-	$model->{'adjustMasses'  }->{'value'},
-	$model->{'adjustOutputs' }->{'value'}
+	$model->{'likelihood'}->{'compilation'   }->{'value'},
+	$model->{'likelihood'}->{'baseParameters'}->{'value'},
+	$model->{'likelihood'}->{'adjustMasses'  }->{'value'},
+	$model->{'likelihood'}->{'adjustOutputs' }->{'value'}
 	);
     my @constraints = @{$constraintsRef};
     # Apply any command line parameters.
@@ -130,9 +155,11 @@ while ( scalar(@modelStack) > 0 ) {
     $parameters->{'galacticusOutputFileName'}->{'value'} = $maximumLikelihoodDirectory."/galacticus.hdf5";
     # Set a random number seed.
     $parameters->{'randomSeed'}->{'value'} = int(rand(10000))+1
-	if ( exists($model->{'randomize'}) && $model->{'randomize'}->{'value'} eq "true" );    
+	if ( exists($model->{'likelihood'}->{'randomize'}) && $model->{'likelihood'}->{'randomize'}->{'value'} eq "true" );    
     # Apply to parameters.
     for my $newParameterName ( keys(%{$newParameters}) ) {
+	next
+	    unless ( grep {$_ eq $newParameterName} @{$model->{'parameters'}} );
 	my $parameter = $parameters;
 	my $valueIndex;
 	if ( $newParameterName =~ m/^(.*)\{(\d+)\}$/ ) {
@@ -149,7 +176,7 @@ while ( scalar(@modelStack) > 0 ) {
 			unless ( scalar(@{$parameter->{$1}}) > $2 );
 		    $parameter = $parameter->{$1}->[$2];
 		} else {
-		    die('constrainGalacticus.pl: attempt to access non-existant array')
+		    die('maximumLikelihoodModel.pl: attempt to access non-existant array')
 			unless ( $2 == 0 );
 		    $parameter->{$1}->{'value'} = undef()
 			unless ( exists($parameter->{$1}) );
@@ -193,14 +220,14 @@ while ( scalar(@modelStack) > 0 ) {
 	}
     }
     # If fixed sets of trees are to be used, modify parameters to use them.
-    my $useFixedTrees = $arguments{'fixedTrees'} eq "config" ? $model->{'useFixedTrees'}->{'value'} : $arguments{'fixedTrees'};
+    my $useFixedTrees = $arguments{'fixedTrees'} eq "config" ? $model->{'likelihood'}->{'useFixedTrees'}->{'value'} : $arguments{'fixedTrees'};
     if ( $useFixedTrees eq "true" ) {
 	# Get a lock on the tree file.
 	my $fixedTreeDirectory;
-	if ( exists($model->{'fixedTreesInScratch'}) && $model->{'fixedTreesInScratch'}->{'value'} eq "true" ) {
-	    $fixedTreeDirectory = $model->{'scratchPath'}->{'value'}."/";
+	if ( exists($model->{'likelihood'}->{'fixedTreesInScratch'}) && $model->{'likelihood'}->{'fixedTreesInScratch'}->{'value'} eq "true" ) {
+	    $fixedTreeDirectory = $model->{'likelihood'}->{'scratchPath'}->{'value'}."/";
 	} else {
-	    $fixedTreeDirectory = $model->{'workPath'   }->{'value'}."/trees/";
+	    $fixedTreeDirectory = $model->{'likelihood'}->{'workPath'   }->{'value'}."/trees/";
 	}
 	my $fixedTreeFile      = $fixedTreeDirectory."fixedTrees".$parameters->{'mergerTreeBuildTreesPerDecade'}->{'value'}.".hdf5";
 	# Modify parameters to use the tree file.
@@ -214,7 +241,7 @@ while ( scalar(@modelStack) > 0 ) {
     next
 	if ( $arguments{'runModel'} eq "no" );    
     # Run the Galacticus model.
-    my $executable = exists($model->{'executable'}) ? $model->{'executable'}->{'value'} : "Galacticus.exe";
+    my $executable = exists($model->{'likelihood'}->{'executable'}) ? $model->{'likelihood'}->{'executable'}->{'value'} : "Galacticus.exe";
     $executable = $arguments{'executable'}
     if ( exists($arguments{'executable'}) );
     system("make Galacticus.exe")
