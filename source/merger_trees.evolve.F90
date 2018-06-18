@@ -29,8 +29,6 @@ module Merger_Trees_Evolve
 
   ! Flag indicating if evolver routine has been initialized.
   logical          :: mergerTreeEvolveToInitialized      =.false.
-  logical          :: mergerTreeEvolveToThreadInitialized=.false.
-  !$omp threadprivate(mergerTreeEvolveToThreadInitialized)
 
   ! Flag indicating whether or not to fail for trees which do not exist at the final output time.
   logical          :: allTreesExistAtFinalTime
@@ -67,9 +65,6 @@ contains
     use String_Handling
     use Merger_Trees_Evolve_Deadlock_Status
     use Merger_Tree_Walkers    
-    !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
-    include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
-    !# </include>
     implicit none
     type            (mergerTree                   )           , target , intent(inout) :: tree
     double precision                                                   , intent(in   ) :: endTime
@@ -130,15 +125,6 @@ contains
        end if
        !$omp end critical (Merger_Tree_Evolve_To_Initialize)
     end if
-    
-    ! Call routines to perform initializations which must occur for all threads if run in parallel.
-    if (.not.mergerTreeEvolveToThreadInitialized) then
-       !# <include directive="mergerTreeEvolveThreadInitialize" type="functionCall" functionType="void">
-       include 'merger_trees.evolve.threadInitialize.inc'
-       !# </include>
-       mergerTreeEvolveToThreadInitialized=.true.
-    end if
-
     ! Iterate through all trees.
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
