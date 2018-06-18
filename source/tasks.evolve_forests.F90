@@ -81,6 +81,10 @@
      type(evolveForestsBranchList), pointer :: next
   end type evolveForestsBranchList
 
+  ! Record of thread initalization status.
+  logical          :: evolveForestMergerTreeThreadInitialized=.false.
+  !$omp threadprivate(evolveForestMergerTreeThreadInitialized)
+
 contains
 
   function evolveForestsParameters(parameters) result(self)
@@ -263,6 +267,9 @@ contains
     !# <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
     !# </include>
+    !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
+    include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
+    !# </include>
     implicit none
     class           (taskEvolveForests            ), intent(inout)                   :: self
     type            (mergerTree                   ), pointer                  , save :: thisTree
@@ -362,6 +369,13 @@ contains
 
     ! Begin parallel processing of trees until all work is done.
     !$omp parallel copyin(finished)
+    ! Call routines to perform initializations which must occur for all threads if run in parallel.
+    if (.not.evolveForestMergerTreeThreadInitialized) then
+       !# <include directive="mergerTreeEvolveThreadInitialize" type="functionCall" functionType="void">
+       include 'merger_trees.evolve.threadInitialize.inc'
+       !# </include>
+       evolveForestMergerTreeThreadInitialized=.true.
+    end if
     treeProcess : do while (.not.finished)
        ! For single forest evolution, only the master thread should retrieve a merger tree.
        singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
