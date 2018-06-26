@@ -44,7 +44,6 @@ module Geometry_Lightcones
   !#   <type>integer(c_size_t)</type>
   !#   <pass>yes</pass>
   !#   <argument>type   (treeNode), intent(inout) :: node</argument>
-  !#   <argument>integer(c_size_t), intent(in   ) :: output</argument>
   !#  </method>
   !#  <method name="solidAngle" >
   !#   <description>Returns the solid angle subtended by the lightcone (in units of steradians).</description>
