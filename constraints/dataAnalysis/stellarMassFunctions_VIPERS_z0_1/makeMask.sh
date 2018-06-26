@@ -89,13 +89,5 @@ for field in W1 W4; do
 	    $work/photo$field.BU2.ply
     fi
 done
-# Create harmonics.
-if [ ! -f $work/angularPower.hdf5 ]; then
-    scripts/aux/mangleHarmonize.pl +$work/maskCombinedBU.ply:-$work/photoW1.BU2.ply:-$work/photoW4.BU2.ply $work/angularPower.hdf5 720
-fi
-# Compute solid angle.
-if [ ! -f $work/solidAngle.hdf5 ]; then
-    scripts/aux/mangleSolidAngle.pl +$work/maskCombinedBU.ply:-$work/photoW1.BU2.ply:-$work/photoW4.BU2.ply $work/solidAngle.hdf5
-fi
 
 exit
