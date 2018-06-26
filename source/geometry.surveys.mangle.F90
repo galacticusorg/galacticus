@@ -121,15 +121,11 @@ contains
   double precision function mangleSolidAngle(self,field)
     !% Return the survey solid angle computed from \gls{mangle} polygons.
     use Galacticus_Error
-    use File_Utilities
     use String_Handling
-    use System_Command
-    use IO_HDF5
     implicit none
     class  (surveyGeometryMangle), intent(inout)               :: self
     integer                      , intent(in   ), optional     :: field
     type   (varying_string      ), allocatable  , dimension(:) :: mangleFiles
-    type   (hdf5Object          )                              :: solidAngleFile
     integer                                                    :: fieldActual
     type   (varying_string      )                              :: message
     
@@ -149,20 +145,7 @@ contains
     if (.not.self%solidAnglesInitialized) then
        !$omp critical(mangleSolidAnglesInitialize)
        if (.not.self%solidAnglesInitialized) then
-          ! Construct a solid angle file if one does not already exist.
-          if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) then
-             call self%mangleFiles(mangleFiles)
-             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleSolidAngle.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"solidAngles.hdf5")
-             if (.not.File_Exists(self%mangleDirectory()//"solidAngles.hdf5")) &
-                  & call Galacticus_Error_Report('unable to generate solid angles from mangle files'//{introspection:location})
-          end if
-          ! Read the solid angles.
-          !$ call hdf5Access%set()
-          call solidAngleFile%openFile   (char(self%mangleDirectory()//"solidAngles.hdf5"))
-          call solidAngleFile%readDataset('solidAngle',self%solidAngles                   )
-          call solidAngleFile%close      (                                                )
-          !$ call hdf5Access%unset()
-          ! Record that solid angles are now initialized.
+          self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles.hdf5"))
           self%solidAnglesInitialized=.true.
        end if
        !$omp end critical(mangleSolidAnglesInitialize)
@@ -197,13 +180,10 @@ contains
     use Memory_Management
     implicit none
     class           (surveyGeometryMangle), intent(inout)               :: self
-    integer                               , intent(in   )               :: i               , j, &
+    integer                               , intent(in   )               :: i          , j, &
          &                                                                 l
-    integer                                                             :: m               , n
-    double precision                      , allocatable  , dimension(:) :: degree
     type            (varying_string      ), allocatable  , dimension(:) :: mangleFiles
-    type            (varying_string      )                              :: datasetName     , message
-    type            (hdf5Object          )                              :: angularPowerFile
+    type            (varying_string      )                              :: message
 
     ! Validate fields.
     if     (                                  &
@@ -219,30 +199,7 @@ contains
     if (.not.self%angularPowerInitialized) then
        !$omp critical(mangleAngularPowerInitialize)
        if (.not.self%angularPowerInitialized) then
-          ! Construct an angular power file if one does not already exist.
-          if (.not.File_Exists(self%mangleDirectory()//"angularPower.hdf5")) then
-             call self%mangleFiles(mangleFiles)
-             call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/mangleHarmonize.pl "//String_Join(mangleFiles," ")//" "//self%mangleDirectory()//"angularPower.hdf5 "//self%angularPowerMaximumDegree())
-             if (.not.File_Exists(self%mangleDirectory()//"angularPower.hdf5")) &
-                  & call Galacticus_Error_Report('unable to generate angular power spectra from mangle files'//{introspection:location})
-          end if
-          ! Read the angular power spectra.
-          !$ call hdf5Access%set()
-          call angularPowerFile%openFile(char(self%mangleDirectory()//"angularPower.hdf5"))
-          call angularPowerFile%readDataset('l',degree)
-          if (degree(1) /= 0 .or. degree(size(degree)) /= self%angularPowerMaximumDegree())               &
-               & call Galacticus_Error_Report('power spectra do not span expected range of degrees'//{introspection:location})
-          call allocateArray(self%angularPowerSpectra,[self%angularPowerMaximumDegree()+1,self%fieldCount()*(self%fieldCount()+1)])
-          do m=1,self%fieldCount()
-             do n=m,self%fieldCount()
-                datasetName="Cl_"
-                datasetName=datasetName//(m-1)//"_"//(n-1)
-                call angularPowerFile%readDatasetStatic(char(datasetName),self%angularPowerSpectra(:,mangleFieldPairIndex(self,m,n)))
-             end do
-          end do
-          call angularPowerFile%close()
-          !$ call hdf5Access%unset()
-          ! Record that solid angles are now initialized.
+          self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower.hdf5"))
           self%angularPowerInitialized=.true.
        end if
        !$omp end critical(mangleAngularPowerInitialize)
@@ -251,7 +208,7 @@ contains
     if (l > self%angularPowerMaximumDegree()) then
        mangleAngularPower=0.0d0
     else
-       mangleAngularPower=self%angularPowerSpectra(l+1,mangleFieldPairIndex(self,i,j))
+       mangleAngularPower=self%angularPowerSpectra(mangleFieldPairIndex(self,i,j),l+1)
     end if
     return
   end function mangleAngularPower

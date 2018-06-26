@@ -22,7 +22,8 @@ module Geometry_Mangle
   !% Implements functions utilizing \gls{mangle} survey geometry definitions.
   use, intrinsic :: ISO_C_Binding
   private
-  public :: window
+  public :: geometryMangleSolidAngle, geometryMangleAngularPower, &
+       &    window
 
   type :: cap
      !% A class to hold \gls{mangle} caps.
@@ -198,4 +199,222 @@ contains
     return
   end function capPointIncluded
 
+  subroutine geometryMangleBuild()
+    !% Download and build the \textsc{mangle} code.
+    use File_Utilities
+    use System_Command
+    use Galacticus_Input_Paths
+    use ISO_Varying_String
+    use Galacticus_Error
+    implicit none
+    integer :: iStatus
+
+    ! Ensure that we have the mangle source.
+    if (.not.File_Exists(Galacticus_Input_Path()//"aux/mangle")) then
+       ! Clone the mangle repo.
+       call System_Command_Do("cd "//Galacticus_Input_Path()//"aux; git clone https://github.com/mollyswanson/mangle.git",iStatus)
+       if (iStatus /= 0 .or. .not.File_Exists(Galacticus_Input_Path()//"aux/mangle"            )) &
+            & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
+    end if
+    ! Test for presence of the "ransack" executable - build if necessary.
+    if (.not.File_Exists(Galacticus_Input_Path()//"aux/mangle/bin/ransack")) then
+       call System_Command_Do("cd "//Galacticus_Input_Path()//"aux/mangle/src; ./configure; make cleanest; make",iStatus)
+       if (iStatus /= 0 .or. .not.File_Exists(Galacticus_Input_Path()//"aux/mangle/bin/ransack")) &
+            & call Galacticus_Error_Report("failed to build mangle executables"//{introspection:location})
+    end if
+    return
+  end subroutine geometryMangleBuild
+
+ function geometryMangleSolidAngle(fileNames,solidAngleFileName)
+    !% Compute the solid angle of a \textsc{mangle} geometry.
+    use ISO_Varying_String    
+    use String_Handling
+    use System_Command
+    use File_Utilities
+    use Galacticus_Input_Paths
+    use Galacticus_Error
+    use Numerical_Constants_Math
+    use IO_HDF5
+    implicit none
+    type            (varying_string), intent(in   ), dimension(             : ) :: fileNames
+    character       (len=*         ), intent(in   ), optional                   :: solidAngleFileName
+    double precision                               , dimension(size(fileNames)) :: geometryMangleSolidAngle
+    type            (varying_string), allocatable  , dimension(             : ) :: subFiles
+    integer                                                                     :: i                       , j            , &
+         &                                                                         iStatus                 , wlmFile
+    type            (varying_string)                                            :: fileName                , fileNameTmp
+    double precision                                                            :: multiplier              , subSolidAngle, &
+         &                                                                         w00
+    type            (hdf5Object    )                                            :: solidAngleFile
+
+    ! Check for pre-existing calculation.
+    if (present(solidAngleFileName).and.File_Exists(solidAngleFileName)) then
+       !$ call hdf5Access%set  ()
+       call solidAngleFile%openFile         (solidAngleFileName,overWrite=.false.                 )
+       call solidAngleFile%readDatasetStatic('solidAngle'      ,          geometryMangleSolidAngle)
+       call solidAngleFile%close            (                                                     )
+       !$ call hdf5Access%unset()
+       return
+    end if
+    ! Ensure mangle is available.
+    call geometryMangleBuild()
+    ! Determine the solid angle of each file.
+    do i=1,size(fileNames)
+       allocate(subFiles(String_Count_Words(char(fileNames(i)),":")))
+       call String_Split_Words(subFiles,char(fileNames(i)),":")
+       geometryMangleSolidAngle(i)=0.0d0
+       do j=1,size(subFiles)
+          fileName  =subFiles(j)
+          multiplier=+1.0d0
+          if (extract(fileName,1,1) == "+") then
+             fileName  =extract(fileName,2,len(fileName))
+             multiplier=+1.0d0
+          else if (extract(fileName,1,1) == "-") then
+             fileName  =extract(fileName,2,len(fileName))
+             multiplier=-1.0d0
+          end if
+          fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
+          call System_Command_Do(Galacticus_Input_Path()//"aux/mangle/bin/harmonize "//fileName//" "//fileNameTmp,iStatus)
+          if (iStatus /= 0) call Galacticus_Error_Report('failed to run mangle harmonize'//{introspection:location})
+          open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
+          read (wlmFile,*)
+          read (wlmFile,*) w00
+          close(wlmFile)
+          subSolidAngle      =2.0d0*sqrt(Pi)*w00
+          geometryMangleSolidAngle(i)=geometryMangleSolidAngle(i)+multiplier*subSolidAngle
+       end do
+       deallocate(subFiles)
+    end do
+    ! Store the solid angle to file.
+    if (present(solidAngleFileName)) then
+       !$ call hdf5Access%set  ()
+       call solidAngleFile%openFile      (            solidAngleFileName           ,overWrite=.true.      )
+       call solidAngleFile%writeAttribute(String_Join(fileNames               ,":"),          'files'     )
+       call solidAngleFile%writeDataset  (            geometryMangleSolidAngle     ,          'solidAngle')
+       call solidAngleFile%flush         (                                                                )
+       call solidAngleFile%close         (                                                                )
+       !$ call hdf5Access%unset()
+    end if
+    return
+  end function geometryMangleSolidAngle
+  
+  function geometryMangleAngularPower(fileNames,degreeMaximum,angularPowerFileName)
+    !% Compute the angular power spectra of a \textsc{mangle} geometry.
+    use ISO_Varying_String    
+    use String_Handling
+    use System_Command
+    use File_Utilities
+    use Galacticus_Input_Paths
+    use Galacticus_Error
+    use Numerical_Constants_Math
+    use IO_HDF5
+    implicit none
+    type            (varying_string), intent(in   ), dimension(             :                                                               ) :: fileNames
+    integer                         , intent(in   )                                                                                           :: degreeMaximum
+    character       (len=*         ), intent(in   ), optional                                                                                 :: angularPowerFileName
+    double precision                               , dimension(size(fileNames)*(size(fileNames)+1)/2  , degreeMaximum+1                     ) :: geometryMangleAngularPower
+    double precision                               , dimension(                                      2                                      ) :: coefficient
+    double precision                               , dimension(size(fileNames)                      ,2,(degreeMaximum+1)*(degreeMaximum+2)/2) :: coefficients
+    type            (varying_string), allocatable  , dimension(             :                                                               ) :: subFiles
+    type            (varying_string)                                                                                                          :: fileName                  , fileNameTmp
+    integer                                                                                                                                   :: degree                    , order      , &
+         &                                                                                                                                       iStatus                   , wlmFile    , &
+         &                                                                                                                                       i                         , j          , &
+         &                                                                                                                                       k                         , l          , &
+         &                                                                                                                                       p                         , q
+    double precision                                                                                                                          :: multiplier                , weight
+    type            (hdf5Object    )                                                                                                          :: angularPowerFile
+
+    ! Read the angular power from file if possible.
+    if (present(angularPowerFileName).and.File_Exists(angularPowerFileName)) then
+       !$ call hdf5Access%set  ()
+       call angularPowerFile      %openFile         (angularPowerFileName                                           )
+       l=0
+       do p=1,size(fileNames)
+          do q=p,size(fileNames)
+             l=l+1
+             call angularPowerFile%readDatasetStatic(char(var_str('Cl_')//p//'_'//q),geometryMangleAngularPower(l,:))
+          end do
+       end do
+       call angularPowerFile      %flush            (                                                               )
+       call angularPowerFile      %close            (                                                               )
+       !$ call hdf5Access%unset()
+       return
+    end if
+    ! Ensure mangle is available.
+    call geometryMangleBuild()
+    ! Determine the spherical harmonic coefficients of each file.
+    coefficients=0.0d0
+    do i=1,size(fileNames)
+       allocate(subFiles(String_Count_Words(char(fileNames(i)),":")))
+       call String_Split_Words(subFiles,char(fileNames(i)),":")
+       do j=1,size(subFiles)
+          fileName  =subFiles(j)
+          multiplier=+1.0d0
+          if (extract(fileName,1,1) == "+") then
+             fileName  =extract(fileName,2,len(fileName))
+             multiplier=+1.0d0
+          else if (extract(fileName,1,1) == "-") then
+             fileName  =extract(fileName,2,len(fileName))
+             multiplier=-1.0d0
+          end if
+          fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
+          call System_Command_Do(Galacticus_Input_Path()//"aux/mangle/bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,iStatus)
+          if (iStatus /= 0) call Galacticus_Error_Report('failed to run mangle harmonize'//{introspection:location})
+          open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
+          read (wlmFile,*)
+          k=0
+          do degree=0,degreeMaximum
+             do order=0,degree
+                k=k+1
+                read (wlmFile,*) coefficient
+                coefficients(i,:,k)=coefficients(i,:,k)+multiplier*coefficient
+             end do
+          end do
+          close(wlmFile)
+       end do
+       deallocate(subFiles)
+    end do
+    ! Compute power and cross-power spectra.
+    geometryMangleAngularPower=0.0d0
+    k=0
+    do degree=0,degreeMaximum
+       do order=0,degree
+          k=k+1
+          ! Compute weight, which accounts for the fact that we sum only over positive order (m), as the negative orders are
+          ! symmetric (since our window functions are always real).
+          if (order == 0) then
+             weight=1.0d0
+          else
+             weight=2.0d0
+          end if
+          l=0
+          do p=1,size(fileNames)
+             do q=p,size(fileNames)
+                l=l+1
+                geometryMangleAngularPower(l,degree+1)=geometryMangleAngularPower(l,degree+1)+weight*sum(coefficients(p,:,k)*coefficients(q,:,k))
+             end do
+          end do
+       end do
+       geometryMangleAngularPower(:,degree+1)=geometryMangleAngularPower(:,degree+1)/(2.0d0*float(degree)+1.0d0)
+    end do
+    ! Store the angular power to file.
+    if (present(angularPowerFileName)) then
+       !$ call hdf5Access%set  ()
+       call angularPowerFile      %openFile      (            angularPowerFileName                ,overWrite=.true.                         )
+       call angularPowerFile      %writeAttribute(String_Join(fileNames                      ,":"),          'files'                        )
+       l=0
+       do p=1,size(fileNames)
+          do q=p,size(fileNames)
+             l=l+1
+             call angularPowerFile%writeDataset  (            geometryMangleAngularPower(l,:)     ,          char(var_str('Cl_')//p//'_'//q))
+          end do
+       end do
+       call angularPowerFile      %flush         (                                                                                          )
+       call angularPowerFile      %close         (                                                                                          )
+       !$ call hdf5Access%unset()
+    end if
+    return
+  end function geometryMangleAngularPower
+  
 end module Geometry_Mangle
