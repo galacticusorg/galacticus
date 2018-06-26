@@ -29,7 +29,7 @@ module File_Utilities
   !$ use OMP_Lib
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name
+  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name, File_Name_Temporary
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -253,5 +253,18 @@ contains
     end if
     return
   end function File_Name
+  
+  function File_Name_Temporary(fileRootName) result(fileName)
+    !% Returns the path to the file.
+    !$ use OMP_Lib
+    use    String_Handling
+    implicit none
+    type     (varying_string)                :: fileName
+    character(len=*         ), intent(in   ) :: fileRootName
+
+    fileName=var_str("/tmp/")//trim(fileRootName)//"."//GetPID()
+    !$ if (OMP_In_Parallel()) fileName=fileName//"."//OMP_Get_Thread_Num()
+    return
+  end function File_Name_Temporary
   
 end module File_Utilities
