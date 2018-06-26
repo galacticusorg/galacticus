@@ -238,13 +238,14 @@ contains
     integer  (c_size_t              )                         :: replicationCount
     type     (varying_string        )                         :: message
     character(len=5                 )                         :: label
-    
+    !GCC$ attributes unused :: output
+
     call Galacticus_Output_Lightcone_Initialize()
     if (outputLightconeData) then
        geometryLightcone_  => geometryLightcone ()
-       replicationCount=geometryLightcone_%replicationCount(node,output)
+       replicationCount=geometryLightcone_%replicationCount(node)
        if (replicationCount < 1_c_size_t) then
-          if (geometryLightcone_%isInLightcone(node)) then
+          if (geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
              label="true"
           else
              label="false"

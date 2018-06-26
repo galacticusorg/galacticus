@@ -401,18 +401,22 @@ contains
     return
   end subroutine squareDestructor
 
-  function squareReplicationCount(self,node,output)
+  function squareReplicationCount(self,node)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes
+    use               Arrays_Search
     implicit none
     integer(c_size_t               )                :: squareReplicationCount
     class  (geometryLightconeSquare), intent(inout) :: self
     type   (treeNode               ), intent(inout) :: node
-    integer(c_size_t               ), intent(in   ) :: output
+    class  (nodeComponentBasic     ), pointer       :: basic
     class  (nodeComponentPosition  ), pointer       :: position
+    integer(c_size_t               )                :: output
 
+    basic    => node%basic   ()
     position => node%position()
+    output=Search_Array_For_Closest(self%outputTimes,basic%time())
     call self%replicants(output,position%position(),replicantActionCount,count=squareReplicationCount)
     return
   end function squareReplicationCount
@@ -728,7 +732,7 @@ contains
        origin            =+self%origin
        distanceMinimum   =+self%distanceMinimum(output)
        distanceMaximum   =+self%distanceMaximum(output)
-    end if    
+    end if
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
     periodicRange(:,1)=floor  ((origin+self%distanceMinimum(output)*self%unitVector(:,1))/self%lengthReplication)-1
     periodicRange(:,2)=ceiling((origin+self%distanceMaximum(output)*self%unitVector(:,1))/self%lengthReplication)+0
