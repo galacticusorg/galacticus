@@ -46,11 +46,11 @@ module IO_HDF5
   integer                                                :: initializationsCount   =0
 
   ! Type of HDF5 objects.
-  integer                            , parameter         :: hdf5ObjectTypeNull     =0
-  integer                            , parameter         :: hdf5ObjectTypeFile     =1
-  integer                            , parameter         :: hdf5ObjectTypeGroup    =2
-  integer                            , parameter         :: hdf5ObjectTypeDataset  =3
-  integer                            , parameter         :: hdf5ObjectTypeAttribute=4
+  integer                            , parameter, public :: hdf5ObjectTypeNull     =0
+  integer                            , parameter, public :: hdf5ObjectTypeFile     =1
+  integer                            , parameter, public :: hdf5ObjectTypeGroup    =2
+  integer                            , parameter, public :: hdf5ObjectTypeDataset  =3
+  integer                            , parameter, public :: hdf5ObjectTypeAttribute=4
 
   ! Data types.
   integer                            , parameter, public :: hdf5DataTypeNull       =0
@@ -182,6 +182,12 @@ module IO_HDF5
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>objectType</method>
+     !@     <description>Return the object type.</description>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>createReference1D</method>
      !@     <description>Create a reference to a 1D dataset.</description>
      !@     <type>\void</type>
@@ -236,6 +242,12 @@ module IO_HDF5
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>name</method>
+     !@     <description>Returns the name of a given object.</description>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>openFile</method>
      !@     <description>Open an HDF5 file and return an appropriate HDF5 object.</description>
      !@     <type>\void</type>
@@ -262,11 +274,18 @@ module IO_HDF5
      !@   <objectMethod>
      !@     <method>copy</method>
      !@     <description>Copy an HDF5 object.</description>
+     !@     <type>\textcolor{red}{\textless type(hdf5Object}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>parent</method>
+     !@     <description>Return the parent object.</description>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} objectName\argin, \textcolor{red}{\textless type(hdf5Object)} target\arginout</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy                                 =>IO_HDF5_Destroy
+     procedure :: name                                    =>IO_HDF5_Name
      procedure :: pathTo                                  =>IO_HDF5_Path_To
      procedure :: openFile                                =>IO_HDF5_Open_File
      procedure :: openGroup                               =>IO_HDF5_Open_Group
@@ -415,12 +434,14 @@ module IO_HDF5
      procedure :: assertDatasetType  =>IO_HDF5_Assert_Dataset_Type
      procedure :: isReference        =>IO_HDF5_Is_Reference
      procedure :: isOpen             =>IO_HDF5_Is_Open
+     procedure :: objectType         =>IO_HDF5_Object_Type
      procedure :: createReference1D  =>IO_HDF5_Create_Reference_Scalar_To_1D
      procedure :: createReference2D  =>IO_HDF5_Create_Reference_Scalar_To_2D
      procedure :: createReference3D  =>IO_HDF5_Create_Reference_Scalar_To_3D
      procedure :: createReference4D  =>IO_HDF5_Create_Reference_Scalar_To_4D
      procedure :: createReference5D  =>IO_HDF5_Create_Reference_Scalar_To_5D
-     procedure :: copy               =>IO_HDF5_Copy 
+     procedure :: copy               =>IO_HDF5_Copy
+     procedure :: parent             =>IO_HDF5_Parent
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API. For
@@ -608,6 +629,25 @@ contains
     IO_HDF5_Is_Open=thisObject%isOpenValue
     return
   end function IO_HDF5_Is_Open
+
+  integer function IO_HDF5_Object_Type(thisObject)
+    !% Returns the object type for {\normalfont \ttfamily thisObject}.
+    implicit none
+    class(hdf5Object), intent(in   ) :: thisObject
+
+    IO_HDF5_Object_Type=thisObject%hdf5ObjectType
+    return
+  end function IO_HDF5_Object_Type
+
+  function IO_HDF5_Name(thisObject) result (nameOfObject)
+    !% Returns the path to {\normalfont \ttfamily thisObject}.
+    implicit none
+    class(hdf5Object    ), intent(in   ) :: thisObject
+    type (varying_string)                :: nameOfObject
+
+    nameOfObject=thisObject%objectName
+    return
+  end function IO_HDF5_Name
 
   function IO_HDF5_Path_To(thisObject) result (pathToObject)
     !% Returns the path to {\normalfont \ttfamily thisObject}.
@@ -14077,4 +14117,14 @@ contains
     return
   end subroutine IO_HDF5_Copy
   
+  function IO_HDF5_Parent(self) result(parent)
+    !% Return the parent object.
+    implicit none
+    class(hdf5Object) , pointer       :: parent
+    class(hdf5Object) , intent(in   ) :: self
+
+    parent => self%parentObject
+    return
+  end function IO_HDF5_Parent
+
 end module IO_HDF5
