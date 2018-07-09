@@ -396,7 +396,7 @@ sub functionsSerialize {
 	    $form                = "function";
 	    my @attributes;
 	    my $returnType;
-	    if ( $returnDescriptor =~ m/([a-zA-Z0-9_\(\)\s]+)\s*,\s*([a-zA-Z0-9_,\(\):=\s]+)/ ) {
+	    if ( $returnDescriptor =~ m/([a-zA-Z0-9_=\(\)\s]+)\s*,\s*([a-zA-Z0-9_,\(\):=\s]+)/ ) {
 		$returnType = $1;
 		@attributes = split(/\s*,\s*/,$2);
 	    } else {
