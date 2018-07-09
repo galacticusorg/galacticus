@@ -22,8 +22,9 @@
 module Galacticus_State
   !% Implements storage and recovery of the Galacticus internal state. Used for restoring random number
   !% generator sequences for example.
-  use ISO_Varying_String
-  use Tables
+  use, intrinsic :: ISO_C_Binding
+  use            :: ISO_Varying_String
+  use            :: Tables
   implicit none
   private
   public :: Galacticus_State_Store, Galacticus_State_Retrieve
@@ -32,16 +33,16 @@ module Galacticus_State
   logical                 :: stateHasBeenRetrieved=.false.
 
   ! Root name for state files.
-  type   (varying_string) :: stateFileRoot                , stateRetrieveFileRoot
+  type   (varying_string) :: stateFileRoot                  , stateRetrieveFileRoot
 
   ! Active status of store and retrieve.
-  logical                 :: stateStoreActive             , stateRetrieveActive
+  logical                 :: stateStoreActive               , stateRetrieveActive
   
   ! Flag indicating if module has been initialized.
   logical                 :: stateInitialized     =.false.
 
   ! Counter which tracks state operators, used to ensure objects are stored to file only once per operation.
-  integer                 :: stateOperatorID      =0
+  integer(c_size_t      ) :: stateOperatorID      =0_c_size_t
   
 contains
 
@@ -50,14 +51,17 @@ contains
     !$ use OMP_Lib
     use String_Handling
     use FGSL
+    use MPI_Utilities
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
     !# </include>
     implicit none
     type   (varying_string), intent(in   ), optional :: logMessage
-    integer                                          :: iError       , stateUnit
+    integer                                          :: iError          , stateUnit
+    integer(c_size_t      )                          :: stateOperatorID_
     type   (fgsl_file     )                          :: fgslStateFile
-    type   (varying_string)                          :: fileName     , fileNameFGSL, fileNameLog
+    type   (varying_string)                          :: fileName        , fileNameFGSL, &
+         &                                              fileNameLog
 
     ! Ensure that module is initialized.
     call State_Initialize
@@ -66,18 +70,19 @@ contains
     if (stateStoreActive) then
 
        ! Open a file in which to store the state and an additional file for FGSL state.
-       !$ if (omp_in_parallel()) then
-       !$    fileName    =stateFileRoot//     '.state.'
-       !$    fileNameFGSL=stateFileRoot//'.fgsl.state.'
-       !$    fileNameLog =stateFileRoot//     '.state.log.'
-       !$    fileName    =fileName    //omp_get_thread_num()
-       !$    fileNameFGSL=fileNameFGSL//omp_get_thread_num()
-       !$    fileNameLog =fileNameLog //omp_get_thread_num()
-       !$ else
        fileName    =stateFileRoot//'.state'
        fileNameFGSL=stateFileRoot//'.fgsl.state'
        fileNameLog =stateFileRoot//'.state.log'
+       !$ if (omp_in_parallel()) then
+       !$    fileName    =fileName    //':openMP'//omp_get_thread_num()
+       !$    fileNameFGSL=fileNameFGSL//':openMP'//omp_get_thread_num()
+       !$    fileNameLog =fileNameLog //':openMP'//omp_get_thread_num()
        !$ end if
+#ifdef USEMPI
+       fileName    =fileName    //':MPI'//mpiSelf%rankLabel()
+       fileNameFGSL=fileNameFGSL//':MPI'//mpiSelf%rankLabel()
+       fileNameLog =fileNameLog //':MPI'//mpiSelf%rankLabel()
+#endif
        if (present(logMessage)) then
           open(newunit=stateUnit,file=char(fileNameLog),form='formatted',status='unknown',access='append')
           write (stateUnit,*) char(logMessage)
@@ -87,10 +92,12 @@ contains
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
        fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
 
-       !$omp atomic
-       stateOperatorID=stateOperatorID+1
+       !$omp critical(stateOperationID)
+       stateOperatorID =stateOperatorID+1_c_size_t
+       stateOperatorID_=stateOperatorID
+       !$omp end critical(stateOperationID)
        !# <include directive="galacticusStateStoreTask" type="functionCall" functionType="void">
-       !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID</functionArgs>
+       !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID_</functionArgs>
        include 'galacticus.state.store.inc'
        !# </include>
 
@@ -110,13 +117,15 @@ contains
     !$ use OMP_Lib
     use String_Handling
     use FGSL
+    use MPI_Utilities
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
     implicit none
-    integer                 :: iError       , stateUnit
+    integer                 :: iError          , stateUnit
+    integer(c_size_t      ) :: stateOperatorID_
     type   (fgsl_file     ) :: fgslStateFile
-    type   (varying_string) :: fileName     , fileNameFGSL
+    type   (varying_string) :: fileName        , fileNameFGSL
 
     ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
@@ -128,22 +137,25 @@ contains
        if (stateRetrieveActive) then
 
           ! Open a file in which to retrieve the state and an additional file for FGSL state.
-          !$ if (omp_in_parallel()) then
-          !$    fileName    =stateRetrieveFileRoot//     '.state.'
-          !$    fileNameFGSL=stateRetrieveFileRoot//'.fgsl.state.'
-          !$    fileName    =fileName    //omp_get_thread_num()
-          !$    fileNameFGSL=fileNameFGSL//omp_get_thread_num()
-          !$ else
           fileName    =stateRetrieveFileRoot//'.state'
           fileNameFGSL=stateRetrieveFileRoot//'.fgsl.state'
+          !$ if (omp_in_parallel()) then
+          !$    fileName    =fileName    //':openMP'//omp_get_thread_num()
+          !$    fileNameFGSL=fileNameFGSL//':openMP'//omp_get_thread_num()
           !$ end if
+#ifdef USEMPI
+          fileName    =fileName    //':MPI'//mpiSelf%rankLabel()
+          fileNameFGSL=fileNameFGSL//':MPI'//mpiSelf%rankLabel()
+#endif
           open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
           fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
 
-          !$omp atomic
-          stateOperatorID=stateOperatorID+1
+          !$omp critical(stateOperationID)
+          stateOperatorID =stateOperatorID+1_c_size_t
+          stateOperatorID_=stateOperatorID
+          !$omp end critical(stateOperationID)
           !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
-          !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID</functionArgs>
+          !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID_</functionArgs>
           include 'galacticus.state.retrieve.inc'
           !# </include>
 

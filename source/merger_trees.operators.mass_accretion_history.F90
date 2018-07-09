@@ -38,6 +38,7 @@
      !% A merger tree operator class which outputs mass accretion histories.
      private
      type   (hdf5Object             )          :: outputGroup
+     type   (varying_string         )          :: outputGroupName
      class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
      logical                                   :: includeSpin        , includeSpinVector
    contains
@@ -99,19 +100,14 @@ contains
 
   function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_) result(self)
     !% Internal constructor for the mass accretion history merger tree operator class.
-    use Galacticus_HDF5
     use Galacticus_Error
     implicit none
     type     (mergerTreeOperatorMassAccretionHistory)                        :: self
     character(len=*                                 ), intent(in   )         :: outputGroupName
     logical                                          , intent(in   )         :: includeSpin        , includeSpinVector
     class    (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="includeSpin, includeSpinVector, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="outputGroupName, includeSpin, includeSpinVector, *cosmologyFunctions_"/>
     
-    ! Create the output group.
-    call hdf5Access%set()
-    self%outputGroup=galacticusOutputFile%openGroup(outputGroupName,'Mass accretion histories of main branches in merger trees.')
-    call hdf5Access%unset()
     if (self%includeSpin      .and..not.defaultSpinComponent%spinIsGettable      ())                            &
          & call Galacticus_Error_Report                                                                         &
          &  (                                                                                                   &
@@ -154,6 +150,7 @@ contains
     use               String_Handling
     use               Numerical_Constants_Astronomical
     use               Galacticus_Error
+    use               Galacticus_HDF5
     implicit none
     class           (mergerTreeOperatorMassAccretionHistory), intent(inout)                 :: self
     type            (mergerTree                            ), intent(inout), target         :: tree
@@ -206,6 +203,10 @@ contains
           if (self%includeSpinVector) nodeSpinVector(accretionHistoryCount,:) =                                           spin %spinVector(                 )
           node                                                                =>                                          node %firstChild
        end do
+       ! Create the output group if necessary.
+       call hdf5Access%set()
+       if (.not.self%outputGroup%isOpen()) self%outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Mass accretion histories of main branches in merger trees.')
+       call hdf5Access%unset()
        ! Output to HDF5 file.
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index

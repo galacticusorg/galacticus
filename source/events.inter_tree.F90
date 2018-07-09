@@ -436,10 +436,10 @@ contains
                 select type (event)
                 type is (nodeEventSubhaloPromotionInterTree)
                    attachBasic => attachNode%basic()                
-                   if (associated(event%mergeTimeSet)) call event%mergeTimeSet(pullNode,attachNode)
+                   if (associated(event%mergeTimeSet)) call event%mergeTimeSet(event%creator,pullNode,attachNode)
                 type is (nodeEventBranchJumpInterTree      )
                    attachBasic => attachNode%basic()                
-                   if (associated(event%mergeTimeSet)) call event%mergeTimeSet(pullNode,attachNode)
+                   if (associated(event%mergeTimeSet)) call event%mergeTimeSet(event%creator,pullNode,attachNode)
                 class default
                    call Galacticus_Error_Report('non-primary jump should be inter-tree branch jump'//{introspection:location})
                 end select

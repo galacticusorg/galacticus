@@ -54,6 +54,11 @@ module Galacticus_Display
      module procedure Galacticus_Display_Indent_VarStr
   end interface Galacticus_Display_Indent
 
+  interface Galacticus_Display_Unindent
+     module procedure Galacticus_Display_Unindent_Char
+     module procedure Galacticus_Display_Unindent_VarStr
+  end interface Galacticus_Display_Unindent
+
 contains
 
   integer function Galacticus_Verbosity_Level()
@@ -75,9 +80,17 @@ contains
 
   subroutine Initialize_Display
     !% Initialize the module by determining the requested verbosity level.
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
-    integer :: digitsMaximum
-
+    integer           :: ompDigitsMaximum
+#ifdef USEMPI
+    integer           :: mpiDigitsMaximum , iError  , &
+         &               mpiRank          , mpiCount
+    character(len=32) :: masterHyperFormat, threadHyperFormat
+#endif
+    
     if (.not.displayInitialized) then
        !$omp critical (Initialize_Display)
        if (.not.displayInitialized) then
@@ -92,9 +105,21 @@ contains
           indentationLevel          =0
           indentationFormat         ='(a)'
           indentationFormatNoNewLine='(a,$)'
-          digitsMaximum             =int(log10(float(maxThreads)))+1
-          write (threadFormat,'(a,i1,a)') '(i',digitsMaximum,',a2,$)'
-          write (masterFormat,'(a,a ,a)') '("',repeat("M",digitsMaximum),'",a2,$)'
+          ompDigitsMaximum             =int(log10(float(maxThreads)))+1
+#ifdef USEMPI
+          call MPI_Comm_Size(MPI_Comm_World,mpiCount,iError)
+          if (iError /= 0) mpiCount=1
+          call MPI_Comm_Rank(MPI_Comm_World,mpiRank ,iError)
+          if (iError /= 0) mpiRank =0
+          mpiDigitsMaximum=int(log10(float(mpiCount  )))+1
+          write (threadHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum,',a,i1,a)'
+          write (masterHyperFormat,'(a,i1,a,i1,a)'  ) '(a,i',mpiDigitsMaximum,'.',mpiDigitsMaximum,',a,a ,a)'
+          write (threadFormat     ,threadHyperFormat) '("',mpiRank,':",i'        ,ompDigitsMaximum ,' ,a2,$)'
+          write (masterFormat     ,masterHyperFormat) '("',mpiRank,':',repeat("M",ompDigitsMaximum),'",a2,$)'
+#else
+          write (threadFormat     ,'(a,i1,a)'       ) '(i'           ,ompDigitsMaximum ,' ,a2,$)'
+          write (masterFormat     ,'(a,a ,a)'       ) '("',repeat("M",ompDigitsMaximum),'",a2,$)'
+#endif
           displayInitialized=.true.
        end if
        !$omp end critical (Initialize_Display)
@@ -108,11 +133,7 @@ contains
     type   (varying_string), intent(in   )           :: message
     integer                , intent(in   ), optional :: verbosity
 
-    if (present(verbosity)) then
-       call Galacticus_Display_Indent_Char(char(message),verbosity)
-    else
-       call Galacticus_Display_Indent_Char(char(message))
-    end if
+    call Galacticus_Display_Indent_Char(char(message),verbosity)
     return
   end subroutine Galacticus_Display_Indent_VarStr
 
@@ -152,7 +173,17 @@ contains
     return
   end subroutine Galacticus_Display_Indent_Char
 
-  subroutine Galacticus_Display_Unindent(message,verbosity)
+  subroutine Galacticus_Display_Unindent_VarStr(message,verbosity)
+    !% Decrease the indentation level and display a message.
+    implicit none
+    type   (varying_string), intent(in   )           :: message
+    integer                , intent(in   ), optional :: verbosity
+
+    call Galacticus_Display_Unindent_Char(char(message),verbosity)
+    return
+  end subroutine Galacticus_Display_Unindent_VarStr
+
+  subroutine Galacticus_Display_Unindent_Char(message,verbosity)
     !% Decrease the indentation level and display a message.
     implicit none
     character(len=*), intent(in   )           :: message
@@ -186,7 +217,7 @@ contains
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
-  end subroutine Galacticus_Display_Unindent
+  end subroutine Galacticus_Display_Unindent_Char
 
   subroutine Galacticus_Display_Message_Char(message,verbosity)
     !% Display a message (input as a {\normalfont \ttfamily character} variable).

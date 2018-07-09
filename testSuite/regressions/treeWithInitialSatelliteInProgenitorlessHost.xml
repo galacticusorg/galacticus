@@ -53,26 +53,27 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadFileName value="testSuite/data/mergerTrees/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
+  <mergerTreeConstructorMethod value="read">
+  <fileNames value="testSuite/data/mergerTrees/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
+    <treeIndexToRootNodeIndex value="true"/>
+    <presetPositions value="false"/>
+    <presetOrbits value="false"/>
+    <presetSpins value="false"/>
+    <presetMergerTimes value="true"/>
+    <presetMergerNodes value="true"/>
+    <presetScaleRadii value="false"/>
+    <presetSubhaloMasses value="false"/>
+  </mergerTreeConstructorMethod>
   <galacticusOutputFileName value="testSuite/outputs/regressions/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
-  <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
   <allTreesExistAtFinalTime value="false"/>
-  <mergerTreeReadPresetPositions value="false"/>
-  <mergerTreeReadPresetOrbits value="false"/>
-  <mergerTreeReadPresetSpins value="false"/>
-  <mergerTreeReadPresetMergerTimes value="true"/>
-  <mergerTreeReadPresetMergerNodes value="true"/>
-  <mergerTreeReadPresetScaleRadii value="false"/>
-  <mergerTreeReadPresetSubhaloMasses value="false"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
 
@@ -105,7 +106,7 @@
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
-    <sourceNormalizationRotation       value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="whiteFrenk1991">
@@ -167,16 +168,16 @@
 
   <!-- Accretion disk properties -->
   <accretionDisksMethod value="switched">
-    <accretionRateThinDiskMaximum       value="0.30"/>
-    <accretionRateThinDiskMinimum       value="0.01"/>
-    <scaleADAFRadiativeEfficiency       value="true"/>
+    <accretionRateThinDiskMaximum value="0.30"/>
+    <accretionRateThinDiskMinimum value="0.01"/>
+    <scaleADAFRadiativeEfficiency value="true"/>
     <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
-    <accretionDisksADAFMethod           value="ADAF">
+    <accretionDisksADAFMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
     </accretionDisksADAFMethod>
   </accretionDisksMethod>
 

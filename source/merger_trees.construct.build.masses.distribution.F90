@@ -16,16 +16,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for sampling the halo mass function when constructing merger trees.
+!% Contains a module which implements a class providing mass distributions for merger trees to be built.
 
-module Merger_Trees_Mass_Function_Sampling
-  !% Implements a class for sampling the halo mass function when constructing merger trees.
+module Merger_Trees_Build_Masses_Distributions
+  !% Implements a class providing mass distributions for merger trees to be built.
   private
   
   !# <functionClass>
-  !#  <name>mergerTreeHaloMassFunctionSampling</name>
-  !#  <descriptiveName>Merger Tree Halo Mass Function Sampling</descriptiveName>
-  !#  <description>Class providing methods for sampling from the halo mass function when building merger trees.</description>
+  !#  <name>mergerTreeBuildMassDistribution</name>
+  !#  <descriptiveName>Merger Tree Mass Distributions</descriptiveName>
+  !#  <description>Class providing mass distributions for merger trees to be built.</description>
   !#  <default>haloMassFunction</default>
   !#  <method name="sample" >
   !#   <description>Returns the sampling rate for merger trees of the given {\normalfont \ttfamily mass}, per decade of halo mass.</description>
@@ -35,4 +35,4 @@ module Merger_Trees_Mass_Function_Sampling
   !#  </method>
   !# </functionClass>
 
-end module Merger_Trees_Mass_Function_Sampling
+end module Merger_Trees_Build_Masses_Distributions

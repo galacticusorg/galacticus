@@ -346,13 +346,59 @@ my @translations =
 	     "stellarMassFilterThreshold"                                     => "mergerTreeOutput--galacticFilterMethod.stellarMass.--massThreshold"             ,
 	     "mergerTreeOutput"                                               => "mergerTreeOutput--outputMergerTrees"                                            ,
 	     "mergerTreeOutputReferences"                                     => "mergerTreeOutput--outputReferences"                                             ,
-	     "mergerTreeAnalyses"                                             => "mergerTreeOutput--analyses"
+	     "mergerTreeAnalyses"                                             => "mergerTreeOutput--analyses"                                                     ,
+	     "mergerTreeConstructMethod"                                      => "mergerTreeConstructorMethod"                                                    ,
+	     "mergerTreesBuildFixedThreadAssignment"                          => "evolveForestsWorkShareMethod.cyclic."                                           ,
+	     "mergerTreeBuildTreeMassesFile"                                  => "mergerTreeBuildMasses.readHDF5.--fileName"                                      ,
+	     "mergerTreeBuildHaloMassMinimum"                                 => "mergerTreeBuildMassesMethod.sampledDistributionUniform.--massTreeMinimum"       ,
+	     "mergerTreeBuildHaloMassMaximum"                                 => "mergerTreeBuildMassesMethod.sampledDistributionUniform.--massTreeMaximum"       ,
+	     "mergerTreeBuildTreesPerDecade"                                  => "mergerTreeBuildMassesMethod.sampledDistributionUniform.--treesPerDecade"        ,
+	     "haloMassSampleModifierFixedMassHalosMass"                       => "mergerTreeBuildMassesMethod.fixedMass.--massTree"                               , 
+	     "haloMassSampleModifierFixedMassHalosCount"                      => "mergerTreeBuildMassesMethod.fixedMass.--treeCount"                              ,
+	     "haloMassSampleModifierFixedMassHalosRadius"                     => "mergerTreeBuildMassesMethod.fixedMass.--radiusTree"                             ,
+	     "mergerTreeHaloMass"                                             => "mergerTreeConstructorMethod.smoothAccretion.--massHalo"                         ,
+	     "mergerTreeHaloMassResolution"                                   => "mergerTreeConstructorMethod.smoothAccretion.--massHaloResolution"               ,
+	     "mergerTreeHaloMassDeclineFactor"                                => "mergerTreeConstructorMethod.smoothAccretion.--massHaloDeclineFactor"            ,
+	     "mergerTreeBaseRedshift"                                         => "mergerTreeConstructorMethod.smoothAccretion.--redshiftBase"                     ,
+	     "mergerTreeConstructFullySpecifiedFileName"                      => "mergerTreeConstructorMethod.fullySpecified.--fileName"                          ,
+	     "mergerTreeStateStoreFile"                                       => "mergerTreeConstructorMethod.stateRestore.--fileName"                            ,
+	     "mergerTreeReadFileName"                                         => "mergerTreeConstructorMethod.read.--fileNames"                                   ,
+	     "mergerTreeReadForestSizeMaximum"                                => "mergerTreeConstructorMethod.read.--forestSizeMaximum"                           ,
+	     "mergerTreeReadPresetMergerTimes"                                => "mergerTreeConstructorMethod.read.--presetMergerTimes"                           ,
+	     "mergerTreeReadPresetMergerNodes"                                => "mergerTreeConstructorMethod.read.--presetMergerNodes"                           ,
+	     "mergerTreeReadPresetSubhaloMasses"                              => "mergerTreeConstructorMethod.read.--presetSubhaloMasses"                         ,
+	     "mergerTreeReadSubhaloAngularMomentaMethod"                      => "mergerTreeConstructorMethod.read.--subhaloAngularMomentaMethod"                 ,
+	     "mergerTreeReadPresetSubhaloIndices"                             => "mergerTreeConstructorMethod.read.--presetSubhaloIndices"                        ,
+	     "mergerTreeReadPresetPositions"                                  => "mergerTreeConstructorMethod.read.--presetPositions"                             ,
+	     "mergerTreeReadPresetScaleRadii"                                 => "mergerTreeConstructorMethod.read.--presetScaleRadii"                            ,
+	     "mergerTreeReadPresetScaleRadiiFailureIsFatal"                   => "mergerTreeConstructorMethod.read.--scaleRadiiFailureIsFatal"                    ,
+	     "mergerTreeReadPresetScaleRadiiConcentrationMinimum"             => "mergerTreeConstructorMethod.read.--presetScaleRadiiMinimumMass"                 ,
+	     "mergerTreeReadPresetScaleRadiiConcentrationMaximum"             => "mergerTreeConstructorMethod.read.--presetScaleRadiiConcentrationMaximum"        ,
+	     "mergerTreeReadPresetScaleRadiiMinimumMass"                      => "mergerTreeConstructorMethod.read.--presetScaleRadiiMinimumMass"                 ,
+	     "mergerTreeReadPresetUnphysicalSpins"                            => "mergerTreeConstructorMethod.read.--presetUnphysicalSpins"                       ,
+	     "mergerTreeReadPresetSpins"                                      => "mergerTreeConstructorMethod.read.--presetSpins"                                 ,
+	     "mergerTreeReadPresetSpins3D"                                    => "mergerTreeConstructorMethod.read.--presetSpins3D"                               ,
+	     "mergerTreeReadPresetOrbits"                                     => "mergerTreeConstructorMethod.read.--presetOrbits"                                ,
+	     "mergerTreeReadPresetOrbitsSetAll"                               => "mergerTreeConstructorMethod.read.--presetOrbitsSetAll"                          ,
+	     "mergerTreeReadPresetOrbitsAssertAllSet"                         => "mergerTreeConstructorMethod.read.--presetOrbitsAssertAllSet"                    ,
+	     "mergerTreeReadPresetOrbitsBoundOnly"                            => "mergerTreeConstructorMethod.read.--presetOrbitsBoundOnly"                       ,
+	     "mergerTreeReadPresetParticleCounts"                             => "mergerTreeConstructorMethod.read.--presetParticleCounts"                        ,
+	     "mergerTreeReadPresetVelocityMaxima"                             => "mergerTreeConstructorMethod.read.--presetVelocityMaxima"                        ,
+	     "mergerTreeReadPresetVelocityDispersions"                        => "mergerTreeConstructorMethod.read.--presetVelocityDispersions"                   ,
+	     "mergerTreeReadBeginAt"                                          => "mergerTreeConstructorMethod.read.--beginAt"                                     ,
+	     "mergerTreeReadOutputTimeSnapTolerance"                          => "mergerTreeConstructorMethod.read.--outputTimeSnapTolerance"                     ,
+	     "mergerTreeReadMissingHostsAreFatal"                             => "mergerTreeConstructorMethod.read.--missingHostsAreFatal"                        ,
+	     "mergerTreeReadTreeIndexToRootNodeIndex"                         => "mergerTreeConstructorMethod.read.--treeIndexToRootNodeIndex"                    ,
+	     "mergerTreeReadAllowBranchJumps"                                 => "mergerTreeConstructorMethod.read.--allowBranchJumps"                            ,
+	     "mergerTreeReadAllowSubhaloPromotions"                           => "mergerTreeConstructorMethod.read.--allowSubhaloPromotions"                      ,
+	     "mergerTreeReadSubresolutionMergingMethod"                       => "mergerTreeConstructorMethod.read.--satelliteMergingTimescalesMethod",
+	     "mergerTreeHaloMassFunctionSamplingMethod"                       => "mergerTreeBuildMassDistributionMethod"
 	 },
- 	 values        =>
-         {
-	     mergerTreeBuilderMethod        =>
+		 values        =>
 	     {
-		 "Cole2000"                  => "cole2000"
+		 mergerTreeBuilderMethod        =>
+		 {
+		     "Cole2000"                  => "cole2000"
 	     },
 	     treeNodeMethodDisk      =>
 	     {
@@ -476,7 +522,7 @@ sub Translate {
 	my @outputVersionSubstrings = split(/\./,$outputVersion);
 	$options{'outputFormatVersion'} = 2
 	    if (
-		$outputVersionSubstrings[0] >  0
+		$outputVersionSubstrings[0] >   0
 		||
 		(
 		 $outputVersionSubstrings[0] == 0
@@ -528,7 +574,7 @@ sub Translate {
 	if ( $options{'inputFormatVersion'} <= 1 ) {
 	    @parameterNodes = $parameters->findnodes('parameter');
 	} else {
-	    @parameterNodes = map {($_->exists('value') || $_->hasAttribute('value') ) ? $_ : ()} $parameters->findnodes('*');
+	    @parameterNodes = map {( $_->exists('value') || $_->hasAttribute('value') ) ? $_ : ()} $parameters->findnodes('*');
 	}
 	# Apply translations.
 	for my $parameter ( @parameterNodes ) {
@@ -549,6 +595,9 @@ sub Translate {
 		    @allValues = $parameter;
 		}
 	    }
+	    # Ignore parameters with no value - sometimes this is used as a placeholder.
+	    next
+		if ( ! grep {my $valueText = $_->isSameNode($name) ? $_->getAttribute('value') : $_->firstChild()->textContent(); $valueText ne ""} @allValues );	    
 	    # Translate names.
 	    if ( exists($translation->{'names'}->{$nameText}) ) {
 		print "   translate parameter name: ".$nameText." --> ".$translation->{'names'}->{$nameText}."\n";
@@ -701,10 +750,16 @@ sub Translate {
 	    unless ( $hostFound ) {
 		# Create the new node.
 		(my $hostLeafName = $hostName) =~ s/\..+\.//;
-		die('parametersMigrate.pl: attempting to insert a "'.$hostLeafName.'" element, but no default value is known')
-		    unless ( exists($knownDefaults{$hostLeafName}) );
+		my $defaultValue;
+		if ( $hostName =~ m/\..+\./ ) {
+		    ($defaultValue = $hostName) =~ s/.*\.(.+)\./$1/;
+		} else {
+		    die('parametersMigrate.pl: attempting to insert a "'.$hostLeafName.'" element, but no default value is known')
+			unless ( exists($knownDefaults{$hostLeafName}) );
+		    $defaultValue = $knownDefaults{$hostLeafName};
+		}
 		my $parameterNode = $input->createElement($hostLeafName);
-		$parameterNode->setAttribute('value',$knownDefaults{$hostLeafName});
+		$parameterNode->setAttribute('value',$defaultValue);
 		$parameterNode->addChild($input     ->createTextNode("\n    "  ));
 		$parameterNode->addChild($parameters->removeChild   ($parameter));
 		$parameterNode->addChild($input     ->createTextNode("\n  "    ));

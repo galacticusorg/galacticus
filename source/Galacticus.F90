@@ -32,6 +32,10 @@ program Galacticus
   use Memory_Management
   use Input_Parameters
   use Functions_Global_Utilities
+#ifdef USEMPI
+  use MPI
+  use MPI_Utilities
+#endif
   implicit none
   integer                             , parameter :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer   :: task_
@@ -39,6 +43,10 @@ program Galacticus
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
 
+  ! Initialize MPI.
+#ifdef USEMPI
+  call mpiInitialize(MPI_Thread_Multiple)
+#endif
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
   ! Register error handlers.
@@ -63,5 +71,9 @@ program Galacticus
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
   call task_%perform()
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
+  ! Finalize MPI.
+#ifdef USEMPI
+  call mpiFinalize()
+#endif
   ! All done, finish.
 end program Galacticus

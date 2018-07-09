@@ -9,8 +9,6 @@
   <taskMethod value="evolveForests">
     <suspendToRAM value="false"/>
   </taskMethod>
-  <mergerTreeReadSubresolutionMergingMethod value="infinite"/>
-
   <!-- Output control -->
   <verbosityLevel value="1"/>
   <galacticusOutputFileName value="testSuite/outputs/test-splitForests/unsplit.hdf5"/>
@@ -46,9 +44,9 @@
     <neutrinoMassSummed value="0.000"/>
   </transferFunctionMethod>
   <powerSpectrumPrimordialMethod value="powerLaw">
-    <index               value="0.961"/>
+    <index value="0.961"/>
     <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+    <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <powerSpectrumPrimordialTransferredMethod value="simple"/>
 
@@ -59,11 +57,12 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadFileName value="/data001/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5"/>
-  <!-- <mergerTreeReadFileName value="tree.hdf5"/> -->
-  <mergerTreeReadPresetScaleRadii value="false"/>
-  <allTreesExistAtFinalTime value="false" />
+  <mergerTreeConstructorMethod value="read">
+  <satelliteMergingTimescalesMethod value="infinite"/>
+    <fileNames value="/data001/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5"/>
+    <presetScaleRadii value="false"/>
+  </mergerTreeConstructorMethod>
+  <allTreesExistAtFinalTime value="false"/>
 
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -94,7 +93,7 @@
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
-    <sourceNormalizationRotation       value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="whiteFrenk1991">
@@ -171,16 +170,16 @@
 
   <!-- Accretion disk properties -->
   <accretionDisksMethod value="switched">
-    <accretionRateThinDiskMaximum       value="0.30"/>
-    <accretionRateThinDiskMinimum       value="0.01"/>
-    <scaleADAFRadiativeEfficiency       value="true"/>
+    <accretionRateThinDiskMaximum value="0.30"/>
+    <accretionRateThinDiskMinimum value="0.01"/>
+    <scaleADAFRadiativeEfficiency value="true"/>
     <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
-    <accretionDisksADAFMethod           value="ADAF">
+    <accretionDisksADAFMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
     </accretionDisksADAFMethod>
   </accretionDisksMethod>
 

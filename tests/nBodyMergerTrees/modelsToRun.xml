@@ -6,6 +6,6 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <mergerTreeConstructMethod value="read&#10;        "/>
+    <mergerTreeConstructorMethod value="read&#10;        "/>
   </parameters>
 </parameterGrid>

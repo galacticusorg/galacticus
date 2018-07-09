@@ -11,25 +11,29 @@
     <OmegaBaryon value="0.048206"/>
     <temperatureCMB value="2.72548"/>
   </cosmologyParametersMethod>
-  <sigma_8 value="0.8228"/>
-  <accretionHaloMethod value="null"/>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.8228"/>
+  </cosmologicalMassVarianceMethod><accretionHaloMethod value="null"/>
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>
-  <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadPresetMergerNodes value="true"/>
-  <mergerTreeReadPresetMergerTimes value="true"/>
-  <mergerTreeReadPresetOrbits value="true"/>
-  <mergerTreeReadPresetOrbitsAssertAllSet value="true"/>
-  <mergerTreeReadPresetOrbitsBoundOnly value="true"/>
-  <mergerTreeReadPresetOrbitsSetAll value="true"/>
-  <mergerTreeReadPresetPositions value="true"/>
-  <mergerTreeReadPresetScaleRadii value="true"/>
-  <mergerTreeReadPresetSpins value="true"/>
-  <mergerTreeReadPresetSpins3D value="true"/>
-  <mergerTreeReadPresetSubhaloIndices value="true"/>
-  <mergerTreeReadPresetSubhaloMasses value="true"/>
-  <mergerTreeReadPresetUnphysicalSpins value="true"/>
+  <mergerTreeConstructorMethod value="read">
+  <presetMergerNodes value="true"/>
+    <presetMergerTimes value="true"/>
+    <presetOrbits value="true"/>
+    <presetOrbitsAssertAllSet value="true"/>
+    <presetOrbitsBoundOnly value="true"/>
+    <presetOrbitsSetAll value="true"/>
+    <presetPositions value="true"/>
+    <presetScaleRadii value="true"/>
+    <presetSpins value="true"/>
+    <presetSpins3D value="true"/>
+    <presetSubhaloIndices value="true"/>
+    <presetSubhaloMasses value="true"/>
+    <presetUnphysicalSpins value="true"/>
+    <satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008"/>
+    <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
+  </mergerTreeConstructorMethod>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
@@ -53,7 +57,5 @@
   <treeNodeMethodSpheroid value="standard"/>
   <treeNodeMethodSpin value="preset3D"/>
   <verbosityLevel value="1"/>
-  <mergerTreeReadSubresolutionMergingMethod value="boylanKolchin2008"/>
-  <mergerTreeReadFileName value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
   <galacticusOutputFileName value="testSuite/outputs/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
 </parameters>

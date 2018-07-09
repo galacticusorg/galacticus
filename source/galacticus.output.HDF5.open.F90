@@ -35,6 +35,8 @@ contains
     !% Open the file for \glc\ output.
     use, intrinsic :: ISO_C_Binding
     use               Input_Parameters
+    use               MPI_Utilities
+    use               String_Handling
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
@@ -43,7 +45,6 @@ contains
     integer(size_t) :: cacheElementsCount, cacheSizeBytes
 
     if (.not.galacticusOutputFileIsOpen) then
-       ! Get file name parameter.
        !# <inputParameter>
        !#   <name>galacticusOutputFileName</name>
        !#   <cardinality>1</cardinality>
@@ -52,9 +53,7 @@ contains
        !#   <group>output</group>
        !#   <source>globalParameters</source>
        !#   <type>string</type>
-       !#   <writeOutput>no</writeOutput>
        !# </inputParameter>
-       ! Get file name parameter.
        !# <inputParameter>
        !#   <name>galacticusOutputScratchFileName</name>
        !#   <cardinality>1</cardinality>
@@ -73,7 +72,6 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>integer</type>
        !#   <variable>sieveBufferSize</variable>
-       !#   <writeOutput>no</writeOutput>
        !# </inputParameter>
        hdf5SieveBufferSize=sieveBufferSize
        !# <inputParameter>
@@ -84,7 +82,6 @@ contains
        !#   <group>output</group>
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
-       !#   <writeOutput>no</writeOutput>
        !# </inputParameter>
        !# <inputParameter>
        !#   <name>hdf5CacheElementsCount</name>
@@ -95,7 +92,6 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !#   <variable>cacheElementsCount</variable>
-       !#   <writeOutput>no</writeOutput>
        !# </inputParameter>
        hdf5CacheElementsCount=cacheElementsCount
        !# <inputParameter>
@@ -107,9 +103,21 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !#   <variable>cacheSizeBytes</variable>
-       !#   <writeOutput>no</writeOutput>
        !# </inputParameter>
        hdf5CacheSizeBytes=cacheSizeBytes
+       ! Modify the file name on a per-process basis if running under MPI.
+#ifdef USEMPI
+       if (extract(galacticusOutputFileName       ,len(galacticusOutputFileName       )-4,len(galacticusOutputFileName       )) == ".hdf5") then
+          galacticusOutputFileName       =extract(galacticusOutputFileName       ,1,len(galacticusOutputFileName       )-5)//':MPI'//mpiSelf%rankLabel()//'.hdf5'
+       else
+          galacticusOutputFileName       =galacticusOutputFileName       //':MPI'//mpiSelf%rankLabel()
+       end if
+       if (extract(galacticusOutputScratchFileName,len(galacticusOutputScratchFileName)-4,len(galacticusOutputScratchFileName)) == ".hdf5") then
+          galacticusOutputScratchFileName=extract(galacticusOutputScratchFileName,1,len(galacticusOutputScratchFileName)-5)//':MPI'//mpiSelf%rankLabel()//'.hdf5'
+       else
+          galacticusOutputScratchFileName=galacticusOutputScratchFileName//':MPI'//mpiSelf%rankLabel()
+       end if
+#endif
        ! Open the file.
        !$ call hdf5Access%set()
        call galacticusOutputFile%openFile(                                            &
@@ -122,14 +130,8 @@ contains
             &                             cacheSizeBytes     =hdf5CacheSizeBytes      &
             &                            )
        !$ call hdf5Access%unset()
-       ! Get file name parameter again and write it to the output file.
+       ! Now that the parameter file is open, we can open an output group in it for parameters.
        call globalParameters%parametersGroupOpen(galacticusOutputFile)
-       call globalParameters%value('galacticusOutputFileName'       ,galacticusOutputFileName       ,defaultValue=var_str('galacticus.hdf5'))
-       call globalParameters%value('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=galacticusOutputFileName  )
-       call globalParameters%value('hdf5SieveBufferSize'            ,sieveBufferSize                ,defaultValue=65536                     )
-       call globalParameters%value('hdf5UseLatestFormat'            ,hdf5UseLatestFormat            ,defaultValue=.false.                   )
-       call globalParameters%value('hdf5CacheElementsCount'         ,cacheElementsCount             ,defaultValue=521_size_t                )
-       call globalParameters%value('hdf5CacheSizeBytes'             ,cacheSizeBytes                 ,defaultValue=1048576_size_t            )
        ! Read parameters.
        !# <inputParameter>
        !#   <name>hdf5ChunkSize</name>

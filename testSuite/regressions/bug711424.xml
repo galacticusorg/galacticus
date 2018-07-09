@@ -38,21 +38,23 @@
   </haloSpinDistributionMethod>
   <barInstabilityMethod value="ELN"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
-  <mergerTreeBuildTreesPerDecade value="4"/>
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <treesPerDecade value="4"/>
+    <massTreeMaximum value="1.01e12"/>
+    <massTreeMinimum value="1.0e12"/>
+  </mergerTreeBuildMassesMethod>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <blackHoleWindEfficiency value="0.001"/>
   <outputVirialData value="false"/>
   <treeNodeMethodBlackHole value="standard"/>
-  <mergerTreeBuildTreesBaseRedshift value="0"/>
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   <timestepSimpleRelative value="0.1"/>
   <treeNodeMethodBasic value="standard"/>
-  <mergerTreeBuildHaloMassMaximum value="1.01e12"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <adiabaticContractionGnedinA value="0.8"/>
@@ -71,8 +73,6 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e10"/>
   </mergerTreeMassResolutionMethod>
-  <mergerTreeBuildTreesBeginAtTree value="1"/>
-  <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <spheroidEnergeticOutflowMassRate value="1"/>
   <starveSatellites value="true"/>
@@ -89,12 +89,11 @@
   <haloMassFunctionMethod value="tinker2008"/>
   <accretionDisksMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
   </accretionDisksMethod>
-  <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <starFormationSpheroidVelocityExponent value="0"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
@@ -108,9 +107,9 @@
   <odeToleranceAbsolute value="0.01"/>
   <starFormationTimescaleDisksMethod value="dynamicalTime"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <accretionHaloMethod value="simple"/>
@@ -152,12 +151,15 @@
   <timestepHostAbsolute value="1"/>
   <starFormationSpheroidEfficiency value="0.1"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
-  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeConstructorMethod value="build">
+    <treeBeginAt value="1"/>
+    <redshiftBase value="0"/>
+  </mergerTreeConstructorMethod>
   <hotHaloOutflowReturnRate value="1.26027"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
-  <mergerTreeHaloMassFunctionSamplingMethod value="powerLaw">
+  <mergerTreeBuildMassDistributionMethod value="powerLaw">
     <exponent value="1.0"/>
-  </mergerTreeHaloMassFunctionSamplingMethod>
+  </mergerTreeBuildMassDistributionMethod>
 </parameters>

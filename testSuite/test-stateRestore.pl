@@ -9,14 +9,14 @@ use PDL::NiceSlice;
 # Andrew Benson (23-Jun-2012)
 
 # Run full store model.
-system("export OMP_NUM_THREADS=12; rm -f outputs/state.state.* outputs/state.fgsl.state.*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
+system("export OMP_NUM_THREADS=12; rm -f outputs/state.state* outputs/state.fgsl.state*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
 die("FAILED: failed to run store model")
     unless ( $? == 0 );
 # Find which threads ran the final tree.
 my $finalTreeThread;
 opendir(my $stateDirectory,"outputs");
 while ( my $fileName = readdir($stateDirectory) ) {
-    if  ( $fileName =~ m/state\.state\.log\.(\d+)/ ) {
+    if  ( $fileName =~ m/state\.state\.log:openMP(\d+)/ ) {
 	my $thread = $1;
 	open(my $stateLogFile,"outputs/".$fileName);
 	while (my $line = <$stateLogFile> ) {
@@ -31,11 +31,12 @@ while ( my $fileName = readdir($stateDirectory) ) {
 closedir($stateDirectory);
 if ( defined($finalTreeThread) ) {
     print "Final tree was run by thread ".$finalTreeThread."\n";
-    system("cp -f outputs/state.state."     .$finalTreeThread." outputs/state.state"     );
-    system("cp -f outputs/state.fgsl.state.".$finalTreeThread." outputs/state.fgsl.state");
+    system("cp -f outputs/state.state:openMP"     .$finalTreeThread." outputs/state.state"     );
+    system("cp -f outputs/state.fgsl.state:openMP".$finalTreeThread." outputs/state.fgsl.state");
 } else {
     die("FAILED: failed to identify which thread ran final tree");
 }
+
 # Run the restore model.
 system("export OMP_NUM_THREADS=1; cd ..; Galacticus.exe testSuite/parameters/state/retrieve.xml");
 die("FAILED: failed to run retrieve model")

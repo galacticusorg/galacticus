@@ -23,7 +23,7 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree12000000.hdf5",
      	 parameters  => 
      	 {
-     	     mergerTreeReadSubresolutionMergingMethod => {value => "infinite"}
+     	     mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "infinite"}}
      	 }
      },
      {
@@ -32,10 +32,10 @@ my @forestFiles =
      	 skipOrphans => 1,     
      	 parameters  => 
      	 {
-     	     mergerTreeReadSubresolutionMergingMethod => {value => "boylanKolchin2008"},
-     	     virialOrbitMethod                        => {value => "fixed"            },
-     	     mergerTreeReadPresetMergerTimes          => {value => "true"             },
-     	     mergerTreeReadPresetMergerNodes          => {value => "false"            }
+     	     mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "boylanKolchin2008"}},
+     	     virialOrbitMethod                                                => {value => "fixed"            } ,
+     	     mergerTreeConstructorMethod => {presetMergerTimes                => {value => "true"             }},
+     	     mergerTreeConstructorMethod => {presetMergerNodes                => {value => "false"            }}
      	 }
      },
      {
@@ -44,10 +44,10 @@ my @forestFiles =
      	 skipOrphans => 1,     
      	 parameters  => 
      	 {
-     	     mergerTreeReadSubresolutionMergingMethod => {value => "boylanKolchin2008"},
-     	     virialOrbitMethod                        => {value => "fixed"            },
-     	     mergerTreeReadPresetMergerTimes          => {value => "true"             },
-     	     mergerTreeReadPresetMergerNodes          => {value => "true"             }
+     	     mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "boylanKolchin2008"}},
+     	     virialOrbitMethod                                                => {value => "fixed"            } ,
+     	     mergerTreeConstructorMethod => {presetMergerTimes                => {value => "true"             }},
+     	     mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"             }}
      	 }
      },
      # A milli-Millennium tree which fails unless we (correctly) nullify the merge target pointer of a node which never merges but
@@ -58,10 +58,10 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree3000055000000.hdf5",
      	 parameters  => 
      	 {
-     	     mergerTreeReadSubresolutionMergingMethod => {value => "boylanKolchin2008"},
-     	     virialOrbitMethod                        => {value => "fixed"            },
-     	     mergerTreeReadPresetMergerTimes          => {value => "true"             },
-     	     mergerTreeReadPresetMergerNodes          => {value => "true"             }
+     	     mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "boylanKolchin2008"}},
+     	     virialOrbitMethod                                                => {value => "fixed"            } ,
+     	     mergerTreeConstructorMethod => {presetMergerTimes                => {value => "true"             }},
+     	     mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"             }}
      	 }
      },
      # A milli-Millennium tree which fails if the "final time in tree" used in limiting node evolution is computed across all
@@ -71,8 +71,8 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree2000024000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	      mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "infinite"},
+     	      mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"    }
      	  }
      },
      # A milli-Millennium tree in which a mergee is transferred as part of an inter-tree event but the destination node is a
@@ -83,8 +83,8 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	      mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "infinite"}},
+     	      mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"    }}
      	  }
      },
      # A milli-Millennium tree in which a satellite is orphanized with a merge target that is a satellite. Fails unless we
@@ -94,8 +94,8 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000020000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	      mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "infinite"}},
+     	      mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"    }}
      	  }
      },
      # A milli-Millennium tree which fails unless orphaned mergees are reassigned to their merge target branch in cases where their
@@ -105,8 +105,8 @@ my @forestFiles =
      	 fileName    => "testSuite/data/mergerTrees/splitForests-milliMillennium-tree4000027000000.hdf5",
      	 parameters  => 
      	  {
-     	      mergerTreeReadSubresolutionMergingMethod => {value => "infinite"},
-     	      mergerTreeReadPresetMergerNodes          => {value => "true"    }
+     	      mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "infinite"}},
+     	      mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"    }}
      	  }
      },
      # A milli-Millennium tree which fails (due to an orphan galaxy merging in the split case, but not merging in the unsplit case)
@@ -117,10 +117,10 @@ my @forestFiles =
      	 skipOrphans => 1,     
      	 parameters  => 
      	  {
-     	      mergerTreeReadSubresolutionMergingMethod => {value => "boylanKolchin2008"},
-     	      virialOrbitMethod                        => {value => "fixed"            },
-     	      mergerTreeReadPresetMergerTimes          => {value => "true"             },
-     	      mergerTreeReadPresetMergerNodes          => {value => "false"            }
+     	      mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "boylanKolchin2008"}},
+     	      virialOrbitMethod                                                => {value => "fixed"            } ,
+     	      mergerTreeConstructorMethod => {presetMergerTimes                => {value => "true"             }},
+     	      mergerTreeConstructorMethod => {presetMergerNodes                => {value => "false"            }}
      	  }
      }
     );
@@ -151,10 +151,10 @@ push(
 	skipOrphans => 1,     
 	parameters  => 
 	{
-	    mergerTreeReadSubresolutionMergingMethod => {value => "boylanKolchin2008"},
-	    virialOrbitMethod                        => {value => "fixed"            },
-	    mergerTreeReadPresetMergerTimes          => {value => "true"             },
-	    mergerTreeReadPresetMergerNodes          => {value => "true"             }
+	    mergerTreeConstructorMethod => {satelliteMergingTimescalesMethod => {value => "boylanKolchin2008"}},
+	    virialOrbitMethod                                                => {value => "fixed"            } ,
+	    mergerTreeConstructorMethod => {presetMergerTimes                => {value => "true"             }},
+	    mergerTreeConstructorMethod => {presetMergerNodes                => {value => "true"             }}
 	}
     }
     )

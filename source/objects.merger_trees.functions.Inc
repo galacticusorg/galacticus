@@ -18,6 +18,14 @@
 
 !% Defines functions bound to the merger tree object class.
 
+function mergerTreeConstructor() result(self)
+  !% Constructor for the merger tree class. Currently does nothing.
+  implicit none
+  type(mergerTree) :: self
+
+  return
+end function mergerTreeConstructor
+
 subroutine Merger_Tree_Destroy(tree)
   !% Destroys the entire merger tree.
   implicit none

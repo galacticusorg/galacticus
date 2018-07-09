@@ -52,9 +52,9 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructMethod value="fullySpecified"/>
-  <mergerTreeConstructFullySpecifiedFileName value="testSuite/parameters/reproducibility/coolingTree.xml"/>
-
+  <mergerTreeConstructorMethod value="fullySpecified">
+    <fileName value="testSuite/parameters/reproducibility/coolingTree.xml"/>
+  </mergerTreeConstructorMethod>
   <!-- Dark matter halo profile -->
   <darkMatterProfileMethod value="isothermal"/>
   

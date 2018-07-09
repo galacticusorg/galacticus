@@ -18,7 +18,6 @@
 
   !% An implementation of the merger tree importer class for \glc\ format merger tree files.
 
-  !# <mergerTreeImporter name="mergerTreeImporterGalacticus" description="Importer for \glc\ format merger tree files." />
   use IO_HDF5
   use Stateful_Types
 
@@ -27,31 +26,34 @@
      integer(c_size_t) :: particleIndexCount, particleIndexStart
   end type nodeDataGalacticus
 
+  !# <mergerTreeImporter name="mergerTreeImporterGalacticus">
+  !#  <description>Importer for \glc\ format merger tree files.</description>
+  !# </mergerTreeImporter>
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type   (hdf5Object     )                            :: file                  , forestHalos
-     type   (statefulInteger)                            :: hasSubhalos           , areSelfContained          , &
-          &                                                 includesHubbleFlow    , periodicPositions         , &
-          &                                                 lengthStatus
-     type   (statefulLogical)                            :: massesAreInclusive    , angularMomentaAreInclusive
-     type   (statefulDouble )                            :: length
-     type   (importerUnits  )                            :: massUnit              , lengthUnit                , &
-          &                                                 timeUnit              , velocityUnit
-     logical                                             :: fatalMismatches       , forestIndicesRead         , &
-          &                                                 angularMomentaIsScalar, angularMomentaIsVector    , &
-          &                                                 spinIsScalar          , spinIsVector              , &
-          &                                                 reweightTrees
-     integer                                             :: forestsCount          , formatVersion
-     integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
-     integer(kind=kind_int8 ), allocatable, dimension(:) :: forestIndices
-     double precision        , allocatable, dimension(:) :: weights
-     type   (hdf5Object     )                            :: particles
-     integer                                             :: particleEpochType
-     type   (varying_string )                            :: particleEpochDataSetName
-     character(len=32)                                   :: forestHalosGroupName    , forestContainmentAttributeName, &
-          &                                                 forestIndexGroupName    , forestIndexDatasetName        , &
-          &                                                 forestWeightDatasetName
+     type            (hdf5Object     )                            :: file                    , forestHalos
+     type            (statefulInteger)                            :: hasSubhalos             , areSelfContained              , &
+          &                                                          includesHubbleFlow      , periodicPositions             , &
+          &                                                          lengthStatus
+     type            (statefulLogical)                            :: massesAreInclusive      , angularMomentaAreInclusive
+     type            (statefulDouble )                            :: length
+     type            (importerUnits  )                            :: massUnit                , lengthUnit                    , &
+          &                                                          timeUnit                , velocityUnit
+     logical                                                      :: fatalMismatches         , forestIndicesRead             , &
+          &                                                          angularMomentaIsScalar  , angularMomentaIsVector        , &
+          &                                                          spinIsScalar            , spinIsVector                  , &
+          &                                                          reweightTrees
+     integer                                                      :: forestsCount            , formatVersion
+     integer                          , allocatable, dimension(:) :: firstNodes              , nodeCounts
+     integer         (kind=kind_int8 ), allocatable, dimension(:) :: forestIndices
+     double precision                 , allocatable, dimension(:) :: weights
+     type            (hdf5Object     )                            :: particles
+     integer                                                      :: particleEpochType
+     type            (varying_string )                            :: particleEpochDataSetName
+     character       (len=32         )                            :: forestHalosGroupName    , forestContainmentAttributeName, &
+          &                                                          forestIndexGroupName    , forestIndexDatasetName        , &
+          &                                                          forestWeightDatasetName
    contains
      final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
@@ -84,70 +86,74 @@
 
   interface mergerTreeImporterGalacticus
      !% Constructors for the \glc\ format merger tree importer class.
-     module procedure galacticusDefaultConstructor
+     module procedure galacticusConstructorParameters
+     module procedure galacticusConstructorInternal
   end interface mergerTreeImporterGalacticus
 
-  ! Record of implementation initialization state.
-  logical            :: galacticusInitialized                     =.false.
-
-  ! Default settings.
-  logical            :: mergerTreeImportGalacticusMismatchIsFatal, mergerTreeImportGalacticusReweightTrees
-
-  ! Particle epoch enumeration.
-  integer, parameter :: galacticusParticleEpochTypeTime           =0
-  integer, parameter :: galacticusParticleEpochTypeExpansionFactor=1
-  integer, parameter :: galacticusParticleEpochTypeRedshift       =2
-
+  ! Enumeration of particle epoch types.
+  !# <enumeration>
+  !#  <name>galacticusParticleEpochType</name>
+  !#  <description>Particle epoch type enumerations.</description>
+  !#  <entry label="time"           />
+  !#  <entry label="expansionFactor"/>
+  !#  <entry label="redshift"       />
+  !# </enumeration>
+  
 contains
 
-  function galacticusDefaultConstructor()
-    !% Default constructor for the \glc\ format merger tree importer.
+  function galacticusConstructorParameters(parameters) result(self)
+    !% Constructor for the \glc\ format merger tree importer which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (mergerTreeImporterGalacticus), target :: galacticusDefaultConstructor
-    
-    if (.not.galacticusInitialized) then
-       !$omp critical (mergerTreeImporterGalacticusInitialize)
-       if (.not.galacticusInitialized) then
-          !# <inputParameter>
-          !#   <name>mergerTreeImportGalacticusMismatchIsFatal</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportGalacticusReweightTrees</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether merger tree weights should be recomputed from the halo mass function.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          galacticusInitialized=.true.
-       end if
-       !$omp end critical (mergerTreeImporterGalacticusInitialize)
-    end if
-    galacticusDefaultConstructor%hasSubhalos       %isSet=.false.
-    galacticusDefaultConstructor%massesAreInclusive%isSet=.false.
-    galacticusDefaultConstructor%areSelfContained  %isSet=.false.
-    galacticusDefaultConstructor%includesHubbleFlow%isSet=.false.
-    galacticusDefaultConstructor%periodicPositions %isSet=.false.
-    galacticusDefaultConstructor%length            %isSet=.false.
-    galacticusDefaultConstructor%forestIndicesRead       =.false.
-    galacticusDefaultConstructor%fatalMismatches         =mergerTreeImportGalacticusMismatchIsFatal
-    galacticusDefaultConstructor%reweightTrees           =mergerTreeImportGalacticusReweightTrees
-    return
-  end function galacticusDefaultConstructor
+    type   (mergerTreeImporterGalacticus)                :: self
+    type   (inputParameters             ), intent(inout) :: parameters
+    logical                                              :: fatalMismatches, reweightTrees
 
+    !# <inputParameter>
+    !#   <name>fatalMismatches</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>reweightTrees</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether merger tree weights should be recomputed from the halo mass function.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees)
+    !# <inputParametersValidate source="parameters"/>  
+    return
+  end function galacticusConstructorParameters
+
+  function galacticusConstructorInternal(fatalMismatches,reweightTrees) result(self)
+    !% Internal constructor for the \glc\ format merger tree importer.
+    implicit none
+    type   (mergerTreeImporterGalacticus)                :: self
+    logical                              , intent(in   ) :: fatalMismatches, reweightTrees
+    !# <constructorAssign variables="fatalMismatches, reweightTrees"/>
+    
+    self%hasSubhalos       %isSet=.false.
+    self%massesAreInclusive%isSet=.false.
+    self%areSelfContained  %isSet=.false.
+    self%includesHubbleFlow%isSet=.false.
+    self%periodicPositions %isSet=.false.
+    self%length            %isSet=.false.
+    self%forestIndicesRead       =.false.
+    return
+  end function galacticusConstructorInternal
+  
   subroutine galacticusDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
     !$ call hdf5Access%set()
-    call self%file%close()
+    if (self%file%isOpen()) call self%file%close()
     !$ call hdf5Access%unset()
     return
   end subroutine galacticusDestructor

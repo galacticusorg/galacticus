@@ -18,22 +18,22 @@
 
   !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
 
-  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingPowerLaw" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw" defaultThreadPrivate="yes">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.</description>
-  !# </mergerTreeHaloMassFunctionSampling>
-  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingPowerLaw
+  !# </mergerTreeBuildMassDistribution>
+  type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionPowerLaw
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
      private
      double precision :: exponent
    contains
      procedure :: sample => powerLawSample
-  end type mergerTreeHaloMassFunctionSamplingPowerLaw
+  end type mergerTreeBuildMassDistributionPowerLaw
 
-  interface mergerTreeHaloMassFunctionSamplingPowerLaw
+  interface mergerTreeBuildMassDistributionPowerLaw
      !% Constructors for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class.
      module procedure powerLawConstructorParameters
      module procedure powerLawConstructorInternal
-  end interface mergerTreeHaloMassFunctionSamplingPowerLaw
+  end interface mergerTreeBuildMassDistributionPowerLaw
 
 contains
 
@@ -41,7 +41,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type            (mergerTreeHaloMassFunctionSamplingPowerLaw)                :: self
+    type            (mergerTreeBuildMassDistributionPowerLaw)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
     double precision                                                            :: exponent
 
@@ -53,7 +53,7 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=mergerTreeHaloMassFunctionSamplingPowerLaw(exponent)
+    self=mergerTreeBuildMassDistributionPowerLaw(exponent)
     !# <inputParametersValidate source="parameters"/>
     return
   end function powerLawConstructorParameters
@@ -61,7 +61,7 @@ contains
   function powerLawConstructorInternal(exponent) result(self)
     !% Internal constructor for the {\normalfont \ttfamily powerLaw} merger tree halo mass function sampling class.
     implicit none
-    type            (mergerTreeHaloMassFunctionSamplingPowerLaw)                :: self
+    type            (mergerTreeBuildMassDistributionPowerLaw)                :: self
     double precision                                            , intent(in   ) :: exponent
     !# <constructorAssign variables="exponent"/>
     
@@ -71,7 +71,7 @@ contains
   double precision function powerLawSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
     implicit none
-    class           (mergerTreeHaloMassFunctionSamplingPowerLaw), intent(inout) :: self
+    class           (mergerTreeBuildMassDistributionPowerLaw), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass       , massMaximum, &
          &                                                                         massMinimum, time
     !GCC$ attributes unused :: time

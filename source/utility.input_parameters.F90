@@ -110,11 +110,11 @@ module Input_Parameters
      private
      type   (node           ), pointer, public :: document               => null()
      type   (node           ), pointer         :: rootNode               => null()
-     type   (hdf5Object     )                  :: outputParameters
+     type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
      type   (inputParameter ), pointer         :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
-     logical                                   :: global                 =  .false., isNull=.false., &
-          &                                       outputParametersCopied =  .false.
+     logical                                   :: global                 =  .false., isNull                   =.false., &
+          &                                       outputParametersCopied =  .false., outputParametersTemporary=.false.
    contains
      !@ <objectMethods>
      !@   <object>inputParameters</object>
@@ -330,7 +330,7 @@ contains
     return
   end function inputParametersConstructorNull
   
-  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,allowedParametersFile,outputParametersGroup)
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     implicit none
@@ -339,6 +339,7 @@ contains
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*             )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
+    logical                                    , intent(in   ), optional :: noOutput
     type     (node              ), pointer                               :: parameterNode
 
     ! Check if we have been passed XML or a file name.
@@ -354,20 +355,22 @@ contains
             &                                                                                                 )             , &
             &                                                                allowedParameterNames                          , &
             &                                                                allowedParametersFile                          , &
-            &                                                                outputParametersGroup                            &
+            &                                                                outputParametersGroup                          , &
+            &                                                                noOutput                                         &
             &                                                               )
     else
        inputParametersConstructorVarStr=inputParametersConstructorFileVarStr(                                                 &
             &                                                                xmlString                                      , &
             &                                                                allowedParameterNames                          , &
             &                                                                allowedParametersFile                          , &
-            &                                                                outputParametersGroup                            &
+            &                                                                outputParametersGroup                          , &
+            &                                                                noOutput                                         &
             &                                                               )
     end if
     return
   end function inputParametersConstructorVarStr
 
-  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup)
+  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     implicit none
@@ -376,17 +379,19 @@ contains
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*             )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
-    
+    logical                                    , intent(in   ), optional :: noOutput
+
     inputParametersConstructorFileVarStr=inputParametersConstructorFileChar(                       &
          &                                                                  char(fileName)       , &
          &                                                                  allowedParameterNames, &
          &                                                                  allowedParametersFile, &
-         &                                                                  outputParametersGroup  &
+         &                                                                  outputParametersGroup, &
+         &                                                                  noOutput               &
          &                                                                 )
     return
   end function inputParametersConstructorFileVarStr
   
-  function inputParametersConstructorFileChar(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup)
+  function inputParametersConstructorFileChar(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a character variable.
     use Galacticus_Error
@@ -397,6 +402,7 @@ contains
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: parameterNode
     integer                                                           :: errorStatus
     
@@ -418,12 +424,13 @@ contains
          &                                                                                             )             , &
          &                                                            allowedParameterNames                          , &
          &                                                            allowedParametersFile                          , &
-         &                                                            outputParametersGroup                            &
+         &                                                            outputParametersGroup                          , &
+         &                                                            noOutput                                         &
          &                                                           )
     return
   end function inputParametersConstructorFileChar
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use Galacticus_Error
     use Galacticus_Display
@@ -435,6 +442,7 @@ contains
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
+    logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: thisNode                      , allowedParameterDoc    , &
          &                                                               versionElement
     type     (nodeList       ), pointer                               :: allowedParameterList
@@ -443,7 +451,8 @@ contains
          &                                                               errorStatus                  , i
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
-
+    !# <optionalArgument name="noOutput" defaultsTo=".false." />
+    
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)    
@@ -457,8 +466,14 @@ contains
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
-       inputParametersConstructorNode%outputParameters      =outputParametersGroup%openGroup('Parameters')
-       inputParametersConstructorNode%outputParametersCopied=.false.
+       inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
+       inputParametersConstructorNode%outputParametersCopied   =.false.
+       inputParametersConstructorNode%outputParametersTemporary=.false.
+    else if (.not.noOutput_) then
+       call inputParametersConstructorNode%outputParametersContainer%openFile(char(File_Name_Temporary('glcTmpPar','/dev/shm')))
+       inputParametersConstructorNode%outputParameters         =inputParametersConstructorNode%outputParametersContainer%openGroup('Parameters')
+       inputParametersConstructorNode%outputParametersCopied   =.false.
+       inputParametersConstructorNode%outputParametersTemporary=.true.
     end if
     ! Parse allowed parameters file if available.
     allowedParameterFromFileCount=0
@@ -639,7 +654,10 @@ contains
  
   subroutine inputParametersFinalize(self)
     !% Finalizer for the {\normalfont \ttfamily inputParameters} class.
+    use File_Utilities
+    implicit none
     type(inputParameters), intent(inout) :: self
+    type(varying_string )                :: fileNameTemporary
 
     if (self%isNull) then
        !$omp critical (FoX_DOM_Access)
@@ -652,7 +670,18 @@ contains
     nullify(self%parameters)
     nullify(self%parent    )
     !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) call self%outputParameters%close()
+    if (self%outputParameters%isOpen().and..not.self%outputParametersCopied) then
+       if (self%outputParametersTemporary) then
+          ! Close and remove the temporary parameters file.
+          fileNameTemporary=self%outputParametersContainer%name()
+          call self%outputParameters         %close()
+          call self%outputParametersContainer%close()
+          call File_Remove(char(fileNameTemporary))
+       else
+          ! Simply close our parameters group.
+          call self%outputParameters%close()
+       end if
+    end if
     !$ call hdf5Access%unset()
     return
   end subroutine inputParametersFinalize
@@ -927,20 +956,33 @@ contains
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !% Open an output group for parameters in the given HDF5 object.
+    use File_Utilities
     implicit none
     class(inputParameters), intent(inout) :: self
     type (hdf5Object     ), intent(inout) :: outputGroup
+    type (varying_string )                :: fileNameTemporary
 
     !$ call hdf5Access%set()
-    if (self%outputParameters%isOpen()) call self%outputParameters%close()
-    self%outputParameters      =outputGroup%openGroup('Parameters')
-    self%outputParametersCopied=.false.
+    if (self%outputParameters%isOpen().and.self%outputParametersTemporary) then
+       ! Parameters have been written to a temporary file. Copy them to our new group.
+       call self%outputParametersContainer%copy('Parameters',outputGroup)
+       fileNameTemporary=self%outputParametersContainer%name()
+       call self%outputParameters         %close()
+       call self%outputParametersContainer%close()
+       call File_Remove(char(fileNameTemporary))
+       self%outputParameters=outputGroup%openGroup('Parameters')
+       self%outputParametersTemporary=.false.
+    else
+       if (self%outputParameters%isOpen()) call self%outputParameters%close()
+       self%outputParameters      =outputGroup%openGroup('Parameters')
+    end if
     !$ call hdf5Access%unset()
+    self%outputParametersCopied=.false.
     return
   end subroutine inputParametersParametersGroupOpen
 
   subroutine inputParametersParametersGroupCopy(self,inputParameters_)
-    !% Open an output group for parameters in the given HDF5 object.
+    !% Copy an output group for parameters in the given HDF5 object.
     implicit none
     class(inputParameters), intent(inout) :: self
     class(inputParameters), intent(in   ) :: inputParameters_
@@ -1142,7 +1184,7 @@ contains
        end if
     else
        parameterNode                => self%node      (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
-       inputParametersSubParameters =  inputParameters(parameterNode%content                                                    )
+       inputParametersSubParameters =  inputParameters(parameterNode%content,noOutput    =.true.                                )
     end if
     inputParametersSubParameters%parent => self
     inputParametersSubParameters%global =  self%global

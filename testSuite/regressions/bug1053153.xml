@@ -6,21 +6,22 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-   <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadMissingHostsAreFatal value="false"/>
-  <mergerTreeReadFileName value="testSuite/data/mergerTrees/bug1053153.hdf5"/>
+   <mergerTreeConstructorMethod value="read">
+  <missingHostsAreFatal value="false"/>
+    <fileNames value="testSuite/data/mergerTrees/bug1053153.hdf5"/>
+    <outputTimeSnapTolerance value="1.0d-3"/>
+    <presetPositions value="true"/>
+    <presetMergerTimes value="false"/>
+    <presetMergerNodes value="false"/>
+    <presetSubhaloMasses value="true"/>
+    <presetSpins value="false"/>
+    <presetScaleRadii value="true"/>
+  </mergerTreeConstructorMethod>
   <galacticusOutputFileName value="testSuite/outputs/bug1053153.hdf5"/>
   <allTreesExistAtFinalTime value="false"/>
-  <mergerTreeReadOutputTimeSnapTolerance value="1.0d-3"/>
   <treeNodeMethodPosition value="preset"/>
-  <mergerTreeReadPresetPositions value="true"/>
   <treeNodeMethodSatellite value="preset"/>
-  <mergerTreeReadPresetMergerTimes value="false"/>
-  <mergerTreeReadPresetMergerNodes value="false"/>
-  <mergerTreeReadPresetSubhaloMasses value="true"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-  <mergerTreeReadPresetSpins value="false"/>
-  <mergerTreeReadPresetScaleRadii value="true"/>
   <cosmologyParametersMethod value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2748"/>

@@ -50,20 +50,21 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadFileName value="/data/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5" />
-  <mergerTreeReadPresetMergerTimes value="true" />
-  <mergerTreeReadPresetMergerNodes value="true" />
-  <mergerTreeReadPresetSubhaloMasses value="false" />
-  <mergerTreeReadPresetSubhaloIndices value="false" />
-  <mergerTreeReadPresetScaleRadii value="false" />
-  <mergerTreeReadPresetSpins value="false" />
-  <mergerTreeReadPresetOrbits value="false" />
-  <mergerTreeReadPresetPositions value="false" />
-  <mergerTreeReadAllowBranchJumps value="true" />
-  <mergerTreeReadAllowSubhaloPromotions value="true" />
-  <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3" />
-  <allTreesExistAtFinalTime value="false" />
+  <mergerTreeConstructorMethod value="read">
+  <fileNames value="/data/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5"/>
+    <presetMergerTimes value="true"/>
+    <presetMergerNodes value="true"/>
+    <presetSubhaloMasses value="false"/>
+    <presetSubhaloIndices value="false"/>
+    <presetScaleRadii value="false"/>
+    <presetSpins value="false"/>
+    <presetOrbits value="false"/>
+    <presetPositions value="false"/>
+    <allowBranchJumps value="true"/>
+    <allowSubhaloPromotions value="true"/>
+    <outputTimeSnapTolerance value="1.0e-3"/>
+  </mergerTreeConstructorMethod>
+  <allTreesExistAtFinalTime value="false"/>
   
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -143,10 +144,10 @@
       </snapshotRedshifts>
       <massResolution value="2.36e10"/>
       <mergerTreeBuilderMethod value="cole2000">
-	<accretionLimit   value="0.1"  />
-	<mergeProbability value="0.1"  />
+	<accretionLimit value="0.1"/>
+	<mergeProbability value="0.1"/>
 	<mergerTreeMassResolutionMethod value="fixed">
-	  <massResolution value="2.36e9" />
+	  <massResolution value="2.36e9"/>
 	</mergerTreeMassResolutionMethod>
       </mergerTreeBuilderMethod>
     </mergerTreeOperatorMethod>    

@@ -112,6 +112,12 @@ sub Build_Node_Event_Class {
 		      variables  => [ "isPrimary", "hasSecondary" ]
 		  },
 		  {
+		      intrinsic  => "class",
+		      type       => "*",
+		      attributes => [ "pointer", "public" ],
+		      variables  => [ "creator" ]
+		  },
+		  {
 		      intrinsic  => "procedure",
 		      type       => "nodeEventInterTreeMergeTimeSet",
 		      attributes => [ "pointer", "nopass" ],
@@ -141,6 +147,12 @@ sub Build_Node_Event_Class {
 		      intrinsic  => "logical",
 		      attributes => [ "public" ],
 		      variables  => [ "isPrimary" ]
+		  },
+		  {
+		      intrinsic  => "class",
+		      type       => "*",
+		      attributes => [ "pointer", "public" ],
+		      variables  => [ "creator" ]
 		  },
 		  {
 		      intrinsic  => "procedure",
@@ -208,6 +220,12 @@ sub Node_Event_Merge_Time_Set_Interface {
 	intrinsic => "void"                                                         ,
 	data      =>
 	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "*",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]	 
+	     },
 	     {
 		 intrinsic  => "type",
 		 type       => "treeNode",

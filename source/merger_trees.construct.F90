@@ -20,90 +20,23 @@
 
 module Merger_Tree_Construction
   !% Constructs/destructs merger trees.
-  use Galacticus_Nodes
-  use ISO_Varying_String
-  implicit none
+  use, intrinsic :: ISO_C_Binding
+  use               Galacticus_Nodes
   private
-  public :: Merger_Tree_Create
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                            :: mergerTreeConstructInitialized=.false.
-
-  ! Name of tree construction method used.
-  type     (varying_string                )          :: mergerTreeConstructMethod
-  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
-  procedure(Merger_Tree_Construct_Template), pointer :: Merger_Tree_Construct         =>null()
-  abstract interface
-     subroutine Merger_Tree_Construct_Template(thisTree,skipTree)
-       import mergerTree
-       type   (mergerTree), intent(inout), target :: thisTree
-       logical            , intent(in   )         :: skipTree
-     end subroutine Merger_Tree_Construct_Template
-  end interface
-
-contains
-
-  function Merger_Tree_Create(skipTree) result(tree)
-    !% Creates a merger tree.
-    use Input_Parameters
-    use Galacticus_Error
-    use Memory_Management
-    use Merger_Tree_State_Store
-    !# <include directive="mergerTreeConstructMethod" type="moduleUse">
-    include 'merger_trees.construct.modules.inc'
-    !# </include>
-    implicit none
-    type   (mergerTree), pointer       :: tree
-    logical            , intent(in   ) :: skipTree
-
-    ! Initialize if necessary.
-    if (.not.mergerTreeConstructInitialized) then
-       !$omp critical(Merger_Tree_Construct_Initialization)
-       if (.not.mergerTreeConstructInitialized) then
-          !# <inputParameter>
-          !#   <name>mergerTreeConstructMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('build')</defaultValue>
-          !#   <description>Selects the method to be used for constructing merger trees.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="mergerTreeConstructMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>mergerTreeConstructMethod,Merger_Tree_Construct</functionArgs>
-          include 'merger_trees.construct.inc'
-          !# </include>
-          if (.not.associated(Merger_Tree_Construct)) call Galacticus_Error_Report('method '//char(mergerTreeConstructMethod)//' is unrecognized'//{introspection:location})
-          mergerTreeConstructInitialized=.true.
-       end if
-       !$omp end critical(Merger_Tree_Construct_Initialization)
-    end if
-
-    ! Create the object.
-    allocate(tree)
-    call Memory_Usage_Record(sizeof(tree))
-    tree%baseNode => null()
-    tree%event    => null()
-    call tree%properties%initialize()
-
-    ! Flag that the tree is uninitialized. Some construction methods may opt to fully initialize the tree, in which case they will
-    ! reset this to true.
-    tree%initializedUntil=0.0d0
-
-    ! Initialize a random number generator, and store a pointer to this tree for purposes of storing state to file.
-    tree          %randomNumberGenerator =  pseudoRandom()
-    treeStateStore                       => tree
-    
-    ! Call the routine to construct the merger tree.
-    call Merger_Tree_Construct(tree,skipTree)
-
-    ! Deallocate the tree if no nodes were created.
-    if (.not.associated(tree%baseNode)) then
-       call Memory_Usage_Record(sizeof(tree),addRemove=-1)
-       deallocate(tree)
-       tree => null()
-    end if
-    return
-  end function Merger_Tree_Create
-
+  !# <functionClass>
+  !#  <name>mergerTreeConstructor</name>
+  !#  <descriptiveName>Merger Tree Constructors</descriptiveName>
+  !#  <description>Class providing merger tree constructors.</description>
+  !#  <default>build</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful value="no"/>
+  !#  <method name="construct" >
+  !#   <description>Construct the merger tree corresponding to the given {\normalfont \ttfamily treeNumber}.</description>
+  !#   <type>type(mergerTree), pointer</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer(c_size_t), intent(in   ) :: treeNumber</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Merger_Tree_Construction

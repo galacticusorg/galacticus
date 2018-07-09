@@ -17,15 +17,22 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
-
-  use IO_HDF5
   
-  !# <mergerTreeImporter name="mergerTreeImporterSussingHDF5" description="Importer for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.)." />
+  use IO_HDF5
+  use Cosmology_Parameters
+  use Cosmology_Functions
+  use Cosmological_Density_Field
 
+  !# <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
+  !#  <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).</description>
+  !# </mergerTreeImporter>
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingHDF5
      !% A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
      private
-     type(hdf5Object) :: file, snapshots
+     class(cosmologyParametersClass     ), pointer :: cosmologyParameters_
+     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     type (hdf5Object                   )          :: file                     , snapshots
    contains
      final     ::         sussingHDF5Destructor
      procedure :: open => sussingHDF5Open
@@ -34,21 +41,46 @@
 
   interface mergerTreeImporterSussingHDF5
      !% Constructors for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
-     module procedure sussingHDF5DefaultConstructor
+     module procedure sussingHDF5ConstructorParameters
+     module procedure sussingHDF5ConstructorInternal
   end interface mergerTreeImporterSussingHDF5
  
 contains
 
-  function sussingHDF5DefaultConstructor()
+  function sussingHDF5ConstructorParameters(parameters) result(self)
     !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
     use Input_Parameters
-    use Galacticus_Error
     implicit none
-    type(mergerTreeImporterSussingHDF5), target :: sussingHDF5DefaultConstructor
+    type(mergerTreeImporterSussingHDF5)                :: self
+    type(inputParameters              ), intent(inout) :: parameters
 
-    call sussingInitialize(sussingHDF5DefaultConstructor)
+    !# <objectBuilder class="cosmologyParameters"      name="self%cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
+    !# <inputParametersValidate source="parameters"/>    
     return
-  end function sussingHDF5DefaultConstructor
+  end function sussingHDF5ConstructorParameters
+
+  function sussingHDF5ConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
+    !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    use Input_Parameters
+    implicit none
+    type            (mergerTreeImporterSussingHDF5)                              :: self
+    class           (cosmologyParametersClass     ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), intent(in   ), target       :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), intent(in   ), target       :: cosmologicalMassVariance_
+    integer                                        , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                        , intent(in   )               :: fatalMismatches          , fatalNonTreeNode
+    integer                                        , intent(in   )               :: subvolumeCount           , badValueTest    , &
+         &                                                                          massOption
+    double precision                               , intent(in   )               :: subvolumeBuffer          , badValue        , &
+         &                                                                          treeSampleRate
+    !# <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_"/>
+
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption)
+    return
+  end function sussingHDF5ConstructorInternal
 
   subroutine sussingHDF5Destructor(self)
     !% Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
@@ -60,7 +92,9 @@ contains
     if (self%snapshots%isOpen()) call self%snapshots%close()
     if (self%file     %isOpen()) call self%file     %close()
     !$ call hdf5Access%unset()
-    call sussingDestroy(self)
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine sussingHDF5Destructor
 
@@ -70,18 +104,12 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Display
     use Galacticus_Error
-    use Cosmology_Parameters
-    use Cosmology_Functions
     use String_Handling
     use File_Utilities
     use Memory_Management
-    use Cosmological_Density_Field
     implicit none
     class           (mergerTreeImporterSussingHDF5), intent(inout)             :: self
     type            (varying_string               ), intent(in   )             :: fileName
-    class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_
     real                                           , allocatable, dimension(:) :: snapshotExpansionFactors
     type            (varying_string               )                            :: message
     character       (len=14                       )                            :: valueString
@@ -92,16 +120,12 @@ contains
          &                                                                        fileOmegaCDM            , fileLittleH0         , &
          &                                                                        fileOmegaDE             , fileSigma8
     
-    ! Get the default cosmology.
-    cosmologyParameters_      => cosmologyParameters     ()
-    cosmologyFunctions_       => cosmologyFunctions      ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
-    localOmegaMatter=cosmologyParameters_     %OmegaMatter    (                  )
-    localOmegaDE    =cosmologyParameters_     %OmegaDarkEnergy(                  )
-    localOmegaBaryon=cosmologyParameters_     %OmegaBaryon    (                  )
-    localSigma8     =cosmologicalMassVariance_%sigma8         (                  )
+    localLittleH0   =self%cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
+    localOmegaMatter=self%cosmologyParameters_     %OmegaMatter    (                  )
+    localOmegaDE    =self%cosmologyParameters_     %OmegaDarkEnergy(                  )
+    localOmegaBaryon=self%cosmologyParameters_     %OmegaBaryon    (                  )
+    localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     ! Open the HDF5 file.
     call self%file%openFile(char(fileName),overWrite=.false.)
@@ -112,7 +136,7 @@ contains
     ! Convert expansion factors to times.
     call allocateArray(self%snapshotTimes,shape(snapshotExpansionFactors))
     do i=1,size(snapshotExpansionFactors)
-       self%snapshotTimes(i)=cosmologyFunctions_%cosmicTime(dble(snapshotExpansionFactors(i)))
+       self%snapshotTimes(i)=self%cosmologyFunctions_%cosmicTime(dble(snapshotExpansionFactors(i)))
     end do
     call deallocateArray(snapshotExpansionFactors)
     ! Read cosmological parameters.

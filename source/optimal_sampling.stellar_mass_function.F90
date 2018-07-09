@@ -32,7 +32,7 @@ program Optimal_Sampling_SMF
   use Halo_Mass_Functions
   use Galacticus_Meta_Compute_Times
   use Cosmology_Functions
-  use Merger_Trees_Mass_Function_Sampling
+  use Merger_Trees_Build_Masses_Distributions
   use IO_HDF5
   implicit none
   integer                                                  , parameter                 :: fileNameLengthMaximum=1024
@@ -48,7 +48,7 @@ program Optimal_Sampling_SMF
   double precision                                                                     :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
   class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_
   class           (haloMassFunctionClass                  ), pointer                   :: haloMassFunction_
-  class           (mergerTreeHaloMassFunctionSamplingClass), pointer                   :: mergerTreeHaloMassFunctionSampling_
+  class           (mergerTreeBuildMassDistributionClass), pointer                   :: mergerTreeBuildMassDistribution_
   type            (fgsl_function                          )                            :: integrandFunction
   type            (fgsl_integration_workspace             )                            :: integrationWorkspace
   logical                                                                              :: integrationReset=.true.
@@ -102,7 +102,7 @@ program Optimal_Sampling_SMF
   ! Get required objects.
   cosmologyFunctions_                 => cosmologyFunctions                ()
   haloMassFunction_                   => haloMassFunction                  ()
-  mergerTreeHaloMassFunctionSampling_ => mergerTreeHaloMassFunctionSampling()
+  mergerTreeBuildMassDistribution_ => mergerTreeBuildMassDistribution()
   ! Get the cosmic time at the present day.
   time=cosmologyFunctions_%cosmicTime(0.93457d0)
 
@@ -142,7 +142,7 @@ program Optimal_Sampling_SMF
       haloMass=haloMassTableMass(iMass)
 
       ! Get the sampling density function.
-      samplingDensity(iMass)=mergerTreeHaloMassFunctionSampling_%sample(haloMass,time,haloMassMinimum,haloMassMaximum)
+      samplingDensity(iMass)=mergerTreeBuildMassDistribution_%sample(haloMass,time,haloMassMinimum,haloMassMaximum)
 
       ! Get the halo mass function.
       haloMassFunctionDifferential(iMass)=haloMassFunction_%differential(time,haloMass)*haloMass

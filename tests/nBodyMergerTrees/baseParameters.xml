@@ -11,10 +11,10 @@
   </cosmologyParametersMethod>
   <accretionDisksMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <accretionHalosMethod value="simple"/>
   <accretionRateThinDiskMaximum value="0.30d0"/>
@@ -121,9 +121,9 @@
       <neutrinoMassSummed value="0"/>
   </transferFunctionMethod>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <treeNodeMethodBasic value="standard"/>

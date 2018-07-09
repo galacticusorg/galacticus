@@ -2,9 +2,10 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeBuildTreesPerDecade value="25"/>
-  <mergerTreeBuildHaloMassMaximum value="1e+14"/>
-  <mergerTreeBuildHaloMassMinimum value="10000000000"/>
-  <outputVirialData value="true"/>
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <treesPerDecade value="25"/>
+    <massTreeMaximum value="1e+14"/>
+    <massTreeMinimum value="10000000000"/>
+  </mergerTreeBuildMassesMethod><outputVirialData value="true"/>
   <outputMainBranchStatus value="true"/>
 </parameters>

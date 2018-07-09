@@ -18,11 +18,21 @@
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
 
-  !# <mergerTreeImporter name="mergerTreeImporterSussingASCII" description="Importer for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}." />
-
+  use Cosmology_Parameters
+  use Cosmology_Functions
+ 
+  !# <mergerTreeImporter name="mergerTreeImporterSussingASCII">
+  !#  <description>Importer for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.</description>
+  !# </mergerTreeImporter>
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingASCII
      !% A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.
      private
+     class  (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     logical                                    :: convertToBinary           , binaryFormatOld, &
+          &                                        forestReverseSnapshotOrder, useForestFile
+     integer                                    :: forestFirst               , forestLast
+     type   (varying_string          )          :: forestFile
    contains
      final     ::         sussingASCIIDestructor
      procedure :: open => sussingASCIIOpen
@@ -31,115 +41,128 @@
 
   interface mergerTreeImporterSussingASCII
      !% Constructors for the {\normalfont \ttfamily sussing} ASCII format merger tree importer class.
-     module procedure sussingASCIIDefaultConstructor
+     module procedure sussingASCIIConstructorParameters
+     module procedure sussingASCIIConstructorInternal
   end interface mergerTreeImporterSussingASCII
 
-  ! Record of implementation initialization state.
-  logical :: sussingASCIIInitialized=.false.
-
-  ! Default settings.
-  logical                            :: mergerTreeImportSussingUseForestFile
-  type   (varying_string)            :: mergerTreeImportSussingForestFile
-  integer                            :: mergerTreeImportSussingForestFirst
-  integer                            :: mergerTreeImportSussingForestLast
-  logical                            :: mergerTreeImportSussingConvertToBinary
-  logical                            :: mergerTreeImportSussingBinaryFormatOld
-  logical                            :: mergerTreeImportSussingForestReverseSnapshotOrder
- 
-  ! File format identifiers.
-  integer                , parameter :: sussingHaloFormatOld                             =1
-  integer                , parameter :: sussingHaloFormatNew                             =2
-  integer                , parameter :: sussingHaloFormatAll                             =3
- 
+  ! Enumeration of file formats.
+  !# <enumeration>
+  !#  <name>sussingHaloFormat</name>
+  !#  <description>Halo file formats.</description>
+  !#  <entry label="old"/>
+  !#  <entry label="new"/>
+  !#  <entry label="all"/>
+  !# </enumeration>
+  
 contains
 
-  function sussingASCIIDefaultConstructor()
-    !% Default constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer.
+  function sussingASCIIConstructorParameters(parameters) result(self)
+    !% Constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer which takes a
+    !% parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
     implicit none
-    type(mergerTreeImporterSussingASCII), target :: sussingASCIIDefaultConstructor
+    type(mergerTreeImporterSussingASCII)                :: self
+    type(inputParameters               ), intent(inout) :: parameters
 
-    if (.not.sussingASCIIInitialized) then
-       !$omp critical (mergerTreeImporterSussingASCIIInitialize)
-       if (.not.sussingASCIIInitialized) then
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingConvertToBinary</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingBinaryFormatOld</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether the old binary format is to be used (for reading only).</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Check for a forest file.
-          mergerTreeImportSussingUseForestFile=globalParameters%isPresent('mergerTreeImportSussingForestFile')
-          if (mergerTreeImportSussingUseForestFile) then
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestFile</name>
-             !#   <cardinality>1</cardinality>
-             !#   <description>Name of file containing data on number of halos in each forest.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>string</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestFirst</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>1</defaultValue>
-             !#   <description>Index of first forest to include.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestLast</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>-1</defaultValue>
-             !#   <description>Index of last forest to include.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>.false.</defaultValue>
-             !#   <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-          end if
-          sussingASCIIInitialized=.true.
-       end if
-       !$omp end critical (mergerTreeImporterSussingASCIIInitialize)
-    end if
-    call sussingInitialize(sussingASCIIDefaultConstructor)
+    !# <inputParameter>
+    !#   <name>convertToBinary</name>
+    !#   <variable>self%convertToBinary</variable>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>binaryFormatOld</name>
+    !#   <variable>self%binaryFormatOld</variable>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether the old binary format is to be used (for reading only).</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>forestFile</name>
+    !#   <variable>self%forestFile</variable>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('none')</defaultValue>
+    !#   <description>Name of file containing data on number of halos in each forest.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>forestFirst</name>
+    !#   <variable>self%forestFirst</variable>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1</defaultValue>
+    !#   <description>Index of first forest to include.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>forestLast</name>
+    !#   <variable>self%forestLast</variable>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-1</defaultValue>
+    !#   <description>Index of last forest to include.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>forestReverseSnapshotOrder</name>
+    !#   <variable>self%forestReverseSnapshotOrder</variable>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters" name="self%cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="self%cosmologyFunctions_"  source="parameters"/>
+    self%useForestFile            =self%forestFile /= "none"
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
+    !# <inputParametersValidate source="parameters"/>    
     return
-  end function sussingASCIIDefaultConstructor
+  end function sussingASCIIConstructorParameters
+  
+  function sussingASCIIConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,cosmologyParameters_,cosmologyFunctions_) result(self)
+    !% Internal constructor for the ``Sussing Merger Trees'' ASCII format \citep{srisawat_sussing_2013} merger tree importer.
+    implicit none
+    type            (mergerTreeImporterSussingASCII)                              :: self
+    class           (cosmologyParametersClass      ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass       ), intent(in   ), target       :: cosmologyFunctions_
+    integer                                         , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                         , intent(in   )               :: fatalMismatches     , fatalNonTreeNode, &
+         &convertToBinary, binaryFormatOld, forestReverseSnapshotOrder
+    integer                                         , intent(in   )               :: subvolumeCount      , badValueTest    , &
+         &                                                                           massOption          , forestFirst     , &
+         &                                                                           forestLast
+    double precision                                , intent(in   )               :: subvolumeBuffer     , badValue        , &
+         &                                                                           treeSampleRate
+    type            (varying_string                )                              :: forestFile
+    !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*cosmologyFunctions_"/>
+
+    self%useForestFile            =self%forestFile /= "none"
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption)
+    return
+  end function sussingASCIIConstructorInternal
 
   subroutine sussingASCIIDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sussing} ASCII format merger tree importer class.
-    use Memory_Management
     implicit none
     type(mergerTreeImporterSussingASCII), intent(inout) :: self
 
-    call sussingDestroy(self)
-    return
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+  return
   end subroutine sussingASCIIDestructor
-
+  
   subroutine sussingASCIIOpen(self,fileName)
     !% Validate a {\normalfont \ttfamily sussing} ASCII format merger tree file.
     use Numerical_Comparison
     use Numerical_Constants_Astronomical
     use Galacticus_Display
     use Galacticus_Error
-    use Cosmology_Parameters
-    use Cosmology_Functions
     use Regular_Expressions
     use String_Handling
     use File_Utilities
@@ -147,8 +170,6 @@ contains
     implicit none
     class           (mergerTreeImporterSussingASCII), intent(inout) :: self
     type            (varying_string                ), intent(in   ) :: fileName
-    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     type            (varying_string                )                :: message                 , baseDirectory        , &
          &                                                             simulationDefinitionFile, snapshotTimesFile
     character       (len=1024                      )                :: line                    , parameterName        , &
@@ -163,13 +184,10 @@ contains
          &                                                             expansionFactor         , redshift             , &
          &                                                             timeNormalized          , time
 
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    cosmologyFunctions_  => cosmologyFunctions ()
-    ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
-    localOmegaMatter=cosmologyParameters_%OmegaMatter    (                  )
-    localOmegaDE    =cosmologyParameters_%OmegaDarkEnergy(                  )
+    ! Get cosmological parameters.
+    localLittleH0   =self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH)
+    localOmegaMatter=self%cosmologyParameters_%OmegaMatter    (                  )
+    localOmegaDE    =self%cosmologyParameters_%OmegaDarkEnergy(                  )
     ! Determine the base location for files.
     if (index(fileName,'/',back=.true.) == 0) then
        baseDirectory=""
@@ -199,8 +217,8 @@ contains
     do i=1,snapshotFileCount
        read (fileUnit,*) snapshotNumber,expansionFactor,redshift,timeNormalized,time
        self%snapshotTimes(i)=                                            &
-            & cosmologyFunctions_ %cosmicTime                 (          &
-            &  cosmologyFunctions_%expansionFactorFromRedshift (         &
+            & self%cosmologyFunctions_ %cosmicTime                 (          &
+            &  self%cosmologyFunctions_%expansionFactorFromRedshift (         &
             &                                                   redshift &
             &                                                  )         &
             &                                                 )
@@ -358,20 +376,20 @@ contains
     ! If a forest field is provided, scan it now to find the ranges to read from subsequent files.
     forestHaloCountFirst=0
     forestHaloCountLast =0
-    if (mergerTreeImportSussingUseForestFile) then
-       forestCount=Count_Lines_in_File(mergerTreeImportSussingForestFile,'#')
+    if (self%useForestFile) then
+       forestCount=Count_Lines_in_File(self%forestFile,'#')
        call allocateArray(forestSnapshotHaloCount     ,                                                                        shape(self%snapshotFileName) )
        call allocateArray(forestSnapshotHaloCountFirst,                                                                        shape(self%snapshotFileName) )
        call allocateArray(forestSnapshotHaloCountLast ,                                                                        shape(self%snapshotFileName) )
-       call allocateArray(forestSnapshotHaloCounts    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1,size (self%snapshotFileName)])
-       call allocateArray(forestID                    ,[mergerTreeImportSussingForestLast-mergerTreeImportSussingForestFirst+1                             ])
-       forestFirst                 =mergerTreeImportSussingForestFirst
-       forestLast                  =mergerTreeImportSussingForestLast
+       call allocateArray(forestSnapshotHaloCounts    ,[self%forestLast-self%forestFirst+1,size (self%snapshotFileName)])
+       call allocateArray(forestID                    ,[self%forestLast-self%forestFirst+1                             ])
+       forestFirst                 =self%forestFirst
+       forestLast                  =self%forestLast
        forestSnapshotHaloCountFirst=0
        forestSnapshotHaloCountLast =0
        j                           =0
        if (forestLast < 0) forestLast=forestCount
-       open(newUnit=fileUnit,file=char(mergerTreeImportSussingForestFile),status='old',form='formatted')
+       open(newUnit=fileUnit,file=char(self%forestFile),status='old',form='formatted')
        read (fileUnit,'(a)') line
        do i=1,forestLast
           read (fileUnit,*) ID,forestHaloCount,forestSnapshotHaloCount
@@ -389,7 +407,7 @@ contains
        close(fileUnit)
        call deallocateArray(forestSnapshotHaloCount)
        ! Reverse order of forest snapshots to match the order of snapshot files if necessary.
-       if (mergerTreeImportSussingForestReverseSnapshotOrder) then
+       if (self%forestReverseSnapshotOrder) then
           forestSnapshotHaloCountFirst=Array_Reverse(forestSnapshotHaloCountFirst)
           forestSnapshotHaloCountLast =Array_Reverse(forestSnapshotHaloCountLast )
           do j=1,size(forestSnapshotHaloCounts,dim=1)
@@ -448,7 +466,7 @@ contains
        else
           ! No binary version of this file exists, use the ASCII version.
           open   (newUnit=snapshotUnit   ,file=char(self%snapshotFileName(i)        ),status='old'    ,form='formatted'  ,ioStat=ioStat)
-          if (self%convertToBinary.and..not.mergerTreeImportSussingUseForestFile) then
+          if (self%convertToBinary.and..not.self%useForestFile) then
              ! Open a binary file to write the converted halo data to.
              open(newUnit=snapshotOutUnit,file=char(self%snapshotFileName(i)//".bin"),status='unknown',form='unformatted'              )
              doBinaryConversion=.true.
@@ -476,14 +494,14 @@ contains
           iCount=iCount+1
           processHalo=                                             &
                &       (                                           &
-               &            mergerTreeImportSussingUseForestFile   &
+               &            self%useForestFile   &
                &        .and.                                      &
                &         iCount >= forestSnapshotHaloCountFirst(i) &
                &        .and.                                      &
                &         iCount <= forestSnapshotHaloCountLast (i) &
                &       )                                           &
                &      .or.                                         &
-               &       .not.mergerTreeImportSussingUseForestFile
+               &       .not.self%useForestFile
           if (readBinary) then
              if (processHalo) then
                 if (self%binaryFormatOld) then
@@ -757,7 +775,7 @@ contains
           j=j+1
           call Galacticus_Display_Counter(int(100.0d0*dble(j)/dble(nodeCount)),j == 1,verbosityWorking)
           ! If all required forests are processed, exit.
-          if (mergerTreeImportSussingUseForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
+          if (self%useForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
        end do
        close                        (snapshotUnit   )
        if (doBinaryConversion) close(snapshotOutUnit)
@@ -808,7 +826,7 @@ contains
        call Galacticus_Display_Counter(int(50.0d0*dble(i)/dble(nodeCountSubvolume)),.false.,verbosityWorking)
        if (i      == nodeCount          ) exit
        iCount=iCount+1
-       if (mergerTreeImportSussingUseForestFile .and. iCount == forestHaloCountLast) exit
+       if (self%useForestFile .and. iCount == forestHaloCountLast) exit
     end do
     close(fileUnit)
     if (mergerTreeFileConvert) close(fileUnitOut)
@@ -945,7 +963,7 @@ contains
           end if
        end do
        iCount=iCount+1
-       if (mergerTreeImportSussingUseForestFile .and. iCount == forestHaloCountLast) exit
+       if (self%useForestFile .and. iCount == forestHaloCountLast) exit
     end do
     call deallocateArray(hostsInSubvolume)
     ! Close the merger tree file.
@@ -987,14 +1005,14 @@ contains
           iCount=iCount+1
           processHalo=                                             &
                &       (                                           &
-               &            mergerTreeImportSussingUseForestFile   &
+               &            self%useForestFile   &
                &        .and.                                      &
                &         iCount >= forestSnapshotHaloCountFirst(i) &
                &        .and.                                      &
                &         iCount <= forestSnapshotHaloCountLast (i) &
                &       )                                           &
                &      .or.                                         &
-               &       .not.mergerTreeImportSussingUseForestFile
+               &       .not.self%useForestFile
           if (readBinary) then
              if (processHalo) then
                 if (self%binaryFormatOld) then
@@ -1180,7 +1198,7 @@ contains
           ! Check if halo is to be processed.
           if (processHalo) then 
               ! Update forest ID.
-             if (mergerTreeImportSussingUseForestFile) then
+             if (self%useForestFile) then
                 jCount=jCount+1
                 do while (jCount > forestSnapshotHaloCounts(jForest,i))
                    jForest=jForest+1
@@ -1194,7 +1212,7 @@ contains
                 l=Search_Indexed(nodeSelfIndices,nodeIndexRanks,ID)
                 l=nodeIndexRanks(l)
                 if (ID /= nodeSelfIndices(l)) then
-                   if (mergerTreeImportSussingNonTreeNodeIsFatal) then
+                   if (self%fatalNonTreeNode) then
                       ! Node cannot be found.
                       message="node indexing failure"
                       message=message//char(10)//"     node index: "//ID
@@ -1207,7 +1225,7 @@ contains
                    end if
                 end if
                 ! Store properties to node array.
-                if (mergerTreeImportSussingUseForestFile) nodeTreeIndices(l)=forestID(jForest)
+                if (self%useForestFile) nodeTreeIndices(l)=forestID(jForest)
                 if (hostHalo <= 0) then
                    self%nodes(l)%hostIndex         =ID
                 else
@@ -1218,16 +1236,16 @@ contains
                 end if
                 self   %nodes(l)%particleCount     =npart
                 ! Select a mass to use.
-                select case (mergerTreeImportSussingMassOption)
-                case (sussingMassDefault)
+                select case (self%massOption)
+                case (sussingMassOptionDefault)
                    self%nodes(l)%nodeMass          =Mvir
-                case (sussingMassFoF    )
+                case (sussingMassOptionFoF    )
                    self%nodes(l)%nodeMass          =FoFMass
-                case (sussingMass200Mean)
+                case (sussingMassOption200Mean)
                    self%nodes(l)%nodeMass          =M_200Mean
-                case (sussingMass200Crit)
+                case (sussingMassOption200Crit)
                    self%nodes(l)%nodeMass          =M_200Crit
-                case (sussingMassTopHat )
+                case (sussingMassOptionTopHat )
                    self%nodes(l)%nodeMass          =M_TopHat
                 case default
                    call Galacticus_Error_Report('unrecognized mass option'//{introspection:location})
@@ -1263,15 +1281,15 @@ contains
              end if
           end if
           ! If all required forests are processed, exit.
-          if (mergerTreeImportSussingUseForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
+          if (self%useForestFile .and. iCount == forestSnapshotHaloCountLast(i)) exit
        end do
        close(snapshotUnit)
     end do
     call deallocateArray(nodesInSubvolume)
     ! Record whether tree indices were assigned.
-    treeIndicesAssigned    =     mergerTreeImportSussingUseForestFile
+    treeIndicesAssigned    =     self%useForestFile
     ! Record whether branch jump checks are required.
-    branchJumpCheckRequired=.not.mergerTreeImportSussingUseForestFile
+    branchJumpCheckRequired=.not.self%useForestFile
     ! Specify units.
     massUnits    =importerUnits(.true.,massSolar ,-1, 0)
     lengthUnits  =importerUnits(.true.,kiloParsec,-1,+1)

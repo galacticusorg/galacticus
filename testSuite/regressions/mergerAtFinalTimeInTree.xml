@@ -14,7 +14,6 @@
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
   </cosmologicalMassVarianceMethod>
-  <mergerTreeReadPresetMergerTimes value="true"/>
   <timestepSimpleAbsolute value="1.0"/>
   <darkMatterProfileMethod value="isothermal"/>
   <cosmologyParametersMethod value="simple">
@@ -30,21 +29,22 @@
     <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <stellarPopulationSpectraMethod value="FSPS"/>
-  <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <conditionalMassFunctionBehrooziGamma value="1.16052646522"/>
   <barInstabilityMethod value="null"/>
   <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
-  <mergerTreeReadPresetOrbits value="true"/>
   <conditionalMassFunctionBehrooziBSatellite value="19.5579686429"/>
-  <mergerTreeBuildTreesPerDecade value="3200"/>
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <treesPerDecade value="3200"/>
+    <massTreeMaximum value="2.0e14"/>
+    <massTreeMinimum value="2.0e10"/>
+  </mergerTreeBuildMassesMethod>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <treeNodeMethodBlackHole value="null"/>
   <treeNodeMethodSpheroid value="standard"/>
   <timestepSimpleRelative value="0.1"/>
   <treeNodeMethodBasic value="standard"/>
-  <mergerTreeBuildHaloMassMaximum value="2.0e14"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>
   <coolingTimeAvailableMethod value="whiteFrenk1991">
@@ -57,7 +57,7 @@
   <intergalacticMediumStateMethod value="file">
     <fileName value="constraints/data/igmState.xml"/>
   </intergalacticMediumStateMethod>
-  <mergerTreeHaloMassFunctionSamplingMethod value="stellarMassFunction">
+  <mergerTreeBuildMassDistributionMethod value="stellarMassFunction">
     <massMaximum value="7.5857758e11"/>
     <massMinimum value="1.2589254e8"/>
     <constant value="1.0e-8"/>
@@ -66,7 +66,7 @@
     <massCharacteristic value="5.5e10"/>
     <normalization value="2.0e-4"/>
     <binWidthLogarithmic value="0.097"/>
-  </mergerTreeHaloMassFunctionSamplingMethod>
+  </mergerTreeBuildMassDistributionMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <conditionalMassFunctionBehrooziBeta value="0.403618413165"/>
   <linearGrowthMethod value="simple"/>
@@ -78,41 +78,32 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
-  <mergerTreeBuildHaloMassMinimum value="2.0e10"/>
   <conditionalMassFunctionBehrooziBetaSatellite value="1.46136840213"/>
-  <mergerTreeReadFileName value="testSuite/data/mergerTrees/mergerAtFinalTimeInTree.hdf5"/>
   <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <mergerTreeReadPresetSpins value="false"/>
-  <mergerTreeReadPresetPositions value="true"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <conditionalMassFunctionBehrooziDelta value="0.493563322826"/>
-  <mergerTreeReadOutputTimeSnapTolerance value="0.001"/>
   <imfChabrierRecycledInstantaneous value="0.46"/>
   <satelliteMergingMassMovementsMethod value="verySimple"/>
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <treeNodeMethodSatellite value="preset"/>
-  <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
-  <mergerTreeReadPresetSubhaloMasses value="false"/>
   <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <mergerTreeReadPresetScaleRadii value="false"/>
   <odeToleranceAbsolute value="0.01"/>
   <starFormationTimescaleDisksMethod value="haloScaling"/>
-  <mergerTreeReadPresetMergerNodes value="true"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <reionizationSuppressionOpticalDepth value="0.0883790456"/>
@@ -129,7 +120,7 @@
   <galacticusOutputFileName value="testSuite/outputs/regressions/mergerAtFinalTimeInTree.hdf5"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
-    <sourceNormalizationRotation       value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
   <imfChabrierYieldInstantaneous value="0.035"/>
   <imfSelectionFixed value="Chabrier"/>
@@ -155,9 +146,20 @@
   <coolingRadiusMethod value="isothermal"/>
   <timestepHostAbsolute value="1.0"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
-  <mergerTreeConstructMethod value="read"/>
+  <mergerTreeConstructorMethod value="read">
+    <presetMergerTimes value="true"/>
+    <treeIndexToRootNodeIndex value="true"/>
+    <presetOrbits value="true"/>
+    <fileNames value="testSuite/data/mergerTrees/mergerAtFinalTimeInTree.hdf5"/>
+    <presetSpins value="false"/>
+    <presetPositions value="true"/>
+    <outputTimeSnapTolerance value="0.001"/>
+    <presetSubhaloMasses value="false"/>
+    <presetScaleRadii value="false"/>
+    <presetMergerNodes value="true"/>
+  </mergerTreeConstructorMethod>
   <virialOrbitMethod value="fixed">
     <velocityTangential value="+0.75"/>
-    <velocityRadial     value="-0.90"/>
+    <velocityRadial value="-0.90"/>
   </virialOrbitMethod>
 </parameters>
