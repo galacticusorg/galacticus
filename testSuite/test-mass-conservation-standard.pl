@@ -6,6 +6,7 @@ use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/pe
 use PDL;
 use PDL::NiceSlice;
 use Galacticus::HDF5;
+use Data::Dumper;
 
 # Run a standard hot halo model to test mass conservation.
 # Andrew Benson (23-May-2016)

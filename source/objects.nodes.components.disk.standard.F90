@@ -1341,11 +1341,13 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Node_Component_Disk_Standard_State_Store(stateFile,fgslStateFile,stateOperationID)
     !% Write the tablulation state to file.
-    use Galacticus_Display
-    use Node_Component_Disk_Standard_Data
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Display
+    use               Node_Component_Disk_Standard_Data
+    use               FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile    , stateOperationID
+    integer           , intent(in   ) :: stateFile
+    integer(c_size_t ), intent(in   ) :: stateOperationID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
 
     call Galacticus_Display_Message('Storing state for: treeNodeMethodDisk -> standard',verbosity=verbosityInfo)
@@ -1360,11 +1362,13 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Node_Component_Disk_Standard_State_Retrieve(stateFile,fgslStateFile,stateOperationID)
     !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    use Node_Component_Disk_Standard_Data
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Display
+    use            :: Node_Component_Disk_Standard_Data
+    use            :: FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile    , stateOperationID
+    integer           , intent(in   ) :: stateFile
+    integer(c_size_t ), intent(in   ) :: stateOperationID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     logical                           :: wasAllocated
 

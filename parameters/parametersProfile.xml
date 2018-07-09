@@ -52,21 +52,22 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree building options -->
-  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeConstructorMethod value="build"/>
   <mergerTreeBuilderMethod value="cole2000">
-    <accretionLimit   value="0.1"/>
+    <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
-  <mergerTreeBuildHaloMassMaximum value="1.0e13"/>
-  <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
-  <mergerTreeBuildTreesPerDecade value="5"/>
-  <mergerTreeMassResolutionMethod value="fixed">
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="1.0e13"/>
+    <massTreeMinimum value="1.0e10"/>
+    <treesPerDecade value="5"/>
+  </mergerTreeBuildMassesMethod><mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
 
@@ -97,7 +98,7 @@
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
-    <sourceNormalizationRotation       value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
   <hotHaloOutflowReturnRate value="5.0"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
@@ -176,16 +177,16 @@
 
   <!-- Accretion disk properties -->
   <accretionDisksMethod value="switched">
-    <accretionRateThinDiskMaximum       value="0.30"/>
-    <accretionRateThinDiskMinimum       value="0.01"/>
-    <scaleADAFRadiativeEfficiency       value="true"/>
+    <accretionRateThinDiskMaximum value="0.30"/>
+    <accretionRateThinDiskMinimum value="0.01"/>
+    <scaleADAFRadiativeEfficiency value="true"/>
     <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
-    <accretionDisksADAFMethod           value="ADAF">
+    <accretionDisksADAFMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
     </accretionDisksADAFMethod>
   </accretionDisksMethod>
 
@@ -226,6 +227,6 @@
   <timestepSimpleRelative value="0.1"/>
 
   <!-- Output options -->
-  <mergerTreeOutputReferences value="false"/>
-
-</parameters>
+  <mergerTreeOutput value="true">
+    <outputReferences value="false"/>
+  </mergerTreeOutput></parameters>

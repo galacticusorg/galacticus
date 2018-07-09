@@ -22,7 +22,15 @@ sub Importables {
     my @importables;
     foreach my $datum ( @data ) {
 	push(@importables,$datum->{'type'})
-	    if ( $datum->{'intrinsic'} eq "class" || $datum->{'intrinsic'} eq "type" );
+	    if ( 
+		(
+		 $datum->{'intrinsic'} eq "class"
+		 &&
+		 $datum->{'type'     } ne "*"
+		)
+		||
+		$datum ->{'intrinsic'} eq "type" 
+	    );
     }
     return @importables;
 }

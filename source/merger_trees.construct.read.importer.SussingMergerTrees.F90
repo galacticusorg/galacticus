@@ -18,32 +18,34 @@
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
 
-  !# <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes" description="Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}." />
   use Stateful_Types
   use ISO_Varying_String
   use Pseudo_Random
 
-  type, abstract, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
+  !# <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
+  !#  <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
+  !# </mergerTreeImporter>
+  type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
      !% A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
      private
      logical                                                     :: fatalMismatches         , treeIndicesRead    , &
-          &                                                         scaleRadiiAvailableValue, spinsAvailableValue
-     integer                                                     :: treesCount
+          &                                                         scaleRadiiAvailableValue, spinsAvailableValue, &
+          &                                                         fatalNonTreeNode
+     integer                                                     :: treesCount              , massOption
      double precision                                            :: boxLength
      type            (importerUnits )                            :: boxLengthUnits
      type            (varying_string)                            :: mergerTreeFile
      type            (varying_string), allocatable, dimension(:) :: snapshotFileName
-     integer         (kind=kind_int8), allocatable, dimension(:) :: treeIndices
-     integer         (kind=c_size_t ), allocatable, dimension(:) :: treeIndexRanks
+     integer         (kind_int8     ), allocatable, dimension(:) :: treeIndices
+     integer         (c_size_t      ), allocatable, dimension(:) :: treeIndexRanks
      integer         (c_size_t      ), allocatable, dimension(:) :: treeSizes               , treeBegins
      type            (nodeData      ), allocatable, dimension(:) :: nodes
      double precision                , allocatable, dimension(:) :: snapshotTimes
      integer                                                     :: subvolumeCount
      integer                                      , dimension(3) :: subvolumeIndex
      double precision                                            :: subvolumeBuffer
-     logical                                                     :: convertToBinary         , binaryFormatOld
      double precision                                            :: badValue
-     integer                                                     :: badTest
+     integer                                                     :: badValueTest
      double precision                                            :: treeSampleRate
      type            (pseudoRandom  )                            :: randomSequence
    contains
@@ -74,266 +76,184 @@
      !@     <description>Return true if the given {\normalfont \ttfamily x} value is bad.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure(sussingLoad), deferred :: load
-     procedure                        :: close                         => sussingClose
-     procedure                        :: canReadSubsets                => sussingCanReadSubsets
-     procedure                        :: treesHaveSubhalos             => sussingTreesHaveSubhalos
-     procedure                        :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
-     procedure                        :: angularMomentaIncludeSubhalos => sussingAngularMomentaIncludeSubhalos
-     procedure                        :: treesAreSelfContained         => sussingTreesAreSelfContained
-     procedure                        :: velocitiesIncludeHubbleFlow   => sussingVelocitiesIncludeHubbleFlow
-     procedure                        :: positionsArePeriodic          => sussingPositionsArePeriodic
-     procedure                        :: cubeLength                    => sussingCubeLength
-     procedure                        :: treeWeight                    => sussingTreeWeight
-     procedure                        :: treeCount                     => sussingTreeCount
-     procedure                        :: treeIndex                     => sussingTreeIndex
-     procedure                        :: nodeCount                     => sussingNodeCount
-     procedure                        :: positionsAvailable            => sussingPositionsAvailable
-     procedure                        :: scaleRadiiAvailable           => sussingScaleRadiiAvailable
-     procedure                        :: particleCountAvailable        => sussingParticleCountAvailable
-     procedure                        :: velocityMaximumAvailable      => sussingVelocityMaximumAvailable
-     procedure                        :: velocityDispersionAvailable   => sussingVelocityDispersionAvailable
-     procedure                        :: angularMomentaAvailable       => sussingAngularMomentaAvailable
-     procedure                        :: angularMomenta3DAvailable     => sussingAngularMomenta3DAvailable
-     procedure                        :: spinAvailable                 => sussingSpinAvailable
-     procedure                        :: spin3DAvailable               => sussingSpin3DAvailable
-     procedure                        :: import                        => sussingImport
-     procedure                        :: subhaloTrace                  => sussingSubhaloTrace
-     procedure                        :: subhaloTraceCount             => sussingSubhaloTraceCount
-     procedure                        :: inSubvolume                   => sussingInSubvolume
-     procedure                        :: inSubvolume1D                 => sussingInSubvolume1D
-     procedure                        :: valueIsBad                    => sussingValueIsBad
+     procedure :: load                          => sussingLoad
+     procedure :: close                         => sussingClose
+     procedure :: canReadSubsets                => sussingCanReadSubsets
+     procedure :: treesHaveSubhalos             => sussingTreesHaveSubhalos
+     procedure :: massesIncludeSubhalos         => sussingMassesIncludeSubhalos
+     procedure :: angularMomentaIncludeSubhalos => sussingAngularMomentaIncludeSubhalos
+     procedure :: treesAreSelfContained         => sussingTreesAreSelfContained
+     procedure :: velocitiesIncludeHubbleFlow   => sussingVelocitiesIncludeHubbleFlow
+     procedure :: positionsArePeriodic          => sussingPositionsArePeriodic
+     procedure :: cubeLength                    => sussingCubeLength
+     procedure :: treeWeight                    => sussingTreeWeight
+     procedure :: treeCount                     => sussingTreeCount
+     procedure :: treeIndex                     => sussingTreeIndex
+     procedure :: nodeCount                     => sussingNodeCount
+     procedure :: positionsAvailable            => sussingPositionsAvailable
+     procedure :: scaleRadiiAvailable           => sussingScaleRadiiAvailable
+     procedure :: particleCountAvailable        => sussingParticleCountAvailable
+     procedure :: velocityMaximumAvailable      => sussingVelocityMaximumAvailable
+     procedure :: velocityDispersionAvailable   => sussingVelocityDispersionAvailable
+     procedure :: angularMomentaAvailable       => sussingAngularMomentaAvailable
+     procedure :: angularMomenta3DAvailable     => sussingAngularMomenta3DAvailable
+     procedure :: spinAvailable                 => sussingSpinAvailable
+     procedure :: spin3DAvailable               => sussingSpin3DAvailable
+     procedure :: import                        => sussingImport
+     procedure :: subhaloTrace                  => sussingSubhaloTrace
+     procedure :: subhaloTraceCount             => sussingSubhaloTraceCount
+     procedure :: inSubvolume                   => sussingInSubvolume
+     procedure :: inSubvolume1D                 => sussingInSubvolume1D
+     procedure :: valueIsBad                    => sussingValueIsBad
   end type mergerTreeImporterSussing
 
-  abstract interface
-     !% Interface for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
-     subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
-       import kind_int8, c_size_t, mergerTreeImporterSussing, importerUnits
-       class  (mergerTreeImporterSussing), intent(inout)                            :: self
-       integer(kind_int8                ), intent(  out), dimension(:), allocatable :: nodeSelfIndices    , nodeTreeIndices
-       integer(c_size_t                 ), intent(  out), dimension(:), allocatable :: nodeIndexRanks     , nodeDescendentLocations
-       logical                           , intent(  out), dimension(:), allocatable :: nodeIncomplete
-       integer(kind=c_size_t            ), intent(  out)                            :: nodeCountTrees
-       logical                           , intent(  out)                            :: treeIndicesAssigned, branchJumpCheckRequired
-       type   (importerUnits            ), intent(  out)                            :: massUnits          , lengthUnits            , &
-            &                                                                          velocityUnits
-     end subroutine sussingLoad
-  end interface
+  interface mergerTreeImporterSussing
+     module procedure sussingConstructorParameters
+     module procedure sussingConstructorInternal
+  end interface mergerTreeImporterSussing
   
-  ! Record of implementation initialization state.
-  logical                        :: sussingInitialized                       =.false.
-
-  ! Default settings.
-  logical                        :: mergerTreeImportSussingMismatchIsFatal
-  logical                        :: mergerTreeImportSussingNonTreeNodeIsFatal
-  integer                        :: mergerTreeImportSussingSubvolumeCount
-  double precision               :: mergerTreeImportSussingSubvolumeBuffer
-  integer         , dimension(3) :: mergerTreeImportSussingSubvolumeIndex
-  double precision               :: mergerTreeImportSussingBadValue
-  integer                        :: mergerTreeImportSussingBadValueTest
-  integer                        :: mergerTreeImportSussingMassOption
-  double precision                               :: mergerTreeImportSussingTreeSampleRate
+  ! Enumeration of bad value test options
+  !# <enumeration>
+  !#  <name>sussingBadValueTest</name>
+  !#  <description>Bad value test options.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="lessThan"   />
+  !#  <entry label="greaterThan"/>
+  !# </enumeration>
   
-  ! Bad value detection limits.
-  integer         , parameter    :: sussingBadValueLessThan                  =-1
-  integer         , parameter    :: sussingBadValueGreaterThan               =+1
-
-  ! Mass options.
-  integer         , parameter    :: sussingMassDefault                       = 1
-  integer         , parameter    :: sussingMassFoF                           = 2
-  integer         , parameter    :: sussingMass200Mean                       = 3
-  integer         , parameter    :: sussingMass200Crit                       = 4
-  integer         , parameter    :: sussingMassTopHat                        = 5
+  ! Enumeration of halo mass definitions.
+  !# <enumeration>
+  !#  <name>sussingMassOption</name>
+  !#  <description>Halo mass definitions.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="default"/>
+  !#  <entry label="FoF"    />
+  !#  <entry label="200Mean"/>
+  !#  <entry label="200Crit"/>
+  !#  <entry label="topHat" />
+  !# </enumeration>
  
 contains
 
-  subroutine sussingInitialize(self)
-    !% Initializor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer.
+  function sussingConstructorParameters(parameters) result(self)
+    !% Constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
     implicit none
-    class(mergerTreeImporterSussing), intent(inout) :: self
-    type (varying_string           )                :: mergerTreeImportSussingBadValueTestText, mergerTreeImportSussingMassOptionText
+    type            (mergerTreeImporterSussing)                :: self
+    type            (inputParameters          ), intent(inout) :: parameters
+    integer                                    , dimension(3)  :: subvolumeIndex
+    logical                                                    :: fatalMismatches , fatalNonTreeNode
+    integer                                                    :: subvolumeCount
+    double precision                                           :: subvolumeBuffer , badValue        , &
+         &                                                        treeSampleRate
+    type            (varying_string           )                :: badValueTestText, massOptionText
 
-    if (.not.sussingInitialized) then
-       !$omp critical (mergerTreeImporterSussingInitialize)
-       if (.not.sussingInitialized) then
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingMismatchIsFatal</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be considered fatal.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingNonTreeNodeIsFatal</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingSubvolumeCount</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1</defaultValue>
-          !#   <description>Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingSubvolumeBuffer</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.0d0</defaultValue>
-          !#   <description>Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingSubvolumeIndex</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>[0,0,0]</defaultValue>
-          !#   <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [mergerTreeImportSussingSubvolumeCount]}$-1$.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingConvertToBinary</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether halo and tree files in the ``Sussing'' format should be converted to binary the first time they are read and stored to file. This allows rapid re-reading in future.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingBinaryFormatOld</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether the old binary format is to be used (for reading only).</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingBadValue</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>-0.5d0</defaultValue>
-          !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingBadValueTest</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('lessThan')</defaultValue>
-          !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !#   <variable>mergerTreeImportSussingBadValueTestText</variable>
-          !# </inputParameter>
-          select case (char(mergerTreeImportSussingBadValueTestText))
-          case ("lessThan"   )
-             mergerTreeImportSussingBadValueTest=sussingBadValueLessThan
-          case ("greaterThan")
-             mergerTreeImportSussingBadValueTest=sussingBadValueGreaterThan
-          case default
-             call Galacticus_Error_Report('[mergerTreeImportSussingBadValueTest must be either "lessThan" or "greaterThan"]'//{introspection:location})
-          end select
-          ! Check for a forest file.
-          mergerTreeImportSussingUseForestFile=globalParameters%isPresent('mergerTreeImportSussingForestFile')
-          if (mergerTreeImportSussingUseForestFile) then
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestFile</name>
-             !#   <cardinality>1</cardinality>
-             !#   <description>Name of file containing data on number of halos in each forest.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>string</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestFirst</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>1</defaultValue>
-             !#   <description>Index of first forest to include.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestLast</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>-1</defaultValue>
-             !#   <description>Index of last forest to include.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>mergerTreeImportSussingForestReverseSnapshotOrder</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>.false.</defaultValue>
-             !#   <description>If true, the order of forest snapshots will be reversed after being read. This may be necessary to cause them to match the order of snapshot files.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-          end if
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingTreeSampleRate</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.0d0</defaultValue>
-          !#   <description>Specify the probability that any given tree should processed (to permit subsampling).</description>
-          !#   <source>globalParameters</source>
-          !#   <type>float</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeImportSussingMassOption</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('default')</defaultValue>
-          !#   <description>Mass option for Sussing merger trees.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>mergerTreeImportSussingMassOptionText</variable>
-          !# </inputParameter>
-          select case (char(mergerTreeImportSussingMassOptionText))
-          case ("default")
-             mergerTreeImportSussingMassOption=sussingMassDefault
-          case ("FoF"    )
-             mergerTreeImportSussingMassOption=sussingMassFoF
-          case ("200Mean")
-             mergerTreeImportSussingMassOption=sussingMass200Mean
-          case ("200Crit")
-             mergerTreeImportSussingMassOption=sussingMass200Crit
-          case ("TopHat" )
-             mergerTreeImportSussingMassOption=sussingMassTopHat
-          case default
-             call Galacticus_Error_Report('unrecognized mass option'//{introspection:location})
-          end select
-          sussingInitialized=.true.
-       end if
-       !$omp end critical (mergerTreeImporterSussingInitialize)
-    end if
+    !# <inputParameter>
+    !#   <name>fatalMismatches</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether mismatches in cosmological parameter values between \glc\ and ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be considered fatal.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>fatalNonTreeNode</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether nodes in snapshot files but not in the merger tree file should be considered fatal when importing from the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013}.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>subvolumeCount</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1</defaultValue>
+    !#   <description>Specifies the number of subvolumes \emph{along each axis} into which a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree files should be split for processing through \glc.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>subvolumeBuffer</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Specifies the buffer region (in units of Mpc$/h$ to follow the format convention) around subvolumes of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file which should be read in to ensure that no halos are missed from trees.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>subvolumeIndex</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>[0,0,0]</defaultValue>
+    !#   <description>Specifies the index (in each dimension) of the subvolume of a ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree file to process. Indices range from 0 to {\normalfont \ttfamily [subvolumeCount]}$-1$.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>badValue</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-0.5d0</defaultValue>
+    !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values for scale radius and halo spin which exceed this threshold are assumed to be bad.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>badValueTest</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('lessThan')</defaultValue>
+    !#   <description>Use for bad value detection in ``Sussing'' merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !#   <variable>badValueTestText</variable>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>treeSampleRate</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>Specify the probability that any given tree should processed (to permit subsampling).</description>
+    !#   <source>parameters</source>
+    !#   <type>float</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massOptions</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('default')</defaultValue>
+    !#   <description>Mass option for Sussing merger trees.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !#   <variable>massOptionText</variable>
+    !# </inputParameter>
+    self=mergerTreeImporterSussing(                                                                                     &
+         &                         fatalMismatches                                                                    , &
+         &                         fatalNonTreeNode                                                                   , &
+         &                         subvolumeCount                                                                     , &
+         &                         subvolumeBuffer                                                                    , &
+         &                         subvolumeIndex                                                                     , &
+         &                         badValue                                                                           , &
+         &                         enumerationSussingBadValueTestEncode(char(badValueTestText),includesPrefix=.false.), &
+         &                         treeSampleRate                                                                     , &
+         &                         enumerationSussingMassOptionEncode  (char(massOptionText  ),includesPrefix=.false.)  &
+         &                        )
+    !# <inputParametersValidate source="parameters"/>    
+    return
+  end function sussingConstructorParameters
+
+  function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption) result(self)
+    !% Internal constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer class.
+    implicit none
+    type            (mergerTreeImporterSussing)                              :: self
+    integer                                    , intent(in   ), dimension(3) :: subvolumeIndex
+    logical                                    , intent(in   )               :: fatalMismatches, fatalNonTreeNode
+    integer                                    , intent(in   )               :: subvolumeCount , badValueTest    , &
+         &                                                                      massOption
+    double precision                           , intent(in   )               :: subvolumeBuffer, badValue        , &
+         &                                                                      treeSampleRate
+    !# <constructorAssign variables="fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption"/>
+
     self%treeIndicesRead         =.false.
-    self%fatalMismatches         =mergerTreeImportSussingMismatchIsFatal
-    self%subvolumeCount          =mergerTreeImportSussingSubvolumeCount
-    self%subvolumeBuffer         =mergerTreeImportSussingSubvolumeBuffer
-    self%subvolumeIndex          =mergerTreeImportSussingSubvolumeIndex
-    self%convertToBinary         =mergerTreeImportSussingConvertToBinary
-    self%binaryFormatOld         =mergerTreeImportSussingBinaryFormatOld
-    self%badValue                =mergerTreeImportSussingBadValue
-    self%badTest                 =mergerTreeImportSussingBadValueTest
-    self%treeSampleRate          =mergerTreeImportSussingTreeSampleRate
     self%scaleRadiiAvailableValue=.true.
     self%randomSequence          =pseudoRandom()
     return
-  end subroutine sussingInitialize
-
-  subroutine sussingDestroy(self)
-    !% Destructor for the {\normalfont \ttfamily sussing} format merger tree importer class.
-    use Memory_Management
-    implicit none
-    class(mergerTreeImporterSussing), intent(inout) :: self
-
-    if (allocated(self%treeIndices)) call deallocateArray(self%treeIndices)
-    if (allocated(self%treeSizes  )) call deallocateArray(self%treeSizes  )
-    return
-  end subroutine sussingDestroy
+  end function sussingConstructorInternal
 
   subroutine sussingClose(self)
     !% Close a {\normalfont \ttfamily sussing} format merger tree file.
@@ -1111,10 +1031,10 @@ contains
     class           (mergerTreeImporterSussing), intent(inout) :: self
     double precision                           , intent(in   ) :: x
 
-    select case (self%badTest)
-    case (sussingBadValueLessThan   )
+    select case (self%badValueTest)
+    case (sussingBadValueTestLessThan   )
        sussingValueIsBad=(x < self%badValue)
-    case (sussingBadValueGreaterThan)
+    case (sussingBadValueTestGreaterThan)
        sussingValueIsBad=(x > self%badValue)
     case default
        sussingValueIsBad=.false.
@@ -1122,3 +1042,22 @@ contains
     end select
     return
   end function sussingValueIsBad
+
+  subroutine sussingLoad(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
+    !% Stub function for the {\normalfont \ttfamily load} method of the {\normalfont \ttfamily sussing} merger tree importer.
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeImporterSussing), intent(inout)                            :: self
+    integer(kind_int8                ), intent(  out), dimension(:), allocatable :: nodeSelfIndices    , nodeTreeIndices
+    integer(c_size_t                 ), intent(  out), dimension(:), allocatable :: nodeIndexRanks     , nodeDescendentLocations
+    logical                           , intent(  out), dimension(:), allocatable :: nodeIncomplete
+    integer(kind=c_size_t            ), intent(  out)                            :: nodeCountTrees
+    logical                           , intent(  out)                            :: treeIndicesAssigned, branchJumpCheckRequired
+    type   (importerUnits            ), intent(  out)                            :: massUnits          , lengthUnits            , &
+         &                                                                          velocityUnits
+    !GCC$ attributes unused :: self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits
+    
+    call Galacticus_Error_Report('this function should not be accessed'//{introspection:location})
+    return
+  end subroutine sussingLoad
+  

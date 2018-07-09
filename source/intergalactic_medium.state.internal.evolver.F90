@@ -294,8 +294,8 @@
      class           (intergalacticMediumStateClass), pointer                  :: igmState_
      class           (linearGrowthClass            ), pointer                  :: linearGrowth_
      class           (cosmologicalMassVarianceClass), pointer                  :: cosmologicalMassVariance_
-     double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-03,                 &
-          &                                                                       odeToleranceRelative        =1.0d-03,                 &
+     double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-3,                  &
+          &                                                                       odeToleranceRelative        =1.0d-3,                  &
           &                                                                       timeToleranceRelative       =1.0d-6
      type            (mergerTree                   ), pointer                  :: tree       
      type            (mergerTreeList               ), pointer                  :: forest       
@@ -314,6 +314,9 @@
      double precision                                                          :: treetimeLatest                      , timeCurrent    , &
           &                                                                       timeMaximum
 
+#ifdef USEMPI
+     call Galacticus_Error_Report('intergalactic medium state evolver not implemented under MPI'//{introspection:location})
+#endif
      ! Display message.
      write (label,'(f6.3)') event%time
      message = "Evolving IGM properties to time "//trim(label)//" Gyr"

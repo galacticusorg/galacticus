@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <parameters formatVersion="2" version="0.9.4">
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
   <!-- Beta model maximum likelihood model -->
   
   <!-- Logging -->
@@ -69,7 +71,7 @@
   <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
   
   <!-- Merger tree construction -->
-  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeConstructorMethod value="build"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <branchIntervalStep value="true"/>
@@ -80,23 +82,24 @@
     <massResolutionFractional value="0.00005"/>
     <massResolutionMinimum value="1.0e6"/>
   </mergerTreeMassResolutionMethod>
-  <mergerTreeBuildHaloMassMaximum value="1.0e13"/>
-  <mergerTreeBuildHaloMassMinimum value="1.0e09"/>
-  <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
-  <mergerTreeBuildTreesPerDecade value="100"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                      value="+0.570"/>
-    <gamma1                  value="+0.380"/>
-    <gamma2                  value="-0.010"/>
-    <accuracyFirstOrder      value="+0.025"/>
+    <G0 value="+0.570"/>
+    <gamma1 value="+0.380"/>
+    <gamma2 value="-0.010"/>
+    <accuracyFirstOrder value="+0.025"/>
     <precisionHypergeometric value="1.0e-6"/>
-    <hypergeometricTabulate  value="true"  />
-    <cdmAssumptions          value="true"  />
+    <hypergeometricTabulate value="true"/>
+    <cdmAssumptions value="true"/>
   </mergerTreeBranchingProbabilityMethod>
-  <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction">
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="1.0e13"/>
+    <massTreeMinimum value="1.0e09"/>
+    <treesPerDecade value="100"/>
+  </mergerTreeBuildMassesMethod>
+  <mergerTreeBuildMassDistributionMethod value="haloMassFunction">
     <abundanceMaximum value="1.0e-1"/>
     <abundanceMinimum value="1.0e-8"/>    
-  </mergerTreeHaloMassFunctionSamplingMethod>
+  </mergerTreeBuildMassDistributionMethod>
   
   <!-- Merger tree operators -->
   <mergerTreePruneBaryons value="true"/>
@@ -127,10 +130,10 @@
   <!-- Satellite orbits -->
   <virialOrbitMethod value="fixed">
     <velocityTangential value="+0.842"/>
-    <velocityRadial     value="-0.856"/>
+    <velocityRadial value="-0.856"/>
     <virialDensityContrastMethod value="fixed">
-      <densityContrastValue value="200.0"   />
-      <densityType          value="critical"/>
+      <densityContrastValue value="200.0"/>
+      <densityType value="critical"/>
     </virialDensityContrastMethod>
   </virialOrbitMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
@@ -216,7 +219,7 @@
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
-  <mergerTreeOutput>
+  <mergerTreeOutput value="">
     <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
   </mergerTreeOutput>

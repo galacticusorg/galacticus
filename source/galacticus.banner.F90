@@ -28,21 +28,30 @@ contains
 
   subroutine Galacticus_Banner_Show
     !% Displays the \glc\ banner.
+#ifdef USEMPI
+    use MPI_Utilities
+#endif
     implicit none
 
-    write (0,*) '             ##                                     '
-    write (0,*) '  ####        #                  #                  '
-    write (0,*) ' #   #        #             #                       '
-    write (0,*) '#       ###   #  ###   ### ###  ##   ### ## ##   ## '
-    write (0,*) '#       #  #  #  #  # #  #  #    #  #  #  #  #  #   '
-    write (0,*) '#   ###  ###  #   ### #     #    #  #     #  #   #  '
-    write (0,*) ' #   #  #  #  #  #  # #     #    #  #     #  #    # '
-    write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
-    write (0,*)
-    write (0,*) '© 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,'
-    write (0,*) '  2017, 2018'
-    write (0,*) '  - Andrew Benson'
-    write (0,*)
+#ifdef USEMPI
+    if (mpiSelf%rank() == 0) then
+#endif
+       write (0,*) '             ##                                     '
+       write (0,*) '  ####        #                  #                  '
+       write (0,*) ' #   #        #             #                       '
+       write (0,*) '#       ###   #  ###   ### ###  ##   ### ## ##   ## '
+       write (0,*) '#       #  #  #  #  # #  #  #    #  #  #  #  #  #   '
+       write (0,*) '#   ###  ###  #   ### #     #    #  #     #  #   #  '
+       write (0,*) ' #   #  #  #  #  #  # #     #    #  #     #  #    # '
+       write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
+       write (0,*)
+       write (0,*) '© 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,'
+       write (0,*) '  2017, 2018'
+       write (0,*) '  - Andrew Benson'
+       write (0,*)
+#ifdef USEMPI
+    end if
+#endif
     return
   end subroutine Galacticus_Banner_Show
 

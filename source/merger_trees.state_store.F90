@@ -20,13 +20,13 @@
 
 module Merger_Tree_State_Store
   !% Provides state store/restore functionality for merger trees.
-  use Galacticus_Nodes
-  use Pseudo_Random
+  use, intrinsic :: ISO_C_Binding
+  use               Galacticus_Nodes
+  use               Pseudo_Random
   public
 
-  type   (mergerTree), pointer :: treeStateStore         => null()
-  integer                      :: treeStateStoreSequence =  -1
-  !$omp threadprivate(treeStateStore,treeStateStoreSequence)
+  integer(c_size_t  ) :: treeStateStoreSequence=-1_c_size_t
+  !$omp threadprivate(treeStateStoreSequence)
 
 contains
 
@@ -35,19 +35,15 @@ contains
   !# </galacticusStateStoreTask>
   subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: FGSL
     implicit none
-    integer            , intent(in   ) :: stateFile    , stateOperatorID
+    integer            , intent(in   ) :: stateFile
+    integer(c_size_t  ), intent(in   ) :: stateOperatorID
     type   (fgsl_file ), intent(in   ) :: fgslStateFile
-    type   (mergerTree), pointer       :: tree
-    !GCC$ attributes unused :: stateOperatorID
+    !GCC$ attributes unused :: fgslStateFile, stateOperatorID
 
     write (stateFile) treeStateStoreSequence
-    tree => treeStateStore
-    do while (associated(tree))
-       call tree%randomNumberGenerator%store(stateFile,fgslStateFile)
-       tree => tree%nextTree
-    end do
     return
   end subroutine mergerTreeStateStore
 
@@ -56,19 +52,15 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: FGSL
     implicit none
-    integer            , intent(in   ) :: stateFile    , stateOperatorID
+    integer            , intent(in   ) :: stateFile
+    integer(c_size_t  ), intent(in   ) :: stateOperatorID
     type   (fgsl_file ), intent(in   ) :: fgslStateFile
-    type   (mergerTree), pointer       :: tree
-    !GCC$ attributes unused :: stateOperatorID
+    !GCC$ attributes unused :: fgslStateFile, stateOperatorID
 
-    read (stateFile) treeStateStoreSequence
-    tree => treeStateStore
-    do while (associated(tree))
-       call tree%randomNumberGenerator%restore(stateFile,fgslStateFile)
-       tree => tree%nextTree
-    end do
+    read (stateFile) treeStateStoreSequence   
     return
   end subroutine mergerTreeStateRestore
 

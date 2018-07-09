@@ -11,10 +11,10 @@
   </cosmologyParametersMethod>
   <accretionDisksMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <accretionHaloMethod value="simple"/>
   <accretionRateThinDiskMaximum value="0.30d0"/>
@@ -69,24 +69,25 @@
   <majorMergerMassRatio value="0.1"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuilderMethod value="cole2000">
-    <accretionLimit   value="0.1"/>
+    <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5000000000"/>
   </mergerTreeMassResolutionMethod>
-  <mergerTreeBuildHaloMassMaximum value="1e+12"/>
-  <mergerTreeBuildHaloMassMinimum value="10000000000"/>
-  <mergerTreeBuilderMethod value="cole2000">
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="1e+12"/>
+    <massTreeMinimum value="10000000000"/>
+    <treesPerDecade value="5"/>
+  </mergerTreeBuildMassesMethod><mergerTreeBuilderMethod value="cole2000">
   <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
   <mergerTreeBuildTreesBaseRedshift value="0"/>
   <mergerTreeBuildTreesBeginAtTree value="1"/>
-  <mergerTreeBuildTreesHaloMassDistribution value="uniform"/>
+  <mergerTreeBuildMassDistributionMethod value="uniform"/>
   <mergerTreeBuildTreesHaloMassExponent value="1"/>
-  <mergerTreeBuildTreesPerDecade value="5"/>
-  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeConstructorMethod value="build"/>
   <mergerTreeStructureOutput value="false"/>
   <minorMergerGasMovesTo value="spheroid"/>
   <nodeMergersMethod value="single level hierarchy"/>
@@ -136,9 +137,9 @@
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-    <G0                 value="+0.57"/>
-    <gamma1             value="+0.38"/>
-    <gamma2             value="-0.01"/>
+    <G0 value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <treeNodeMethodBasic value="standard"/>

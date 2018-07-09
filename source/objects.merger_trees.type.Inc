@@ -84,6 +84,11 @@
      procedure :: latestTime           => Merger_Tree_Latest_Time               
   end type mergerTree
 
+  interface mergerTree
+     !% Interface to merger tree constructors.
+     module procedure mergerTreeConstructor
+  end interface mergerTree
+  
   type, public :: treeEvent
      !% Type for events attached to trees.
     private

@@ -17,14 +17,14 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructMethod value="build">
+    <mergerTreeConstructorMethod value="build">
       <mergerTreeOperatorMethod value="export" parameterLevel="top">
 	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
-	<exportFormat   value="galacticus"                                                    />
+	<exportFormat value="galacticus"/>
       </mergerTreeOperatorMethod>
-    </mergerTreeConstructMethod>
-    <mergerTreeConstructMethod value="read">
-      <mergerTreeReadFileName value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5" parameterLevel="top"/>
+    </mergerTreeConstructorMethod>
+    <mergerTreeConstructorMethod value="read">
+      <fileNames value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5"/>
       <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
       <cosmologyParametersMethod value="simple" parameterLevel="top">
 	<OmegaMatter value="0.25"/>
@@ -38,16 +38,16 @@
       <treeNodeMethodPosition value="preset" parameterLevel="top"/>
       <mergerTreeOperatorMethod value="export" parameterLevel="top">
 	<outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
-	<exportFormat   value="irate"                                                           />
+	<exportFormat value="irate"/>
       </mergerTreeOperatorMethod>
-      <mergerTreeReadPresetOrbits value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetMergerTimes value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetSubhaloIndices value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetMergerNodes value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetSubhaloMasses value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetPositions value="true" parameterLevel="top"/>
-      <mergerTreeReadPresetScaleRadii value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetSpins value="false" parameterLevel="top"/>
-    </mergerTreeConstructMethod>
+      <presetOrbits value="false"/>
+      <presetMergerTimes value="false"/>
+      <presetSubhaloIndices value="false"/>
+      <presetMergerNodes value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetPositions value="true"/>
+      <presetScaleRadii value="false"/>
+      <presetSpins value="false"/>
+    </mergerTreeConstructorMethod>
   </parameters>
 </parameterGrid>

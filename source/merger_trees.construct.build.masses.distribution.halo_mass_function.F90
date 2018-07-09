@@ -20,10 +20,10 @@
 
   use Halo_Mass_Functions
 
-  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingHaloMassFunction" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction" defaultThreadPrivate="yes">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
-  !# </mergerTreeHaloMassFunctionSampling>
-  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingHaloMassFunction
+  !# </mergerTreeBuildMassDistribution>
+  type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionHaloMassFunction
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
      private
      class           (haloMassFunctionClass), pointer :: haloMassFunction_
@@ -32,13 +32,13 @@
    contains
      final     ::           haloMassFunctionDestructor
      procedure :: sample => haloMassFunctionSample
-  end type mergerTreeHaloMassFunctionSamplingHaloMassFunction
+  end type mergerTreeBuildMassDistributionHaloMassFunction
 
-  interface mergerTreeHaloMassFunctionSamplingHaloMassFunction
+  interface mergerTreeBuildMassDistributionHaloMassFunction
      !% Constructors for the {\normalfont \ttfamily haloMassFunction} merger tree halo mass function sampling class.
      module procedure haloMassFunctionConstructorParameters
      module procedure haloMassFunctionConstructorInternal
-  end interface mergerTreeHaloMassFunctionSamplingHaloMassFunction
+  end interface mergerTreeBuildMassDistributionHaloMassFunction
 
 contains
 
@@ -46,7 +46,7 @@ contains
     !% Constructor for the haloMassFunction merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type            (mergerTreeHaloMassFunctionSamplingHaloMassFunction)                :: self
+    type            (mergerTreeBuildMassDistributionHaloMassFunction)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
     class           (haloMassFunctionClass                             ), pointer       :: haloMassFunction_
     double precision                                                                    :: abundanceMinimum , abundanceMaximum, &
@@ -85,7 +85,7 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
-    self=mergerTreeHaloMassFunctionSamplingHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_)
+    self=mergerTreeBuildMassDistributionHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function haloMassFunctionConstructorParameters
@@ -93,7 +93,7 @@ contains
   function haloMassFunctionConstructorInternal(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_) result(self)
     !% Internal constructor for the haloMassFunction merger tree halo mass function sampling class.
     implicit none
-    type            (mergerTreeHaloMassFunctionSamplingHaloMassFunction)                        :: self
+    type            (mergerTreeBuildMassDistributionHaloMassFunction)                        :: self
     double precision                                                    , intent(in   )         :: abundanceMinimum, abundanceMaximum, &
          &                                                                                         modifier1       , modifier2
     class           (haloMassFunctionClass                             ), intent(in   ), target :: haloMassFunction_
@@ -105,7 +105,7 @@ contains
   subroutine haloMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloMassFunction} merger tree halo mass sampling class.
     implicit none
-    type(mergerTreeHaloMassFunctionSamplingHaloMassFunction), intent(inout) :: self
+    type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
 
     !# <objectDestructor name="self%haloMassFunction_"/>
     return
@@ -115,7 +115,7 @@ contains
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
     use Galacticus_Nodes
     implicit none
-    class           (mergerTreeHaloMassFunctionSamplingHaloMassFunction), intent(inout) :: self
+    class           (mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
     double precision                                                    , intent(in   ) :: mass                , massMaximum, &
          &                                                                                 massMinimum         , time
     double precision                                                    , parameter     :: massZeroPoint=1.0d13

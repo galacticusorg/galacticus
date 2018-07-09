@@ -17,16 +17,16 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructMethod value="read">
-      <mergerTreeReadFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5" parameterLevel="top"/>
-      <mergerTreeReadPresetSubhaloIndices value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetOrbits value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetMergerTimes value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetMergerNodes value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetSubhaloMasses value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetPositions value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetScaleRadii value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetSpins value="false" parameterLevel="top"/>
-    </mergerTreeConstructMethod>
+    <mergerTreeConstructorMethod value="read">
+      <fileNames value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
+      <presetSubhaloIndices value="false"/>
+      <presetOrbits value="false"/>
+      <presetMergerTimes value="false"/>
+      <presetMergerNodes value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetPositions value="false"/>
+      <presetScaleRadii value="false"/>
+      <presetSpins value="false"/>
+    </mergerTreeConstructorMethod>
   </parameters>
 </parameterGrid>

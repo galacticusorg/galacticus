@@ -2,16 +2,19 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeHaloMassFunctionSamplingMethod value="powerLaw"/>
-  <mergerTreeBuildTreesProcessDescending value="false"/>
   <stateFileRoot value="testSuite/outputs/state"/>
   <galacticusOutputFileName value="testSuite/outputs/stateStore.hdf5"/>
-  <mergerTreeBuildTreesBeginAtTree value="1"/>
-  <mergerTreeBuildHaloMassMaximum value="1.0e13"/>
-  <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
-  <mergerTreeBuildTreesPerDecade value="5"/>
-  <mergerTreeBuildTreesBaseRedshift value="0"/>
-  <mergerTreeConstructMethod value="build"/>
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="1.0e13"/>
+    <massTreeMinimum value="1.0e10"/>
+    <treesPerDecade value="5"/>
+    <mergerTreeBuildMassDistributionMethod value="powerLaw"/>
+  </mergerTreeBuildMassesMethod>
+  <mergerTreeConstructorMethod value="build">
+    <redshiftBase value="0.0"/>
+    <processDescending value="false"/>
+    <treeBeginAt value="1"/>
+  </mergerTreeConstructorMethod>
   <luminosityFilter value="SDSS_r"/> 
   <luminosityType value="rest"/> 
   <luminosityRedshift value="0.0"/> 

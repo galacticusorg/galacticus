@@ -229,10 +229,12 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Galacticus_Output_Times_State_Store(stateFile,fgslStateFile,stateOperatorID)
     !% Write the tablulation state to file.
-    use Galacticus_Display
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Display
+    use            :: FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile    , stateOperatorID
+    integer           , intent(in   ) :: stateFile
+    integer(c_size_t ), intent(in   ) :: stateOperatorID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: stateOperatorID, fgslStateFile
 
@@ -251,10 +253,12 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Galacticus_Output_Times_State_Retrieve(stateFile,fgslStateFile,stateOperatorID)
     !% Retrieve the tabulation state from the file.
-    use Galacticus_Display
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Display
+    use            :: FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile    , stateOperatorID
+    integer           , intent(in   ) :: stateFile
+    integer(c_size_t ), intent(in   ) :: stateOperatorID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     !GCC$ attributes unused :: stateOperatorID, fgslStateFile
 

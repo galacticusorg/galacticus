@@ -52,37 +52,37 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
 
   <!-- Merger tree reading options -->
-  <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadFileName value="testSuite/outputs/bolshoiTestTreesGLC_in.hdf5"/>
+  <mergerTreeConstructorMethod value="read">
+  <fileNames value="testSuite/outputs/bolshoiTestTreesGLC_in.hdf5"/>
+    <outputTimeSnapTolerance value="1.0d-3"/>
+    <presetPositions value="true"/>
+    <presetOrbits value="true"/>
+    <presetOrbitsBoundOnly value="true"/>
+    <presetOrbitsSetAll value="true"/>
+    <presetOrbitsAssertAllSet value="true"/>
+    <presetSpins value="true"/>
+    <presetSpins3D value="true"/>
+    <presetUnphysicalSpins value="true"/>
+    <presetScaleRadii value="true"/>
+    <presetScaleRadiiMinimumMass value="1d10"/>
+    <presetMergerTimes value="true"/>
+    <presetMergerNodes value="true"/>
+    <presetSubhaloIndices value="true"/>
+    <presetSubhaloMasses value="true"/>
+    <missingHostsAreFatal value="true"/>
+    <allowSubhaloPromotions value="true"/>
+    <presetVelocityMaxima value="true"/>
+    <presetVelocityDispersions value="true"/>
+  </mergerTreeConstructorMethod>
   <allTreesExistAtFinalTime value="false"/>
-   <mergerTreeReadOutputTimeSnapTolerance value="1.0d-3"/>
-  <!-- Use merger tree node positions -->
+   <!-- Use merger tree node positions -->
   <treeNodeMethodPosition value="preset"/>
-  <mergerTreeReadPresetPositions value="true"/>
   <!-- Use merger tree velocities to compute orbits at the virial radius -->
-  <mergerTreeReadPresetOrbits value="true"/>
-  <mergerTreeReadPresetOrbitsBoundOnly value="true"/>
-  <mergerTreeReadPresetOrbitsSetAll value="true"/>
-  <mergerTreeReadPresetOrbitsAssertAllSet value="true"/>
   <!-- Use merger tree spins -->
-  <mergerTreeReadPresetSpins value="true"/>
-  <mergerTreeReadPresetSpins3D value="true"/>
-  <mergerTreeReadPresetUnphysicalSpins value="true"/>
   <!-- Use scale radius, set minimum mass to rockstar halo resolution -->
-  <mergerTreeReadPresetScaleRadii value="true"/>
-  <mergerTreeReadPresetScaleRadiiMinimumMass value="1d10"/>
   <!-- Computing Subhaloes: merging time & targets, masses -->
-  <mergerTreeReadPresetMergerTimes value="true"/>
-  <mergerTreeReadPresetMergerNodes value="true"/>
-  <mergerTreeReadPresetSubhaloIndices value="true"/>
-  <mergerTreeReadPresetSubhaloMasses value="true"/>
   <!-- Treating fly-by Haloes, allow subhalo promotion -->
-  <mergerTreeReadMissingHostsAreFatal value="true"/>
-  <mergerTreeReadAllowSubhaloPromotions value="true"/>
   <!-- Misc -->
-  <mergerTreeReadPresetVelocityMaxima value="true"/>
-  <mergerTreeReadPresetVelocityDispersions value="true"/>
-
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
 
@@ -110,7 +110,7 @@
   <hotHaloAngularMomentumLossFraction value="0.3"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">
     <sourceAngularMomentumSpecificMean value="hotGas"/>
-    <sourceNormalizationRotation       value="hotGas"/>
+    <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
   <hotHaloOutflowReturnRate value="1.26"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
@@ -191,17 +191,17 @@
 
   <!-- Accretion disk properties -->
   <accretionDisksMethod value="switched">
-    <accretionRateThinDiskMaximum       value="0.30"/>
-    <accretionRateThinDiskMinimum       value="0.01"/>
-    <scaleADAFRadiativeEfficiency       value="true"/>
+    <accretionRateThinDiskMaximum value="0.30"/>
+    <accretionRateThinDiskMinimum value="0.01"/>
+    <scaleADAFRadiativeEfficiency value="true"/>
     <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
-    <accretionDisksADAFMethod           value="ADAF">
+    <accretionDisksADAFMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex          value="1.444"   />
-      <energyOption            value="pureADAF"/>
-      <efficiencyRadiation     value="0.01"    />
-      <viscosityOption         value="fit"     />
-      <efficiencyJetMaximum    value="2.0"     />
+      <adiabaticIndex value="1.444"/>
+      <energyOption value="pureADAF"/>
+      <efficiencyRadiation value="0.01"/>
+      <viscosityOption value="fit"/>
+      <efficiencyJetMaximum value="2.0"/>
     </accretionDisksADAFMethod>
   </accretionDisksMethod>
 
@@ -246,8 +246,8 @@
 
   <!-- Output options -->
   <mergerTreeOutput value="">
-    <outputMergerTrees value="true" />
-    <outputReferences  value="false"/>
+    <outputMergerTrees value="true"/>
+    <outputReferences value="false"/>
   </mergerTreeOutput>
   <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
   <outputRedshifts value="0 0.1 2 4"/>

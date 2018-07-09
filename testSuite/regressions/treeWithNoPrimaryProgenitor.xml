@@ -56,17 +56,18 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeConstructMethod value="read"/>
-  <mergerTreeReadFileName value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
+  <mergerTreeConstructorMethod value="read">
+  <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
+    <presetPositions value="false"/>
+    <presetOrbits value="false"/>
+    <presetMergerTimes value="true"/>
+    <presetMergerNodes value="true"/>
+    <presetSubhaloMasses value="false"/>
+    <presetSpins value="false"/>
+    <presetScaleRadii value="false"/>
+  </mergerTreeConstructorMethod>
   <allTreesExistAtFinalTime value="false"/>
-  <mergerTreeReadPresetPositions value="false"/>
   <treeNodeMethodSatellite value="preset"/>
-  <mergerTreeReadPresetOrbits value="false"/>
-  <mergerTreeReadPresetMergerTimes value="true"/>
-  <mergerTreeReadPresetMergerNodes value="true"/>
-  <mergerTreeReadPresetSubhaloMasses value="false"/>
-  <mergerTreeReadPresetSpins value="false"/>
-  <mergerTreeReadPresetScaleRadii value="false"/>
   <cosmologyParametersMethod value="simple">
     <HubbleConstant value="70.0"/>
     <OmegaMatter value="0.3"/>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Defines a set of Galacticus models which explore all available method options. -->
+<!-- Andrew Benson                                                                  -->
+<!-- 04-Sep-2010                                                                    -->
+<parameterGrid>
+  <emailReport>no</emailReport>
+  <doAnalysis>no</doAnalysis>
+  <modelRootDirectory>testSuite/outputs/test-methods_MPI</modelRootDirectory>
+  <baseParameters>testSuite/test-methods-base.xml</baseParameters>
+  <launchMethod>pbs</launchMethod>
+  <pbs>
+    <mpiLaunch>yes</mpiLaunch>
+    <mpiProcesses>4</mpiProcesses>
+    <ompThreads>16</ompThreads>
+    <maxJobsInQueue>40</maxJobsInQueue>
+    <postSubmitSleepDuration>1</postSubmitSleepDuration>
+    <jobWaitSleepDuration>10</jobWaitSleepDuration>
+  </pbs>
+
+  <!-- Tree construction methods -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <mergerTreeConstructorMethod value="build">
+      <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+	<massTreeMinimum value="1.0e10"/>
+	<massTreeMaximum value="1.0e13"/>
+	<treesPerDecade  value="20"    />
+      </mergerTreeBuildMassesMethod>
+    </mergerTreeConstructorMethod>
+    <mergerTreeConstructorMethod value="read">
+      <fileNames value="testSuite/test-MergerTrees.hdf5"/>
+      <presetOrbits value="true"/>
+      <presetOrbitsBoundOnly value="true"/>
+      <presetMergerTimes value="true"/>
+      <presetMergerNodes value="true"/>
+      <satelliteMergingTimescalesMethod value="boylanKolchin2008"/>
+      <presetSubhaloIndices value="false"/>
+      <treeIndexToRootNodeIndex value="true"/>
+      <presetSubhaloMasses value="true"/>
+      <presetPositions value="true"/>
+      <presetSpins value="false"/>
+      <presetScaleRadii value="false"/>
+      <hotHaloRamPressureStrippingMethod value="virialRadius" parameterLevel="top"/>
+      <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
+      <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
+      <treeNodeMethodSatellite value="preset" parameterLevel="top"/>
+      <treeNodeMethodPosition value="preset" parameterLevel="top"/>
+      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
+    </mergerTreeConstructorMethod>    
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant value="73.0"/>
+      <OmegaMatter value="0.25"/>
+      <OmegaDarkEnergy value="0.75"/>
+      <OmegaBaryon value="0.045"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
+    <powerSpectrumPrimordialMethod value="powerLaw">
+      <index value="0.961"/>
+      <wavenumberReference value="1.000"/>
+      <running value="0.000"/>
+    </powerSpectrumPrimordialMethod>
+    <cosmologicalMassVarianceMethod value="filteredPower">
+      <sigma_8 value="0.9"/>
+    </cosmologicalMassVarianceMethod>
+  </parameters>
+  
+</parameterGrid>

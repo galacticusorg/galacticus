@@ -16,152 +16,176 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements building of simple merger trees with smooth mass accretion histories and no branches using
-!% the fitting function of \cite{wechsler_concentrations_2002}.
+  !% Implements a merger tree constructor class which builds merger trees assuming smooth accretion.
 
-module Merger_Tree_Smooth_Accretion
-  !% Implements building of simple merger trees with smooth mass accretion histories and no branches using the fitting function of
-  !% \cite{wechsler_concentrations_2002}.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Merger_Tree_Smooth_Accretion_Initialize
+  use Cosmology_Functions
+  
+  !# <mergerTreeConstructor name="mergerTreeConstructorSmoothAccretion">
+  !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
+  !# </mergerTreeConstructor>
+  type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion
+     !% A class implementing merger tree construction by building trees assuming smooth accretion.
+     private
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: redshiftBase         , massHalo          , &
+          &                                                massHaloDeclineFactor, massHaloResolution
+   contains
+     final     ::              smoothAccretionDestructor
+     procedure :: construct => smoothAccretionConstruct
+  end type mergerTreeConstructorSmoothAccretion
 
-  ! Variables giving properties of the merger tree.
-  double precision :: mergerTreeBaseRedshift                 , mergerTreeHaloMass          , &
-       &              mergerTreeHaloMassDeclineFactor        , mergerTreeHaloMassResolution
-
-  ! Flag indicating whether or not we've already built the tree.
-  logical          :: treeWasBuilt                   =.false.
+  interface mergerTreeConstructorSmoothAccretion
+     !% Constructors for the {\normalfont \ttfamily smoothAccretion} merger tree constructor class.
+     module procedure smoothAccretionConstructorParameters
+     module procedure smoothAccretionConstructorInternal
+  end interface mergerTreeConstructorSmoothAccretion
 
 contains
-
-  !# <mergerTreeConstructMethod>
-  !#  <unitName>Merger_Tree_Smooth_Accretion_Initialize</unitName>
-  !# </mergerTreeConstructMethod>
-  subroutine Merger_Tree_Smooth_Accretion_Initialize(mergerTreeConstructMethod,Merger_Tree_Construct)
-    !% Initializes the smooth accretion merger tree module.
+  
+  function smoothAccretionConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                 ), intent(in   )          :: mergerTreeConstructMethod
-    procedure(Merger_Tree_Smooth_Accretion_Do), intent(inout), pointer :: Merger_Tree_Construct
+    type            (mergerTreeConstructorSmoothAccretion)                :: self
+    type            (inputParameters                     ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
+    double precision                                                      :: redshiftBase         , massHalo          , &
+         &                                                                   massHaloDeclineFactor, massHaloResolution
 
-    ! Check if our method is to be used.
-    if (mergerTreeConstructMethod == 'smoothAccretion') then
-       ! Assign pointer to our merger tree construction subroutine.
-       Merger_Tree_Construct => Merger_Tree_Smooth_Accretion_Do
-       ! Read the mass of the halo to construct.
-       !# <inputParameter>
-       !#   <name>mergerTreeHaloMass</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d12</defaultValue>
-       !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>mergerTreeHaloMassResolution</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d9</defaultValue>
-       !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>mergerTreeHaloMassDeclineFactor</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.9d0</defaultValue>
-       !#   <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>mergerTreeBaseRedshift</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The redshift at which to plant the base node when building the smoothly accreting merger tree.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>massHalo</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d12</defaultValue>
+    !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massHaloResolution</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d9</defaultValue>
+    !#   <description>The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massHaloDeclineFactor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.9d0</defaultValue>
+    !#   <description>The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftBase</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift at which to plant the base node when building the smoothly accreting merger tree.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Merger_Tree_Smooth_Accretion_Initialize
+  end function smoothAccretionConstructorParameters
 
-  subroutine Merger_Tree_Smooth_Accretion_Do(thisTree,skipTree)
-    !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
-    use Galacticus_Nodes
-    use Cosmology_Functions
-    use Kind_Numbers
-    use Dark_Matter_Halo_Mass_Accretion_Histories
+  function smoothAccretionConstructorInternal(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     implicit none
-    type            (mergerTree                             )         , intent(inout), target :: thisTree
-    logical                                                           , intent(in   )         :: skipTree
-    type            (treeNode                               ), pointer                        :: currentNode                        , newNode
-    class           (nodeComponentBasic                     ), pointer                        :: baseBasicComponent                 , newBasicComponent
-    class           (cosmologyFunctionsClass                ), pointer                        :: cosmologyFunctions_
-    class           (darkMatterHaloMassAccretionHistoryClass), pointer                        :: darkMatterHaloMassAccretionHistory_
-    integer         (kind=kind_int8                         )                                 :: nodeIndex
-    double precision                                                                          :: expansionFactorBase                , mergerTreeBaseTime, &
-         &                                                                                       nodeMass                           , nodeTime
-    !GCC$ attributes unused :: skipTree
-    
+    type            (mergerTreeConstructorSmoothAccretion)          :: self
+    class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_
+    double precision                                                :: redshiftBase         , massHalo          , &
+         &                                                             massHaloDeclineFactor, massHaloResolution
+    !# <constructorAssign variables="redshiftBase, massHalo, massHaloDeclineFactor, massHaloResolution, *cosmologyFunctions_"/>
+
+    return    
+  end function smoothAccretionConstructorInternal
+
+  subroutine smoothAccretionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily smoothAccretion} merger tree constructor class.
+    implicit none
+    type(mergerTreeConstructorSmoothAccretion), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine smoothAccretionDestructor
+
+  function smoothAccretionConstruct(self,treeNumber) result(tree)
+    !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Nodes
+    use               Kind_Numbers
+    use               Dark_Matter_Halo_Mass_Accretion_Histories
+    use               Pseudo_Random
+    implicit none
+    class           (mergerTreeConstructorSmoothAccretion   ), intent(inout) :: self
+    type            (mergerTree                             ), pointer       :: tree
+    integer         (c_size_t                               ), intent(in   ) :: treeNumber
+    type            (treeNode                               ), pointer       :: nodeCurrent                        , nodeNew
+    class           (nodeComponentBasic                     ), pointer       :: basicBase                          , basicNew
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
+    integer         (kind=kind_int8                         )                :: indexNode
+    double precision                                                         :: expansionFactorBase                , timeBase, &
+         &                                                                      massNode                           , timeNode, &
+         &                                                                      uniformRandom
+
     ! Build the merger tree.
-    if (.not.treeWasBuilt) then
-       !$omp critical (Merger_Tree_Build_Do)
-       if (.not.treeWasBuilt) then
-          ! Give the tree an index.
-          thisTree%index=1
-          ! Create the base node.
-          nodeIndex=1
-          thisTree%baseNode => treeNode(nodeIndex,thisTree)
-          baseBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
-          ! Assign an arbitrary weight to the tree.
-          thisTree%volumeWeight=1.0
-          ! Assign a mass to the base node.
-          call baseBasicComponent%massSet(mergerTreeHaloMass)
-          ! Get required objects.
-          cosmologyFunctions_                 => cosmologyFunctions                ()
-          darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
-          ! Find the cosmic time at which the tree is based.
-          expansionFactorBase=cosmologyFunctions_%expansionFactorFromRedshift(mergerTreeBaseRedshift)
-          mergerTreeBaseTime =cosmologyFunctions_%cosmicTime                 (expansionFactorBase   )
-          ! Assign a time to the base node.
-          call baseBasicComponent%            timeSet(mergerTreeBaseTime)
-          call baseBasicComponent%timeLastIsolatedSet(mergerTreeBaseTime)
-          ! Get a pointer to the current node (i.e. the base node).
-          currentNode => thisTree%baseNode
-          ! Initialize current node mass.
-          nodeMass=mergerTreeHaloMass
-          ! Initialize node index counter.
-          nodeIndex=1
-          ! Step backwards, creating nodes until a sufficiently low mass has been reached.
-          do while (nodeMass > mergerTreeHaloMassResolution)
-             ! Increment node index.
-             nodeIndex=nodeIndex+1
-             ! Create a node.
-             newNode => treeNode(nodeIndex,thisTree)
-             newBasicComponent => newNode%basic(autoCreate=.true.)
-             ! Adjust the mass by the specified factor.
-             nodeMass=nodeMass*mergerTreeHaloMassDeclineFactor
-             ! Set the mass of the node.
-             call newBasicComponent%massSet(nodeMass)
-             ! Find the time corresponding to this expansion factor.
-             nodeTime=darkMatterHaloMassAccretionHistory_%time(thisTree%baseNode,nodeMass)
-             ! Set the time for the new node.
-             call newBasicComponent%            timeSet(nodeTime)
-             call newBasicComponent%timeLastIsolatedSet(nodeTime)
-             ! Create parent and child links.
-             currentNode%firstChild => newNode
-             newNode    %parent     => currentNode             
-             ! Move the current node to the new node.
-             currentNode => newNode
-          end do
-          ! Flag that the tree is now built.
-          treeWasBuilt=.true.
-       end if
-       !$omp end critical (Merger_Tree_Build_Do)
+    if (treeNumber == 1_c_size_t) then
+       ! Create the tree.
+       allocate(tree)
+       ! Give the tree an index.
+       tree%index=1
+       ! Create the base node.
+       indexNode     =  1
+       tree%baseNode => treeNode               (indexNode,tree   )
+       basicBase     => tree    %baseNode%basic(autoCreate=.true.)
+       ! Assign an arbitrary weight to the tree.
+       tree%volumeWeight     =  1.0
+       tree%event            => null()
+       tree%initializedUntil =  0.0d0
+       call tree%properties%initialize()
+       ! Restart the random number sequence.
+       tree%randomNumberGenerator=pseudoRandom()
+       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOFfset=.false.,incrementSeed=int(tree%index))
+       ! Assign a mass to the base node.
+       call basicBase%massSet(self%massHalo)
+       ! Get required objects.
+       darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
+       ! Find the cosmic time at which the tree is based.
+       expansionFactorBase=self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftBase       )
+       timeBase           =self%cosmologyFunctions_%cosmicTime                 (     expansionFactorBase)
+       ! Assign a time to the base node.
+       call basicBase%            timeSet(timeBase)
+       call basicBase%timeLastIsolatedSet(timeBase)
+       ! Get a pointer to the current node (i.e. the base node).
+       nodeCurrent => tree%baseNode
+       ! Initialize current node mass.
+       massNode    =  self%massHalo
+       ! Step backwards, creating nodes until a sufficiently low mass has been reached.
+       do while (massNode > self%massHaloResolution)
+          ! Increment node index.
+          indexNode=indexNode+1
+          ! Create a node.
+          nodeNew  => treeNode     (indexNode,tree   )
+          basicNew => nodeNew%basic(autoCreate=.true.)
+          ! Adjust the mass by the specified factor.
+          massNode=massNode*self%massHaloDeclineFactor
+          ! Set the mass of the node.
+          call basicNew%massSet(massNode)
+          ! Find the time corresponding to this expansion factor.
+          timeNode=darkMatterHaloMassAccretionHistory_%time(tree%baseNode,massNode)
+          ! Set the time for the new node.
+          call basicNew%            timeSet(timeNode)
+          call basicNew%timeLastIsolatedSet(timeNode)
+          ! Create parent and child links.
+          nodeCurrent%firstChild => nodeNew
+          nodeNew    %parent     => nodeCurrent             
+          ! Move the current node to the new node.
+          nodeCurrent            => nodeNew
+       end do
+    else
+       nullify(tree)
     end if
     return
-  end subroutine Merger_Tree_Smooth_Accretion_Do
-
-end module Merger_Tree_Smooth_Accretion
+  end function smoothAccretionConstruct

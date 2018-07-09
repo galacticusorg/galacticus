@@ -18,7 +18,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <accretionDisksMethod value="switched">
-      <accretionDisksADAFMethod           value="ADAF"          />
+      <accretionDisksADAFMethod value="ADAF"/>
       <accretionDisksShakuraSunyaevMethod value="shakuraSunyaev"/>
     </accretionDisksMethod>
     <accretionDisksMethod value="shakuraSunyaev"/>
@@ -47,7 +47,7 @@
     <darkMatterProfileMethod value="isothermal"/>
     <darkMatterProfileMethod value="einasto">
       <treeNodeMethodDarkMatterProfile value="scaleShape" parameterLevel="top"/>
-      <virialOrbitMethod               value="fixed"      parameterLevel="top"/>
+      <virialOrbitMethod value="fixed" parameterLevel="top"/>
     </darkMatterProfileMethod>
   </parameters>
   <parameters>
@@ -83,47 +83,82 @@
       <fileName value="data/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5"/>
     </chemicalStateMethod>
   </parameters>
+
+  <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeReadFileName value="testSuite/test-MergerTrees.hdf5"/>
-    <mergerTreeConstructMethod value="smoothAccretion">
-      <darkMatterAccretionHistoryMethod value="Wechsler2002" parameterLevel="top"/>
-      <darkMatterAccretionHistoryMethod value="Zhao2009"     parameterLevel="top"/>
-    </mergerTreeConstructMethod>
-    <mergerTreeConstructMethod value="build">
-      <mergerTreeBuildTreesHaloMassDistribution value="uniform" parameterLevel="top"/>
-      <mergerTreeBuildTreesHaloMassDistribution value="read" parameterLevel="top">
- 	<mergerTreeBuildTreeMassesFile value="testSuite/data/mergerTreeBuilding/treeMasses.xml" parameterLevel="top"/>
-      </mergerTreeBuildTreesHaloMassDistribution>
-    </mergerTreeConstructMethod>
-    <mergerTreeConstructMethod value="read">
+    <mergerTreeConstructorMethod value="smoothAccretion">
+      <redshiftBase value="0.0"/>
+      <massHaloDeclineFactor value="0.9"/>
+      <massHaloResolution value="1.0e9"/>
+      <massHalo value="1.0e12"/>
+      <darkMatterHaloMassAccretionHistoryMethod value="wechsler2002" parameterLevel="top"/>
+      <darkMatterHaloMassAccretionHistoryMethod value="zhao2009" parameterLevel="top"/>
+      <darkMatterHaloMassAccretionHistoryMethod value="correa2015" parameterLevel="top"/>
+    </mergerTreeConstructorMethod>
+    <mergerTreeConstructorMethod value="build">
+      <mergerTreeBuildMassesMethod value="sampledDistributionUniform" parameterLevel="top">
+	<mergerTreeBuildMassDistributionMethod value="gaussian" parameterLevel="top">
+	  <mean value="1.0e12"/>
+	  <rootVariance value="0.2e12"/>
+	</mergerTreeBuildMassDistributionMethod>
+	<mergerTreeBuildMassDistributionMethod value="powerLaw" parameterLevel="top">
+	  <mergerTreeMassResolutionMethod value="fixed" parameterLevel="top">
+	    <massResolution value="5.0e11"/>
+	  </mergerTreeMassResolutionMethod>
+	</mergerTreeBuildMassDistributionMethod>
+	<mergerTreeBuildMassDistributionMethod value="haloMassFunction" parameterLevel="top"/>
+	<mergerTreeBuildMassDistributionMethod value="stllrMssFnctn" parameterLevel="top">
+	  <massMaximum         value="7.5857758e11"/>
+	  <massMinimum         value="1.2589254e8" />
+	  <constant            value="1.0e-8"      />
+	  <alpha               value="-0.3"        />
+	  <beta                value="0.75"        />
+	  <massCharacteristic  value="5.5e10"      />
+	  <normalization       value="2.0e-4"      />
+	  <binWidthLogarithmic value="0.097"       />
+	  <timePerTreeFitFileName value="testSuite/data/treeTiming.xml" parameterLevel="top"/>
+	  <mergerTreeMassResolutionMethod value="fixed" parameterLevel="top">
+	    <massResolution value="5.0e11"/>
+	  </mergerTreeMassResolutionMethod>
+	</mergerTreeBuildMassDistributionMethod>
+      </mergerTreeBuildMassesMethod>
+      <mergerTreeBuildMassesMethod value="sampledDistributionPseudoRandom" parameterLevel="top"/>
+      <mergerTreeBuildMassesMethod value="sampledDistributionQuasiRandom" parameterLevel="top"/>
+      <mergerTreeBuildMassesMethod value="readXML" parameterLevel="top">
+ 	<fileName value="testSuite/data/mergerTreeBuilding/treeMasses.xml"/>
+      </mergerTreeBuildMassesMethod>      
+    </mergerTreeConstructorMethod>
+    
+    <mergerTreeConstructorMethod value="read">
+      <fileNames value="testSuite/test-MergerTrees.hdf5"/>
       <hotHaloRamPressureStrippingMethod value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetOrbits value="true" parameterLevel="top"/>
-      <mergerTreeReadPresetOrbitsBoundOnly value="true" parameterLevel="top"/>
+      <presetOrbits value="true"/>
+      <presetOrbitsBoundOnly value="true"/>
       <treeNodeMethodSatellite value="standard" parameterLevel="top">
- 	<mergerTreeReadPresetMergerTimes value="false" parameterLevel="top"/>
- 	<mergerTreeReadPresetMergerNodes value="false" parameterLevel="top"/>
+    	<presetMergerTimes value="false" parameterLevel="-1"/>
+    	<presetMergerNodes value="false" parameterLevel="-1"/>
       </treeNodeMethodSatellite>
       <treeNodeMethodSatellite value="preset" parameterLevel="top">
- 	<mergerTreeReadPresetMergerTimes value="true" parameterLevel="top"/>
- 	<mergerTreeReadPresetMergerNodes value="true" parameterLevel="top"/>
- 	<mergerTreeReadSubresolutionMergingMethod value="zero" parameterLevel="top"/>
- 	<mergerTreeReadSubresolutionMergingMethod value="boylanKolchin2008" parameterLevel="top"/>
+    	<presetMergerTimes value="true" parameterLevel="-1"/>
+    	<presetMergerNodes value="true" parameterLevel="-1"/>
+    	<subresolutionMergingMethod value="zero" parameterLevel="-1"/>
+    	<subresolutionMergingMethod value="boylanKolchin2008" parameterLevel="-1"/>
       </treeNodeMethodSatellite>
-      <mergerTreeReadPresetSubhaloMasses value="false" parameterLevel="top"/>
-      <mergerTreeReadPresetSubhaloIndices value="false" parameterLevel="top"/>
-    </mergerTreeConstructMethod>
-    <mergerTreeReadTreeIndexToRootNodeIndex value="true"/>
-    <allTreesExistAtFinalTime value="false"/>
-    <mergerTreeReadPresetSubhaloMasses value="true"/>
-    <treeNodeMethodPosition value="preset"/>
-    <mergerTreeReadPresetMergerTimes value="true"/>
-    <mergerTreeReadPresetPositions value="true"/>
-    <mergerTreeReadPresetSpins value="false"/>
-    <mergerTreeReadPresetScaleRadii value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetSubhaloIndices value="false"/>
+      <treeIndexToRootNodeIndex value="true"/>
+      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
+      <treeNodeMethodPosition value="preset" parameterLevel="top"/>
+      <presetMergerTimes value="true"/>
+      <presetPositions value="true"/>
+      <presetSpins value="false"/>
+      <presetScaleRadii value="false"/>
+    </mergerTreeConstructorMethod>
+    
     <cosmologyParametersMethod value="simple">
       <HubbleConstant value="73.0"/>
       <OmegaMatter value="0.25"/>
@@ -138,7 +173,9 @@
     </powerSpectrumPrimordialMethod>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
-  </cosmologicalMassVarianceMethod></parameters>
+    </cosmologicalMassVarianceMethod>
+  </parameters>
+  
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
@@ -148,7 +185,7 @@
     <satelliteMergingTimescalesMethod value="laceyCole1993Tormen"/>
     <satelliteMergingTimescalesMethod value="wetzelWhite2010"/>
     <satelliteMergingTimescalesMethod value="villalobos2013">
-      <satelliteMergingTimescaleMethod value="boylanKolchin2008"/>
+      <satelliteMergingTimescalesMethod value="boylanKolchin2008"/>
     </satelliteMergingTimescalesMethod>
   </parameters>
   <parameters>
@@ -186,22 +223,22 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <transferFunctionMethod value="file">
-      <fileName                  value="data/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
+      <fileName value="data/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
       <cosmologyParametersMethod value="simple" parameterLevel="top">
- 	<HubbleConstant  value="73.0"  />
- 	<OmegaMatter     vaqlue="0.25"  />
- 	<OmegaDarkEnergy value="0.75"  />
- 	<OmegaBaryon     value="0.0455"/>
+ 	<HubbleConstant value="73.0"/>
+ 	<OmegaMatter vaqlue="0.25"/>
+ 	<OmegaDarkEnergy value="0.75"/>
+ 	<OmegaBaryon value="0.0455"/>
       </cosmologyParametersMethod>
       <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
- 	<tolerance       value="3.0e-4"/>
+ 	<tolerance value="3.0e-4"/>
  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVarianceMethod>
     </transferFunctionMethod>
     <transferFunctionMethod value="BBKS"/>
     <transferFunctionMethod value="CAMB">
       <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
- 	<tolerance       value="3.0e-4"/>
+ 	<tolerance value="3.0e-4"/>
  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVarianceMethod>
     </transferFunctionMethod>
@@ -229,13 +266,13 @@
     <starFormationTimescaleDisksMethod value="dynamicalTime"/>
     <starFormationTimescaleDisksMethod value="integratedSurfaceDensity">
       <starFormationRateSurfaceDensityDisksMethod value="Kennicutt-Schmidt" parameterLevel="top">
-        <starFormationKennicuttSchmidtTruncate value="true"  parameterLevel="top"/>
+        <starFormationKennicuttSchmidtTruncate value="true" parameterLevel="top"/>
         <starFormationKennicuttSchmidtTruncate value="false" parameterLevel="top"/>
       </starFormationRateSurfaceDensityDisksMethod>
       <starFormationRateSurfaceDensityDisksMethod value="Blitz-Rosolowsky2006" parameterLevel="top"/>
       <starFormationRateSurfaceDensityDisksMethod value="KMT09" parameterLevel="top">
         <molecularFractionFastKMT09 value="false" parameterLevel="top"/>
-        <molecularFractionFastKMT09 value="true"  parameterLevel="top"/>
+        <molecularFractionFastKMT09 value="true" parameterLevel="top"/>
       </starFormationRateSurfaceDensityDisksMethod>
       <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt" parameterLevel="top"/>
     </starFormationTimescaleDisksMethod>
@@ -262,34 +299,36 @@
 
   <!-- Schneider 2015 concentration method -->
   <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
     <darkMatterProfileConcentrationMethod value="schneider2015">
       <reference value="">
- 	<criticalOverdensityMethod                value="fixed"            >
+ 	<criticalOverdensityMethod value="fixed">
  	  <criticalOverdensity value="1.686"/>
  	</criticalOverdensityMethod>
- 	<cosmologicalMassVarianceMethod           value="filteredPower"    >
+ 	<cosmologicalMassVarianceMethod value="filteredPower">
  	  <sigma_8 value="0.9"/>
- 	</cosmologicalMassVarianceMethod  >
- 	<cosmologyParametersMethod                value="simple"           >
- 	  <HubbleConstant   value="70.0" />
- 	  <OmegaMatter      value="0.32" />
- 	  <OmegaDarkEnergy  value="0.68" />
- 	  <OmegaBaryon      value="0.045"/>
- 	  <temperatureCMB   value="2.725"/>
+ 	</cosmologicalMassVarianceMethod>
+ 	<cosmologyParametersMethod value="simple">
+ 	  <HubbleConstant value="70.0"/>
+ 	  <OmegaMatter value="0.32"/>
+ 	  <OmegaDarkEnergy value="0.68"/>
+ 	  <OmegaBaryon value="0.045"/>
+ 	  <temperatureCMB value="2.725"/>
  	</cosmologyParametersMethod>
- 	<darkMatterProfileConcentrationMethod     value="gao2008"         />
- 	<linearGrowthMethod                       value="simple"          />
- 	<cosmologyFunctionsMethod                 value="matterLambda"    />
+ 	<darkMatterProfileConcentrationMethod value="gao2008"/>
+ 	<linearGrowthMethod value="simple"/>
+ 	<cosmologyFunctionsMethod value="matterLambda"/>
  	<powerSpectrumPrimordialMethod value="powerLaw">
- 	  <index               value="1.0"/>
+ 	  <index value="1.0"/>
  	  <wavenumberReference value="1.0"/>
- 	  <running             value="0.0"/>
+ 	  <running value="0.0"/>
  	</powerSpectrumPrimordialMethod>
- 	<powerSpectrumPrimordialTransferredMethod value="simple"          />
- 	<powerSpectrumWindowFunctionClass         value="topHat"          />
- 	<transferFunctionMethod                   value="eisensteinHu1999" >
+ 	<powerSpectrumPrimordialTransferredMethod value="simple"/>
+ 	<powerSpectrumWindowFunctionMethod value="topHat"/>
+ 	<transferFunctionMethod value="eisensteinHu1999">
  	  <neutrinoNumberEffective value="3.046"/>
- 	  <neutrinoMassSummed      value="0.000"/>
+ 	  <neutrinoMassSummed value="0.000"/>
  	</transferFunctionMethod>
       </reference>
     </darkMatterProfileConcentrationMethod>
@@ -304,11 +343,13 @@
     <hydrogenNetworkCMBOnly value="true"/>
     <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
     <coolingFunctionMethod value="summation">
-      <coolingFunctionMethod value="atomicCIECloudy"             iterable="no"/>
-      <coolingFunctionMethod value="CMBCompton"                  iterable="no"/>
+      <coolingFunctionMethod value="atomicCIECloudy" iterable="no"/>
+      <coolingFunctionMethod value="CMBCompton" iterable="no"/>
       <coolingFunctionMethod value="molecularHydrogenGalliPalla" iterable="no"/>
     </coolingFunctionMethod>
-    <mergerTreeBuildHaloMassMaximum value="1.0e11"/>
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+      <massTreeMaximum value="1.0e11"/>
+    </mergerTreeBuildMassesMethod>
   </parameters>
   
   <!-- Black hole binary methods. -->
@@ -348,7 +389,7 @@
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
       <treeNodeMethodFormationTime value="Cole2000" parameterLevel="top"/>
       <outputHotHaloCoolingRates value="false" parameterLevel="top"/>
-      <outputHotHaloCoolingRates value="true"  parameterLevel="top"/>
+      <outputHotHaloCoolingRates value="true" parameterLevel="top"/>
     </coolingRateMethod>
   </parameters>
   
@@ -359,7 +400,7 @@
     <spheroidMassDistribution value="hernquist">
       <dimensionless value="true"/>
     </spheroidMassDistribution>
-    <spheroidMassDistribution value="sersic"   >
+    <spheroidMassDistribution value="sersic">
       <dimensionless value="true"/>
     </spheroidMassDistribution>
   </parameters>
@@ -369,7 +410,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <treeNodeMethodBlackHole value="standard"/>
-    <treeNodeMethodBlackHole value="simple"  />
+    <treeNodeMethodBlackHole value="simple"/>
   </parameters>
   
   <!-- Infall and freefall radii. -->
@@ -378,7 +419,7 @@
     <version>0.9.4</version>
     <coolingInfallRadiusMethod value="coolingRadius"/>
     <coolingInfallRadiusMethod value="coolingFreefall">
-      <freefallRadiusMethod        value="darkMatterHalo"/>
+      <freefallRadiusMethod value="darkMatterHalo"/>
       <freefallTimeAvailableMethod value="haloFormation" parameterLevel="top"/>
       <treeNodeMethodFormationTime value="Cole2000" parameterLevel="top"/>
     </coolingInfallRadiusMethod>
@@ -401,7 +442,7 @@
     <coolingSpecificAngularMomentumMethod value="mean"/>
     <coolingSpecificAngularMomentumMethod value="constantRotation">
       <sourceAngularMomentumSpecificMean value="hotGas">
- 	<useInteriorMean value="true" />
+ 	<useInteriorMean value="true"/>
  	<useInteriorMean value="false"/>
       </sourceAngularMomentumSpecificMean>
       <sourceAngularMomentumSpecificMean value="darkMatter"/>
@@ -438,8 +479,8 @@
     <version>0.9.4</version>
     <starFormationExpulsiveFeedbackDisksMethod value="null"/>
     <starFormationExpulsiveFeedbackDisksMethod value="superwind">
-      <starFormationExpulsiveFeedbackSpheroidMethod value="null" parameterLevel="top"/>
-      <starFormationExpulsiveFeedbackSpheroidMethod value="superwind" parameterLevel="top"/>
+      <starFormationExpulsiveFeedbackSpheroidsMethod value="null" parameterLevel="top"/>
+      <starFormationExpulsiveFeedbackSpheroidsMethod value="superwind" parameterLevel="top"/>
     </starFormationExpulsiveFeedbackDisksMethod>
   </parameters>
 
@@ -457,11 +498,11 @@
       <imfSelectionFixed value="Scalo" parameterLevel="top"/>
       <imfSelectionFixed value="PiecewisePowerLaw" parameterLevel="top">
  	<imfPiecewisePowerLawMassPoints value="0.1 1.0 125.0" parameterLevel="top"/>
- 	<imfPiecewisePowerLawExponents  value="-1.5 -2.3" parameterLevel="top"/>
+ 	<imfPiecewisePowerLawExponents value="-1.5 -2.3" parameterLevel="top"/>
       </imfSelectionFixed>
     </imfSelectionMethod>
     <imfSelectionMethod value="diskSpheroid">
-      <imfSelectionDisk     value="Chabrier"  parameterLevel="top"/>
+      <imfSelectionDisk value="Chabrier" parameterLevel="top"/>
       <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
     </imfSelectionMethod>
   </parameters>
@@ -473,7 +514,7 @@
     <hotHaloMassDistributionMethod value="ricotti2000"/>
     <hotHaloMassDistributionMethod value="betaProfile">
       <hotHaloMassDistributionCoreRadiusMethod value="virialFraction"/>
-      <hotHaloMassDistributionCoreRadiusMethod value="growing"       />
+      <hotHaloMassDistributionCoreRadiusMethod value="growing"/>
     </hotHaloMassDistributionMethod>
   </parameters>
   
@@ -595,7 +636,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="false"/>
-    <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true" />
+    <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
   </parameters>
 
   <!-- Hot halo ram pressure forces -->
@@ -603,7 +644,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <hotHaloRamPressureForceMethod value="Font2008"/>
-    <hotHaloRamPressureForceMethod value="null"    />
+    <hotHaloRamPressureForceMethod value="null"/>
   </parameters>
 
   <!-- Hot halo ram pressure mass loss rates -->
@@ -698,9 +739,11 @@
     <backgroundRadiationWavelengthCountPerDecade value="5"/>
     <backgroundRadiationTimeCountPerDecade value="2"/>
     <!-- Halo mass ranges -->
-    <mergerTreeBuildHaloMassMaximum value="1.0e15"/>
-    <mergerTreeBuildHaloMassMinimum value="1.0e10"/>
-    <mergerTreeBuildTreesPerDecade value="5"/>
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="1.0e15"/>
+    <massTreeMinimum value="1.0e10"/>
+    <treesPerDecade value="5"/>
+    </mergerTreeBuildMassesMethod>
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="5.0e9"/>
     </mergerTreeMassResolutionMethod>
@@ -710,9 +753,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeBuildTreesPerDecade value="4"/>
-    <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
-    <mergerTreeBuildHaloMassMaximum value="3.0e12"/>
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <treesPerDecade value="4"/>
+    <massTreeMinimum value="1.0e12"/>
+    <massTreeMaximum value="3.0e12"/>
+    </mergerTreeBuildMassesMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="scale"/>
@@ -749,15 +794,15 @@
     <haloMassFunctionMethod value="tinker2008"/>
     <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
     <virialOrbitMethod value="fixed"/>
-    <mergerTreeConstructMethod value="build"/>
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeBuilderMethod value="cole2000">
       <accretionLimit value="0.1"/>
       <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
     <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
-      <G0                 value="+0.57"/>
-      <gamma1             value="+0.38"/>
-      <gamma2             value="-0.01"/>
+      <G0 value="+0.57"/>
+      <gamma1 value="+0.38"/>
+      <gamma2 value="-0.01"/>
       <accuracyFirstOrder value="+0.10"/>
     </mergerTreeBranchingProbabilityMethod>
     <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -807,439 +852,454 @@
 
   <!-- Merger tree augmenting -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="200" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+      <massTreeMaximum value="6.0e12"/>
+      <massTreeMinimum value="2.0e12"/>
+      <treesPerDecade value="200"/>
+    </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="sequence">
       <mergerTreeOperatorMethod value="selectWithinRange" iterable="no">
- 	<baseMassMaximum value="1.0e16" />
- 	<baseMassMinimum value="1.0e7" />
+ 	<baseMassMaximum value="1.0e16"/>
+ 	<baseMassMinimum value="1.0e7"/>
       </mergerTreeOperatorMethod>
       <mergerTreeOperatorMethod value="regridTimes" iterable="no">
- 	<expansionFactorEnd value="1.0" />
- 	<expansionFactorStart value="0.047" />
- 	<regridCount value="60" />
- 	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
- 				  11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
- 				  7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
- 				  4.519556  4.179469  3.865683  3.575905  3.308098  3.060419
- 				  2.831182  2.618862  2.422044  2.239486  2.070027  1.912633
- 				  1.766336  1.630271  1.503636  1.385718  1.275846  1.173417
- 				  1.077875  0.988708  0.905463  0.827699  0.755036  0.687109
- 				  0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
- 				  0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
- 				  0.115883  0.089288  0.064493  0.041403  0.019933  0.000000" />
- 	<snapshotSpacing value="list" />
+ 	<expansionFactorEnd value="1.0"/>
+ 	<expansionFactorStart value="0.047"/>
+ 	<regridCount value="60"/>
+ 	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780        11.896569 10.943864 10.073462  9.277915  8.549912  7.883204        7.272188  6.711586  6.196833  5.723864  5.288833  4.888449        4.519556  4.179469  3.865683  3.575905  3.308098  3.060419        2.831182  2.618862  2.422044  2.239486  2.070027  1.912633        1.766336  1.630271  1.503636  1.385718  1.275846  1.173417        1.077875  0.988708  0.905463  0.827699  0.755036  0.687109        0.623590  0.564177  0.508591  0.456577  0.407899  0.362340        0.319703  0.279802  0.242469  0.207549  0.174898  0.144383        0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
+ 	<snapshotSpacing value="list"/>
       </mergerTreeOperatorMethod>
       <mergerTreeOperatorMethod value="pruneByMass" iterable="no">
- 	<massThreshold value="7.08e10" />
- 	<preservePrimaryProgenitor value="true" />
+ 	<massThreshold value="7.08e10"/>
+ 	<preservePrimaryProgenitor value="true"/>
       </mergerTreeOperatorMethod>
       <mergerTreeOperatorMethod value="augment" iterable="no">
- 	<attemptsMaximum value="10000" />
- 	<massCutOff value="7.08e10" />
- 	<massCutOffAttemptsMaximum value="50" />
- 	<massCutOffScaleFactor value="0.0" />
+ 	<attemptsMaximum value="10000"/>
+ 	<massCutOff value="7.08e10"/>
+ 	<massCutOffAttemptsMaximum value="50"/>
+ 	<massCutOffScaleFactor value="0.0"/>
  	<mergerTreeBuilderMethod value="cole2000">
-          <accretionLimit value="0.1" />
-          <branchIntervalStep value="true" />
-          <mergeProbability value="0.1" />
+          <accretionLimit value="0.1"/>
+          <branchIntervalStep value="true"/>
+          <mergeProbability value="0.1"/>
           <mergerTreeMassResolutionMethod value="fixed">
-            <massResolution value="2.5e9" />
+            <massResolution value="2.5e9"/>
           </mergerTreeMassResolutionMethod>
  	</mergerTreeBuilderMethod>
- 	<rescaleMaximum value="20" />
- 	<retryMaximum value="50" />
- 	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
- 				  11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
- 				  7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
- 				  4.519556  4.179469  3.865683  3.575905  3.308098  3.060419
- 				  2.831182  2.618862  2.422044  2.239486  2.070027  1.912633
- 				  1.766336  1.630271  1.503636  1.385718  1.275846  1.173417
- 				  1.077875  0.988708  0.905463  0.827699  0.755036  0.687109
- 				  0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
- 				  0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
- 				  0.115883  0.089288  0.064493  0.041403  0.019933  0.000000" />
- 	<toleranceScale value="0.15" />
+ 	<rescaleMaximum value="20"/>
+ 	<retryMaximum value="50"/>
+ 	<snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780        11.896569 10.943864 10.073462  9.277915  8.549912  7.883204        7.272188  6.711586  6.196833  5.723864  5.288833  4.888449        4.519556  4.179469  3.865683  3.575905  3.308098  3.060419        2.831182  2.618862  2.422044  2.239486  2.070027  1.912633        1.766336  1.630271  1.503636  1.385718  1.275846  1.173417        1.077875  0.988708  0.905463  0.827699  0.755036  0.687109        0.623590  0.564177  0.508591  0.456577  0.407899  0.362340        0.319703  0.279802  0.242469  0.207549  0.174898  0.144383        0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
+ 	<toleranceScale value="0.15"/>
       </mergerTreeOperatorMethod>
       <mergerTreeOperatorMethod value="conditionalMF" iterable="no">
- 	<massRatioCount value="25" />
- 	<massRatioMaximum value="2.0" />
- 	<massRatioMinimum value="2.0e-6" />
- 	<outputGroupName value="treeStatisticsAfterInsertion" />
- 	<parentMassCount value="20" />
- 	<parentMassMaximum value="1.0e15" />
- 	<parentMassMinimum value="2.36e10" />
- 	<parentRedshifts value="0.0 0.0" />
- 	<primaryProgenitorDepth value="4" />
- 	<progenitorRedshifts value="0.508591 1.077875" />
+ 	<massRatioCount value="25"/>
+ 	<massRatioMaximum value="2.0"/>
+ 	<massRatioMinimum value="2.0e-6"/>
+ 	<outputGroupName value="treeStatisticsAfterInsertion"/>
+ 	<parentMassCount value="20"/>
+ 	<parentMassMaximum value="1.0e15"/>
+ 	<parentMassMinimum value="2.36e10"/>
+ 	<parentRedshifts value="0.0 0.0"/>
+ 	<primaryProgenitorDepth value="4"/>
+ 	<progenitorRedshifts value="0.508591 1.077875"/>
       </mergerTreeOperatorMethod>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Merger tree regridding -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="regridTimes">
-      <expansionFactorEnd value="1.0" />
-      <expansionFactorStart value="0.047" />
-      <regridCount value="60" />
-      <snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780
- 				11.896569 10.943864 10.073462  9.277915  8.549912  7.883204
- 				7.272188  6.711586  6.196833  5.723864  5.288833  4.888449
- 				4.519556  4.179469  3.865683  3.575905  3.308098  3.060419
- 				2.831182  2.618862  2.422044  2.239486  2.070027  1.912633
- 				1.766336  1.630271  1.503636  1.385718  1.275846  1.173417
- 				1.077875  0.988708  0.905463  0.827699  0.755036  0.687109
- 				0.623590  0.564177  0.508591  0.456577  0.407899  0.362340
- 				0.319703  0.279802  0.242469  0.207549  0.174898  0.144383
- 				0.115883  0.089288  0.064493  0.041403  0.019933  0.000000" />
-      <snapshotSpacing value="list" />
+      <expansionFactorEnd value="1.0"/>
+      <expansionFactorStart value="0.047"/>
+      <regridCount value="60"/>
+      <snapshotRedshifts value="19.915688 18.243723 16.724525 15.343073 14.085914 12.940780      11.896569 10.943864 10.073462  9.277915  8.549912  7.883204      7.272188  6.711586  6.196833  5.723864  5.288833  4.888449      4.519556  4.179469  3.865683  3.575905  3.308098  3.060419      2.831182  2.618862  2.422044  2.239486  2.070027  1.912633      1.766336  1.630271  1.503636  1.385718  1.275846  1.173417      1.077875  0.988708  0.905463  0.827699  0.755036  0.687109      0.623590  0.564177  0.508591  0.456577  0.407899  0.362340      0.319703  0.279802  0.242469  0.207549  0.174898  0.144383      0.115883  0.089288  0.064493  0.041403  0.019933  0.000000"/>
+      <snapshotSpacing value="list"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Merger tree conditional mass function -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="conditionalMF">
-      <massRatioCount value="25" />
-      <massRatioMaximum value="2.0" />
-      <massRatioMinimum value="2.0e-6" />
-      <outputGroupName value="conditionalMassFunction" />
-      <parentMassCount value="20" />
-      <parentMassMaximum value="1.0e15" />
-      <parentMassMinimum value="2.36e10" />
-      <parentRedshifts value="0.0 0.0" />
-      <primaryProgenitorDepth value="4" />
-      <progenitorRedshifts value="0.508591 1.077875" />
+      <massRatioCount value="25"/>
+      <massRatioMaximum value="2.0"/>
+      <massRatioMinimum value="2.0e-6"/>
+      <outputGroupName value="conditionalMassFunction"/>
+      <parentMassCount value="20"/>
+      <parentMassMaximum value="1.0e15"/>
+      <parentMassMinimum value="2.36e10"/>
+      <parentRedshifts value="0.0 0.0"/>
+      <primaryProgenitorDepth value="4"/>
+      <progenitorRedshifts value="0.508591 1.077875"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Merger tree information content -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="informationContent"/>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Merger tree profiler -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="profiler">
       <massMinimum value="2.0e12"/>
       <massMaximum value="6.0e12"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Merger tree prune by mass -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="pruneByMass">
       <massThreshold value="1.0e11"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Merger tree prune by hierarchy -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="pruneHierarchy">
       <hierarchyDepth value="1"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- Merger tree prune by time -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="pruneByTime">
       <redshiftEarliest value="1.0"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- Merger tree particulate -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="particulate">
-      <outputFileName                 value="testSuite/outputs/particulate.hdf5"/>
-      <massParticle                   value="1.0e10"                            />
-      <timeSnapshot                   value="10.0"                              />
-      <radiusTruncateOverRadiusVirial value="2.0"                               />
-      <selection                      value="hosts"                             />
-      <nonCosmological                value="true"                              />
+      <outputFileName value="testSuite/outputs/particulate.hdf5"/>
+      <massParticle value="1.0e10"/>
+      <timeSnapshot value="10.0"/>
+      <radiusTruncateOverRadiusVirial value="2.0"/>
+      <selection value="hosts"/>
+      <nonCosmological value="true"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- Merger tree dump-to-GraphViz -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeBuildHaloMassMaximum value="6.0e12" />
-    <mergerTreeBuildHaloMassMinimum value="2.0e12" />
-    <mergerTreeBuildTreesHaloMassDistribution value="uniform" />
-    <mergerTreeBuildTreesPerDecade value="10" />
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMaximum value="6.0e12"/>
+    <massTreeMinimum value="2.0e12"/>
+    <treesPerDecade value="10"/>
+  </mergerTreeBuildMassesMethod>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit value="0.1" />
-      <branchIntervalStep value="false" />
-      <mergeProbability value="0.1" />
+      <accretionLimit value="0.1"/>
+      <branchIntervalStep value="false"/>
+      <mergeProbability value="0.1"/>
     </mergerTreeBuilderMethod>
-    <mergerTreeConstructMethod value="build" />
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeMassResolutionMethod value="fixed">
-      <massResolution value="1.0e10" />
+      <massResolution value="1.0e10"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOperatorMethod value="dumpToGraphViz">
       <path value="testSuite/outputs"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- Merger tree perturb masses -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeConstructMethod value="read" />
+    <mergerTreeConstructorMethod value="read">
+      <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
+      <presetMergerTimes value="false"/>
+      <presetMergerNodes value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetSubhaloIndices value="false"/>
+      <presetPositions value="false"/>
+      <presetScaleRadii value="false"/>
+      <presetSpins value="false"/>
+      <presetOrbits value="false"/>
+    </mergerTreeConstructorMethod>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
@@ -1250,40 +1310,43 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <mergerTreeReadFileName value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
-    <mergerTreeReadPresetMergerTimes value="false" />
-    <mergerTreeReadPresetMergerNodes value="false" />
-    <mergerTreeReadPresetSubhaloMasses value="false" />
-    <mergerTreeReadPresetSubhaloIndices value="false" />
-    <mergerTreeReadPresetPositions value="false" />
-    <mergerTreeReadPresetScaleRadii value="false" />
-    <mergerTreeReadPresetSpins value="false" />
-    <mergerTreeReadPresetOrbits value="false" />
     <allTreesExistAtFinalTime value="false"/>
     <mergerTreeOperatorMethod value="perturbMasses">
       <nbodyHaloMassErrorMethod value="friendsOfFriends">
  	<massParticle value="1.0e9"/>
       </nbodyHaloMassErrorMethod>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- Merger tree monotonize mass growth -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <mergerTreeConstructMethod value="read" />
+    <mergerTreeConstructorMethod value="read">
+  <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
+    <presetMergerTimes value="false"/>
+    <presetMergerNodes value="false"/>
+    <presetSubhaloMasses value="false"/>
+    <presetSubhaloIndices value="false"/>
+    <presetPositions value="false"/>
+    <presetScaleRadii value="false"/>
+    <presetSpins value="false"/>
+    <presetOrbits value="false"/>
+  </mergerTreeConstructorMethod>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
@@ -1294,32 +1357,25 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <mergerTreeReadFileName value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
-    <mergerTreeReadPresetMergerTimes value="false" />
-    <mergerTreeReadPresetMergerNodes value="false" />
-    <mergerTreeReadPresetSubhaloMasses value="false" />
-    <mergerTreeReadPresetSubhaloIndices value="false" />
-    <mergerTreeReadPresetPositions value="false" />
-    <mergerTreeReadPresetScaleRadii value="false" />
-    <mergerTreeReadPresetSpins value="false" />
-    <mergerTreeReadPresetOrbits value="false" />
     <allTreesExistAtFinalTime value="false"/>
     <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- Merger tree output root masses -->
   <parameters>
-    <accretionHaloMethod value="null" />
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+    <accretionHaloMethod value="null"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1333,35 +1389,38 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <mergerTreeConstructMethod value="read" />
-    <mergerTreeReadFileName value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
-    <mergerTreeReadPresetMergerTimes value="false" />
-    <mergerTreeReadPresetMergerNodes value="false" />
-    <mergerTreeReadPresetSubhaloMasses value="false" />
-    <mergerTreeReadPresetSubhaloIndices value="false" />
-    <mergerTreeReadPresetPositions value="false" />
-    <mergerTreeReadPresetScaleRadii value="false" />
-    <mergerTreeReadPresetSpins value="false" />
-    <mergerTreeReadPresetOrbits value="false" />
+    <mergerTreeConstructorMethod value="read">
+  <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
+    <presetMergerTimes value="false"/>
+    <presetMergerNodes value="false"/>
+    <presetSubhaloMasses value="false"/>
+    <presetSubhaloIndices value="false"/>
+    <presetPositions value="false"/>
+    <presetScaleRadii value="false"/>
+    <presetSpins value="false"/>
+    <presetOrbits value="false"/>
+  </mergerTreeConstructorMethod>
     <allTreesExistAtFinalTime value="false"/>
     <mergerTreeOperatorMethod value="outputRootMasses">
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperatorMethod>
-    <treeNodeMethodBasic value="standard" />
-    <treeNodeMethodBlackHole value="null" />
-    <treeNodeMethodDarkMatterProfile value="null" />
-    <treeNodeMethodDisk value="null" />
-    <treeNodeMethodHotHalo value="null" />
-    <treeNodeMethodPosition value="null" />
-    <treeNodeMethodSatellite value="standard" />
-    <treeNodeMethodSpheroid value="null" />
-    <treeNodeMethodSpin value="null" />
-    <verbosityLevel value="1" />
+    <treeNodeMethodBasic value="standard"/>
+    <treeNodeMethodBlackHole value="null"/>
+    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDisk value="null"/>
+    <treeNodeMethodHotHalo value="null"/>
+    <treeNodeMethodPosition value="null"/>
+    <treeNodeMethodSatellite value="standard"/>
+    <treeNodeMethodSpheroid value="null"/>
+    <treeNodeMethodSpin value="null"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
   <!-- WDM model -->
   <parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodBlackHole value="null"/>
@@ -1379,7 +1438,7 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
     <darkMatterParticleMethod value="WDMThermal">
-      <mass                      value="2.0"/>
+      <mass value="2.0"/>
       <degreesOfFreedomEffective value="1.5"/>
     </darkMatterParticleMethod>
     <powerSpectrumPrimordialMethod value="powerLaw">
@@ -1458,9 +1517,9 @@
 	<darkMatterProfileConcentrationMethod value="diemerKravtsov2014"/>
       </reference>
     </darkMatterProfileConcentrationMethod>
-    <mergerTreeConstructMethod value="build"/>
+    <mergerTreeConstructorMethod value="build"/>
     <mergerTreeBuilderMethod value="cole2000">
-      <accretionLimit   value="0.1"/>
+      <accretionLimit value="0.1"/>
       <mergeProbability value="0.1"/>
       <redshiftMaximum value="30"/>
       <toleranceResolutionParent value="2.0e-2"/>
@@ -1472,26 +1531,28 @@
     <modifiedPressSchechterG0 value="0.57"/>
     <modifiedPressSchechterGamma1 value="0.38"/>
     <modifiedPressSchechterGamma2 value="-0.01"/>
-    <mergerTreeBuildHaloMassMinimum value="1.0e12"/>
-    <mergerTreeBuildHaloMassMaximum value="2.0e12"/>
-    <mergerTreeBuildTreesPerDecade value="20"/>
+    <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e12"/>
+    <massTreeMaximum value="2.0e12"/>
+    <treesPerDecade value="20"/>
+    </mergerTreeBuildMassesMethod>
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="1.0e9"/>
     </mergerTreeMassResolutionMethod>
-    <virialDensityContrastMethod  value="sphericalCollapseMatterLambda"/>
+    <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
     <darkMatterProfileMethod value="NFW"/>
     <accretionHaloMethod value="null"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
-    <odeToleranceAbsolute   value="0.01"/>
-    <odeToleranceRelative   value="0.01"/>
-    <timestepHostAbsolute   value="1.00"/>
-    <timestepHostRelative   value="0.10"/>
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
     <timestepSimpleAbsolute value="10.00"/>
     <timestepSimpleRelative value="10.00"/>
-    <outputTimestepHistory      value="false"/>
-    <outputRedshifts            value="0.0"/>
-    <verbosityLevel value="1" />
+    <outputTimestepHistory value="false"/>
+    <outputRedshifts value="0.0"/>
+    <verbosityLevel value="1"/>
   </parameters>
   
 </parameterGrid>

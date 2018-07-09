@@ -20,10 +20,10 @@
 
   use Halo_Mass_Functions
 
-  !# <mergerTreeHaloMassFunctionSampling name="mergerTreeHaloMassFunctionSamplingStllrMssFnctn" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn" defaultThreadPrivate="yes">
   !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
-  !# </mergerTreeHaloMassFunctionSampling>
-  type, extends(mergerTreeHaloMassFunctionSamplingClass) :: mergerTreeHaloMassFunctionSamplingStllrMssFnctn
+  !# </mergerTreeBuildMassDistribution>
+  type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
      !% Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
      private
      class           (haloMassFunctionClass), pointer :: haloMassFunction_
@@ -34,13 +34,13 @@
    contains
      final     ::           stellarMassFunctionDestructor
      procedure :: sample => stellarMassFunctionSample
-  end type mergerTreeHaloMassFunctionSamplingStllrMssFnctn
+  end type mergerTreeBuildMassDistributionStllrMssFnctn
 
-  interface mergerTreeHaloMassFunctionSamplingStllrMssFnctn
+  interface mergerTreeBuildMassDistributionStllrMssFnctn
      !% Constructors for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class.
      module procedure stellarMassFunctionConstructorParameters
      module procedure stellarMassFunctionConstructorInternal
-  end interface mergerTreeHaloMassFunctionSamplingStllrMssFnctn
+  end interface mergerTreeBuildMassDistributionStllrMssFnctn
 
 contains
 
@@ -48,13 +48,13 @@ contains
     !% Constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type            (mergerTreeHaloMassFunctionSamplingStllrMssFnctn)                :: self
-    type            (inputParameters                                      ), intent(inout) :: parameters
-    class           (haloMassFunctionClass                                ), pointer       :: haloMassFunction_
-    double precision                                                                       :: alpha             , beta               , &
-          &                                                                                   constant          , binWidthLogarithmic, &
-          &                                                                                   massMinimum       , massMaximum        , &
-          &                                                                                   massCharacteristic, normalization
+    type            (mergerTreeBuildMassDistributionStllrMssFnctn)                :: self
+    type            (inputParameters                             ), intent(inout) :: parameters
+    class           (haloMassFunctionClass                       ), pointer       :: haloMassFunction_
+    double precision                                                              :: alpha             , beta               , &
+          &                                                                          constant          , binWidthLogarithmic, &
+          &                                                                          massMinimum       , massMaximum        , &
+          &                                                                          massCharacteristic, normalization
     
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -113,7 +113,7 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
-    self=mergerTreeHaloMassFunctionSamplingStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_)
+    self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function stellarMassFunctionConstructorParameters
@@ -121,7 +121,7 @@ contains
   function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class.
    implicit none
-    type            (mergerTreeHaloMassFunctionSamplingStllrMssFnctn)                        :: self
+    type            (mergerTreeBuildMassDistributionStllrMssFnctn)                        :: self
     class           (haloMassFunctionClass                          ), intent(in   ), target :: haloMassFunction_
     double precision                                                 , intent(in   )         :: alpha             , beta               , &
          &                                                                                      constant          , binWidthLogarithmic, &
@@ -135,7 +135,7 @@ contains
   subroutine stellarMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass sampling class.
     implicit none
-    type(mergerTreeHaloMassFunctionSamplingStllrMssFnctn), intent(inout) :: self
+    type(mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
 
     !# <objectDestructor name="self%haloMassFunction_"/>
     return
@@ -147,7 +147,7 @@ contains
     use Galacticus_Meta_Compute_Times
     use Numerical_Integration
     implicit none
-    class           (mergerTreeHaloMassFunctionSamplingStllrMssFnctn), intent(inout) :: self
+    class           (mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
     double precision                                                 , intent(in   ) :: mass                               , massMaximum                 , &
          &                                                                              massMinimum                        , time
     double precision                                                 , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2

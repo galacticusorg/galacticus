@@ -25,9 +25,6 @@ module Merger_Tree_Read_Importers
   use               Kind_Numbers
   use               Galacticus_Nodes
   use               Pseudo_Random
-  !# <include directive="mergerTreeImporter" type="functionModules" >
-  include 'mergerTreeImporter.functionModules.inc'
-  !# </include>
   private
   public :: nodeData, nodeDataMinimal
 
@@ -105,11 +102,12 @@ module Merger_Tree_Read_Importers
      module procedure importerUnitConvert2D
   end interface importerUnitConvert
 
-  !# <include directive="mergerTreeImporter" type="function" >
+  !# <functionClass>
+  !#  <name>mergerTreeImporter</name>
   !#  <description>Object providing functions for importing merger trees.</description>
   !#  <descriptiveName>Merger Tree Importer</descriptiveName>
   !#  <default>galacticus</default>
-  !#  <defaultThreadPrivate>no</defaultThreadPrivate>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="open" >
   !#   <description>Opens the file.</description>
   !#   <type>void</type>
@@ -136,7 +134,7 @@ module Merger_Tree_Read_Importers
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#  </method>
-   !#  <method name="treesAreSelfContained" >
+  !#  <method name="treesAreSelfContained" >
   !#   <description>Returns a Boolean integer specifying whether trees are self-contained.</description>
   !#   <type>integer</type>
   !#   <pass>yes</pass>
@@ -255,9 +253,10 @@ module Merger_Tree_Read_Importers
   !#   <pass>yes</pass>
   !#   <argument>class(nodeData), intent(in   ) :: node</argument>
   !#  </method>
-  include 'mergerTreeImporter.type.inc'
-  !# </include>
+  !# </functionClass>
 
+contains
+  
   function importerUnitsMultiply(units1,units2)
     !% Multiply to {\normalfont \ttfamily importerUnits} objects.
     implicit none

@@ -20,6 +20,6 @@
     <sigma_8 value="0.912"/>
   </cosmologicalMassVarianceMethod>
   
-  <cosmologicalMassVarianceMethod idRef="myCMV" />
+  <cosmologicalMassVarianceMethod idRef="myCMV"/>
   
 </parameters>
