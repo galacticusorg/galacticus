@@ -18,4 +18,5 @@ int main() {
   } else {
     printf(" herr_t = ?????\n"        );
   }
+  return 0;
 }
