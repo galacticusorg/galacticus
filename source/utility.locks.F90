@@ -20,10 +20,11 @@
 
 module Locks
   !% Provides advanced locks.
-  !$ use OMP_Lib
+  use   , intrinsic :: ISO_C_Binding
+  !$ use            :: OMP_Lib
   implicit none
   private
-  public :: ompLock, ompReadWriteLock
+  public :: ompLock, ompReadWriteLock, ompIncrementalLock
 
   type :: ompLock
      !% OpenMP lock type which allows querying based on thread number.
@@ -120,6 +121,44 @@ module Locks
      !% Interface to constructors for OpenMP read/write locks.
      module procedure :: ompReadWriteLockConstructor
   end interface ompReadWriteLock
+
+  type :: ompIncrementalLock
+     !% OpenMP lock type which requires (and forces) locking to proceed in order.
+     private
+     !$ integer(omp_lock_kind) :: lock
+     integer   (c_size_t     ) :: lockValue
+   contains
+     !@ <objectMethods>
+     !@   <object>ompIncrementalLock</object>
+     !@   <objectMethod>
+     !@     <method>set</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Obtain a lock on the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>unset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Release a lock on the object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>(Re)initialize an OpenMP incremental lock object.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::               ompIncrementalLockDestructor
+     procedure :: initialize => ompIncrementalLockInitialize
+     procedure :: set        => ompIncrementalLockSet
+     procedure :: unset      => ompIncrementalLockUnset
+  end type ompIncrementalLock
+  
+  interface ompIncrementalLock
+     !% Interface to constructors for OpenMP incremental locks.
+     module procedure :: ompIncrementalLockConstructor
+  end interface ompIncrementalLock
 
 contains
   
@@ -277,4 +316,59 @@ contains
     return
   end subroutine ompReadWriteLockUnsetWrite
 
+  function ompIncrementalLockConstructor() result (self)
+    !% Constructor for OpenMP incremental lock objects.
+    implicit none
+    type(ompIncrementalLock) :: self
+
+    call self%initialize()    
+    return
+  end function ompIncrementalLockConstructor
+
+  subroutine ompIncrementalLockDestructor(self)
+    !% Destructor for OpenMP incremental lock objects.
+    implicit none
+    type   (ompIncrementalLock), intent(inout) :: self
+
+    ! Destroy the lock.
+    !$ call OMP_Destroy_Lock(self%lock)
+    return
+  end subroutine ompIncrementalLockDestructor
+
+  subroutine ompIncrementalLockInitialize(self)
+    !% (Re)initialize an OpenMP incremental lock object.
+    implicit none
+    class  (ompIncrementalLock), intent(inout) :: self
+
+    ! Initialize the lock.
+    !$ call OMP_Init_Lock(self%lock)
+    self%lockValue=0_c_size_t
+    return
+  end subroutine ompIncrementalLockInitialize
+
+  subroutine ompIncrementalLockSet(self,lockValue)
+    !% Get a lock on an OpenMP incremental lock object.
+    implicit none
+    class  (ompIncrementalLock), intent(inout) :: self
+    integer(c_size_t          ), intent(in   ) :: lockValue
+
+    do while (self%lockValue /= lockValue-1_c_size_t)
+       ! Spin. We sleep for zero seconds - without this sleep() this loop gets optimized out, such that if the check fails the
+       ! first time it never gets rechecked.
+       call Sleep(0)
+    end do
+    !$ call OMP_Set_Lock(self%lock)
+    self%lockValue=self%lockValue+1_c_size_t
+    return
+  end subroutine ompIncrementalLockSet
+  
+  subroutine ompIncrementalLockUnset(self)
+    !% Release a lock on an OpenMP incremental lock object.
+    implicit none
+    class(ompIncrementalLock), intent(inout) :: self
+
+    !$ call OMP_Unset_Lock(self%lock)
+    return
+  end subroutine ompIncrementalLockUnset
+  
 end module Locks
