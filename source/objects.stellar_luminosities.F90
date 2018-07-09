@@ -1474,25 +1474,35 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Stellar_Luminosities_State_Store(stateFile,fgslStateFile,stateOperationID)
     !% Write the luminosities state to file.
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Display
+    use            :: FGSL
+    use            :: String_Handling
+    use            :: ISO_Varying_String
     implicit none
-    integer           , intent(in   ) :: stateFile    , stateOperationID
+    integer           , intent(in   ) :: stateFile
+    integer(c_size_t ), intent(in   ) :: stateOperationID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     integer                           :: i
     !GCC$ attributes unused :: fgslStateFile, stateOperationID
 
+    call Galacticus_Display_Indent  (var_str('storing state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
     write (stateFile) luminositiesInitialized
     if (luminositiesInitialized) then
+       call Galacticus_Display_Message(var_str('storing "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
        write (stateFile) luminosityCount
+       call Galacticus_Display_Message(var_str('storing luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
        write (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
        do i=1,luminosityCount
+          call Galacticus_Display_Message(var_str('storing luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityWorking)
           call luminosityName          (i)%stateStore(stateFile)
           call luminosityType          (i)%stateStore(stateFile)
           call luminosityFilter        (i)%stateStore(stateFile)
           call luminosityPostprocessSet(i)%stateStore(stateFile)
        end do
     end if
-    return
+    call Galacticus_Display_Unindent(var_str('done [position: ')//FTell(stateFile)//']'                                    ,verbosity=verbosityWorking)
+   return
   end subroutine Stellar_Luminosities_State_Store
 
   !# <galacticusStateRetrieveTask>
@@ -1500,15 +1510,21 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Stellar_Luminosities_State_Restore(stateFile,fgslStateFile,stateOperationID)
     !% Retrieve the luminosities state from the file.
-    use Instruments_Filters
-    use Stellar_Population_Spectra_Postprocess
-    use FGSL
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Display
+    use            :: Instruments_Filters
+    use            :: Stellar_Population_Spectra_Postprocess
+    use            :: FGSL
+    use            :: String_Handling
+    use            :: ISO_Varying_String
     implicit none
-    integer           , intent(in   ) :: stateFile    , stateOperationID
+    integer           , intent(in   ) :: stateFile
+    integer(c_size_t ), intent(in   ) :: stateOperationID
     type   (fgsl_file), intent(in   ) :: fgslStateFile
     integer                           :: i
     !GCC$ attributes unused :: fgslStateFile, stateOperationID
 
+    call Galacticus_Display_Indent  (var_str('restoring state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
     read (stateFile) luminositiesInitialized
     if (allocated(luminosityFilterIndex                  )) deallocate(luminosityFilterIndex                  )
     if (allocated(luminosityIndex                        )) deallocate(luminosityIndex                        )
@@ -1523,6 +1539,7 @@ contains
     if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
     if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
     if (luminositiesInitialized) then
+       call Galacticus_Display_Message(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
        read (stateFile) luminosityCount
        allocate(luminosityFilterIndex                  (luminosityCount))
        allocate(luminosityIndex                        (luminosityCount))
@@ -1538,8 +1555,10 @@ contains
        allocate(zeroStellarLuminosities%luminosityValue(luminosityCount))
        unitStellarLuminosities%luminosityValue=1.0d0
        zeroStellarLuminosities%luminosityValue=0.0d0
+       call Galacticus_Display_Message(var_str('restoring luminosities [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
        read (stateFile) luminosityIndex,luminosityCosmicTime,luminosityRedshift,luminosityBandRedshift
        do i=1,luminosityCount
+          call Galacticus_Display_Message(var_str('restoring luminosity ')//i//' of '//luminosityCount//' [position: '//FTell(stateFile)//']',verbosity=verbosityWorking)
           call luminosityName          (i)%stateRestore(stateFile)
           call luminosityType          (i)%stateRestore(stateFile)
           call luminosityFilter        (i)%stateRestore(stateFile)
@@ -1548,6 +1567,7 @@ contains
           luminosityPostprocessingChainIndex(i)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(i))
        end do
     end if
+    call Galacticus_Display_Unindent(var_str('done [position: ')//FTell(stateFile)//']'                                      ,verbosity=verbosityWorking)
     return
   end subroutine Stellar_Luminosities_State_Restore
 
