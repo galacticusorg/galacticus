@@ -16,7 +16,7 @@ use Galacticus::Launch::PBS;
 use Galacticus::Launch::MonolithicPBS;
 use Galacticus::Launch::Slurm;
 use List::ExtraUtils;
-use Scalar::Util 'reftype';
+use Scalar::Util qw(looks_like_number reftype);
 
 # Script to launch sets of Galacticus models, iterating over sets of parameters and performing analysis
 # on the results. Supports launching on a variety of platforms via modules.
@@ -265,36 +265,49 @@ sub unfoldParameters {
 		 name      => undef()
 	     }
 	    );
+	# Build a stack that we can traverse depth-first.
+	my @parameterStackNew;
 	while ( scalar(@parameterStack) > 0 ) {
 	    my $parameter = shift(@parameterStack);
-	    if ( ! reftype($parameter->{'parameter'}) ) {
-		# Simple parameter lacking subparameters - ignore.
-	    } elsif ( reftype($parameter->{'parameter'}) eq "HASH" ) {
-		# Check for a hierarchy level attribute.
-		if ( exists($parameter->{'parameter'}->{'parameterLevel'}) ) {
-		    if ( $parameter->{'parameter'}->{'parameterLevel'} eq "top" ) {
-			# Move this parameter to the top of the parameter hierarchy.
-			delete($parameter->{'parameter'}->{'parameterLevel'});
-			$parameters->{$parameter->{'name'}} = $parameter->{'parameter'};
-			delete($parameter->{'parent'}->{$parameter->{'name'}});
-		    } else {
-			die("unknown parameterLevel");
+	    if ( reftype($parameter->{'parameter'}) && reftype($parameter->{'parameter'}) eq "HASH" ) {
+		# Contains sub-parameters. Push them to the parameter stack.
+		push(@parameterStackNew,$parameter);
+		push(
+		    @parameterStack,
+		    {
+			parameter => $parameter->{'parameter'}->{$_},
+			parent    => $parameter                     ,
+			name      =>                             $_
 		    }
-		    # Mark the parameters as modified and exit the parameter walk.
-		    $modified = 1;
-		    last;
+		    )
+		    foreach ( keys(%{$parameter->{'parameter'}}) );
+	    }
+	}
+	# Step through the stack handling any parameterLevel attributes.
+	while ( scalar(@parameterStackNew) > 0 ) {
+	    my $parameter = pop(@parameterStackNew);
+	    if ( exists($parameter->{'parameter'}->{'parameterLevel'}) ) {
+		if ( looks_like_number($parameter->{'parameter'}->{'parameterLevel'}) && $parameter->{'parameter'}->{'parameterLevel'} < 0 ) {
+		    # Move this parameter up.
+		    my $parameterTarget = $parameter;
+		    for(;$parameter->{'parameter'}->{'parameterLevel'}<=0;++$parameter->{'parameter'}->{'parameterLevel'}) {
+			$parameterTarget = $parameterTarget->{'parent'};
+		    }
+		    delete($parameter->{'parameter'}->{'parameterLevel'});
+		    delete($parameter->{'parent'}->{'parameter'}->{$parameter->{'name'}});
+		    delete($parameterTarget->{'parameter'}->{$parameter->{'name'}});
+		    $parameterTarget->{'parameter'}->{$parameter->{'name'}} = $parameter->{'parameter'};
+		} elsif ( $parameter->{'parameter'}->{'parameterLevel'} eq "top" ) {
+		    # Move this parameter to the top of the parameter hierarchy.
+		    delete($parameter->{'parameter'}->{'parameterLevel'});
+		    $parameters->{$parameter->{'name'}} = $parameter->{'parameter'};
+		    delete($parameter->{'parent'}->{'parameter'}->{$parameter->{'name'}});
 		} else {
-		    # Contains sub-parameters. Push them to the parameter stack.
-		    push(
-			@parameterStack,
-			{
-			    parameter => $parameter->{'parameter'}->{$_},
-			    parent    => $parameter->{'parameter'}      ,
-			    name      =>                             $_
-			}
-			)
-			foreach ( keys(%{$parameter->{'parameter'}}) );
+		    die("unknown parameterLevel");
 		}
+		# Mark the parameters as modified and exit the parameter walk.
+		$modified = 1;
+		last;
 	    }
 	}
 	# Transfer parameters to the output list unless modified, in which case push them back onto our stack for further
