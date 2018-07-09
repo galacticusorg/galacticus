@@ -69,6 +69,9 @@
   !#   \end{description}
   !#   Note that the high resolution spectra from \cite{bruzual_stellar_2003} may require you to adjust the {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceRelative]} parameter to a larger value\footnote{Or, alternatively, set {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceDegrade]}$=${\normalfont \ttfamily true}. This will cause \glc\ to increase the tolerance as necessary to get the integrals to converge---issuing warnings each time the tolerance is increased.}. The sharp features in these high resolution spectra can be difficult to integrate. Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\normalfont \ttfamily scripts/ssps} folder. Spectra for other initial mass functions will be computed automatically when using the \cite{conroy_propagation_2009} population synthesis models.
   !#  </description>
+  !#  <stateStorable>
+  !#   <exclude variables="spectra, imfLookup, forceZeroMetallicity, fileName"/>
+  !#  </stateStorable>
   !# </stellarPopulationSpectra>
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile
      !% A stellar population spectra class which interpolates spectra given in a file.
