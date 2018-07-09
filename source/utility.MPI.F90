@@ -21,11 +21,12 @@
 module MPI_Utilities
   !% Implements useful MPI utilities.
 #ifdef USEMPI
-  use               MPI
+  use               :: MPI
 #endif
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Galacticus_Error
+  !$ use            :: Locks
+  use   , intrinsic :: ISO_C_Binding
+  use               :: ISO_Varying_String
+  use               :: Galacticus_Error
   private
   public :: mpiInitialize, mpiFinalize, mpiBarrier, mpiSelf, mpiCounter
 
@@ -191,8 +192,9 @@ module MPI_Utilities
   ! Define an MPI counter type.
   type :: mpiCounter
      !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
-     integer                                      :: window , typeClass
+     integer                                      :: window  , typeClass
      integer(c_size_t), allocatable, dimension(:) :: counter
+     !$ type(ompLock )                            :: ompLock_
    contains
      !@ <objectMethods>
      !@   <object>mpiCounter</object>
@@ -230,12 +232,14 @@ contains
 
   subroutine mpiInitialize(mpiThreadingRequired)
     !% Initialize MPI.
-    integer                              , optional    , intent(in   ) :: mpiThreadingRequired
 #ifdef USEMPI
     use Memory_Management
     use Galacticus_Error
     use Hashes
+#endif
     implicit none
+    integer                              , optional    , intent(in   ) :: mpiThreadingRequired
+#ifdef USEMPI
     integer                                                            :: i                   , iError             , &
          &                                                                mpiThreadingProvided, processorNameLength, &
          &                                                                iProcess
@@ -1325,9 +1329,10 @@ contains
        if (iError /= 0) call Galacticus_Error_Report('failed to create RMA window'//{introspection:location})
     end if
 #else
-    self%window=-1
-    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+    allocate(self%counter(1))
+    self%counter=0
 #endif
+    !$ self%ompLock_=ompLock()
     return
   end function counterConstructor
 
@@ -1356,17 +1361,20 @@ contains
     integer                            :: iError
     
     counterIn=1
+    !$ call self%ompLock_%  set()
     call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'          //{introspection:location})
     call MPI_Get_Accumulate(counterIn,1,self%typeClass,counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,MPI_Sum,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to accumulate to MPI counter'//{introspection:location})
     call MPI_Win_Unlock(0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'        //{introspection:location})
+    !$ call self%ompLock_%unset()
     counterIncrement=counterOut(1)
 #else
-    !GCC$ attributes unused :: self
-    counterIncrement=0_c_size_t
-    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+    !$ call self%ompLock_%  set()
+    counterIncrement=self%counter(1)
+    self%counter(1)=self%counter(1)+1_c_size_t
+    !$ call self%ompLock_%unset()
 #endif
     return
   end function counterIncrement
@@ -1381,17 +1389,19 @@ contains
     integer(c_size_t  ), dimension(1)  :: counterOut
     integer                            :: iError
     
+    !$ call self%ompLock_%  set()
     call MPI_Win_Lock(MPI_Lock_Exclusive,0,0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to lock RMA window'           //{introspection:location})
     call MPI_Get(counterOut,1,self%typeClass,0,0_MPI_Address_Kind,1,self%typeClass,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to get value from MPI counter'//{introspection:location})
     call MPI_Win_Unlock(0,self%window,iError)
     if (iError /= 0) call Galacticus_Error_Report('failed to unlock RMA window'         //{introspection:location})
+    !$ call self%ompLock_%unset()
     counterGet=counterOut(1)-1
 #else
-    !GCC$ attributes unused :: self
-    counterGet=0_c_size_t
-    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+    !$ call self%ompLock_%  set()
+    counterGet=self%counter(1)-1_c_size_t
+    !$ call self%ompLock_%unset()
 #endif
     return
   end function counterGet
