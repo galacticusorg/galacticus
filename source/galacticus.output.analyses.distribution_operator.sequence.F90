@@ -40,10 +40,11 @@
      !@     <description>Prepend an operator to a sequence of distribution operators.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::            sequenceDestructor
+     final     ::                        sequenceDestructor
      procedure :: operateScalar       => sequenceOperateScalar
      procedure :: operateDistribution => sequenceOperateDistribution
      procedure :: prepend             => sequencePrepend
+     procedure :: deepCopy            => sequenceDeepCopy
   end type outputAnalysisDistributionOperatorSequence
 
   interface outputAnalysisDistributionOperatorSequence
@@ -167,3 +168,37 @@ contains
     return
   end subroutine sequencePrepend
   
+  subroutine sequenceDeepCopy(self,destination)
+    !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution operator class.
+    use Galacticus_Error
+    implicit none
+    class(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
+    class(outputAnalysisDistributionOperatorClass   ), intent(  out) :: destination
+    type (distributionOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
+         &                                                              operatorNew_
+
+    call self%outputAnalysisDistributionOperatorClass%deepCopy(destination)
+    select type (destination)
+    type is (outputAnalysisDistributionOperatorSequence)
+       destination%operators => null          ()
+       operatorDestination_  => null          ()
+       operator_             => self%operators
+       do while (associated(operator_))
+          allocate(operatorNew_)
+          if (associated(operatorDestination_)) then
+             operatorDestination_%next       => operatorNew_
+             operatorDestination_            => operatorNew_             
+          else
+             destination          %operators => operatorNew_
+             operatorDestination_            => operatorNew_
+          end if
+          allocate(operatorNew_%operator_,mold=operator_%operator_)
+          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          operator_ => operator_%next
+       end do       
+    class default
+       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine sequenceDeepCopy
+

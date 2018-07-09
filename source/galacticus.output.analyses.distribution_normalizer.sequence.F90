@@ -34,6 +34,7 @@
   contains
      final     ::               sequenceDestructor
      procedure :: normalize  => sequenceNormalize
+     procedure :: deepCopy   => sequenceDeepCopy
   end type outputAnalysisDistributionNormalizerSequence
 
   interface outputAnalysisDistributionNormalizerSequence
@@ -112,3 +113,37 @@ contains
     end do
     return
   end subroutine sequenceNormalize
+
+  subroutine sequenceDeepCopy(self,destination)
+    !% Perform a deep copy for the {\normalfont \ttfamily sequence} output analysis distribution normalizer operator class.
+    use Galacticus_Error
+    implicit none
+    class(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
+    class(outputAnalysisDistributionNormalizerClass   ), intent(  out) :: destination
+    type (normalizerList                              ), pointer       :: normalizer_   , normalizerDestination_, &
+         &                                                                normalizerNew_
+
+    call self%outputAnalysisDistributionNormalizerClass%deepCopy(destination)
+    select type (destination)
+    type is (outputAnalysisDistributionNormalizerSequence)
+       destination%normalizers => null          ()
+       normalizerDestination_  => null          ()
+       normalizer_             => self%normalizers
+       do while (associated(normalizer_))
+          allocate(normalizerNew_)
+          if (associated(normalizerDestination_)) then
+             normalizerDestination_%next       => normalizerNew_
+             normalizerDestination_            => normalizerNew_             
+          else
+             destination          %normalizers => normalizerNew_
+             normalizerDestination_            => normalizerNew_
+          end if
+          allocate(normalizerNew_%normalizer_,mold=normalizer_%normalizer_)
+          call normalizer_%normalizer_%deepCopy(normalizerNew_%normalizer_)
+          normalizer_ => normalizer_%next
+       end do       
+    class default
+       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine sequenceDeepCopy

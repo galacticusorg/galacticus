@@ -36,6 +36,7 @@
      procedure :: specificEnergy                 => summationSpecificEnergy
      procedure :: specificEnergyGradient         => summationSpecificEnergyGradient
      procedure :: specificEnergyIsEverywhereZero => summationSpecificEnergyIsEverywhereZero
+     procedure :: deepCopy                       => summationDeepCopy
   end type darkMatterProfileHeatingSummation
 
   interface darkMatterProfileHeatingSummation
@@ -162,3 +163,37 @@ contains
     end do
     return
   end function summationSpecificEnergyIsEverywhereZero
+
+  subroutine summationDeepCopy(self,destination)
+    !% Perform a deep copy for the {\normalfont \ttfamily summation} dark matter halo profile heating class.
+    use Galacticus_Error
+    implicit none
+    class(darkMatterProfileHeatingSummation), intent(inout) :: self
+    class(darkMatterProfileHeatingClass    ), intent(  out) :: destination
+    type (heatSourceList                   ), pointer       :: heatSource_   , heatSourceDestination_, &
+         &                                                     heatSourceNew_
+
+    call self%darkMatterProfileHeatingClass%deepCopy(destination)
+    select type (destination)
+    type is (darkMatterProfileHeatingSummation)
+       destination%heatSources => null          ()
+       heatSourceDestination_  => null          ()
+       heatSource_             => self%heatSources
+       do while (associated(heatSource_))
+          allocate(heatSourceNew_)
+          if (associated(heatSourceDestination_)) then
+             heatSourceDestination_%next       => heatSourceNew_
+             heatSourceDestination_            => heatSourceNew_             
+          else
+             destination          %heatSources => heatSourceNew_
+             heatSourceDestination_            => heatSourceNew_
+          end if
+          allocate(heatSourceNew_%heatSource,mold=heatSource_%heatSource)
+          call heatSource_%heatSource%deepCopy(heatSourceNew_%heatSource)
+          heatSource_ => heatSource_%next
+       end do       
+    class default
+       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine summationDeepCopy
