@@ -49,7 +49,7 @@ sub Process_ObjectBuilder {
 		    $defaultXML                 =~ s/\s*\n\s*//g;
 		    $defaultXML                 =~ s/\s{2,}/ /g;
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) then\n";
-		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'))\n";
+		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),noOutput=.true.)\n";
 		    $builderCode               .= "     call parametersDefault%parametersGroupCopy(parametersCurrent)\n";
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "  end if\n";
@@ -120,16 +120,6 @@ sub Process_ObjectBuilder {
 			 attributes => [ "pointer"           ]
 		     }
 		    );
-		push(
-		    @declarations,
-		    {
-			intrinsic  => "type"                 ,
-			type       => "inputParameters"      ,
-			variables  => [ "parametersDefault" ],
-			attributes => [ "target"            ]
-		    }
-		    )
-		    if ( $parametersDefaultRequired );
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 		# Ensure error reporting module is used.
 		my $usesNode =
@@ -147,6 +137,20 @@ sub Process_ObjectBuilder {
 		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		# Record that we have added the necessary declarations to the parent.
 		$node->{'parent'}->{'objectBuilderDeclarations'} = 1;
+	    }
+	    if ( $parametersDefaultRequired && ! exists($node->{'parent'}->{'objectBuilderDefaultDeclarations'}) ) {
+		my @declarations =
+		    (
+		     {
+			 intrinsic  => "type"                 ,
+			 type       => "inputParameters"      ,
+			 variables  => [ "parametersDefault" ],
+			 attributes => [ "target"            ]
+		     }
+		    );
+		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
+		# Record that we have added the necessary declarations to the parent.
+		$node->{'parent'}->{'objectBuilderDefaultDeclarations'} = 1;
 	    }
 	    unless ( exists($node->{'parent'}->{'objectBuilderAttributes'}->{$node->{'directive'}->{'source'}}) ) {
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes($node->{'parent'},$node->{'directive'}->{'source'},["target"])
