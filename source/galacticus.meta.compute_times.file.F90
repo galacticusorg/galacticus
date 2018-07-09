@@ -39,11 +39,11 @@ contains
     use IO_XML
     use Galacticus_Error
     implicit none
-    type     (varying_string  ), intent(in   )          :: timePerTreeMethod
+    type     (varying_string               ), intent(in   )          :: timePerTreeMethod
     procedure(Galacticus_Time_Per_Tree_File), intent(inout), pointer :: Galacticus_Time_Per_Tree_Get
-    type     (Node            )               , pointer :: doc                         , thisFit
-    integer                                             :: ioErr
-    type     (varying_string  )                         :: timePerTreeFitFileName
+    type     (Node                         )               , pointer :: doc                         , thisFit
+    integer                                                          :: ioErr
+    type     (varying_string               )                         :: timePerTreeFitFileName
 
     if (timePerTreeMethod == 'file') then
        Galacticus_Time_Per_Tree_Get => Galacticus_Time_Per_Tree_File
@@ -83,7 +83,6 @@ contains
        Galacticus_Time_Per_Tree_File=Galacticus_Time_Per_Tree_File+fitCoefficient(iTerm)*logTreeRootMass**iTerm
     end do
     Galacticus_Time_Per_Tree_File=10.0d0**Galacticus_Time_Per_Tree_File
-
     return
   end function Galacticus_Time_Per_Tree_File
 
