@@ -561,11 +561,11 @@ contains
     double precision                                                , dimension(1,1)              :: logLikelihoodSelf     , logLikelihoodCurrentWork, &
          &                                                                                           logPriorCurrentWork   , logPriorWork            , &
          &                                                                                           timeEvaluateSelf
-    logical                                                         , dimension(1,1)              :: forceAcceptanceSelf
+    logical                                                         , dimension(1,1)              :: forceAcceptanceSelf   , forceAcceptanceWorkIn
+    logical                                                         , dimension(1  )              :: forceAcceptanceWork   , forceAcceptanceSelfIn
     double precision                                                , dimension(1  )              :: logLikelihoodWork     , logLikelihoodCurrentSelf, &
          &                                                                                           logPriorCurrentSelf   , logPriorSelf            , &
          &                                                                                           timeEvaluateWork
-    logical                                                         , dimension(1  )              :: forceAcceptanceWork
     double precision                                                                              :: logPrior              , timeEvaluateEffective
     integer                                                                                       :: i                     , processTrial            , &
          &                                                                                           nodeTrial
@@ -659,16 +659,18 @@ contains
     logLikelihoodCurrentSelf=logLikelihoodCurrent
     logPriorCurrentSelf     =logPriorCurrent
     logPriorSelf            =logPrior
+    forceAcceptanceSelfIn   =forceAcceptance
     stateVectorWork         =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),stateVectorSelf         )
     chainIndexWork          =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),chainIndexSelf          )
     logLikelihoodCurrentWork=mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logLikelihoodCurrentSelf)
     logPriorCurrentWork     =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logPriorCurrentSelf     )
     logPriorWork            =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),logPriorSelf            )
+    forceAcceptanceWorkIn   =mpiSelf%requestData(processFromProcess(mpiSelf%rank():mpiSelf%rank()),forceAcceptanceSelfIn   )
     ! Set state and chain index.
     call posteriorSampleState_%update       (stateVectorWork(:,1),logState=.false.,isConverged=.false.)
     call posteriorSampleState_%chainIndexSet( chainIndexWork(1,1)                                     )
     ! Evaluate the likelihood.
-    logLikelihood=self%posteriorSampleLikelihood_%evaluate(posteriorSampleState_,self%modelParametersActive_,self%modelParametersInactive_,self%posteriorSampleConvergence_,self%temperature(),logLikelihoodCurrentWork(1,1),logPriorCurrentWork(1,1),logPriorWork(1,1),timeEvaluate,logLikelihoodVariance=logLikelihoodVariance,forceAcceptance=forceAcceptance)
+    logLikelihood=self%posteriorSampleLikelihood_%evaluate(posteriorSampleState_,self%modelParametersActive_,self%modelParametersInactive_,self%posteriorSampleConvergence_,self%temperature(),logLikelihoodCurrentWork(1,1),logPriorCurrentWork(1,1),logPriorWork(1,1),timeEvaluate,logLikelihoodVariance=logLikelihoodVariance,forceAcceptance=forceAcceptanceWorkIn(1,1))
     call mpiBarrier()
     ! Distribute likelihoods back to origins.
     logLikelihoodWork    =                                                                         logLikelihood
@@ -683,7 +685,7 @@ contains
     timeEvaluateSelf     =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     timeEvaluateWork         )
     timeEvaluate         =                                                                    real(timeEvaluateSelf   (1,1))
     ! Distribute force acceptances back to origins.
-    forceAcceptanceWork  =                                                                         forceAcceptance
+    forceAcceptanceWork  =                                                                         forceAcceptanceWorkIn(1,1)
     forceAcceptanceSelf  =mpiSelf%requestData(processToProcess(mpiSelf%rank():mpiSelf%rank()),     forceAcceptanceWork      )
     forceAcceptance      =                                                                         forceAcceptanceSelf(1,1)
     ! Restore state and chain index.
