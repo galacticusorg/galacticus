@@ -396,7 +396,8 @@ my @executablesToRun = (
     {
 	name     => "tests.tree_branch_destroy.exe",                                      # Tests of merger tree walking.
 	valgrind => 1,
-	valgrindOptions => "--undef-value-errors=no"
+	valgrindOptions => "--undef-value-errors=no",
+	mpi      => 0
     },
     {
 	name     => "tests.gaunt_factors.exe",                                            # Tests of Gaunt factors.
@@ -415,11 +416,6 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.dark_matter_profiles.exe",                                     # Tests of dark matter profiles.
-	valgrind => 0,
-	mpi      => 0
-    },
-    {
-	name     => "tests.mangle.exe",                                                   # Tests of "mangle" geometry functions.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -487,42 +483,49 @@ foreach my $executable ( @executablesToRun ) {
 	push(@jobStack,\%job);
     }
 }
+
 &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
 unlink(@launchFiles);
 
-# Build Galacticus itself.
-@jobStack = ();
-my %galacticusBuildJob =
-    (
-     launchFile   => "testSuite/compileGalacticus.pbs",
-     label        => "testSuite-compileGalacticus"    ,
-     logFile      => "testSuite/compileGalacticus.log",
-     command      => "make -j16 all"                  ,
-     ppn          => 16,
-     onCompletion => 
-     {
-	 function  => \&testCompileFailure,
-	 arguments => [ "testSuite/compileGalacticus.log", "Galacticus compilation" ]
-     }
-    );
-push(@jobStack,\%galacticusBuildJob);
-&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
-unlink("testSuite/compileGalacticus.pbs");
-my @launchPBS;
-my @launchLocal;
-if ( -e "./Galacticus.exe" ) {
-    # Find all test scripts to run.
-    my @testDirs = ( "testSuite" );
-    find(\&runTestScript,@testDirs);
-    # Run scripts that require us to launch them under PBS.
-    &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@launchPBS);
-    # Run scripts that can launch themselves using PBS.
-    foreach ( @launchLocal ) {
-	print           ":-> Running test script: ".$_."\n";
-	print lHndl "\n\n:-> Running test script: ".$_."\n";
-	&System::Redirect::tofile("cd testSuite; ".$_,"testSuite/allTests.tmp");
-	print lHndl slurp("testSuite/allTests.tmp");
-	unlink("testSuite/allTests.tmp");
+# Perform tests utilizing Galacticus itself, both without and with MPI.
+our $mpi;
+my  @launchPBS;
+my  @launchLocal;
+foreach $mpi ( "noMPI", "MPI" ) {
+    # Build Galacticus itself.
+    @jobStack    = ();
+    @launchPBS   = ();
+    @launchLocal = ();
+    my %galacticusBuildJob =
+	(
+	 launchFile   => "testSuite/compileGalacticus".$mpi.".pbs",
+	 label        => "testSuite-compileGalacticus".$mpi       ,
+	 logFile      => "testSuite/compileGalacticus".$mpi.".log",
+	 command      => "rm *.exe; make ".($mpi eq "MPI" ? "GALACTICUS_BUILD_OPTION=MPI" : "")." -j16 all",
+	 ppn          => 16,
+	 onCompletion => 
+	 {
+	     function  => \&testCompileFailure,
+	     arguments => [ "testSuite/compileGalacticus".$mpi.".log", "Galacticus compilation (".$mpi.")" ]
+	 }
+	);
+    push(@jobStack,\%galacticusBuildJob);
+    &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
+    unlink("testSuite/compileGalacticus".$mpi.".pbs");
+    if ( -e "./Galacticus.exe" ) {
+	# Find all test scripts to run.
+	my @testDirs = ( "testSuite" );
+	find(\&runTestScript,@testDirs);
+	# Run scripts that require us to launch them under PBS.
+	&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@launchPBS);
+	# Run scripts that can launch themselves using PBS.
+	foreach ( @launchLocal ) {
+	    print           ":-> Running test script: ".$_."\n";
+	    print lHndl "\n\n:-> Running test script: ".$_."\n";
+	    &System::Redirect::tofile("cd testSuite; ".$_,"testSuite/allTests.tmp");
+	    print lHndl slurp("testSuite/allTests.tmp");
+	    unlink("testSuite/allTests.tmp");
+	}
     }
 }
 
@@ -605,31 +608,33 @@ sub runTestScript {
 
     # Test if this is a script to run.
     if ( $fileName =~ m/^test\-.*\.pl$/ && $fileName ne "test-all.pl" ) {
-	system("grep -q launch.pl ".$fileName);
-	if ( $? == 0 ) {
-	    # This script will launch its own models.
-	    push(
-		@launchLocal,
-		$fileName
-		);
-	} else {
-	    # We need to launch this script.
-	    (my $label = $fileName) =~ s/\.pl$//;
-	    push(
-		@launchPBS,
-		{
-		    launchFile   => "testSuite/".$label.".pbs",
-		    label        => "testSuite-".$label       ,
-		    logFile      => "testSuite/".$label.".log",
-		    command      => "cd testSuite; ".$fileName,
-		    ppn          => 16,
-		    onCompletion => 
+	if ( ( $mpi eq "MPI" && $fileName =~ m/_MPI\.pl/ ) || ( $mpi eq "noMPI" && $fileName !~ m/_MPI\.pl/ ) ) {
+	    system("grep -q launch.pl ".$fileName);
+	    if ( $? == 0 ) {
+		# This script will launch its own models.
+		push(
+		    @launchLocal,
+		    $fileName
+		    );
+	    } else {
+		# We need to launch this script.
+		(my $label = $fileName) =~ s/\.pl$//;
+		push(
+		    @launchPBS,
 		    {
-			function  => \&testFailure,
-			arguments => [ "testSuite/".$label.".log", "Test script '".$label."'" ]
+			launchFile   => "testSuite/".$label.".pbs",
+			label        => "testSuite-".$label       ,
+			logFile      => "testSuite/".$label.".log",
+			command      => "cd testSuite; ".$fileName,
+			ppn          => 16,
+			onCompletion => 
+			{
+			    function  => \&testFailure,
+			    arguments => [ "testSuite/".$label.".log", "Test script '".$label."'" ]
+			}
 		    }
-		}
-		);
+		    );
+	    }
 	}
     }
 }
@@ -702,6 +707,14 @@ sub testCompileFailure {
 	if ( $? == 0 ) {
 	    $errorStatus = 1;
 	    $jobMessage = "Compiler warnings issued\n".$jobMessage;
+	}
+    }
+    # Check for make error message in log file.
+    if ( $errorStatus == 0 ) {
+	system("grep -q make: ".$logFile);
+	if ( $? == 0 ) {
+	    $errorStatus = 1;
+	    $jobMessage = "Make errors issued\n".$jobMessage;
 	}
     }
     # Report success or failure.
