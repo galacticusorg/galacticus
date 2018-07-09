@@ -65,10 +65,20 @@ sub Process_InputParametersValidate {
 	    # Generate the validation code.
 	    my $code;
 	    my $result;
-	    if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
-		$result = $1;
+	    if      ( $node->{'parent'}->{'type'} eq "subroutine" ) {
+		if ( exists($node->{'directive'}->{'target'}) ) {
+		    $result = $node->{'directive'}->{'target'};
+		} else {
+		    die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: target must be specified');
+		}
+	    } elsif ( $node->{'parent'}->{'type'} eq "function"   ) {
+		if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
+		    $result = $1;
+		} else {
+		    $result = $node->{'parent'}->{'name'};	       
+		}
 	    } else {
-		$result = $node->{'parent'}->{'name'};
+		die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: parent is neither function nor subroutine');
 	    }
 	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";
 	    $code .= "   call ".$_     ."%allowedParameters(".$variableName.",'parameters')\n"
