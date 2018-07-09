@@ -165,7 +165,7 @@ sub Implementation_Deferred_Binding_Wrappers {
 	push
 	    (
 	     @{$function->{'variables'}},
-	     map {&Fortran::Utils::Unformat_Variables($_)} ( @{$code::binding->{'interface'}->{'argument'}} )
+	     map {&Fortran::Utils::Unformat_Variables($_)} ( &List::ExtraUtils::as_array($code::binding->{'interface'}->{'argument'}) )
 	    );
 	# Extract a list of all argument names.
 	@code::arguments = &Galacticus::Build::Components::Utils::argumentList(@{$function->{'variables'}});

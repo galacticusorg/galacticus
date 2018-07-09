@@ -339,13 +339,23 @@ CODE
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (getLength(propertyList) >= 1) then
 CODE
-		if (&isIntrinsic($code::property->{'data'}->{'type'})) {
+		if (
+		    $code::property->{'data'}->{'type'} eq "double"
+		    ||
+		    $code::property->{'data'}->{'type'} eq "integer"
+		    ||
+		    $code::property->{'data'}->{'type'} eq "logical"
+		    ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   call allocateArray(self%{$property->{'name'}}Data,[getLength(propertyList)])
   do i=1,getLength(propertyList)
     property => item(propertyList,i-1)
     call extractDataContent(property,self%{$property->{'name'}}Data(i))
   end do
+CODE
+		} elsif ( $code::property->{'data'}->{'type'} eq "longInteger" ) {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
 CODE
 		} else {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');

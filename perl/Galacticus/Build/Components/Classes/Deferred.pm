@@ -102,7 +102,7 @@ sub Class_Deferred_Binding_Interfaces {
 	    name      => $interfaceName."Interface",
 	    intrinsic => $type,
 	    comment   => "Interface for deferred function for {\\normalfont \\ttfamily ".$binding->{'method'}."} method of the {\\normalfont \\ttfamily ".$class->{'name'}."} class.",
-	    data      => [ map {&Fortran::Utils::Unformat_Variables($_)} @{$binding->{'interface'}->{'argument'}} ]
+	    data      => [ map {&Fortran::Utils::Unformat_Variables($_)} &List::ExtraUtils::as_array($binding->{'interface'}->{'argument'}) ]
 	};
 	# Add a self argument if required.
        	unshift
