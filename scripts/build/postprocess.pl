@@ -97,6 +97,9 @@ while ( my $line = <STDIN> ) {
     # <workaround type="gfortran" PR="58175" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58175"/>
     $dropBuffer = 1
 	if ( $line =~ m/Only array FINAL procedures declared for derived type/ );
+    # <workaround type="gfortran" PR="86117" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86117"/>
+    $dropBuffer = 1
+	if ( $line =~ m/Warning:\s+\'MEM\[\(struct\s+[a-z0-9_\s\*)[a-z0-9_&]+\s+\+\s+\d+B\]\' may be used uninitialized in this function/ );    
     # Handle unused function attributes.
     if ( $line =~ m/^\s*subroutine\s+([a-z0-9_]+)/i ) {
 	$functionName = lc($1);
