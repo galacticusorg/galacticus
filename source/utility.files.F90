@@ -29,7 +29,7 @@ module File_Utilities
   !$ use OMP_Lib
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name, File_Name_Temporary
+  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name, File_Name_Temporary, File_Remove
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -254,17 +254,39 @@ contains
     return
   end function File_Name
   
-  function File_Name_Temporary(fileRootName) result(fileName)
+  function File_Name_Temporary(fileRootName,path) result(fileName)
     !% Returns the path to the file.
     !$ use OMP_Lib
     use    String_Handling
     implicit none
-    type     (varying_string)                :: fileName
-    character(len=*         ), intent(in   ) :: fileRootName
+    type     (varying_string)                          :: fileName
+    character(len=*         ), intent(in   )           :: fileRootName
+    character(len=*         ), intent(in   ), optional :: path
+    integer                                            :: i
 
-    fileName=var_str("/tmp/")//trim(fileRootName)//"."//GetPID()
-    !$ if (OMP_In_Parallel()) fileName=fileName//"."//OMP_Get_Thread_Num()
+    i=0
+    do while (i == 0 .or. File_Exists(fileName))
+       i=i+1
+       if (present(path)) then
+          fileName=path//"/"
+       else
+          fileName=var_str("/tmp/")
+       end if
+       fileName=fileName//trim(fileRootName)//"."//GetPID()
+       !$ if (OMP_In_Parallel()) fileName=fileName//"."//OMP_Get_Thread_Num()
+       fileName=fileName//"."//i
+    end do
     return
   end function File_Name_Temporary
+
+  subroutine File_Remove(fileName)
+    !% Remove a file.
+    use System_Command
+    implicit none
+    character(len=*), intent(in   ) :: fileName
+
+    if (File_Exists(fileName)) call System_Command_Do("rm -f "//fileName)
+    return
+  end subroutine File_Remove
   
 end module File_Utilities
