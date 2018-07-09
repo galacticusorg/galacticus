@@ -34,18 +34,19 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes"            ,
-	 mpiRun                  => "mpirun --bynode",
-	 maxJobsInQueue          => -1               ,
-	 postSubmitSleepDuration => 10               ,
-	 jobWaitSleepDuration    => 60               ,
+	 mpiLaunch               => "yes"                 ,
+	 mpiRun                  => "mpirun --map-by node",
+	 mpiProcesses            => 1                     ,
+	 maxJobsInQueue          => -1                    ,
+	 postSubmitSleepDuration => 10                    ,
+	 jobWaitSleepDuration    => 60                    ,
 	 analyze                 => "yes"
 	);
     # Attempt to detect MPI implementation.
     my $mpiIs = &mpiDetect();
     if ( $mpiIs eq "OpenMPI" ) {
-	$defaults{'mpiLaunch'} = "yes"            ;
-	$defaults{'mpiRun'   } = "mpirun --bynode";
+	$defaults{'mpiLaunch'} = "yes"                 ;
+	$defaults{'mpiRun'   } = "mpirun --map-by node";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {
@@ -94,9 +95,9 @@ sub Launch {
 	print $pbsFile "#PBS -l mem=".$launchScript->{'pbs'}->{'memory'}."\n"
 	    if ( exists($launchScript->{'pbs'}->{'memory'}) );
 	if ( exists($launchScript->{'pbs'}->{'ompThreads'}) ) {
-	    print $pbsFile "#PBS -l nodes=1:ppn=".$launchScript->{'pbs'}->{'ompThreads'}."\n";
+	    print $pbsFile "#PBS -l nodes=".($launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" ? $launchScript->{'pbs'}->{'mpiProcesses'} : "1").":ppn=".$launchScript->{'pbs'}->{'ompThreads'}."\n";
 	} else {
-	    print $pbsFile "#PBS -l nodes=1:ppn=1\n";
+	    print $pbsFile "#PBS -l nodes=".($launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" ? $launchScript->{'pbs'}->{'mpiProcesses'} : "1").":ppn=1\n";
 	}
 	print $pbsFile "#PBS -j oe\n";
 	my $pwd = "";
@@ -147,7 +148,7 @@ sub Launch {
 		print $pbsFile $command."\n";
 	    }
 	}
-	print $pbsFile $launchScript->{'pbs'}->{'mpiRun'}." -np 1 "
+	print $pbsFile $launchScript->{'pbs'}->{'mpiRun'}." -np ".(exists($launchScript->{'pbs'}->{'mpiProcesses'}) ? $launchScript->{'pbs'}->{'mpiProcesses'} : "1")." "
 	    if ( $launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" );
 	print $pbsFile "./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'pbs'}->{'scratchPath'}) ) {
