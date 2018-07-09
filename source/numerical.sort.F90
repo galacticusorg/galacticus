@@ -36,6 +36,7 @@ module Sort
   interface Sort_Do
      !% Generic interface to in-place sort routines.
      module procedure Sort_Do_Double
+     module procedure Sort_Do_Double_Both
      module procedure Sort_Do_Integer
      module procedure Sort_Do_Integer8
      module procedure Sort_Do_Integer8_Both
@@ -58,6 +59,27 @@ contains
     call Sort_Do_Double_C(size(array,kind=c_size_t),array)
     return
   end subroutine Sort_Do_Double
+
+  subroutine Sort_Do_Double_Both(array,array2)
+    !% Given an unsorted double precision {\normalfont \ttfamily array}, sorts it in place while also rearranging {\normalfont \ttfamily array2} in the same way.
+    use Kind_Numbers
+    implicit none
+    double precision                , dimension(:          )              , intent(inout) :: array    , array2
+    integer         (kind=c_size_t ), dimension(size(array,kind=c_size_t))                :: sortIndex
+    double precision                , dimension(size(array,kind=c_size_t))                :: tmp
+    integer         (kind=c_size_t )                                                      :: i
+
+    sortIndex=Sort_Index_Do(array)
+    forall(i=1:size(array,kind=c_size_t))
+       tmp(i)=array(sortIndex(i))
+    end forall
+    array=tmp
+    forall(i=1:size(array,kind=c_size_t))
+       tmp(i)=array2(sortIndex(i))
+    end forall
+    array2=tmp
+    return
+  end subroutine Sort_Do_Double_Both
 
   subroutine Sort_Do_Integer(array)
     !% Given an unsorted integer {\normalfont \ttfamily array}, sorts it in place.
