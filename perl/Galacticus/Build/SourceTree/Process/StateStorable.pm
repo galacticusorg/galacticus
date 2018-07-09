@@ -214,7 +214,7 @@ CODE
 					    $outputCode .= "write (stateFile) transferredSize\n";
 					    $outputCode .= "write (stateFile) transferred\n";
 					    $outputCode .= "deallocate(transferred)\n";
-					    $outputCode .= "call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+					    $inputCode  .= "call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
 					    $inputCode  .= "read (stateFile) transferredSize\n";
 					    $inputCode  .= "allocate(transferred(transferredSize))\n";
 					    $inputCode  .= "read (stateFile) transferred\n";
