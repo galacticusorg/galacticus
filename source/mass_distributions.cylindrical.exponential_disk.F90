@@ -199,7 +199,8 @@ contains
             &                    /2.0d0
     else
        ! No scale height given, assume a razor-thin disk.
-       self%scaleHeight=0.0d0
+       self%scaleHeight         =0.0d0
+       self%densityNormalization=0.0d0
     end if
     ! Initialize rotation curve tables.
     self%rotationCurveHalfRadiusMinimum        =rotationCurveHalfRadiusMinimumDefault
@@ -210,6 +211,7 @@ contains
     self%rotationCurveInitialized              =.false.
     self%rotationCurveGradientInitialized      =.false.
     self%potentialInitialized                  =.false.
+    self%scaleLengthFactor                     =0.0d0
     ! Initialize locks.
     !$ call OMP_Init_Lock(self%factorComputeLock        )
     !$ call OMP_Init_Lock(self%rotationCurveLock        )
