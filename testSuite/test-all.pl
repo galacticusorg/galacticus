@@ -423,6 +423,11 @@ my @executablesToRun = (
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
 	valgrind => 0,
 	mpi      => 4
+    },
+    {
+	name     => "tests.locks.exe",                                                    # Tests of OpenMP locking functionality.
+	valgrind => 0,
+	mpi      => 0
     }
     );
 
