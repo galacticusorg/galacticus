@@ -64,9 +64,13 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <haloMassFunctionMethod value="shethTormen"/>
-    <haloMassFunctionMethod value="tinker2008"/>
-    <haloMassFunctionMethod value="pressSchechter"/>
+    <haloMassFunctionMethod value="shethTormen"        />
+    <haloMassFunctionMethod value="tinker2008"         />
+    <haloMassFunctionMethod value="tinker2008Generic"  />
+    <haloMassFunctionMethod value="pressSchechter"     />
+    <haloMassFunctionMethod value="rodriguezPuebla2016"/>
+    <haloMassFunctionMethod value="bhattacharya2011"   />
+    <haloMassFunctionMethod value="despali2015"        />
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
