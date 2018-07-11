@@ -244,7 +244,7 @@ contains
 
     call self%parametersEvaluate(time,mass)
     expansionFactor        =self%cosmologyFunctions_%expansionFactor(                            time)
-    tinker2008C            =self%parameters                         (tinker2008ParameterB            )
+    tinker2008C            =self%parameters                         (tinker2008ParameterC            )
     return
   end function tinker2008C
 
