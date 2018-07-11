@@ -44,7 +44,9 @@
      class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
      class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
      integer                                                                          :: fileCurrent
-     type            (varying_string                     ), allocatable, dimension(:) :: fileNames
+     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                             , presetNamedReals                    , &
+          &                                                                              presetNamedIntegers
+     integer                                              , allocatable, dimension(:) :: indexNamedReals                       , indexNamedIntegers
      logical                                                                          :: importerOpen
      integer         (kind_int8                          )                            :: beginAt
      double precision                                                                 :: treeWeightCurrent
@@ -63,8 +65,6 @@
           &                                                                              presetUnphysicalSpins
      logical                                                                          :: presetOrbits                          , presetOrbitsAssertAllSet            , & 
           &                                                                              presetOrbitsBoundOnly                 , presetOrbitsSetAll          
-     logical                                                                          :: presetParticleCounts                  , presetVelocityMaxima                , &
-          &                                                                              presetVelocityDispersions
      integer                                                                          :: subhaloAngularMomentaMethod
      logical                                                                          :: missingHostsAreFatal
      logical                                                                          :: treeIndexToRootNodeIndex                                                       
@@ -137,6 +137,12 @@
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
      !@     <description>Create parent pointer links between isolated nodes and assign times and masses to those nodes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>assignNamedProperties</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout</arguments>
+     !@     <description>Assign named properties to nodes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>assignScaleRadii</method>
@@ -263,6 +269,7 @@
      procedure :: destroyNodeIndices            => readDestroyNodeIndices
      procedure :: buildDescendentPointers       => readBuildDescendentPointers
      procedure :: buildIsolatedParentPointers   => readBuildIsolatedParentPointers
+     procedure :: assignNamedProperties         => readAssignNamedProperties
      procedure :: assignScaleRadii              => readAssignScaleRadii
      procedure :: scanForMergers                => readScanForMergers
      procedure :: assignSpinParameters          => readAssignSpinParameters
@@ -389,7 +396,8 @@ contains
     class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
-    type            (varying_string                     ), allocatable, dimension(:) :: fileNames
+    type            (varying_string                     ), allocatable, dimension(:) :: fileNames                           , presetNamedReals                    , &
+         &                                                                              presetNamedIntegers
     integer                                                                          :: fileCount
     integer         (c_size_t                           )                            :: forestSizeMaximum
     integer         (kind_int8                          )                            :: beginAt
@@ -400,10 +408,8 @@ contains
          &                                                                              presetUnphysicalSpins               , presetSpins                         , &
          &                                                                              presetSpins3D                       , presetOrbits                        , &
          &                                                                              presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
-         &                                                                              presetOrbitsBoundOnly               , presetParticleCounts                , &
-         &                                                                              presetVelocityMaxima                , presetVelocityDispersions           , &
-         &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps                    , &
-         &                                                                              allowSubhaloPromotions
+         &                                                                              presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
+         &                                                                              treeIndexToRootNodeIndex            , allowBranchJumps
     type            (varying_string                     )                            :: subhaloAngularMomentaMethodText
     double precision                                                                 :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                              presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
@@ -571,30 +577,6 @@ contains
     !#   <type>boolean</type>
     !# </inputParameter>
     !# <inputParameter>
-    !#   <name>presetParticleCounts</name>
-    !#   <cardinality>1</cardinality>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether node particle counts should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !#   <type>boolean</type>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetVelocityMaxima</name>
-    !#   <cardinality>1</cardinality>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether node rotation curve velocity maxima should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !#   <type>boolean</type>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetVelocityDispersions</name>
-    !#   <cardinality>1</cardinality>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether node velocity dispersions should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !#   <type>boolean</type>
-    !# </inputParameter>
-    !# <inputParameter>
     !#   <name>beginAt</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>-1_kind_int8</defaultValue>
@@ -642,6 +624,26 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    allocate(presetNamedReals   (parameters%count('presetNamedReals'   ,zeroIfNotPresent=.true.)))
+    if (size(presetNamedReals   ) > 0) then
+       !# <inputParameter>
+       !#   <name>presetNamedReals</name>
+       !#   <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
+       !#   <source>parameters</source>
+       !#   <type>string</type>
+       !#   <cardinality>1..</cardinality>
+       !# </inputParameter>
+    end if
+    allocate(presetNamedIntegers(parameters%count('presetNamedIntegers',zeroIfNotPresent=.true.)))
+    if (size(presetNamedIntegers) > 0) then
+       !# <inputParameter>
+       !#   <name>presetNamedIntegers</name>
+       !#   <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
+       !#   <source>parameters</source>
+       !#   <type>string</type>
+       !#   <cardinality>1..</cardinality>
+       !# </inputParameter>
+    end if
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                                  />
     !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                                                  />
     !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                                                  />
@@ -681,9 +683,8 @@ contains
          &                                                                               presetOrbitsSetAll                                           , &
          &                                                                               presetOrbitsAssertAllSet                                     , &
          &                                                                               presetOrbitsBoundOnly                                        , &
-         &                                                                               presetParticleCounts                                         , &
-         &                                                                               presetVelocityMaxima                                         , &
-         &                                                                               presetVelocityDispersions                                    , &
+         &                                                                               presetNamedReals                                             , &
+         &                                                                               presetNamedIntegers                                          , &
          &                                                                               cosmologyFunctions_                                          , &
          &                                                                               mergerTreeImporter_                                          , &
          &                                                                               darkMatterHaloScale_                                         , &
@@ -697,7 +698,7 @@ contains
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetParticleCounts,presetVelocityMaxima,presetVelocityDispersions,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     use Galacticus_Error
     use Galacticus_Display
@@ -715,7 +716,8 @@ contains
     class           (haloSpinDistributionClass          ), intent(in   ), target       :: haloSpinDistribution_
     class           (satelliteMergingTimescalesClass    ), intent(in   ), target       :: satelliteMergingTimescales_
     class           (virialOrbitClass                   ), intent(in   ), target       :: virialOrbit_
-    type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames
+    type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
+         &                                                                                presetNamedIntegers
     integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
     integer         (kind_int8                          ), intent(in   )               :: beginAt
     logical                                              , intent(in   )               :: missingHostsAreFatal                , presetMergerTimes                   , &
@@ -725,16 +727,14 @@ contains
          &                                                                                presetUnphysicalSpins               , presetSpins                         , &
          &                                                                                presetSpins3D                       , presetOrbits                        , &
          &                                                                                presetOrbitsSetAll                  , presetOrbitsAssertAllSet            , &
-         &                                                                                presetOrbitsBoundOnly               , presetParticleCounts                , &
-         &                                                                                presetVelocityMaxima                , presetVelocityDispersions           , &
-         &                                                                                treeIndexToRootNodeIndex            , allowBranchJumps                    , &
-         &                                                                                allowSubhaloPromotions
+         &                                                                                presetOrbitsBoundOnly               , allowSubhaloPromotions              , &
+         &                                                                                treeIndexToRootNodeIndex            , allowBranchJumps
     integer                                              , intent(in   )               :: subhaloAngularMomentaMethod
     double precision                                     , intent(in   )               :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
-    integer         (c_size_t                           )                              :: iOutput
+    integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetParticleCounts, presetVelocityMaxima, presetVelocityDispersions, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_"/>
+    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_"/>
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.                                            
@@ -845,36 +845,6 @@ contains
          &                                "tree file; try setting"//char(10)//"  [presetScaleRadii]=false"                                                      //  &
          &                                {introspection:location}                                                                                                  &
          &                               )
-    ! Check that particle count information is present if required.
-    if (                                                                                                                                   &
-         &   self%presetParticleCounts                                                                                                     &
-         &  .and.                                                                                                                          &
-         &   .not.self%mergerTreeImporter_%particleCountAvailable()                                                                        &
-         & )  call Galacticus_Error_Report(                                                                                                &
-         &                                "presetting particle counts requires that the particleCount dataset be present in the merger"//  &
-         &                                "tree file; try setting"//char(10)//"  [presetParticleCount]=false"                          //  &
-         &                                {introspection:location}                                                                         &
-         &                               )
-    ! Check that velocity maximum information is present if required.
-    if (                                                                                                                                     &
-         &   self%presetVelocityMaxima                                                                                                       &
-         &  .and.                                                                                                                            &
-         &   .not.self%mergerTreeImporter_%velocityMaximumAvailable()                                                                        &
-         & )  call Galacticus_Error_Report(                                                                                                  &
-         &                                "presetting velocity maxima requires that the velocityMaximum dataset be present in the merger"//  &
-         &                                "tree file; try setting"//char(10)//"  [presetVelocityMaxima]=false"                           //  &
-         &                                {introspection:location}                                                                           &
-         &                               )
-    ! Check that velocity dispersion information is present if required.
-    if (                                                                                                                                             &
-         &   self%presetVelocityDispersions                                                                                                          &
-         &  .and.                                                                                                                                    &
-         &   .not.self%mergerTreeImporter_%velocityDispersionAvailable()                                                                             &
-         & )  call Galacticus_Error_Report(                                                                                                          &
-         &                                "presetting velocity dispersions requires that the velocityDispersion dataset be present in the merger"//  &
-         &                                "tree file; try setting"//char(10)//"  [presetVelocityDispersions]=false"                              //  &
-         &                                {introspection:location}                                                                                   &
-         &                               )
     ! Check that angular momentum information is present if required.
     if     (                                                                                                        &
          &   self%presetSpins                                                                                       &
@@ -912,6 +882,30 @@ contains
          &                             )
     ! Create an OpenMP lock that will allow threads to coordinate access to split forest data.
     !$ call OMP_Init_Lock(self%splitForestLock)
+    ! Create named datasets if necessary.
+    if     (                                    &
+         &   size(self%presetNamedReals   ) > 0 &
+         &  .or.                                &
+         &   size(self%presetNamedIntegers) > 0 &
+         &  ) then
+       select type (defaultNBodyComponent)
+       class is (nodeComponentNBodyGeneric)
+          if (size(self%presetNamedReals   ) > 0) then
+             allocate(self%indexNamedReals   (size(self%presetNamedReals   )))
+             do i=1,size(self%presetNamedReals   )
+                self%indexNamedReals   (i)=defaultNBodyComponent%addRealProperty   (char(self%presetNamedReals   (i)))
+             end do
+          end if
+          if (size(self%presetNamedIntegers) > 0) then
+             allocate(self%indexNamedIntegers(size(self%presetNamedIntegers)))
+             do i=1,size(self%presetNamedIntegers)
+                self%indexNamedIntegers(i)=defaultNBodyComponent%addIntegerProperty(char(self%presetNamedIntegers(i)))
+             end do
+          end if
+       class default
+          call Galacticus_Error_Report('presetting of named datasets is supported only with the "generic" N-body component'//{introspection:location})
+       end select
+    end if
     return    
   end function readConstructorInternal
 
@@ -1046,31 +1040,35 @@ contains
           nodeSubset=[-1_c_size_t]
        end if
        ! Read data from the file.
-       call self%mergerTreeImporter_%import(                                                                                                             &
-            &                      int(treeNumberOffset)                                                                                                     , &
-            &                      nodes                                                                                                               , &
-            &                      requireScaleRadii         = self%presetScaleRadii                                                                   , &
-            &                      requireParticleCounts     = self%presetParticleCounts                                                               , &
-            &                      requireVelocityMaxima     = self%presetVelocityMaxima                                                               , &
-            &                      requireVelocityDispersions= self%presetVelocityDispersions                                                          , &
-            &                      requireAngularMomenta     =(self%presetSpins              .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &
-            &                      requireAngularMomenta3D   =                                                                                           &
-            &                                                 (                                                                                          &
-            &                                                    self%presetSpins3D                                                                      &
-            &                                                   .or.                                                                                     &
-            &                                                    (                                                                                       &
-            &                                                      self%presetSpins                                                                      &
-            &                                                     .and.                                                                                  &
-            &                                                      self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodSummation      &
-            &                                                    )                                                                                       &
-            &                                                  )                                                                                         &
-            &                                                 .and.                                                                                      &
-            &                                                  self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &
-            &                      requireSpin               =(self%presetSpins              .and.self%mergerTreeImporter_%spinAvailable            ()), &
-            &                      requireSpin3D             =(self%presetSpins3D            .and.self%mergerTreeImporter_%spin3DAvailable          ()), &
-            &                      requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &
-            &                      nodeSubset                =nodeSubset                                                                                 &
-            &                     )
+       !# <conditionalCall>
+       !# <call>
+       !#   call self%mergerTreeImporter_%import(                                                                                                                      &amp;
+       !#      &amp;                             int(treeNumberOffset)                                                                                               , &amp;
+       !#      &amp;                             nodes                                                                                                               , &amp;
+       !#      &amp;                             requireScaleRadii         = self%presetScaleRadii                                                                   , &amp;
+       !#      &amp;                             requireAngularMomenta     =(self%presetSpins              .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
+       !#      &amp;                             requireAngularMomenta3D   =                                                                                           &amp;
+       !#      &amp;                                                        (                                                                                          &amp;
+       !#      &amp;                                                           self%presetSpins3D                                                                      &amp;
+       !#      &amp;                                                          .or.                                                                                     &amp;
+       !#      &amp;                                                           (                                                                                       &amp;
+       !#      &amp;                                                             self%presetSpins                                                                      &amp;
+       !#      &amp;                                                            .and.                                                                                  &amp;
+       !#      &amp;                                                             self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodSummation          &amp;
+       !#      &amp;                                                           )                                                                                       &amp;
+       !#      &amp;                                                         )                                                                                         &amp;
+       !#      &amp;                                                        .and.                                                                                      &amp;
+       !#      &amp;                                                         self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &amp;
+       !#      &amp;                             requireSpin               =(self%presetSpins              .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
+       !#      &amp;                             requireSpin3D             =(self%presetSpins3D            .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
+       !#      &amp;                             requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &amp;
+       !#      &amp;                             nodeSubset                =nodeSubset                                                                                 &amp;
+       !#      &amp;                             {conditions}                                                                                                          &amp;
+       !#      &amp;                            )
+       !#  </call>
+       !#  <argument name="requireNamedReals"    value="self%presetNamedReals"    condition="size(self%presetNamedReals   ) > 0"/>
+       !#  <argument name="requireNamedIntegers" value="self%presetNamedIntegers" condition="size(self%presetNamedIntegers) > 0"/>
+       !# </conditionalCall>
        deallocate(nodeSubset)
        select type (nodes)
        class is (nodeData)
@@ -1234,45 +1232,6 @@ contains
                   &       {introspection:location}                                                                                                                        &
                   &      )
           end if
-          if (self%presetParticleCounts) then
-             ! Particle count property is required.
-             if (.not.defaultNBodyComponent%particleCountIsSettable          ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting particle counts requires an nBody component that supports setting of particle count.'                                            // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'nBody'                                                                                                             , &
-                  &                                 defaultNBodyComponent            %particleCountAttributeMatch(requireSettable=.true.)                                 &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
-                  &      )
-          end if
-          if (self%presetVelocityMaxima) then
-             ! Velocity maximum property is required.
-             if (.not.defaultNBodyComponent%velocityMaximumIsSettable        ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting velocity maxima requires an nBody component that supports setting of velocity maxima.'                                           // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'nBody'                                                                                                             , &
-                  &                                 defaultNBodyComponent            %velocityMaximumAttributeMatch(requireSettable=.true.)                               &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
-                  &      )
-          end if
-          if (self%presetVelocityDispersions) then
-             ! Velocity dispersion property is required.
-             if (.not.defaultNBodyComponent%velocityDispersionIsSettable     ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting velocity dispersions requires an nBody component that supports setting of velocity dispersions.'                                 // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'nBody'                                                                                                             , &
-                  &                                 defaultNBodyComponent            %velocityDispersionAttributeMatch(requireSettable=.true.)                            &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
-                  &      )
-          end if
           if (self%presetSpins      ) then
              ! Spin property is required.
              if (.not.defaultSpinComponent             %spinIsSettable       ())                                                                                          &
@@ -1314,14 +1273,15 @@ contains
                   &       {introspection:location}                                                                                                                        &
                   &      )
           end if
+          ! Assign named properties.
+          if     (                                    &
+               &   size(self%presetNamedReals   ) > 0 &
+               &  .or.                                &
+               &   size(self%presetNamedIntegers) > 0 &
+               & )                                    &
+               &                                   call self%assignNamedProperties   (nodes,nodeList                    )
           ! Assign scale radii.
           if     ( self%presetScaleRadii         ) call self%assignScaleRadii        (nodes,nodeList                    )
-          ! Assign particle counts.
-          if     ( self%presetParticleCounts     ) call readAssignParticleCounts     (nodes,nodeList                    )
-          ! Assign velocity maxima.
-          if     ( self%presetVelocityMaxima     ) call readAssignVelocityMaxima     (nodes,nodeList                    )
-          ! Assign velocity dispersions.
-          if     ( self%presetVelocityDispersions) call readAssignVelocityDispersions(nodes,nodeList                    )
           ! Assign spin parameters.
           if     (                    &
                &   self%presetSpins   &
@@ -2160,71 +2120,43 @@ contains
     
   end subroutine readAssignSpinParameters
   
-  subroutine readAssignParticleCounts(nodes,nodeList)
-    !% Assign particle counts to nodes.
+  subroutine readAssignNamedProperties(self,nodes,nodeList)
+    !% Assign named properties to nodes.
+    use Galacticus_Error
     implicit none
-    class  (nodeData          )         , dimension(:), intent(inout) :: nodes              
-    type   (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
-    class  (nodeComponentNBody), pointer                              :: nBody
-    integer                                                           :: iNode              
-    integer(c_size_t          )                                       :: iIsolatedNode      
-    
-    do iNode=1,size(nodes)
-       ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
-          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
-          ! Get N-body component.
-          nBody => nodeList(iIsolatedNode)%node%nBody(autoCreate=.true.)
-          ! Assign the particle count.
-          call nBody%particleCountSet(nodes(iNode)%particleCount)
-       end if
-    end do
-    return
-  end subroutine readAssignParticleCounts
+    class  (mergerTreeConstructorRead)                       , intent(inout) :: self
+    class  (nodeData                 )         , dimension(:), intent(inout) :: nodes              
+    type   (treeNodeList             )         , dimension(:), intent(inout) :: nodeList           
+    class  (nodeComponentNBody       ), pointer                              :: nBody
+    integer                                                                  :: iNode        , i    
+    integer(c_size_t                 )                                       :: iIsolatedNode      
 
-  subroutine readAssignVelocityMaxima(nodes,nodeList)
-    !% Assign velocity maxima to nodes.
-    implicit none
-    class  (nodeData          )         , dimension(:), intent(inout) :: nodes              
-    type   (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
-    class  (nodeComponentNBody), pointer                              :: nBody
-    integer                                                           :: iNode              
-    integer(c_size_t          )                                       :: iIsolatedNode      
-    
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Get N-body component.
           nBody => nodeList(iIsolatedNode)%node%nBody(autoCreate=.true.)
-          ! Assign the velocity maximum.
-          call nBody%velocityMaximumSet(nodes(iNode)%velocityMaximum)
+          ! Assign the named properties.
+          select type (nBody)
+          class is (nodeComponentNBodyGeneric)
+             if (size(self%presetNamedReals   ) > 0) then
+                do i=1,size(self%presetNamedReals   )
+                   call nBody%setRealProperty   (self%indexNamedReals   (i),nodes(iNode)%reals   (i))
+                end do
+             end if
+             if (size(self%presetNamedIntegers) > 0) then
+                do i=1,size(self%presetNamedIntegers)
+                   call nBody%setIntegerProperty(self%indexNamedIntegers(i),nodes(iNode)%integers(i))
+                end do
+             end if
+          class default
+             call Galacticus_Error_Report('presetting of named datasets is supported only with the "generic" N-body component'//{introspection:location})
+          end select
        end if
     end do
     return
-  end subroutine readAssignVelocityMaxima
-
-  subroutine readAssignVelocityDispersions(nodes,nodeList)
-    !% Assign velocity dispersions to nodes.
-    implicit none
-    class  (nodeData          )         , dimension(:), intent(inout) :: nodes              
-    type   (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
-    class  (nodeComponentNBody), pointer                              :: nBody
-    integer                                                           :: iNode              
-    integer(c_size_t          )                                       :: iIsolatedNode      
-    
-    do iNode=1,size(nodes)
-       ! Only process if this is an isolated node.
-       if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
-          iIsolatedNode=nodes(iNode)%isolatedNodeIndex
-          ! Get N-body component.
-          nBody => nodeList(iIsolatedNode)%node%nBody(autoCreate=.true.)
-          ! Assign the velocity dispersion.
-          call nBody%velocityDispersionSet(nodes(iNode)%velocityDispersion)
-       end if
-    end do
-    return
-  end subroutine readAssignVelocityDispersions
+  end subroutine readAssignNamedProperties
   
   double precision function readRadiusHalfMassRoot(radius)
     !% Function used to find scale radius of dark matter halos given their half-mass radius.

@@ -18,7 +18,7 @@
     <dimensionless value="true"/>
   </spheroidMassDistribution>
   <treeNodeMethodSpin value="preset3D"/>
-  <treeNodeMethodNBody value="standard"/>
+  <treeNodeMethodNBody value="generic"/>
 
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
@@ -54,7 +54,7 @@
   <!-- Merger tree reading options -->
   <mergerTreeConstructorMethod value="read">
   <fileNames value="testSuite/outputs/bolshoiTestTreesGLC_in.hdf5"/>
-    <outputTimeSnapTolerance value="1.0d-3"/>
+    <outputTimeSnapTolerance value="1.0e-3"/>
     <presetPositions value="true"/>
     <presetOrbits value="true"/>
     <presetOrbitsBoundOnly value="true"/>
@@ -64,15 +64,14 @@
     <presetSpins3D value="true"/>
     <presetUnphysicalSpins value="true"/>
     <presetScaleRadii value="true"/>
-    <presetScaleRadiiMinimumMass value="1d10"/>
-    <presetMergerTimes value="true"/>
-    <presetMergerNodes value="true"/>
-    <presetSubhaloIndices value="true"/>
-    <presetSubhaloMasses value="true"/>
-    <missingHostsAreFatal value="true"/>
-    <allowSubhaloPromotions value="true"/>
-    <presetVelocityMaxima value="true"/>
-    <presetVelocityDispersions value="true"/>
+    <presetScaleRadiiMinimumMass value="1.0e10"/>
+    <presetMergerTimes           value="true"/>
+    <presetMergerNodes           value="true"/>
+    <presetSubhaloIndices        value="true"/>
+    <presetSubhaloMasses         value="true"/>
+    <missingHostsAreFatal        value="true"/>
+    <allowSubhaloPromotions      value="true"/>
+    <presetNamedReals            value="velocityMaximum velocityDispersion"/>
   </mergerTreeConstructorMethod>
   <allTreesExistAtFinalTime value="false"/>
    <!-- Use merger tree node positions -->

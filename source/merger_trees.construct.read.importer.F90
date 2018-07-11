@@ -82,17 +82,19 @@ module Merger_Tree_Read_Importers
   ! Type used to store raw data.
   type, extends(nodeDataMinimal) :: nodeData
      !% Structure used to store default raw data read from merger tree files.
-     integer         (kind=kind_int8)               :: isolatedNodeIndex , mergesWithIndex         , & 
-          &                                            particleCount     , primaryIsolatedNodeIndex
-     double precision                               :: angularMomentum   , halfMassRadius          , & 
-          &                                            velocityDispersion, spin                    , & 
-          &                                            scaleRadius       , velocityMaximum
-     double precision                , dimension(3) :: position          , velocity                , &
-          &                                            angularMomentum3D , spin3D
-     logical                                        :: childIsSubhalo    , isSubhalo                   
-     class           (nodeData      ), pointer      :: descendent        , host                    , & 
-          &                                            parent                                         
-     type            (treeNode      ), pointer      :: node                                           
+     integer         (kind_int8)                            :: isolatedNodeIndex , mergesWithIndex         , & 
+          &                                                    particleCount     , primaryIsolatedNodeIndex
+     double precision                                       :: angularMomentum   , halfMassRadius          , & 
+          &                                                    velocityDispersion, spin                    , & 
+          &                                                    scaleRadius       , velocityMaximum
+     double precision           , dimension(3)              :: position          , velocity                , &
+          &                                                    angularMomentum3D , spin3D
+     double precision           , dimension(:), allocatable :: reals
+     integer         (kind_int8), dimension(:), allocatable :: integers
+     logical                                                :: childIsSubhalo    , isSubhalo
+     class           (nodeData ), pointer                   :: descendent        , host                    , & 
+          &                                                    parent                                         
+     type            (treeNode ), pointer                   :: node
   end type nodeData
 
   interface importerUnitConvert
@@ -236,8 +238,9 @@ module Merger_Tree_Read_Importers
   !#   <pass>yes</pass>
   !#   <argument>integer                 , intent(in   )                            :: i</argument>
   !#   <argument>class  (nodeDataMinimal), intent(  out), allocatable, dimension(:) :: nodes</argument>
-  !#   <argument>integer(kind=c_size_t  ), intent(in   ), optional   , dimension(:) :: nodeSubset</argument>
-  !#   <argument>logical                 , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requireAngularMomenta3D, requireSpin, requireSpin3D, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions, structureOnly</argument>
+  !#   <argument>integer(c_size_t       ), intent(in   ), optional   , dimension(:) :: nodeSubset</argument>
+  !#   <argument>logical                 , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requireAngularMomenta3D, requireSpin, requireSpin3D, requirePositions, structureOnly</argument>
+  !#   <argument>type   (varying_string ), intent(in   ), optional   , dimension(:) :: requireNamedReals, requireNamedIntegers</argument>
   !#  </method>
   !#  <method name="subhaloTrace" >
   !#   <description>Supplies epochs, positions, and velocities for traced subhalos.</description>

@@ -920,7 +920,7 @@ contains
     return
   end function galacticusSubhaloTraceCount
 
-  subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions,structureOnly)
+  subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
@@ -935,18 +935,21 @@ contains
     integer                                       , intent(in   )                              :: i
     class           (nodeDataMinimal             ), intent(  out), allocatable, dimension(:  ) :: nodes
     integer         (c_size_t                    ), intent(in   ), optional   , dimension(:  ) :: nodeSubset
-    logical                                       , intent(in   ), optional                    :: requireScaleRadii         , requireAngularMomenta, &
-         &                                                                                        requireAngularMomenta3D   , requirePositions     , &
-         &                                                                                        requireParticleCounts     , requireVelocityMaxima, &
-         &                                                                                        requireVelocityDispersions, requireSpin          , &
-         &                                                                                        requireSpin3D             , structureOnly
+    logical                                       , intent(in   ), optional                    :: requireScaleRadii      , requireAngularMomenta, &
+         &                                                                                        requireAngularMomenta3D, requirePositions     , &
+         &                                                                                        structureOnly          , requireSpin          , &
+         &                                                                                        requireSpin3D
+    type            (varying_string              ), intent(in   ), optional   , dimension(:  ) :: requireNamedReals      , requireNamedIntegers
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctions_
-    integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex            , nodeCount
+    integer         (hsize_t                     )                            , dimension(1  ) :: firstNodeIndex         , nodeCount
     integer         (c_size_t                    )                                             :: iNode
     integer         (c_size_t                    )               , allocatable, dimension(:  ) :: nodeSubsetOffset
-    double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D         , position             , &
-         &                                                                                        velocity                  , spin3D
-    logical                                                                                    :: timesAreInternal          , useNodeSubset
+    double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D      , position             , &
+         &                                                                                        velocity               , spin3D
+    double precision                                             , allocatable, dimension(:  ) :: namedReal
+    integer         (kind_int8                   )               , allocatable, dimension(:  ) :: namedInteger
+    integer                                                                                    :: j
+    logical                                                                                    :: timesAreInternal       , useNodeSubset
 
     ! Get the default cosmology functions object.
     cosmologyFunctions_ => cosmologyFunctions()
@@ -1067,26 +1070,6 @@ contains
              end if
           end if
        end if
-       ! Particle count.
-       if (useNodeSubset) then
-          if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
-               & call self%forestHalos%readDatasetStatic("particleCount"     ,nodes%particleCount                              ,readSelection=nodeSubsetOffset)
-          ! Velocity maximum.
-          if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
-               & call self%forestHalos%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum                            ,readSelection=nodeSubsetOffset)
-          ! Velocity dispersion.
-          if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
-               & call self%forestHalos%readDatasetStatic("velocityDispersion",nodes%velocityDispersion                         ,readSelection=nodeSubsetOffset)
-       else
-          if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
-               & call self%forestHalos%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount                               )
-          ! Velocity maximum.
-          if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
-               & call self%forestHalos%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount                               )
-          ! Velocity dispersion.
-          if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
-               & call self%forestHalos%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount                               )
-       end if
        ! Halo angular momenta.
        if (present(requireAngularMomenta).and.requireAngularMomenta) then
           if (self%angularMomentaIsVector) then
@@ -1152,7 +1135,47 @@ contains
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%spin3D=spin3D(:,iNode)
           end forall
-       call deallocateArray(spin3D)
+          call deallocateArray(spin3D)
+       end if
+       ! Read arbitrary named real datasets.
+       if (present(requireNamedReals   )) then
+          do iNode=1,nodeCount(1)
+             allocate(nodes(iNode)%reals   (size(requireNamedReals   )))
+          end do
+          do j=1,size(requireNamedReals   )
+             if (.not.self%forestHalos%hasDataset(char(requireNamedReals   (j)))) &
+                  & call Galacticus_Error_Report('named dataset "'//char(requireNamedReals   (j))//'" is not available'//{introspection:location})
+             if (useNodeSubset) then
+                call self%forestHalos%readDataset(char(requireNamedReals   (j)),namedReal                                      ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDataset(char(requireNamedReals   (j)),namedReal   ,[firstNodeIndex(1)],[nodeCount(1)]                               )
+             end if
+             ! Transfer to nodes.
+             forall(iNode=1:nodeCount(1))
+                nodes(iNode)%reals   (j)=namedReal   (iNode)
+             end forall
+             call deallocateArray(namedReal   )
+          end do
+       end if
+       ! Read arbitrary named integer datasets.
+       if (present(requireNamedIntegers)) then
+          do iNode=1,nodeCount(1)
+             allocate(nodes(iNode)%integers(size(requireNamedIntegers)))
+          end do
+          do j=1,size(requireNamedIntegers)
+             if (.not.self%forestHalos%hasDataset(char(requireNamedIntegers(j)))) &
+                  & call Galacticus_Error_Report('named dataset "'//char(requireNamedIntegers(j))//'" is not available'//{introspection:location})
+             if (useNodeSubset) then
+                call self%forestHalos%readDataset(char(requireNamedIntegers(j)),namedInteger                                   ,readSelection=nodeSubsetOffset)
+             else
+                call self%forestHalos%readDataset(char(requireNamedIntegers(j)),namedInteger,[firstNodeIndex(1)],[nodeCount(1)]                               )
+             end if
+             ! Transfer to nodes.
+             forall(iNode=1:nodeCount(1))
+                nodes(iNode)%integers(j)=namedInteger(iNode)
+             end forall
+             call deallocateArray(namedInteger)
+          end do
        end if
        ! Initialize particle data to null values.
        nodes%particleIndexStart=-1_c_size_t
@@ -1215,10 +1238,6 @@ contains
           nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
           nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
        end if
-       if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                                                                                  &
-            &  nodes%velocityMaximum  =importerUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
-       if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                                                                                  &
-            & nodes%velocityDispersion=importerUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
        if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
             & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
        if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then

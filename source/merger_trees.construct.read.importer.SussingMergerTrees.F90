@@ -923,22 +923,22 @@ contains
     return
   end function sussingSubhaloTraceCount
 
-  subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions,structureOnly)
+  subroutine sussingImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class           (mergerTreeImporterSussing), intent(inout)                              :: self
-    integer                                    , intent(in   )                              :: i
-    class           (nodeDataMinimal          ), intent(  out), allocatable, dimension(:  ) :: nodes
-    integer         (c_size_t                 ), intent(in   ), optional   , dimension(:  ) :: nodeSubset
-    logical                                    , intent(in   ), optional                    :: requireScaleRadii         , requireAngularMomenta, &
-         &                                                                                     requireAngularMomenta3D   , requirePositions     , &
-         &                                                                                     requireParticleCounts     , requireVelocityMaxima, &
-         &                                                                                     requireVelocityDispersions, requireSpin          , &
-         &                                                                                     requireSpin3D             , structureOnly
-    integer         (c_size_t                 )                                             :: j
-    !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions, requireSpin, requireSpin3D
+    class           (mergerTreeImporterSussing), intent(inout)                            :: self
+    integer                                    , intent(in   )                            :: i
+    class           (nodeDataMinimal          ), intent(  out), allocatable, dimension(:) :: nodes
+    integer         (c_size_t                 ), intent(in   ), optional   , dimension(:) :: nodeSubset
+    logical                                    , intent(in   ), optional                  :: requireScaleRadii         , requireAngularMomenta, &
+         &                                                                                   requireAngularMomenta3D   , requirePositions     , &
+         &                                                                                   structureOnly             , requireSpin          , &
+         &                                                                                   requireSpin3D
+    type            (varying_string           ), intent(in   ), optional   , dimension(:) :: requireNamedReals         , requireNamedIntegers
+    integer         (c_size_t                 )                                           :: j
+    !GCC$ attributes unused :: requireAngularMomenta, requireAngularMomenta3D, requireScaleRadii, requirePositions, requireSpin, requireSpin3D, requireNamedReals, requireNamedIntegers
     
     ! Decide if this tree should be included.
     if (self%randomSequence%uniformSample() <= self%treeSampleRate) then
