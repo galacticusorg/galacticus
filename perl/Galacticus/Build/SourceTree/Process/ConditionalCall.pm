@@ -8,6 +8,7 @@ use Cwd;
 use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
 use Data::Dumper;
 use List::ExtraUtils;
+use Scalar::Util qw(reftype);
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'conditionalCall'} = \&Process_ConditionalCall;
@@ -28,6 +29,13 @@ sub Process_ConditionalCall {
 		unless ( exists($node->{'directive'}->{'argument'}) );
 	    my $arguments = $node->{'directive'}->{'argument'};
 	    my @argumentNames = sort(keys(%{$arguments}));
+	    if ( ! reftype($arguments->{$argumentNames[0]}) ) {
+		# Only one argument, must restructure the directive data.
+		my $argumentsNew;
+		$argumentsNew->{$arguments->{'name'}} = $arguments;
+		$arguments = $argumentsNew;
+		@argumentNames = sort(keys(%{$arguments}));
+	    }
 	    # Generate code to evaluate conditions.
 	    push(
 		@variables,
@@ -55,19 +63,22 @@ sub Process_ConditionalCall {
 		my @state = split(//,sprintf($formatBinary,$i));
 		$code .= "if (".join(" .and. ",map {($state[$_-1] == 0 ? ".not." : "")."condition".$_."__"} 1..scalar(@argumentNames)).") then\n";
 		foreach my $call ( &List::ExtraUtils::as_array($node->{'directive'}->{'call'}) ) {
-		    # Validate call.
-		    my $callPre ;
-		    my $callPost;
-		    my $conditionsPrefix = "";
-		    if ( $call =~ m/^(.*)\{conditions\}(.*)$/ ) {
-			$callPre  = $1;
-			$callPost = $2;
-			$conditionsPrefix = ","
-			    unless ( $callPre =~ m/\($/ );
-		    } else {
-			die("Galacticus::Build::SourceTree::Process::ConditionalCall::Process_ConditionalCall: syntax error in call element");
+		    my $valid = 0;
+		    open(my $callStream,"<",\$call);
+		    while ( my $line = <$callStream> ) {
+			if ( $line =~ m/^(.*)\{conditions\}(.*)$/m ) {
+			    my $callPre           = $1;
+			    my $callPost          = $2;
+			    my $conditionsPrefix  = ($callPre =~ m/\($/) ? "" : ",";
+			    $code                .= $callPre.($i == 0 ? "" : $conditionsPrefix).join(",",map {$state[$_-1] == 1 ? $argumentNames[$_-1]."=".$arguments->{$argumentNames[$_-1]}->{'value'} : ()} 1..scalar(@argumentNames)).$callPost."\n";
+			    $valid                = 1;
+			} else {
+			    $code                .= $line;
+			}
 		    }
-		    $code .= $callPre.($i == 0 ? "" : $conditionsPrefix).join(",",map {$state[$_-1] == 1 ? $argumentNames[$_-1]."=".$arguments->{$argumentNames[$_-1]}->{'value'} : ()} 1..scalar(@argumentNames)).$callPost."\n";
+		    close($callStream);
+		    die("Galacticus::Build::SourceTree::Process::ConditionalCall::Process_ConditionalCall: syntax error in call element")
+			unless ( $valid );
 		}
 		$code .= "end if\n";
 	    }
