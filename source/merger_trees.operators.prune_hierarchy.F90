@@ -99,7 +99,7 @@ contains
     type   (mergerTree                      ), intent(inout), target  :: tree
     type   (mergerTree                      )               , pointer :: treeCurrent
     type   (treeNode                        )               , pointer :: node          , nodePrevious, &
-         &                                                               nodeWork      , nodeNext
+         &                                                               nodeWork
     type   (mergerTreeWalkerIsolatedNodes   )                         :: treeWalker
     logical                                                           :: didPruning
     integer                                                           :: hierarchyDepth
@@ -125,18 +125,8 @@ contains
              if (hierarchyDepth >= self%hierarchyDepth) then
                 didPruning=.true.
                 ! Decouple from other nodes.
-                if (node%isPrimaryProgenitorOf(nodePrevious)) then
-                   nodePrevious%firstChild => node%sibling
-                else
-                   nodeNext => nodePrevious%firstChild
-                   do while (.not.associated(nodeNext%sibling,node))
-                      nodeNext => nodeNext%sibling
-                   end do
-                   nodeNext%sibling => node%sibling
-                end if
-                ! Decouple from other nodes.
                 hierarchyDepth =  0
-                nodeWork       => nodePrevious
+                nodeWork       => node%parent
                 do while (associated(nodeWork))
                    ! Increment hierarchy depth if this node is not the main progenitor.
                    if (.not.nodeWork%isPrimaryProgenitor().and.associated(nodeWork%parent)) hierarchyDepth=hierarchyDepth+1
@@ -145,7 +135,7 @@ contains
                 ! Return to previous node.
                 call treeWalker%previous(nodePrevious)
                 ! Unlink the node.
-                call Merger_Tree_Prune_Unlink_Parent(node,nodePrevious,hierarchyDepth >= self%hierarchyDepth,.true.)
+                call Merger_Tree_Prune_Unlink_Parent(node,node%parent,hierarchyDepth >= self%hierarchyDepth,.true.)
                 ! Clean the branch.
                 call Merger_Tree_Prune_Clean_Branch(node)
                 ! Destroy the branch.
