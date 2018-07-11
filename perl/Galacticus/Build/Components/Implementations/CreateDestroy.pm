@@ -119,7 +119,15 @@ self%{$property->{'name'}}Data={$property->{'classDefault'}->{'code'}}
 CODE
 	} else {
 	    # Set to appropriate null value.
-	    if ( $code::property->{'data'}->{'type'} eq "double" && $code::property->{'data'}->{'rank'} == 1 ){
+	    if (
+		(
+		 $code::property->{'data'}->{'type'} eq "double"
+		 ||
+		 $code::property->{'data'}->{'type'} eq "longInteger"
+		)
+		&&
+		$code::property->{'data'}->{'rank'} == 1 
+		) {
 	    	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call allocateArray(self%{$property->{'name'}}Data,[{join(",","0" x $property->{'data'}->{'rank'})}])
 CODE
