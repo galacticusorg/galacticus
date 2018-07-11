@@ -21,7 +21,6 @@ sub Importables {
     my @data = @{shift()};
     my @importables;
     foreach my $datum ( @data ) {
-	push(@importables,$datum->{'type'})
 	    if ( 
 		(
 		 $datum->{'intrinsic'} eq "class"
@@ -29,8 +28,19 @@ sub Importables {
 		 $datum->{'type'     } ne "*"
 		)
 		||
-		$datum ->{'intrinsic'} eq "type" 
-	    );
+		$datum ->{'intrinsic'} eq "type"
+		)
+	    {
+		push(@importables,$datum->{'type'});
+	    } elsif (
+		$datum->{'intrinsic'} ne "class" 
+		&&
+		exists($datum->{'type'})
+		&&
+		$datum->{'type'} =~ m/\s*(kind\s*=\s*)??([a-zA-Z0-9_]+)/
+		) {
+		push(@importables,$2);
+	    }	
     }
     return @importables;
 }
