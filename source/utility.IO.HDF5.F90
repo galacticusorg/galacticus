@@ -6389,24 +6389,26 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Static
 
-  subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
+  subroutine IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a long integer scalar dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     use Kind_Numbers
     use Memory_Management
     implicit none
-    integer  (kind=kind_int8   ), allocatable, dimension(:), intent(  out)          , target :: datasetValue
-    class    (hdf5Object       )                           , intent(inout)                   :: thisObject
-    character(len=*            )                           , intent(in   ), optional         :: datasetName
-    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional         :: readBegin         , readCount
-    integer  (kind=HSIZE_T     )             , dimension(1)                                  :: datasetDimensions , datasetMaximumDimensions, &
-         &                                                                                      referenceEnd      , referenceStart
+    integer  (kind=kind_int8   ), allocatable, dimension(:  ), intent(  out)          , target :: datasetValue
+    class    (hdf5Object       )                             , intent(inout)                   :: thisObject
+    character(len=*            )                             , intent(in   ), optional         :: datasetName
+    integer  (kind=HSIZE_T     )             , dimension(1  ), intent(in   ), optional         :: readBegin         , readCount
+    integer  (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional         :: readSelection
+    integer  (kind=HSIZE_T     )             , dimension(1  )                                  :: datasetDimensions , datasetMaximumDimensions, &
+         &                                                                                        referenceEnd      , referenceStart
+    integer  (kind=HSIZE_T     ), allocatable, dimension(:,:)                                  :: readSelectionMap
     ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This isn't an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save                                              , target :: referencedRegion
-    integer                                                                                  :: errorCode
+    integer                                                                                  :: errorCode         , i
     integer  (kind=HID_T       )                                                             :: datasetDataspaceID, dereferencedObjectID    , &
          &                                                                                      memorySpaceID     , storedDatasetID
     logical                                                                                  :: isReference       , readSubsection
@@ -6443,6 +6445,11 @@ contains
           call Galacticus_Error_Report(message//{introspection:location})
        end if
        readSubsection=.false.
+    end if
+    ! Only one of a subsection and a selection can be present.
+    if (readSubsection.and.present(readSelection)) then
+       message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -6567,6 +6574,40 @@ contains
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
              call Galacticus_Error_Report(message//{introspection:location})
           end if
+       else if (present(readSelection)) then
+          ! A selection is to be read - create a suitable dataspace selection.
+          ! Check that the selection is valid.
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+             message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Create a map for selecting elements if necessary.
+          allocate(readSelectionMap(1,size(readSelection)))
+          forall(i=1:size(readSelection))
+             readSelectionMap(:,i)=[readSelection(i)]
+          end forall
+          ! Create selection.
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)          
+          if (errorCode < 0) then
+             message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          deallocate(readSelectionMap)
+          ! Set the size of the data to read in.
+          datasetDimensions(1)=size(readSelection)
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
@@ -6618,6 +6659,40 @@ contains
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+       else if (present(readSelection)) then
+          ! A selection is to be read - create a suitable dataspace selection.
+          ! Check that the selection is valid.
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+             message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Create a map for selecting elements if necessary.
+          allocate(readSelectionMap(1,size(readSelection)))
+          forall(i=1:size(readSelection))
+             readSelectionMap(:,i)=[readSelection(i)]
+          end forall
+          ! Create selection.          
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          deallocate(readSelectionMap)
+          ! Set the size of the data to read in.
+          datasetDimensions(1)=size(readSelection)
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
              call Galacticus_Error_Report(message//{introspection:location})
@@ -7941,29 +8016,31 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Static
 
-  subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount)
+  subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable(thisObject,datasetName,datasetValue,readBegin,readCount,readSelection)
     !% Open and read a double scalar dataset in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision                   , allocatable, dimension(:), intent(  out)           :: datasetValue
-    class           (hdf5Object       )                           , intent(inout)           :: thisObject
-    character       (len=*            )                           , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin         , readCount
-    integer         (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, &
-         &                                                                                     referenceEnd      , referenceStart
+    double precision                   , allocatable, dimension(:  ), intent(  out)           :: datasetValue
+    class           (hdf5Object       )                             , intent(inout)           :: thisObject
+    character       (len=*            )                             , intent(in   ), optional :: datasetName
+    integer         (kind=HSIZE_T     )             , dimension(1  ), intent(in   ), optional :: readBegin         , readCount
+    integer         (kind=HSIZE_T     )             , dimension(:  ), intent(in   ), optional :: readSelection
+    integer         (kind=HSIZE_T     )             , dimension(1  )                          :: datasetDimensions , datasetMaximumDimensions, &
+         &                                                                                       referenceEnd      , referenceStart
+    integer         (kind=HSIZE_T     ), allocatable, dimension(:,:)                          :: readSelectionMap
     ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
     ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
     ! deallocated. This isn't an elegant solution, but it works.
-    type            (hdset_reg_ref_t_f), save       , target                                :: referencedRegion
-    integer                                                                                 :: errorCode
-    integer         (kind=HID_T       )                                                     :: datasetDataspaceID, dereferencedObjectID    , &
-         &                                                                                     memorySpaceID     , storedDatasetID
-    logical                                                                                 :: isReference       , readSubsection
-    type            (hdf5Object       )                                                     :: datasetObject
-    type            (varying_string   )                                                     :: datasetNameActual , message
-    type            (c_ptr            )                                                     :: dataBuffer
+    type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion
+    integer                                                                                   :: errorCode         , i
+    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , &
+         &                                                                                       memorySpaceID     , storedDatasetID
+    logical                                                                                   :: isReference       , readSubsection
+    type            (hdf5Object       )                                                       :: datasetObject
+    type            (varying_string   )                                                       :: datasetNameActual , message
+    type            (c_ptr            )                                                       :: dataBuffer
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8000,6 +8077,11 @@ contains
           call Galacticus_Error_Report(message//{introspection:location})
        end if
        readSubsection=.false.
+    end if
+    ! Only one of a subsection and a selection can be present.
+    if (readSubsection.and.present(readSelection)) then
+       message="can not specify both a subsection and selection of dataset '"//trim(datasetNameActual)//"' for reading"
+       call Galacticus_Error_Report(message//{introspection:location})
     end if
 
     ! Check if the object is an dataset, or something else.
@@ -8124,6 +8206,40 @@ contains
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
              call Galacticus_Error_Report(message//{introspection:location})
           end if
+       else if (present(readSelection)) then
+          ! A selection is to be read - create a suitable dataspace selection.
+          ! Check that the selection is valid.
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+             message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Create a map for selecting elements if necessary.
+          allocate(readSelectionMap(1,size(readSelection)))
+          forall(i=1:size(readSelection))
+             readSelectionMap(:,i)=[readSelection(i)]
+          end forall
+          ! Create selection.
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          deallocate(readSelectionMap)
+          ! Set the size of the data to read in.
+          datasetDimensions(1)=size(readSelection)
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
        else
           ! Construct a suitable memory space ID to read this data into.
           call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
@@ -8175,6 +8291,40 @@ contains
           ! Select hyperslab to read to.
           referenceStart=0
           call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,readCount,errorCode)
+          if (errorCode < 0) then
+             message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+       else if (present(readSelection)) then
+          ! A selection is to be read - create a suitable dataspace selection.
+          ! Check that the selection is valid.
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+             message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Create a map for selecting elements if necessary.
+          allocate(readSelectionMap(1,size(readSelection)))
+          forall(i=1:size(readSelection))
+             readSelectionMap(:,i)=[readSelection(i)]
+          end forall
+          ! Create selection.
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          if (errorCode < 0) then
+             message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          deallocate(readSelectionMap)
+          ! Set the size of the data to read in.
+          datasetDimensions(1)=size(readSelection)
+          ! Construct a suitable memory space ID to read this data into.
+          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          if (errorCode < 0) then
+             message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
+             call Galacticus_Error_Report(message//{introspection:location})
+          end if
+          ! Select hyperslab to read to.
+          referenceStart=0
+          call h5sselect_hyperslab_f(memorySpaceID,H5S_SELECT_SET_F,referenceStart,datasetDimensions,errorCode)
           if (errorCode < 0) then
              message="could not select memory space hyperslab for dataset '"//datasetObject%objectName//"'"
              call Galacticus_Error_Report(message//{introspection:location})
