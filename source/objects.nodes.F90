@@ -35,6 +35,7 @@ module Galacticus_Nodes
   use IO_HDF5
   use Pseudo_Random
   use Hashes
+  use Kind_Numbers
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 
@@ -57,6 +58,7 @@ module Galacticus_Nodes
 
   ! Zero dimension arrays to be returned as defaults.
   integer                                            , dimension(0) :: nullInteger1d
+  integer         (kind_int8)                        , dimension(0) :: nullLongInteger1d
   double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
