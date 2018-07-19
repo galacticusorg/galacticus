@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
 
   !# <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS">

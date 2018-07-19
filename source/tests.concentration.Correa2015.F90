@@ -26,7 +26,7 @@ program Test_Correa2015_Concentration
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Unit_Tests
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Galacticus_Nodes
   implicit none
   type            (treeNode                               ), pointer      :: node

@@ -96,7 +96,7 @@ contains
     !% Internal constructor for the ``{\normalfont \ttfamily barkana2001WDM}'' critical overdensity for collapse class.
     use FoX_DOM
     use IO_XML
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
@@ -141,7 +141,7 @@ contains
     end select
     ! Read in the tabulated critical overdensity scaling.
     !$omp critical (FoX_DOM_Access)
-    doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
+    doc => parseFile(char(galacticusPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioStatus)
     if (ioStatus /= 0) call Galacticus_Error_Report('unable to find or parse the tabulated data'//{introspection:location})
     ! Extract the datum lists.
     element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )

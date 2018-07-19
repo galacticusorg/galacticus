@@ -156,7 +156,7 @@ contains
   function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
     !% Constructor for the ``luminosityFunctionMonteroDorta2009SDSS'' output analysis class for internal use.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
     use Galacticus_Error
@@ -247,7 +247,7 @@ contains
          & outputAnalysisLuminosityFunction(                                                                                                                                            &
          &                                               var_str('MonteroDorta2009SDSS'//band                                                        )                                , &
          &                                               var_str(band//'-band luminosity function for the Montero-Dorta & Prada (2009) SDSS analysis')                                , &
-         &                                               char(Galacticus_Input_Path()//'/data/observations/luminosityFunctions/'//band//'LuminosityFunctionMonteroDorta2009SDSS.hdf5'), &
+         &                                               char(galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'//band//'LuminosityFunctionMonteroDorta2009SDSS.hdf5'), &
          &                                               galacticFilter_                                                                                                              , &
          &                                               surveyGeometry_                                                                                                              , &
          &                                               cosmologyFunctions_                                                                                                          , &

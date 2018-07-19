@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Galacticus::Constraints::StellarHaloMassRelation;
 
 # Compute a fast-rejection likelihood for a Galacticus model given the stellar mass-halo mass relation of Leauthaud et al. (2012).

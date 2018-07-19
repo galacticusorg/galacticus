@@ -4,7 +4,7 @@ package Galacticus::Launch::PBS;
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Sys::CPU;
 use File::Which;
@@ -150,7 +150,7 @@ sub Launch {
 	}
 	print $pbsFile $launchScript->{'pbs'}->{'mpiRun'}." -np ".(exists($launchScript->{'pbs'}->{'mpiProcesses'}) ? $launchScript->{'pbs'}->{'mpiProcesses'} : "1")." "
 	    if ( $launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" );
-	print $pbsFile "./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
+	print $pbsFile $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'pbs'}->{'scratchPath'}) ) {
 	    print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {

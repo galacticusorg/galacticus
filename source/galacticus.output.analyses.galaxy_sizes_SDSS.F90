@@ -79,7 +79,7 @@ contains
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use Memory_Management
     use Numerical_Comparison
@@ -132,7 +132,7 @@ contains
     ! Construct sizes matched to those used by  Shen et al. (2003). Also read stellar mass and Sersic index ranges.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    call dataFile    %openFile     (char(Galacticus_Input_Path()//'data/observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.            )
+    call dataFile    %openFile     (char(galacticusPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.            )
     distribution=dataFile%openGroup(distributionName)
     call distribution%readDataset  (                              'radius'                                                                 ,         radii             )
     call distribution%readAttribute(                              'massMinimum'                                                            ,         massStellarMinimum)

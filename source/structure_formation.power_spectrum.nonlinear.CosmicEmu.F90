@@ -147,7 +147,7 @@ contains
     use Numerical_Comparison
     use System_Command
     use ISO_Varying_String
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Input_Parameters
     use Input_Parameters
     use File_Utilities
@@ -193,7 +193,7 @@ contains
        call parameters%serializeToXML(parameterDoc)
        call xml_Close(parameterDoc)
        ! Generate the power spectrum.
-       call System_Command_Do(Galacticus_Input_Path()//"scripts/aux/Cosmic_Emu_Driver.pl "//parameterFile//" "//powerSpectrumFile)
+       call System_Command_Do(galacticusPath(pathTypeExec)//"scripts/aux/Cosmic_Emu_Driver.pl "//parameterFile//" "//powerSpectrumFile)
        ! Read the data file.
        self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
        if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )

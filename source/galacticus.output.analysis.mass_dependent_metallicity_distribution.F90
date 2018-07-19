@@ -219,7 +219,7 @@ contains
     !% Construct metallicity distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management
     use Cosmology_Parameters
@@ -465,7 +465,7 @@ contains
                       case ('sdssStellarMetallicityDistributionZ0.07')
                          ! SDSS z=0.07 stellar-phase metallicity distribution.
                          !$ call hdf5Access%set()
-                         call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/abundances/stellarPhaseMetallicityGallazzi2005.hdf5",readOnly=.true.)
+                         call dataFile%openFile(char(galacticusPath(pathTypeDataStatic))//"observations/abundances/stellarPhaseMetallicityGallazzi2005.hdf5",readOnly=.true.)
                          ! Read masses.
                          call dataFile%readDataset("mass",metallicityDistributions(currentAnalysis)%masses)
                          massDataset=dataFile%openDataset("mass")
@@ -635,7 +635,7 @@ contains
                       case ('sdssGasMetallicityDistributionZ0.07')
                          ! SDSS z=0.07 gas-phase metallicity distribution.
                          !$ call hdf5Access%set()
-                         call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.)
+                         call dataFile%openFile(char(galacticusPath(pathTypeDataStatic))//"observations/abundances/gasPhaseMetallicityAndrews2013.hdf5",readOnly=.true.)
                          ! Read masses.
                          call dataFile%readDataset("mass",metallicityDistributions(currentAnalysis)%masses)
                          massDataset=dataFile%openDataset("mass")

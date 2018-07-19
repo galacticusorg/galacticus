@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the SDSS survey used by \cite{gunawardhana_galaxy_2013}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
 
   !# <surveyGeometry name="surveyGeometryGunawardhana2013SDSS">

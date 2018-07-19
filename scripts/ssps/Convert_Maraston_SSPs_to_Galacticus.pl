@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
@@ -128,7 +127,7 @@ foreach my $IMF ( keys(%IMFs) ) {
 	$fluxData *= $angstromsToMeters/$solarLuminosity/$speedOfLight;
 
 	# Create the HDF5 output file.
-	my $HDFfile = new PDL::IO::HDF5(">".&galacticusPath()."data/stellarPopulations/SSP_Spectra_Maraston_hbMorphology".$hbMorphology."_imf".$IMF.".hdf5");
+	my $HDFfile = new PDL::IO::HDF5(">".$ENV{'GALACTICUS_DATA_PATH'}."/static/stellarPopulations/SSP_Spectra_Maraston_hbMorphology".$hbMorphology."_imf".$IMF.".hdf5");
 	$HDFfile->dataset("ages"         )->set($ages           );
 	$HDFfile->dataset("wavelengths"  )->set($lambdas        );
 	$HDFfile->dataset("metallicities")->set($metallicityData);

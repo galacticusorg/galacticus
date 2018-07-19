@@ -140,7 +140,7 @@ contains
   function massFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,massFunctionFileName,modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_) result(self)
     !% Constructor for ``massFunction'' posterior sampling likelihood class.
     use IO_HDF5
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Memory_Management
     use Galacticus_Display
     type            (posteriorSampleLikelihoodMassFunction)                              :: self
@@ -163,7 +163,7 @@ contains
     self%logHaloMassMaximum=log10(haloMassMaximum)
     ! Read the mass function file.
     !$ call hdf5Access%set()
-    call massFunctionFile%openFile(char(Galacticus_Input_Path())//massFunctionFileName,readOnly=.true.)
+    call massFunctionFile%openFile(char(galacticusPath(pathTypeDataStatic))//massFunctionFileName,readOnly=.true.)
     call massFunctionFile%readDataset("mass"                ,self%mass                )
     call massFunctionFile%readDataset("massFunctionObserved",self%massFunctionObserved)
     call massFunctionFile%readDataset("covariance"          ,self%covarianceMatrix    )

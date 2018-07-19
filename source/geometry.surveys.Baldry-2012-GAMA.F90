@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the GAMA survey used by \cite{baldry_galaxy_2012}.
 
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
   
   !# <surveyGeometry name="surveyGeometryBaldry2012GAMA">
@@ -142,7 +142,7 @@ contains
     type (varying_string              )                :: baldry2012GAMAMangleDirectory
     !GCC$ attributes unused :: self
     
-    baldry2012GAMAMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
+    baldry2012GAMAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_GAMA_z0.03/"
     return
   end function baldry2012GAMAMangleDirectory
   

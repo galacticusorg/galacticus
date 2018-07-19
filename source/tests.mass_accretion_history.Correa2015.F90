@@ -26,7 +26,7 @@ program Test_Correa2015_MAH
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
   use Unit_Tests
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Galacticus_Nodes
   implicit none
   type            (treeNode                               ), pointer      :: node

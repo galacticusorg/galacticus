@@ -3,8 +3,7 @@ use strict;
 use warnings;
 no warnings 'once';
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use Data::Dumper;
 use File::Slurp;
@@ -64,11 +63,11 @@ my $methodStructure;
 my $methodFiles;
 # Extract C-include directories from the Makefile.
 my @cFlags = ( $ENV{'GALACTICUS_CFLAGS'} );
-open(my $makeFile,&galacticusPath()."Makefile");
+open(my $makeFile,$ENV{'GALACTICUS_EXEC_PATH'}."/Makefile");
 push(@cFlags,map {$_ =~ m/^\s*CFLAGS\s*\+??=\s*(.*)$/ ? split(" ",$1) : ()} <$makeFile>);
 close($makeFile);
 # Extract include directories from flags.
-my $installPath = &galacticusPath();
+my $installPath = $ENV{'GALACTICUS_EXEC_PATH'}."/";
 my @includeDirectories;
 foreach ( @cFlags ) {
     next

@@ -4,13 +4,12 @@ package Galacticus::Launch::PostProcess;
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use File::Copy;
 use File::Slurp;
 use MIME::Lite;
 use IO::Compress::Simple;
 use System::Redirect;
-use Galacticus::Path;
 
 sub Failed {
     # The run failed for some reason.
@@ -68,7 +67,7 @@ sub Analyze {
     if ( $launchScript->{'splitModels'} > 1 ) {
 	# We must merge the models before continuing.
 	system(
-	    &galacticusPath()."scripts/aux/Merge_Models.pl ".
+	    $ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/Merge_Models.pl ".
 	    join(" ",map {$_."/galacticus.hdf5"} @{$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}})
 	    ." ".
 	    ${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[0]."/galacticusMerged.hdf5"

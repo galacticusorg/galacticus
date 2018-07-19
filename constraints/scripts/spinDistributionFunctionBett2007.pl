@@ -2,7 +2,8 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
@@ -11,7 +12,6 @@ use Math::SigFigs;
 use Data::Dumper;
 use Galacticus::HDF5;
 use Galacticus::Options;
-use Galacticus::Path;
 use Galacticus::Constraints::Covariances;
 use Stats::Histograms;
 use GnuPlot::PrettyPlots;

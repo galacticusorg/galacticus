@@ -81,7 +81,7 @@ contains
     use Galacticus_Error
     use Statistics_NBody_Halo_Mass_Errors
     use Cosmology_Functions
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use Memory_Management
     use Numerical_Comparison
@@ -127,7 +127,7 @@ contains
     ! Validate input.
     if (distributionNumber < 1 .or. distributionNumber > 10) call Galacticus_Error_Report('distributionNumber ∈ [1..7] is required'//{introspection:location})
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(Galacticus_Input_Path()//'data/darkMatter/concentrationDistributionCocoCDM.hdf5'),readOnly=.true.        )
+    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationDistributionCocoCDM.hdf5'),readOnly=.true.        )
     call dataFile%readDataset(                              'concentration'                                         ,         concentrations)
     call dataFile%readDataset(                              'mass'                                                  ,         masses        )
     call dataFile%close      (                                                                                                              )

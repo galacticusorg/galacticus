@@ -4,7 +4,7 @@ package Galacticus::Launch::Slurm;
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Sys::CPU;
 use Cwd;
@@ -136,7 +136,7 @@ sub Launch {
 	}
 	print $slurmFile $launchScript->{'slurm'}->{'mpiRun'}." -np 1 "
 	    if ( $launchScript->{'slurm'}->{'mpiLaunch'} eq "yes" );
-	print $slurmFile "./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
+	print $slurmFile $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'slurm'}->{'scratchPath'}) ) {
 	    print $slurmFile "mv ".$launchScript->{'slurm'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {

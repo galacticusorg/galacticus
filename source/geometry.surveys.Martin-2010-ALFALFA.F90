@@ -153,7 +153,7 @@ contains
     use Cosmology_Parameters
     use String_Handling
     use File_Utilities
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use System_Command
     use Galacticus_Error
     use Pseudo_Random

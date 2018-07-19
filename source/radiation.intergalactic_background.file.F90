@@ -62,7 +62,7 @@ contains
     use Memory_Management
     use Cosmology_Functions
     use Array_Utilities
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_XML
     implicit none
     type     (varying_string         ), intent(in   )          :: radiationIntergalacticBackgroundMethod
@@ -84,7 +84,7 @@ contains
        !# <inputParameter>
        !#   <name>radiationIGBFileName</name>
        !#   <cardinality>1</cardinality>
-       !#   <defaultValue>var_str(char(Galacticus_Input_Path())//'data/radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml')</defaultValue>
+       !#   <defaultValue>var_str(char(galacticusPath(pathTypeDataStatic))//'radiation/Cosmic_Background_Radiation_Haardt_Madau_2005_Quasars_Galaxies.xml')</defaultValue>
        !#   <description>The name of the file containing a tabulation of the radiation field.</description>
        !#   <source>globalParameters</source>
        !#   <type>string</type>

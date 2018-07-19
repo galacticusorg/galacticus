@@ -118,7 +118,7 @@ contains
   function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class for internal use.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
     use Output_Analysis_Molecular_Ratios
@@ -186,7 +186,7 @@ contains
          & outputAnalysisMassFunctionHI(                                                                                                        &
          &                              var_str('Martin2010ALFALFA'                                             )                             , &
          &                              var_str('HI mass function for the Martin et al. (2010) ALFALFA analysis')                             , &
-         &                              char(Galacticus_Input_Path()//'/data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5'), &
+         &                              char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5'), &
          &                              galacticFilter_                                                                                       , &
          &                              surveyGeometry_                                                                                       , &
          &                              cosmologyFunctions_                                                                                   , &

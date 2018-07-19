@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the ZFOURGE survey used by \cite{tomczak_galaxy_2014}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
 
   !# <surveyGeometry name="surveyGeometryTomczak2014ZFOURGE">
@@ -228,7 +228,7 @@ contains
     type (varying_string                  )                :: tomczak2014ZFOURGEMangleDirectory
     !GCC$ attributes unused :: self
     
-    tomczak2014ZFOURGEMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/"
+    tomczak2014ZFOURGEMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/"
     return
   end function tomczak2014ZFOURGEMangleDirectory
   

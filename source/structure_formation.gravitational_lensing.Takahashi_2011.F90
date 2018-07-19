@@ -290,7 +290,7 @@ contains
     use Cosmology_Functions
     use Root_Finder
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use File_Utilities
     use Table_Labels
@@ -331,10 +331,10 @@ contains
           ! Determine the parameters, A_kappa and omega_kappa, of the convergence distribution (eq. 8
           ! of Takahashi et al.). To do this, we use a look-up table of precomputed values.
           ! Check if a precomputed file exists.
-          if (File_Exists(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
+          if (File_Exists(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5")) then
              ! Read the results from file.
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
+             call parametersFile%openFile(char(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"),readOnly=.true.)
              call parametersFile%readDataset("convergenceVariance",tableConvergenceVariance)
              call parametersFile%readDataset(             "NKappa",tableNKappa             )
              call parametersFile%readDataset(             "AKappa",tableAKappa             )
@@ -424,7 +424,7 @@ contains
              end do
              ! Store the results to file.
              !$ call hdf5Access%set()
-             call parametersFile%openFile(char(Galacticus_Input_Path()//"data/largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
+             call parametersFile%openFile(char(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
              call parametersFile%writeDataset(tableNKappa             ,"NKappa"             ,"Parameter N_kappa from Takahashi et al. (2011)"    )
              call parametersFile%writeDataset(tableAKappa             ,"AKappa"             ,"Parameter A_kappa from Takahashi et al. (2011)"    )

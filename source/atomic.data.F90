@@ -49,7 +49,7 @@ module Atomic_Data
   ! Abundance pattern information.
   integer                     , parameter                 :: abundancePatternCount =1
   character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=                                   &
-       &                                                            ["data/abundances/Solar_Composition_Cloudy_08.00.xml"], &
+       &                                                            ["abundances/Solar_Composition_Cloudy_08.00.xml"], &
        &                                                           abundancePatternNames=                                   &
        &                                                            ["solar"]
 
@@ -156,7 +156,7 @@ contains
     use Memory_Management
     use Galacticus_Error
     use String_Handling
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use ISO_Varying_String
     use IO_XML
     implicit none
@@ -175,7 +175,7 @@ contains
 
        ! Read in the atomic data.
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(Galacticus_Input_Path())//"data/abundances/Atomic_Data.xml",iostat=ioErr)
+       doc => parseFile(char(galacticusPath(pathTypeDataStatic))//"abundances/Atomic_Data.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
 
        ! Get list of all element elements.
@@ -213,7 +213,7 @@ contains
        do iAbundancePattern=1,abundancePatternCount
 
           ! Parse the abundance pattern file.
-          doc => parseFile(char(Galacticus_Input_Path())//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
+          doc => parseFile(char(galacticusPath(pathTypeDataStatic))//abundancePatternFiles(iAbundancePattern),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse data file'//{introspection:location})
 
           ! Get list of all element elements.

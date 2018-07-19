@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use DateTime;
 use Data::Dumper;
 use Text::Table;
@@ -19,7 +19,6 @@ use Carp 'verbose';
 use Sub::Identify ':all';
 use File::Changes;
 use Fortran::Utils;
-use Galacticus::Path;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::Components::Utils qw(@booleanLabel $implementationPropertyNameLengthMax $fullyQualifiedNameLengthMax padClass padLinkedData padImplementationPropertyName padFullyQualified isIntrinsic isOutputIntrinsic offsetName);
 use Galacticus::Build::Components::NullFunctions qw(createNullFunction);
@@ -83,7 +82,7 @@ sub Components_Validate {
     # Validate a component document.
     my $document  = shift;
     my $file      = shift;
-    my $validator = XML::Validator::Schema->new(file => &galacticusPath()."schema/componentSchema.xsd");
+    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}."/schema/componentSchema.xsd");
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_string($document) };
     die "Galacticus::Build::Components::Components_Validate(): validation failed in file ".$file.":\n".$@

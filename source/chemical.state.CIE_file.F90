@@ -203,7 +203,7 @@ contains
 
   function cieFileConstructorParameters(parameters)
     !% Constructor for the ``CIE file'' chemical state class which takes a parameter set as input.
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type(chemicalStateCIEFile)                :: cieFileConstructorParameters
     type(inputParameters     ), intent(inout) :: parameters
@@ -637,6 +637,7 @@ contains
     use ISO_Varying_String
     use IO_HDF5
     use Table_Labels
+    use File_Utilities
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     character       (len=*               ), intent(in   ) :: fileName
@@ -649,7 +650,7 @@ contains
     call hdf5Access%set()
     ! Parse the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityDebug)
-    call chemicalStateFile%openFile(fileName,readOnly=.true.)
+    call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call chemicalStateFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})

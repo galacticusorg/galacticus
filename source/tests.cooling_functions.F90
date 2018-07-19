@@ -24,7 +24,7 @@ program Test_Cooling_Functions
   use Memory_Management
   use Input_Parameters
   use Unit_Tests
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cooling_Functions
   use Abundances_Structure
   use Chemical_Abundances_Structure

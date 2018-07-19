@@ -5,13 +5,12 @@ use strict;
 use warnings;
 use utf8;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Digest::MD5 qw(md5_base64);
 use Fortran::Utils;
 use List::ExtraUtils;
 use List::Uniq ':all';
-use Galacticus::Path;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'sourceDigests'} = \&Process_SourceDigests;
@@ -132,8 +131,8 @@ sub Find_Hash {
 					    &Hash_Data_Files(
 						$fileHasher,
 						map 
-						{$_->{'submatches'}->[0]} 
-						&Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/[\"\'](data\/[a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
+						{$_->{'submatches'}->[1]} 
+						&Fortran::Utils::Get_Matching_Lines($sourceFileName,qr/(char\s*\()??\s*galacticusPath\s*\(\s*pathTypeDataStatic\s*\)\s*\)??\/\/\]\s*[\"\']([a-zA-Z0-9_\.\-\/]+\.(xml|hdf5))[\"\']/)
 						);
 					} else {
 					    # Parse the raw file.
@@ -176,7 +175,7 @@ sub Hash_Data_Files {
     my @files = @_;
     foreach ( @files ) {
     	# Run each data file through the MD5 hash.
-    	my $dataFileName = &galacticusPath()."/".$_;
+    	my $dataFileName = $ENV{'GALACTICUS_DATA_PATH'}."/".$_;
     	if ( -e $dataFileName ) {
     	    open(my $dataHandle,$dataFileName);
     	    $hasher->addfile($dataHandle);

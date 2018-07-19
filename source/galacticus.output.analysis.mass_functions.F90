@@ -682,7 +682,7 @@ contains
     use FGSL
     use Numerical_Integration
     use Galacticus_Nodes
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use ISO_Varying_String
     use Memory_Management
@@ -1136,72 +1136,72 @@ contains
                       select case (trim(massFunctionLabels(j)))
                       case ('sdssStellarMassFunctionZ0.07')
                          ! SDSS z=0.07 stellar mass function.
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5'             ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5'             ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('bernardiSdssStellarMassFunctionZ0.07')
                          ! Bernardi SDSS z=0.07 stellar mass function.
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_Bernardi_2013.hdf5'             ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_Bernardi_2013.hdf5'             ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('gamaStellarMassFunctionZ0.03')
                          ! GAMA z=0.03 stellar mass function.
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_GAMA_2012.hdf5'                 ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_GAMA_2012.hdf5'                 ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('alfalfaHiMassFunctionZ0.00')
                          ! ALFALFA z=0.00 HI mass function.
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5'                        ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5'                        ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.100'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.00_0.20.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.00_0.20.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.250'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.20_0.30.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.20_0.30.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.350'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.30_0.40.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.30_0.40.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.450'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.40_0.50.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.40_0.50.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.575'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.50_0.65.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.50_0.65.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.725'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.65_0.80.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.65_0.80.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.900'   )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.80_1.00.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_z0.80_1.00.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ukidssUdsStellarMassFunctionZ3.250')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z3.0_3.5.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z3.0_3.5.hdf5'  ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ukidssUdsStellarMassFunctionZ3.875')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z3.5_4.25.hdf5' ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z3.5_4.25.hdf5' ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ukidssUdsStellarMassFunctionZ4.625')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z4.25_5.0.hdf5' ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_UKIDSS_UDS_2011_z4.25_5.0.hdf5' ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ0.350'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.20_0.50.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.20_0.50.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ0.625'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.50_0.75.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.50_0.75.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ0.875'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.75_1.00.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z0.75_1.00.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ1.125'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.00_1.25.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.00_1.25.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ1.375'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.25_1.50.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.25_1.50.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ1.750'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.50_2.00.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z1.50_2.00.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ2.250'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z2.00_2.50.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z2.00_2.50.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('zfourgeStellarMassFunctionZ2.750'  )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z2.50_3.00.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ZFOURGE_2014_z2.50_3.00.hdf5'   ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('vipersStellarMassFunctionZ0.55'    )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.55.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.55.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('vipersStellarMassFunctionZ0.70'    )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.70.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.70.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('vipersStellarMassFunctionZ0.90'    )
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.90.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_VIPERS_2013_z0.90.hdf5'         ,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ0.35')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z0.20_0.50.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z0.20_0.50.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ0.75')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z0.50_1.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z0.50_1.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ1.25')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z1.00_1.50.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z1.00_1.50.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ1.75')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z1.50_2.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z1.50_2.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ2.25')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z2.00_2.50.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z2.00_2.50.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ2.75')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z2.50_3.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z2.50_3.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('ultravistaStellarMassFunctionZ3.50')
-                         call Load_Standard_Mass_Function('data/observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z3.00_4.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
+                         call Load_Standard_Mass_Function('observations/massFunctionsStellar/Stellar_Mass_Function_ULTRAVISTA_2013_z3.00_4.00.hdf5',massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case default
                          call Galacticus_Error_Report('unknown mass function "'//trim(massFunctionLabels(j))//'"'//{introspection:location})
                       end select
@@ -2086,7 +2086,7 @@ contains
     use Galacticus_Error
     use Cosmology_Functions
     use Cosmology_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Memory_Management
     use IO_HDF5
     implicit none
@@ -2107,7 +2107,7 @@ contains
     logical                                                                       :: massBinWidthsAvailable
 
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(Galacticus_Input_Path()//'/'//massFunctionFileName),readOnly=.true.)
+    call dataFile%openFile(char(galacticusPath(pathTypeDataStatic)//'/'//massFunctionFileName),readOnly=.true.)
     call dataFile   %readDataset  ('mass'          ,massFunction_%masses)
     massDataset=dataFile%openDataset('mass'        )
     call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMass               ,allowPseudoScalar=.true.)

@@ -72,7 +72,7 @@ contains
     use Numerical_Comparison
     use IO_HDF5
     use Memory_Management
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type            (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                                :: self
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
@@ -99,7 +99,7 @@ contains
     
     ! Construct mass bins matched to those used by Ludlow et al. (2016).
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(Galacticus_Input_Path()//'data/darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.             )
+    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationMassRelationCDMLudlow2016.hdf5'),readOnly=.true.             )
     call dataFile%readDataset(                              'massHalo'                                                    ,         massHaloLogarithmic)
     call dataFile%close      (                                                                                                                         )
     !$ call hdf5Access%unset()

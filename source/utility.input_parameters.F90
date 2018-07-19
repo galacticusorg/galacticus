@@ -434,7 +434,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use Galacticus_Error
     use Galacticus_Display
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use File_Utilities
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -480,10 +480,10 @@ contains
     allowedParameterCount        =0
     if (present(allowedParametersFile)) then
        ! Check if the file exists.
-       if (File_Exists(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile)) then
+       if (File_Exists(char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//allowedParametersFile)) then
           !$omp critical (FoX_DOM_Access)
           ! Parse the file.
-          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
+          allowedParameterDoc => parseFile(char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
           if (errorStatus /= 0) call Galacticus_Error_Report('Unable to parse allowed parameters file'//{introspection:location})
           ! Extract allowed parameter names to array.
           allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")

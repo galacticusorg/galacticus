@@ -21,7 +21,7 @@
   !# <surveyGeometry name="surveyGeometryKelvin2014GAMAnear">
   !#  <description>Implements the geometry of the GAMAnear survey of \cite{kelvin_galaxy_2014-1}.</description>
   !# </surveyGeometry>
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
 
   type, extends(surveyGeometryBaldry2012GAMA) :: surveyGeometryKelvin2014GAMAnear
      double precision :: distanceMinimumSurvey

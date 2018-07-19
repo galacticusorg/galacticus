@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the PRIMUS survey used by \cite{moustakas_primus:_2013}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
 
   !# <surveyGeometry name="surveyGeometryMoustakas2013PRIMUS">
@@ -250,7 +250,7 @@ contains
     type (varying_string                   )                :: moustakas2013PRIMUSMangleDirectory
     !GCC$ attributes unused :: self
     
-    moustakas2013PRIMUSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
+    moustakas2013PRIMUSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/"
     return
   end function moustakas2013PRIMUSMangleDirectory
   

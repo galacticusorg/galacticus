@@ -65,7 +65,7 @@ contains
     use Memory_Management
     use ISO_Varying_String
     use Atomic_Data
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_XML
     implicit none
     type            (varying_string            ), intent(in   )          :: stellarAstrophysicsMethod
@@ -96,7 +96,7 @@ contains
        ! Get the name of the file containing stellar data.
        !# <inputParameter>
        !#   <name>stellarPropertiesFile</name>
-       !#   <defaultValue>Galacticus_Input_Path()//'data/stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
+       !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Properties_Compilation.xml'</defaultValue>
        !#   <description>The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).</description>
        !#   <type>string</type>
        !#   <cardinality>1</cardinality>

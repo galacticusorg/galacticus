@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use strict;
 use warnings;
 use Data::Dumper;

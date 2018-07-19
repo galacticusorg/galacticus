@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
@@ -17,7 +16,7 @@ use Data::Dumper;
 
 # Read the parameters and their covariances.
 my $xml = new XML::Simple;
-my $data = $xml->XMLin(&galacticusPath()."data/cosmology/Cosmological_Parameters_WMAP-9.xml");
+my $data = $xml->XMLin($ENV{'GALACTICUS_DATA_PATH'}."/static/cosmology/Cosmological_Parameters_WMAP-9.xml");
 my $parameterCount = 0;
 my %parameterMap;
 foreach my $parameter ( @{$data->{'parameter'}} ) {

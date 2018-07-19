@@ -48,24 +48,24 @@
   !#   \end{verbatim}
   !#   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
   !#
-  !#   Currently, the following pre-computed stellar spectra files are available as a separate download from \href{http://users.obs.carnegiescience.edu/abenson/galacticus/data/Galacticus_SSP_Data.tar.bz2}{\normalfont \ttfamily http://users.obs.carnegiescience.edu/abenson/galacticus/data/Galacticus\_SSP\_Data.tar.bz2}:
+  !#   Currently, the following pre-computed stellar spectra files are available as a separate download from \href{http://users.obs.carnegiescience.edu/abenson/galacticus/Galacticus_SSP_Data.tar.bz2}{\normalfont \ttfamily http://users.obs.carnegiescience.edu/abenson/galacticus/Galacticus\_SSP\_Data.tar.bz2}:
   !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.0\_imfSalpeter.hdf5}] Corresponds to a Salpeter IMF computed using v2.0 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfSalpeter.hdf5}]  Corresponds to a Salpeter IMF computed using v2.1 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfChabrier.hdf5}]  Corresponds to a Chabrier IMF computed using v2.1 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfChabrier.hdf5}]  Corresponds to a Chabrier IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfKennicutt.hdf5}]  Corresponds to a Kennicutt IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfBaugh2005TopHeavy.hdf5}]  Corresponds to the top-heavy IMF of \cite{baugh_can_2005} computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfKroupa.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Kroupa IMF and a red horizontal branch morphology;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfSalpeter.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Salpeter IMF and a red horizontal branch morphology; 
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfChabrier.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfSalpeter.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfChabrier.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfSalpeter.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Grasil\_gkn15rd\_ken.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Kennicutt IMF;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Grasil\_gkn1rd\_ken.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Kennicutt IMF;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Grasil\_gsrdk0b\_sal.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Salpeter IMF;
-  !#    \item [{\normalfont \ttfamily data/stellarPopulations/SSP\_Spectra\_Grasil\_imf27\_kro.hdf5}] Spectra used by {\normalfont \scshape Grasil}.
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.0\_imfSalpeter.hdf5}] Corresponds to a Salpeter IMF computed using v2.0 of the {\normalfont \ttfamily FSPS} code;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfSalpeter.hdf5}]  Corresponds to a Salpeter IMF computed using v2.1 of the {\normalfont \ttfamily FSPS} code;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.1\_imfChabrier.hdf5}]  Corresponds to a Chabrier IMF computed using v2.1 of the {\normalfont \ttfamily FSPS} code;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfChabrier.hdf5}]  Corresponds to a Chabrier IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfKennicutt.hdf5}]  Corresponds to a Kennicutt IMF computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Conroy-et-al\_v2.2\_imfBaugh2005TopHeavy.hdf5}]  Corresponds to the top-heavy IMF of \cite{baugh_can_2005} computed using v2.2 of the {\normalfont \ttfamily FSPS} code;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfKroupa.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Kroupa IMF and a red horizontal branch morphology;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Maraston\_hbMorphologyRed\_imfSalpeter.hdf5}] The spectra from \cite{maraston_evolutionary_2005} for a Salpeter IMF and a red horizontal branch morphology; 
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfChabrier.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_highResolution\_imfSalpeter.hdf5}] The (high resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfChabrier.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Chabrier IMF, using Padova 1994 tracks;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_BC2003\_lowResolution\_imfSalpeter.hdf5}] The (low resolution) spectra from \cite{bruzual_stellar_2003} for a Salpeter IMF, using Padova 1994 tracks;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_gkn15rd\_ken.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Kennicutt IMF;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_gkn1rd\_ken.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Kennicutt IMF;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_gsrdk0b\_sal.hdf5}] The spectra used by {\normalfont \scshape Grasil} for a Salpeter IMF;
+  !#    \item [{\normalfont \ttfamily stellarPopulations/SSP\_Spectra\_Grasil\_imf27\_kro.hdf5}] Spectra used by {\normalfont \scshape Grasil}.
   !#   \end{description}
   !#   Note that the high resolution spectra from \cite{bruzual_stellar_2003} may require you to adjust the {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceRelative]} parameter to a larger value\footnote{Or, alternatively, set {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceDegrade]}$=${\normalfont \ttfamily true}. This will cause \glc\ to increase the tolerance as necessary to get the integrals to converge---issuing warnings each time the tolerance is increased.}. The sharp features in these high resolution spectra can be difficult to integrate. Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\normalfont \ttfamily scripts/ssps} folder. Spectra for other initial mass functions will be computed automatically when using the \cite{conroy_propagation_2009} population synthesis models.
   !#  </description>
@@ -119,7 +119,7 @@ contains
   function fileConstructorParameters(parameters)
     !% Constructor for the file stellar spectra class which takes a parameter set as input.
     use Star_Formation_IMF
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type   (stellarPopulationSpectraFile)                             :: fileConstructorParameters
     type   (inputParameters             ), intent(inout)              :: parameters
@@ -148,7 +148,7 @@ contains
     !#   <iterator>fileNameFor(#imfRegisterName->name)IMF</iterator>
     !#   <source>parameters</source>
     !#   <variable>fileNames(IMF_Index("$1"))</variable>
-    !#   <defaultValue>Galacticus_Input_Path()//"data/SSP_Spectra_imf$1.hdf5"</defaultValue>
+    !#   <defaultValue>galacticusPath(pathTypeDataStatic)//"SSP_Spectra_imf$1.hdf5"</defaultValue>
     !#   <description>The name of the file of stellar populations to use for the named \gls{imf}.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
@@ -395,6 +395,7 @@ contains
     use Memory_Management
     use IO_HDF5
     use Star_Formation_IMF
+    use File_Utilities
     implicit none
     class  (stellarPopulationSpectraFile), intent(inout)             :: self
     integer                              , intent(in   )             :: imfIndex
@@ -435,7 +436,7 @@ contains
        if (self%fileName(imfIndex) == "?") call Galacticus_Error_Report("no file name specified for '"//IMF_Name(imfIndex)//"' IMF"//{introspection:location})
        !$ call hdf5Access%set()
        ! Open the HDF5 file.
-       call spectraFile%openFile(char(self%fileName(imfIndex)),readOnly=.true.)
+       call spectraFile%openFile(char(File_Name_Expand(char(self%fileName(imfIndex)))),readOnly=.true.)
        ! Check that this file has the correct format.
        call spectraFile%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})

@@ -201,7 +201,7 @@ contains
     !% automatically when the executable is built by {\normalfont \ttfamily make}).
     use ISO_Varying_String
     use Galacticus_Display
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     character       (len=*         ), intent(in   ) :: codeSizeFile
     integer                                         :: ioError              , unitNumber
@@ -210,7 +210,7 @@ contains
     type            (varying_string)                :: codeSizeFileExtension
 
     usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
-    codeSizeFileExtension=char(Galacticus_Input_Path())//BUILDPATH//'/'//trim(codeSizeFile)
+    codeSizeFileExtension=char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//trim(codeSizeFile)
     open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
     read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
     line=adjustl(line)
