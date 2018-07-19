@@ -210,7 +210,6 @@ module MPI_Utilities
      !@     <arguments></arguments>
      !@     <description>Get the current value of the counter.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
      !@ </objectMethods>
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
