@@ -152,7 +152,7 @@ contains
   function massFunctionStellarULTRAVISTAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarULTRAVISTA'' output analysis class for internal use.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Galacticus_Error
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
@@ -258,7 +258,7 @@ contains
          & outputAnalysisMassFunctionStellar(                                                                                                                                &
          &                                   var_str('Muzzin2013ULTRAVISTAz')//redshiftInterval                                                                            , &
          &                                   var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis')                                             , &
-         &                                   char(Galacticus_Input_Path()//'/data/observations/massFunctionsStellar/'//fileName), &
+         &                                   char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName), &
          &                                   galacticFilter_                                                                                                               , &
          &                                   surveyGeometry_                                                                                                               , &
          &                                   cosmologyFunctions_                                                                                                           , &

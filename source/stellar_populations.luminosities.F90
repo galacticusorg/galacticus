@@ -79,7 +79,7 @@ contains
     use String_Handling
     use Star_Formation_IMF
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Galacticus_Display
     use Galacticus_Error
     use Instruments_Filters
@@ -145,7 +145,7 @@ contains
           !# </inputParameter>
           !# <inputParameter>
           !#   <name>stellarPopulationLuminosityStoreDirectory</name>
-          !#   <defaultValue>Galacticus_Input_Path()//'data/stellarPopulations'</defaultValue>
+          !#   <defaultValue>galacticusPath(pathTypeDataDynamic)//'stellarPopulations'</defaultValue>
           !#   <attachedTo>module</attachedTo>
           !#   <description>
           !#    Specifies the directory to which stellar populations luminosities (integrated under a filter) should be stored to file for rapid reuse.

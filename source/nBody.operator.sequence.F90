@@ -113,7 +113,7 @@ contains
   end subroutine sequenceOperate
 
   subroutine sequenceDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily sequence} N_body operator class.
+    !% Perform a deep copy for the {\normalfont \ttfamily sequence} N-body operator class.
     use Galacticus_Error
     implicit none
     class(nbodyOperatorSequence), intent(inout) :: self

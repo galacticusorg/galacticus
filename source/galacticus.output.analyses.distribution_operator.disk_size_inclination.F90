@@ -65,7 +65,7 @@ contains
     use File_Utilities
     use IO_HDF5
     use ISO_Varying_String
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type            (outputAnalysisDistributionOperatorDiskSizeInclntn)                            :: self
     double precision                                                   , parameter                 :: inclinationAngleEpsilon=1.0d-3
@@ -86,7 +86,7 @@ contains
          &                                  extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                                 )
     call File_Lock_Initialize(lockFileDescriptor)
-    fileName=Galacticus_Input_Path()//"/data/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
+    fileName=galacticusPath(pathTypeDataStatic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
     if (File_Exists(fileName)) then
        call hdf5Access%set()
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)

@@ -40,12 +40,13 @@ contains
     use Galacticus_Error
     use FoX_dom
     use IO_XML
+    use Galacticus_Paths
     implicit none
-    type     (varying_string  ), intent(in   )          :: supernovaePopIIIMethod
+    type     (varying_string                          ), intent(in   )          :: supernovaePopIIIMethod
     procedure(SNePopIII_Cumulative_Energy_HegerWoosley), intent(inout), pointer :: SNePopIII_Cumulative_Energy_Get
-    type     (Node            )               , pointer :: doc                            , energyElement, &
-         &                                                 massElement
-    integer                                             :: ioErr
+    type     (Node                                    )               , pointer :: doc                            , energyElement, &
+         &                                                                         massElement
+    integer                                                                     :: ioErr
 
     if (supernovaePopIIIMethod == 'Heger-Woosley2002') then
        ! Set up pointers to our procedures.
@@ -54,7 +55,7 @@ contains
        ! Read in pair instability supernova energies.
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
-       doc => parseFile('data/stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
+       doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse supernovae file'//{introspection:location})
 
        ! Get the mass and energy elements.

@@ -5,13 +5,12 @@ use strict;
 use warnings;
 use threads;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Sys::CPU;
 use Clone qw(clone);
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PostProcess;
-use Galacticus::Path;
 
 # Insert hooks for our functions.
 %Galacticus::Launch::Hooks::moduleHooks = 
@@ -84,7 +83,7 @@ sub Launch_Models {
 		    "ulimit -c unlimited;"        .
 		    "export GFORTRAN_ERROR_DUMPCORE=YES;".
 		    "export OMP_NUM_THREADS=".$launchScript->{'local'}->{'ompThreads'}.";".
-		    "Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml &> ".
+		    $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml &> ".
 		    $jobs[$i]->{'directory'}."/galacticus.log"
 		);
 	    if ( $? == 0 ) {
@@ -131,7 +130,7 @@ sub jobArrayLaunch {
 	    open(my $scriptFile,">".$newJob->{'launchFile'});
 	    print $scriptFile "#!/bin/bash\n";
 	    # Find the working directory.
-	    print $scriptFile "cd ".&galacticusPath()."\n";
+	    print $scriptFile "cd ".$ENV{'GALACTICUS_EXEC_PATH'}."\n";
 	    print $scriptFile "export ".$_."\n"
 		foreach ( &List::ExtraUtils::as_array($localConfig->{'environment'}) );
 	    print $scriptFile "ulimit -t ".$newJob->{'local'}->{'cpuTimeLimit'}."\n"
@@ -172,7 +171,7 @@ sub jobArrayLaunch {
 		if ( scalar(@jobsToRun) == $jobMaximum || scalar(@jobStack) == 0 ) {
 		    # Maximum number of jobs have been accumulated (or there are no more left on the stack). Launch them all and
 		    # then clear the list.
-		    system(&galacticusPath()."scripts/aux/localLaunchWrapper.pl ".join(" ",map {$_->{'launchFile'}." ".$_->{'logFile'}} @jobsToRun));
+		    system($ENV{'GALACTICUS_EXEC_PATH'}."/scripts/aux/localLaunchWrapper.pl ".join(" ",map {$_->{'launchFile'}." ".$_->{'logFile'}} @jobsToRun));
 		    @jobsToRun = ();
 		}
 	    }

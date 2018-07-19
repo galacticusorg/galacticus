@@ -456,6 +456,7 @@ contains
     use ISO_Varying_String
     use IO_HDF5
     use Table_Labels
+    use File_Utilities
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     character       (len=*                 ), intent(in   ) :: fileName
@@ -469,7 +470,7 @@ contains
     ! Read the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
-    call coolingFunctionFile%openFile(fileName,readOnly=.true.)
+    call coolingFunctionFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
     if (fileFormatVersion /= cieFileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})

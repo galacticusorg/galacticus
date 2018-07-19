@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the VIPERS survey used by \cite{davidzon_vimos_2013}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
 
   !# <surveyGeometry name="surveyGeometryDavidzon2013VIPERS">
@@ -206,7 +206,7 @@ contains
     type (varying_string                  )                :: davidzon2013VIPERSMangleDirectory
     !GCC$ attributes unused :: self
     
-    davidzon2013VIPERSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
+    davidzon2013VIPERSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_VIPERS_z0_1/"
     return
   end function davidzon2013VIPERSMangleDirectory
   

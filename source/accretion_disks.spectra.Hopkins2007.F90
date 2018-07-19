@@ -62,14 +62,14 @@ contains
 
   function hopkins2007ConstructorInternal() result(self)
     !% Constructor for the {\normalfont \ttfamily hopkins2007} accretion disk spectra class.
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type(accretionDiskSpectraHopkins2007) :: self
 
     ! Initialize the file lock.
     call File_Lock_Initialize(                    self%fileLock                    )
     ! Set the file name.
-    self%fileName=Galacticus_Input_Path()//"data/blackHoles/AGN_SEDs_Hopkins2007.hdf5"
+    self%fileName=galacticusPath(pathTypeDataStatic)//"blackHoles/AGN_SEDs_Hopkins2007.hdf5"
     ! Build the file.
     call self%buildFile()
     ! Load the file.
@@ -85,7 +85,7 @@ contains
   subroutine hopkins2007BuildFile(self)
     !% Build a file containing a tabulation of the \cite{hopkins_observational_2007} model AGN spectra.
     use, intrinsic :: ISO_Fortran_Env
-    use               Galacticus_Input_Paths
+    use               Galacticus_Paths
     use               System_Command
     use               Galacticus_Error
     use               Galacticus_Display
@@ -134,31 +134,31 @@ contains
        call Galacticus_Display_Indent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityWorking)
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
-       if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.c")) then
-          call System_Command_Do("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(Galacticus_Input_Path())//"aux/AGN_Spectrum/agn_spectrum.c");
-          if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+       if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.c")) then
+          call System_Command_Do("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
+          if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
        end if
        ! Compile the AGN SED code.
-       if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.x")) then
-          call System_Command_Do("cd "//char(Galacticus_Input_Path())//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
-          if (.not.File_Exists(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
+       if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.x")) then
+          call System_Command_Do("cd "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
+          if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-       call System_Command_Do("mkdir -p "//char(Galacticus_Input_Path())//"data/blackHoles")
+       call System_Command_Do("mkdir -p "//char(galacticusPath(pathTypeDataStatic))//"blackHoles")
        allocate(luminosityBolometric(luminosityBolometricCount))
        luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
        do i=1,luminosityBolometricCount
           call Galacticus_Display_Counter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          call System_Command_Do(Galacticus_Input_Path()//"aux/AGN_Spectrum/agn_spectrum.x "//label//" > "//Galacticus_Input_Path()//"aux/AGN_Spectrum/SED.txt")
-          wavelengthCount=Count_Lines_in_File(Galacticus_Input_Path()//"aux/AGN_Spectrum/SED.txt",";")-4
+          call System_Command_Do(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.x "//label//" > "//galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/SED.txt")
+          wavelengthCount=Count_Lines_in_File(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then
              if (wavelengthCount /= size(wavelength)) call Galacticus_Error_Report('inconsistent number of wavelengths'//{introspection:location})
           else
              allocate(wavelength(wavelengthCount                          ))
              allocate(SED       (wavelengthCount,luminosityBolometricCount))
           end if
-          open(newUnit=sedUnit,file=char(Galacticus_Input_Path())//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
+          open(newUnit=sedUnit,file=char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/SED.txt",status="old",form="formatted")
           j=wavelengthCount+1
           do
              read(sedUnit,'(a)',iostat=ioStatus) line

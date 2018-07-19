@@ -160,7 +160,7 @@ contains
   function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class for internal use.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
     use Galacticus_Error
@@ -253,7 +253,7 @@ contains
          & outputAnalysisLuminosityFunctionHalpha(                                                                                                                 &
          &                                        var_str('Sobral2013HiZELSZ'                                                                      )//redshiftInterval , &
          &                                        var_str('Hα luminosity function for the Sobral et al. (2013) HiZELS analysis; redshift interval ')//redshiftInterval , &
-         &                                        char   (Galacticus_Input_Path()//'/data/observations/luminosityFunctions/'                        //fileName        ), &
+         &                                        char   (galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'                        //fileName        ), &
          &                                        .false.                                                                                                              , &
          &                                        depthOpticalISMCoefficient                                                                                           , &
          &                                        galacticFilter_                                                                                                      , &

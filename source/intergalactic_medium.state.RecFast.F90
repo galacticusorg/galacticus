@@ -59,7 +59,7 @@ contains
     use FoX_wxml
     use System_Command
     use Numerical_Constants_Astronomical
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Input_Parameters
     use Input_Parameters
     implicit none
@@ -71,10 +71,10 @@ contains
     type     (inputParameterList             )                :: parameters
 
     ! Generate the name of the data file and an XML input parameter file.
-    command='mkdir -p '//char(Galacticus_Input_Path())//'data/intergalacticMedium'
+    command='mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium'
     call System_Command_Do(command)
-    self         %fileName=char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
-    parameterFile         =char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
+    self         %fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    parameterFile         =char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recfast_parameters.xml'
     ! Construct a parameter list containing all relevant values.
     parameters=inputParameterList()
     write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaMatter    (                   )
@@ -104,7 +104,7 @@ contains
     call parameters%serializeToXML(parameterDoc)
     call xml_Close(parameterDoc)
     ! Run the RecFast driver script to generate the data.
-    command=char(Galacticus_Input_Path())//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//self%fileName
+    command=char(galacticusPath(pathTypeExec))//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//self%fileName
     call System_Command_Do(command)
     return
   end function recFastConstructorInternal

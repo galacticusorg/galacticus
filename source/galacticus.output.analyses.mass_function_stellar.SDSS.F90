@@ -144,7 +144,7 @@ contains
   function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarSDSS'' output analysis class for internal use.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
     implicit none
@@ -218,7 +218,7 @@ contains
          & outputAnalysisMassFunctionStellar(                                                                                                                   &
          &                                   var_str('LiWhite2009SDSS'                                              )                                         , &
          &                                   var_str('Stellar mass function for the Li & White (2009) SDSS analysis')                                         , &
-         &                                   char(Galacticus_Input_Path()//'/data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5'), &
+         &                                   char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5'), &
          &                                   galacticFilter_                                                                                                  , &
          &                                   surveyGeometry_                                                                                                  , &
          &                                   cosmologyFunctions_                                                                                              , &

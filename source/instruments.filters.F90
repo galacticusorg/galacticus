@@ -100,12 +100,13 @@ contains
     use Memory_Management
     use Galacticus_Error
     use FoX_dom
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_XML
     use String_Handling
     use Galacticus_HDF5
     use IO_HDF5
     use Numerical_Constants_Units
+    use File_Utilities
     implicit none
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
@@ -165,7 +166,11 @@ contains
             & ]
     else
        ! Construct a file name for the filter.
-       filterFileName=char(Galacticus_Input_Path())//'data/filters/'//filterName//'.xml'
+       filterFileName=char(galacticusPath(pathTypeDataStatic))//'filters/'//filterName//'.xml'
+       if (.not.File_Exists(filterFileName)) then
+          filterFileName=char(galacticusPath(pathTypeDataDynamic))//'filters/'//filterName//'.xml'
+          if (.not.File_Exists(filterFileName)) call Galacticus_Error_Report('filter file for filter "'//filterName//'" can not be found'//{introspection:location})
+       end if
        ! Parse the XML file.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(filterFileName),iostat=ioErr,ex=exception)

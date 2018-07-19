@@ -205,7 +205,7 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use System_Command
     use Galacticus_Error
     use IO_HDF5
@@ -215,14 +215,14 @@ contains
     type (hdf5Object                       )                :: surveyGeometryRandomsFile
 
     ! Generate the randoms file if necessary.
-    if (.not.File_Exists(Galacticus_Input_Path()//&
+    if (.not.File_Exists(galacticusPath(pathTypeExec)//&
          &"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) then
-       call System_Command_Do(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
-       if (.not.File_Exists(Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('unable to create survey geometry randoms file'//{introspection:location})
+       call System_Command_Do(galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/surveyGeometryRandoms.pl")
+       if (.not.File_Exists(galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5")) call Galacticus_Error_Report('unable to create survey geometry randoms file'//{introspection:location})
     end if
     ! Read the distribution of random points from file.
     !$ call hdf5Access%set()
-    call surveyGeometryRandomsFile%openFile(char(Galacticus_Input_Path()//&
+    call surveyGeometryRandomsFile%openFile(char(galacticusPath(pathTypeExec)//&
          &'constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/data/surveyGeometryRandoms.hdf5')&
          &,readOnly=.true.)
     call surveyGeometryRandomsFile%readDataset('theta',self%randomTheta)

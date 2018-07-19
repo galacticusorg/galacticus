@@ -83,7 +83,7 @@ contains
     use Galacticus_Output_Times
     use Output_Analyses_Options
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use Memory_Management
     use Numerical_Comparison
@@ -126,7 +126,7 @@ contains
     
     ! Construct spins matched to those used by Bett et al. (2007).
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(Galacticus_Input_Path()//'data/darkMatter/bett2007HaloSpinDistribution.hdf5'),readOnly=.true.)
+    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/bett2007HaloSpinDistribution.hdf5'),readOnly=.true.)
     call dataFile%readDataset(                              'spinParameter'                                     ,         spins )
     call dataFile%close      (                                                                                                  )
     !$ call hdf5Access%unset()

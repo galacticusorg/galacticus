@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 
 # Determine the size of an executable file and store the results to a given file.
 # Andrew Benson (08-August-2016)

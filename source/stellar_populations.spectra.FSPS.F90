@@ -63,7 +63,7 @@ contains
   function fspsConstructorInternal(forceZeroMetallicity)
     !% Internal constructor for the FSPS stellar spectra class.
     use Star_Formation_IMF
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type   (stellarPopulationSpectraFSPS)                :: fspsConstructorInternal
     logical                              , intent(in   ) :: forceZeroMetallicity
@@ -75,7 +75,7 @@ contains
     imfCount=IMF_Available_Count()
     allocate(fspsConstructorInternal%fileName(imfCount))
     do i=1,imfCount
-       fspsConstructorInternal%fileName(i)=Galacticus_Input_Path()//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imf'//IMF_Descriptor(i)//'.hdf5'
+       fspsConstructorInternal%fileName(i)=galacticusPath(pathTypeDataDynamic)//'stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imf'//IMF_Descriptor(i)//'.hdf5'
     end do
     return
   end function fspsConstructorInternal

@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_2013}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmology_Functions
 
   !# <surveyGeometry name="surveyGeometryMuzzin2013ULTRAVISTA">
@@ -226,7 +226,7 @@ contains
     type (varying_string                    )                :: muzzin2013ULTRAVISTAMangleDirectory
     !GCC$ attributes unused :: self
     
-    muzzin2013ULTRAVISTAMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/"
+    muzzin2013ULTRAVISTAMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunctions_ULTRAVISTA_z0.2_4.0/"
     return
   end function muzzin2013ULTRAVISTAMangleDirectory
   

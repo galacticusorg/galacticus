@@ -96,7 +96,7 @@ contains
     !% Constructor for the ``blackHoleBulgeRelation'' output analysis class for internal use.
     use Memory_Management
     use IO_HDF5
-    use Galacticus_Input_Paths  
+    use Galacticus_Paths  
     use Galacticus_Output_Times
     use Output_Analysis_Property_Operators
     use Output_Analysis_Property_Extractions

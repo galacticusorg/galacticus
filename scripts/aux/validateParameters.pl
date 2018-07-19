@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use strict;
 use warnings;
 use XML::SAX::ParserFactory;
@@ -36,7 +35,7 @@ my $valid = 0;
 if ( $format == 1 ) {
     # Handle format version 1.
     # Validate the parameter file using XML schema.
-    my $validator = XML::Validator::Schema->new(file => &galacticusPath().'schema/parameters.xsd');
+    my $validator = XML::Validator::Schema->new(file => $ENV{'GALACTICUS_EXEC_PATH'}.'/schema/parameters.xsd');
     my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
     eval { $parser->parse_file($file) };
     die "Parameter file fails XML schema validation\n".$@

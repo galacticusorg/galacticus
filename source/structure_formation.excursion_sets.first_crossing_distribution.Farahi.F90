@@ -160,7 +160,7 @@ contains
   function farahiConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
     !% Internal constructor for the Farahi excursion set class first crossing class.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Galacticus_Display
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
@@ -188,7 +188,7 @@ contains
     self%useFile                           =(self%fileName /= 'none')
     ! Build an automatic file name based on the descriptor for this object.
     if (self%fileName == "auto") then
-       self%fileName=Galacticus_Input_Path()//'data/largeScaleStructure/excursionSets/firstCrossDistributionFarahi_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
+       self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/firstCrossDistributionFarahi_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
        call Galacticus_Display_Message('excursion set data will be read from/written to "'//char(self%fileName)//'"',verbosityWorking)
     end if
     ! Initialize file lock.    

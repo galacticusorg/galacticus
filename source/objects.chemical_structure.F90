@@ -101,7 +101,7 @@ contains
     !% fully compatible with chemical markup language (CML), but only a limited subset of it.
     use FoX_dom
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     implicit none
     type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement
     type     (NodeList), pointer :: atomList, bondList, chemicalList, thisList
@@ -111,7 +111,7 @@ contains
     ! Check if the chemical database is initialized.
     if (.not.chemicalDatabaseInitialized) then
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(Galacticus_Input_Path())//'data/abundances/Chemical_Database.cml',iostat=ioErr)
+       doc => parseFile(char(galacticusPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Unable to find chemical database file'//{introspection:location})
        ! Get a list of all chemicals.
        chemicalList => getElementsByTagname(doc,"chemical")

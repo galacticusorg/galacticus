@@ -18,7 +18,7 @@
 
 !% Implements an abstract survey geometry using \gls{mangle} polygons.
 
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Geometry_Mangle
   
   !# <surveyGeometry name="surveyGeometryMangle" abstract="yes">

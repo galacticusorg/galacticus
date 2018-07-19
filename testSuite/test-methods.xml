@@ -84,7 +84,7 @@
     <version>0.9.4</version>
     <chemicalStateMethod value="atomicCIECloudy"/>
     <chemicalStateMethod value="CIEFile">
-      <fileName value="data/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5"/>
+      <fileName value="%DATASTATICPATH%/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5"/>
     </chemicalStateMethod>
   </parameters>
 
@@ -207,7 +207,7 @@
     <stellarPopulationSpectraMethod value="FSPS"/>
     <stellarPopulationSpectraMethod value="file">
       <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
-      <fileNameForSalpeterIMF value="data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.1_imfSalpeter.hdf5"/>
+      <fileNameForSalpeterIMF value="%DATADYNAMICPATH%/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imfSalpeter.hdf5"/>
     </stellarPopulationSpectraMethod>
   </parameters>
   <parameters>
@@ -227,7 +227,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <transferFunctionMethod value="file">
-      <fileName value="data/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
+      <fileName value="%DATASTATICPATH%/largeScaleStructure/transferFunctionMillenniumSimulation.hdf5"/>
       <cosmologyParametersMethod value="simple" parameterLevel="top">
  	<HubbleConstant value="73.0"/>
  	<OmegaMatter vaqlue="0.25"/>
@@ -708,7 +708,7 @@
     <backgroundRadiationCompute value="true"/>
     <intergalacticMediumStateMethod value="recFast"/>
     <intergalacticMediumStateMethod value="file">
-      <fileName value="data/intergalacticMedium/recFast_OmegaMatter0.2812_OmegaDarkEnergy0.7188_OmegaBaryon0.0461_HubbleConstant69.7_temperatureCMB2.7255_YHe0.22.hdf5"/>
+      <fileName value="%DATADYNAMICPATH%/intergalacticMedium/recFast_OmegaMatter0.2812_OmegaDarkEnergy0.7188_OmegaBaryon0.0461_HubbleConstant69.7_temperatureCMB2.7255_YHe0.22.hdf5"/>
     </intergalacticMediumStateMethod>
     <intergalacticMediumStateMethod value="simple"/>
   </parameters>

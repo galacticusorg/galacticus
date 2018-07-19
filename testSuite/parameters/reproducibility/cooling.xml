@@ -68,10 +68,10 @@
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
   <coolingFunctionMethod value="CIEFile">
-    <fileName value="data/cooling/cooling_function_Atomic_CIE_Cloudy_13.05.hdf5"/>
+    <fileName value="%DATASTATICPATH%/cooling/cooling_function_Atomic_CIE_Cloudy_13.05.hdf5"/>
   </coolingFunctionMethod>
   <chemicalStateMethod value="CIEFile">
-    <fileName value="data/chemicalState/chemical_state_Atomic_CIE_Cloudy_13.05.hdf5"/>
+    <fileName value="%DATASTATICPATH%/chemicalState/chemical_state_Atomic_CIE_Cloudy_13.05.hdf5"/>
   </chemicalStateMethod>
   
   <coolingRadiusMethod value="simple"/>

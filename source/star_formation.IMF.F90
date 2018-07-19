@@ -483,7 +483,7 @@ contains
     use IO_XML
     use Galacticus_Error
     use Dates_and_Times
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Table_Labels
     implicit none
     double precision                                                                          , intent(in   ) ::        ageMinimum                                         , starFormationRate
@@ -573,7 +573,7 @@ contains
        recycledFractionIndex(imfSelected)=size(recycledFractionTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
+       fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/Stellar_Recycled_Fraction_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.
@@ -861,7 +861,7 @@ contains
     use IO_XML
     use Galacticus_Error
     use Dates_and_Times
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Table_Labels
     implicit none
     double precision                                                                          , intent(in   )            :: ageMinimum                                         , starFormationRate
@@ -950,7 +950,7 @@ contains
        remnantFractionIndex(imfSelected)=size(remnantFractionTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Remnant_Fraction_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
+       fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/Stellar_Remnant_Fraction_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.
@@ -1255,7 +1255,7 @@ contains
     use IO_XML
     use Galacticus_Error
     use Dates_and_Times
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Kind_Numbers
     use Table_Labels
     implicit none
@@ -1353,10 +1353,10 @@ contains
           select case (iElement)
           case (1)
              ! Total metallicity.
-             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Metal_Yield_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
+             fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/Stellar_Metal_Yield_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
           case (2:)
              ! Individual element.
-             fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
+             fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/Stellar_'//Abundances_Names(iElement)//'_Yield_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
           end select
           makeFile=.false.
           if (File_Exists(fileName)) then
@@ -1714,7 +1714,7 @@ contains
     use IO_XML
     use Galacticus_Error
     use Dates_and_Times
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Table_Labels
     implicit none
     double precision                                                                          , intent(in   ) ::        ageMinimum                                    , starFormationRate
@@ -1803,7 +1803,7 @@ contains
        energyInputIndex(imfSelected)=size(energyInputTable,dim=3)
 
        ! Check if the table has been computed and stored previously.
-       fileName=char(Galacticus_Input_Path())//'data/stellarPopulations/Stellar_Energy_Input_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
+       fileName=char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/Stellar_Energy_Input_'//imfNames(imfSelected)//'_'//imfUniqueLabel//'.xml'
        makeFile=.false.
        if (File_Exists(fileName)) then
           ! Open the XML file containing energy input.

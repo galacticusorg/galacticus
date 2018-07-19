@@ -184,7 +184,7 @@
      !@     <method>timeUntilMergingSubresolution</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} lastSeenNode\argin, \textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\arginout, \textcolor{red}{\textless class(treeNodeList)(:)\textgreater} nodeList\arginout, \intzero\ iNode\argin, \doublezero\ timeSubhaloMerges\arginout</arguments>
-     !@     <description>Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).>
+     !@     <description>Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>phaseSpacePositionRealize</method>

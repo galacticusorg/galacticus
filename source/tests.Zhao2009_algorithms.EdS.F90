@@ -33,7 +33,7 @@ program Test_Zhao2009_Flat
   use Galacticus_Nodes
   use Unit_Tests
   use String_Handling
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use File_Utilities
   implicit none
   type            (treeNode                               )                         , pointer :: node
@@ -83,7 +83,7 @@ program Test_Zhao2009_Flat
   do iMass=1,size(logarithmicHaloMasses)
 
      ! Count lines in the "mandc" comparison file.
-     fileName=char(Galacticus_Input_Path())//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputEdSlgM'
+     fileName=char(galacticusPath(pathTypeExec))//'testSuite/data/zhao2009MassAccretionHistories/mandcoutputEdSlgM'
      fileName=fileName//logarithmicHaloMasses(iMass)//'.data'
      totalLinesInFile=Count_Lines_in_File(fileName    )
      dataLinesInFile =Count_Lines_in_File(fileName,'#')-1

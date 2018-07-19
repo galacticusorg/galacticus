@@ -28,7 +28,7 @@ contains
   subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion)
     !% Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
     use ISO_Varying_String
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use File_Utilities
     use System_Command
     use Galacticus_Display
@@ -40,7 +40,7 @@ contains
     ! Specify Cloudy version.
     cloudyVersion="c17.01"
     ! Specify Cloudy path.
-    cloudyPath   =Galacticus_Input_Path()//"/aux/"//cloudyVersion
+    cloudyPath   =galacticusPath(pathTypeExec)//"aux/"//cloudyVersion
     ! Download the Cloudy code.
     if (.not.File_Exists(cloudyPath//".tar.gz")) then
        call Galacticus_Display_Message("downloading Cloudy code....",verbosityWorking)

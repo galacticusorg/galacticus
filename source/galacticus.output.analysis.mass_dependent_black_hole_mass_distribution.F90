@@ -151,7 +151,7 @@ contains
     !% Construct black hole mass distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management
     use Cosmology_Parameters
@@ -366,7 +366,7 @@ contains
                       case ('blackHoleDistributionKormendyHo')
                          ! Kormendy & Ho black hole mass compilation.
                          !$ call hdf5Access%set()
-                         call dataFile%openFile(char(Galacticus_Input_Path())//"data/observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5",readOnly=.true.)
+                         call dataFile%openFile(char(galacticusPath(pathTypeDataStatic))//"observations/blackHoles/blackHoleMassVsBulgeMass_KormendyHo2013.hdf5",readOnly=.true.)
                          ! Read masses.
                          call dataFile%readDataset("massBulge",masses)
                          massDataset=dataFile%openDataset("massBulge")

@@ -16,20 +16,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which stores file units and finds available file units.
+!% Contains a module which implements various file-related utilities.
 
 ! Specify an explicit dependence on the flock.o object file.
 !: $(BUILDPATH)/flock.o
 
 module File_Utilities
-  !% Contains a function which returns an available file unit. Also stores the name of the output directory and unit numbers for
-  !% various files which remain open throughout.
+  !% Implements various file-related utilities.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   !$ use OMP_Lib
   implicit none
   private
-  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name, File_Name_Temporary, File_Remove
+  public :: Count_Lines_in_File, File_Exists, File_Lock_Initialize, File_Lock, File_Unlock, Executable_Find, File_Path, File_Name, File_Name_Temporary, File_Remove, Directory_Make, File_Name_Expand
 
   interface Count_Lines_in_File
      !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
@@ -226,6 +225,16 @@ contains
 
   end function Executable_Find
 
+  subroutine Directory_Make(pathName)
+    !% Make the given directory path.
+    use System_Command
+    implicit none
+    character(len=*), intent(in   ) :: pathName
+
+    call System_Command_Do("mkdir -p "//pathName)
+    return
+  end subroutine Directory_Make
+  
   function File_Path(fileName)
     !% Returns the path to the file.
     implicit none
@@ -288,5 +297,19 @@ contains
     if (File_Exists(fileName)) call System_Command_Do("rm -f "//fileName)
     return
   end subroutine File_Remove
+
+  function File_Name_Expand(fileNameIn) result(fileNameOut)
+    !% Expands placeholders for Galacticus paths in file names.
+    use Galacticus_Paths
+    implicit none
+    type     (varying_string)                :: fileNameOut
+    character(len=*         ), intent(in   ) :: fileNameIn
+
+    fileNameOut=fileNameIn
+    fileNameOut=replace(fileNameOut,"%EXECPATH%"       ,galacticusPath(pathTypeExec       ),every=.true.)
+    fileNameOut=replace(fileNameOut,"%DATASTATICPATH%" ,galacticusPath(pathTypeDataStatic ),every=.true.)
+    fileNameOut=replace(fileNameOut,"%DATADYNAMICPATH%",galacticusPath(pathTypeDataDynamic),every=.true.)
+    return
+  end function File_Name_Expand
   
 end module File_Utilities

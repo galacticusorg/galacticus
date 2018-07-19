@@ -176,7 +176,7 @@ contains
     !% Construct correlation functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management
     use Cosmology_Parameters
@@ -338,7 +338,7 @@ contains
                       case ('sdssClusteringZ0.07')
                          ! Read data for the Hearin et al. (2013) projected correlation function.
                          !$ call hdf5Access%set()
-                         call dataFile%openFile(char(Galacticus_Input_Path()//'/data/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.hdf5'),readOnly=.true.)
+                         call dataFile%openFile(char(galacticusPath(pathTypeDataStatic)//'/observations/correlationFunctions/Projected_Correlation_Functions_Hearin_2013.hdf5'),readOnly=.true.)
                          ! Extract parameters.
                          parameters =dataFile%openGroup('Parameters')
                          call parameters %readAttribute('H_0'                                         ,dataHubbleParameter                                   )

@@ -195,7 +195,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use File_Utilities
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Memory_Management
     use System_Command
     use Galacticus_Error
@@ -210,15 +210,15 @@ contains
     type            (varying_string               )                            :: message
     
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
-    if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) then
-       call System_Command_Do("mkdir -p "//Galacticus_Input_Path()//"data/surveyGeometry")
-       call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
-       if (.not.File_Exists(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
+    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
+       call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"surveyGeometry")
+       call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if
-    randomsCount=Count_Lines_In_File(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat")
+    randomsCount=Count_Lines_In_File(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
     call allocateArray(self%randomTheta,[randomsCount])
     call allocateArray(self%randomPhi  ,[randomsCount])
-    open(newUnit=randomUnit,file=char(Galacticus_Input_Path()//"data/surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
+    open(newUnit=randomUnit,file=char(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat"),status="old",form="formatted")
     j=0
     do i=1,randomsCount
        read (randomUnit,*) rightAscension,declination

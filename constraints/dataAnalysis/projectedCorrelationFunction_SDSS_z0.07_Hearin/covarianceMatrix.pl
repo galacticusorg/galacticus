@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 
 # Find the maximum likelihood estimate of the covariance matrix for the Hearin et al. (2014)
 # SDSS stellar mass selected projected correlation functions.

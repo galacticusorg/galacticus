@@ -18,7 +18,7 @@
 
 !% Implements the geometry of the SDSS survey used by \cite{bernardi_massive_2013}.
   
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
 
   !# <surveyGeometry name="surveyGeometryBernardi2013SDSS">
   !#  <description>Implements the geometry of the SDSS survey of \cite{bernardi_massive_2013}.</description>
@@ -124,7 +124,7 @@ contains
     type (varying_string                )                :: bernardi2013SDSSMangleDirectory
     !GCC$ attributes unused :: self
 
-    bernardi2013SDSSMangleDirectory=Galacticus_Input_Path()//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
+    bernardi2013SDSSMangleDirectory=galacticusPath(pathTypeExec)//"constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07_Bernardi/"
     return
   end function bernardi2013SDSSMangleDirectory
   

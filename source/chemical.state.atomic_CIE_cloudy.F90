@@ -58,8 +58,8 @@
   end interface chemicalStateAtomicCIECloudy
 
   ! File names for the cooling function and chemical state data.
-  character       (len=56)           :: atomicCIECloudyCoolingFunctionFileName='data/cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'
-  character       (len=56)           :: atomicCIECloudyChemicalStateFileName  ='data/chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'
+  character       (len=56)           :: atomicCIECloudyCoolingFunctionFileName='cooling/cooling_function_Atomic_CIE_Cloudy.hdf5'
+  character       (len=56)           :: atomicCIECloudyChemicalStateFileName  ='chemicalState/chemical_state_Atomic_CIE_Cloudy.hdf5'
 
   ! Maximum tabulated metallicity.
   double precision       , parameter :: atomicCIECloudyMetallicityMaximumDefault=30.0d0 ! Thirty times Solar.
@@ -119,7 +119,7 @@ contains
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
     !% Create the chemical state.
     use System_Command
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use String_Handling
     use Galacticus_Display
     use Interfaces_Cloudy_CIE
@@ -147,7 +147,7 @@ contains
        end if
        if (makeFile) then
           ! Remove the chemical state file so that a new one will be created.
-          command='rm -f '//char(Galacticus_Input_Path())//trim(atomicCIECloudyChemicalStateFileName)
+          command='rm -f '//char(galacticusPath(pathTypeDataStatic))//trim(atomicCIECloudyChemicalStateFileName)
           call System_Command_Do(command)
        end if
     end if
@@ -169,12 +169,12 @@ contains
        ! Generate the file.
        call Interface_Cloudy_CIE_Tabulate(                                                                             &
             &                             log10(self%metallicityMaximum                                             ), &
-            &                                   Galacticus_Input_Path()//trim(atomicCIECloudyCoolingFunctionFileName), &
-            &                                   Galacticus_Input_Path()//trim(atomicCIECloudyChemicalStateFileName  ), &
+            &                                   galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyCoolingFunctionFileName), &
+            &                                   galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyChemicalStateFileName  ), &
             &                                   cieFileFormatVersionCurrent                                            &
             &                            )
        ! Call routine to read in the tabulated data.
-       call self%readFile(char(Galacticus_Input_Path()//trim(atomicCIECloudyChemicalStateFileName)))
+       call self%readFile(char(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyChemicalStateFileName)))
        ! Flag that chemical state is now initialized.
        self%initialized=.true.
     end if

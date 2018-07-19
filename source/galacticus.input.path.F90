@@ -18,64 +18,75 @@
 
 !% Contains a module which provides the path for \glc\ inputs and scripts.
 
-module Galacticus_Input_Paths
+module Galacticus_Paths
   !% Provides the path for \glc\ inputs and scripts.
   use ISO_Varying_String
   implicit none
   private
-  public :: Galacticus_Input_Path
+  public :: galacticusPath
 
-  ! The input path.
-  type   (varying_string) :: galacticusInputPath
+  !# <enumeration>
+  !#  <name>pathType</name>
+  !#  <description>Enumeration of various paths used by Galacticus.</description>
+  !#  <validator>yes</validator>
+  !#  <entry label="exec"       />
+  !#  <entry label="dataStatic" />
+  !#  <entry label="dataDynamic"/>
+  !# </enumeration>
 
-  ! Flag indicating if we've retrieved the path yet.
-  logical                 :: pathRetrieved      =.false.
+  type   (varying_string), dimension(:), allocatable :: paths
+  logical                                            :: pathsRetrieved=.false.
 
 contains
 
-  function Galacticus_Input_Path()
-    !% Returns the path that \glc\ should use as the root for all input data reads.
+  function galacticusPath(pathType)
+    !% Returns the path to various \glc\ resources.
     implicit none
-    type   (varying_string) :: Galacticus_Input_Path
-    integer                 :: pathLength           , pathStatus
+    type   (varying_string)                :: galacticusPath
+    integer                , intent(in   ) :: pathType
+    integer                                :: pathLength    , pathStatus
 
-    ! Check if the path has been retrieved.
-    if (.not.pathRetrieved) then
+    ! Retrieve the paths if necessary.
+    if (.not.pathsRetrieved) then
        !$omp critical (Galacticus_Path_Initialize)
-       if (.not.pathRetrieved) then
-          ! Get the status and path length.
-          call Get_Environment_Variable("GALACTICUS_ROOT_V094",length=pathLength,status=pathStatus)
+       if (.not.pathsRetrieved) then
+          allocate(paths(pathTypeMin:pathTypeMax))
+          call Get_Environment_Variable("GALACTICUS_EXEC_PATH",length=pathLength,status=pathStatus)
           if (pathStatus == 0) then
-             ! Path is defined, retrieve it.
-             call Get_Path(pathLength)
+             call pathsRetrieve(pathTypeExec,"GALACTICUS_EXEC_PATH",pathLength)
           else
-             ! No path is defined, default to current working directory.
-             galacticusInputPath="./"
+             paths(pathTypeExec)="./"
           end if
-          ! Flag that the path has been retrieved.
-          pathRetrieved=.true.
+          call Get_Environment_Variable("GALACTICUS_DATA_PATH",length=pathLength,status=pathStatus)
+          if (pathStatus == 0) then
+             call pathsRetrieve(pathTypeDataStatic,"GALACTICUS_DATA_PATH",pathLength)
+          else
+             paths(pathTypeDataStatic)="./"
+          end if
+          paths(pathTypeDataDynamic)=paths(pathTypeDataStatic)//"dynamic/"
+          paths(pathTypeDataStatic )=paths(pathTypeDataStatic)//"static/"
+          pathsRetrieved=.true.
        end if
        !$omp end critical (Galacticus_Path_Initialize)
     end if
-
-    ! Return the input path.
-    Galacticus_Input_Path=trim(char(galacticusInputPath))
+    galacticusPath=trim(char(paths(pathType)))
     return
-  end function Galacticus_Input_Path
-
-  subroutine Get_Path(pathLength)
+  end function galacticusPath
+  
+  subroutine pathsRetrieve(pathType,pathName,pathLength)
     !% Retrieve the \glc\ input data path from the environment.
     implicit none
-    integer                    , intent(in   ) :: pathLength
-    character(len=pathLength+1)                :: pathName
+    integer                    , intent(in   ) :: pathType, pathLength
+    character(len=*           ), intent(in   ) :: pathName
+    character(len=pathLength+1)                :: pathValue
 
     ! Get the path.
-    call Get_Environment_Variable("GALACTICUS_ROOT_V094",value=pathName)
+    call Get_Environment_Variable(pathName,value=pathValue)
     ! Append a final "/" if necessary.
-    if (pathName(pathLength:pathLength) /= "/") pathName=trim(pathName)//"/"
+    if (pathValue(pathLength:pathLength) /= "/") pathValue=trim(pathValue)//"/"
     ! Store the path.
-    galacticusInputPath=pathName
+    paths(pathType)=pathValue
     return
-  end subroutine Get_Path
+  end subroutine pathsRetrieve
 
-end module Galacticus_Input_Paths
+end module Galacticus_Paths

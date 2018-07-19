@@ -52,7 +52,7 @@ contains
     use Memory_Management
     use IO_HDF5
     use ISO_Varying_String
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use String_Handling
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarTracksMethod
@@ -75,7 +75,7 @@ contains
        ! Get the name of the file from which to read stellar tracks.
        !# <inputParameter>
        !#   <name>stellarTracksFile</name>
-       !#   <defaultValue>Galacticus_Input_Path()//'data/stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
+       !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
        !#   <description>The name of the HDF5 file from which to read stellar tracks.</description>
        !#   <type>string</type>
        !#   <cardinality>1</cardinality>

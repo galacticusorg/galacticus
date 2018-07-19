@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use PDL::IO::Misc;
@@ -15,7 +14,7 @@ use DateTime;
 # Andrew Benson (28-December-2012)
 
 # Create a working directory.
-my $workDirectory = &galacticusPath()."/aux/WMAP-9";
+my $workDirectory = $ENV{'GALACTICUS_EXEC_PATH'}."//aux/WMAP-9";
 system("mkdir -p ".$workDirectory);
 
 # Download the Monte Carlo Markov Chains.
@@ -165,7 +164,7 @@ $output->{'timestamp'  } = $now;
 
 # Serialize data to XML.
 my $xml = new XML::Simple(NoAttr=>1, RootName=>"parameters");
-open(oHndl,">".&galacticusPath()."/data/cosmology/Cosmological_Parameters_WMAP-9.xml");
+open(oHndl,">".$ENV{'GALACTICUS_DATA_PATH'}."/static/cosmology/Cosmological_Parameters_WMAP-9.xml");
 print oHndl $xml->XMLout($output);
 close(oHndl);
 

@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 
 # Find the maximum likelihood estimate of the covariance matrix for the Caputi et al. (2011) UKIDSS UDS stellar mass functions.
 # Andrew Benson (05-July-2012)

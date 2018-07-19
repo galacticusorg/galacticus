@@ -116,7 +116,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Instruments_Filters
     use               Galacticus_Output_Times
-    use               Galacticus_Input_Paths
+    use               Galacticus_Paths
     use               Memory_Management
     use               Stellar_Luminosities_Structure
     use               IO_HDF5
@@ -133,7 +133,7 @@ contains
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
-    call emissionLinesFile%openFile(char(Galacticus_Input_Path())//"data/hiiRegions/emissionLines.hdf5",readOnly=.true.)
+    call emissionLinesFile%openFile(char(galacticusPath(pathTypeDataStatic))//"hiiRegions/emissionLines.hdf5",readOnly=.true.)
     lines=emissionLinesFile%openGroup('lines')
     do i=1,size(lineNames)
        if (.not.lines%hasDataset(char(self%lineNames(i)))) call Galacticus_Error_Report('line "'//char(self%lineNames(i))//'" not found'//{introspection:location})

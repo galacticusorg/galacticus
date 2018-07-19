@@ -4,7 +4,7 @@ package Galacticus::Launch::MonolithicPBS;
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Sys::CPU;
 use Galacticus::Launch::Hooks;
@@ -12,7 +12,6 @@ use Galacticus::Launch::PostProcess;
 use Galacticus::Launch::PBS;
 use System::Redirect;
 use List::ExtraUtils;
-use Galacticus::Path;
 
 # Insert hooks for our functions.
 %Galacticus::Launch::Hooks::moduleHooks = 
@@ -183,7 +182,7 @@ sub Launch {
 	    my $scratchPath = $launchScript->{'monolithicPBS'}->{'scratchPath'}."/model_".$launchScript->{'modelCounter'}."_".$$."/";
 	    print $launchFile "mkdir -p ".$scratchPath."\n";
 	}
-	print $launchFile &galacticusPath()."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
+	print $launchFile $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'monolithicPBS'}->{'scratchPath'}) ) {
 	    print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {

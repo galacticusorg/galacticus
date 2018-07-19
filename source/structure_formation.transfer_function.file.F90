@@ -257,6 +257,7 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Table_Labels
+    use File_Utilities
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName
@@ -341,7 +342,7 @@ contains
     else
        ! Open and read the HDF5 data file.
        call hdf5Access%set()
-       call fileObject%openFile(fileName,readOnly=.true.)
+       call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
        ! Check that the file has the correct format version number.
        call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
        if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('file has the incorrect version number'//{introspection:location})

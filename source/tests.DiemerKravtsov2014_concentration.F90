@@ -31,7 +31,7 @@ program Test_DiemerKravtsov2014_Concentration
   use System_Command
   use Galacticus_Error
   use File_Utilities
-  use Galacticus_Input_Paths
+  use Galacticus_Paths
   use Cosmological_Density_Field
   use Power_Spectra
   implicit none
@@ -63,13 +63,13 @@ program Test_DiemerKravtsov2014_Concentration
   call parameters%markGlobal()
 
   ! Get the data file if we don't have it.
-  if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
+  if (.not.File_Exists(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
      call System_Command_Do(                                                                           &
           &                 "wget http://www.benediktdiemer.com/wp-content/uploads/cM_WMAP7.txt -O "// &
-          &                 Galacticus_Input_Path()                                                 // &
+          &                 galacticusPath(pathTypeExec)                                            // &
           &                 "testSuite/data/diemerKravtsov2014Concentration.txt"                       &
           &                )
-     if (.not.File_Exists(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
+     if (.not.File_Exists(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) &
           & call Galacticus_Error_Report('unable to retrieve reference dataset'//{introspection:location})
   end if
   ! Create a node.
@@ -99,7 +99,7 @@ program Test_DiemerKravtsov2014_Concentration
        &                                                                             )
   ! Read the reference file.
   differenceFractionalMaximum=0.0d0
-  open(newUnit=referenceUnit,file=char(Galacticus_Input_Path()//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
+  open(newUnit=referenceUnit,file=char(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt"),status='old',form='formatted',iostat=ioStatus)
   do i=1,7
      read (referenceUnit,*,ioStat=ioStatus) ! Skip header.
   end do

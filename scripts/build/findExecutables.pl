@@ -3,7 +3,7 @@ use strict;
 use warnings;
 no warnings 'once';
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Text::Template 'fill_in_string';
 
 # Locate files which contain programs and append to a list of executables.

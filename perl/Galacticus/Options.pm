@@ -4,8 +4,7 @@ package Galacticus::Options;
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Scalar::Util 'reftype';
 use XML::Simple;
 use List::ExtraUtils;
@@ -15,8 +14,8 @@ sub Config {
     my $section          = shift();
     my $xml              = new XML::Simple;
     my $configSection;
-    if ( -e &galacticusPath()."galacticusConfig.xml" ) {
-	my $galacticusConfig = $xml->XMLin(&galacticusPath()."galacticusConfig.xml", KeyAttr => 0);   
+    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
+	my $galacticusConfig = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml", KeyAttr => 0);   
 	foreach ( &List::ExtraUtils::as_array($galacticusConfig->{$section}->{'host'}) ) {
 	    if ( $_->{'name'} eq $ENV{'HOSTNAME'} || $_->{'name'} eq "default" ) {
 		$configSection = $_;

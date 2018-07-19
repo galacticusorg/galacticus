@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use LaTeX::Encode;
 use Galacticus::Build::Components::Utils qw(%intrinsicTypes);
 

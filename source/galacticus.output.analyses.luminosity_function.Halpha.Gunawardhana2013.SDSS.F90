@@ -152,7 +152,7 @@ contains
   function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionGunawardhana2013SDSS'' output analysis class for internal use.
     use Input_Parameters
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Output_Analysis_Distribution_Operators
     use Cosmology_Parameters
     use Galacticus_Error
@@ -227,7 +227,7 @@ contains
          & outputAnalysisLuminosityFunctionHalpha(                                                                                                                   &
          &                                  var_str('Gunawardhana2013SDSS'                                                   )                                     , &
          &                                  var_str('Hα luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                     , &
-         &                                  char(Galacticus_Input_Path()//'/data/observations/luminosityFunctions/hAlphaLuminosityFunctionGunawardhana13SDSS.hdf5'), &
+         &                                  char(galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/hAlphaLuminosityFunctionGunawardhana13SDSS.hdf5'), &
          &                                  .false.                                                                                                                , &
          &                                  depthOpticalISMCoefficient                                                                                             , &
          &                                  galacticFilter_                                                                                                        , &

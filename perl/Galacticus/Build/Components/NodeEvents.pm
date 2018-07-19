@@ -6,7 +6,7 @@ use warnings;
 no warnings 'once';
 use utf8;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Galacticus::Build::Components::Utils;
 use Text::Template 'fill_in_string';
 

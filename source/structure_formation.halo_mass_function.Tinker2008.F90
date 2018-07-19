@@ -105,7 +105,7 @@ contains
     use FoX_DOM
     use IO_XML
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Table_Labels
     use ISO_Varying_String
     use File_Utilities
@@ -128,7 +128,7 @@ contains
     self%timeParameters=-1.0d0
     self%massParameters=-1.0d0
     ! Read the data file which gives fitting parameters as a function of halo overdensity.
-    parameterFileName=Galacticus_Input_Path()//"data/darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
+    parameterFileName=galacticusPath(pathTypeDataStatic)//"darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml"
     if (.not.File_Exists(parameterFileName)) call Galacticus_Error_Report('Unable to find data file "'//parameterFileName//'"'//{introspection:location})
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(parameterFileName),ioStat=ioStatus)

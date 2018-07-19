@@ -4,9 +4,8 @@ package Galacticus::Launch::Condor;
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
-use Galacticus::Path;
 
 # Insert hooks for our functions.
 %Galacticus::Launch::Hooks::moduleHooks = 
@@ -25,12 +24,12 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 galacticusDirectory     => "/home/condor/Galacticus/v0.9.4"                              ,
-	 universe                => "vanilla"                                                     ,
-	 environment             => ""                                                            ,
-	 requirement             => []                                                            ,
-	 transferFiles           => [ &galacticusPath()."/Galacticus.exe", "parameters.xml"  ],
-	 postSubmitSleepDuration =>  5                                                            ,
+	 galacticusDirectory     => "/home/condor/Galacticus/v0.9.4"                                     ,
+	 universe                => "vanilla"                                                            ,
+	 environment             => ""                                                                   ,
+	 requirement             => []                                                                   ,
+	 transferFiles           => [ $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe", "parameters.xml"  ],
+	 postSubmitSleepDuration =>  5                                                                   ,
 	 jobWaitSleepDuration    => 10
 	);
     foreach ( keys(%defaults) ) {

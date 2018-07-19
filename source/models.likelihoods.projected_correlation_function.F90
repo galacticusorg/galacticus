@@ -103,7 +103,7 @@ contains
 
   function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName) result(self)
     !% Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use Memory_Management
     use Node_Component_Dark_Matter_Profile_Scale
@@ -119,7 +119,7 @@ contains
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
-    call file%openFile(char(Galacticus_Input_Path())//fileName,readOnly=.true.)
+    call file%openFile(char(galacticusPath(pathTypeDataStatic))//fileName,readOnly=.true.)
     call file%readDataset("separation"                          ,self%separation                          )
     call file%readDataset("projectedCorrelationFunctionObserved",self%projectedCorrelationFunctionObserved)
     call file%readDataset("covariance"                          ,self%covarianceMatrix                    )

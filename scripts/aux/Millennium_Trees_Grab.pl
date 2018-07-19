@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use Data::Dumper;
 
@@ -32,9 +31,9 @@ $sqlPassword = $arguments{"password"}
     if ( exists($arguments{'password'}) );
 
 # Parse the Galacticus config file if it is present.
-if ( -e &galacticusPath()."/galacticusConfig.xml" ) {
+if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
     my $xml    = new XML::Simple;
-    my $config = $xml->XMLin(&galacticusPath()."/galacticusConfig.xml");
+    my $config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
     if ( exists($config->{'millenniumDB'}->{'host'}) ) {
 	foreach ( keys(%{$config->{'millenniumDB'}->{'host'}}) ) {
 	    if ( $_ eq $ENV{'HOSTNAME'} || $_ eq "default" ) {

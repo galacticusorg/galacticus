@@ -87,12 +87,13 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !% Constructor for the file \gls{igm} state class.
-    use Cosmology_Functions
+    use File_Utilities
     implicit none
     type(intergalacticMediumStateFile)                :: self
     type(varying_string              ), intent(in   ) :: fileName
     !# <constructorAssign variables="fileName"/>
-    
+
+    self%fileName=File_Name_Expand(char(fileName))
     return
   end function fileConstructorInternal
   

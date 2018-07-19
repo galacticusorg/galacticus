@@ -58,7 +58,7 @@
 
   <!-- Merger tree building options -->
   <mergerTreeConstructorMethod value="read">
-  <satelliteMergingTimescalesMethod value="infinite"/>
+    <satelliteMergingTimescalesSubresolutionMethod value="infinite"/>
     <fileNames value="/data001/abenson/Galacticus/Merger_Trees/milliMillennium.hdf5"/>
     <presetScaleRadii value="false"/>
   </mergerTreeConstructorMethod>

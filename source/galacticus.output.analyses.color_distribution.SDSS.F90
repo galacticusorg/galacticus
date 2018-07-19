@@ -69,7 +69,7 @@ contains
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use IO_HDF5
     use Memory_Management
     use Numerical_Comparison
@@ -113,7 +113,7 @@ contains
     ! Construct colors matched to those used by Baldry et al. (2004). Also read magnitude range.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    call dataFile    %openFile     (char(Galacticus_Input_Path()//'data/observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.          )
+    call dataFile    %openFile     (char(galacticusPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.          )
     distribution=dataFile%openGroup(distributionName)
     call distribution%readDataset  (                              'color'                                                            ,         colors          )
     call distribution%readAttribute(                              'magnitudeMinimum'                                                 ,         magnitudeMinimum)

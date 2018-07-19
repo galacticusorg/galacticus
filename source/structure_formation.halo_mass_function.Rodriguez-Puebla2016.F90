@@ -71,7 +71,7 @@ contains
     use FoX_DOM
     use IO_XML
     use Galacticus_Error
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use Table_Labels
     use ISO_Varying_String
     use File_Utilities

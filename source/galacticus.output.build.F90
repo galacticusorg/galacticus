@@ -112,7 +112,7 @@ contains
   subroutine Galacticus_Build_Output
     !% Output build information to the main output file.
     use Galacticus_HDF5
-    use Galacticus_Input_Paths
+    use Galacticus_Paths
     use FoX_Common
     use ISO_Varying_String
     use String_Handling
@@ -185,13 +185,13 @@ contains
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
     ! Add Mercurial changeset information.
-    if (File_Exists(Galacticus_Input_Path()//BUILDPATH//"/galacticus.hg.patch")) then
-       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//BUILDPATH//'/galacticus.hg.patch'))
+    if (File_Exists(galacticusPath(pathTypeExec)//BUILDPATH//"/galacticus.hg.patch")) then
+       call changeSet(1)%loadFromFile(char(galacticusPath(pathTypeExec)//BUILDPATH//'/galacticus.hg.patch'))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "hg diff" - gives the uncommitted source changeset')
        call changeSet(1)%destroy()
     end if
-    if (File_Exists(Galacticus_Input_Path()//BUILDPATH//"/galacticus.hg.bundle")) then
-       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//BUILDPATH//'/galacticus.hg.bundle'))
+    if (File_Exists(galacticusPath(pathTypeExec)//BUILDPATH//"/galacticus.hg.bundle")) then
+       call changeSet(1)%loadFromFile(char(galacticusPath(pathTypeExec)//BUILDPATH//'/galacticus.hg.bundle'))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "hg bundle -t none" - gives the committed source changeset')
        call changeSet(1)%destroy()
     end if

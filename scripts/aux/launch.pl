@@ -2,8 +2,7 @@
 use strict;
 use warnings;
 use Cwd;
-use lib exists($ENV{'GALACTICUS_ROOT_V094'}) ? $ENV{'GALACTICUS_ROOT_V094'}.'/perl' : cwd().'/perl';
-use Galacticus::Path;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
 use Data::Dumper;
 use Clone qw(clone);
@@ -160,13 +159,8 @@ sub Construct_Models {
 		    undef($parameters);
 		    # Generate analysis code for this job.
 		    my $analysisCode;
-		    if ( $launchScript->{'doAnalysis'} eq "yes" ) {
-			if ( $launchScript->{'analysisScript'} =~ m/\.xml$/ ) {
-			    $analysisCode = &galacticusPath()."scripts/analysis/Galacticus_Compute_Fit.pl ".$galacticusOutputDirectory."/galacticus.hdf5 ".$galacticusOutputDirectory." ".$launchScript->{'analysisScript'}."\n";
-			} else {
-			    $analysisCode = $launchScript->{'analysisScript'}." ".$galacticusOutputDirectory."\n";
-			}
-		    }
+		    $analysisCode = $launchScript->{'analysisScript'}." ".$galacticusOutputDirectory."\n"
+			if ( $launchScript->{'doAnalysis'} eq "yes" );
 		    # Push the job onto the stack.
 		    push(
 			@jobs,
@@ -331,16 +325,15 @@ sub Parse_Launch_Script {
     # Assign defaults.
     my %defaults = 
 	(
-	 verbosity          => 0                                                                  ,
-	 md5Names           => "no"                                                               ,
-	 useStateFile       => "no"                                                               ,
-	 compressModels     => "no"                                                               ,
-	 launchMethod       => "local"                                                            ,
-	 modelRootDirectory => "./models"                                                         ,
-	 baseParameters     => ""                                                                 ,
-	 doAnalysis         => "no"                                                               ,
-	 splitModels        => 1                                                                  ,
-	 analysisScript     => &galacticusPath()."data/analyses/Galacticus_Compute_Fit_Analyses.xml"
+	 verbosity          => 0         ,
+	 md5Names           => "no"      ,
+	 useStateFile       => "no"      ,
+	 compressModels     => "no"      ,
+	 launchMethod       => "local"   ,
+	 modelRootDirectory => "./models",
+	 baseParameters     => ""        ,
+	 doAnalysis         => "no"      ,
+	 splitModels        => 1
 	);
     foreach ( keys(%defaults) ) {
 	$launchScript->{$_} = $defaults{$_}
@@ -353,10 +346,10 @@ sub Parse_Launch_Script {
 sub Parse_Galacticus_Config {
     # Parse any local configuration.
     my $config;
-    if ( -e &galacticusPath()."galacticusConfig.xml" ) {
+    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
 	# Load XML.
 	my $xml          = new XML::Simple;
-	$config = $xml->XMLin(&galacticusPath()."galacticusConfig.xml");
+	$config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
     }
     # Return the config.
     return $config;
