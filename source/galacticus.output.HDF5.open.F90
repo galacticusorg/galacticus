@@ -188,6 +188,7 @@ contains
           call globalParameters%destroy()          
           ! Close the file.
           !$ call hdf5Access%set()
+          call galacticusOutputFile%writeAttribute(1,"galacticusCompleted")
           call galacticusOutputFile%close()
           !$ call hdf5Access%unset()
           
