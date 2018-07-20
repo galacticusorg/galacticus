@@ -16,6 +16,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by:  Alex Merson.
+
 !% Contains a module that provides a class implementing stellar population spectra.
 
 module Stellar_Population_Spectra
@@ -45,12 +47,19 @@ module Stellar_Population_Spectra
   !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity</argument>
   !#  </method>
   !#  <method name="wavelengths" >
-  !#   <description>Return a tabulation of at which stellar spectra for the specified \gls{imf} are defined.</description>
+  !#   <description>Return a tabulation of wavelengths at which stellar spectra for the specified \gls{imf} are defined.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#   <argument>integer                                    , intent(in   ) :: imfIndex</argument>
   !#   <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
   !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
+  !#  </method>
+  !#  <method name="wavelengthInterval" >
+  !#   <description>At a given wavelength, return the wavelength interval in the tabulation of wavelength for which stellar spectra for the specified \gls{imf} are defined.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer         , intent(in   ) :: imfIndex</argument>
+  !#   <argument>double precision, intent(in   ) :: wavelength</argument>
   !#  </method>
   !# </functionClass>
   

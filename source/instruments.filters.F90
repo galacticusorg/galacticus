@@ -16,6 +16,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by:  Alex Merson.
+
 !% Contains a module which implements calculations of filter response curves.
 
 module Instruments_Filters
@@ -58,7 +60,7 @@ contains
     else
        Filter_Get_Index=0
        do iFilter=1,size(filterResponses)
-          if (filterResponses(iFilter)%name == filterName) then
+         if (filterResponses(iFilter)%name == filterName) then
              Filter_Get_Index=iFilter
              exit
           end if
@@ -103,6 +105,7 @@ contains
     use Galacticus_Paths
     use IO_XML
     use String_Handling
+    use HII_Region_Emission_Lines
     use Galacticus_HDF5
     use IO_HDF5
     use Numerical_Constants_Units
@@ -111,7 +114,7 @@ contains
     type            (varying_string), intent(in   )               :: filterName
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
-    type            (varying_string)               , dimension(3) :: specialFilterWords
+    type            (varying_string)               , dimension(4) :: specialFilterWords
     type            (node          ), pointer                     :: vegaElement             , wavelengthEffectiveElement
     double precision                , parameter                   :: cutOffResolution=1.0d4
     integer                                                       :: filterIndex             , ioErr
@@ -119,7 +122,7 @@ contains
     type            (DOMException  )                              :: exception
     logical                                                       :: parseSuccess            , firstFilter
     character       (len=32        )                              :: word
-    double precision                                              :: centralWavelength       , resolution
+    double precision                                              :: centralWavelength       , resolution, filterWidth
     type            (hdf5Object    )                              :: filtersGroup            , dataset
 
     ! Allocate space for this filter.
@@ -138,7 +141,7 @@ contains
     ! Store the name of the filter.
     filterResponses(filterIndex)%name=filterName
     ! Check for special filters.
-    if (extract(filterName,1,7) == "topHat_") then
+    if (extract(filterName,1,22)=="fixedResolutionTopHat_") then
        ! Construct a top-hat filter. Extract central wavelength and resolution.
        call String_Split_Words(specialFilterWords,char(filterName),separator="_")
        word=char(specialFilterWords(2))
@@ -163,6 +166,69 @@ contains
             &  1.0d0                                                                                                    , &
             &  1.0d0                                                                                                    , &
             &  0.0d0                                                                                                      &
+            & ]
+    else if (extract(filterName,1,25)=="adaptiveResolutionTopHat_") then
+       ! Construct an SED top-hat filter. Extract central wavelength and top hat width.
+       call String_Split_Words(specialFilterWords,char(filterName),separator="_")
+       word=char(specialFilterWords(2))
+       read (word,*) centralWavelength
+       word=char(specialFilterWords(3))
+       read (word,*) filterWidth
+       filterResponses(filterIndex)%vegaOffsetAvailable=.false.
+       filterResponses(filterIndex)%vegaOffset         =0.0d0
+       filterResponses(filterIndex)%nPoints            =4
+       call allocateArray(filterResponses(filterIndex)%wavelength,[4])
+       call allocateArray(filterResponses(filterIndex)%response  ,[4])
+       filterResponses(filterIndex)%wavelength         =                                                                  &
+            & [                                                                                                           &
+            &  centralWavelength - filterWidth/2.0d0 - filterWidth/100.0d0                                              , &
+            &  centralWavelength - filterWidth/2.0d0                                                                    , &
+            &  centralWavelength + filterWidth/2.0d0                                                                    , &
+            &  centralWavelength + filterWidth/2.0d0 + filterWidth/100.0d0                                                &
+            & ]
+       filterResponses(filterIndex)%response           =                                                                  &
+            & [                                                                                                           &
+            &  0.0d0                                                                                                    , &
+            &  1.0d0                                                                                                    , &
+            &  1.0d0                                                                                                    , &
+            &  0.0d0                                                                                                      &
+            & ]
+    else if (extract(filterName,1,21)=="emissionLineContinuum") then
+       ! Construct a top-hat filter for calculating equivalent width of specified emission line. 
+       ! From filter name extract line name (to determine central wavelength) and resolution.
+       call String_Split_Words(specialFilterWords,char(filterName),separator="_")
+       ! Check whether filter is centered on emission line or is offset and extract wavelength 
+       ! and resolution accordingly
+       word=char(specialFilterWords(1))
+       if (word=="emissionLineContinuumCentral") then
+          word=char(specialFilterWords(2))
+          centralWavelength=emissionLineWavelength(word)
+          word=char(specialFilterWords(3))
+          read (word,*) resolution
+       else if (word=="emissionLineContinuumBracketed") then          
+          word=char(specialFilterWords(3))
+          read (word,*) centralWavelength
+          word=char(specialFilterWords(4))
+          read (word,*) resolution
+       end if
+       filterResponses(filterIndex)%vegaOffsetAvailable=.false.
+       filterResponses(filterIndex)%vegaOffset         =0.0d0
+       filterResponses(filterIndex)%nPoints            =4
+       call allocateArray(filterResponses(filterIndex)%wavelength,[4])
+       call allocateArray(filterResponses(filterIndex)%response  ,[4])
+       filterResponses(filterIndex)%wavelength         =                                                                &
+            & [                                                                                                         &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution/(1.0+1.0d0/cutOffResolution), &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution                             , &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution                             , &
+            &  centralWavelength*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution*(1.0+1.0d0/cutOffResolution)  &
+            & ]
+       filterResponses(filterIndex)%response           =                                                                &
+            & [                                                                                                         &
+            &  0.0d0                                                                                                  , &
+            &  1.0d0                                                                                                  , &
+            &  1.0d0                                                                                                  , &
+            &  0.0d0                                                                                                    &
             & ]
     else
        ! Construct a file name for the filter.

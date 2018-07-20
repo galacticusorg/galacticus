@@ -16,7 +16,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a file-based stellar population spectra class.
+  !+    Contributions to this file made by:  Alex Merson.
+
+  !% Implements a file-based stellar population spectra class.
 
   use FGSL
   
@@ -96,13 +98,14 @@
      !@     <description>Ensure that spectra are available for the specified \gls{imf} index.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                  fileDestructor
-     procedure :: readFile      => fileReadFile
-     procedure :: luminosity    => fileLuminosity
-     procedure :: tabulation    => fileTabulation
-     procedure :: wavelengths   => fileWavelengths
-     procedure :: imfInitialize => fileIMFInitialize
-     procedure :: descriptor    => fileDescriptor
+     final     ::                         fileDestructor
+     procedure :: readFile             => fileReadFile
+     procedure :: luminosity           => fileLuminosity
+     procedure :: tabulation           => fileTabulation
+     procedure :: wavelengths          => fileWavelengths
+     procedure :: wavelengthInterval   => fileWavelengthInterval
+     procedure :: imfInitialize        => fileIMFInitialize
+     procedure :: descriptor           => fileDescriptor
   end type stellarPopulationSpectraFile
 
   interface stellarPopulationSpectraFile
@@ -506,6 +509,45 @@ contains
     wavelengths     =self%spectra  (imfLookupIndex)%wavelengths
     return
   end subroutine fileWavelengths
+
+  double precision function fileWavelengthInterval(self,imfIndex,wavelength)
+    !% Return a tabulation of wavelengths at which stellar spectra for the specified \gls{imf} should be tabulated.
+    use Memory_Management
+    use Numerical_Constants_Astronomical
+    implicit none
+    class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
+    integer                                                                  , intent(in   ) :: imfIndex
+    double precision                                                         , intent(in   ) :: wavelength
+    integer                                                                                  :: wavelengthsCount
+    double precision                              , allocatable, dimension(:)                :: wavelengths     , wavelengthDifference
+    integer                                                                                  :: imfLookupIndex
+
+    ! Ensure that this IMF is initialized.
+    call self%imfInitialize(imfIndex)
+    ! Return the relevant data.
+    imfLookupIndex  =self%imfLookup(imfIndex      )
+    wavelengthsCount=self%spectra  (imfLookupIndex)%wavelengthsCount
+    call allocateArray(wavelengths,[wavelengthsCount])
+    wavelengths     =self%spectra  (imfLookupIndex)%wavelengths
+    ! Check if wavelength inside range
+    if     (                                            &
+         &   wavelength < wavelengths(               1) &
+         &  .or.                                        &
+         &   wavelength > wavelengths(wavelengthsCount) &
+         & ) then
+       fileWavelengthInterval=-999.9d0
+    else
+       ! Compute difference in wavelength at position of interest
+       call allocateArray(wavelengthDifference,[wavelengthsCount])
+       wavelengthDifference  =+       wavelengths&
+            &                 -       wavelength
+       fileWavelengthInterval=+minval(wavelengths,dim=1,mask=wavelengthDifference >  0.0d0) &
+            &                 -maxval(wavelengths,dim=1,mask=wavelengthDifference <= 0.0d0)
+    end if
+    call deallocateArray(wavelengths)
+    if(allocated(wavelengthDifference)) call deallocateArray(wavelengthDifference)
+    return
+  end function fileWavelengthInterval
 
   subroutine fileDescriptor(self,descriptor,includeMethod)
     !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
