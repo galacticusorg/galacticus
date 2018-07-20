@@ -152,6 +152,12 @@ module IO_HDF5
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [datasetName]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>datasets</method>
+     !@     <description>Get a list of datasets in a group object.</description>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater} datasetNames(:)</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>assertAttributeType</method>
      !@     <description>Check the type and rank of an attribute.</description>
      !@     <type>\void</type>
@@ -430,6 +436,7 @@ module IO_HDF5
      procedure :: hasAttribute       =>IO_HDF5_Has_Attribute
      procedure :: hasGroup           =>IO_HDF5_Has_Group
      procedure :: hasDataset         =>IO_HDF5_Has_Dataset
+     procedure :: datasets           =>IO_HDF5_Datasets
      procedure :: assertAttributeType=>IO_HDF5_Assert_Attribute_Type
      procedure :: assertDatasetType  =>IO_HDF5_Assert_Dataset_Type
      procedure :: isReference        =>IO_HDF5_Is_Reference
@@ -4140,6 +4147,76 @@ contains
     return
   end function IO_HDF5_Has_Dataset
 
+  function IO_HDF5_Datasets(thisObject)
+    !% Return a list of all datasets present within {\normalfont \ttfamily thisObject}.
+    use Galacticus_Error
+    use String_Handling
+    implicit none
+    type     (varying_string), allocatable  , dimension(:) :: IO_HDF5_Datasets
+    class    (hdf5Object    ), intent(in   )               :: thisObject
+    integer                                                :: errorCode
+    integer  (hid_t         )                              :: locationIdentifier
+    type     (varying_string)                              :: message           , objectName
+    character(len=1024      )                              :: memberName
+    integer                                                :: memberType        , groupMemberCount, &
+         &                                                    i                 , datasetCount
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized()
+    ! Check that the object is already open.
+    if (.not.thisObject%isOpenValue) then
+       message="object '"//thisObject%objectName//"' in not open"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Extract relevant location identifier and object name.
+    select case(thisObject%hdf5ObjectType)
+    case (hdf5ObjectTypeGroup)
+       locationIdentifier=thisObject%parentObject%objectID
+       objectName        =thisObject             %objectName
+    case (hdf5ObjectTypeFile )
+       locationIdentifier=thisObject%objectID
+       objectName        ="/"
+    case default
+       message="object '"//thisObject%objectName//"' is not a group or file"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end select
+    ! Get a count of the number of members in the group.
+    call h5gn_members_f(locationIdentifier,char(objectName),groupMemberCount,errorCode)
+    if (errorCode /= 0) then
+       message="failed to get count of members in '"//trim(objectName)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    ! Iterate over members, counting datasets.
+    datasetCount=0
+    do i=0,groupMemberCount-1
+       call h5gget_obj_info_idx_f(locationIdentifier,char(objectName),i,memberName,memberType,errorCode)
+       if (errorCode /= 0) then
+          message="failed to get info on member "
+          message=message//i//" in '"//trim(objectName)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       ! Count datasets.
+       if (memberType == h5g_dataset_f) datasetCount=datasetCount+1
+    end do
+    ! Allocate the array of dataset names and retrieve them.
+    allocate(IO_HDF5_Datasets(datasetCount))
+    datasetCount=0
+    do i=0,groupMemberCount-1
+       call h5gget_obj_info_idx_f(locationIdentifier,char(objectName),i,memberName,memberType,errorCode)
+       if (errorCode /= 0) then
+          message="failed to get info on member "
+          message=message//i//" in '"//trim(objectName)//"'"
+          call Galacticus_Error_Report(message//{introspection:location})
+       end if
+       ! Count datasets.
+       if (memberType == h5g_dataset_f) then
+          datasetCount=datasetCount+1
+          IO_HDF5_Datasets(datasetCount)=trim(memberName)
+       end if
+    end do
+    return
+  end function IO_HDF5_Datasets
+  
   subroutine IO_HDF5_Assert_Dataset_Type(datasetObject,datasetAssertedType,datasetAssertedRank)
     !% Asserts that an dataset is of a certain type and rank.
     use Galacticus_Error

@@ -28,7 +28,7 @@ program Tests_IO_HDF5
   type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
        &                                                                      groupObject
   integer                                                                  :: iPass                          , integerValue         , &
-       &                                                                      integerValueReread
+       &                                                                      integerValueReread             , i
   logical                                                                  :: appendableOK
   integer                                      , dimension(10)             :: integerValueArray
   integer                                      , dimension(10)             :: integerValueArrayRereadStatic
@@ -61,6 +61,8 @@ program Tests_IO_HDF5
   double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5d
   double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
   double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
+  type            (varying_string), allocatable, dimension( :)             :: datasetNames
+  type            (varying_string)             , dimension(17)             :: datasetNamesReference
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.IO.HDF5.size')
@@ -680,6 +682,35 @@ program Tests_IO_HDF5
      call groupObject%readDatasetStatic("integerShortDataset1dArray",integer8ValueArrayRereadStatic)
      call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
 
+     ! Retrieve a list of datasets in the group.
+     if (iPass == 2) then
+        datasetNames         =groupObject%datasets()
+        datasetNamesReference=[                              &
+             &                 "anotherReference          ", &
+             &                 "characterDataset1dArray   ", &
+             &                 "double2dReference         ", &
+             &                 "double3dReference         ", &
+             &                 "double4dReference         ", &
+             &                 "double5dReference         ", &
+             &                 "doubleDataset1dArray      ", &
+             &                 "doubleDataset2dArray      ", &
+             &                 "doubleDataset3dArray      ", &
+             &                 "doubleDataset4dArray      ", &
+             &                 "doubleDataset5dArray      ", &
+             &                 "doubleReference           ", &
+             &                 "integer8Dataset1dArray    ", &
+             &                 "integerDataset1dArray     ", &
+             &                 "integerShortDataset1dArray", &
+             &                 "myReference               ", &
+             &                 "varStringDataset1dArray   "  &
+             &                ]
+        forall(i=1:size(datasetNamesReference))
+           datasetNamesReference(i)=trim(datasetNamesReference(i))
+        end forall
+        call Assert("recover correct number of datasets in group",size(datasetNames),17)
+        call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
+     end if
+     
      ! Close the group.
      call groupObject%close()
 
