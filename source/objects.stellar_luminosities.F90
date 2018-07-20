@@ -16,6 +16,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by:  Alex Merson.
+
 !% Contains a module which defines the stellar luminosities object.
 
 module Stellar_Luminosities_Structure
@@ -289,6 +291,7 @@ contains
     use Stellar_Population_Spectra_Postprocess
     use Array_Utilities
     use Sort
+    use HII_Region_Emission_Lines
     implicit none
     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
     integer                                                              :: iLuminosity               , jLuminosity
@@ -1191,6 +1194,55 @@ contains
     return
   end function Stellar_Luminosities_Index_From_Properties
 
+  
+  subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,SPS_,imfIndex)
+    !% Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
+    use Stellar_Population_Spectra
+    implicit none 
+    double precision,                        intent(inout)                              :: wavelengthCentral,filterWidth
+    double precision,                        intent(in)                                 :: wavelengthMinimum,wavelengthMaximum,observedWidth,     &
+         &                                                                                 redshift
+    class   (stellarPopulationSpectraClass), intent(in)  , pointer                      :: SPS_
+    double precision                                                                    :: restWavelengthMinimum,restWavelengthMaximum,restWidth, &
+         &                                                                                 wavelengthLowerEdge,tabulatedWidth 
+    integer                                , intent(in)                                 :: imfIndex           
+    ! Determine rest-frame wavelength extent
+    restWavelengthMinimum = wavelengthMinimum/(1.0d0+redshift)
+    restWavelengthMaximum = wavelengthMaximum/(1.0d0+redshift)
+    restWidth = observedWidth/(1.0d0+redshift)    
+    ! Move to lower edge of next filter
+    wavelengthLowerEdge = wavelengthCentral + filterWidth/2.0d0
+    ! Get wavelength interval in SPS models at lower edge wavelength
+    tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
+    ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range, 
+    ! or (iii) inbetween the observed and rest wavelength ranges.    
+    if(wavelengthLowerEdge.lt.restWavelengthMaximum)then
+       ! Option (i): still inside rest-frame wavelength range.
+       if(tabulatedWidth.gt.restWidth) filterWidth = tabulatedWidth
+       wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
+    elseif(wavelengthLowerEdge.gt.wavelengthMinimum)then
+       ! Option (ii): inside observed-frame wavelength range.
+       filterWidth = observedWidth
+       if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
+       wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
+    else
+       ! Option (iii): between rest-frame and observed-frame wavelength ranges.
+       wavelengthCentral = wavelengthMinimum
+       filterWidth = observedWidth
+       tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthCentral)
+       if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
+       ! If the gap between the rest-frame and observed-frame ranges is small, check to avoid overlap of filters.
+       if(wavelengthCentral-filterWidth/2.0d0.lt.wavelengthLowerEdge)then
+          ! Overlap possible. Adjust filter position.                                                                                                                                                           
+          tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
+          filterWidth = observedWidth
+          if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
+          wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
+       end if
+    end if
+  end subroutine Stellar_Luminosities_SED_Top_Hat_Step
+  
+
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
     use, intrinsic :: ISO_C_Binding
@@ -1198,25 +1250,37 @@ contains
     use Cosmology_Functions
     use Memory_Management
     use String_Handling
+    use HII_Region_Emission_Lines
+    use Star_Formation_IMF
+    use Stellar_Population_Spectra
     implicit none
     integer                                  , intent(inout), allocatable, dimension(:) :: luminosityMap
     type            (varying_string         ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
          &                                                                                 luminosityType           , luminosityPostprocessSet
     double precision                         , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
     integer         (c_size_t               )                                           :: j                        , outputCount                , &
-         &                                                                                 i                        , newFilterCount
+         &                                                                                 i                        , newFilterCount             , &
+                                                                                           k
     integer                                                 , allocatable, dimension(:) :: luminosityMapTmp
     type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
-    type            (varying_string         )                            , dimension(4) :: specialFilterWords
-    double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
+    type            (varying_string         )                            , dimension(5) :: specialFilterWords
+    double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp, &
+         &                                                                                 spsWavelengths           , spsWavelengthDifference
+    class           (stellarPopulationSpectraClass)         , pointer                   :: stellarPopulationSpectra_
     class           (cosmologyFunctionsClass), pointer                                  :: cosmologyFunctions_
     character       (len=32                 )                                           :: redshiftLabel            , word                     , &
-         &                                                                                 wavelengthCentralLabel   , resolutionLabel
-    character       (len=128                )                                           :: newFilterName
+         &                                                                                 wavelengthCentralLabel   , resolutionLabel          , &
+         &                                                                                 imfLabel
+    character       (len=256                )                                           :: newFilterName            , lineName
     double precision                                                                    :: outputRedshift           , resolution               , &
          &                                                                                 wavelengthMinimum        , wavelengthMaximum        , &
-         &                                                                                 wavelengthRatio          , wavelengthCentral
+         &                                                                                 restWavelengthMinimum    , restWavelengthMaximum    , &
+         &                                                                                 wavelengthRatio          , wavelengthCentral        , &
+         &                                                                                 observedWidth            , restWidth                , &
+         &                                                                                 tabulatedWidth           , wavelengthLowerEdge      , &
+         &                                                                                 filterWidth
+    integer                                                                             :: imfIndex                 , wavelengthsCount
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
@@ -1266,7 +1330,7 @@ contains
           call deallocateArray(luminosityBandRedshiftTmp  )
        end if
        ! Arrays of top-hat filters.
-       if (extract(luminosityFilter(i),1,12) == "topHatArray_") then
+       if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then
           call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
           word=char(specialFilterWords(2))
           read (word,*) wavelengthMinimum
@@ -1311,7 +1375,7 @@ contains
              ! Compute the appropriate filter name.
              write (wavelengthCentralLabel,'(f11.3)') wavelengthCentral
              write (       resolutionLabel,'(f10.2)') resolution
-             write (newFilterName,'(a,a,a,a)') "topHat_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))
+             write (newFilterName,'(a,a,a,a)') "fixedResolutionTopHat_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))
              ! Create new filter.
              luminosityRedshiftText   (j+i-1)=luminosityRedshiftTextTmp  (i)
              luminosityRedshift       (j+i-1)=luminosityRedshiftTmp      (i)
@@ -1330,8 +1394,167 @@ contains
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
        end if
-       ! Next luminosity.
-       i=i+1
+       ! Arrays of top-hat filters for SEDs
+       if (extract(luminosityFilter(i),1,30) == "adaptiveResolutionTopHatArray_") then
+          call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
+          imfLabel=char(specialFilterWords(2))
+          word=char(specialFilterWords(3))
+          read (word,*) wavelengthMinimum
+          word=char(specialFilterWords(4))
+          read (word,*) wavelengthMaximum
+          word=char(specialFilterWords(5))
+          read (word,*) observedWidth
+          ! Set rest wavelength limits and rest wavelength width
+          restWavelengthMinimum = wavelengthMinimum/(1.0d0+luminosityRedshift(i))
+          restWavelengthMaximum = wavelengthMaximum/(1.0d0+luminosityRedshift(i))
+          restWidth = observedWidth/(1.0d0+luminosityRedshift(i))
+          ! Extract IMF and list of SPS wavelengths.
+          imfIndex = IMF_Index(imfLabel)
+          stellarPopulationSpectra_ => stellarPopulationSpectra()
+          ! Count number of filters that need to be added.
+          newFilterCount = 0
+          wavelengthCentral = restWavelengthMinimum
+          tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthCentral)
+          filterWidth = restWidth
+          if(tabulatedWidth.gt.restWidth) filterWidth = tabulatedWidth
+          do while (wavelengthCentral < wavelengthMaximum)
+             if(wavelengthCentral.lt.wavelengthMaximum) newFilterCount=newFilterCount+1             
+             call Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,&
+                  wavelengthMinimum,wavelengthMaximum,observedWidth,luminosityRedshift(i),&
+                  stellarPopulationSpectra_,imfIndex)
+          end do
+          ! Resize the arrays.
+          call Stellar_Luminosities_Expand_Filter_Set( &
+               & i                          ,          &
+               & newFilterCount             ,          &
+               & luminosityMap              ,          &
+               & luminosityRedshiftText     ,          &
+               & luminosityFilter           ,          &
+               & luminosityType             ,          &
+               & luminosityPostprocessSet   ,          &
+               & luminosityRedshift         ,          &
+               & luminosityBandRedshift     ,          &
+               & luminosityMapTmp           ,          &
+               & luminosityRedshiftTextTmp  ,          &
+               & luminosityFilterTmp        ,          &
+               & luminosityTypeTmp          ,          &
+               & luminosityPostprocessSetTmp,          &
+               & luminosityRedshiftTmp      ,          &
+               & luminosityBandRedshiftTmp             &
+               &                                     )
+          ! Compute central wavelength of the initial filter.
+          j=0
+          wavelengthCentral = restWavelengthMinimum
+          filterWidth = restWidth
+          tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthCentral)
+          filterWidth = restWidth
+          if(tabulatedWidth.gt.restWidth) filterWidth = tabulatedWidth   
+          do while (wavelengthCentral < wavelengthMaximum)        
+             if(wavelengthCentral.lt.wavelengthMaximum) then
+                j=j+1
+                ! Compute the appropriate filter name.
+                write (wavelengthCentralLabel,'(f11.3)') wavelengthCentral
+                write (       resolutionLabel,'(f10.2)') filterWidth
+                write (newFilterName,'(a,a,a,a)') "adaptiveResolutionTopHat_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))
+                ! Create new filter.
+                luminosityRedshiftText   (j+i-1)=luminosityRedshiftTextTmp  (i)
+                luminosityRedshift       (j+i-1)=luminosityRedshiftTmp      (i)
+                luminosityBandRedshift   (j+i-1)=luminosityBandRedshiftTmp  (i)
+                luminosityFilter         (j+i-1)=trim(newFilterName)
+                luminosityType           (j+i-1)=luminosityTypeTmp          (i)
+                luminosityPostprocessSet (j+i-1)=luminosityPostprocessSetTmp(i)
+             end if
+             ! Compute central wavelength and width of next top hat filter
+             call Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,&
+                  wavelengthMinimum,wavelengthMaximum,observedWidth,luminosityRedshift(i),&
+                  stellarPopulationSpectra_,imfIndex)
+          end do
+          deallocate        (luminosityRedshiftTextTmp  )
+          deallocate        (luminosityFilterTmp        )
+          deallocate        (luminosityTypeTmp          )
+          deallocate        (luminosityPostprocessSetTmp)     
+          call deallocateArray(luminosityMapTmp           )
+          call deallocateArray(luminosityRedshiftTmp      )
+          call deallocateArray(luminosityBandRedshiftTmp  )
+       end if
+
+       ! Arrays of top-hat filters for equivalent width calculations
+       if (extract(luminosityFilter(i),1,26) == "emissionLineContinuumPair_") then
+          call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
+          lineName=char(specialFilterWords(2))
+          ! Determine emission line wavelength         
+          wavelengthCentral=emissionLineWavelength(lineName)
+          ! Read resolution
+          word=char(specialFilterWords(3))
+          read (word,*) resolution
+          ! Determine minimum and maximum wavelengths to draw filters between
+          wavelengthRatio=                                &
+               &  (sqrt(4.0d0*resolution**2+1.0d0)+1.0d0) &
+               & /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)                  
+          wavelengthMinimum = wavelengthCentral*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution
+          wavelengthMinimum = wavelengthMinimum/wavelengthRatio
+          wavelengthMaximum = wavelengthCentral*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution
+          wavelengthMaximum = wavelengthMaximum*wavelengthRatio
+          ! Determine the ratio of central wavelengths for successive filters.
+          newFilterCount=0
+          wavelengthCentral=wavelengthMinimum/((sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution)
+          wavelengthCentral = wavelengthCentral/wavelengthRatio
+          do k = 1,3,1
+             if(k.eq.1.or.k.eq.3)newFilterCount=newFilterCount+1
+             wavelengthCentral=wavelengthCentral*wavelengthRatio
+          end do
+          ! Resize the arrays.
+          call Stellar_Luminosities_Expand_Filter_Set( &
+               & i                          ,          &
+               & newFilterCount             ,          &
+               & luminosityMap              ,          &
+               & luminosityRedshiftText     ,          &
+               & luminosityFilter           ,          &
+               & luminosityType             ,          &
+               & luminosityPostprocessSet   ,          &
+               & luminosityRedshift         ,          &
+               & luminosityBandRedshift     ,          &
+               & luminosityMapTmp           ,          &
+               & luminosityRedshiftTextTmp  ,          &
+               & luminosityFilterTmp        ,          &
+               & luminosityTypeTmp          ,          &
+               & luminosityPostprocessSetTmp,          &
+               & luminosityRedshiftTmp      ,          &
+               & luminosityBandRedshiftTmp             &
+               &                                     )
+          ! Compute central wavelength of the initial filter.
+          j=0
+          wavelengthCentral=wavelengthMinimum/((sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution)
+          !wavelengthCentral = wavelengthCentral/wavelengthRatio
+          do k = 1,3,1
+             ! Compute the appropriate filter name.
+             write (wavelengthCentralLabel,'(f11.3)') wavelengthCentral
+             write (       resolutionLabel,'(f10.2)') resolution
+             write (newFilterName,'(a,a,a,a,a,a)') "emissionLineContinuumBracketed_",trim(adjustl(lineName)),&
+                  "_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))             
+             ! Create new filter.
+             if(k.eq.1.or.k.eq.3)then
+                j=j+1
+                luminosityRedshiftText   (j+i-1)=luminosityRedshiftTextTmp  (i)
+                luminosityRedshift       (j+i-1)=luminosityRedshiftTmp      (i)
+                luminosityBandRedshift   (j+i-1)=luminosityBandRedshiftTmp  (i)
+                luminosityFilter         (j+i-1)=trim(newFilterName)
+                luminosityType           (j+i-1)=luminosityTypeTmp          (i)
+                luminosityPostprocessSet (j+i-1)=luminosityPostprocessSetTmp(i)
+             end if
+             ! Increase the central wavelength.
+             wavelengthCentral=wavelengthCentral*wavelengthRatio
+          end do
+          deallocate        (luminosityRedshiftTextTmp  )
+          deallocate        (luminosityFilterTmp        )
+          deallocate        (luminosityTypeTmp          )
+          deallocate        (luminosityPostprocessSetTmp)     
+          call deallocateArray(luminosityMapTmp           )
+          call deallocateArray(luminosityRedshiftTmp      )
+          call deallocateArray(luminosityBandRedshiftTmp  )
+       end if
+       ! Next luminosity.      
+       i=i+1       
     end do
     return
   end subroutine Stellar_Luminosities_Special_Cases
