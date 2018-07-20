@@ -55,6 +55,8 @@ module Merger_Tree_Data_Structure
   !#  <entry label="redshift"                />
   !#  <entry label="scaleFactor"             />
   !#  <entry label="nodeMass"                />
+  !#  <entry label="nodeMass200Mean"         />
+  !#  <entry label="nodeMass200Crit"         />
   !#  <entry label="particleCount"           />
   !#  <entry label="positionX"               />
   !#  <entry label="positionY"               />
@@ -168,7 +170,8 @@ module Merger_Tree_Data_Structure
           &                                                                     scaleRadius                        , spinMagnitude                    , &
           &                                                                     treeWeight                         , forestWeightNode                 , &
           &                                                                     specificAngularMomentumMagnitude   , velocityMaximum                  , &
-          &                                                                     velocityDispersion
+          &                                                                     velocityDispersion                 , nodeMass200Mean                  , &
+          &                                                                     nodeMass200Crit
      double precision                , allocatable, dimension(:,:)           :: angularMomentum                    , particlePosition                 , &
           &                                                                     particleVelocity                   , position                         , &
           &                                                                     spin                               , velocity                         , &
@@ -182,6 +185,7 @@ module Merger_Tree_Data_Structure
           &                                                                     hasHalfMassRadius                                                     , &
           &                                                                     hasHostIndex                       , hasMostBoundParticleIndex        , &
           &                                                                     hasNodeIndex                       , hasNodeMass                      , &
+          &                                                                     hasNodeMass200Mean                 , hasNodeMass200Crit               , &
           &                                                                     hasParticleCount                   , hasParticleIndex                 , &
           &                                                                     hasParticlePositionX               , hasParticlePositionY             , &
           &                                                                     hasParticlePositionZ               , hasParticleRedshift              , &
@@ -368,37 +372,39 @@ contains
     class(mergerTreeData), intent(inout) :: mergerTrees
 
     ! No properties.
-    mergerTrees%hasForestIndex             =.false.
-    mergerTrees%hasForestWeight            =.false.
-    mergerTrees%hasBoxSize                 =.false.
-    mergerTrees%hasNodeIndex               =.false.
-    mergerTrees%hasDescendentIndex         =.false.
-    mergerTrees%hasHostIndex               =.false.
-    mergerTrees%hasRedshift                =.false.
-    mergerTrees%hasScaleFactor             =.false.
-    mergerTrees%hasNodeMass                =.false.
-    mergerTrees%hasParticleCount           =.false.
-    mergerTrees%hasPositionX               =.false.
-    mergerTrees%hasPositionY               =.false.
-    mergerTrees%hasPositionZ               =.false.
-    mergerTrees%hasVelocityX               =.false.
-    mergerTrees%hasVelocityY               =.false.
-    mergerTrees%hasVelocityZ               =.false.
-    mergerTrees%hasSpinX                   =.false.
-    mergerTrees%hasSpinY                   =.false.
-    mergerTrees%hasSpinZ                   =.false.
-    mergerTrees%hasSpinMagnitude           =.false.
-    mergerTrees%hasAngularMomentumX        =.false.
-    mergerTrees%hasAngularMomentumY        =.false.
-    mergerTrees%hasAngularMomentumZ        =.false.
+    mergerTrees%hasForestIndex                     =.false.
+    mergerTrees%hasForestWeight                    =.false.
+    mergerTrees%hasBoxSize                         =.false.
+    mergerTrees%hasNodeIndex                       =.false.
+    mergerTrees%hasDescendentIndex                 =.false.
+    mergerTrees%hasHostIndex                       =.false.
+    mergerTrees%hasRedshift                        =.false.
+    mergerTrees%hasScaleFactor                     =.false.
+    mergerTrees%hasNodeMass                        =.false.
+    mergerTrees%hasNodeMass200Mean                 =.false.
+    mergerTrees%hasNodeMass200Crit                 =.false.
+    mergerTrees%hasParticleCount                   =.false.
+    mergerTrees%hasPositionX                       =.false.
+    mergerTrees%hasPositionY                       =.false.
+    mergerTrees%hasPositionZ                       =.false.
+    mergerTrees%hasVelocityX                       =.false.
+    mergerTrees%hasVelocityY                       =.false.
+    mergerTrees%hasVelocityZ                       =.false.
+    mergerTrees%hasSpinX                           =.false.
+    mergerTrees%hasSpinY                           =.false.
+    mergerTrees%hasSpinZ                           =.false.
+    mergerTrees%hasSpinMagnitude                   =.false.
+    mergerTrees%hasAngularMomentumX                =.false.
+    mergerTrees%hasAngularMomentumY                =.false.
+    mergerTrees%hasAngularMomentumZ                =.false.
     mergerTrees%hasAngularMomentumMagnitude        =.false.
     mergerTrees%hasSpecificAngularMomentumX        =.false.
     mergerTrees%hasSpecificAngularMomentumY        =.false.
     mergerTrees%hasSpecificAngularMomentumZ        =.false.
     mergerTrees%hasSpecificAngularMomentumMagnitude=.false.
-    mergerTrees%hasHalfMassRadius          =.false.
-    mergerTrees%hasScaleRadius             =.false.
-    mergerTrees%hasMostBoundParticleIndex  =.false.
+    mergerTrees%hasHalfMassRadius                  =.false.
+    mergerTrees%hasScaleRadius                     =.false.
+    mergerTrees%hasMostBoundParticleIndex          =.false.
     mergerTrees%hasVelocityMaximum                 =.false.
     mergerTrees%hasVelocityDispersion              =.false.
 
@@ -416,6 +422,8 @@ contains
     if (allocated(mergerTrees%redshift              )) call deallocateArray(mergerTrees%redshift              )
     if (allocated(mergerTrees%scaleFactor           )) call deallocateArray(mergerTrees%scaleFactor           )
     if (allocated(mergerTrees%nodeMass              )) call deallocateArray(mergerTrees%nodeMass              )
+    if (allocated(mergerTrees%nodeMass200Mean       )) call deallocateArray(mergerTrees%nodeMass200Mean       )
+    if (allocated(mergerTrees%nodeMass200Crit       )) call deallocateArray(mergerTrees%nodeMass200Crit       )
     if (allocated(mergerTrees%particleCount         )) call deallocateArray(mergerTrees%particleCount         )
     if (allocated(mergerTrees%position              )) call deallocateArray(mergerTrees%position              )
     if (allocated(mergerTrees%velocity              )) call deallocateArray(mergerTrees%velocity              )
@@ -830,6 +838,16 @@ contains
        if (allocated(mergerTrees%nodeMass        )) call deallocateArray(mergerTrees%nodeMass        )
        call allocateArray(mergerTrees%nodeMass       ,[size(property)])
        mergerTrees%nodeMass       =property
+    case (propertyTypeNodeMass200Mean)
+       mergerTrees%hasNodeMass200Mean=.true.
+       if (allocated(mergerTrees%nodeMass200Mean )) call deallocateArray(mergerTrees%nodeMass200Mean )
+       call allocateArray(mergerTrees%nodeMass200Mean,[size(property)])
+       mergerTrees%nodeMass200Mean=property
+    case (propertyTypeNodeMass200Crit)
+       mergerTrees%hasNodeMass200Crit=.true.
+       if (allocated(mergerTrees%nodeMass200Crit )) call deallocateArray(mergerTrees%nodeMass200Crit )
+       call allocateArray(mergerTrees%nodeMass200Crit,[size(property)])
+       mergerTrees%nodeMass200Crit=property
     case (propertyTypePositionX      )
        if (                                             &
             & allocated(mergerTrees%position)           &
@@ -935,37 +953,39 @@ contains
     call mergerTrees%nodeCountSet(lineNumberStopActual-lineNumberStartActual+1)
 
     ! Specify what properties these trees have.
-    mergerTrees%hasForestIndex             =any(mergerTrees%columnProperties == propertyTypeTreeIndex             )
-    mergerTrees%hasForestWeight            =any(mergerTrees%columnProperties == propertyTypeTreeWeight            )
-    mergerTrees%hasNodeIndex               =any(mergerTrees%columnProperties == propertyTypeNodeIndex             )
-    mergerTrees%hasDescendentIndex         =any(mergerTrees%columnProperties == propertyTypeDescendentIndex       )
-    mergerTrees%hasHostIndex               =any(mergerTrees%columnProperties == propertyTypeHostIndex             )
-    mergerTrees%hasRedshift                =any(mergerTrees%columnProperties == propertyTypeRedshift              )
-    mergerTrees%hasScaleFactor             =any(mergerTrees%columnProperties == propertyTypeScaleFactor           )
-    mergerTrees%hasNodeMass                =any(mergerTrees%columnProperties == propertyTypeNodeMass              )
-    mergerTrees%hasParticleCount           =any(mergerTrees%columnProperties == propertyTypeParticleCount         )
-    mergerTrees%hasPositionX               =any(mergerTrees%columnProperties == propertyTypePositionX             )
-    mergerTrees%hasPositionY               =any(mergerTrees%columnProperties == propertyTypePositionY             )
-    mergerTrees%hasPositionZ               =any(mergerTrees%columnProperties == propertyTypePositionZ             )
-    mergerTrees%hasVelocityX               =any(mergerTrees%columnProperties == propertyTypeVelocityX             )
-    mergerTrees%hasVelocityY               =any(mergerTrees%columnProperties == propertyTypeVelocityY             )
-    mergerTrees%hasVelocityZ               =any(mergerTrees%columnProperties == propertyTypeVelocityZ             )
-    mergerTrees%hasSpinX                   =any(mergerTrees%columnProperties == propertyTypeSpinX                 )
-    mergerTrees%hasSpinY                   =any(mergerTrees%columnProperties == propertyTypeSpinY                 )
-    mergerTrees%hasSpinZ                   =any(mergerTrees%columnProperties == propertyTypeSpinZ                 )
-    mergerTrees%hasSpinMagnitude           =any(mergerTrees%columnProperties == propertyTypeSpin                  )
-    mergerTrees%hasAngularMomentumX        =any(mergerTrees%columnProperties == propertyTypeAngularMomentumX      )
-    mergerTrees%hasAngularMomentumY        =any(mergerTrees%columnProperties == propertyTypeAngularMomentumY      )
-    mergerTrees%hasAngularMomentumZ        =any(mergerTrees%columnProperties == propertyTypeAngularMomentumZ      )
+    mergerTrees%hasForestIndex                     =any(mergerTrees%columnProperties == propertyTypeTreeIndex               )
+    mergerTrees%hasForestWeight                    =any(mergerTrees%columnProperties == propertyTypeTreeWeight              )
+    mergerTrees%hasNodeIndex                       =any(mergerTrees%columnProperties == propertyTypeNodeIndex               )
+    mergerTrees%hasDescendentIndex                 =any(mergerTrees%columnProperties == propertyTypeDescendentIndex         )
+    mergerTrees%hasHostIndex                       =any(mergerTrees%columnProperties == propertyTypeHostIndex               )
+    mergerTrees%hasRedshift                        =any(mergerTrees%columnProperties == propertyTypeRedshift                )
+    mergerTrees%hasScaleFactor                     =any(mergerTrees%columnProperties == propertyTypeScaleFactor             )
+    mergerTrees%hasNodeMass                        =any(mergerTrees%columnProperties == propertyTypeNodeMass                )
+    mergerTrees%hasNodeMass200Mean                 =any(mergerTrees%columnProperties == propertyTypeNodeMass200Mean         )
+    mergerTrees%hasNodeMass200Crit                 =any(mergerTrees%columnProperties == propertyTypeNodeMass200Crit         )
+    mergerTrees%hasParticleCount                   =any(mergerTrees%columnProperties == propertyTypeParticleCount           )
+    mergerTrees%hasPositionX                       =any(mergerTrees%columnProperties == propertyTypePositionX               )
+    mergerTrees%hasPositionY                       =any(mergerTrees%columnProperties == propertyTypePositionY               )
+    mergerTrees%hasPositionZ                       =any(mergerTrees%columnProperties == propertyTypePositionZ               )
+    mergerTrees%hasVelocityX                       =any(mergerTrees%columnProperties == propertyTypeVelocityX               )
+    mergerTrees%hasVelocityY                       =any(mergerTrees%columnProperties == propertyTypeVelocityY               )
+    mergerTrees%hasVelocityZ                       =any(mergerTrees%columnProperties == propertyTypeVelocityZ               )
+    mergerTrees%hasSpinX                           =any(mergerTrees%columnProperties == propertyTypeSpinX                   )
+    mergerTrees%hasSpinY                           =any(mergerTrees%columnProperties == propertyTypeSpinY                   )
+    mergerTrees%hasSpinZ                           =any(mergerTrees%columnProperties == propertyTypeSpinZ                   )
+    mergerTrees%hasSpinMagnitude                   =any(mergerTrees%columnProperties == propertyTypeSpin                    )
+    mergerTrees%hasAngularMomentumX                =any(mergerTrees%columnProperties == propertyTypeAngularMomentumX        )
+    mergerTrees%hasAngularMomentumY                =any(mergerTrees%columnProperties == propertyTypeAngularMomentumY        )
+    mergerTrees%hasAngularMomentumZ                =any(mergerTrees%columnProperties == propertyTypeAngularMomentumZ        )
     mergerTrees%hasAngularMomentumMagnitude        =any(mergerTrees%columnProperties == propertyTypeAngularMomentum         )
     mergerTrees%hasSpecificAngularMomentumX        =any(mergerTrees%columnProperties == propertyTypeSpecificAngularMomentumX)
     mergerTrees%hasSpecificAngularMomentumY        =any(mergerTrees%columnProperties == propertyTypeSpecificAngularMomentumY)
     mergerTrees%hasSpecificAngularMomentumZ        =any(mergerTrees%columnProperties == propertyTypeSpecificAngularMomentumZ)
     mergerTrees%hasSpecificAngularMomentumMagnitude=any(mergerTrees%columnProperties == propertyTypeSpecificAngularMomentum )
-    mergerTrees%hasHalfMassRadius          =any(mergerTrees%columnProperties == propertyTypeHalfMassRadius        )
-    mergerTrees%hasScaleRadius             =any(mergerTrees%columnProperties == propertyTypeScaleRadius           )
+    mergerTrees%hasHalfMassRadius                  =any(mergerTrees%columnProperties == propertyTypeHalfMassRadius          )
+    mergerTrees%hasScaleRadius                     =any(mergerTrees%columnProperties == propertyTypeScaleRadius             )
     mergerTrees%hasMostBoundParticleIndex          =any(mergerTrees%columnProperties == propertyTypeMostBoundParticleIndex  )
-    mergerTrees%hasSnapshot                =any(mergerTrees%columnProperties == propertyTypeSnapshot              )
+    mergerTrees%hasSnapshot                        =any(mergerTrees%columnProperties == propertyTypeSnapshot                )
     mergerTrees%hasVelocityMaximum                 =any(mergerTrees%columnProperties == propertyTypeVelocityMaximum         )
     mergerTrees%hasVelocityDispersion              =any(mergerTrees%columnProperties == propertyTypeVelocityDispersion      )
 
@@ -1017,6 +1037,8 @@ contains
     if (allocated(mergerTrees%redshift              )) call deallocateArray(mergerTrees%redshift              )
     if (allocated(mergerTrees%scaleFactor           )) call deallocateArray(mergerTrees%scaleFactor           )
     if (allocated(mergerTrees%nodeMass              )) call deallocateArray(mergerTrees%nodeMass              )
+    if (allocated(mergerTrees%nodeMass200Mean       )) call deallocateArray(mergerTrees%nodeMass200Mean       )
+    if (allocated(mergerTrees%nodeMass200Crit       )) call deallocateArray(mergerTrees%nodeMass200Crit       )
     if (allocated(mergerTrees%particleCount         )) call deallocateArray(mergerTrees%particleCount         )
     if (allocated(mergerTrees%position              )) call deallocateArray(mergerTrees%position              )
     if (allocated(mergerTrees%velocity              )) call deallocateArray(mergerTrees%velocity              )
@@ -1027,29 +1049,31 @@ contains
     if (allocated(mergerTrees%velocityDispersion    )) call deallocateArray(mergerTrees%velocityDispersion    )
 
     ! Allocate internal arrays to correct size as needed.
-    if (mergerTrees%hasForestIndex             ) call allocateArray(mergerTrees%forestIndex             ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasForestWeight            ) call allocateArray(mergerTrees%forestWeightNode        ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasNodeIndex               ) call allocateArray(mergerTrees%nodeIndex               ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasMostBoundParticleIndex  ) call allocateArray(mergerTrees%mostBoundParticleIndex  ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasSnapshot                ) call allocateArray(mergerTrees%snapshot                ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasDescendentIndex         ) call allocateArray(mergerTrees%descendentIndex         ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasHostIndex               ) call allocateArray(mergerTrees%hostIndex               ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasRedshift                ) call allocateArray(mergerTrees%redshift                ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasScaleFactor             ) call allocateArray(mergerTrees%scaleFactor             ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasNodeMass                ) call allocateArray(mergerTrees%nodeMass                ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasParticleCount           ) call allocateArray(mergerTrees%particleCount           ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasPositionX               ) call allocateArray(mergerTrees%position                ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityX               ) call allocateArray(mergerTrees%velocity                ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpinX                   ) call allocateArray(mergerTrees%spin                    ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasAngularMomentumX        ) call allocateArray(mergerTrees%angularMomentum         ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpecificAngularMomentumX) call allocateArray(mergerTrees%specificAngularMomentum ,[3,mergerTrees%nodeCount])
-    if (mergerTrees%hasSpinMagnitude           ) call allocateArray(mergerTrees%spinMagnitude           ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasAngularMomentumMagnitude) call allocateArray(mergerTrees%angularMomentumMagnitude,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasForestIndex                     ) call allocateArray(mergerTrees%forestIndex                     ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasForestWeight                    ) call allocateArray(mergerTrees%forestWeightNode                ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasNodeIndex                       ) call allocateArray(mergerTrees%nodeIndex                       ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasMostBoundParticleIndex          ) call allocateArray(mergerTrees%mostBoundParticleIndex          ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasSnapshot                        ) call allocateArray(mergerTrees%snapshot                        ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasDescendentIndex                 ) call allocateArray(mergerTrees%descendentIndex                 ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasHostIndex                       ) call allocateArray(mergerTrees%hostIndex                       ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasRedshift                        ) call allocateArray(mergerTrees%redshift                        ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasScaleFactor                     ) call allocateArray(mergerTrees%scaleFactor                     ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasNodeMass                        ) call allocateArray(mergerTrees%nodeMass                        ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasNodeMass200Mean                 ) call allocateArray(mergerTrees%nodeMass200Mean                 ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasNodeMass200Crit                 ) call allocateArray(mergerTrees%nodeMass200Crit                 ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasParticleCount                   ) call allocateArray(mergerTrees%particleCount                   ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasPositionX                       ) call allocateArray(mergerTrees%position                        ,[3,mergerTrees%nodeCount])
+    if (mergerTrees%hasVelocityX                       ) call allocateArray(mergerTrees%velocity                        ,[3,mergerTrees%nodeCount])
+    if (mergerTrees%hasSpinX                           ) call allocateArray(mergerTrees%spin                            ,[3,mergerTrees%nodeCount])
+    if (mergerTrees%hasAngularMomentumX                ) call allocateArray(mergerTrees%angularMomentum                 ,[3,mergerTrees%nodeCount])
+    if (mergerTrees%hasSpecificAngularMomentumX        ) call allocateArray(mergerTrees%specificAngularMomentum         ,[3,mergerTrees%nodeCount])
+    if (mergerTrees%hasSpinMagnitude                   ) call allocateArray(mergerTrees%spinMagnitude                   ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasAngularMomentumMagnitude        ) call allocateArray(mergerTrees%angularMomentumMagnitude        ,[  mergerTrees%nodeCount])
     if (mergerTrees%hasSpecificAngularMomentumMagnitude) call allocateArray(mergerTrees%specificAngularMomentumMagnitude,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasHalfMassRadius          ) call allocateArray(mergerTrees%halfMassRadius          ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasScaleRadius             ) call allocateArray(mergerTrees%scaleRadius             ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityMaximum         ) call allocateArray(mergerTrees%velocityMaximum         ,[  mergerTrees%nodeCount])
-    if (mergerTrees%hasVelocityDispersion      ) call allocateArray(mergerTrees%velocityDispersion      ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasHalfMassRadius                  ) call allocateArray(mergerTrees%halfMassRadius                  ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasScaleRadius                     ) call allocateArray(mergerTrees%scaleRadius                     ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasVelocityMaximum                 ) call allocateArray(mergerTrees%velocityMaximum                 ,[  mergerTrees%nodeCount])
+    if (mergerTrees%hasVelocityDispersion              ) call allocateArray(mergerTrees%velocityDispersion              ,[  mergerTrees%nodeCount])
 
     ! Open the file and read lines.
     open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
@@ -1107,6 +1131,12 @@ contains
              case (propertyTypeNodeMass              )
                 ! Column is mass.
                 read (inputColumns(iColumn),*) mergerTrees%nodeMass                (  iNode)
+             case (propertyTypeNodeMass200Mean       )
+                ! Column is mass.
+                read (inputColumns(iColumn),*) mergerTrees%nodeMass200Mean         (  iNode)
+             case (propertyTypeNodeMass200Crit       )
+                ! Column is mass.
+                read (inputColumns(iColumn),*) mergerTrees%nodeMass200Crit         (  iNode)
              case (propertyTypeParticleCount         )
                 ! Column is particle count.
                 read (inputColumns(iColumn),*) mergerTrees%particleCount           (  iNode)
@@ -1270,11 +1300,17 @@ contains
     integer              , intent(in   ) :: propertyType
     double precision     , intent(in   ) :: conversionFactor
     integer                              :: j
-
+    
     select case (propertyType)
     case (propertyTypeNodeMass          )
        ! Property is mass.
-       mergerTrees%nodeMass                     =mergerTrees%nodeMass                     *conversionFactor
+       mergerTrees%nodeMass                    =mergerTrees%nodeMass                     *conversionFactor
+    case (propertyTypeNodeMass200Mean   )
+       ! Property is mass.
+       mergerTrees%nodeMass200Mean             =mergerTrees%nodeMass200Mean              *conversionFactor
+    case (propertyTypeNodeMass200Crit   )
+       ! Property is mass.
+       mergerTrees%nodeMass200Crit             =mergerTrees%nodeMass200Crit              *conversionFactor
     case (propertyTypePositionX         )
        ! Property is position.
        forall(j=1:3)
@@ -1292,26 +1328,25 @@ contains
        end forall
     case (propertyTypeAngularMomentum   )
        ! Property is scalar angular momentum.
-       mergerTrees%angularMomentumMagnitude     =mergerTrees%angularMomentumMagnitude     *conversionFactor
+       mergerTrees%angularMomentumMagnitude    =mergerTrees%angularMomentumMagnitude     *conversionFactor
     case (propertyTypeHalfMassRadius    )
        ! Property is half mass radius.
-       mergerTrees%halfMassRadius               =mergerTrees%halfMassRadius               *conversionFactor
+       mergerTrees%halfMassRadius              =mergerTrees%halfMassRadius               *conversionFactor
     case (propertyTypeScaleRadius       )
        ! Property is scale radius.
-       mergerTrees%scaleRadius                  =mergerTrees%scaleRadius                  *conversionFactor
+       mergerTrees%scaleRadius                 =mergerTrees%scaleRadius                  *conversionFactor
     case (propertyTypeVelocityMaximum   )
        ! Property is maximum velocity.
-       mergerTrees%velocityMaximum              =mergerTrees%velocityMaximum              *conversionFactor
+       mergerTrees%velocityMaximum             =mergerTrees%velocityMaximum              *conversionFactor
     case (propertyTypeVelocityDispersion)
        ! Property is velocity dispersion.
-       mergerTrees%velocityDispersion           =mergerTrees%velocityDispersion           *conversionFactor
+       mergerTrees%velocityDispersion          =mergerTrees%velocityDispersion           *conversionFactor
     case default
        ! Property has no units.
        call Galacticus_Error_Report('property has no units to convert.'//{introspection:location})
     end select
     return 
   end subroutine Merger_Tree_Data_Structure_Convert_Property_Units
-  
   
   subroutine Merger_Tree_Data_Structure_Set_Tree_Indices(mergerTrees)
     !% Set the merger tree index arrays.
@@ -1566,6 +1601,7 @@ contains
     call hdf5Access%set()
     call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
+
     ! Write a format version attribute.
     if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
 
@@ -1578,6 +1614,8 @@ contains
     if (mergerTrees%hasHostIndex               ) call forestHalos%writeDataset(mergerTrees%hostIndex               ,"hostIndex"          ,"The index of each host node."                       ,appendTo=appendActual                  )
     if (mergerTrees%hasNodeMass                ) call forestHalos%writeDataset(mergerTrees%nodeMass                ,"nodeMass"           ,"The mass of each node."                             ,appendTo=appendActual                  )
     if (mergerTrees%hasRedshift                ) call forestHalos%writeDataset(mergerTrees%redshift                ,"redshift"           ,"The redshift of each node."                         ,appendTo=appendActual                  )
+    if (mergerTrees%hasNodeMass200Mean         ) call forestHalos%writeDataset(mergerTrees%nodeMass200Mean         ,"nodeMass200Mean"    ,"The M200 mass of each node (200 * mean density)."   ,appendTo=appendActual                  )
+    if (mergerTrees%hasNodeMass200Crit         ) call forestHalos%writeDataset(mergerTrees%nodeMass200Crit         ,"nodeMass200Crit"    ,"The M200 mass of each node (200 * crit density(."   ,appendTo=appendActual                  )
     if (mergerTrees%hasScaleFactor             ) call forestHalos%writeDataset(mergerTrees%scaleFactor             ,"scaleFactor"        ,"The scale factor of each node."                     ,appendTo=appendActual                  )
     if (mergerTrees%hasPositionX               ) call forestHalos%writeDataset(mergerTrees%position                ,"position"           ,"The position of each node."                         ,appendTo=appendActual,appendDimension=2)
     if (mergerTrees%hasVelocityX               ) call forestHalos%writeDataset(mergerTrees%velocity                ,"velocity"           ,"The velocity of each node."                         ,appendTo=appendActual,appendDimension=2)
@@ -1786,6 +1824,9 @@ contains
     ! Close the group for datasets.
     call forestHalos%close()
 
+    ! Add a flag to indicate successfully completed writing merger tree information.
+    call outputFile%writeAttribute(1,"fileCompleteFlag")
+
     ! Close the output file.
     call outputFile%close()
     call hdf5Access%unset()
@@ -1868,41 +1909,51 @@ contains
 
        ! Write the data.
        if (mergerTrees%hasNodeIndex               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeIndex               ,thisSnapshotIndices),"Index"          ,"The index of each halo."                                            ,appendTo=appendActual)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeIndex               ,thisSnapshotIndices),"Index"          ,"The index of each halo."                                                     ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasNodeMass                ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,thisSnapshotIndices),"Mass"           ,"The mass of each halo."                 ,datasetReturned=thisDataset,appendTo=appendActual)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass                ,thisSnapshotIndices),"Mass"           ,"The mass of each halo."                          ,datasetReturned=thisDataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
+          call thisDataset%close()
+       end if
+       if (mergerTrees%hasNodeMass200Mean         ) then
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Mean         ,thisSnapshotIndices),"Mass200Mean"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=thisDataset,appendTo=appendActual                  )
+          if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
+          call thisDataset%close()
+       end if
+       if (mergerTrees%hasNodeMass200Crit         ) then
+          call haloTrees%writeDataset(Array_Index(mergerTrees%nodeMass200Crit         ,thisSnapshotIndices),"Mass200Crit"    ,"The M200 mass of each halo (200 * mean density).",datasetReturned=thisDataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasPositionX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,thisSnapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."        ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%position    ,thisSnapshotIndices,indexOn=2),"Center"         ,"The position of each halo center."                 ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([          unitsLength              ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasVelocityX               ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,thisSnapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%velocity   ,thisSnapshotIndices,indexOn=2),"Velocity"       ,"The velocity of each halo."                         ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsVelocity                      ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasSpinX                   ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                             ,appendTo=appendActual)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%spin                    ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasAngularMomentumX        ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo.",datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentum         ,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=thisDataset,appendTo=appendActual,appendDimension=2)
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasSpinMagnitude           ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                             ,appendTo=appendActual)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%spinMagnitude           ,thisSnapshotIndices),"Spin"           ,"The spin of each halo."                                                      ,appendTo=appendActual                  )
        end if
        if (mergerTrees%hasAngularMomentumMagnitude) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo.",datasetReturned=thisDataset,appendTo=appendActual)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%angularMomentumMagnitude,thisSnapshotIndices),"AngularMomentum","The angular momentum spin of each halo."         ,datasetReturned=thisDataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass,unitsLength,unitsVelocity],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
        if (mergerTrees%hasHalfMassRadius          ) then
-          call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,thisSnapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."     ,datasetReturned=thisDataset,appendTo=appendActual)
+          call haloTrees%writeDataset(Array_Index(mergerTrees%halfMassRadius          ,thisSnapshotIndices),"HalfMassRadius" ,"The half mass radius of each halo."              ,datasetReturned=thisDataset,appendTo=appendActual                  )
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
@@ -2152,6 +2203,8 @@ contains
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report("merger trees do not have required property 'descendentIndex'"//{introspection:location})
     if (.not.mergerTrees%hasRedshift       ) call Galacticus_Error_Report("merger trees do not have required property 'redshift'"       //{introspection:location})
     if (.not.mergerTrees%hasNodeMass       ) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass'"       //{introspection:location})
+    if (.not.mergerTrees%hasNodeMass200Mean) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass200Mean'"//{introspection:location})
+    if (.not.mergerTrees%hasNodeMass200Crit) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass200Crit'"//{introspection:location})
     return
   end subroutine Merger_Tree_Data_Validate_Trees
 
