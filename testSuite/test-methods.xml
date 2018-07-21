@@ -149,8 +149,8 @@
       <treeNodeMethodSatellite value="preset" parameterLevel="top">
     	<presetMergerTimes value="true" parameterLevel="-1"/>
     	<presetMergerNodes value="true" parameterLevel="-1"/>
-    	<subresolutionMergingMethod value="zero" parameterLevel="-1"/>
-    	<subresolutionMergingMethod value="boylanKolchin2008" parameterLevel="-1"/>
+    	<satelliteMergingTimescalesSubresolutionMethod value="zero"              parameterLevel="-1"/>
+    	<satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008" parameterLevel="-1"/>
       </treeNodeMethodSatellite>
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>

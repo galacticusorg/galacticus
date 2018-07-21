@@ -34,7 +34,7 @@
       <presetOrbitsBoundOnly value="true"/>
       <presetMergerTimes value="true"/>
       <presetMergerNodes value="true"/>
-      <satelliteMergingTimescalesMethod value="boylanKolchin2008"/>
+      <satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
       <presetSubhaloMasses value="true"/>
