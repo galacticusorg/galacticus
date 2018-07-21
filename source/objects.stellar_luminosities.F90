@@ -1265,8 +1265,7 @@ contains
     type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
          &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
     type            (varying_string         )                            , dimension(5) :: specialFilterWords
-    double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp, &
-         &                                                                                 spsWavelengths           , spsWavelengthDifference
+    double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
     class           (stellarPopulationSpectraClass)         , pointer                   :: stellarPopulationSpectra_
     class           (cosmologyFunctionsClass), pointer                                  :: cosmologyFunctions_
     character       (len=32                 )                                           :: redshiftLabel            , word                     , &
@@ -1278,9 +1277,8 @@ contains
          &                                                                                 restWavelengthMinimum    , restWavelengthMaximum    , &
          &                                                                                 wavelengthRatio          , wavelengthCentral        , &
          &                                                                                 observedWidth            , restWidth                , &
-         &                                                                                 tabulatedWidth           , wavelengthLowerEdge      , &
-         &                                                                                 filterWidth
-    integer                                                                             :: imfIndex                 , wavelengthsCount
+         &                                                                                 tabulatedWidth           , filterWidth
+    integer                                                                             :: imfIndex
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
