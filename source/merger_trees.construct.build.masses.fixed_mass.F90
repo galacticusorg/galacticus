@@ -209,8 +209,8 @@ contains
     call Sort_Do(mass)
     indexStart=1
     do i=1,size(self%treeCount)
-       massMinimum(indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)/sqrt(self%massIntervalFractional)
-       massMaximum(indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)*sqrt(self%massIntervalFractional)
+       massMinimum(indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)/sqrt(1.0d0+self%massIntervalFractional)
+       massMaximum(indexStart:indexStart+self%treeCount(i)-1)=+self%massTree (i)*sqrt(1.0d0+self%massIntervalFractional)
        if (i > 1 .and. massMinimum(indexStart) < massMaximum(indexStart-1)) then
           massMinimum(indexStart                    :indexStart+self%treeCount(i)-1)=sqrt(                    &
                &                                                                          +self%massTree(i-1) &
@@ -228,7 +228,7 @@ contains
   contains
 
     double precision function massEnclosed(massTree)
-      !% Root finding function used to set the host halo mass for Local Group satellite mass function calculations.
+      !% Root finding function used to set the halo mass given the halo radius.
       use Galactic_Structure_Enclosed_Masses
       use Galactic_Structure_Options
       implicit none
