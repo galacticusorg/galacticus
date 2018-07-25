@@ -755,6 +755,7 @@ contains
           ! case as the disk radius may be unphysical also.
           barInstabilityTimescale=-1.0d0
        end if
+       
        ! Negative timescale indicates no bar instability.      
        if (barInstabilityTimescale >= 0.0d0) then
           ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
@@ -1136,29 +1137,29 @@ contains
        else if (disk%massStellar    ()+disk%massGas() >=                      0.0d0) then
           if      (                                                                               &
                &   disk%angularMomentum() < 0.0d0                                                 &
-                &  ) then
-              node%isPhysicallyPlausible=.false.
-           else
-              darkMatterHaloScale_ => darkMatterHaloScale()
-              angularMomentumScale=(                                           &
-                   &                 disk%massStellar()                        &
-                   &                +disk%massGas    ()                        &
-                   &               )                                           &
-                   &               * darkMatterHaloScale_%virialRadius  (node) &
-                   &               * darkMatterHaloScale_%virialVelocity(node)
-              if     (                                                                      &
-                   &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-                   &  .or.                                                                  &
-                   &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-                   & ) then
-                 ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
-                 ! virial radius of their halo.
-                 node%isPhysicallyPlausible=.false.
+               &  ) then
+             node%isPhysicallyPlausible=.false.
+          else
+             darkMatterHaloScale_ => darkMatterHaloScale()
+             angularMomentumScale=(                                           &
+                  &                 disk%massStellar()                        &
+                  &                +disk%massGas    ()                        &
+                  &               )                                           &
+                  &               * darkMatterHaloScale_%virialRadius  (node) &
+                  &               * darkMatterHaloScale_%virialVelocity(node)
+             if     (                                                                      &
+                  &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+                  &  .or.                                                                  &
+                  &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+                  & ) then
+                ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
+                ! virial radius of their halo.
+                node%isPhysicallyPlausible=.false.
              end if
-           end if
-        end if
-     end select
-
+          end if
+       end if
+    end select
+    
     ! Reset the record of trial radii - negative values indicate that the entries have not yet been set to physically meaningful
     ! values.
     radiusHistory        =-1.0d0
