@@ -207,7 +207,7 @@ source/FFTlog/fftlog.f source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFT
 	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
 
 $(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
-	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch
+	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch -std=legacy
 
 # Object (*.o) files are built by compiling Fortran (*.f) source files.
 vpath %.f source
