@@ -2203,8 +2203,6 @@ contains
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report("merger trees do not have required property 'descendentIndex'"//{introspection:location})
     if (.not.mergerTrees%hasRedshift       ) call Galacticus_Error_Report("merger trees do not have required property 'redshift'"       //{introspection:location})
     if (.not.mergerTrees%hasNodeMass       ) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass'"       //{introspection:location})
-    if (.not.mergerTrees%hasNodeMass200Mean) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass200Mean'"//{introspection:location})
-    if (.not.mergerTrees%hasNodeMass200Crit) call Galacticus_Error_Report("merger trees do not have required property 'nodeMass200Crit'"//{introspection:location})
     return
   end subroutine Merger_Tree_Data_Validate_Trees
 
