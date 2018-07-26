@@ -145,6 +145,7 @@ contains
     if (.not.self%solidAnglesInitialized) then
        !$omp critical(mangleSolidAnglesInitialize)
        if (.not.self%solidAnglesInitialized) then
+          call self%mangleFiles(mangleFiles)
           self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles.hdf5"))
           self%solidAnglesInitialized=.true.
        end if
@@ -199,6 +200,7 @@ contains
     if (.not.self%angularPowerInitialized) then
        !$omp critical(mangleAngularPowerInitialize)
        if (.not.self%angularPowerInitialized) then
+          call self%mangleFiles(mangleFiles)
           self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower.hdf5"))
           self%angularPowerInitialized=.true.
        end if
