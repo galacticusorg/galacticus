@@ -1305,11 +1305,11 @@ contains
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
        ! Determine the plausibility of the current spheroid.
-       if        (spheroid%massStellar          ()+spheroid%massGas() < spheroidMassToleranceAbsolute) then
+       if        (spheroid%massStellar          ()+spheroid%massGas() < -spheroidMassToleranceAbsolute) then
           node%isPhysicallyPlausible=.false.
        else
-          if     (      spheroid%massStellar    ()+spheroid%massGas() > spheroidMassToleranceAbsolute &
-               &  .and. spheroid%angularMomentum()                    <                         0.0d0 &
+          if     (      spheroid%massStellar    ()+spheroid%massGas() > +spheroidMassToleranceAbsolute &
+               &  .and. spheroid%angularMomentum()                    <                          0.0d0 &
                & ) node%isPhysicallyPlausible=.false.
        end if
     end select
