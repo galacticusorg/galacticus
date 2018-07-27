@@ -1284,9 +1284,14 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode             ), intent(inout) :: node
-    class(nodeComponentSpheroid), pointer       :: spheroid
+    type            (treeNode                ), intent(inout) :: node
+    class           (nodeComponentSpheroid   ), pointer       :: spheroid
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    double precision                          , parameter     :: angularMomentumMaximum=1.0d+1
+    double precision                          , parameter     :: angularMomentumMinimum=1.0d-6
+    double precision                                          :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
     if     (                                                &
@@ -1305,13 +1310,35 @@ contains
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
        ! Determine the plausibility of the current spheroid.
-       if        (spheroid%massStellar          ()+spheroid%massGas() < -spheroidMassToleranceAbsolute) then
+       if      (spheroid%angularMomentum()                    <                           0.0d0) &
+            & node%isPhysicallyPlausible=.false.
+       if      (spheroid%massStellar    ()+spheroid%massGas() <  -spheroidMassToleranceAbsolute) then
           node%isPhysicallyPlausible=.false.
-       else
-          if     (      spheroid%massStellar    ()+spheroid%massGas() > +spheroidMassToleranceAbsolute &
-               &  .and. spheroid%angularMomentum()                    <                          0.0d0 &
-               & ) node%isPhysicallyPlausible=.false.
+       else if (spheroid%massStellar    ()+spheroid%massGas() >=                          0.0d0) then
+          if      (                                                                              &
+               &   spheroid%angularMomentum() < 0.0d0                                            &
+               &  ) then
+             node%isPhysicallyPlausible=.false.
+          else
+             darkMatterHaloScale_ => darkMatterHaloScale()
+             angularMomentumScale=(                                           &
+                  &                 spheroid%massStellar()                    &
+                  &                +spheroid%massGas    ()                    &
+                  &               )                                           &
+                  &               * darkMatterHaloScale_%virialRadius  (node) &
+                  &               * darkMatterHaloScale_%virialVelocity(node)
+             if     (                                                                          &
+                  &   spheroid%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+                  &  .or.                                                                      &
+                  &   spheroid%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+                  & ) then
+                ! Ignore spheroids with angular momenta greatly exceeding that which would be expected if they had a radius
+                ! comparable to the virial radius of their halo.
+                node%isPhysicallyPlausible=.false.
+             end if
+          end if
        end if
+
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility

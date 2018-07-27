@@ -76,8 +76,8 @@ contains
     return
   end subroutine Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize
 
-  double precision function Star_Formation_Timescale_Spheroid_Dynamical_Time(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily thisNode}. The timescale is given by
+  double precision function Star_Formation_Timescale_Spheroid_Dynamical_Time(node)
+    !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily node}. The timescale is given by
     !% \begin{equation}
     !% \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical, spheroid} \left( {V_\mathrm{spheroid} \over 200\hbox{km/s}} \right)^{\alpha_\star},
     !% \end{equation}
@@ -89,28 +89,36 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode             ), intent(inout) :: thisNode
-    class           (nodeComponentSpheroid), pointer       :: thisSpheroidComponent
-    double precision                       , parameter     :: velocityZeroPoint    =200.0d0                   !   (km/s)
-    double precision                                       :: dynamicalTime                , spheroidVelocity
+    type            (treeNode             ), intent(inout) :: node
+    class           (nodeComponentSpheroid), pointer       :: spheroid
+    double precision                       , parameter     :: velocityZeroPoint=200.0d+0           !   (km/s)
+    double precision                       , parameter     :: velocityTiny     =  1.0d-3           !   (km/s)
+    double precision                                       :: timeDynamical             , velocity
 
     ! Get spheroid circular velocity.
-    thisSpheroidComponent => thisNode%spheroid()
-    spheroidVelocity=thisSpheroidComponent%velocity()
-
-    ! Check for zero velocity spheroid.
-    if (spheroidVelocity <= 0.0d0) then
+    spheroid => node    %spheroid()
+    velocity =  spheroid%velocity()
+    ! Check for tiny velocity spheroid.
+    if (velocity <= velocityTiny) then
        Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0 ! No well defined answer in this case.
     else if (starFormationSpheroidEfficiency == 0.0d0) then
        ! No star formation occurs if the efficiency is zero.
        Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0
     else
        ! Get the dynamical time in Gyr.
-       dynamicalTime=Mpc_per_km_per_s_To_Gyr*thisSpheroidComponent%radius()/spheroidVelocity
-
+       timeDynamical=+Mpc_per_km_per_s_To_Gyr   &
+            &        *spheroid%radius        () &
+            &        /velocity
        ! Compute the star formation timescale using a simple scaling factor.
-       Star_Formation_Timescale_Spheroid_Dynamical_Time=max(dynamicalTime*(spheroidVelocity/velocityZeroPoint)&
-            &**starFormationSpheroidVelocityExponent/starFormationSpheroidEfficiency,starFormationSpheroidMinimumTimescale)
+       Star_Formation_Timescale_Spheroid_Dynamical_Time=max(                                           &
+            &                                               +timeDynamical                             &
+            &                                               *(                                         &
+            &                                                 +velocity                                &
+            &                                                 /velocityZeroPoint                       &
+            &                                                )**starFormationSpheroidVelocityExponent  &
+            &                                               /   starFormationSpheroidEfficiency      , &
+            &                                               +   starFormationSpheroidMinimumTimescale  &
+            &                                               )
     end if
     return
   end function Star_Formation_Timescale_Spheroid_Dynamical_Time

@@ -155,6 +155,7 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
        &                                                                      weightIndex
   double precision                               , intent(in   )           :: positionSpherical(3)
   logical                                        , intent(in   ), optional :: haloLoaded
+  double precision                               , parameter               :: radiusHuge          =1.0d+100
   type            (coordinateSpherical          )                          :: position
   type            (stellarLuminosities          ), save                    :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
@@ -167,7 +168,7 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   select type (self)
      class is (nodeComponentSpheroidStandard)
 
-     if (self%radius() <= 0.0d0) return
+     if (self%radius() <= 0.0d0 .or. self%radius() > radiusHuge) return
      select case (weightBy)
      case (weightByMass      )
         select case (massType)
