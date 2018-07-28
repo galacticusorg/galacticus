@@ -64,7 +64,7 @@ contains
          &  Values_Agree(                                                                                      &
          &                      virialDensityContrast_%densityContrast(basic%mass(),basic%timeLastIsolated()), &
          &                                             densityContrast                                       , &
-         &               relTol=1.0d-6                                                                         &
+         &               relTol=1.0d-4                                                                         &
          &              )                                                                                      &
          & ) then
        ! Requested density contrast is just the virial density contrast.
