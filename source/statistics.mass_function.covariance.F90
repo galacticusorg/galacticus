@@ -70,7 +70,6 @@ contains
     !% Compute the mass function covariance matrix.
     use, intrinsic :: ISO_C_Binding
     use FGSL
-    use FFTW3
     use Memory_Management
     use Input_Parameters
     use Numerical_Ranges

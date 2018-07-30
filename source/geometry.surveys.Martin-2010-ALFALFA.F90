@@ -138,7 +138,6 @@ contains
   
   subroutine martin2010ALFALFARandomsInitialize(self)
     !% Initialize random points for the survey.
-    use FFTW3
     use Vectors
     use File_Utilities
     use FGSL

@@ -17,6 +17,7 @@
 
 //% Implements Fortran-callable wrappers around the ANN (Approximate Nearest Neighbors) library.
 
+#ifdef ANNAVAIL
 #include <ANN/ANN.h>
 #include <stdio.h>
 
@@ -129,3 +130,4 @@ int nearestNeighborsSearchFixedRadiusC(ANNkd_tree * ANN, double *point, double r
   delete [] ANNdistances;
   return neighborsFound;
 }
+#endif

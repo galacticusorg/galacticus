@@ -37,9 +37,6 @@ contains
     use               FFTW3
     use               ISO_Varying_String
     use               String_Handling
-
-use vectors
-
     implicit none
     double precision                  , intent(in   ), dimension(:,:  )              :: dataPosition
     double precision                  , intent(in   )                                :: wavenumberMinimum          , wavenumberMaximum       , &
@@ -52,16 +49,17 @@ use vectors
          &                                                                              gridCount                  , u                       , &
          &                                                                              v                          , w
     complex         (c_double_complex)                                               :: normalization
+#ifdef FFTW3AVAIL
     type            (c_ptr           )                                               :: plan
+#endif
     double precision                                                                 :: waveNumberU                , waveNumberV             , &
          &                                                                              waveNumberW                , waveNumberSquared       , &
          &                                                                              logarithmicWavenumberOffset, inverseDeltaLogarithmicWavenumber
     type            (varying_string  )                                               :: message
 
-
-double precision :: mag, wavemin, wavemax, a
-integer :: j
-
+#ifdef FFTW3UNAVAIL
+    call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+#endif
     ! Allocate arrays.
     if (allocated(wavenumber   )) call deallocateArray(wavenumber   )
     if (allocated(powerSpectrum)) call deallocateArray(powerSpectrum)
@@ -86,9 +84,11 @@ integer :: j
        call Meshes_Apply_Point(density,boxLength,dataPosition(:,i),pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypePoint)
     end do
     ! Take the Fourier transform of the selection function.
+#ifdef FFTW3AVAIL
     plan=fftw_plan_dft_3d(gridCount,gridCount,gridCount,density,densityFourier,FFTW_FORWARD,FFTW_ESTIMATE)
     call fftw_execute_dft (plan,density,densityFourier)
     call fftw_destroy_plan(plan                       )
+#endif
     ! Normalize the window function.
     normalization=densityFourier(1,1,1)
     if (real(normalization) > 0.0d0) densityFourier=densityFourier/normalization
