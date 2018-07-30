@@ -195,9 +195,14 @@ contains
     double precision                                                                                 :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
          &                                                                                              comovingDistanceMinimum1, comovingDistanceMinimum2, &
          &                                                                                              distance
+#ifdef FFTW3AVAIL
     type            (c_ptr                )                                                          :: plan
+#endif
     complex         (c_double_complex     )                                                          :: normalization
-    
+
+#ifdef FFTW3UNAVAIL
+    call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+#endif
     ! Find the comoving distance corresponding to this distance module.
     comovingDistanceMaximum1=self%distanceMaximum(mass1)
     comovingDistanceMaximum2=self%distanceMaximum(mass2)
@@ -226,10 +231,12 @@ contains
        end do
     end do
     ! Take the Fourier transform of the selection function.
+#ifdef FFTW3AVAIL
     plan=fftw_plan_dft_3d(gridCount,gridCount,gridCount,selectionFunction1,windowFunction1,FFTW_FORWARD,FFTW_ESTIMATE)
     call fftw_execute_dft(plan,selectionFunction1,windowFunction1)
     call fftw_execute_dft(plan,selectionFunction2,windowFunction2)
     call fftw_destroy_plan(plan)
+#endif
     ! Normalize the window function.
     normalization=windowFunction1(1,1,1)
     if (real(normalization) > 0.0d0) windowFunction1=windowFunction1/normalization

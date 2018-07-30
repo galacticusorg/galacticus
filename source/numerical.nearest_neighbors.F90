@@ -55,6 +55,7 @@ module Nearest_Neighbors
      module procedure :: nearestNeighborsConstructor
   end interface nearestNeighbors
 
+#ifdef ANNAVAIL
   interface
      function nearestNeighborsConstructorC(n,d,pa) bind(c,name='nearestNeighborsConstructorC')
        !% Template for a C function that constructs an {\normalfont \ttfamily ANNkd\_tree}.
@@ -107,38 +108,67 @@ module Nearest_Neighbors
        import
      end subroutine nearestNeighborsCloseC
   end interface
-  
+#endif
+
 contains
   
   function nearestNeighborsConstructor(points)
     !% Constructs a nearest neighor search object.
+#ifndef ANNAVAIL
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Error
+#endif
     implicit none
     type            (nearestNeighbors)                                :: nearestNeighborsConstructor
     double precision                  , intent(in   ), dimension(:,:) :: points
-    
+
+#ifdef ANNAVAIL
     nearestNeighborsConstructor%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
+#else
+    !GCC$ attributes unused :: points
+    nearestNeighborsConstructor%ANNkd_tree=C_Null_Ptr
+    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+#endif   
     return
   end function nearestNeighborsConstructor
 
   subroutine nearestNeighborsDestructor(self)
     !% Destroys a nearest neighbor search object.
+#ifndef ANNAVAIL
+    use Galacticus_Error
+#endif
     implicit none
     type(nearestNeighbors), intent(inout) :: self
 
+#ifdef ANNAVAIL
     call nearestNeighborsDestructorC(self%ANNkd_tree)
+#else
+    !GCC$ attributes unused :: self
+    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+#endif
     return
   end subroutine nearestNeighborsDestructor
 
   subroutine nearestNeighborsClose()
     !% Closes the ANN (Approximate Nearest Neighbor) library.
+#ifndef ANNAVAIL
+    use Galacticus_Error
+#endif
     implicit none
 
+#ifdef ANNAVAIL
     call nearestNeighborsCloseC()
+#else
+    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+#endif
     return
   end subroutine nearestNeighborsClose
 
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
     !% Return indices and distances to the (approximate) nearest neighbors.
+#ifndef ANNAVAIL
+    use Galacticus_Error
+#endif
     implicit none
     class           (nearestNeighbors)              , intent(inout) :: self
     double precision                  , dimension(:), intent(in   ) :: point
@@ -146,16 +176,26 @@ contains
     double precision                                , intent(in   ) :: tolerance
     integer                           , dimension(:), intent(  out) :: neighborIndex
     double precision                  , dimension(:), intent(  out) :: neighborDistance
-    
+
+#ifdef ANNAVAIL
     ! Perform the search.
     call nearestNeighborsSearchC(self%ANNkd_tree,point,neighborCount,tolerance,neighborIndex,neighborDistance)
     ! Adjust indices to Fortran standard.
     neighborIndex=neighborIndex+1
+#else
+    !GCC$ attributes unused :: self, point, neighborCount, tolerance
+    neighborIndex   =0
+    neighborDistance=0.0d0
+    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+#endif
     return
   end subroutine nearestNeighborsSearch
 
   subroutine nearestNeighborsSearchFixedRadius(self,point,radius,tolerance,neighborCount,neighborIndex,neighborDistance)
     !% Return indices and distances to all neighbors within a given {\normalfont \ttfamily radius}.
+#ifndef ANNAVAIL
+    use Galacticus_Error
+#endif
     use Memory_Management
     implicit none
     class           (nearestNeighbors)                           , intent(inout) :: self
@@ -165,6 +205,7 @@ contains
     integer                           , dimension(:), allocatable, intent(inout) :: neighborIndex
     double precision                  , dimension(:), allocatable, intent(inout) :: neighborDistance
     integer                                                      , intent(  out) :: neighborCount
+#ifdef ANNAVAIL
     double precision                                                             :: radiusSquared
     integer                                                                      :: arraySize
 
@@ -188,6 +229,11 @@ contains
     end if
     ! Adjust indices to Fortran standard.
     if (neighborCount > 0) neighborIndex=neighborIndex+1
+#else
+    !GCC$ attributes unused :: neighborDistance, neighborIndex, point, radius, self, tolerance
+    neighborCount=0
+    call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
+#endif
     return
   end subroutine nearestNeighborsSearchFixedRadius
 

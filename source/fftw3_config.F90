@@ -16,32 +16,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which imports the FFTW3 library Fortran interface.
+! Exclude from "make all".
+!/ exclude
 
-module FFTW3
-  !% Imports the FFTW3 library Fortran interface.
+!% Contains a test code used to see if FFTW3 is available.
+
+program fftw3_config
+  !% Test code used to see if FFTW3 is available.
   use, intrinsic :: ISO_C_Binding
-  public
-#ifdef FFTW3AVAIL
   include 'fftw3.f03'
-#endif
-
-contains
-
-  double precision function FFTW_Wavenumber(k,n)
-    !% Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element {\normalfont \ttfamily k} out of {\normalfont \ttfamily n} of a
-    !% 1-D FFT using the FFTW convention.
-    implicit none
-    integer, intent(in   ) :: k , n
-    integer                :: kk
-
-    kk=k-1
-    if (kk < n/2) then
-       FFTW_Wavenumber=dble(kk  )
-    else
-       FFTW_Wavenumber=dble(kk-n)
-    end if
-    return
-  end function FFTW_Wavenumber
-  
-end module FFTW3
+end program fftw3_config

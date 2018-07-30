@@ -96,11 +96,16 @@ contains
     double precision                                                                                      :: comovingDistanceMaximum1, comovingDistanceMaximum2, &
          &                                                                                                   comovingDistanceMinimum1, comovingDistanceMinimum2, &
          &                                                                                                   distance1               , distance2
+#ifdef FFTW3AVAIL
     type            (c_ptr                     )                                                          :: plan
+#endif
     complex         (c_double_complex          ),                dimension(gridCount,gridCount,gridCount) :: selectionFunction1      , selectionFunction2
     complex         (c_double_complex          )                                                          :: normalization
     type            (pseudoRandom              ), save                                                    :: randomSequence
 
+#ifdef FFTW3UNAVAIL
+    call Galacticus_Error_Report('FFTW3 library is required but was not found'//{introspection:location})
+#endif
     ! Initialize geometry if necessary.
     if (.not.self%geometryInitialized) then
        call self%randomsInitialize()
@@ -153,10 +158,12 @@ contains
        call Meshes_Apply_Point(selectionFunction2,boxLength,position2,pointWeight=cmplx(1.0d0,0.0d0,kind=c_double_complex),cloudType=cloudTypeTriangular)
     end do
     ! Take the Fourier transform of the selection function.
+#ifdef FFTW3AVAIL
     plan=fftw_plan_dft_3d(gridCount,gridCount,gridCount,selectionFunction1,windowFunction1,FFTW_FORWARD,FFTW_ESTIMATE)
     call fftw_execute_dft(plan,selectionFunction1,windowFunction1)
     call fftw_execute_dft(plan,selectionFunction2,windowFunction2)
     call fftw_destroy_plan(plan)
+#endif
     ! Normalize the window function.
     normalization=windowFunction1(1,1,1)
     if (real(normalization) > 0.0d0) windowFunction1=windowFunction1/normalization

@@ -168,6 +168,28 @@ $(BUILDPATH)/flock_config.h : source/flock_config.c
 	 echo "#define OFDUNAVAIL" > $(BUILDPATH)/flock_config.h ; \
 	fi
 
+# Configuration for availability of FFTW3.
+-include $(BUILDPATH)/Makefile_Config_FFTW3
+$(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
+	$(FCCOMPILER) -c source/fftw3_config.F90 -o $(BUILDPATH)/fftw3_config.o $(FCFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS += -DFFTW3AVAIL"   > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
+	else \
+	 echo "FCFLAGS += -DFFTW3UNAVAIL" > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
+	fi
+
+# Configuration for availability of ANN.
+-include $(BUILDPATH)/Makefile_Config_ANN
+$(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
+	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/fftw3_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DANNAVAIL"   >  $(BUILDPATH)/Makefile_Config_ANN ; \
+	 echo "CPPFLAGS += -DANNAVAIL"   >> $(BUILDPATH)/Makefile_Config_ANN ; \
+	else \
+	 echo "FCFLAGS  += -DANNUNAVAIL" >  $(BUILDPATH)/Makefile_Config_ANN ; \
+	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
+	fi
+
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c source
 $(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
