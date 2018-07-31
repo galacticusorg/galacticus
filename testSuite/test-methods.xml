@@ -619,7 +619,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <luminosityFilter value="topHat_2000_10 topHat_4000_5 topHat_6000_3 topHat_7000_2"/>
+    <luminosityFilter value="fixedResolutionTopHat_2000_10 fixedResolutionTopHat_4000_5 fixedResolutionTopHat_6000_3 fixedResolutionTopHat_7000_2"/>
     <luminosityType value="rest rest rest rest"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
     <outputRedshifts value="0.0"/>
@@ -629,7 +629,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <luminosityFilter value="topHat_2000_7000_10"/>
+    <luminosityFilter value="fixedResolutionTopHat_2000_7000_10"/>
     <luminosityType value="rest"/>
     <luminosityRedshift value="0.0"/>
     <outputRedshifts value="0.0"/>
