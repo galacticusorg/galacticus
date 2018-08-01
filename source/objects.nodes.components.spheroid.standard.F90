@@ -596,6 +596,7 @@ contains
     class           (nodeComponentHotHalo               )               , pointer :: hotHalo
     class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
     class           (starFormationFeedbackSpheroidsClass)               , pointer :: starFormationFeedbackSpheroids_
+    class           (satelliteTidalFieldClass           )               , pointer :: satelliteTidalField_
     double precision                                     , parameter              :: radiusMinimum                  =1.0d-12
     double precision                                     , parameter              :: massMinimum                    =1.0d-06
     double precision                                     , parameter              :: angularMomentumMinimum         =1.0d-20
@@ -751,8 +752,9 @@ contains
        ! Apply tidal heating.
        darkMatterHaloScale_ => darkMatterHaloScale()
        if (node%isSatellite() .and. spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
-          tidalField =Satellite_Tidal_Field(node)
-          tidalTorque=abs(tidalField)*(spheroid%massGas()+spheroid%massStellar())*spheroid%radius()**2
+          satelliteTidalField_ => satelliteTidalField                   (    )
+          tidalField           =  satelliteTidalField_%tidalTensorRadial(node)
+          tidalTorque          =  abs(tidalField)*(spheroid%massGas()+spheroid%massStellar())*spheroid%radius()**2
           call spheroid%angularMomentumRate(+tidalTorque)
        end if
 

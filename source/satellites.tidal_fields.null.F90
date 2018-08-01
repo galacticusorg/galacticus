@@ -16,41 +16,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null tidal field for satellites.
+  !% Implements a satellite tidal field class which assumes zero tidal field.
 
-module Satellites_Tidal_Fields_Null
-  !% Implements a null tidal field for satellites.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Satellites_Tidal_Fields_Null_Initialize
+  !# <satelliteTidalField name="satelliteTidalFieldNull" defaultThreadPrivate="yes">
+  !#  <description>A satellite tidal field class which computes the tidal field assuming no tidal field.</description>
+  !# </satelliteTidalField>
+  type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldNull
+     !% Implementation of a satellite tidal friction class which assumes no tidal field.
+     private
+   contains
+     procedure :: tidalTensorRadial => nullTidalTensorRadial
+  end type satelliteTidalFieldNull
+
+  interface satelliteTidalFieldNull
+     !% Constructors for the null satellite tidal field class.
+     module procedure nullConstructorParameters
+  end interface satelliteTidalFieldNull
 
 contains
-
-  !# <satellitesTidalFieldMethod>
-  !#  <unitName>Satellites_Tidal_Fields_Null_Initialize</unitName>
-  !# </satellitesTidalFieldMethod>
-  subroutine Satellites_Tidal_Fields_Null_Initialize(satellitesTidalFieldMethod,Satellites_Tidal_Field_Get)
-    !% Initializes the ``Null'' hot halo ram pressure stripping module.
-    use ISO_Varying_String
+  
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily null} satellite tidal field class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string                 ),          intent(in   ) :: satellitesTidalFieldMethod
-    procedure(Satellites_Tidal_Field_Null_Get), pointer, intent(inout) :: Satellites_Tidal_Field_Get
-    
-    if (satellitesTidalFieldMethod == 'null') Satellites_Tidal_Field_Get => Satellites_Tidal_Field_Null_Get
-    return
-  end subroutine Satellites_Tidal_Fields_Null_Initialize
+    type(satelliteTidalFieldNull)                :: self
+    type(inputParameters        ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-  double precision function Satellites_Tidal_Field_Null_Get(thisNode)
-    !% Computes the tidal field acting on a satellite in the {\normalfont \ttfamily null} implementation. Always returns zero.
-    use Galacticus_Nodes
-    implicit none
-    type (treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
-    
-    Satellites_Tidal_Field_Null_Get=0.0d0
+    self=satelliteTidalFieldNull()
     return
-  end function Satellites_Tidal_Field_Null_Get
-  
-end module Satellites_Tidal_Fields_Null
+  end function nullConstructorParameters
+
+  double precision function nullTidalTensorRadial(self,node)
+    !% Return the radial part of the tidal tensor for satellite halos assumed to be zero.
+    implicit none
+    class(satelliteTidalFieldNull), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+    
+    nullTidalTensorRadial=0.0d0
+    return
+  end function nullTidalTensorRadial

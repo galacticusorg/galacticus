@@ -86,22 +86,23 @@ contains
     use Numerical_Constants_Physical
     use Satellites_Tidal_Fields
     implicit none
-    type            (treeNode             )           , intent(inout), pointer :: thisNode
-    double precision                                  , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque               , barInstabilityTimeScale
-    class           (nodeComponentDisk    )                          , pointer :: thisDisk
-    class           (nodeComponentSpheroid)                          , pointer :: thisSpheroid
-    class           (nodeComponentBasic   )                          , pointer :: parentBasic
-    double precision                       , parameter                         :: stabilityIsolatedDisk                      =0.6221297315d0
+    type            (treeNode                )           , intent(inout), pointer :: thisNode
+    double precision                                     , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque               , barInstabilityTimeScale
+    class           (nodeComponentDisk       )                          , pointer :: thisDisk
+    class           (nodeComponentSpheroid   )                          , pointer :: thisSpheroid
+    class           (nodeComponentBasic      )                          , pointer :: parentBasic
+    class           (satelliteTidalFieldClass)                          , pointer :: satelliteTidalField_
+    double precision                          , parameter                         :: stabilityIsolatedDisk                      =0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                       , parameter                         :: velocityBoostFactor                        =1.180023758d0
+    double precision                          , parameter                         :: velocityBoostFactor                        =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision                       , parameter                         :: timescaleDimensionlessMaximum              =1.0d10
-    double precision                                                           :: diskMass                                                  , dynamicalTime            , &
-         &                                                                        gasFraction                                               , stabilityEstimator       , &
-         &                                                                        stabilityEstimatorRelative                                , stabilityIsolatedRelative, &
-         &                                                                        stabilityThreshold                                        , tidalField               , &
-         &                                                                        timescaleDimensionless
+    double precision                          , parameter                         :: timescaleDimensionlessMaximum              =1.0d10
+    double precision                                                              :: diskMass                                                  , dynamicalTime            , &
+         &                                                                           gasFraction                                               , stabilityEstimator       , &
+         &                                                                           stabilityEstimatorRelative                                , stabilityIsolatedRelative, &
+         &                                                                           stabilityThreshold                                        , tidalField               , &
+         &                                                                           timescaleDimensionless
 
     ! Assume infinite timescale (i.e. no instability) initially.
     barInstabilityTimeScale                    =-1.0d0
@@ -120,9 +121,10 @@ contains
     if (thisDisk%velocity       () <= 0.0d0 .or. thisDisk%radius() <= 0.0d0) return
     ! Find the tidal field.
     if (thisNode%isSatellite() .and. parentBasic%mass() > harrassmentMassThreshold) then
-       tidalField=Satellite_Tidal_Field(thisNode)
+       satelliteTidalField_ => satelliteTidalField                   (        )
+       tidalField           =  satelliteTidalField_%tidalTensorRadial(thisNode)
     else
-       tidalField=0.0d0
+       tidalField           =  0.0d0
     end if
     ! Compute the gas fraction in the disk.
     gasFraction=thisDisk%massGas()/diskMass
