@@ -78,24 +78,26 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
-    class           (nodeComponentDisk), pointer       :: thisDisk
-    double precision                                   :: forceGravitational, forceTidal, massLossRateFractional, &
-         &                                                radiusHalfMass    , tidalField, timeDynamical         , &
-         &                                                velocityRotation
+    type            (treeNode                ), intent(inout) :: thisNode
+    class           (nodeComponentDisk       ), pointer       :: thisDisk
+    class           (satelliteTidalFieldClass), pointer       :: satelliteTidalField_
+    double precision                                          :: forceGravitational, forceTidal, massLossRateFractional, &
+         &                                                       radiusHalfMass    , tidalField, timeDynamical         , &
+         &                                                       velocityRotation
 
     ! Assume no mass loss rate due to tidal by default.
     Tidal_Stripping_Mass_Loss_Rate_Disk_Simple=0.0d0
     ! Return immediately if this is not a satellite.
     if (.not.thisNode%isSatellite()) return
     ! Get the disk component.
-    thisDisk           => thisNode%disk()
+    thisDisk             => thisNode%disk()
     ! Get the tidal field due to the host halo.
-    tidalField         =  Satellite_Tidal_Field(thisNode)
+    satelliteTidalField_ => satelliteTidalField                   (        )
+    tidalField           =  satelliteTidalField_%tidalTensorRadial(thisNode)
     ! Get the disk half-mass radius.
-    radiusHalfMass     =  thisDisk%halfMassRadius()
+    radiusHalfMass       =  thisDisk%halfMassRadius()
     ! Get the tidal force exerted at the half-mass radius.
-    forceTidal         =  tidalField*radiusHalfMass
+    forceTidal           =  tidalField*radiusHalfMass
     ! Return if the tidal field is compressive.
     if (forceTidal <= 0.0d0) return
     ! Compute the disk rotation curve.

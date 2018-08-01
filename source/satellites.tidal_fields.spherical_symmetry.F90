@@ -16,48 +16,60 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
+  !% Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
 
-module Satellites_Tidal_Fields_Spherical_Symmetry
-  !% Implements a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Satellites_Tidal_Fields_Spherical_Symmetry_Initialize
+  !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry" defaultThreadPrivate="yes">
+  !#  <description>A satellite tidal field class which computes the tidal field assuming spherical symmetry.</description>
+  !# </satelliteTidalField>
+  type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldSphericalSymmetry
+     !% Implementation of a satellite tidal friction class which assumes spherical symmetry.
+     private
+     double precision :: factorBoost
+   contains
+     procedure :: tidalTensorRadial => sphericalSymmetryTidalTensorRadial
+  end type satelliteTidalFieldSphericalSymmetry
 
-  ! Boost factor for the tidal field strength.
-  double precision :: satelliteTidalFieldBoostFactor
+  interface satelliteTidalFieldSphericalSymmetry
+     !% Constructors for the sphericalSymmetry satellite tidal field class.
+     module procedure sphericalSymmetryConstructorParameters
+     module procedure sphericalSymmetryConstructorInternal
+  end interface satelliteTidalFieldSphericalSymmetry
 
 contains
-
-  !# <satellitesTidalFieldMethod>
-  !#  <unitName>Satellites_Tidal_Fields_Spherical_Symmetry_Initialize</unitName>
-  !# </satellitesTidalFieldMethod>
-  subroutine Satellites_Tidal_Fields_Spherical_Symmetry_Initialize(satellitesTidalFieldMethod,Satellites_Tidal_Field_Get)
-    !% Initializes the ``spherical symmetry'' satellite tidal field module.
-    use ISO_Varying_String
+  
+  function sphericalSymmetryConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string                                ), intent(in   )          :: satellitesTidalFieldMethod
-    procedure(Satellites_Tidal_Fields_Spherical_Symmetry_Get), intent(inout), pointer :: Satellites_Tidal_Field_Get
-
-    if (satellitesTidalFieldMethod == 'sphericalSymmetry') then
-       Satellites_Tidal_Field_Get => Satellites_Tidal_Fields_Spherical_Symmetry_Get
-       !# <inputParameter>
-       !#   <name>satelliteTidalFieldBoostFactor</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d0</defaultValue>
-       !#   <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field method.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>float</type>
-       !# </inputParameter>
-    end if
+    type            (satelliteTidalFieldSphericalSymmetry)                :: self
+    type            (inputParameters                     ), intent(inout) :: parameters
+    double precision                                                      :: factorBoost
+    
+    !# <inputParameter>
+    !#   <name>factorBoost</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The factor by which to boost satellite tidal fields in the {\normalfont \ttfamily sphericalSymmetry} tidal field class.</description>
+    !#   <source>parameters</source>
+    !#   <type>float</type>
+    !# </inputParameter>
+    self=satelliteTidalFieldSphericalSymmetry(factorBoost)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Satellites_Tidal_Fields_Spherical_Symmetry_Initialize
+  end function sphericalSymmetryConstructorParameters
 
-  double precision function Satellites_Tidal_Fields_Spherical_Symmetry_Get(thisNode)
-    !% Computes the tidal field acting on a satellite assuming a spherically symmetric host.
-    use Galacticus_Nodes
+  function sphericalSymmetryConstructorInternal(factorBoost) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sphericalSymmetry} satellite tidal field class.
+    implicit none
+    type            (satelliteTidalFieldSphericalSymmetry)            :: self
+    double precision                                     , intent(in) :: factorBoost
+    !# <constructorAssign variables="factorBoost"/>
+
+    return
+  end function sphericalSymmetryConstructorInternal
+
+  double precision function sphericalSymmetryTidalTensorRadial(self,node)
+    !% Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
     use Kepler_Orbits
     use Satellite_Orbits
     use Galactic_Structure_Enclosed_Masses
@@ -66,43 +78,43 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode              ), intent(inout) :: thisNode
-    type            (treeNode              ), pointer       :: hostNode
-    class           (nodeComponentSatellite), pointer       :: thisSatellite
-    type            (keplerOrbit           )                :: thisOrbit
-    double precision                                        :: densityHost  , enclosedMassHost, orbitalRadius, orbitalVelocity
+    class           (satelliteTidalFieldSphericalSymmetry), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    type            (treeNode                            ), pointer       :: nodeHost
+    class           (nodeComponentSatellite              ), pointer       :: satellite
+    type            (keplerOrbit                         )                :: orbit
+    double precision                                                      :: densityHost  , enclosedMassHost, &
+         &                                                                   radiusOrbital, velocityOrbital
 
     ! For isolated halos, always return zero tidal field.
-    if (thisNode%isSatellite()) then
+    if (node%isSatellite()) then
        ! Find the host node.
-       hostNode      => thisNode     %parent
+       nodeHost  => node     %parent
        ! Get the satellite component.
-       thisSatellite => thisNode     %satellite  ()
+       satellite => node     %satellite  ()
        ! Get the orbit for this node.
-       thisOrbit     =  thisSatellite%virialOrbit()
+       orbit     =  satellite%virialOrbit()
        ! Get the orbital radius and velocity at pericenter.
-       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
+       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital)
        ! Find the mass and density of the host halo at pericenter.
        densityHost     =Galactic_Structure_Density      (                                              &
-            &                                            hostNode                                    , &
-            &                                            [orbitalRadius,0.0d0,0.0d0]                 , &
+            &                                            nodeHost                                    , &
+            &                                            [radiusOrbital,0.0d0,0.0d0]                 , &
             &                                            coordinateSystem=coordinateSystemCylindrical  &
             &                                           )
        enclosedMassHost=Galactic_Structure_Enclosed_Mass(                                              &
-            &                                            hostNode                                    , &
-            &                                            orbitalRadius                                 &
+            &                                            nodeHost                                    , &
+            &                                            radiusOrbital                                 &
             &                                           )
        ! Compute the tidal field.
-       Satellites_Tidal_Fields_Spherical_Symmetry_Get=                                                        &
-            &             gravitationalConstantGalacticus*enclosedMassHost/                 orbitalRadius **3 &
-            &   -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &
-            &   +                                                          (orbitalVelocity/orbitalRadius)**2
+       sphericalSymmetryTidalTensorRadial=+         gravitationalConstantGalacticus*enclosedMassHost/                 radiusOrbital **3 &
+            &                             -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &
+            &                             +                                                          (velocityOrbital/radiusOrbital)**2
        ! Boost the tidal field.
-       Satellites_Tidal_Fields_Spherical_Symmetry_Get=satelliteTidalFieldBoostFactor*Satellites_Tidal_Fields_Spherical_Symmetry_Get
+       sphericalSymmetryTidalTensorRadial=+self%factorBoost                   &
+            &                             *sphericalSymmetryTidalTensorRadial
     else
-       Satellites_Tidal_Fields_Spherical_Symmetry_Get=0.0d0
+       sphericalSymmetryTidalTensorRadial=+0.0d0
     end if
     return
-  end function Satellites_Tidal_Fields_Spherical_Symmetry_Get
-
-end module Satellites_Tidal_Fields_Spherical_Symmetry
+  end function sphericalSymmetryTidalTensorRadial
