@@ -225,7 +225,7 @@ contains
        close (unitNumber)
        return
     else
-       call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] not present or unreadable: can be made using Find_Executable_Size.pl')
+       call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] not present or unreadable: can be made using scripts/build/executableSize.pl')
        return
     endif
   end subroutine Code_Memory_Usage
