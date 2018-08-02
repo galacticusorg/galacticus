@@ -24,6 +24,7 @@
   use Cosmology_Functions
   use Cosmological_Density_Field
   use Power_Spectra_Primordial
+  use File_Utilities
 
   !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
   !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of \cite{lawrence_coyote_2010}.</description>
@@ -37,6 +38,7 @@
      type            (fgsl_interp_accel              )                            :: interpolationAccelerator
      logical                                                                      :: resetInterpolation
      double precision                                                             :: timePrevious
+     type            (lockDescriptor                 )                            :: fileLock
      class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
      class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_
      class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_
@@ -57,11 +59,11 @@
 
 contains
 
-  function cosmicEmuConstructorParameters(parameters)
+  function cosmicEmuConstructorParameters(parameters) result(self)
     !% Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (powerSpectrumNonlinearCosmicEmu)                :: cosmicEmuConstructorParameters
+    type (powerSpectrumNonlinearCosmicEmu)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
@@ -75,35 +77,36 @@ contains
     !# <objectBuilder class="powerSpectrumPrimordial"  name="powerSpectrumPrimordial_"  source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     ! Call the internal constructor.
-    cosmicEmuConstructorParameters=cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
+    self=powerSpectrumNonlinearCosmicEmu(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function cosmicEmuConstructorParameters
 
-  function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
+  function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
     use Galacticus_Error
     use Numerical_Comparison
     implicit none
-    type (powerSpectrumNonlinearCosmicEmu)                        :: cosmicEmuConstructorInternal
+    type (powerSpectrumNonlinearCosmicEmu)                        :: self
     class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class(powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
 
     ! Initialize state.
-    cosmicEmuConstructorInternal%timePrevious      =-1.0d0
-    cosmicEmuConstructorInternal%resetInterpolation=.true.
+    self%timePrevious      =-1.0d0
+    self%resetInterpolation=.true.
+    call File_Lock_Initialize(self%fileLock)
     ! Store objects.
-    cosmicEmuConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
-    cosmicEmuConstructorInternal%cosmologyParameters_      => cosmologyParameters_
-    cosmicEmuConstructorInternal%powerSpectrumPrimordial_  => powerSpectrumPrimordial_
-    cosmicEmuConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
+    self%cosmologyFunctions_       => cosmologyFunctions_
+    self%cosmologyParameters_      => cosmologyParameters_
+    self%powerSpectrumPrimordial_  => powerSpectrumPrimordial_
+    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
     ! Check that this is a flat cosmology.
     if     (                                                                                                 &
          &  Values_Differ(                                                                                   &
-         &                +cosmicEmuConstructorInternal%cosmologyParameters_%OmegaMatter    ()               &
-         &                +cosmicEmuConstructorInternal%cosmologyParameters_%OmegaDarkEnergy()            ,  &
+         &                +self%cosmologyParameters_%OmegaMatter    ()                                       &
+         &                +self%cosmologyParameters_%OmegaDarkEnergy()                                    ,  &
          &                       1.0d+0                                                                   ,  &
          &                absTol=1.0d-3                                                                      &
          &               )                                                                                   &
@@ -113,16 +116,16 @@ contains
          &                               {introspection:location}                                            &
          &                             )
     ! Check that the primordial power spectrum has no running of the spectral index.
-    if     (                                                                                                                      &
-         &  Values_Differ(                                                                                                        &
-         &                cosmicEmuConstructorInternal%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberShort),  &
-         &                cosmicEmuConstructorInternal%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberLong ),  &
-         &                relTol=1.0d-3                                                                                           &
-         &               )                                                                                                        &
-         & )                                                                                                                      &
-         & call Galacticus_Error_Report(                                                                                          &
-         &                              'this method is applicable only to models with no running of the spectral index'       // &
-         &                               {introspection:location}                                                                 &
+    if     (                                                                                                               &
+         &  Values_Differ(                                                                                                 &
+         &                self%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberShort),                   &
+         &                self%powerSpectrumPrimordial_%logarithmicDerivative(cosmicEmuWavenumberLong ),                   &
+         &                relTol=1.0d-3                                                                                    &
+         &               )                                                                                                 &
+         & )                                                                                                               &
+         & call Galacticus_Error_Report(                                                                                   &
+         &                              'this method is applicable only to models with no running of the spectral index'// &
+         &                               {introspection:location}                                                          &
          &                             )
    return
   end function cosmicEmuConstructorInternal
@@ -143,94 +146,140 @@ contains
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
     use Numerical_Interpolation
     use Galacticus_Error
-    use FoX_wxml
+    use Galacticus_Display
     use Numerical_Comparison
     use System_Command
     use ISO_Varying_String
     use Galacticus_Paths
-    use Input_Parameters
-    use Input_Parameters
-    use File_Utilities
     use Memory_Management
     use Table_Labels
     implicit none
     class           (powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
-    double precision                                 , intent(in   ) :: time                    , waveNumber
-    double precision                                                 :: littleHubbleCMB         , redshift
-    type            (varying_string                 )                :: parameterFile           , powerSpectrumFile
-    type            (xmlf_t                         )                :: parameterDoc
+    double precision                                 , intent(in   ) :: time             , waveNumber
+    double precision                                                 :: littleHubbleCMB  , redshift
+    type            (varying_string                 )                :: parameterFile    , powerSpectrumFile, &
+         &                                                              parameters
     character       (len=32                         )                :: parameterLabel
     character       (len=128                        )                :: powerSpectrumLine
-    integer                                                          :: iWavenumber             , powerSpectrumUnit
-    type            (inputParameterList             )                :: parameters
+    integer                                                          :: iWavenumber      , powerSpectrumUnit
 
     ! If the time has changed, recompute the power spectrum.
-    !$omp critical(cosmicEmuValue)
     if (time /= self%timePrevious) then
        ! Store the new time and find the corresponding redshift.
        self%timePrevious=time
        redshift         =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-       ! Generate a parameter file.
-       parameters=inputParameterList()
-       write (parameterLabel,'(f5.3)') self%cosmologyParameters_     %OmegaMatter          (                        )
-       call parameters%add("OmegaMatter"              ,parameterLabel)
-       write (parameterLabel,'(f6.4)') self%cosmologyParameters_     %OmegaBaryon          (                        )
-       call parameters%add("OmegaBaryon"              ,parameterLabel)
-       write (parameterLabel,'(f7.4)') self%cosmologyParameters_     %HubbleConstant       (                        )
-       call parameters%add("HubbleConstant"           ,parameterLabel)
-       write (parameterLabel,'(f6.4)') self%cosmologicalMassVariance_%sigma8               (                        )
-       call parameters%add("sigma_8"                  ,parameterLabel)
-       write (parameterLabel,'(f6.4)') self%powerSpectrumPrimordial_ %logarithmicDerivative(cosmicEmuWavenumberShort)
-       call parameters%add("powerSpectrumIndex"       ,parameterLabel)
-       write (parameterLabel,'(f6.3)') -1.0d0
-       call parameters%add("darkEnergyEquationOfState",parameterLabel)
-       write (parameterLabel,'(f8.4)') redshift
-       call parameters%add("redshift"                 ,parameterLabel)       
-       powerSpectrumFile="powerSpectrum.txt"
-       parameterFile    ="powerSpectrumParameters.xml"
-       call xml_OpenFile(char(parameterFile),parameterDoc)
-       call xml_NewElement(parameterDoc,"parameters")
-       call parameters%serializeToXML(parameterDoc)
-       call xml_Close(parameterDoc)
-       ! Generate the power spectrum.
-       call System_Command_Do(galacticusPath(pathTypeExec)//"scripts/aux/Cosmic_Emu_Driver.pl "//parameterFile//" "//powerSpectrumFile)
-       ! Read the data file.
-       self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
-       if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )
-       if (allocated(self%powerSpectrumTable)) call deallocateArray(self%powerSpectrumTable)
-       call allocateArray(self%wavenumberTable   ,[self%wavenumberCount])
-       call allocateArray(self%powerSpectrumTable,[self%wavenumberCount])
-       open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
-       iWavenumber=0
-       do while (iWavenumber < self%wavenumberCount)
-          read (powerSpectrumUnit,'(a)') powerSpectrumLine
-          if (powerSpectrumLine(1:1) == "#") then
-             if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
-                read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
-                if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
-                     & call Galacticus_Error_Report(                                                                           &
-                     &                              'values of H_0 in Galacticus and CosmicEmu are significantly different'//  &
-                     &                               {introspection:location}                                                  &
-                     &                             )
+       ! Generate parameters and a file name for this power spectrum.
+       call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"largeScaleStructure")
+       powerSpectrumFile=galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
+       parameterFile    =File_Name_Temporary("cosmicEmuParameters")
+       parameters       =''
+       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                        )
+       powerSpectrumFile=powerSpectrumFile//"_OmegaMatter"//trim(adjustl(parameterLabel))
+       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                        )    &
+            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH      )**2
+       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       write (parameterLabel,'(f6.4)') +self%cosmologyParameters_     %OmegaBaryon              (                                        )
+       powerSpectrumFile=powerSpectrumFile//"_OmegaBaryon"//trim(adjustl(parameterLabel))
+       write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaBaryon              (                                        )    &
+            &                          *self%cosmologyParameters_     %HubbleConstant           (                hubbleUnitsLittleH      )**2
+       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       write (parameterLabel,'(f7.4)') +self%cosmologyParameters_     %HubbleConstant           (                                        )
+       powerSpectrumFile=powerSpectrumFile//"_HubbleConstant"//trim(adjustl(parameterLabel))
+       write (parameterLabel,'(f6.4)') +self%powerSpectrumPrimordial_ %logarithmicDerivative    (                cosmicEmuWavenumberShort)
+       powerSpectrumFile=powerSpectrumFile//"_powerSpectrumIndex"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       write (parameterLabel,'(f6.4)') +self%cosmologicalMassVariance_%sigma8                   (                                        )
+       powerSpectrumFile=powerSpectrumFile//"_sigma8"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       write (parameterLabel,'(f6.3)') +self%cosmologyFunctions_      %equationOfStateDarkEnergy(expansionFactor=1.0d0                   )
+       powerSpectrumFile=powerSpectrumFile//"_w"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       write (parameterLabel,'(f7.4)') +redshift
+       powerSpectrumFile=powerSpectrumFile//"_redshift"//trim(adjustl(parameterLabel))
+       parameters=parameters//trim(adjustl(parameterLabel))//char(10)
+       powerSpectrumFile=powerSpectrumFile//".txt"
+       parameters=powerSpectrumFile//char(10)//parameters//'2'//char(10)
+       ! Check for existance of the power spectrum, building it if necessary.
+       call File_Lock(char(powerSpectrumFile),self%fileLock,lockIsShared=.true.)
+       if (.not.File_Exists(char(powerSpectrumFile))) then
+          call File_Unlock(self%fileLock)
+          call File_Lock(char(powerSpectrumFile),self%fileLock,lockIsShared=.false.)
+          open(newUnit=powerSpectrumUnit,file=char(parameterFile),status='unknown',form='formatted')
+          write (powerSpectrumUnit,'(a)') char(parameters)
+          close(powerSpectrumUnit)
+          ! Check for presence of the executable.
+          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1")
+          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.exe")) then    
+             ! Check for presence of the source code.
+             if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.c")) then
+                ! Download the code.
+                if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")) then
+                   call Galacticus_Display_Message("downloading CosmicEmu code....",verbosityWorking)
+                   call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")
+                   if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")) &
+                        & call Galacticus_Error_Report("failed to download CosmicEmu code"//{introspection:location})
+                end if
+                ! Unpack the code.
+                call Galacticus_Display_Message("unpacking CosmicEmu code....",verbosityWorking)
+                call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1 -f "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")
+                if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.c")) &
+                     & call Galacticus_Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
-          else
-             iWavenumber=iWavenumber+1
-             read (powerSpectrumLine,*) self%wavenumberTable(iWavenumber),self%powerSpectrumTable(iWavenumber)
+             ! Build the code.
+             call Galacticus_Display_Message("compiling CosmicEmu code....",verbosityWorking)
+             call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
+             if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.exe")) &
+                  & call Galacticus_Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
-       end do
-       close(powerSpectrumUnit)
-       ! Convert to logarithmic values.
-       self%wavenumberTable   =log(self%wavenumberTable   )
-       self%powerSpectrumTable=log(self%powerSpectrumTable)
-       ! Reset the interpolator.
-       call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
-       self%resetInterpolation=.true.
-       ! Destroy the parameter and power spectrum files.
-       call System_Command_Do("rm -f "//parameterFile//" "//powerSpectrumFile)
+          ! Generate the power spectrum.
+          call System_Command_Do(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.exe < "//parameterFile)
+          ! Read the data file.
+          self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
+          if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )
+          if (allocated(self%powerSpectrumTable)) call deallocateArray(self%powerSpectrumTable)
+          call allocateArray(self%wavenumberTable   ,[self%wavenumberCount])
+          call allocateArray(self%powerSpectrumTable,[self%wavenumberCount])
+          open(newunit=powerSpectrumUnit,file=char(powerSpectrumFile),status='old',form='formatted')
+          iWavenumber=0
+          do while (iWavenumber < self%wavenumberCount)
+             read (powerSpectrumUnit,'(a)') powerSpectrumLine
+             if (powerSpectrumLine(1:1) == "#") then
+                if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
+                   read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
+                   if (Values_Differ(littleHubbleCMB,self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH),relTol=1.0d-2)) &
+                        & call Galacticus_Error_Report(                                                                           &
+                        &                              'values of H₀ in Galacticus and CosmicEmu are significantly different' //  &
+                        &                               {introspection:location}                                                  &
+                        &                             )
+                end if
+             else
+                iWavenumber=iWavenumber+1
+                read (powerSpectrumLine,*) self%wavenumberTable(iWavenumber),self%powerSpectrumTable(iWavenumber)
+             end if
+          end do
+          close(powerSpectrumUnit)
+          ! Convert to logarithmic values.
+          self%wavenumberTable   =log(self%wavenumberTable   )
+          self%powerSpectrumTable=log(self%powerSpectrumTable)
+          ! Reset the interpolator.
+          call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
+          self%resetInterpolation=.true.
+          ! Destroy the parameter file.
+          call File_Remove(char(parameterFile))
+       end if
+       call File_Unlock(self%fileLock)
     end if
     ! Interpolate in the tabulated data to get the power spectrum.
-    cosmicEmuValue=exp(Interpolate(self%wavenumberTable,self%powerSpectrumTable,self%interpolationObject&
-         &,self%interpolationAccelerator,log(wavenumber),reset=self%resetInterpolation,extrapolationType=extrapolationTypeExtrapolate))
-    !$omp end critical(cosmicEmuValue)
+    cosmicEmuValue=exp(                                                                      &
+         &             Interpolate(                                                          &
+         &                                               self%wavenumberTable              , &
+         &                                               self%powerSpectrumTable           , &
+         &                                               self%interpolationObject          , &
+         &                                               self%interpolationAccelerator     , &
+         &                                           log(     wavenumber                  ), &
+         &                         reset            =    self%resetInterpolation           , &
+         &                         extrapolationType=         extrapolationTypeExtrapolate   &
+         &                         )                                                         &
+         &            )
     return
   end function cosmicEmuValue
