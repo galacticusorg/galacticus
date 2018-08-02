@@ -1558,5 +1558,25 @@
     <outputRedshifts value="0.0"/>
     <verbosityLevel value="1"/>
   </parameters>
-  
+
+  <!-- Power spectrum calculation -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <taskMethod value="powerSpectra">
+      <wavenumberMinimum value="1.0e-3"/>
+      <wavenumberMaximum value="1.0e+3"/>
+      <pointsPerDecade   value="10"    />
+      <includeNonLinear  value="false" />
+    </taskMethod>
+    <cosmologyParametersMethod value="simple">
+      <HubbleConstant  value="70.7"   />
+      <OmegaMatter     value="0.2695" />
+      <OmegaDarkEnergy value="0.7305" /> 
+      <OmegaBaryon     value="0.04541"/>
+      <temperatureCMB  value="2.72548"/>
+    </cosmologyParametersMethod>
+    <outputRedshifts value="0.0 1.0"/>
+  </parameters>
+
 </parameterGrid>

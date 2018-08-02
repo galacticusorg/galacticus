@@ -400,11 +400,11 @@ contains
        call powerSpectrumGroup%close         (                           )
     end if
     ! Store other usual information.
-       if (self%outputGroup == ".") then
-          cosmologyGroup=galacticusOutputFile%openGroup('cosmology','Group containing data relating to cosmology.')
-       else
-          cosmologyGroup=containerGroup      %openGroup('cosmology','Group containing data relating to cosmology.')
-       end if
+    if (self%outputGroup == ".") then
+       cosmologyGroup=galacticusOutputFile%openGroup('cosmology','Group containing data relating to cosmology.')
+    else
+       cosmologyGroup=containerGroup      %openGroup('cosmology','Group containing data relating to cosmology.')
+    end if
     call cosmologyGroup%writeAttribute(self%cosmologyParameters_%densityCritical(),'densityCritical')
     call cosmologyGroup%close()
     ! Iterate over output times and output data.
