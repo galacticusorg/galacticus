@@ -18,80 +18,23 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module that implements calculations of the tidal heating rate for satellites.
+!% Contains a module that implements a class for computing tidal heating rates for satellites.
 
 module Satellite_Tidal_Heating
-  !% Implements calculations of tidal heating for satellites.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Satellite_Tidal_Heating_Rate
-
-  ! Flag to indicate if this module has been initialized.  
-  logical                                          :: satelliteTidalHeatingInitialized=.false.
-
-  ! Name of satellite tidal heating method used.
-  type     (varying_string              )          :: satelliteTidalHeatingMethod
-
-  ! Pointer for function that will be called to assign tidal heating rates
-  ! to satellites.
-  procedure(Satellite_Tidal_Heating_Rate), pointer :: Satellite_Tidal_Heating_Rate_Get => null()
+  !% Implements a class for calculations of tidal heating for satellites.
+  use Galacticus_Nodes
   
-contains
-
-  subroutine Satellite_Tidal_Heating_Rate_Initialize()
-    !% Initialize the satellite tidal heating rate module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="satelliteTidalHeatingMethod" type="moduleUse">
-    include 'satellite.tidal.heating.rate.moduleUse.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.satelliteTidalHeatingInitialized) then
-       !$omp critical(Satellite_Tidal_Heating_Initialization) 
-       if (.not.satelliteTidalHeatingInitialized) then
-          
-          ! Get the satellite tidal heating method.
-          !# <inputParameter>
-          !#   <name>satelliteTidalHeatingMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Gnedin1999')</defaultValue>
-          !#   <description>The name of the method to be used to compute satellite tidal heating rate.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteTidalHeatingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>satelliteTidalHeatingMethod,Satellite_Tidal_Heating_Rate_Get</functionArgs>
-          include 'satellite.tidal.heating.rate.inc'
-          !# </include>
-          if (.not.associated(Satellite_Tidal_Heating_Rate_Get))                                                 &
-               & call Galacticus_Error_Report(                                                                   &
-               &                              'method '//char(satelliteTidalHeatingMethod)//' is unrecognized'// &
-               &                              {introspection:location}                                           &
-               &                             )
-          ! Record that this module is now initialized.
-          satelliteTidalHeatingInitialized=.true.
-       end if
-       !$omp end critical(Satellite_Tidal_Heating_Initialization) 
-    end if
-    return
-  end subroutine Satellite_Tidal_Heating_Rate_Initialize
-
-  double precision function Satellite_Tidal_Heating_Rate(thisNode)
-    !% Return the satellite tidal heating rate for {\normalfont \ttfamily thisNode} (in units of (km/s/Mpc)$^2$/Gyr).
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Satellite_Tidal_Heating_Rate_Initialize
-
-    ! Get the tidal heating rate using the selected method.
-    Satellite_Tidal_Heating_Rate=Satellite_Tidal_Heating_Rate_Get(thisNode)
-    return
-  end function Satellite_Tidal_Heating_Rate
+  !# <functionClass>
+  !#  <name>satelliteTidalHeatingRate</name>
+  !#  <descriptiveName>Satellite halo tidal heating rate models.</descriptiveName>
+  !#  <description>Class providing models of tidal heating rates in satellite halos.</description>
+  !#  <default>zero</default>
+  !#  <method name="heatingRate" >
+  !#   <description>Return the satellite tidal heating rate for {\normalfont \ttfamily node} (in units of (km/s/Mpc)$^2$/Gyr).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
   
 end module Satellite_Tidal_Heating
