@@ -186,6 +186,7 @@ contains
     type            (treeNode                       ), pointer                     :: hostNode
     class           (darkMatterHaloScaleClass       ), pointer                     :: darkMatterHaloScale_
     class           (satelliteDynamicalFrictionClass), pointer                     :: satelliteDynamicalFriction_
+    class           (satelliteTidalHeatingRateClass ), pointer                     :: satelliteTidalHeatingRate_
     double precision                                 , dimension(3)                :: position,velocity
     double precision                                 , parameter                   :: radiusVirialFraction = 1.0d-2
     double precision                                                               :: radius,halfMassRadiusSatellite
@@ -248,6 +249,7 @@ contains
              ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
              ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
              satelliteDynamicalFriction_ => satelliteDynamicalFriction()
+             satelliteTidalHeatingRate_  => satelliteTidalHeatingRate ()
              call satelliteComponent%velocityRate                 (                                                     &
                   &                                                -(kilo*gigaYear/megaParsec)                          &
                   &                                                *gravitationalConstantGalacticus                     &
@@ -270,7 +272,7 @@ contains
                   &                                                /orbitalPeriod                                       &
                   &                                               )
              call satelliteComponent%tidalHeatingNormalizedRate   (                                                     &
-                  &                                                +Satellite_Tidal_Heating_Rate             (thisNode) &
+                  &                                                +satelliteTidalHeatingRate_%heatingRate   (thisNode) &
                   &                                               )
           end if
           ! Get half-mass radii of central and satellite galaxies.
