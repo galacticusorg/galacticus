@@ -20,12 +20,19 @@
 
   !% An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
 
+  use Cosmology_Parameters
+  use File_Utilities
+
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
   !#  <description>The intergalactic medium state is computed using {\normalfont \scshape RecFast}.</description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
      !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      private
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     type (lockDescriptor          )          :: fileLock
+   contains
+     final :: recFastDestructor
   end type intergalacticMediumStateRecFast
   
   interface intergalacticMediumStateRecFast
@@ -38,7 +45,6 @@ contains
 
   function recFastConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
-    use Cosmology_Parameters
     use Input_Parameters
     implicit none
     type (intergalacticMediumStateRecFast)                :: self
@@ -48,63 +54,162 @@ contains
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=intergalacticMediumStateRecFast(cosmologyParameters_)
-    !# <objectDestrctor name="cosmologyParameters_"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function recFastConstructorParameters
 
   function recFastConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
-    use Cosmology_Parameters
-    use FoX_wxml
     use System_Command
     use Numerical_Constants_Astronomical
     use Galacticus_Paths
-    use Input_Parameters
-    use Input_Parameters
+    use Galacticus_Error
+    use Galacticus_Display
+    use File_Utilities
+    use Dates_and_Times
+    use IO_HDF5
     implicit none
-    type     (intergalacticMediumStateRecFast)                :: self
-    class    (cosmologyParametersClass       ), intent(inout) :: cosmologyParameters_
-    character(len=32                         )                :: parameterLabel
-    type     (varying_string                 )                :: command             , parameterFile
-    type     (xmlf_t                         )                :: parameterDoc
-    type     (inputParameterList             )                :: parameters
+    type            (intergalacticMediumStateRecFast)                              :: self
+    class           (cosmologyParametersClass       ), intent(in   ), target       :: cosmologyParameters_
+    double precision                                 , allocatable  , dimension(:) :: redshift            , electronFraction , &
+         &                                                                            hIonizedFraction    , heIonizedFraction, &
+         &                                                                            matterTemperature
+    character       (len=32                         )                              :: parameterLabel      , recFastVersion   , &
+         &                                                                            line
+    type            (varying_string                 )                              :: parameterFile       , recFastFile
+    double precision                                                               :: omegaDarkMatter
+    integer                                                                        :: status              , i                , &
+         &                                                                            countRedshift       , parametersUnit   , &
+         &                                                                            recFastUnit         , ioStatus         , &
+         &                                                                            fileFormatVersion
+    type            (hdf5Object                     )                              :: outputFile          , dataset          , &
+         &                                                                            provenance          , recFastProvenance
+    logical                                                                        :: buildFile
+    !# <constructorAssign variables="*cosmologyParameters_"/>
 
-    ! Generate the name of the data file and an XML input parameter file.
-    command='mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium'
-    call System_Command_Do(command)
-    self         %fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
-    parameterFile         =char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recfast_parameters.xml'
-    ! Construct a parameter list containing all relevant values.
-    parameters=inputParameterList()
-    write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaMatter    (                   )
+    ! Compute dark matter density.
+    omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
+    ! Construct the file name.
+    self%fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
+    write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaMatter    (                   )
     self%fileName=self%fileName//'_OmegaMatter'    //trim(parameterLabel)
-    call parameters%add("OmegaMatter"    ,parameterLabel)
-    write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaDarkEnergy(                   )
+    write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaDarkEnergy(                   )
     self%fileName=self%fileName//'_OmegaDarkEnergy'//trim(parameterLabel)
-    call parameters%add("OmegaDarkEnergy",parameterLabel)
-    write (parameterLabel,'(f6.4)') cosmologyParameters_%OmegaBaryon    (                   )
+    write (parameterLabel,'(f6.4)') self%cosmologyParameters_%OmegaBaryon    (                   )
     self%fileName=self%fileName//'_OmegaBaryon'    //trim(parameterLabel)
-    call parameters%add("OmegaBaryon"    ,parameterLabel)
-    write (parameterLabel,'(f4.1)') cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
+    write (parameterLabel,'(f4.1)') self%cosmologyParameters_%HubbleConstant (hubbleUnitsStandard)
     self%fileName=self%fileName//'_HubbleConstant' //trim(parameterLabel)
-    call parameters%add("HubbleConstant" ,parameterLabel)
-    write (parameterLabel,'(f6.4)') cosmologyParameters_%temperatureCMB (                   )
+    write (parameterLabel,'(f6.4)') self%cosmologyParameters_%temperatureCMB (                   )
     self%fileName=self%fileName//'_temperatureCMB' //trim(parameterLabel)
-    call parameters%add("temperatureCMB" ,parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
-    call parameters%add("Y_He"           ,parameterLabel)
     self%fileName=self%fileName//'.hdf5'
-    write (parameterLabel,'(i1)') fileFormatVersionCurrent
-    call parameters%add("fileFormat",parameterLabel)
-    ! Generate the parameters XML file.
-    call xml_OpenFile(char(parameterFile),parameterDoc)
-    call xml_NewElement(parameterDoc,"parameters")
-    call parameters%serializeToXML(parameterDoc)
-    call xml_Close(parameterDoc)
-    ! Run the RecFast driver script to generate the data.
-    command=char(galacticusPath(pathTypeExec))//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//self%fileName
-    call System_Command_Do(command)
+    ! Lock file
+    call File_Lock_Initialize(self%fileLock)
+    call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
+    ! Check existance of file.
+    buildFile=.false.
+    if (File_Exists(char(self%fileName))) then
+       ! Check file version number.
+       call outputFile%openFile     (char(self%fileName),overwrite=.false.          )
+       call outputFile%readAttribute('fileFormat'       ,          fileFormatVersion)
+       call outputFile%close        (                                               )
+       buildFile=fileFormatVersion /= fileFormatVersionCurrent
+    else
+       buildFile=.true.
+    end if
+    ! Build file if necessary.
+    if (buildFile) then
+       call File_Unlock(                    self%fileLock                     )
+       call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
+       ! Download the code.
+       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")) then
+          call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
+          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeExec)//"aux/RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")
+          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")) &
+               & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
+       end if
+       ! Patch the code.
+       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/patched")) then
+          call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//galacticusPath(pathTypeExec)//"aux/RecFast/; cd "//galacticusPath(pathTypeExec)//"aux/RecFast/; patch < recfast.for.patch",status)
+          if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
+          call System_Command_Do("touch "//galacticusPath(pathTypeExec)//"aux/RecFast/patched")
+       end if
+       ! Build the code.
+       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) then
+          call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
+          call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux/RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
+          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) &
+               & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
+       end if
+       ! Create directory for output.
+       call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium')
+       ! Build RecFast parameter file.
+       parameterFile=File_Name_Temporary("recFastParameters")
+       recFastFile  =parameterFile//".out"
+       open(newUnit=parametersUnit,file=char(parameterFile),status='unknown',form='formatted')
+       write (parametersUnit,'(a)')  char(recFastFile)
+       write (parametersUnit,*    )  self%cosmologyParameters_%OmegaBaryon   (),omegaDarkMatter                           ,self%cosmologyParameters_%OmegaDarkEnergy()
+       write (parametersUnit,*    )  self%cosmologyParameters_%HubbleConstant(),self%cosmologyParameters_%temperatureCMB(),heliumByMassPrimordial
+       write (parametersUnit,*    )  1
+       write (parametersUnit,*    )  6
+       close(parametersUnit)
+       ! Run RecFast.
+       call System_Command_Do(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe < "//parameterFile)
+       ! Parse the output file.
+       countRedshift=Count_Lines_in_File(recFastFile)-1
+       allocate(redshift         (countRedshift))
+       allocate(electronFraction (countRedshift))
+       allocate(hIonizedFraction (countRedshift))
+       allocate(heIonizedFraction(countRedshift))
+       allocate(matterTemperature(countRedshift))
+       open(newUnit=recFastUnit,file=char(recFastFile),status='old',form='formatted')
+       read (recFastUnit,*) ! Skip header line.
+       do i=1,countRedshift
+          read (recFastUnit,*) redshift(i),electronFraction(i),hIonizedFraction(i),heIonizedFraction(i),matterTemperature(i)
+       end do
+       close(recFastUnit)
+       call File_Remove(char(recFastFile  ))
+       call File_Remove(char(parameterFile))
+       ! Create the output file.
+       call outputFile%openFile      (char(self%fileName),overwrite=.true.)
+       call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
+       call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
+       call outputFile%writeDataset  (hIonizedFraction   ,'hIonizedFraction' ,'Fraction of ionized hydrogen'                        )
+       call outputFile%writeDataset  (heIonizedFraction  ,'heIonizedFraction','Fraction of ionized helium'                          )
+       call outputFile%writeDataset  (matterTemperature  ,'matterTemperature','Temperature of matter'       ,datasetReturned=dataset)
+       call dataset   %writeAttribute('Kelvin'           ,'units'                                                                   )
+       call dataset   %writeAttribute(1.0d0              ,'unitsInSI'                                                               )
+       call dataset   %close         (                                                                                              )
+       ! Add description and provenance to output structure.
+       call outputFile%writeAttribute('IGM ionization/thermal state computed using RecFast','description')
+       call outputFile%writeAttribute(fileFormatVersionCurrent                             ,'fileFormat' )
+       provenance=outputFile%openGroup('provenance')
+       call provenance%writeAttribute(char(Formatted_Date_and_Time())                      ,'date'       )
+       call provenance%writeAttribute('Galacticus via RecFast'                             ,'source'     )
+       recFastVersion="unknown"
+       open(newUnit=recFastUnit,file="aux/RecFast/recfast.for",status='old',form='formatted',ioStat=ioStatus)
+       do while (ioStatus == 0)
+          read (recFastUnit,'(a)',ioStat=ioStatus) line
+          if (line(1:2) == "CV" .and. line(4:11) == "Version:") read (line(13:),'(a)') recFastVersion
+       end do
+       close(recFastUnit)
+       recFastProvenance=provenance%openGroup('recFast'                                                                                            )
+       call recFastProvenance%writeAttribute(trim(recFastVersion)                                                                        ,'version')
+       call recFastProvenance%writeAttribute('Includes modification of H recombination. Includes all modifications for HeI recombination','notes'  )
+       call recFastProvenance%close         (                                                                                                      )
+       call provenance       %close         (                                                                                                      )
+       call outputFile       %close         (                                                                                                      )
+    end if
+    call File_Unlock(self%fileLock)
     return
   end function recFastConstructorInternal
+
+  subroutine recFastDestructor(self)
+    implicit none
+    type(intergalacticMediumStateRecFast), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    return
+  end subroutine recFastDestructor
