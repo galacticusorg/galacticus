@@ -73,7 +73,7 @@
   abstract interface
      subroutine mangleMangleFiles(self,mangleFiles)
        import varying_string, surveyGeometryMangle
-       type (varying_string      ), allocatable, dimension(:), intent(  out) :: mangleFiles
+       type (varying_string      ), allocatable, dimension(:), intent(inout) :: mangleFiles
        class(surveyGeometryMangle)                           , intent(inout) :: self
      end subroutine mangleMangleFiles
   end interface
