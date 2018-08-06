@@ -132,8 +132,9 @@ contains
     !% Return a list of \gls{mangle} files.
     implicit none
     class(surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
-    type (varying_string                ), allocatable, dimension(:), intent(  out) :: mangleFiles
+    type (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
 
+    allocate(mangleFiles(1))
     mangleFiles=                                                    &
          &      [                                                   &
          &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &

@@ -236,8 +236,9 @@ contains
     !% Return a list of \gls{mangle} files.
     implicit none
     class(surveyGeometryTomczak2014ZFOURGE)                           , intent(inout) :: self
-    type (varying_string                  ), allocatable, dimension(:), intent(  out) :: mangleFiles
-    
+    type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
+
+    allocate(mangleFiles(5))
     mangleFiles=                                                       &
          &      [                                                      &
          &       "+"//self%mangleDirectory()//"/ZFOURGE-CDFS.ply:"  // &

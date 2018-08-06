@@ -234,9 +234,10 @@ contains
     !% Return a list of \gls{mangle} files.
     implicit none
     class(surveyGeometryMuzzin2013ULTRAVISTA)                           , intent(inout) :: self
-    type (varying_string                    ), allocatable, dimension(:), intent(  out) :: mangleFiles
+    type (varying_string                    ), allocatable, dimension(:), intent(inout) :: mangleFiles
     !GCC$ attributes unused :: self
-    
+
+    allocate(mangleFiles(1))
     mangleFiles=                  &
          &      [                 &
          &       'surveyMask.ply' &

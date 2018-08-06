@@ -214,8 +214,9 @@ contains
     !% Return a list of \gls{mangle} files.
     implicit none
     class(surveyGeometryDavidzon2013VIPERS)                           , intent(inout) :: self
-    type (varying_string                  ), allocatable, dimension(:), intent(  out) :: mangleFiles
+    type (varying_string                  ), allocatable, dimension(:), intent(inout) :: mangleFiles
     
+    allocate(mangleFiles(3))
     mangleFiles=                                                       &
          &      [                                                      &
          &       "+"//self%mangleDirectory()//"/maskCombinedBU.ply:"// &
