@@ -242,7 +242,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
-       call File_Lock(char(self%fileName),farahiFileLock)
+       call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
        locked=.true.
        call self%fileRead()
     end if
@@ -251,7 +251,7 @@ contains
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (self%useFile.and..not.locked) then
-          call File_Lock(char(self%fileName),farahiFileLock)
+          call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
           locked=.true.
        end if
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
@@ -519,7 +519,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
-       call File_Lock(char(self%fileName),farahiFileLock)
+       call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
        locked=.true.
        call self%fileRead()
     end if
@@ -527,7 +527,7 @@ contains
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (self%useFile.and..not.locked) then
-          call File_Lock(char(self%fileName),farahiFileLock)
+          call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
           locked=.true.
        end if
        if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
@@ -742,10 +742,10 @@ contains
     double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRateTmp
 
     ! Return immediately if the file does not exist.
-    if (.not.File_Exists(self%fileName)) return
+    if (.not.File_Exists(File_Name_Expand(char(self%fileName)))) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName))
+    call dataFile%openFile(char(File_Name_Expand(char(self%fileName))))
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
@@ -842,7 +842,7 @@ contains
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
+    call dataFile%openFile(char(File_Name_Expand(char(self%fileName))),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
        dataGroup=dataFile%openGroup("probability")
