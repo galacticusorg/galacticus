@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Triggers the "nodes are not well-ordered in time" error in the Cole2000 merger tree builder (Issue #49) -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Verbosity -->
+  <verbosityLevel value="1"/>
+  
+  <!-- Component selection -->
+  <treeNodeMethodBasic value="standard"/>
+  <treeNodeMethodHotHalo value="null"/>
+  <treeNodeMethodBlackHole value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
+  <treeNodeMethodDisk value="null"/>
+  <treeNodeMethodSatellite value="standard"/>
+  <treeNodeMethodSpheroid value="null"/>
+  <treeNodeMethodSpin value="random"/>
+  <spheroidMassDistribution value="hernquist"/>
+  <satelliteDynamicalFrictionMethod value="zero"/>
+  <satelliteTidalStrippingMethod value="null"/>
+  <satelliteTidalHeatingRateMethod value="zero"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileMethod value="NFW"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctionsMethod value="matterLambda"/>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParametersMethod>
+
+  <!-- Dark matter particle -->
+  <darkMatterParticleMethod value="WDMThermal">
+    <mass                      value="1.5"/>
+    <degreesOfFreedomEffective value="1.5"/>
+  </darkMatterParticleMethod>
+
+  <!--  Power spectrum options  -->
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.0"/>
+    <running value="0.0"/>
+  </powerSpectrumPrimordialMethod>
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.807"/>
+    <monotonicInterpolation value="true"/>
+    <powerSpectrumWindowFunctionMethod value="topHat"/>
+  </cosmologicalMassVarianceMethod>
+  <transferFunctionMethod value="bode2001">
+    <epsilon value="0.359"/>
+    <nu value="1.1"/>
+    <eta value="3.81"/>
+    <transferFunctionMethod value="eisensteinHu1999">
+      <neutrinoNumberEffective value="3.04"/>
+      <neutrinoMassSummed value="0.000"/>
+      <darkMatterParticleMethod value="CDM"/>
+    </transferFunctionMethod>
+  </transferFunctionMethod>
+
+  <!--  Structure growth -->
+  <linearGrowthMethod value="simple"/>
+
+  <!-- Critical overdensity for halo collapse -->
+  <criticalOverdensityMethod value="barkana2001WDM">
+    <criticalOverdensityMethod value="sphericalCollapseMatterLambda">
+      <darkMatterParticleMethod value="CDM"/>
+    </criticalOverdensityMethod>
+  </criticalOverdensityMethod>
+  
+  <!-- Structure formation options -->
+  <virialDensityContrastMethod  value="sphericalCollapseMatterLambda"/>
+
+  <!-- Dark matter halo mass function solver -->
+  <haloMassFunctionMethod value="pressSchechter"/>
+  <excursionSetBarrierMethod value="remapScale">
+    <factor value="1.1965"/>
+    <applyTo value="nonRates"/>
+    <excursionSetBarrierMethod value="remapShethMoTormen">
+      <a value="0.707"/>
+      <b value="0.500"/>
+      <c value="0.600"/>
+      <applyTo value="nonRates"/>
+      <excursionSetBarrierMethod value="criticalOverdensity"/>
+    </excursionSetBarrierMethod>
+  </excursionSetBarrierMethod>
+  <excursionSetFirstCrossingMethod value="farahiMidpoint">
+    <timeStepFractional value="0.01"/>
+    <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx1.5Gx1.5.hdf5"/>
+  </excursionSetFirstCrossingMethod>
+  
+  <!-- Dark matter profile concentrations -->
+  <darkMatterProfileConcentrationMethod value="schneider2015">
+    <reference>
+      <cosmologicalMassVarianceMethod value="filteredPower">
+ 	<sigma_8 value="0.807"/>
+ 	<powerSpectrumWindowFunctionMethod value="sharpKSpace">
+ 	  <normalization value="2.5"/>
+ 	</powerSpectrumWindowFunctionMethod>
+ 	<powerSpectrumPrimordialTransferredMethod value="simple"/>
+ 	<transferFunctionMethod value="eisensteinHu1999">
+ 	  <neutrinoNumberEffective value="3.04"/>
+ 	  <neutrinoMassSummed value="0.000"/>
+ 	  <darkMatterParticleMethod value="CDM"/>
+ 	</transferFunctionMethod>
+ 	<powerSpectrumPrimordialMethod value="powerLaw">
+ 	  <index value="1.0"/>
+ 	  <wavenumberReference value="1.000"/>
+ 	  <running value="0.000"/>
+ 	</powerSpectrumPrimordialMethod>
+      </cosmologicalMassVarianceMethod>
+      <criticalOverdensityMethod value="sphericalCollapseMatterLambda">
+ 	<darkMatterParticleMethod value="CDM"/>
+      </criticalOverdensityMethod>
+      <cosmologyFunctionsMethod value="matterLambda"/>
+      <cosmologyParametersMethod value="simple">
+ 	<OmegaMatter value="0.2725"/>
+ 	<OmegaDarkEnergy value="0.7275"/>
+ 	<OmegaBaryon value="0.0"/>
+ 	<HubbleConstant value="70.2"/>
+      </cosmologyParametersMethod>
+      <darkMatterProfileConcentrationMethod value="diemerKravtsov2014"/>
+    </reference>
+  </darkMatterProfileConcentrationMethod>
+  
+  <!-- Merger tree building options -->
+  <mergerTreeConstructorMethod value="build"/>
+  <mergerTreeBuilderMethod value="cole2000">
+    <accretionLimit   value="0.1"/>
+    <mergeProbability value="0.1"/>
+    <redshiftMaximum value="30"/>
+    <branchIntervalStep value="false"/>
+  </mergerTreeBuilderMethod>
+  <mergerTreeBranchingProbabilityMethod value="gnrlzdPrssSchchtr">
+    <massMinimum value="1.0e5"/>
+  </mergerTreeBranchingProbabilityMethod>
+  <treeBranchingModifierMethod value="Parkinson-Cole-Helly2008"/>
+  <modifiedPressSchechterG0 value="0.57"/>
+  <modifiedPressSchechterGamma1 value="0.38"/>
+  <modifiedPressSchechterGamma2 value="-0.01"/>
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+    <massTreeMinimum value="1.0e12"/>
+    <massTreeMaximum value="3.0e12"/>
+    <treesPerDecade value="20"/>
+  </mergerTreeBuildMassesMethod>
+  <mergerTreeMassResolutionMethod value="fixed">
+    <massResolution value="1.0e8"/>
+  </mergerTreeMassResolutionMethod>
+  
+  <!-- Halo accretion options -->
+  <accretionHaloMethod value="null"/>
+  <reionizationSuppressionRedshift value="10.5"/>
+  <reionizationSuppressionVelocity value="35.0"/>
+
+  <!-- Hot halo gas model options -->
+  <hotHaloMassDistributionMethod value="null"/>
+
+  <!-- Satellite merger options -->
+  <satelliteMergingRemnantSizeMethod value="null"/>
+  <virialOrbitMethod value="benson2005"/>
+  <!--satelliteMergingTimescalesMethod value="jiang2008"/-->
+  <mergingTimescaleMultiplier value="0.75"/>
+  <satelliteMergingMassMovementsMethod value="simple"/>
+  <minorMergerGasMovesTo value="spheroid"/>
+  <majorMergerMassRatio value="0.25"/>
+  <mergerRemnantSizeOrbitalEnergy value="1"/>
+
+  <!-- Galactic structure options -->
+  <!-- Since this model is dark matter-only there will be no adiabatic contraction of dark matter halos. Therefore, use a static solver for initial radii in dark matter halos. -->
+  <galacticStructureRadiusSolverMethod value="simple"/>
+  <galacticStructureRadiusSolverInitialRadiusMethod value="static"/>
+  
+  <!-- Numerical tolerances -->
+  <odeToleranceAbsolute   value="0.01"/>
+  <odeToleranceRelative   value="0.01"/>
+  <timestepHostAbsolute   value="1.00"/>
+  <timestepHostRelative   value="0.10"/>
+  <timestepSimpleAbsolute value="10.00"/>
+  <timestepSimpleRelative value="10.00"/>
+
+  <!-- Output file -->
+  <galacticusOutputFileName value="testSuite/outputs/regressions/cole2000TreeBuilderWDMNodeWellOrdering.hdf5"/>
+  
+</parameters>
