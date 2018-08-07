@@ -518,8 +518,13 @@ contains
                       nodeNew1%parent     => node
                       branchIsDone=.true.
                    else
+                      ! Insufficient accretion has occured to warrant making a new node. Simply update the mass and critical
+                      ! overdensity and take another step. We update the critical overdensity by mapping to a time at the current
+                      ! branch mass, then mapping back to a critical overdensity at the new branch mass. This ensures that if
+                      ! critical overdensity is a function of mass we preserve correct time-ordering along the branch.
+                      time                      =self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=node)
                       branchMassCurrent         =basic%mass()*(1.0d0-accretionFractionCumulative)
-                      branchDeltaCriticalCurrent=deltaCritical
+                      branchDeltaCriticalCurrent=self%criticalOverdensity_%value         (time               =time         ,mass=branchMassCurrent,node=node)
                    end if
                 end select
              end if
