@@ -1586,7 +1586,7 @@ contains
          &                                                                 forestsGroup          , unitsGroup
     integer                  , allocatable, dimension(:)                :: firstNode             , numberOfNodes
     integer                                                             :: iAttribute            , iProperty          , iTree           , &
-         &                                                                 integerAttribute
+         &                                                                 integerAttribute      , completeCount
     type     (varying_string)                                           :: groupName
     logical                                                             :: appendActual          , fileExists
 
@@ -1599,7 +1599,7 @@ contains
 
     ! Open the output file.
     call hdf5Access%set()
-    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
 
     ! Write a format version attribute.
@@ -1825,7 +1825,13 @@ contains
     call forestHalos%close()
 
     ! Add a flag to indicate successfully completed writing merger tree information.
-    call outputFile%writeAttribute(1,"fileCompleteFlag")
+    if (appendActual) then
+       call outputFile%readAttribute('fileCompleteFlag',completeCount)
+       completeCount=completeCount+1
+    else
+       completeCount=             +1
+    end if
+    call outputFile%writeAttribute(completeCount,"fileCompleteFlag")
 
     ! Close the output file.
     call outputFile%close()
