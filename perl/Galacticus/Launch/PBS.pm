@@ -251,6 +251,7 @@ sub SubmitJobs {
        if ( exists($pbsConfig->{'jobMaximum'}) );
     $jobMaximum = $arguments{'pbsJobMaximum'}
        if ( exists($arguments{'pbsJobMaximum'}) );
+    my $limitQueuedOnly = exists($arguments{'limitQueuedOnly'}) ? $arguments{'limitQueuedOnly'} : 0;
     # Submit jobs and wait.
     print "Waiting for PBS jobs to finish...\n";
     while ( scalar(keys %pbsJobs) > 0 || scalar(@pbsStack) > 0 ) {
@@ -261,8 +262,8 @@ sub SubmitJobs {
 	open(pHndl,"qstat -f|");
 	while ( my $line = <pHndl> ) {
 	    if ( $line =~ m/^(Job\sId|Job):\s+(\S+)/ ) {$jobID = $2};
-	    if ( $line =~ m/job_state\s*=\s*[RQHE]/ && $jobID ) {
-		$runningPBSJobs{$jobID} = 1;
+	    if ( $line =~ m/job_state\s*=\s*([RQHE])/ && $jobID ) {
+		$runningPBSJobs{$jobID} = $1;
 		undef($jobID);
 	    }
 	}
@@ -304,7 +305,8 @@ sub SubmitJobs {
 	    }
 	}
 	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
-	if ( scalar(@pbsStack) > 0 && scalar(keys %pbsJobs) < $jobMaximum ) {
+	my $limitingJobs = $limitQueuedOnly ? scalar(grep {($runningPBSJobs{$_} eq "Q" || $runningPBSJobs{$_} eq "H") && exists($pbsJobs{$_})} keys(%runningPBSJobs)) : scalar(keys(%runningPBSJobs));
+	if ( scalar(@pbsStack) > 0 && $limitingJobs < $jobMaximum ) {
 	    my $newJob = pop(@pbsStack);
 	    my $batchScript;
 	    if ( ref($newJob) ) {
