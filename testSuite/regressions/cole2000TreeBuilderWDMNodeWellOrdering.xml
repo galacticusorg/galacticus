@@ -18,7 +18,7 @@
   <treeNodeMethodSpin value="random"/>
   <spheroidMassDistribution value="hernquist"/>
   <satelliteDynamicalFrictionMethod value="zero"/>
-  <satelliteTidalStrippingMethod value="null"/>
+  <satelliteTidalStrippingMethod value="zero"/>
   <satelliteTidalHeatingRateMethod value="zero"/>
 
   <!-- Dark matter halo profile -->

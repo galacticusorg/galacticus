@@ -18,80 +18,25 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module that implements calculations of the mass loss rate due to
-!% tidal stripping for satellites.
+!% Contains a module that provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
 
 module Satellite_Tidal_Stripping
-  !% Implements calculations of tidal stripping for satellites.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Satellite_Tidal_Stripping_Rate
+  !% Provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                            :: satelliteTidalStrippingRateInitialized=.false.
-
-  ! Name of satellite tidal stripping method used.
-  type     (varying_string                )          :: satelliteTidalStrippingMethod
-
-  ! Pointer for function that will be called to assign tidal stripping rates to satellites.
-  procedure(Satellite_Tidal_Stripping_Rate), pointer :: Satellite_Tidal_Stripping_Rate_Get => null()
+  use Galacticus_Nodes
   
-contains
-
-  subroutine Satellite_Tidal_Stripping_Initialize
-    !% Initialize the satellite tidal stripping rate module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="satelliteTidalStrippingMethod" type="moduleUse">
-    include 'satellite.tidal.stripping.rate.moduleUse.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.satelliteTidalStrippingRateInitialized) then
-       !$omp critical(Satellite_Tidal_Stripping_Rate_Initialization) 
-       if (.not.satelliteTidalStrippingRateInitialized) then
-          
-          ! Get the satellite tidal stripping method.
-          !# <inputParameter>
-          !#   <name>satelliteTidalStrippingMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Zentner2005')</defaultValue>
-          !#   <description>The name of the method to be used to compute satellite tidal stripping rate.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteTidalStrippingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>satelliteTidalStrippingMethod,Satellite_Tidal_Stripping_Rate_Get</functionArgs>
-          include 'satellite.tidal.stripping.rate.inc'
-          !# </include>
-          if (.not.associated(Satellite_Tidal_Stripping_Rate_Get))                                                 &
-               & call Galacticus_Error_Report(                                                                     &
-               &                              'method '//char(satelliteTidalStrippingMethod)//' is unrecognized'// &
-               &                              {introspection:location}                                             &
-               &                             )
-          ! Record that this module is now initialized.
-          satelliteTidalStrippingRateInitialized=.true.
-       end if
-       !$omp end critical(Satellite_Tidal_Stripping_Rate_Initialization) 
-    end if
-    return
-  end subroutine Satellite_Tidal_Stripping_Initialize
-
-  double precision function Satellite_Tidal_Stripping_Rate(thisNode)
-    !% Return the satellite mass loss rate due to tidal stripping for {\normalfont \ttfamily thisNode} (in units of $M_\odot$/Gyr).
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout), target :: thisNode
-
-    ! Initialize the module.
-    call Satellite_Tidal_Stripping_Initialize
-
-    ! Get the mass loss rate due to tidal stripping using the selected method.
-    Satellite_Tidal_Stripping_Rate=Satellite_Tidal_Stripping_Rate_Get(thisNode)
-    return
-  end function Satellite_Tidal_Stripping_Rate
+  !# <functionClass>
+  !#  <name>satelliteTidalStripping</name>
+  !#  <descriptiveName>Tidal stripping models for satellites.</descriptiveName>
+  !#  <description>Class providing models of tidal stripping for satellites.</description>
+  !#  <default>zentner2005</default>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="massLossRate" >
+  !#   <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Satellite_Tidal_Stripping

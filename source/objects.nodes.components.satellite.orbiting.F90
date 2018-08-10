@@ -187,6 +187,7 @@ contains
     class           (darkMatterHaloScaleClass       ), pointer                     :: darkMatterHaloScale_
     class           (satelliteDynamicalFrictionClass), pointer                     :: satelliteDynamicalFriction_
     class           (satelliteTidalHeatingRateClass ), pointer                     :: satelliteTidalHeatingRate_
+    class           (satelliteTidalStrippingClass   ), pointer                     :: satelliteTidalStripping_
     double precision                                 , dimension(3)                :: position,velocity
     double precision                                 , parameter                   :: radiusVirialFraction = 1.0d-2
     double precision                                                               :: radius,halfMassRadiusSatellite
@@ -250,6 +251,7 @@ contains
              ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
              satelliteDynamicalFriction_ => satelliteDynamicalFriction()
              satelliteTidalHeatingRate_  => satelliteTidalHeatingRate ()
+             satelliteTidalStripping_    => satelliteTidalStripping   ()
              call satelliteComponent%velocityRate                 (                                                     &
                   &                                                -(kilo*gigaYear/megaParsec)                          &
                   &                                                *gravitationalConstantGalacticus                     &
@@ -264,7 +266,7 @@ contains
                   &                                                +satelliteDynamicalFriction_%acceleration (thisNode) &
                   &                                               )
              call satelliteComponent%boundMassRate                (                                                     &
-                  &                                                +Satellite_Tidal_Stripping_Rate           (thisNode) &
+                  &                                                +satelliteTidalStripping_%massLossRate    (thisNode) &
                   &                                               )
              call satelliteComponent%tidalTensorPathIntegratedRate(                                                     &
                   &                                                +tidalTensor                                         &
