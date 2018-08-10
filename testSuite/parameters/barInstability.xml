@@ -81,8 +81,9 @@
   <starFormationFeedbackDisksMethod value="fixed">
     <fraction value="0.0"/>
   </starFormationFeedbackDisksMethod>
-  <starFormationFeedbackSpheroidsMethod value="fixed">
-    <fraction value="0.0"/>
+  <starFormationFeedbackSpheroidsMethod value="powerLaw">
+    <velocityCharacteristic value="0.0"/>
+    <exponent               value="1.0"/>
   </starFormationFeedbackSpheroidsMethod>
 
   <!-- Metal production -->
