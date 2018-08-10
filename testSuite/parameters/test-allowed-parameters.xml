@@ -141,7 +141,7 @@
   <satelliteOrbitingDestructionMassIsFractional value="true"/>
   <satelliteDynamicalFrictionMethod value="chandrasekhar1943"/>
   <satelliteTidalStrippingMethod value="zentner2005"/>
-  <satelliteTidalHeatingMethod value="gnedin1999"/>
+  <satelliteTidalHeatingRateMethod value="gnedin1999"/>
   <satelliteTidalStrippingZentner2005Rate value="1.0"/>
 
   <!-- Satellite merger options -->
