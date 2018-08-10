@@ -16,64 +16,86 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a model of ram pressure stripping of hot halos based on the methods of
-!% \cite{font_colours_2008}.
+  !% Implements a model of ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
 
-module Hot_Halo_Ram_Pressure_Force_Font2008
-  !% Implements a module which implements the calculation of the ram pressure force on hot halos based on the methods of
-  !% \cite{font_colours_2008}.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Hot_Halo_Ram_Pressure_Force_Font2008_Initialize
-  
+  use Hot_Halo_Mass_Distributions
+
+  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008" defaultThreadPrivate="yes">
+  !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
+  !# </hotHaloRamPressureForce>
+  type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceFont2008
+     !% Implementation of a hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.
+     private
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+   contains
+     final     ::          font2008Destructor
+     procedure :: force => font2008Force
+  end type hotHaloRamPressureForceFont2008
+
+  interface hotHaloRamPressureForceFont2008
+     !% Constructors for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
+     module procedure font2008ConstructorParameters
+     module procedure font2008ConstructorInternal
+  end interface hotHaloRamPressureForceFont2008
+
 contains
-
-  !# <hotHaloRamPressureForceMethod>
-  !#  <unitName>Hot_Halo_Ram_Pressure_Force_Font2008_Initialize</unitName>
-  !# </hotHaloRamPressureForceMethod>
-  subroutine Hot_Halo_Ram_Pressure_Force_Font2008_Initialize(hotHaloRamPressureForceMethod,Hot_Halo_Ram_Pressure_Force_Get)
-    !% Initializes the ``Font2008'' hot halo ram pressure stripping module.
-    use ISO_Varying_String
+  
+  function font2008ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type     (varying_string                          ), intent(in   )          :: hotHaloRamPressureForceMethod
-    procedure(Hot_Halo_Ram_Pressure_Force_Font2008_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Force_Get
-
-    if (hotHaloRamPressureForceMethod == 'Font2008') then
-       Hot_Halo_Ram_Pressure_Force_Get => Hot_Halo_Ram_Pressure_Force_Font2008_Get
-    end if
+    type (hotHaloRamPressureForceFont2008)                :: self
+    type (inputParameters                ), intent(inout) :: parameters
+    class(hotHaloMassDistributionClass   ), pointer       :: hotHaloMassDistribution_
+    
+    !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    self=hotHaloRamPressureForceFont2008(hotHaloMassDistribution_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Hot_Halo_Ram_Pressure_Force_Font2008_Initialize
+  end function font2008ConstructorParameters
 
-  double precision function Hot_Halo_Ram_Pressure_Force_Font2008_Get(thisNode)
-    !% Computes the hot halo ram pressure force
+  function font2008ConstructorInternal(hotHaloMassDistribution_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
+    use Input_Parameters
+    implicit none
+    type (hotHaloRamPressureForceFont2008)                        :: self
+    class(hotHaloMassDistributionClass   ), intent(in   ), target :: hotHaloMassDistribution_
+    !# <constructorAssign variables="*hotHaloMassDistribution_"/>
+
+    return
+  end function font2008ConstructorInternal
+
+  subroutine font2008Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
+    implicit none
+    type(hotHaloRamPressureForceFont2008), intent(inout) :: self
+
+    !# <objectDestructor name="self%hotHaloMassDistribution_"/>
+    return
+  end subroutine font2008Destructor
+
+  double precision function font2008Force(self,node)
+    !% Return a ram pressure force due to the hot halo using the model of \cite{font_colours_2008}.
     use Kepler_Orbits
     use Satellite_Orbits
-    use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
-    class           (nodeComponentSatellite      ), pointer       :: thisSatellite
-
-    type            (treeNode                    ), pointer       :: hostNode
-    type            (keplerOrbit                 )                :: thisOrbit
-    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
-    double precision                                              :: densityHotHaloHost      , orbitalRadius, orbitalVelocity
+    class           (hotHaloRamPressureForceFont2008), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    class           (nodeComponentSatellite         ), pointer       :: satellite
+    type            (treeNode                       ), pointer       :: nodeHost
+    type            (keplerOrbit                    )                :: orbit
+    double precision                                                 :: radiusOrbital, velocityOrbital
     
     ! Find the host node.
-    hostNode      => thisNode%parent
+    nodeHost  => node     %parent
     ! Get the satellite component.
-    thisSatellite => thisNode%satellite()
+    satellite => node     %satellite  ()
     ! Get the orbit for this node.
-    thisOrbit=thisSatellite%virialOrbit()
+    orbit     =  satellite%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.
-    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
-    ! Get the hot halo mass distribution.
-    hotHaloMassDistribution_ => hotHaloMassDistribution()
-    ! Find the density of the host node hot halo at the pericentric radius.
-    densityHotHaloHost=hotHaloMassDistribution_%density(hostNode,orbitalRadius)
+    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital)
     ! Find the ram pressure force at pericenter.
-    Hot_Halo_Ram_Pressure_Force_Font2008_Get=densityHotHaloHost*orbitalVelocity**2
+    font2008Force=+self%hotHaloMassDistribution_%density(nodeHost,radiusOrbital) &
+         &        *velocityOrbital**2
     return
-  end function Hot_Halo_Ram_Pressure_Force_Font2008_Get
-
-end module Hot_Halo_Ram_Pressure_Force_Font2008
+  end function font2008Force

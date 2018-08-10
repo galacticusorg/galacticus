@@ -76,11 +76,12 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
-    class           (nodeComponentDisk), pointer       :: thisDisk
-    double precision                                   :: forceGravitational, forceRamPressure , massLossRateFractional, &
-         &                                                radiusHalfMass    , surfaceDensityGas, surfaceDensityTotal   , &
-         &                                                timeDynamical
+    type            (treeNode                    ), intent(inout) :: thisNode
+    class           (nodeComponentDisk           ), pointer       :: thisDisk
+    class           (hotHaloRamPressureForceClass), pointer       :: hotHaloRamPressureForce_
+    double precision                                              :: forceGravitational, forceRamPressure , massLossRateFractional, &
+         &                                                           radiusHalfMass    , surfaceDensityGas, surfaceDensityTotal   , &
+         &                                                           timeDynamical
 
     ! Assume no mass loss rate due to ram pressure by default.
     Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple=0.0d0
@@ -89,7 +90,8 @@ contains
     ! Get the disk component.
     thisDisk           => thisNode%disk()
     ! Get the ram pressure force due to the hot halo.
-    forceRamPressure   =  Hot_Halo_Ram_Pressure_Force(thisNode)
+    hotHaloRamPressureForce_ => hotHaloRamPressureForce()
+    forceRamPressure         =  hotHaloRamPressureForce_%force(thisNode)
     ! Get the disk half-mass radius.
     radiusHalfMass     =  thisDisk%halfMassRadius()
     ! Compute the disk densities at the half mass radius.

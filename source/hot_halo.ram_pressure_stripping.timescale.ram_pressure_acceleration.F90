@@ -60,20 +60,22 @@ contains
     class           (nodeComponentHotHalo        ), pointer       :: thisHotHalo
     type            (treeNode                    ), pointer       :: hostNode
     class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass)    , pointer       :: darkMatterHaloScale_
-    double precision                              , parameter     :: timescaleInfinite       =huge(1.0d0)
-    double precision                              , parameter     :: velocityStrippingMaximum=     1.0d1
-    double precision                                              :: outerRadius                         , densityAtOuterRadius       , &
-         &                                                           forceRamPressure                    , surfaceDensityAtOuterRadius
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
+    class           (hotHaloRamPressureForceClass), pointer       :: hotHaloRamPressureForce_
+    double precision                              , parameter     :: timescaleInfinite             =huge(1.0d0)
+    double precision                              , parameter     :: velocityStrippingMaximum      =     1.0d1
+    double precision                                              :: outerRadius                               , densityAtOuterRadius       , &
+         &                                                           forceRamPressure                          , surfaceDensityAtOuterRadius
 
     ! Get the hot halo mass distribution.
     defaultHotHaloMassDistribution => hotHaloMassDistribution()
     darkMatterHaloScale_           => darkMatterHaloScale    ()
+    hotHaloRamPressureForce_       => hotHaloRamPressureForce()
     ! Evaluate surface density and ram pressure force.
     thisHotHalo                 => thisNode   %hotHalo                   (                    )
     outerRadius                 =  thisHotHalo%outerRadius               (                    )
     densityAtOuterRadius        =  defaultHotHaloMassDistribution%density(thisNode,outerRadius)
-    forceRamPressure            =  Hot_Halo_Ram_Pressure_Force           (thisNode            )
+    forceRamPressure            =  hotHaloRamPressureForce_      %force  (thisNode            )
     surfaceDensityAtOuterRadius =  outerRadius*densityAtOuterRadius
     ! Exit with infinite timescale for zero ram pressure force.
     if (forceRamPressure <= 0.0d0) then

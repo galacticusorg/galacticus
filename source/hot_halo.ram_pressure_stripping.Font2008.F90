@@ -77,13 +77,14 @@ contains
     use Hot_Halo_Ram_Pressure_Forces
     use Root_Finder
     implicit none
-    type            (treeNode                ), intent(inout), target :: node
-    double precision                          , parameter             :: toleranceAbsolute             =0.0d0 , toleranceRelative=1.0d-3
-    double precision                          , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
-    class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
-    type            (rootFinder              ), save                  :: finder
+    type            (treeNode                    ), intent(inout), target :: node
+    double precision                              , parameter             :: toleranceAbsolute             =0.0d0 , toleranceRelative=1.0d-3
+    double precision                              , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
+    class           (darkMatterHaloScaleClass    ), pointer               :: darkMatterHaloScale_
+    class           (hotHaloRamPressureForceClass), pointer               :: hotHaloRamPressureForce_
+    type            (rootFinder                  ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                                  :: virialRadius
+    double precision                                                      :: virialRadius
  
     ! Get the virial radius of the satellite.
     darkMatterHaloScale_ => darkMatterHaloScale              (        )
@@ -93,7 +94,8 @@ contains
        ! Set a pointer to the satellite node.
        satelliteNode => node
        ! Get the ram pressure force due to the hot halo.
-       ramPressureForce=Hot_Halo_Ram_Pressure_Force(node)
+       hotHaloRamPressureForce_ => hotHaloRamPressureForce       (    )
+       ramPressureForce         =  hotHaloRamPressureForce_%force(node)
        ! Find the radial range within which the ram pressure radius must lie.
        if      (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(                               virialRadius) >= 0.0d0) then
           ! The ram pressure force is not sufficiently strong to strip even at the satellite virial radius - simply return the
