@@ -647,15 +647,15 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <hotHaloRamPressureForceMethods+value="font2008"/>
-    <hotHaloRamPressureForceMethods+value="zero"/>
+    <hotHaloRamPressureForceMethods value="font2008"/>
+    <hotHaloRamPressureForceMethods value="zero"/>
   </parameters>
 
   <!-- Hot halo ram pressure mass loss rates -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <hotHaloRamPressureForceMethods+value="font2008"/>
+    <hotHaloRamPressureForceMethods value="font2008"/>
     <hotHaloRamPressureStrippingTimescaleMethod value="haloDynamicalTime"/>
     <hotHaloRamPressureStrippingTimescaleMethod value="ramPressureAcceleration"/>
   </parameters>
