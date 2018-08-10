@@ -10,16 +10,16 @@ use warnings;
 # correctly).
 #
 # FSPS stellar population synthesis code and associated file.
-system("rm -f ../data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.4_imfSalpeter.hdf5");
+system("rm -f ".$ENV{'GALACTICUS_DATA_PATH'}."/dynamic/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imfSalpeter.hdf5");
 system("rm -rf ../aux/FSPS_v2.4");
 # Core files (older than 7 days).
 system("find ../ -name '".$_."' -ctime +7 -exec rm {} \\;")
     foreach ( "core.*", "vgcore.*" );
 # Noninstantaneous recycling files (older than 14 days).
-system("find ../data/stellarPopulations -name '".$_."' -ctime +14 -exec rm {} \\;")
+system("find ".$ENV{'GALACTICUS_DATA_PATH'}."/dynamic/stellarPopulations -name '".$_."' -ctime +14 -exec rm {} \\;")
     foreach ( "Stellar_*_Yield_*_*.xml", "Stellar_Recycled_Fraction_*_*.xml", "Stellar_Energy_Input_*_*.xml" );
 # CAMB transfer function files (older than 14 days).
-system("find ../data/largeScaleStructure -name 'transfer_function_CAMB_*.xml' -ctime +14 -exec rm {} \\;");
+system("find ".$ENV{'GALACTICUS_DATA_PATH'}."/dynamic/largeScaleStructure -name 'transfer_function_CAMB_*.xml' -ctime +14 -exec rm {} \\;");
 
 # Simply run the models.
 system("cd ..; scripts/aux/launch.pl testSuite/test-methods.xml");
