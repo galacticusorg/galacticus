@@ -975,14 +975,7 @@ contains
     else
        allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
     end if
-    !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
-    select type (nodes)
-    type is (nodeDataMinimal   )
-       call Memory_Usage_Record(sizeof(nodes))
-    type is (nodeDataGalacticus)
-       call Memory_Usage_Record(sizeof(nodes))
-    end select
-    !# </workaround>
+    call Memory_Usage_Record(sizeof(nodes))
     !$ call hdf5Access%set()
     if (useNodeSubset) then
        ! nodeIndex, hostIndex, parentNode
