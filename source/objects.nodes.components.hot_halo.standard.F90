@@ -927,7 +927,6 @@ contains
     use Numerical_Constants_Astronomical
     use Hot_Halo_Mass_Distributions
     use Node_Component_Hot_Halo_Standard_Data
-    use Hot_Halo_Ram_Pressure_Stripping_Timescales
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: node
@@ -1064,9 +1063,10 @@ contains
     use Hot_Halo_Ram_Pressure_Stripping
     use Hot_Halo_Ram_Pressure_Stripping_Timescales
     implicit none
-    class           (nodeComponentHotHaloStandard), intent(inout) :: self
-    type            (treeNode                    ), pointer       :: node
-    double precision                                              :: ramPressureRadius, outerRadius
+    class           (nodeComponentHotHaloStandard    ), intent(inout) :: self
+    type            (treeNode                        ), pointer       :: node
+    class           (hotHaloRamPressureTimescaleClass), pointer       :: hotHaloRamPressureTimescale_
+    double precision                                                  :: ramPressureRadius           , outerRadius
 
     ! Compute the outer radius growth rate if necessary.
     if (.not.gotOuterRadiusGrowthRate) then
@@ -1080,9 +1080,10 @@ contains
             & ) then
           ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
           ! stripping radius on the halo dynamical timescale.
+          hotHaloRamPressureTimescale_ => hotHaloRamPressureTimescale()
           outerRadiusGrowthRateStored=                                &
                &  (ramPressureRadius-outerRadius)                     &
-               & /Hot_Halo_Ram_Pressure_Stripping_Timescale(node)
+               & /hotHaloRamPressureTimescale_%timescale(node)
        else
           outerRadiusGrowthRateStored=0.0d0
        end if

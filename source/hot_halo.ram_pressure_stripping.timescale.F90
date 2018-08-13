@@ -16,65 +16,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of ram pressure stripping timescales for hot halos.
+!% Contains a module that implements a class for calculations of ram pressure stripping timescales for hot halos.
 
 module Hot_Halo_Ram_Pressure_Stripping_Timescales
-  !% Implements calculations of ram pressure stripping timescales for hot halos.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Hot_Halo_Ram_Pressure_Stripping_Timescale
+  !% Implements a class for calculations of ram pressure stripping timescales for hot halos.
+  use Galacticus_Nodes
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                    :: hotHaloRamPressureStrippingTimescaleInitialized    =.false.
+  !# <functionClass>
+  !#  <name>hotHaloRamPressureTimescale</name>
+  !#  <descriptiveName>Models of ram pressure force from the hot halo.</descriptiveName>
+  !#  <description>Class providing models of ram pressure force from the hot halo.</description>
+  !#  <default>ramPressureAcceleration</default>
+  !#  <method name="timescale" >
+  !#   <description>Return the ram pressure stripping timescale for {\normalfont \ttfamily node} (in units of Gyr).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
-  ! Name of cooling rate available method used.
-  type     (varying_string                        )          :: hotHaloRamPressureStrippingTimescaleMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Ram_Pressure_Stripping_Timescale), pointer :: Hot_Halo_Ram_Pressure_Stripping_Timescale_Get=>null()
-
-contains
-
-  double precision function Hot_Halo_Ram_Pressure_Stripping_Timescale(thisNode)
-    !% Return the ram pressure stripping radius for the hot halo of {\normalfont \ttfamily thisNode} (in units of Mpc).
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="hotHaloRamPressureStrippingTimescaleMethod" type="moduleUse">
-    include 'hot_halo.ram_pressure_stripping.timescale.modules.inc'
-    !# </include>
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize if necessary.
-    if (.not.hotHaloRamPressureStrippingTimescaleInitialized) then
-       !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)
-       if (.not.hotHaloRamPressureStrippingTimescaleInitialized) then
-          ! Get the cooling rate method parameter.
-          !# <inputParameter>
-          !#   <name>hotHaloRamPressureStrippingTimescaleMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('ramPressureAcceleration')</defaultValue>
-          !#   <description>The name of the method to be used when computing ram pressure stripping timescales for hot halos.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloRamPressureStrippingTimescaleMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>hotHaloRamPressureStrippingTimescaleMethod,Hot_Halo_Ram_Pressure_Stripping_Timescale_Get</functionArgs>
-          include 'hot_halo.ram_pressure_stripping.timescales.inc'
-          !# </include>
-          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Timescale_Get)) call Galacticus_Error_Report('method '//char(hotHaloRamPressureStrippingTimescaleMethod)//' is unrecognized'//{introspection:location})
-          hotHaloRamPressureStrippingTimescaleInitialized=.true.
-       end if
-       !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)
-    end if
-
-    ! Get the cooling rate using the selected method.
-    Hot_Halo_Ram_Pressure_Stripping_Timescale=Hot_Halo_Ram_Pressure_Stripping_Timescale_Get(thisNode)
-
-    return
-  end function Hot_Halo_Ram_Pressure_Stripping_Timescale
-  
 end module Hot_Halo_Ram_Pressure_Stripping_Timescales

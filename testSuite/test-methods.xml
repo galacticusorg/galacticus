@@ -656,8 +656,8 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <hotHaloRamPressureForceMethods value="font2008"/>
-    <hotHaloRamPressureStrippingTimescaleMethod value="haloDynamicalTime"/>
-    <hotHaloRamPressureStrippingTimescaleMethod value="ramPressureAcceleration"/>
+    <hotHaloRamPressureTimescaleMethod value="haloDynamicalTime"/>
+    <hotHaloRamPressureTimescaleMethod value="ramPressureAcceleration"/>
   </parameters>
 
   <!-- Disk and spheroid ram pressure mass loss rates -->
