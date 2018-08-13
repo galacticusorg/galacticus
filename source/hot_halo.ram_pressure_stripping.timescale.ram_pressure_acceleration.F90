@@ -16,98 +16,132 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a calculation of hot halo ram pressure timescales based on an estimate of the acceleration
-!% due to ram pressure.
+  !% Implements a class for the timescale of ram pressure stripping of hot halos in which the timescale is estimated from the ram
+  !% pressure acceleration.
+  
+  use Dark_Matter_Halo_Scales
+  use Hot_Halo_Mass_Distributions
+  use Hot_Halo_Ram_Pressure_Forces
 
-module Hot_Halo_Ram_Pressure_Timescales_Ram_Pressure_Accel
-  !% Implements a calculation of hot halo ram pressure timescales based on an estimate of the acceleration due to ram pressure.
-  implicit none
-  private
-  public :: Hot_Halo_Ram_Pressure_Timescales_Ram_Pressure_Accel_Initialize
+  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration" defaultThreadPrivate="yes">
+  !#  <description>A hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure acceleration.</description>
+  !# </hotHaloRamPressureTimescale>
+  type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleRamPressureAcceleration
+     !% Implementation of a hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure
+     !% acceleration.
+     private
+     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+   contains
+     final     ::              ramPressureAccelerationDestructor
+     procedure :: timescale => ramPressureAccelerationTimescale
+  end type hotHaloRamPressureTimescaleRamPressureAcceleration
+
+  interface hotHaloRamPressureTimescaleRamPressureAcceleration
+     !% Constructors for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class.
+     module procedure ramPressureAccelerationConstructorParameters
+     module procedure ramPressureAccelerationConstructorInternal
+  end interface hotHaloRamPressureTimescaleRamPressureAcceleration
 
 contains
-
-  !# <hotHaloRamPressureStrippingTimescaleMethod>
-  !#  <unitName>Hot_Halo_Ram_Pressure_Timescales_Ram_Pressure_Accel_Initialize</unitName>
-  !# </hotHaloRamPressureStrippingTimescaleMethod>
-  subroutine Hot_Halo_Ram_Pressure_Timescales_Ram_Pressure_Accel_Initialize(hotHaloRamPressureStrippingTimescaleMethod,Hot_Halo_Ram_Pressure_Timescale_Get)
-    !% Initializes the ``ram pressure acceleration'' hot halo ram pressure stripping timescale module.
-    use ISO_Varying_String
+  
+  function ramPressureAccelerationConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type     (varying_string                                    ), intent(in   )          :: hotHaloRamPressureStrippingTimescaleMethod
-    procedure(Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Timescale_Get
+    type (hotHaloRamPressureTimescaleRamPressureAcceleration)                :: self
+    type (inputParameters                                   ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass                          ), pointer       :: darkMatterHaloScale_
+    class(hotHaloMassDistributionClass                      ), pointer       :: hotHaloMassDistribution_
+    class(hotHaloRamPressureForceClass                      ), pointer       :: hotHaloRamPressureForce_
 
-    if (hotHaloRamPressureStrippingTimescaleMethod == 'ramPressureAcceleration')                      &
-         & Hot_Halo_Ram_Pressure_Timescale_Get => Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel
+    !# <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
+    !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    self=hotHaloRamPressureTimescaleRamPressureAcceleration(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Hot_Halo_Ram_Pressure_Timescales_Ram_Pressure_Accel_Initialize
+  end function ramPressureAccelerationConstructorParameters
+  
+  function ramPressureAccelerationConstructorInternal(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class.
+    use Input_Parameters
+    implicit none
+    type (hotHaloRamPressureTimescaleRamPressureAcceleration)                        :: self
+    class(darkMatterHaloScaleClass                          ), intent(in   ), target :: darkMatterHaloScale_
+    class(hotHaloMassDistributionClass                      ), intent(in   ), target :: hotHaloMassDistribution_
+    class(hotHaloRamPressureForceClass                      ), intent(in   ), target :: hotHaloRamPressureForce_
+    !# <constructorAssign variables="*darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloRamPressureForce_"/>
 
-  double precision function Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel(thisNode)
+    return
+  end function ramPressureAccelerationConstructorInternal
+
+  subroutine ramPressureAccelerationDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily ramPressureAcceleration} hot halo ram pressure timescale class.
+    implicit none
+    type(hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"    />
+    !# <objectDestructor name="self%hotHaloMassDistribution_"/>
+    !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    return
+  end subroutine ramPressureAccelerationDestructor
+
+  double precision function ramPressureAccelerationTimescale(self,node)
     !% Computes the hot halo ram pressure stripping timescale, based on the acceleration due to ram pressure forces. This
     !% timescale is approximated as \citep{roediger_ram_2007} $\tau \approx \sqrt{2 r_\mathrm{outer} \Sigma_\mathrm{outer} / P_\mathrm{
     !% ram}}$, where $r_\mathrm{outer}$ is the current outer radius of the hot halo, $\Sigma_\mathrm{outer}$ is the surface density at
     !% that radius, and $P_\mathrm{ram}$ is the ram pressure force (per unit area). The surface density is approximated as
     !% $\Sigma_\mathrm{outer} \approx r_\mathrm{outer} \rho_\mathrm{outer}$, where $\rho_\mathrm{outer}$ is the density at the outer radius.
-    use Galacticus_Nodes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
-    use Hot_Halo_Mass_Distributions
-    use Hot_Halo_Ram_Pressure_Forces
-    use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
-    class           (nodeComponentHotHalo        ), pointer       :: thisHotHalo
-    type            (treeNode                    ), pointer       :: hostNode
-    class           (hotHaloMassDistributionClass), pointer       :: defaultHotHaloMassDistribution
-    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
-    class           (hotHaloRamPressureForceClass), pointer       :: hotHaloRamPressureForce_
-    double precision                              , parameter     :: timescaleInfinite             =huge(1.0d0)
-    double precision                              , parameter     :: velocityStrippingMaximum      =     1.0d1
-    double precision                                              :: outerRadius                               , densityAtOuterRadius       , &
-         &                                                           forceRamPressure                          , surfaceDensityAtOuterRadius
+    class           (hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
+    type            (treeNode                                          ), intent(inout) :: node
+    class           (nodeComponentHotHalo                              ), pointer       :: hotHalo
+    type            (treeNode                                          ), pointer       :: nodeHost
+    double precision                                                    , parameter     :: timescaleInfinite       =huge(1.0d0)
+    double precision                                                    , parameter     :: velocityStrippingMaximum=     1.0d1
+    double precision                                                                    :: radiusOuter                         , densityOuter       , &
+         &                                                                                 forceRamPressure                    , surfaceDensityOuter
 
-    ! Get the hot halo mass distribution.
-    defaultHotHaloMassDistribution => hotHaloMassDistribution()
-    darkMatterHaloScale_           => darkMatterHaloScale    ()
-    hotHaloRamPressureForce_       => hotHaloRamPressureForce()
     ! Evaluate surface density and ram pressure force.
-    thisHotHalo                 => thisNode   %hotHalo                   (                    )
-    outerRadius                 =  thisHotHalo%outerRadius               (                    )
-    densityAtOuterRadius        =  defaultHotHaloMassDistribution%density(thisNode,outerRadius)
-    forceRamPressure            =  hotHaloRamPressureForce_      %force  (thisNode            )
-    surfaceDensityAtOuterRadius =  outerRadius*densityAtOuterRadius
+    hotHalo             =>  node                            %hotHalo    (                )
+    radiusOuter         =   hotHalo                         %outerRadius(                )
+    densityOuter        =   self   %hotHaloMassDistribution_%density    (node,radiusOuter)
+    forceRamPressure    =   self   %hotHaloRamPressureForce_%force      (node            )
+    surfaceDensityOuter =  +radiusOuter  &
+         &                 *densityOuter
     ! Exit with infinite timescale for zero ram pressure force.
     if (forceRamPressure <= 0.0d0) then
-       Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel=timescaleInfinite
+       ramPressureAccelerationTimescale=timescaleInfinite
        return
     end if
     ! For zero density or radius, return the halo dynamical time (the timescale should be irrelevant in such cases anyway).
-    if (outerRadius <= 0.0d0 .or. surfaceDensityAtOuterRadius <= 0.0d0) then
-       Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel=darkMatterHaloScale_%dynamicalTimescale(thisNode)
+    if (radiusOuter <= 0.0d0 .or. surfaceDensityOuter <= 0.0d0) then
+       ramPressureAccelerationTimescale=self%darkMatterHaloScale_%dynamicalTimescale(node)
        return
     end if
     ! Find the hosting node.
-    hostNode => thisNode%parent
+    nodeHost => node%parent
     ! Evaluate the timescale.
-    Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel            &
-         & =(                                                     &
-         &    megaParsec                                          &
-         &   /kilo                                                &
-         &   /gigaYear                                            &
-         &  )                                                     &
-         &  *max(                                                 &
-         &       sqrt(                                            &
-         &            2.0d0                                       &
-         &            *outerRadius                                &
-         &            *surfaceDensityAtOuterRadius                &
-         &            /forceRamPressure                           &
-         &           )                                          , &
-         &         outerRadius                                    &
-         &        /velocityStrippingMaximum                       &
-         &        /darkMatterHaloScale_%virialVelocity(hostNode)  &
-         &      )
+    ramPressureAccelerationTimescale=+(                                                        &
+         &                             +megaParsec                                             &
+         &                             /kilo                                                   &
+         &                             /gigaYear                                               &
+         &                            )                                                        &
+         &                           *max(                                                     &
+         &                                +sqrt(                                               &
+         &                                      +2.0d0                                         &
+         &                                      *radiusOuter                                   &
+         &                                      *surfaceDensityOuter                           &
+         &                                      /forceRamPressure                              &
+         &                                     )                                             , &
+         &                                +radiusOuter                                         &
+         &                                /velocityStrippingMaximum                            &
+         &                                /self%darkMatterHaloScale_%virialVelocity(nodeHost)  &
+         &                               )
     return
-  end function Hot_Halo_Ram_Pressure_Timescale_Ram_Pressure_Accel
-
-end module Hot_Halo_Ram_Pressure_Timescales_Ram_Pressure_Accel
+  end function ramPressureAccelerationTimescale
