@@ -947,12 +947,7 @@ contains
     if (present(nodeSubset   ).and.any(nodeSubset    /= -1_c_size_t)) call Galacticus_Error_Report('import of subsets is not supported'       //{introspection:location})
        ! Allocate the nodes array.
        allocate(nodeData :: nodes(self%treeSizes(i)))
-       !# <workaround type="gfortran" PR="65889" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65889">
-       select type (nodes)
-       type is (nodeData)
-          call Memory_Usage_Record(sizeof(nodes))
-       end select
-       !# </workaround>
+       call Memory_Usage_Record(sizeof(nodes))
        ! Copy data to nodes.
        select type (nodes)
        type is (nodeData)
