@@ -16,22 +16,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements empirical models of conditional mass functions.
+!% Contains a module which implements a class for empirical models of conditional mass functions.
 
 module Conditional_Mass_Functions
   !% Implements empirical models of conditional mass functions.
-  use ISO_Varying_String
-  !# <include directive="conditionalMassFunction" type="functionModules" >
-  include 'conditionalMassFunction.functionModules.inc'
-  !# </include>
-  implicit none
-  private
 
-  integer, parameter, public :: haloModelGalaxyTypeAll      =0
-  integer, parameter, public :: haloModelGalaxyTypeCentral  =1
-  integer, parameter, public :: haloModelGalaxyTypeSatellite=2
-
-  !# <include directive="conditionalMassFunction" type="function" >
+  !# <functionClass>
+  !#  <name>conditionalMassFunction</name>
   !#  <descriptiveName>Conditional Mass Function</descriptiveName>
   !#  <description>Object providing empirical models of conditional mass functions.</description>
   !#  <default>behroozi2010</default>
@@ -49,7 +40,15 @@ module Conditional_Mass_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: massHalo,massLow,massHigh</argument>
   !#  </method>
-  include 'conditionalMassFunction.type.inc'
-  !# </include>
+  !# </functionClass>
+
+  !# <enumeration>
+  !#  <name>haloModelGalaxyType</name>
+  !#  <description>Used to specify galaxy types in the halo model.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="all"      />
+  !#  <entry label="central"  />
+  !#  <entry label="satellite"/>
+  !# </enumeration>
 
 end module Conditional_Mass_Functions
