@@ -16,79 +16,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements modifiers for merger tree branching probabilities.
+!% Contains a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
 
 module Merger_Tree_Branching_Modifiers
-  !% Implements modifiers for merger tree branching probabilities.
-  use ISO_Varying_String
-  implicit none
+  !% Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
+  use Galacticus_Nodes
   private
-  public :: Merger_Tree_Branching_Modifier
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                     :: treeBranchingModifierInitialized  =.false.
-
-  ! Name of branching method used.
-  type     (varying_string                         )          :: treeBranchingModifierMethod
-
-  ! Pointer to the functions that return branching probability modifiers.
-  procedure(Merger_Tree_Branching_Modifier_Template), pointer :: Merger_Tree_Branching_Modifier_Get=>null()
-  abstract interface
-     double precision function Merger_Tree_Branching_Modifier_Template(parentDelta,childSigma,parentSigma)
-       double precision, intent(in   ) :: childSigma, parentDelta, parentSigma
-     end function Merger_Tree_Branching_Modifier_Template
-  end interface
-
-contains
-
-  double precision function Merger_Tree_Branching_Modifier(parentDelta,childSigma,parentSigma)
-    !% Return a modifier for merger tree branching probabilities.
-    implicit none
-    double precision, intent(in   ) :: childSigma, parentDelta, parentSigma
-
-    ! Initialize if necessary.
-    call Tree_Branching_Modifiers_Initialize
-
-    ! Call the function to complete the calculation.
-    Merger_Tree_Branching_Modifier=Merger_Tree_Branching_Modifier_Get(parentDelta,childSigma,parentSigma)
-    return
-  end function Merger_Tree_Branching_Modifier
-
-  subroutine Tree_Branching_Modifiers_Initialize
-    !% Initializes the tree branching modifier module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="treeBranchingModifierMethod" type="moduleUse">
-    include 'merger_trees.branching_probability.modifier.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.treeBranchingModifierInitialized) then
-       !$omp critical(Tree_Branching_Modifiers_Initialization)
-       if (.not.treeBranchingModifierInitialized) then
-          ! Get the tree branching method parameter.
-          !# <inputParameter>
-          !#   <name>treeBranchingModifierMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used for computing modifiers to merger tree branching probabilitie.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="treeBranchingModifierMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get</functionArgs>
-          include 'merger_trees.branching_probability.modifier.inc'
-          !# </include>
-          if (.not.associated(Merger_Tree_Branching_Modifier_Get))  &
-               & call Galacticus_Error_Report('method '//char(treeBranchingModifierMethod)//' is unrecognized'//{introspection:location})
-
-          treeBranchingModifierInitialized=.true.
-       end if
-       !$omp end critical(Tree_Branching_Modifiers_Initialization)
-    end if
-    return
-  end subroutine Tree_Branching_Modifiers_Initialize
+  !# <functionClass>
+  !#  <name>mergerTreeBranchingProbabilityModifier</name>
+  !#  <descriptiveName>Modifiers for merger tree branching probabilities</descriptiveName>
+  !#  <description>Class implementing modifiers for merger tree branching probabilities.</description>
+  !#  <default>identity</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="rateModifier" >
+  !#   <description>Return the multiplicative modifier to the tree branch probability rate.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: deltaParent, sigmaChild, sigmaParent</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Merger_Tree_Branching_Modifiers
