@@ -165,7 +165,7 @@
     <starveSatellites value="false"/>
 
     <!-- Hot halo ram pressure stripping options -->
-    <hotHaloRamPressureStrippingMethod value="Font2008"/>
+    <hotHaloRamPressureStrippingMethod value="font2008"/>
     <hotHaloRamPressureForceMethods value="font2008"/>
     <hotHaloRamPressureTimescaleMethod value="ramPressureAcceleration"/>
     <hotHaloOutflowStrippingEfficiency value="0.1"/>

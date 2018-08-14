@@ -16,65 +16,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of ram pressure stripping of hot halos.
+!% Contains a module that implements a class for calculations of ram pressure stripping of hot halos.
 
 module Hot_Halo_Ram_Pressure_Stripping
-  !% Implements calculations of ram pressure stripping of hot halos.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Hot_Halo_Ram_Pressure_Stripping_Radius
+  !% Implements a class for calculations of ram pressure stripping of hot halos.
+  use Galacticus_Nodes
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                    :: hotHaloRamPressureStrippingInitialized    =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                        )          :: hotHaloRamPressureStrippingMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Ram_Pressure_Stripping_Radius), pointer :: Hot_Halo_Ram_Pressure_Stripping_Radius_Get=>null()
-
-contains
-
-  double precision function Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
-    !% Return the ram pressure stripping radius for the hot halo of {\normalfont \ttfamily thisNode} (in units of Mpc).
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="hotHaloRamPressureStrippingMethod" type="moduleUse">
-    include 'hot_halo.ram_pressure_stripping.modules.inc'
-    !# </include>
-    implicit none
-    type(treeNode), intent(inout), target :: thisNode
-
-    ! Initialize if necessary.
-    if (.not.hotHaloRamPressureStrippingInitialized) then
-       !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)
-       if (.not.hotHaloRamPressureStrippingInitialized) then
-          ! Get the cooling rate method parameter.
-          !# <inputParameter>
-          !#   <name>hotHaloRamPressureStrippingMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Font2008')</defaultValue>
-          !#   <description>The name of the method to be used when computing ram pressure stripping of hot halos.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloRamPressureStrippingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Radius_Get</functionArgs>
-          include 'hot_halo.ram_pressure_stripping.inc'
-          !# </include>
-          if (.not.associated(Hot_Halo_Ram_Pressure_Stripping_Radius_Get)) call Galacticus_Error_Report('method '//char(hotHaloRamPressureStrippingMethod)//' is unrecognized'//{introspection:location})
-          hotHaloRamPressureStrippingInitialized=.true.
-       end if
-       !$omp end critical(Hot_Halo_Ram_Pressure_Stripping_Initialization)
-    end if
-
-    ! Get the cooling rate using the selected method.
-    Hot_Halo_Ram_Pressure_Stripping_Radius=Hot_Halo_Ram_Pressure_Stripping_Radius_Get(thisNode)
-
-    return
-  end function Hot_Halo_Ram_Pressure_Stripping_Radius
+  !# <functionClass>
+  !#  <name>hotHaloRamPressureStripping</name>
+  !#  <descriptiveName>Models of ram pressure stripping due to the hot halo.</descriptiveName>
+  !#  <description>Class providing models of ram pressure force from the hot halo.</description>
+  !#  <default>font2008</default>
+  !#  <method name="radiusStripped" >
+  !#   <description>Return the radius to which {\normalfont \ttfamily node} is stripped due to ram pressure from its host halo (in units of Mpc).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Hot_Halo_Ram_Pressure_Stripping

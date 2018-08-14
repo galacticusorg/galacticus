@@ -16,112 +16,144 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a model of ram pressure stripping of hot halos based on the methods of
-!% \cite{font_colours_2008}.
+  !% Implements a class for ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
 
-module Hot_Halo_Ram_Pressure_Stripping_Font2008
-  !% Implements a module which implements a model of ram pressure stripping of hot halos based on the methods of
-  !% \cite{font_colours_2008}.
+  use Dark_Matter_Halo_Scales
+  use Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass, hotHaloRamPressureForce
+  use Hot_Halo_Mass_Distributions
   use Kind_Numbers
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize
 
-  ! Pointers to the satellite node.
-  type            (treeNode      ), pointer :: satelliteNode
-  !$omp threadprivate(satelliteNode)
-  ! The ram pressure force (per unit area) used in root finding.
-  double precision                          :: ramPressureForce
-  !$omp threadprivate(ramPressureForce)
-  ! Parameters of the ram pressure stripping model.
-  double precision                          :: ramPressureStrippingFormFactor
-  ! Optimization.
-  integer         (kind=kind_int8)          :: lastUniqueID                  =-1
-  double precision                          :: radiusLast                    =-1.0d0
-  !$omp threadprivate(lastUniqueID,radiusLast)
+  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008" defaultThreadPrivate="yes">
+  !#  <description>A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.</description>
+  !# </hotHaloRamPressureStripping>
+  type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
+     !% Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.
+     private
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     double precision                                        :: formFactor
+     integer         (kind_int8                   )          :: uniqueIDLast            =-1
+     double precision                                        :: radiusLast              =-1.0d0
+   contains
+     final     ::                   font2008Destructor
+     procedure :: radiusStripped => font2008RadiusStripped
+  end type hotHaloRamPressureStrippingFont2008
 
-  
+  interface hotHaloRamPressureStrippingFont2008
+     !% Constructors for the {\normalfont \ttfamily font2008} hot halo ram pressure timescale class.
+     module procedure font2008ConstructorParameters
+     module procedure font2008ConstructorInternal
+  end interface hotHaloRamPressureStrippingFont2008
+
+  ! Global variables used in root finding.
+  class           (hotHaloRamPressureStrippingFont2008), pointer :: font2008Self
+  type            (treeNode                           ), pointer :: font2008Node
+  double precision                                               :: font2008ForceRamPressure
+  !$omp threadprivate(font2008Self,font2008Node,font2008ForceRamPressure)
+
 contains
- 
-  !# <hotHaloRamPressureStrippingMethod>
-  !#  <unitName>Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize</unitName>
-  !# </hotHaloRamPressureStrippingMethod>
-  subroutine Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize(hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Get)
-    !% Initializes the ``Font2008'' hot halo ram pressure stripping module.
-    use ISO_Varying_String
+  
+  function font2008ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type     (varying_string                              ), intent(in   )          :: hotHaloRamPressureStrippingMethod
-    procedure(Hot_Halo_Ram_Pressure_Stripping_Font2008_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Stripping_Get
+    type            (hotHaloRamPressureStrippingFont2008)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
+    class           (hotHaloMassDistributionClass       ), pointer       :: hotHaloMassDistribution_
+    double precision                                                     :: formFactor
 
-    if (hotHaloRamPressureStrippingMethod == 'Font2008') then
-       Hot_Halo_Ram_Pressure_Stripping_Get => Hot_Halo_Ram_Pressure_Stripping_Font2008_Get
-       !# <inputParameter>
-       !#   <name>ramPressureStrippingFormFactor</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>2.0d0</defaultValue>
-       !#   <description>The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
-       !#      of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>formFactor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
+    !#      of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
+    !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize
+  end function font2008ConstructorParameters
 
-  double precision function Hot_Halo_Ram_Pressure_Stripping_Font2008_Get(node)
-    !% Computes the hot halo ram pressure stripping radius, assuming a null calculation in which that radius always equals the
-    !% virial radius.
-    use Dark_Matter_Halo_Scales
-    use Hot_Halo_Ram_Pressure_Forces
-    use Root_Finder
+  function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
+    use Input_Parameters
     implicit none
-    type            (treeNode                    ), intent(inout), target :: node
-    double precision                              , parameter             :: toleranceAbsolute             =0.0d0 , toleranceRelative=1.0d-3
-    double precision                              , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
-    class           (darkMatterHaloScaleClass    ), pointer               :: darkMatterHaloScale_
-    class           (hotHaloRamPressureForceClass), pointer               :: hotHaloRamPressureForce_
-    type            (rootFinder                  ), save                  :: finder
+    type            (hotHaloRamPressureStrippingFont2008)                        :: self
+    class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
+    class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
+    class           (hotHaloMassDistributionClass       ), intent(in   ), target :: hotHaloMassDistribution_
+    double precision                                     , intent(in   )         :: formFactor
+    !# <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_"/>
+
+    return
+  end function font2008ConstructorInternal
+
+  subroutine font2008Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
+    implicit none
+    type(hotHaloRamPressureStrippingFont2008), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"    />
+    !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    !# <objectDestructor name="self%hotHaloMassDistribution_"/>
+    return
+  end subroutine font2008Destructor
+
+  double precision function font2008RadiusStripped(self,node)
+    !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
+     use Root_Finder
+    implicit none
+    class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
+    type            (treeNode                           ), intent(inout), target :: node
+    double precision                                     , parameter             :: toleranceAbsolute             =0.0d+0, toleranceRelative=1.0d-3
+    double precision                                     , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
+    type            (rootFinder                         ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                                      :: virialRadius
+    double precision                                                             :: radiusVirial
  
     ! Get the virial radius of the satellite.
-    darkMatterHaloScale_ => darkMatterHaloScale              (        )
-    virialRadius         =  darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     ! Test whether node is a satellite.
     if (node%isSatellite()) then
        ! Set a pointer to the satellite node.
-       satelliteNode => node
+       font2008Self             => self
+       font2008Node             =>                                     node
        ! Get the ram pressure force due to the hot halo.
-       hotHaloRamPressureForce_ => hotHaloRamPressureForce       (    )
-       ramPressureForce         =  hotHaloRamPressureForce_%force(node)
+       font2008ForceRamPressure =  self%hotHaloRamPressureForce_%force(node)
        ! Find the radial range within which the ram pressure radius must lie.
-       if      (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(                               virialRadius) >= 0.0d0) then
+       if      (font2008RadiusSolver(                             radiusVirial) >= 0.0d0) then
           ! The ram pressure force is not sufficiently strong to strip even at the satellite virial radius - simply return the
           ! virial radius as the stripping radius in this case.
-          Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=virialRadius
+          font2008RadiusStripped=radiusVirial
        else
-          if (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radiusSmallestOverRadiusVirial*virialRadius) <= 0.0d0) then
+          if (font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial) <= 0.0d0) then
              ! The ram pressure force can strip to (essentially) arbitrarily small radii.
-             Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=0.0d0
+             font2008RadiusStripped=0.0d0
           else
              ! Solver for the ram pressure stripping radius.
              if (.not.finder%isInitialized()) then
-                call finder%rootFunction(Hot_Halo_Ram_Pressure_Stripping_Radius_Solver)
-                call finder%tolerance   (toleranceAbsolute,toleranceRelative          )
+                call finder%rootFunction(font2008RadiusSolver)
+                call finder%tolerance   (toleranceAbsolute,toleranceRelative)
              end if
              ! If we have a previously found radius, and if the node is the same as the previous node for which this function was
              ! called, then use that previous radius as a guess for the new solution. Note that we do not reset the previous
              ! radius between ODE steps (i.e. we do not make use of "calculationReset" events to reset the radius) as we
              ! specifically want to retain knowledge from the previous step.
-             if (radiusLast > 0.0d0 .and. node%uniqueID() == lastUniqueID) then
+             if (self%radiusLast > 0.0d0 .and. node%uniqueID() == self%uniqueIDLast) then
                 call finder%rangeExpand(                                                                           &
                      &                  rangeExpandDownward          =0.9d0                                      , &
                      &                  rangeExpandUpward            =1.1d0                                      , &
                      &                  rangeExpandType              =rangeExpandMultiplicative                  , &
-                     &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*virialRadius, &
-                     &                  rangeUpwardLimit             =                               virialRadius, &
+                     &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
+                     &                  rangeUpwardLimit             =                               radiusVirial, &
                      &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
                      &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                &
                      &                 )
@@ -129,46 +161,45 @@ contains
                 call finder%rangeExpand(                                                                           &
                      &                  rangeExpandDownward          =0.5d0                                      , &
                      &                  rangeExpandType              =rangeExpandMultiplicative                  , &
-                     &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*virialRadius, &
+                     &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*radiusVirial, &
                      &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
                      &                 )
-                radiusLast  =virialRadius
-                lastUniqueID=node%uniqueID()
+                self%radiusLast  =radiusVirial
+                self%uniqueIDLast=node%uniqueID()
              end if
-             Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=finder%find(rootGuess=radiusLast)
-             radiusLast=Hot_Halo_Ram_Pressure_Stripping_Font2008_Get
+             font2008RadiusStripped=finder%find(rootGuess=self%radiusLast)
+             self%radiusLast=font2008RadiusStripped
           end if
        end if
     else
        ! If node is not a satellite, return a ram pressure stripping radius equal to the virial radius.
-       Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=virialRadius
+       font2008RadiusStripped=radiusVirial
     end if
     return
-  end function Hot_Halo_Ram_Pressure_Stripping_Font2008_Get
+  end function font2008RadiusStripped
 
-  double precision function Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radius)
+  double precision function font2008RadiusSolver(radius)
     !% Root function used in finding the ram pressure stripping radius.
-    use Hot_Halo_Mass_Distributions
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    double precision                              , intent(in   ) :: radius
-    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
-    double precision                                              :: enclosedMass            , gravitationalBindingForce, &
-         &                                                           hotHaloDensity
+    double precision, intent(in   ) :: radius
+    double precision                :: massEnclosed  , forceBindingGravitational, &
+         &                             densityHotHalo
 
     ! Get the hot halo mass distribution.
-    hotHaloMassDistribution_ => hotHaloMassDistribution()
-    enclosedMass             =Galactic_Structure_Enclosed_Mass(satelliteNode,radius,massType=massTypeAll,componentType=componentTypeAll)
-    hotHaloDensity           =hotHaloMassDistribution_%density(satelliteNode,radius)
-    gravitationalBindingForce=ramPressureStrippingFormFactor*gravitationalConstantGalacticus*enclosedMass*hotHaloDensity/radius
-    if (gravitationalBindingForce >= 0.0d0) then
-       Hot_Halo_Ram_Pressure_Stripping_Radius_Solver=gravitationalBindingForce-ramPressureForce
+    massEnclosed             =+Galactic_Structure_Enclosed_Mass(font2008Node,radius,massType=massTypeAll,componentType=componentTypeAll)
+    densityHotHalo           =+font2008Self%hotHaloMassDistribution_%density(font2008Node,radius)
+    forceBindingGravitational=+font2008Self%formFactor         &
+         &                    *gravitationalConstantGalacticus &
+         &                    *massEnclosed                    &
+         &                    *densityHotHalo                  &
+         &                    /radius
+    if (forceBindingGravitational >= 0.0d0) then
+       font2008RadiusSolver=forceBindingGravitational-font2008ForceRamPressure
     else
-       Hot_Halo_Ram_Pressure_Stripping_Radius_Solver=                         -ramPressureForce
+       font2008RadiusSolver=                         -font2008ForceRamPressure
     end if
     return
-  end function Hot_Halo_Ram_Pressure_Stripping_Radius_Solver
-
-end module Hot_Halo_Ram_Pressure_Stripping_Font2008
+  end function font2008RadiusSolver
