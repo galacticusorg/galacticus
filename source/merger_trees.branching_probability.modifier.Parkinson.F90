@@ -16,84 +16,105 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{parkinson_generating_2008} modifier of merger tree branching rates.
+!% Implements a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.
 
-module Merger_Tree_Branching_Modifiers_Parkinson
-  !% Implements the \cite{parkinson_generating_2008} modifier of merger tree branching rates.
-  implicit none
-  private
-  public :: Merger_Tree_Branching_Modifiers_Parkinson_Initialize
+  !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierParkinson2008">
+  !#  <description>Provides a merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.</description>
+  !# </mergerTreeBranchingProbabilityModifier>
+  type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierParkinson2008
+     !% A merger tree branching probability rate modifier which uses the model of \cite{parkinson_generating_2008}.
+     private
+     double precision :: G0                 , gamma1             , &
+          &              gamma2             , parentTerm         , &
+          &              deltaParentPrevious, sigmaParentPrevious
+   contains
+     procedure :: rateModifier => parkinson2008RateModifier
+  end type mergerTreeBranchingProbabilityModifierParkinson2008
 
-  ! Parameters of the algorithm.
-  double precision :: modifiedPressSchechterG0    , modifiedPressSchechterGamma1 , &
-       &              modifiedPressSchechterGamma2
+  interface mergerTreeBranchingProbabilityModifierParkinson2008
+     !% Constructors for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
+     module procedure parkinson2008ConstructorParameters
+     module procedure parkinson2008ConstructorInternal
+  end interface mergerTreeBranchingProbabilityModifierParkinson2008
 
 contains
 
-  !# <treeBranchingModifierMethod>
-  !#  <unitName>Merger_Tree_Branching_Modifiers_Parkinson_Initialize</unitName>
-  !# </treeBranchingModifierMethod>
-  subroutine Merger_Tree_Branching_Modifiers_Parkinson_Initialize(treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get)
-    !% Initialize the null modifier method for merger tree branching rates.
+  function parkinson2008ConstructorParameters(parameters) result(self)
+    !% A constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class which builds the
+    !% object from a parameter set.
     use Input_Parameters
-    use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod
-    procedure(Merger_Tree_Branching_Modifier_Parkinson), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get
+    type            (mergerTreeBranchingProbabilityModifierParkinson2008)                :: self
+    type            (inputParameters                                    ), intent(inout) :: parameters
+    double precision                                                                     :: G0        , gamma1, &
+         &                                                                                  gamma2
 
-    if (treeBranchingModifierMethod == 'Parkinson-Cole-Helly2008') then
-       Merger_Tree_Branching_Modifier_Get => Merger_Tree_Branching_Modifier_Parkinson
-       !# <inputParameter>
-       !#   <name>modifiedPressSchechterG0</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.57d0</defaultValue>
-       !#   <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>modifiedPressSchechterGamma1</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.38d0</defaultValue>
-       !#   <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>modifiedPressSchechterGamma2</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>-0.01d0</defaultValue>
-       !#   <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>G0</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.57d0</defaultValue>
+    !#   <description>The parameter $G_0$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>gamma1</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.38d0</defaultValue>
+    !#   <description>The parameter $\gamma_1$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>gamma2</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-0.01d0</defaultValue>
+    !#   <description>The parameter $\gamma_2$ appearing in the modified merger rate expression of \cite{parkinson_generating_2008}.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=mergerTreeBranchingProbabilityModifierParkinson2008(G0,gamma1,gamma2)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Merger_Tree_Branching_Modifiers_Parkinson_Initialize
+  end function parkinson2008ConstructorParameters
 
-  double precision function Merger_Tree_Branching_Modifier_Parkinson(parentDelta,childSigma,parentSigma)
-    !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
-    use Hashes
+  function parkinson2008ConstructorInternal(G0,gamma1,gamma2) result(self)
+    !% Default constructor for the {\normalfont \ttfamily parkinson2008} merger tree branching probability rate class.
+    use Input_Parameters
     implicit none
-    double precision                    , intent(in   ) :: childSigma                , parentDelta               , &
-         &                                                 parentSigma
-    double precision                    , save          :: parentDeltaPrevious=-1.0d0, parentSigmaPrevious=-1.0d0, &
-         &                                                 parentTerm
-    !$omp threadprivate(parentDeltaPrevious,parentSigmaPrevious,parentTerm)
+    type            (mergerTreeBranchingProbabilityModifierParkinson2008)                :: self
+    double precision                                                     , intent(in   ) :: G0    , gamma1, &
+         &                                                                                  gamma2
+    !# <constructorAssign variables="G0, gamma1, gamma2"/>
+
+    self%deltaParentPrevious=-1.0d0
+    self%sigmaParentPrevious=-1.0d0
+    self%parentTerm         =+0.0d0
+    return
+  end function parkinson2008ConstructorInternal
+
+  double precision function parkinson2008RateModifier(self,deltaParent,sigmaChild,sigmaParent)
+    !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
+    !% Return the core radius of the hot halo mass distribution.
+    implicit none
+    class           (mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self
+    double precision                                                     , intent(in   ) :: sigmaChild , deltaParent, &
+         &                                                                                  sigmaParent
     
     ! Check if we need to update the "parent" term.
-    if (parentDelta /= parentDeltaPrevious .or. parentSigma /= parentSigmaPrevious) then
+    if     (                                         &
+         &   deltaParent /= self%deltaParentPrevious &
+         &  .or.                                     &
+         &   sigmaParent /= self%sigmaParentPrevious &
+         & ) then
        ! "Parent" term must be updated. Compute and store it for future re-use.
-       parentDeltaPrevious=parentDelta
-       parentSigmaPrevious=parentSigma
-       parentTerm= modifiedPressSchechterG0                                  &
-            &     *((parentDelta/parentSigma)**modifiedPressSchechterGamma2) &
-            &     /(             parentSigma **modifiedPressSchechterGamma1)
+       self%deltaParentPrevious=+deltaParent
+       self%sigmaParentPrevious=+sigmaParent
+       self%parentTerm         =+self%G0                                  &
+            &                   *((deltaParent/sigmaParent)**self%gamma2) &
+            &                   /(             sigmaParent **self%gamma1)
     end if
-
     ! Compute the modifier.
-    Merger_Tree_Branching_Modifier_Parkinson=parentTerm*(childSigma**modifiedPressSchechterGamma1)
+    parkinson2008RateModifier=self%parentTerm*(sigmaChild**self%gamma1)
     return
-  end function Merger_Tree_Branching_Modifier_Parkinson
-
-end module Merger_Tree_Branching_Modifiers_Parkinson
+  end function parkinson2008RateModifier

@@ -21,17 +21,19 @@
   use Cosmological_Density_Field
   use Cosmology_Functions
   use Excursion_Sets_First_Crossings
-  
+  use Merger_Tree_Branching_Modifiers
+
   !# <mergerTreeBranchingProbability name="mergerTreeBranchingProbabilityGnrlzdPrssSchchtr">
   !#  <description>Merger tree branching probabilities using a generalized Press-Schechter approach.</description>
   !# </mergerTreeBranchingProbability>
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !% A merger tree branching probability class using a generalized Press-Schechter approach.
      private
-     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
-     class           (criticalOverdensityClass      ), pointer :: criticalOverdensity_
-     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
-     class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
+     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_
+     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_
+     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_
+     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_
+     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_
      ! Parent halo shared variables.
      double precision                                          :: parentDTimeDDeltaCritical                  , parentDelta           , &
           &                                                       parentHaloMass                             , parentSigma           , &
@@ -101,13 +103,14 @@ contains
     !% provided parameter list.
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                :: self    
-    type            (inputParameters                                        ), intent(inout) :: parameters
-    class           (criticalOverdensityClass                               ), pointer       :: criticalOverdensity_
-    class           (cosmologicalMassVarianceClass                          ), pointer       :: cosmologicalMassVariance_
-    class           (cosmologyFunctionsClass                                ), pointer       :: cosmologyFunctions_
-    class           (excursionSetFirstCrossingClass                         ), pointer       :: excursionSetFirstCrossing_
-    double precision                                                                         :: deltaStepMaximum          , massMinimum
-    logical                                                                                  :: smoothAccretion
+    type            (inputParameters                                ), intent(inout) :: parameters
+    class           (criticalOverdensityClass                       ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass                  ), pointer       :: cosmologicalMassVariance_
+    class           (cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctions_
+    class           (excursionSetFirstCrossingClass                 ), pointer       :: excursionSetFirstCrossing_
+    class           (mergerTreeBranchingProbabilityModifierClass    ), pointer       :: mergerTreeBranchingProbabilityModifier_
+    double precision                                                                 :: deltaStepMaximum                       , massMinimum
+    logical                                                                          :: smoothAccretion
 
     !# <inputParameter>
     !#   <name>deltaStepMaximum</name>
@@ -133,27 +136,29 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
-    !# <objectBuilder class="criticalOverdensity"       name="criticalOverdensity_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
-    self=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_)
+    !# <objectBuilder class="criticalOverdensity"                    name="criticalOverdensity_"                    source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"               name="cosmologicalMassVariance_"               source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"                     name="cosmologyFunctions_"                     source="parameters"/>
+    !# <objectBuilder class="excursionSetFirstCrossing"              name="excursionSetFirstCrossing_"              source="parameters"/>
+    !# <objectBuilder class="mergerTreeBranchingProbabilityModifier" name="mergerTreeBranchingProbabilityModifier_" source="parameters"/>
+    self=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function generalizedPressSchechterConstructorParameters
 
-  function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
+  function generalizedPressSchechterConstructorInternal(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_) result(self)
     !% Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     use Galacticus_Error
     implicit none
     type            (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr)                        :: self
-    class           (cosmologicalMassVarianceClass                          ), intent(in   ), target :: cosmologicalMassVariance_
-    class           (criticalOverdensityClass                               ), intent(in   ), target :: criticalOverdensity_
-    class           (cosmologyFunctionsClass                                ), intent(in   ), target :: cosmologyFunctions_
-    class           (excursionSetFirstCrossingClass                         ), intent(in   ), target :: excursionSetFirstCrossing_
-    double precision                                                         , intent(in   )         :: deltaStepMaximum          , massMinimum
-    logical                                                                  , intent(in   )         :: smoothAccretion
-    !# <constructorAssign variables="deltaStepMaximum, massMinimum, smoothAccretion, *criticalOverdensity_, *cosmologicalMassVariance_, *cosmologyFunctions_, *excursionSetFirstCrossing_"/>
+    class           (cosmologicalMassVarianceClass                  ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (criticalOverdensityClass                       ), intent(in   ), target :: criticalOverdensity_
+    class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctions_
+    class           (excursionSetFirstCrossingClass                 ), intent(in   ), target :: excursionSetFirstCrossing_
+    class           (mergerTreeBranchingProbabilityModifierClass    ), intent(in   ), target :: mergerTreeBranchingProbabilityModifier_
+    double precision                                                 , intent(in   )         :: deltaStepMaximum                       , massMinimum
+    logical                                                          , intent(in   )         :: smoothAccretion
+    !# <constructorAssign variables="deltaStepMaximum, massMinimum, smoothAccretion, *criticalOverdensity_, *cosmologicalMassVariance_, *cosmologyFunctions_, *excursionSetFirstCrossing_, *mergerTreeBranchingProbabilityModifier_"/>
 
     self%excursionSetsTested                        =.false.
     self%subresolutionFractionIntegrandFailureWarned=.false.
@@ -165,10 +170,11 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%excursionSetFirstCrossing_"/>
+    !# <objectDestructor name="self%criticalOverdensity_"                   />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"              />
+    !# <objectDestructor name="self%cosmologyFunctions_"                    />
+    !# <objectDestructor name="self%excursionSetFirstCrossing_"             />
+    !# <objectDestructor name="self%mergerTreeBranchingProbabilityModifier_"/>
     return
   end subroutine generalizedPressSchechterDestructor
 
@@ -365,7 +371,6 @@ contains
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed numerically.
     use Numerical_Integration
-    use Merger_Tree_Branching_Modifiers
     use Galacticus_Error
     use ISO_Varying_String
     use Galacticus_Display
@@ -387,9 +392,9 @@ contains
     call self%computeCommonFactors(node,haloMass,deltaCritical)
     ! If requested, compute the rate of smooth accretion.
     if (self%smoothAccretion) then
-       generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                             &
-            &                                         *    self%excursionSetFirstCrossing_%rateNonCrossing(self%parentSigmaSquared,self%parentTime  ,node            ) &
-            &                                         *Merger_Tree_Branching_Modifier                     (self%parentDelta       ,self%sigmaMaximum,self%parentSigma)
+       generalizedPressSchechterFractionSubresolution=+abs(self%parentDTimeDDeltaCritical)                                                                                          &
+            &                                         *    self%excursionSetFirstCrossing_             %rateNonCrossing(self%parentSigmaSquared,self%parentTime  ,node            ) &
+            &                                         *    self%mergerTreeBranchingProbabilityModifier_%rateModifier   (self%parentDelta       ,self%sigmaMaximum,self%parentSigma)
     else
        generalizedPressSchechterFractionSubresolution=0.0d0
     end if
@@ -491,19 +496,18 @@ contains
     !% where $\mathrm{d} f_{12}/\mathrm{d}t$ is the excursion set barrier crossing probabilty per unit time for the effective barrier
     !% $B^\prime(S_\mathrm{child}|S_\mathrm{parent},t)\equiv B(S_\mathrm{child},t-\delta t)-B(S_\mathrm{parent},t)$ in the limit $\delta t
     !% \rightarrow 0$.
-    use Merger_Tree_Branching_Modifiers
     implicit none
     double precision          , intent(in   ) :: childAlpha       , childSigma
     type            (treeNode), intent(inout) :: node
     double precision                          :: childSigmaSquared
-    
+
     childSigmaSquared                   =+childSigma**2
-    generalizedPressSchechterMergingRate=-2.0d0                                                                                                                                                                           &
-         &                               *generalizedPressSchechterSelf%excursionSetFirstCrossing_%rate(generalizedPressSchechterSelf%parentSigmaSquared,childSigmaSquared,generalizedPressSchechterSelf%parentTime,node) &
-         &                               *childSigmaSquared                                                                                                                                                               &
-         &                               *abs(childAlpha)                                                                                                                                                                 &
-         &                               *generalizedPressSchechterSelf%parentDTimeDDeltaCritical                                                                                                                         &
-         &                               *Merger_Tree_Branching_Modifier(generalizedPressSchechterSelf%parentDelta,childSigma,generalizedPressSchechterSelf%parentSigma)
+    generalizedPressSchechterMergingRate=-2.0d0                                                                                                                                                                                                 &
+         &                               *generalizedPressSchechterSelf%mergerTreeBranchingProbabilityModifier_%rateModifier(generalizedPressSchechterSelf%parentDelta       ,childSigma       ,generalizedPressSchechterSelf%parentSigma     ) &
+         &                               *generalizedPressSchechterSelf%excursionSetFirstCrossing_             %rate        (generalizedPressSchechterSelf%parentSigmaSquared,childSigmaSquared,generalizedPressSchechterSelf%parentTime ,node) &
+         &                               *childSigmaSquared                                                                                                                                                                                     &
+         &                               *abs(childAlpha)                                                                                                                                                                                       &
+         &                               *generalizedPressSchechterSelf%parentDTimeDDeltaCritical
     return
   end function generalizedPressSchechterMergingRate
 
