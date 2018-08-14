@@ -32,10 +32,8 @@
   </powerSpectrumPrimordialMethod>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
-  <conditionalMassFunctionBehrooziGamma value="1.16052646522"/>
   <barInstabilityMethod value="null"/>
   <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
-  <conditionalMassFunctionBehrooziBSatellite value="19.5579686429"/>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="3200"/>
     <massTreeMaximum value="2.0e14"/>
@@ -69,7 +67,6 @@
     <binWidthLogarithmic value="0.097"/>
   </mergerTreeBuildMassDistributionMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <conditionalMassFunctionBehrooziBeta value="0.403618413165"/>
   <linearGrowthMethod value="simple"/>
   <treeNodeMethodDisk value="verySimple"/>
   <mergerTreeBuilderMethod value="cole2000">
@@ -79,7 +76,6 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
-  <conditionalMassFunctionBehrooziBetaSatellite value="1.46136840213"/>
   <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
@@ -91,7 +87,6 @@
   </virialOrbitMethod>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
-  <conditionalMassFunctionBehrooziDelta value="0.493563322826"/>
   <imfChabrierRecycledInstantaneous value="0.46"/>
   <satelliteMergingMassMovementsMethod value="verySimple"/>
   <mergingTimescaleMultiplier value="1.0"/>
@@ -99,7 +94,6 @@
   <treeNodeMethodSatellite value="preset"/>
   <mergerTreeBuildMassDistributionMethod value="uniform"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
-  <conditionalMassFunctionBehrooziSigmaLogMstar value="0.158558523426"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
@@ -115,8 +109,6 @@
   <reionizationSuppressionOpticalDepth value="0.0883790456"/>
   <accretionHaloMethod value="simple"/>
   <hdf5CompressionLevel value="-1"/>
-  <conditionalMassFunctionBehrooziAlphaSatellite value="0.981019943414"/>
-  <conditionalMassFunctionBehrooziLog10M1 value="12.1440055417"/>
   <imfSelectionMethod value="fixed"/>
   <mergerTreeOutput>
     <outputReferences value="false"/>
@@ -132,10 +124,8 @@
   <imfChabrierYieldInstantaneous value="0.035"/>
   <imfSelectionFixed value="Chabrier"/>
   <treeNodeMethodHotHalo value="verySimple"/>
-  <conditionalMassFunctionBehrooziBetaCut value="-1.76747815862"/>
   <timestepHostRelative value="0.1"/>
   <randomSeed value="828"/>
-  <conditionalMassFunctionBehrooziBCut value="87.509076382"/>
   <starFormationFeedbackDisksMethod value="haloScaling">
     <fraction value="1.0"/>
     <exponentVelocity value="-3.0"/>
@@ -148,7 +138,6 @@
   </coolingRateMethod>
   <treeNodeMethodSpin value="null"/>
   <treeNodeMethodPosition value="preset"/>
-  <conditionalMassFunctionBehrooziLog10Mstar0 value="10.5980300058"/>
   <outputRedshifts value="0.0700"/>
   <coolingRadiusMethod value="isothermal"/>
   <timestepHostAbsolute value="1.0"/>
