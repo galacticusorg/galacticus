@@ -39,15 +39,16 @@ contains
     !% Computes the mass within a given radius for the cold mode hot halo component.
     use Galactic_Structure_Options
     use Galacticus_Nodes
-    use Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii
+    use Hot_Halo_Cold_Mode_Density_Core_Radii
     implicit none
-    type            (treeNode            ), intent(inout)           :: thisNode
-    integer                               , intent(in   )           :: componentType, massType   , &
-         &                                                             weightBy     , weightIndex
-    double precision                      , intent(in   )           :: radius
-    logical                               , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
-    double precision                                                :: radiusOuter  , radiusCore
+    type            (treeNode                     ), intent(inout)           :: thisNode
+    integer                                        , intent(in   )           :: componentType            , massType   , &
+         &                                                                      weightBy                 , weightIndex
+    double precision                               , intent(in   )           :: radius
+    logical                                        , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentHotHalo         )               , pointer  :: thisHotHalo
+    class           (hotHaloColdModeCoreRadiiClass)               , pointer  :: hotHaloColdModeCoreRadii_
+    double precision                                                         :: radiusOuter              , radiusCore
     !GCC$ attributes unused :: haloLoaded, weightIndex
     
     ! Return zero mass if the requested mass type or component is not matched.
@@ -68,7 +69,8 @@ contains
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    radiusCore  =  Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
+    hotHaloColdModeCoreRadii_ => hotHaloColdModeCoreRadii        (        )
+    radiusCore                =  hotHaloColdModeCoreRadii_%radius(thisNode)
     ! Initialize the mass profile
     coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
     ! Compute the enclosed mass.
@@ -139,16 +141,17 @@ contains
     use Galacticus_Nodes
     use Galactic_Structure_Options
     use Coordinates
-    use Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radii
+    use Hot_Halo_Cold_Mode_Density_Core_Radii
     implicit none
-    type            (treeNode            ), intent(inout)           :: thisNode
-    integer                               , intent(in   )           :: componentType       , massType   , &
-         &                                                             weightBy            , weightIndex
-    double precision                      , intent(in   )           :: positionSpherical(3)
-    logical                               , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentHotHalo)               , pointer  :: thisHotHalo
-    type            (coordinateSpherical )                          :: position
-    double precision                                                :: radiusOuter         , radiusCore
+    type            (treeNode                     ), intent(inout)           :: thisNode
+    integer                                        , intent(in   )           :: componentType             , massType   , &
+         &                                                                      weightBy                 , weightIndex
+    double precision                               , intent(in   )           :: positionSpherical(3)
+    logical                                        , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentHotHalo         )               , pointer  :: thisHotHalo
+    class           (hotHaloColdModeCoreRadiiClass)               , pointer  :: hotHaloColdModeCoreRadii_
+    type            (coordinateSpherical          )                          :: position
+    double precision                                                         :: radiusOuter              , radiusCore
     !GCC$ attributes unused :: haloLoaded, weightIndex
 
     Node_Component_Hot_Halo_Cold_Mode_Density_Task=0.0d0
@@ -163,7 +166,8 @@ contains
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    radiusCore  =  Hot_Halo_Cold_Mode_Density_Cored_Isothermal_Core_Radius(thisNode)
+    hotHaloColdModeCoreRadii_ => hotHaloColdModeCoreRadii        (        )
+    radiusCore                =  hotHaloColdModeCoreRadii_%radius(thisNode)
     ! Initialize the mass profile
     coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
     ! Compute the density.
