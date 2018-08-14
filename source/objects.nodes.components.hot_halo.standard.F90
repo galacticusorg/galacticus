@@ -1065,13 +1065,15 @@ contains
     implicit none
     class           (nodeComponentHotHaloStandard    ), intent(inout) :: self
     type            (treeNode                        ), pointer       :: node
+    class           (hotHaloRamPressureStrippingClass), pointer       :: hotHaloRamPressureStripping_
     class           (hotHaloRamPressureTimescaleClass), pointer       :: hotHaloRamPressureTimescale_
     double precision                                                  :: ramPressureRadius           , outerRadius
 
     ! Compute the outer radius growth rate if necessary.
     if (.not.gotOuterRadiusGrowthRate) then
-       node          => self%hostNode
-       ramPressureRadius =  Hot_Halo_Ram_Pressure_Stripping_Radius(node)
+       hotHaloRamPressureStripping_ => hotHaloRamPressureStripping                (    )
+       node                         => self                        %hostNode
+       ramPressureRadius            =  hotHaloRamPressureStripping_%radiusStripped(node)
        outerRadius       =  self%outerRadius()
        ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
        if     (                                           &

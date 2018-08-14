@@ -16,44 +16,70 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null hot halo ram pressure stripping calculation, by simply returning the virial radius as
-!% the ram pressure stripping radius.
+  !% Implements a class for ram pressure stripping which simply returns the virial radius.
 
-module Hot_Halo_Ram_Pressure_Stripping_Virial_Radii
-  !% Implements a null hot halo ram pressure stripping calculation, by simply returning the virial radius as the ram pressure
-  !% stripping radius.
-  implicit none
-  private
-  public :: Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize
+  use Dark_Matter_Halo_Scales
+
+  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius" defaultThreadPrivate="yes">
+  !#  <description>A hot halo ram pressure stripping class which simply returns the virial radius.</description>
+  !# </hotHaloRamPressureStripping>
+  type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingVirialRadius
+     !% Implementation of a hot halo ram pressure stripping class which simply returns the virial radius.
+     private
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+   contains
+     final     ::                   virialRadiusDestructor
+     procedure :: radiusStripped => virialRadiusRadiusStripped
+  end type hotHaloRamPressureStrippingVirialRadius
+
+  interface hotHaloRamPressureStrippingVirialRadius
+     !% Constructors for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class.
+     module procedure virialRadiusConstructorParameters
+     module procedure virialRadiusConstructorInternal
+  end interface hotHaloRamPressureStrippingVirialRadius
 
 contains
-
-  !# <hotHaloRamPressureStrippingMethod>
-  !#  <unitName>Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize</unitName>
-  !# </hotHaloRamPressureStrippingMethod>
-  subroutine Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize(hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Get)
-    !% Initializes the ``virial radius'' hot halo ram pressure stripping module.
-    use ISO_Varying_String
+  
+  function virialRadiusConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class which builds the object from a parameter set.
+    use Input_Parameters
     implicit none
-    type     (varying_string                               ), intent(in   )          :: hotHaloRamPressureStrippingMethod
-    procedure(Hot_Halo_Ram_Pressure_Stripping_Virial_Radius), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Stripping_Get
+    type (hotHaloRamPressureStrippingVirialRadius)                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
 
-    if (hotHaloRamPressureStrippingMethod == 'virialRadius') Hot_Halo_Ram_Pressure_Stripping_Get => Hot_Halo_Ram_Pressure_Stripping_Virial_Radius
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=hotHaloRamPressureStrippingVirialRadius(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize
+  end function virialRadiusConstructorParameters
 
-  double precision function Hot_Halo_Ram_Pressure_Stripping_Virial_Radius(thisNode)
-    !% Computes the hot halo ram pressure stripping radius, assuming a null calculation in which that radius always equals the
-    !% virial radius.
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
+  function virialRadiusConstructorInternal(darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class.
     implicit none
-    type (treeNode                ), intent(inout), target :: thisNode
-    class(darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
+    type (hotHaloRamPressureStrippingVirialRadius)                        :: self
+    class(darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    Hot_Halo_Ram_Pressure_Stripping_Virial_Radius=darkMatterHaloScale_%virialRadius(thisNode)
     return
-  end function Hot_Halo_Ram_Pressure_Stripping_Virial_Radius
+  end function virialRadiusConstructorInternal
 
-end module Hot_Halo_Ram_Pressure_Stripping_Virial_Radii
+  subroutine virialRadiusDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily virialRadius} hot halo ram pressure stripping class.
+    implicit none
+    type(hotHaloRamPressureStrippingVirialRadius), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine virialRadiusDestructor
+
+  double precision function virialRadiusRadiusStripped(self,node)
+    !% Return the ram pressure stripping radius which is assumed to be equal to the virial radius.
+    implicit none
+    class(hotHaloRamPressureStrippingVirialRadius), intent(inout), target :: self
+    type (treeNode                               ), intent(inout), target :: node
+ 
+    virialRadiusRadiusStripped=self%darkMatterHaloScale_%virialRadius(node)
+    return
+  end function virialRadiusRadiusStripped
