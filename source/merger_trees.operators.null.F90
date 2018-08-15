@@ -61,7 +61,7 @@ contains
   subroutine nullOperate(self,tree)
     !% Perform a null operation on a merger tree.
     implicit none
-    class(mergerTreeOperatorNull), intent(inout)         :: self
+    class(mergerTreeOperatorNull), intent(inout), target :: self
     type (mergerTree            ), intent(inout), target :: tree
     !GCC$ attributes unused :: self, tree
 

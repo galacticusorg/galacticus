@@ -98,12 +98,12 @@
   
 contains
 
-  function nbodyErrorsConstructorParameters(parameters)
+  function nbodyErrorsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin
     !% distribution class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type            (haloSpinDistributionNbodyErrors)                :: nbodyErrorsConstructorParameters
+    type            (haloSpinDistributionNbodyErrors)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (haloSpinDistributionClass      ), pointer       :: distributionIntrinsic
     class           (nbodyHaloMassErrorClass        ), pointer       :: nbodyHaloMassError_
@@ -152,8 +152,8 @@ contains
     !# <objectBuilder class="nbodyHaloMassError"   name="nbodyHaloMassError_"   source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="haloMassFunction"     name="haloMassFunction_"     source="parameters"/>
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    darkMatterProfile_   => darkMatterProfile  ()
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
     ! Find the time corresponding to the given redshift.
     time=  cosmologyFunctions_ %cosmicTime                 (          &
          &  cosmologyFunctions_%expansionFactorFromRedshift (         &
@@ -162,25 +162,25 @@ contains
          &                                                 )
     !# <objectDestructor name="cosmologyFunctions_"/>
     ! Construct the object.
-    nbodyErrorsConstructorParameters=nbodyErrorsConstructorInternal(                                    &
-         &                                                          distributionIntrinsic             , &
-         &                                                          massParticle                      , &
-         &                                                          particleCountMinimum              , &
-         &                                                          energyEstimateParticleCountMaximum, &
-         &                                                          time                              , &
-         &                                                          nbodyHaloMassError_               , &
-         &                                                          haloMassFunction_                 , &
-         &                                                          darkMatterHaloScale_              , &
-         &                                                          darkMatterProfile_                  &
-         &                                                         )
+    self=nbodyErrorsConstructorInternal(                                    &
+         &                              distributionIntrinsic             , &
+         &                              massParticle                      , &
+         &                              particleCountMinimum              , &
+         &                              energyEstimateParticleCountMaximum, &
+         &                              time                              , &
+         &                              nbodyHaloMassError_               , &
+         &                              haloMassFunction_                 , &
+         &                              darkMatterHaloScale_              , &
+         &                              darkMatterProfile_                  &
+         &                             )
     !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyErrorsConstructorParameters
 
-  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_)
+  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
     implicit none
-    type            (haloSpinDistributionNbodyErrors)                        :: nbodyErrorsConstructorInternal
+    type            (haloSpinDistributionNbodyErrors)                        :: self
     class           (haloSpinDistributionClass      ), intent(in   ), target :: distributionIntrinsic
     class           (nbodyHaloMassErrorClass        ), intent(in   ), target :: nbodyHaloMassError_
     class           (haloMassFunctionClass          ), intent(in   ), target :: haloMassFunction_
@@ -189,23 +189,14 @@ contains
     double precision                                 , intent(in   )         :: massParticle                      , time, &
          &                                                                      energyEstimateParticleCountMaximum
     integer                                          , intent(in   )         :: particleCountMinimum
-    
-    ! Store properties.
-    nbodyErrorsConstructorInternal%distributionIntrinsic               => distributionIntrinsic
-    nbodyErrorsConstructorInternal%nbodyHaloMassError_                 => nbodyHaloMassError_
-    nbodyErrorsConstructorInternal%haloMassFunction_                   => haloMassFunction_
-    nbodyErrorsConstructorInternal%darkMatterHaloScale_                => darkMatterHaloScale_
-    nbodyErrorsConstructorInternal%darkMatterProfile_                  => darkMatterProfile_
-    nbodyErrorsConstructorInternal%massParticle                        =  massParticle
-    nbodyErrorsConstructorInternal%particleCountMinimum                =  particleCountMinimum
-    nbodyErrorsConstructorInternal%energyEstimateParticleCountMaximum  =  energyEstimateParticleCountMaximum
-    nbodyErrorsConstructorInternal%time                                =  time
+    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfile_"/>
+
     ! Set default ranges of spin and mass for tabulation.
-    nbodyErrorsConstructorInternal%fixedPoint =.false.
-    nbodyErrorsConstructorInternal%spinMinimum=nbodyErrorsSpinMinimum
-    nbodyErrorsConstructorInternal%spinMaximum=nbodyErrorsSpinMaximum
-    nbodyErrorsConstructorInternal%massMinimum=nbodyErrorsMassMinimum
-    nbodyErrorsConstructorInternal%massMaximum=nbodyErrorsMassMaximum
+    self%fixedPoint =.false.
+    self%spinMinimum=nbodyErrorsSpinMinimum
+    self%spinMaximum=nbodyErrorsSpinMaximum
+    self%massMinimum=nbodyErrorsMassMinimum
+    self%massMaximum=nbodyErrorsMassMaximum
     return
   end function nbodyErrorsConstructorInternal
 
@@ -762,6 +753,8 @@ contains
     !# <objectDestructor name="self%distributionIntrinsic"/>
     !# <objectDestructor name="self%nbodyHaloMassError_"  />
     !# <objectDestructor name="self%haloMassFunction_"    />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfile_"   />
     return
   end subroutine nbodyErrorsDestructor
 

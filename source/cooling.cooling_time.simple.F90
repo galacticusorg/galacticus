@@ -19,6 +19,7 @@
   !% Implementation of a simple cooling time class.
 
   use Cooling_Functions
+  use Chemical_States
   
   !# <coolingTime name="coolingTimeSimple" defaultThreadPrivate="yes">
   !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
@@ -27,6 +28,7 @@
      !% Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
      private
      class           (coolingFunctionClass), pointer :: coolingFunction_
+     class           (chemicalStateClass  ), pointer :: chemicalState_
      double precision                                :: degreesOfFreedom
    contains
      final     ::                                   simpleDestructor
@@ -50,6 +52,7 @@ contains
     type            (coolingTimeSimple   )                :: self
     type            (inputParameters     ), intent(inout) :: parameters
     class           (coolingFunctionClass), pointer       :: coolingFunction_
+    class           (chemicalStateClass  ), pointer       :: chemicalState_
     double precision                                      :: degreesOfFreedom
     
     !# <inputParameter>
@@ -61,18 +64,20 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="coolingFunction" name="coolingFunction_" source="parameters"/>
-    self=coolingTimeSimple(degreesOfFreedom,coolingFunction_)
+    !# <objectBuilder class="chemicalState"   name="chemicalState_"   source="parameters"/>
+    self=coolingTimeSimple(degreesOfFreedom,coolingFunction_,chemicalState_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(degreesOfFreedom,coolingFunction_) result(self)
+  function simpleConstructorInternal(degreesOfFreedom,coolingFunction_,chemicalState_) result(self)
     !% Internal constructor for the simple cooling time class.
     implicit none
     type            (coolingTimeSimple   )                        :: self
     double precision                      , intent(in   )         :: degreesOfFreedom
     class           (coolingFunctionClass), intent(in   ), target :: coolingFunction_
-    !# <constructorAssign variables="degreesOfFreedom, *coolingFunction_"/>
+    class           (chemicalStateClass  ), intent(in   ), target :: chemicalState_
+    !# <constructorAssign variables="degreesOfFreedom, *coolingFunction_, *chemicalState_"/>
     
     return
   end function simpleConstructorInternal
@@ -83,6 +88,7 @@ contains
     type(coolingTimeSimple), intent(inout) :: self
 
     !# <objectDestructor name="self%coolingFunction_"/>
+    !# <objectDestructor name="self%chemicalState_"  />
     return
   end subroutine simpleDestructor
 
@@ -91,21 +97,17 @@ contains
     !% Mpc$^{-3}$), composition specified by {\normalfont \ttfamily gasAbundances} and experiencing a radiation field as described by {\normalfont \ttfamily radiation}.
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
-    use Chemical_States
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     double precision                      , intent(in   ) :: density                       , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     type            (radiationStructure  ), intent(in   ) :: radiation
-    class           (chemicalStateClass  ), pointer       :: chemicalState_
     ! Effectively infinite time (for arbitrarily long cooling times).
     double precision                      , parameter     :: timeLarge              =1.0d10
     double precision                                      :: coolingFunctionValue          , energyDensityThermal , &
          &                                                   numberDensityAllSpecies       , numberDensityHydrogen
 
-    ! Get required objects.
-    chemicalState_         =>  chemicalState()
     ! Compute number density of hydrogen (in cm⁻³).
     numberDensityHydrogen  =  +density                                    &
          &                    *gasAbundances   %hydrogenMassFraction()    &
@@ -116,7 +118,7 @@ contains
     ! Get the number density of all species, including electrons.
     numberDensityAllSpecies=+                                           numberDensityHydrogen                                                        &
          &                  /     gasAbundances %hydrogenNumberFraction(                                                                           ) &
-         &                  +     chemicalState_%electronDensity       (numberDensityHydrogen,temperature,gasAbundances                  ,radiation)
+         &                  +self%chemicalState_%electronDensity       (numberDensityHydrogen,temperature,gasAbundances                  ,radiation)
     ! Get the cooling function (in ergs cm⁻³ s⁻¹).
     coolingFunctionValue   =+self%coolingFunction_%coolingFunction     (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     ! Compute the cooling time.

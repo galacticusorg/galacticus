@@ -95,7 +95,7 @@ contains
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none
-    class  (mergerTreeOperatorPruneHierarchy), intent(inout)          :: self
+    class  (mergerTreeOperatorPruneHierarchy), intent(inout), target  :: self
     type   (mergerTree                      ), intent(inout), target  :: tree
     type   (mergerTree                      )               , pointer :: treeCurrent
     type   (treeNode                        )               , pointer :: node          , nodePrevious, &

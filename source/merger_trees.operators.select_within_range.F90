@@ -92,7 +92,7 @@ contains
     !% Perform a select-within-range operation on a merger tree.
     use Merger_Trees_Pruning_Utilities
     implicit none
-    class  (mergerTreeOperatorSelectWithinRange), intent(inout)         :: self
+    class  (mergerTreeOperatorSelectWithinRange), intent(inout), target :: self
     type   (mergerTree                         ), intent(inout), target :: tree
     type   (treeNode                           ), pointer               :: baseNode     , nodeNext
     class  (nodeComponentBasic                 ), pointer               :: baseNodeBasic

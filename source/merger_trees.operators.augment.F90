@@ -311,26 +311,26 @@ contains
     use               Merger_Tree_Walkers
     use               Sort
     implicit none
-    class           (mergerTreeOperatorAugment    ), intent(inout)                :: self
-    type            (mergerTree                   ), intent(inout ), target       :: tree
-    type            (treeNode                     ), pointer                      :: node
-    class           (nodeComponentBasic           ), pointer                      :: basic
-    type            (mergerTree                   ), pointer                      :: treeCurrent
-    type            (treeNodeList                 ), allocatable   , dimension(:) :: anchorNodes
-    double precision                               , allocatable   , dimension(:) :: anchorTimes
-    integer         (c_size_t                     ), allocatable   , dimension(:) :: anchorIndex
-    type            (varying_string               )                               :: message
-    type            (mergerTree                   )                               :: treeBest
-    type            (mergerTreeWalkerIsolatedNodes)                               :: treeWalker
-    integer                                                                       :: nodeCount                     , i                             , &
-         &                                                                           retryCount                    , treeBuilt                     , &
-         &                                                                           attemptsRemaining             , rescaleCount                  , &
-         &                                                                           massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining
-    double precision                                                              :: tolerance                     , treeBestWorstFit              , &
-         &                                                                           massCutoffScale               , massOvershootScale
-    logical                                                                       :: treeBestOverride              , treeNewHasNodeAboveResolution , &
-         &                                                                           treeBestHasNodeAboveResolution, newRescale                    , &
-         &                                                                           nodeBranches
+    class           (mergerTreeOperatorAugment    ), intent(inout), target       :: self
+    type            (mergerTree                   ), intent(inout), target       :: tree
+    type            (treeNode                     ), pointer                     :: node
+    class           (nodeComponentBasic           ), pointer                     :: basic
+    type            (mergerTree                   ), pointer                     :: treeCurrent
+    type            (treeNodeList                 ), allocatable  , dimension(:) :: anchorNodes
+    double precision                               , allocatable  , dimension(:) :: anchorTimes
+    integer         (c_size_t                     ), allocatable  , dimension(:) :: anchorIndex
+    type            (varying_string               )                              :: message
+    type            (mergerTree                   )                              :: treeBest
+    type            (mergerTreeWalkerIsolatedNodes)                              :: treeWalker
+    integer                                                                      :: nodeCount                     , i                             , &
+         &                                                                          retryCount                    , treeBuilt                     , &
+         &                                                                          attemptsRemaining             , rescaleCount                  , &
+         &                                                                          massCutoffAttemptsRemaining   , massOvershootAttemptsRemaining
+    double precision                                                             :: tolerance                     , treeBestWorstFit              , &
+         &                                                                          massCutoffScale               , massOvershootScale
+    logical                                                                      :: treeBestOverride              , treeNewHasNodeAboveResolution , &
+         &                                                                          treeBestHasNodeAboveResolution, newRescale                    , &
+         &                                                                          nodeBranches
     
     ! Iterate over all linked trees in this forest.
     call Galacticus_Display_Indent('Augmenting merger tree',verbosityWorking)

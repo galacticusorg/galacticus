@@ -48,11 +48,13 @@ contains
     !% list as input.
     use Input_Parameters
     implicit none
-    type(satelliteOrphanDistributionTraceDarkMatter)                :: self
-    type(inputParameters                           ), intent(inout) :: parameters
+    type (satelliteOrphanDistributionTraceDarkMatter)                :: self
+    type (inputParameters                           ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
 
     ! Check and read parameters.
-    !# <objectBuilder class="darkMatterHaloScale" name="self%darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function traceDarkMatterConstructorParameters
@@ -62,8 +64,8 @@ contains
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                        :: self
     class(darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
-    self%darkMatterHaloScale_ => darkMatterHaloScale_
     return
   end function traceDarkMatterConstructorInternal
 
@@ -112,16 +114,12 @@ contains
 
   double precision function traceDarkMatterVelocityDispersion(self,node)
     !% Return the velocity dispersion of the orphan satellite population.
-    use Dark_Matter_Halo_Scales
     implicit none
     class(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
     type (treeNode                                  ), intent(inout) :: node
     type (treeNode                                  ), pointer       :: nodeHost
-    class(darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
-    !GCC$ attributes unused :: self
 
-    nodeHost                          => node                %parent
-    darkMatterHaloScale_              => darkMatterHaloScale                (    )
-    traceDarkMatterVelocityDispersion =  darkMatterHaloScale_%virialVelocity(node)
+    nodeHost                          => node                     %parent
+    traceDarkMatterVelocityDispersion =  self%darkMatterHaloScale_%virialVelocity(node)
     return
   end function traceDarkMatterVelocityDispersion

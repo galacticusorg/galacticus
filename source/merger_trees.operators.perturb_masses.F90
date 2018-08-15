@@ -90,7 +90,7 @@ contains
     use            :: Linear_Algebra
     use            :: Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorPerturbMasses), intent(inout)                 :: self
+    class           (mergerTreeOperatorPerturbMasses), intent(inout), target         :: self
     type            (mergerTree                     ), intent(inout), target         :: tree
     type            (treeNode                       ), pointer                       :: node                      , nodeChild1                  , &
          &                                                                              nodeChild2

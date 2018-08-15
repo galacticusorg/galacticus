@@ -66,7 +66,7 @@ contains
     !% Perform a mass growth monotonizing operation on a merger tree.
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout)         :: self
+    class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout), target :: self
     type            (mergerTree                            ), intent(inout), target :: tree
     type            (treeNode                              ), pointer               :: nodeProgenitor          , node
     class           (nodeComponentBasic                    ), pointer               :: basicProgenitor, basic

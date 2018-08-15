@@ -19,7 +19,8 @@
   !% Implementation of a cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
 
   use Math_Exponentiation
-  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
+  use Cosmology_Functions , only : cosmologyFunctionsClass, cosmologyFunctions
+  use Dark_Matter_Profiles
 
   !# <coolingRate name="coolingRateVelocityMaximumScaling" defaultThreadPrivate="yes">
   !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
@@ -28,6 +29,7 @@
      !% Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
      ! Parameters controlling the cooling rate.
      double precision                                   :: timescale                         , exponentRedshift              , &
           &                                                widthCutOff                       , velocityCutOff                , &
@@ -60,6 +62,7 @@ contains
     type            (coolingRateVelocityMaximumScaling)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
     double precision                                                   :: timeScale          , timescaleMinimum              , &
          &                                                                exponentRedshift   , exponentVelocity              , &
          &                                                                velocityCutOff     , velocityCutOffExponentRedshift, &
@@ -130,12 +133,13 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_)
+    !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
+    self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function velocityMaximumScalingConstructorParameters
 
-  function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_) result(self)
+  function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_) result(self)
     !% Internal constructor for the velocity maximum scaling cooling rate class.
     use Galacticus_Error
     use Array_Utilities
@@ -146,9 +150,10 @@ contains
          &                                                                        velocityCutOff               , velocityCutOffExponentRedshift, &
          &                                                                        widthCutOff                  , exponentCutOff
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterProfileClass           ), intent(in   ), target :: darkMatterProfile_
     double precision                                   , parameter             :: velocityNormalization=200.0d0
-
-    !# <constructorAssign variables="timeScale, timescaleMinimum, exponentRedshift, exponentVelocity, velocityCutOff, velocityCutOffExponentRedshift, widthCutOff, exponentCutOff, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="timeScale, timescaleMinimum, exponentRedshift, exponentVelocity, velocityCutOff, velocityCutOffExponentRedshift, widthCutOff, exponentCutOff, *cosmologyFunctions_, *darkMatterProfile_"/>
+    
     ! Check that the properties we need are gettable.
     if (.not.defaultHotHaloComponent%massIsGettable())                                                                                  &
          & call Galacticus_Error_Report(                                                                                                &
@@ -196,28 +201,26 @@ contains
     type(coolingRateVelocityMaximumScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%darkMatterProfile_" />
     return
   end subroutine velocityMaximumScalingDestructor
 
   double precision function velocityMaximumScalingRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
-    use Dark_Matter_Profiles
     implicit none
     class           (coolingRateVelocityMaximumScaling), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
     double precision                                   , parameter     :: expArgumentMaximum=100.0d0
     class           (nodeComponentBasic               ), pointer       :: basic
     class           (nodeComponentHotHalo             ), pointer       :: hotHalo
-    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
     double precision                                                   :: expFactor                 , expansionFactor, &
          &                                                                expArgument               , velocityMaximum  
     
     ! Compute expansion factor and maximum velocity.
-    darkMatterProfile_  =>      darkMatterProfile                          (            )
     basic               => node                    %basic                  (            )
     hotHalo             => node                    %hotHalo                (            )
     expansionFactor     =  self%cosmologyFunctions_%expansionFactor        (basic%time())
-    velocityMaximum     =       darkMatterProfile_ %circularVelocityMaximum(node        )
+    velocityMaximum     =  self%darkMatterProfile_ %circularVelocityMaximum(node        )
     if (expansionFactor /= self%expansionFactorPrevious .or. velocityMaximum /= self%velocityMaximumPrevious) then
        expArgument=log10(                                                                       &
             &            +velocityMaximum                                                       &

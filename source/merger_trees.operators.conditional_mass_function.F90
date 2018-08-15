@@ -628,7 +628,7 @@ contains
     use Galacticus_Error
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorConditionalMF), intent(inout)                                  :: self
+    class           (mergerTreeOperatorConditionalMF), intent(inout)                         , target :: self
     type            (mergerTree                     ), intent(inout)                         , target :: tree
     type            (treeNode                       ), pointer                                        :: node                          , nodeChild                 , &
          &                                                                                               nodeParent                    , nodeParentChild           , &

@@ -100,7 +100,7 @@ contains
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none
-    class  (mergerTreeOperatorPruneNonEssential), intent(inout)          :: self
+    class  (mergerTreeOperatorPruneNonEssential), intent(inout), target  :: self
     type   (mergerTree                         ), intent(inout), target  :: tree
     type   (mergerTree                         )               , pointer :: treeCurrent
     type   (treeNode                           )               , pointer :: node          , nodeEssential, &

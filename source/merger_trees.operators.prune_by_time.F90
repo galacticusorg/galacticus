@@ -113,7 +113,7 @@ contains
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorPruneByTime), intent(inout)          :: self
+    class           (mergerTreeOperatorPruneByTime), intent(inout), target  :: self
     type            (mergerTree                   ), intent(inout), target  :: tree
     type            (treeNode                     )               , pointer :: node              , nodeChild   , &
          &                                                                     nodeNew           , nodeNext

@@ -61,7 +61,7 @@ contains
   subroutine deforestOperate(self,tree)
     !% Perform a deforestation operation on a merger tree.
     implicit none
-    class           (mergerTreeOperatorDeforest), intent(inout)         :: self
+    class           (mergerTreeOperatorDeforest), intent(inout), target :: self
     type            (mergerTree                ), intent(inout), target :: tree
     type            (treeNode                  ), pointer               :: baseNode       , nodeNext
     type            (mergerTree                ), pointer               :: currentTree
