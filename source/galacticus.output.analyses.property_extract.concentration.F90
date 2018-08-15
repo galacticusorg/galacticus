@@ -32,6 +32,7 @@
      private
      class(virialDensityContrastClass), pointer :: virialDensityContrast_
    contains
+     final     ::             concentrationDestructor
      procedure :: extract  => concentrationExtract
      procedure :: type     => concentrationType
   end type outputAnalysisPropertyExtractorConcentration
@@ -69,6 +70,15 @@ contains
     return
   end function concentrationConstructorInternal
 
+  subroutine concentrationDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily concentration} output analysis property extractor class.
+    implicit none
+    type(outputAnalysisPropertyExtractorConcentration), intent(inout) :: self
+
+    !# <objectDestructor name="self%virialDensityContrast_"/>
+    return
+  end subroutine concentrationDestructor
+  
   double precision function concentrationExtract(self,node)
     !% Implement a concentration output analysis.
     use Dark_Matter_Profile_Mass_Definitions

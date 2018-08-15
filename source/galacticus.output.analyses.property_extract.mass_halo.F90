@@ -31,6 +31,7 @@
      private
      class(virialDensityContrastClass), pointer :: virialDensityContrast_
    contains
+     final     ::             massHaloDestructor
      procedure :: extract  => massHaloExtract
      procedure :: type     => massHaloType
   end type outputAnalysisPropertyExtractorMassHalo
@@ -68,6 +69,15 @@ contains
     return
   end function massHaloConstructorInternal
 
+  subroutine massHaloDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily mass} output analysis property extractor class.
+    implicit none
+    type(outputAnalysisPropertyExtractorMassHalo), intent(inout) :: self
+
+    !# <objectDestructor name="self%virialDensityContrast_"/>
+    return
+  end subroutine massHaloDestructor
+  
   double precision function massHaloExtract(self,node)
     !% Implement a massHalo output analysis.
     use Dark_Matter_Profile_Mass_Definitions
