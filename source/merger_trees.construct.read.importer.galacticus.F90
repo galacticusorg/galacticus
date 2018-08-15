@@ -20,6 +20,8 @@
 
   use IO_HDF5
   use Stateful_Types
+  use Halo_Mass_Functions
+  use Cosmology_Functions
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
@@ -32,28 +34,30 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type            (hdf5Object     )                            :: file                    , forestHalos
-     type            (statefulInteger)                            :: hasSubhalos             , areSelfContained              , &
-          &                                                          includesHubbleFlow      , periodicPositions             , &
-          &                                                          lengthStatus
-     type            (statefulLogical)                            :: massesAreInclusive      , angularMomentaAreInclusive
-     type            (statefulDouble )                            :: length
-     type            (importerUnits  )                            :: massUnit                , lengthUnit                    , &
-          &                                                          timeUnit                , velocityUnit
-     logical                                                      :: fatalMismatches         , forestIndicesRead             , &
-          &                                                          angularMomentaIsScalar  , angularMomentaIsVector        , &
-          &                                                          spinIsScalar            , spinIsVector                  , &
-          &                                                          reweightTrees
-     integer                                                      :: forestsCount            , formatVersion
-     integer                          , allocatable, dimension(:) :: firstNodes              , nodeCounts
-     integer         (kind=kind_int8 ), allocatable, dimension(:) :: forestIndices
-     double precision                 , allocatable, dimension(:) :: weights
-     type            (hdf5Object     )                            :: particles
-     integer                                                      :: particleEpochType
-     type            (varying_string )                            :: particleEpochDataSetName
-     character       (len=32         )                            :: forestHalosGroupName    , forestContainmentAttributeName, &
-          &                                                          forestIndexGroupName    , forestIndexDatasetName        , &
-          &                                                          forestWeightDatasetName
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (haloMassFunctionClass  ), pointer                   :: haloMassFunction_
+     type            (hdf5Object             )                            :: file                    , forestHalos
+     type            (statefulInteger        )                            :: hasSubhalos             , areSelfContained              , &
+          &                                                                  includesHubbleFlow      , periodicPositions             , &
+          &                                                                  lengthStatus
+     type            (statefulLogical        )                            :: massesAreInclusive      , angularMomentaAreInclusive
+     type            (statefulDouble         )                            :: length
+     type            (importerUnits          )                            :: massUnit                , lengthUnit                    , &
+          &                                                                  timeUnit                , velocityUnit
+     logical                                                              :: fatalMismatches         , forestIndicesRead             , &
+          &                                                                  angularMomentaIsScalar  , angularMomentaIsVector        , &
+          &                                                                  spinIsScalar            , spinIsVector                  , &
+          &                                                                  reweightTrees
+     integer                                                              :: forestsCount            , formatVersion
+     integer                                  , allocatable, dimension(:) :: firstNodes              , nodeCounts
+     integer         (kind=kind_int8         ), allocatable, dimension(:) :: forestIndices
+     double precision                         , allocatable, dimension(:) :: weights
+     type            (hdf5Object             )                            :: particles
+     integer                                                              :: particleEpochType
+     type            (varying_string         )                            :: particleEpochDataSetName
+     character       (len=32                 )                            :: forestHalosGroupName    , forestContainmentAttributeName, &
+          &                                                                  forestIndexGroupName    , forestIndexDatasetName        , &
+          &                                                                  forestWeightDatasetName
    contains
      final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
@@ -107,7 +111,9 @@ contains
     implicit none
     type   (mergerTreeImporterGalacticus)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
-    logical                                              :: fatalMismatches, reweightTrees
+    class  (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    class  (haloMassFunctionClass       ), pointer       :: haloMassFunction_
+    logical                                              :: fatalMismatches    , reweightTrees
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
@@ -125,17 +131,21 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
-    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"   name="haloMassFunction_"   source="parameters"/>
+    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_)
     !# <inputParametersValidate source="parameters"/>  
     return
   end function galacticusConstructorParameters
 
-  function galacticusConstructorInternal(fatalMismatches,reweightTrees) result(self)
+  function galacticusConstructorInternal(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_) result(self)
     !% Internal constructor for the \glc\ format merger tree importer.
     implicit none
-    type   (mergerTreeImporterGalacticus)                :: self
-    logical                              , intent(in   ) :: fatalMismatches, reweightTrees
-    !# <constructorAssign variables="fatalMismatches, reweightTrees"/>
+    type   (mergerTreeImporterGalacticus)                         :: self
+    logical                              , intent(in   )          :: fatalMismatches    , reweightTrees
+    class  (cosmologyFunctionsClass     ), intent(in   ), pointer :: cosmologyFunctions_
+    class  (haloMassFunctionClass       ), intent(in   ), pointer :: haloMassFunction_
+    !# <constructorAssign variables="fatalMismatches, reweightTrees, *cosmologyFunctions_, *haloMassFunction_"/>
     
     self%hasSubhalos       %isSet=.false.
     self%massesAreInclusive%isSet=.false.
@@ -146,12 +156,14 @@ contains
     self%forestIndicesRead       =.false.
     return
   end function galacticusConstructorInternal
-  
+
   subroutine galacticusDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%haloMassFunction_"  />
     !$ call hdf5Access%set()
     if (self%file%isOpen()) call self%file%close()
     !$ call hdf5Access%unset()
@@ -611,9 +623,7 @@ contains
     use Galacticus_Error
     use HDF5
     use Sort
-    use Cosmology_Functions
     use Numerical_Constants_Astronomical
-    use Halo_Mass_Functions
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Object                  )                            :: treeIndexGroup
@@ -622,8 +632,6 @@ contains
          &                                                                       nodeTime           , treeTime
     integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex     , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
-    class           (cosmologyFunctionsClass     ), pointer                   :: cosmologyFunctions_
-    class           (haloMassFunctionClass       ), pointer                   :: haloMassFunction_
     integer                                                                   :: i
     integer         (c_size_t                    )                            :: iNode
     double precision                                                          :: massMinimum        , massMaximum
@@ -640,8 +648,6 @@ contains
     hasForestWeights=treeIndexGroup%hasDataset(trim(self%forestWeightDatasetName))
     !$ call hdf5Access%unset()
     if (self%reweightTrees) then
-       cosmologyFunctions_ => cosmologyFunctions()
-       haloMassFunction_   => haloMassFunction  ()
        allocate(self%weights(size(self%firstNodes)))
        allocate(treeMass    (size(self%firstNodes)))
        allocate(treeTime    (size(self%firstNodes)))
@@ -664,14 +670,14 @@ contains
              call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
              ! Convert expansion factors to times.
              do iNode=1,nodeCount(1)
-                nodeTime(iNode)=cosmologyFunctions_%cosmicTime(nodeTime(iNode))
+                nodeTime(iNode)=self%cosmologyFunctions_%cosmicTime(nodeTime(iNode))
              end do
           else if (self%forestHalos%hasDataset("redshift"       )) then
              ! Redshift is present, read it instead.
              call self%forestHalos%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
              ! Convert redshifts to times.
              do iNode=1,nodeCount(1)
-                nodeTime(iNode)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(nodeTime(iNode)))
+                nodeTime(iNode)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(nodeTime(iNode)))
              end do
           else
              call Galacticus_Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})
@@ -703,7 +709,7 @@ contains
              massMaximum=sqrt(treeMass(sortOrder(i))*treeMass(sortOrder(i+1)))
           end if
           ! Get the integral of the halo mass function over this range.
-          self%weights(sortOrder(i))=haloMassFunction_%integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
+          self%weights(sortOrder(i))=self%haloMassFunction_%integrated(treeTime(sortOrder(i)),massMinimum,massMaximum)
        end do
        !$ call hdf5Access%set()
        call treeIndexGroup%readDatasetStatic(trim(self%forestWeightDatasetName),self%weights)
@@ -730,18 +736,15 @@ contains
     use Numerical_Constants_Boolean
     use Numerical_Constants_Astronomical
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                       , intent(in   ) :: i
-    class           (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     double precision                                              :: lengthSimulationBox, timePresent
     integer                                                       :: statusActual
 
     call galacticusForestIndicesRead(self)
     ! Determine the time at present.
-    cosmologyFunctions_ => cosmologyFunctions            (     )
-    timePresent         =  cosmologyFunctions_%cosmicTime(1.0d0)
+    timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0)
     ! Do we have an array of weights for trees?
     if (allocated(self%weights)) then
        ! We do, so simply return the appropriate weight.
@@ -860,14 +863,12 @@ contains
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
     use Galacticus_Error
-    use Cosmology_Functions
     use Numerical_Constants_Astronomical
     implicit none
     class           (mergerTreeImporterGalacticus), intent(inout)                 :: self
     class           (nodeData                    ), intent(in   )                 :: node
     double precision                              , intent(  out), dimension(:  ) :: time
     double precision                              , intent(  out), dimension(:,:) :: position, velocity
-    class           (cosmologyFunctionsClass     ), pointer                       :: cosmologyFunctions_
     integer                                                                       :: i
     
     select type (node)
@@ -879,17 +880,16 @@ contains
        call self%particles%readDatasetStatic("velocity"                         ,velocity,[1_kind_int8,node%particleIndexStart+1],[3_kind_int8,node%particleIndexCount])
        !$ call hdf5Access%unset()
        ! Convert epochs into times.
-       cosmologyFunctions_ => cosmologyFunctions()
        select case (self%particleEpochType)
        case (galacticusParticleEpochTypeTime           )
           time=importerUnitConvert(time,time,self%timeUnit,gigaYear)
        case (galacticusParticleEpochTypeExpansionFactor)
           do i=1,size(time)
-             time(i)=cosmologyFunctions_%cosmicTime(                                                time(i) )
+             time(i)=self%cosmologyFunctions_%cosmicTime(                                                     time(i) )
           end do
        case (galacticusParticleEpochTypeRedshift       )
           do i=1,size(time)
-             time(i)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(time(i)))
+             time(i)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(time(i)))
           end do
        end select
        ! Convert units of position and velocity into Galacticus internal units.
@@ -923,7 +923,6 @@ contains
   subroutine galacticusImport(self,i,nodes,nodeSubset,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,structureOnly,requireNamedReals,requireNamedIntegers)
     !% Import the $i^\mathrm{th}$ merger tree.
     use Memory_Management
-    use Cosmology_Functions
     use HDF5
     use Galacticus_Error
     use Galacticus_Display
@@ -940,7 +939,6 @@ contains
          &                                                                                        structureOnly          , requireSpin          , &
          &                                                                                        requireSpin3D
     type            (varying_string              ), intent(in   ), optional   , dimension(:  ) :: requireNamedReals      , requireNamedIntegers
-    class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctions_
     integer         (hsize_t                     )                            , dimension(1  ) :: firstNodeIndex         , nodeCount
     integer         (c_size_t                    )                                             :: iNode
     integer         (c_size_t                    )               , allocatable, dimension(:  ) :: nodeSubsetOffset
@@ -951,8 +949,6 @@ contains
     integer                                                                                    :: j
     logical                                                                                    :: timesAreInternal       , useNodeSubset
 
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
     ! Ensure tree indices have been read.
     call galacticusForestIndicesRead(self)
     ! Determine the first node index and the node count.
@@ -1014,7 +1010,7 @@ contains
        if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Warn        ("WARNING: some expansion factors are in the future when importing merger tree")
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=cosmologyFunctions_%cosmicTime(nodes(iNode)%nodeTime)
+          nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(nodes(iNode)%nodeTime)
        end do
     else if (self%forestHalos%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
@@ -1028,7 +1024,7 @@ contains
        if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Warn        ("WARNING: some redshifts are in the future when importing merger tree")
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
+          nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
        end do
     else
        call Galacticus_Error_Report("one of time, redshift or expansionFactor data sets must be present in forestHalos group"//{introspection:location})
