@@ -123,7 +123,7 @@
 
   <!-- Ram pressure stripping options -->
   <hotHaloRamPressureStrippingMethod value="virialRadius"/>
-  <satellitesTidalFieldMethod value="null"/>
+  <satelliteTidalFieldMethod value="null"/>
 
   <!-- Galactic structure solver options -->
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
