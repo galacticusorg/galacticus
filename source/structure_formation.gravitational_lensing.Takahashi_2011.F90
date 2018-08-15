@@ -20,20 +20,22 @@
 
   !$ use OMP_Lib
   use Locks
+  use Power_Spectra_Nonlinear
 
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011     
-     logical                                    :: tableInitialized        , cdfInitialized
-     !$ type         (ompReadWriteLock        ) :: lock
-     type            (table1DGeneric          ) :: convergencePDF
-     type            (table1DLogarithmicLinear) :: magnificationCDFTable
-     double precision                           :: redshiftPrevious         , convergenceEmptyBeam                , &
-          &                                        convergenceVariance      , convergenceScale                    , &
-          &                                        convergenceVarianceScaled, convergenceDistributionNormalization, &
-          &                                        aConvergence             , omegaConvergence                    , &
-          &                                        scaleSourcePrevious
+     class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
+     logical                                                :: tableInitialized        , cdfInitialized
+     !$ type         (ompReadWriteLock           )          :: lock
+     type            (table1DGeneric             )          :: convergencePDF
+     type            (table1DLogarithmicLinear   )          :: magnificationCDFTable
+     double precision                                       :: redshiftPrevious         , convergenceEmptyBeam                , &
+          &                                                    convergenceVariance      , convergenceScale                    , &
+          &                                                    convergenceVarianceScaled, convergenceDistributionNormalization, &
+          &                                                    aConvergence             , omegaConvergence                    , &
+          &                                                    scaleSourcePrevious
    contains
      !@ <objectMethods>
      !@   <object>gravitationalLensingTakahashi2011</object>
@@ -50,6 +52,7 @@
      !@     <description>Returns the gravitational lensing convergence probability density function at the given convergence.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                                 takahashi2011Destructor
      procedure :: magnificationPDF             => takahashi2011MagnificationPDF
      procedure :: magnificationCDF             => takahashi2011MagnificationCDF
      procedure :: convergenceDistribution      => takahashi2011ConvergenceDistribution
@@ -78,19 +81,23 @@ contains
     !% Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type(gravitationalLensingTakahashi2011)                :: self
-    type(inputParameters                  ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type (gravitationalLensingTakahashi2011)                :: self
+    type (inputParameters                  ), intent(inout) :: parameters
+    class(powerSpectrumNonlinearClass      ), pointer       :: powerSpectrumNonlinear_
     
-    self=gravitationalLensingTakahashi2011()
+    !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
+    self=gravitationalLensingTakahashi2011(powerSpectrumNonlinear_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function takahashi2011ConstructorParameters
 
-  function takahashi2011ConstructorInternal() result(self)
+  function takahashi2011ConstructorInternal(powerSpectrumNonlinear_) result(self)
     !% Internal for the \cite{takahashi_probability_2011} gravitational lensing class.
     implicit none
-    type(gravitationalLensingTakahashi2011) :: self
-
+    type (gravitationalLensingTakahashi2011)                        :: self
+    class(powerSpectrumNonlinearClass      ), intent(in   ), target :: powerSpectrumNonlinear_
+    !# <constructorAssign variables="*powerSpectrumNonlinear_"/>
+    
     self   %tableInitialized=.false.
     self   %cdfInitialized  =.false.
     self   %redshiftPrevious=-2.0d0
@@ -98,6 +105,15 @@ contains
    return
   end function takahashi2011ConstructorInternal
 
+  subroutine takahashi2011Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily takahasi2011} gravitational lensing class.
+    implicit none
+    type(gravitationalLensingTakahashi2011), intent(inout) :: self
+
+    !# <objectDestructor name="self%powerSpectrumNonlinear_"/>
+    return
+  end subroutine takahashi2011Destructor
+  
   double precision function takahashi2011MagnificationPDF(self,magnification,redshift,scaleSource)
     !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont \ttfamily redshift} using the
     !% \cite{takahashi_probability_2011} formalism.
@@ -695,17 +711,13 @@ contains
     
     double precision function convergenceVariancePowerSpectrumIntegrand(logWavenumber)
       !% Integral over power spectrum used in computing the variance in the gravitational lensing convergence.
-      use Power_Spectra_Nonlinear
       implicit none
-      double precision                             , intent(in   ) :: logWavenumber
-      class           (powerSpectrumNonlinearClass), pointer       :: powerSpectrumNonlinear_
-      double precision                                             :: wavenumber
+      double precision, intent(in   ) :: logWavenumber
+      double precision                :: wavenumber
       
-      ! Get required objects.
-      powerSpectrumNonLinear_ => powerSpectrumNonLinear()
       ! Compute integrand.
       wavenumber=exp(logWavenumber)
-      convergenceVariancePowerSpectrumIntegrand=wavenumber**2*powerSpectrumNonLinear_%value(wavenumber,timeLens)
+      convergenceVariancePowerSpectrumIntegrand=wavenumber**2*self%powerSpectrumNonLinear_%value(wavenumber,timeLens)
       return
     end function convergenceVariancePowerSpectrumIntegrand
 
