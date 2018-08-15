@@ -40,7 +40,7 @@
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
   end interface outputAnalysisPropertyExtractorMassHalo
-
+  
 contains
 
   function massHaloConstructorParameters(parameters) result(self)
@@ -50,12 +50,10 @@ contains
     type (outputAnalysisPropertyExtractorMassHalo)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(virialDensityContrastClass             ), pointer       :: virialDensityContrast_
-    !GCC$ attributes unused :: parameters
 
-    ! Get the default virial density contrast object.
-    virialDensityContrast_ => virialDensityContrast()
-    ! Build the object.
+    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=outputAnalysisPropertyExtractorMassHalo(virialDensityContrast_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function massHaloConstructorParameters
 
