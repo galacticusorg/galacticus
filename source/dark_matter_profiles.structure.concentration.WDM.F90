@@ -21,6 +21,8 @@
   !% An implementation of warm dark matter halo profile concentrations using the
   !% \cite{schneider_non-linear_2012} modifier.
 
+  use Transfer_Functions
+
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationWDM">
   !#  <description>Dark matter halo concentrations are computed using the modifier of \cite{schneider_non-linear_2012}.</description>
   !# </darkMatterProfileConcentration>
@@ -29,6 +31,7 @@
      !% \cite{schneider_non-linear_2012}.
      private
      class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration
+     class(transferFunctionClass              ), pointer :: transferFunction_
    contains
      final     ::                                wdmDestructor
      procedure :: concentration               => wdmConcentration
@@ -45,26 +48,30 @@
 
 contains
 
-  function wdmConstructorParameters(parameters)
+  function wdmConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily wdm} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileConcentrationWDM)                :: wdmConstructorParameters
-    type(inputParameters                  ), intent(inout) :: parameters
+    type (darkMatterProfileConcentrationWDM  )                :: self
+    type (inputParameters                    ), intent(inout) :: parameters
+    class(darkMatterProfileConcentrationClass), pointer       :: cdmConcentration
+    class(transferFunctionClass              ), pointer       :: transferFunction_
 
-    !# <objectBuilder class="darkMatterProfileConcentration" name="wdmConstructorParameters%cdmConcentration" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileConcentration" name="cdmConcentration"  source="parameters"/>
+    !# <objectBuilder class="transferFunction"               name="transferFunction_" source="parameters"/>
+    self=darkMatterProfileConcentrationWDM(cdmConcentration,transferFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function wdmConstructorParameters
 
-  function wdmConstructorInternal(cdmMethod)
+  function wdmConstructorInternal(cdmConcentration,transferFunction_) result(self)
     !% Generic constructor for the \gls{wdm} dark matter halo concentration class.
     implicit none
-    type (darkMatterProfileConcentrationWDM  )                        :: wdmConstructorInternal
-    class(darkMatterProfileConcentrationClass), intent(in   ), target :: cdmMethod
-
-    ! Construct the object.
-    wdmConstructorInternal%cdmConcentration => cdmMethod
+    type (darkMatterProfileConcentrationWDM  )                        :: self
+    class(darkMatterProfileConcentrationClass), intent(in   ), target :: cdmConcentration
+    class(transferFunctionClass              ), intent(in   ), target :: transferFunction_
+    !# <constructorAssign variables="*cdmConcentration, *transferFunction_"/>
+    
     return
   end function wdmConstructorInternal
 
@@ -73,33 +80,30 @@ contains
     implicit none
     type(darkMatterProfileConcentrationWDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%cdmConcentration"/>
+    !# <objectDestructor name="self%cdmConcentration" />
+    !# <objectDestructor name="self%transferFunction_"/>
     return
   end subroutine wdmDestructor
 
   double precision function wdmConcentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
-    use Transfer_Functions
     implicit none
     class           (darkMatterProfileConcentrationWDM), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), pointer :: node
     class           (nodeComponentBasic               )               , pointer :: basic
-    class           (transferFunctionClass            )               , pointer :: transferFunction_
     ! Parameters of Schneider et al. (2012)'s fitting formula.
-    double precision                                   , parameter              :: gamma1           =15.0d0, gamma2=0.3d0
+    double precision                                   , parameter              :: gamma1=15.0d0, gamma2=0.3d0
 
     ! Get required objects.
-    basic             => node            %basic()
-    transferFunction_ => transferFunction      ()
+    basic => node%basic()
     ! Get WDM concentration
-    wdmConcentration=                                         &
-         &  self%cdmConcentration%concentration(node)         &
-         & /(                                                 &
-         &    1.0d0                                           &
-         &   +gamma1                                          &
-         &   *(transferFunction_%halfModeMass()/basic%mass()) &
-         &  )**gamma2
+    wdmConcentration=+self%cdmConcentration%concentration(node)              &
+         &           /(                                                      &
+         &             +1.0d0                                                &
+         &             +gamma1                                               &
+         &             *(self%transferFunction_%halfModeMass()/basic%mass()) &
+         &            )**gamma2
     return
   end function wdmConcentration
 
