@@ -29,6 +29,7 @@ module Merger_Tree_Operators
   !#   <description>Perform an operation on the merger tree.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>type(mergerTree), intent(inout), target :: tree</argument>
   !#  </method>
   !#  <method name="finalize" >

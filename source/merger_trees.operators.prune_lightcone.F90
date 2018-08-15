@@ -130,7 +130,7 @@ contains
     use Merger_Tree_Walkers
     use Histories
     implicit none
-    class           (mergerTreeOperatorPruneLightcone), intent(inout)         :: self
+    class           (mergerTreeOperatorPruneLightcone), intent(inout), target :: self
     type            (mergerTree                      ), intent(inout), target :: tree
     type            (treeNode                        ), pointer               :: node               , nodeNext            , &
          &                                                                       nodeParent

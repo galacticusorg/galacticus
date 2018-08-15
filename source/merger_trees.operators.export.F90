@@ -125,7 +125,7 @@ contains
     use System_Command
     use Cosmological_Density_Field
     implicit none
-    class           (mergerTreeOperatorExport     ), intent(inout)                 :: self
+    class           (mergerTreeOperatorExport     ), intent(inout), target         :: self
     type            (mergerTree                   ), intent(inout), target         :: tree
     integer         (kind=size_t                  ), parameter                     :: hdfChunkSize                   =1024
     integer                                        , parameter                     :: hdfCompressionLevel            =   9

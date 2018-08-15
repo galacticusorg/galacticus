@@ -152,7 +152,7 @@ contains
     use               Galacticus_Error
     use               Galacticus_HDF5
     implicit none
-    class           (mergerTreeOperatorMassAccretionHistory), intent(inout)                 :: self
+    class           (mergerTreeOperatorMassAccretionHistory), intent(inout), target         :: self
     type            (mergerTree                            ), intent(inout), target         :: tree
     type            (treeNode                              )               , pointer        :: node
     integer         (kind=kind_int8                        ), allocatable  , dimension(:  ) :: nodeIndex

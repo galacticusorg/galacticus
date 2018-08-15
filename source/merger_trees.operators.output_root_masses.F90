@@ -121,7 +121,7 @@ contains
     use Galacticus_Error
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorOutputRootMasses)         , intent(inout) :: self
+    class           (mergerTreeOperatorOutputRootMasses), target , intent(inout) :: self
     type            (mergerTree                        ), target , intent(inout) :: tree
     type            (treeNode                          ), pointer                :: node             , nodeChild      , &
          &                                                                          nodeSibling

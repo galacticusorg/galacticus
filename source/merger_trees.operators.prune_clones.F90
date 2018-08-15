@@ -64,7 +64,7 @@ contains
     use Numerical_Comparison
     use Merger_Tree_Walkers
     implicit none
-    class(mergerTreeOperatorPruneClones), intent(inout)         :: self
+    class(mergerTreeOperatorPruneClones), intent(inout), target :: self
     type (mergerTree                   ), intent(inout), target :: tree
     type (treeNode                     ), pointer               :: node      , nodePrevious
     class(nodeComponentBasic           ), pointer               :: basic     , basicPrevious

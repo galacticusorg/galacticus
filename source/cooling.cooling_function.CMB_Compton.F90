@@ -17,14 +17,18 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
-  
-  !# <coolingFunction name="coolingFunctionCMBCompton">
+
+  use Chemical_States, only : chemicalStateClass, chemicalState
+
+  !# <coolingFunction name="coolingFunctionCMBCompton" defaultThreadPrivate="yes">
   !#  <description>Class providing a cooling function due to Compton scattering off of \gls{cmb} photons.</description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
      !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
      private
+     class(chemicalStateClass), pointer :: chemicalState_
    contains
+     final     ::                                       cmbComptonDestructor
      procedure :: coolingFunction                    => cmbComptonCoolingFunction
      procedure :: coolingFunctionTemperatureLogSlope => cmbComptonCoolingFunctionTemperatureLogSlope
      procedure :: coolingFunctionDensityLogSlope     => cmbComptonCoolingFunctionDensityLogSlope
@@ -33,25 +37,47 @@
   interface coolingFunctionCMBCompton
      !% Constructors for the ``CMB Compton'' cooling function class.
      module procedure cmbComptonConstructorParameters
+     module procedure cmbComptonConstructorInternal
   end interface coolingFunctionCMBCompton
 
 contains
 
-  function cmbComptonConstructorParameters(parameters)
+  function cmbComptonConstructorParameters(parameters) result(self)
     !% Constructor for the ``CMB Compton'' cooling function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(coolingFunctionCMBCompton)                :: cmbComptonConstructorParameters
-    type(inputParameters          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
-    
-    cmbComptonConstructorParameters=coolingFunctionCMBCompton()
+    type (coolingFunctionCMBCompton)                :: self
+    type (inputParameters          ), intent(inout) :: parameters
+    class(chemicalStateClass       ), pointer       :: chemicalState_
+
+    !# <objectBuilder class="chemicalState" name="chemicalState_" source="parameters"/>
+    self=coolingFunctionCMBCompton(chemicalState_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function cmbComptonConstructorParameters
-  
+
+  function cmbComptonConstructorInternal(chemicalState_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily cmbCompton} cooling function class.
+    use Input_Parameters
+    implicit none
+    type (coolingFunctionCMBCompton)                        :: self
+    class(chemicalStateClass       ), intent(in   ), target :: chemicalState_
+    !# <constructorAssign variables="*chemicalState_"/>
+
+    return
+  end function cmbComptonConstructorInternal
+
+  subroutine cmbComptonDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily cmbCompton} cooling function class.
+    implicit none
+    type(coolingFunctionCMBCompton), intent(inout) :: self
+
+    !# <objectDestructor name="self%chemicalState_"/>
+    return
+  end subroutine cmbComptonDestructor
+
   double precision function cmbComptonCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function due to Compton scattering off of \gls{cmb} photons.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -63,7 +89,6 @@ contains
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     type            (radiationStructure       ), intent(in   ) :: radiation
-    class           (chemicalStateClass       ), pointer       :: chemicalState_
     double precision                           , parameter     :: comptonRateNormalization=+4.0d0                             &
          &                                                                                 *thomsonCrossSection               &
          &                                                                                 *radiationConstant                 &
@@ -73,24 +98,22 @@ contains
          &                                                                                 /ergs
     !GCC$ attributes unused :: self, chemicalDensities
     
-    ! Get required objects.
-    chemicalState_ => chemicalState()
     ! Compute the Compton cooling rate.
-    cmbComptonCoolingFunction=+comptonRateNormalization                                &
-         &                    *  chemicalState_%electronDensity(                       &
-         &                                                      numberDensityHydrogen, &
-         &                                                      temperature          , &
-         &                                                      gasAbundances        , &
-         &                                                      radiation              &
-         &                                                     )                       &
-         &                    *  radiation     %temperature    (                       &
-         &                                                      [radiationTypeCMB]     &
-         &                                                     )**4                    &
-         &                    *(                                                       &
-         &                      +               temperature                            &
-         &                      -radiation     %temperature    (                       &
-         &                                                      [radiationTypeCMB]     &
-         &                                                     )                       &
+    cmbComptonCoolingFunction=+comptonRateNormalization                                     &
+         &                    *  self%chemicalState_%electronDensity(                       &
+         &                                                           numberDensityHydrogen, &
+         &                                                           temperature          , &
+         &                                                           gasAbundances        , &
+         &                                                           radiation              &
+         &                                                          )                       &
+         &                    *  radiation          %temperature    (                       &
+         &                                                           [radiationTypeCMB]     &
+         &                                                          )**4                    &
+         &                    *(                                                            &
+         &                      +                    temperature                            &
+         &                      -radiation          %temperature    (                       &
+         &                                                           [radiationTypeCMB]     &
+         &                                                          )                       &
          &                     )
     return
   end function cmbComptonCoolingFunction
@@ -98,7 +121,6 @@ contains
   double precision function cmbComptonCoolingFunctionDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
     !% photons.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -108,25 +130,21 @@ contains
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     type            (radiationStructure       ), intent(in   ) :: radiation
-    class           (chemicalStateClass       ), pointer       :: chemicalState_
     !GCC$ attributes unused :: self, chemicalDensities
     
-    ! Get required objects.
-    chemicalState_ => chemicalState()
     ! Slope depends only on the behavior of electron density with density.
-    cmbComptonCoolingFunctionDensityLogSlope=+chemicalState_%electronDensityDensityLogSlope(                       &
-         &                                                                                  numberDensityHydrogen, &
-         &                                                                                  temperature          , &
-         &                                                                                  gasAbundances        , &
-         &                                                                                  radiation              &
-         &                                                                                 )
+    cmbComptonCoolingFunctionDensityLogSlope=+self%chemicalState_%electronDensityDensityLogSlope(                       &
+         &                                                                                       numberDensityHydrogen, &
+         &                                                                                       temperature          , &
+         &                                                                                       gasAbundances        , &
+         &                                                                                       radiation              &
+         &                                                                                      )
     return
   end function cmbComptonCoolingFunctionDensityLogSlope
   
   double precision function cmbComptonCoolingFunctionTemperatureLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
     !% \gls{cmb} photons.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -136,25 +154,22 @@ contains
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
     type            (radiationStructure       ), intent(in   ) :: radiation
-    class           (chemicalStateClass       ), pointer       :: chemicalState_
     !GCC$ attributes unused :: self, chemicalDensities
     
-    ! Get required objects.
-    chemicalState_ => chemicalState()
     ! Compute the logarithmic slope.
-    cmbComptonCoolingFunctionTemperatureLogSlope=                                      &
-         & +  chemicalState_%electronDensityTemperatureLogSlope(                       &
-         &                                                      numberDensityHydrogen, &
-         &                                                      temperature          , &
-         &                                                      gasAbundances        , &
-         &                                                      radiation              &
-         &                                                     )                       &
-         & +                 temperature                                               &
-         & /(                                                                          &
-         &   +               temperature                                               &
-         &   -radiation     %temperature                       (                       &
-         &                                                      [radiationTypeCMB]     &
-         &                                                     )                       &
+    cmbComptonCoolingFunctionTemperatureLogSlope=                                                &
+         & +  self     %chemicalState_%electronDensityTemperatureLogSlope(                       &
+         &                                                                numberDensityHydrogen, &
+         &                                                                temperature          , &
+         &                                                                gasAbundances        , &
+         &                                                                radiation              &
+         &                                                               )                       &
+         & +                           temperature                                               &
+         & /(                                                                                    &
+         &   +                         temperature                                               &
+         &   -radiation               %temperature                       (                       &
+         &                                                                [radiationTypeCMB]     &
+         &                                                               )                       &
          &  )
     return
   end function cmbComptonCoolingFunctionTemperatureLogSlope

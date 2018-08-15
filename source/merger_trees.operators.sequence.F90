@@ -103,7 +103,7 @@ contains
   subroutine sequenceOperate(self,tree)
     !% Perform a sequence operation on a merger tree.
     implicit none
-    class(mergerTreeOperatorSequence), intent(inout)         :: self
+    class(mergerTreeOperatorSequence), intent(inout), target :: self
     type (mergerTree                ), intent(inout), target :: tree
     type (operatorList              ), pointer               :: operator_
 
@@ -118,8 +118,8 @@ contains
   subroutine sequenceFinalize(self)
     !% Perform a finalization on a sequence of operators on a merger tree.
     implicit none
-    class(mergerTreeOperatorSequence), intent(inout)         :: self
-    type (operatorList              ), pointer               :: operator_
+    class(mergerTreeOperatorSequence), intent(inout) :: self
+    type (operatorList              ), pointer       :: operator_
 
     operator_ => self%operators
     do while (associated(operator_))

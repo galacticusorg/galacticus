@@ -85,7 +85,7 @@ contains
     use Kepler_Orbits
     use Merger_Tree_Walkers
     implicit none
-    class  (mergerTreeOperatorAssignOrbits), intent(inout)         :: self
+    class  (mergerTreeOperatorAssignOrbits), intent(inout), target :: self
     type   (mergerTree                    ), intent(inout), target :: tree
     type   (treeNode                      ), pointer               :: node                    , nodeProgenitor       , &
          &                                                            mergee

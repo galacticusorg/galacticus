@@ -249,7 +249,7 @@ contains
     use               Merger_Trees_Dump
     use               Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorRegridTimes), intent(inout)                        :: self
+    class           (mergerTreeOperatorRegridTimes), intent(inout), target                :: self
     type            (mergerTree                   ), intent(inout), target                :: tree
     type            (treeNode                     )                             , pointer :: nodeChild                       , mergee     , &
          &                                                                                   nodeSibling                     , node

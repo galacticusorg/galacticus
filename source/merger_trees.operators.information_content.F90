@@ -103,7 +103,7 @@ contains
     use Memory_Management
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorInformationContent), intent(inout)               :: self
+    class           (mergerTreeOperatorInformationContent), intent(inout), target       :: self
     type            (mergerTree                          ), intent(inout), target       :: tree
     type            (mergerTree                          )               , pointer      :: treeCurrent
     type            (treeNode                            )               , pointer      :: nodeChild                    , node

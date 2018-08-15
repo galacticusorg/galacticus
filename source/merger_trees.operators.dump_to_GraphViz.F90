@@ -124,7 +124,7 @@ contains
     use Galacticus_Nodes
     use Merger_Trees_Dump
     implicit none
-    class(mergerTreeOperatorDumpToGraphViz), intent(inout)         :: self
+    class(mergerTreeOperatorDumpToGraphViz), intent(inout), target :: self
     type (mergerTree                      ), intent(inout), target :: tree
     type (mergerTree                      ), pointer               :: treeCurrent
     class(nodeComponentBasic              ), pointer               :: basicBase

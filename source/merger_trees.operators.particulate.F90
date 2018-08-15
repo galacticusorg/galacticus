@@ -20,6 +20,8 @@
 
   use Cosmology_Parameters
   use Cosmology_Functions
+  use Dark_Matter_Profiles
+  use Dark_Matter_Halo_Scales
   use ISO_Varying_String
   use Kind_Numbers
   use Tables
@@ -32,6 +34,8 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
      type            (varying_string          )          :: outputFileName
      double precision                                    :: massParticle        , radiusTruncateOverRadiusVirial, &
           &                                                 timeSnapshot        , lengthSoftening
@@ -75,37 +79,50 @@
   !# </enumeration>
   
   ! Entries in the energy distribution table.
-  integer                                    , parameter   :: energyDistributionTableDensity        =1
-  integer                                    , parameter   :: energyDistributionTablePotential      =2
-  integer                                    , parameter   :: energyDistributionTableDistribution   =3
-  integer                                    , parameter   :: energyDistributionTableDensitySmoothed=4
-  integer                                    , parameter   :: energyDistributionTableMass           =5
+  integer                                        , parameter   :: energyDistributionTableDensity        =1
+  integer                                        , parameter   :: energyDistributionTablePotential      =2
+  integer                                        , parameter   :: energyDistributionTableDistribution   =3
+  integer                                        , parameter   :: energyDistributionTableDensitySmoothed=4
+  integer                                        , parameter   :: energyDistributionTableMass           =5
 
   ! Tables used in construction of distribution functions.
-  type            (treeNode                 ), pointer     :: particulateNode
-  logical                                                  :: particularEnergyDistributionInitialized
-  class           (table1D                  ), allocatable :: particulateRadiusDistribution
-  type            (table1DLogarithmicCSpline)              :: particulateEnergyDistribution
-  integer                                                  :: particulateSofteningKernel
-  double precision                                         :: particulateEnergy                , particulateRadiusTruncate, &
-       &                                                      particulateHeight                , particulateRadius        , &
-       &                                                      particulateLengthSoftening
-  !$omp threadprivate(particulateRadiusDistribution,particulateEnergyDistribution,particularEnergyDistributionInitialized,particulateEnergy,particulateHeight,particulateRadius)
+  class           (mergerTreeOperatorParticulate), pointer     :: particulateSelf
+  type            (treeNode                     ), pointer     :: particulateNode
+  logical                                                      :: particularEnergyDistributionInitialized
+  class           (table1D                      ), allocatable :: particulateRadiusDistribution
+  type            (table1DLogarithmicCSpline    )              :: particulateEnergyDistribution
+  integer                                                      :: particulateSofteningKernel
+  double precision                                             :: particulateEnergy                , particulateRadiusTruncate, &
+       &                                                          particulateHeight                , particulateRadius        , &
+       &                                                          particulateLengthSoftening
+  !$omp threadprivate(particulateSelf,particulateRadiusDistribution,particulateEnergyDistribution,particularEnergyDistributionInitialized,particulateEnergy,particulateHeight,particulateRadius)
 
 contains
 
-  function particulateConstructorParameters(parameters)
+  function particulateConstructorParameters(parameters) result(self)
     !% Constructor for the particulate merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(mergerTreeOperatorParticulate)                :: particulateConstructorParameters
-    type(inputParameters              ), intent(inout) :: parameters
-    type(varying_string               )                :: selection                       , kernelSoftening
+    type            (mergerTreeOperatorParticulate)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    type            (varying_string               )                :: outputFileName
+    integer         (kind_int8                    )                :: idMultiplier
+    double precision                                               :: massParticle        , radiusTruncateOverRadiusVirial, &
+         &                                                            timeSnapshot        , lengthSoftening
+    logical                                                        :: satelliteOffset     , nonCosmological               , &
+         &                                                            positionOffset      , addHubbleFlow                 , &
+         &                                                            haloIdToParticleType, sampleParticleNumber
+    integer                                                        :: selection           , chunkSize                     , &
+         &                                                            kernelSoftening
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass       ), pointer       :: darkMatterProfile_
+    type            (varying_string               )                :: selectionText           , kernelSofteningText
     
     !# <inputParameter>
     !#   <name>outputFileName</name>
     !#   <source>parameters</source>
-    !#   <variable>particulateConstructorParameters%outputFileName</variable>
     !#   <description>Name of the file to which particle data should be written.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
@@ -114,7 +131,6 @@ contains
     !#   <name>idMultiplier</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0_kind_int8</defaultValue>
-    !#   <variable>particulateConstructorParameters%idMultiplier</variable>
     !#   <description>If this parameter is greater than zero, particle IDs begin at {\normalfont \ttfamily nodeIndex\*[idMultiplier]} for each node. The multiplier should be chosen to be large enough that duplicate IDs can not occur.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -122,7 +138,6 @@ contains
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
-    !#   <variable>particulateConstructorParameters%massParticle</variable>
     !#   <description>Mass of particles to be used to represent halos.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -130,7 +145,6 @@ contains
     !# <inputParameter>
     !#   <name>timeSnapshot</name>
     !#   <source>parameters</source>
-    !#   <variable>particulateConstructorParameters%timeSnapshot</variable>
     !#   <description>The time at which to snapshot the tree.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -138,7 +152,6 @@ contains
     !# <inputParameter>
     !#   <name>radiusTruncateOverRadiusVirial</name>
     !#   <source>parameters</source>
-    !#   <variable>particulateConstructorParameters%radiusTruncateOverRadiusVirial</variable>
     !#   <description>Radius (in units of the virial radius) at which to truncate halo profiles.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -147,7 +160,6 @@ contains
     !#   <name>satelliteOffset</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.true.</defaultValue>
-    !#   <variable>particulateConstructorParameters%satelliteOffset</variable>
     !#   <description>If true, offset particle representations to the positions/velocities of satellites.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -156,7 +168,6 @@ contains
     !#   <name>positionOffset</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <variable>particulateConstructorParameters%positionOffset</variable>
     !#   <description>If true, offset particle representations to the positions/velocities of nodes.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -165,27 +176,26 @@ contains
     !#   <name>selection</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('all')</defaultValue>
-    !#   <variable>selection</variable>
+    !#   <variable>selectionText</variable>
     !#   <description>Selects the type of halo to ouput. Allowed options are ``{\normalfont \ttfamily all}'', ``{\normalfont \ttfamily hosts}'', and ``{\normalfont \ttfamily satellites}''.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    particulateConstructorParameters%selection=enumerationSelectionEncode(char(selection),includesPrefix=.false.)
+    selection=enumerationSelectionEncode(char(selectionText),includesPrefix=.false.)
     !# <inputParameter>
     !#   <name>kernelSoftening</name>
     !#   <source>parameters</source>
     !#   <defaultValue>var_str('plummer')</defaultValue>
-    !#   <variable>kernelSoftening</variable>
+    !#   <variable>kernelSofteningText</variable>
     !#   <description>Selects the softening kernel to use. Allowed options are ``{\normalfont \ttfamily plummer}'', and ``{\normalfont \ttfamily gadget}''.</description>
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    particulateConstructorParameters%kernelSoftening=enumerationParticulateKernelEncode(char(kernelSoftening),includesPrefix=.false.)
+    kernelSoftening=enumerationParticulateKernelEncode(char(kernelSofteningText),includesPrefix=.false.)
     !# <inputParameter>
     !#   <name>nonCosmological</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <variable>particulateConstructorParameters%nonCosmological</variable>
     !#   <description>If true, a non-cosmological snapshot file will be created.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -194,7 +204,6 @@ contains
     !#   <name>addHubbleFlow</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <variable>particulateConstructorParameters%addHubbleFlow</variable>
     !#   <description>If true, Hubble flow will be added to velocity offsets of halos (if applied).</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -203,7 +212,6 @@ contains
     !#   <name>haloIdToParticleType</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <variable>particulateConstructorParameters%haloIdToParticleType</variable>
     !#   <description>If true, the halo ID will be used to assign particles from each halo to a different Gadget particle type group.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -212,7 +220,6 @@ contains
     !#   <name>sampleParticleNumber</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <variable>particulateConstructorParameters%sampleParticleNumber</variable>
     !#   <description>If true, the number of particles in each halo will be sampled from a Poisson distribution with the expected mean. Otherwise, the number is set equal to that expectation.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -221,7 +228,6 @@ contains
     !#   <name>lengthSoftening</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>particulateConstructorParameters%lengthSoftening</variable>
     !#   <description>The Plummer-equivalent softening length. That is, the parameter $\epsilon$ in the softening gravitational potential $\phi(r) = -\mathrm{G}m/\sqrt{r^2+\epsilon^2}$. If set to zero, softening is ignored when constructing the particle representation of the halo. For non-zero values softening is accounted for when constructing the velocity distribution following the procedure of \cite{barnes_gravitational_2012}.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
@@ -230,52 +236,41 @@ contains
     !#   <name>chunkSize</name>
     !#   <source>parameters</source>
     !#   <defaultValue>-1</defaultValue>
-    !#   <variable>particulateConstructorParameters%chunkSize</variable>
     !#   <description>HDF5 dataset chunk size.</description>
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="particulateConstructorParameters%cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="particulateConstructorParameters%cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_) result(self)
     !% Internal constructor for the particulate merger tree operator class.
     use Galacticus_Error
     implicit none
-    type            (mergerTreeOperatorParticulate)                        :: particulateConstructorInternal
+    type            (mergerTreeOperatorParticulate)                        :: self
     type            (varying_string               ), intent(in   )         :: outputFileName
     integer         (kind_int8                    ), intent(in   )         :: idMultiplier
-    double precision                               , intent(in   )         :: massParticle                  , radiusTruncateOverRadiusVirial, &
-         &                                                                    timeSnapshot                  , lengthSoftening
-    logical                                        , intent(in   )         :: satelliteOffset               , nonCosmological               , &
-         &                                                                    positionOffset                , addHubbleFlow                 , &
-         &                                                                    haloIdToParticleType          , sampleParticleNumber
-    integer                                        , intent(in   )         :: selection                     , chunkSize
+    double precision                               , intent(in   )         :: massParticle        , radiusTruncateOverRadiusVirial, &
+         &                                                                    timeSnapshot        , lengthSoftening
+    logical                                        , intent(in   )         :: satelliteOffset     , nonCosmological               , &
+         &                                                                    positionOffset      , addHubbleFlow                 , &
+         &                                                                    haloIdToParticleType, sampleParticleNumber
+    integer                                        , intent(in   )         :: selection           , chunkSize                     , &
+         &                                                                    kernelSoftening
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-
+    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileClass       ), intent(in   ), target :: darkMatterProfile_
+    !# <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfile_"/>
+    
     ! Validate input.
     if (.not.enumerationSelectionIsValid(selection)) call Galacticus_Error_Report('invalid selection type'//{introspection:location})
-    ! Store properties.
-    particulateConstructorInternal%outputFileName                 =  outputFileName
-    particulateConstructorInternal%idMultiplier                   =  idMultiplier
-    particulateConstructorInternal%massParticle                   =  massParticle
-    particulateConstructorInternal%radiusTruncateOverRadiusVirial =  radiusTruncateOverRadiusVirial
-    particulateConstructorInternal%timeSnapshot                   =  timeSnapshot
-    particulateConstructorInternal%satelliteOffset                =  satelliteOffset
-    particulateConstructorInternal%positionOffset                 =  positionOffset
-    particulateConstructorInternal%selection                      =  selection
-    particulateConstructorInternal%nonCosmological                =  nonCosmological
-    particulateConstructorInternal%addHubbleFlow                  =  addHubbleFlow
-    particulateConstructorInternal%lengthSoftening                =  lengthSoftening
-    particulateConstructorInternal%haloIdToParticleType           =  haloIdToParticleType
-    particulateConstructorInternal%sampleParticleNumber           =  sampleParticleNumber
-    particulateConstructorInternal%chunkSize                      =  chunkSize
-    particulateConstructorInternal%cosmologyParameters_           => cosmologyParameters_  
-    particulateConstructorInternal%cosmologyFunctions_            => cosmologyFunctions_
    return
   end function particulateConstructorInternal
 
@@ -286,8 +281,10 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%darkMatterProfile_"  />
     return
- end subroutine particulateDestructor
+  end subroutine particulateDestructor
 
   subroutine particulateOperate(self,tree)
     !% Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
@@ -295,7 +292,6 @@ contains
     use IO_HDF5
     use Numerical_Constants_Math
     use Pseudo_Random
-    use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Galacticus_Calculations_Resets
@@ -306,13 +302,12 @@ contains
     use Galacticus_Display
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorParticulate), intent(inout)               :: self
+    class           (mergerTreeOperatorParticulate), intent(inout) , target      :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree
     type            (treeNode                     ), pointer                     :: node
     class           (nodeComponentBasic           ), pointer                     :: basic
     class           (nodeComponentPosition        ), pointer                     :: position
     class           (nodeComponentSatellite       ), pointer                     :: satellite
-    class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_
     double precision                               , parameter                   :: tolerance                 =1.0d-06
     double precision                               , parameter                   :: unitGadgetMass            =1.0d+10
     double precision                               , parameter                   :: unitGadgetLength          =1.0d-03
@@ -341,8 +336,6 @@ contains
     character       (len=13                       )                              :: label
     character       (len= 9                       )                              :: groupName
     
-    ! Get required objects.
-    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Open the HDF5 file for output.
     call hdf5Access%set()
     call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
@@ -408,7 +401,7 @@ contains
           ! Force the energy distribution tables to be rebuilt.
           particularEnergyDistributionInitialized=.false.
           ! Determine the virial radius.
-          radiusVirial=darkMatterHaloScale_%virialRadius(node)
+          radiusVirial  =+self%darkMatterHaloScale_%virialRadius(node)
           ! Determine the truncation radius.
           radiusTruncate=+self%radiusTruncateOverRadiusVirial &
                &         *radiusVirial
@@ -436,6 +429,7 @@ contains
           position  => node%position ()
           satellite => node%satellite()
           ! Set pointers to module-scope variables.
+          particulateSelf            => self
           particulateNode            => node
           particulateRadiusTruncate  =  radiusTruncate
           particulateLengthSoftening =  self%lengthSoftening
@@ -654,14 +648,10 @@ contains
     !% which we can then take the derivative of numerically to obtain the distribution function.
     use FGSL
     use Numerical_Integration
-    use Dark_Matter_Profiles
-    use Dark_Matter_Halo_Scales
     use Table_Labels
     use Galacticus_Error
     implicit none
     double precision                            , intent(in   ) :: radius
-    class           (darkMatterProfileClass    ), pointer       :: darkMatterProfile_
-    class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
     double precision                            , parameter     :: radiusVirialFraction                     =1.0d-5
     double precision                            , parameter     :: toleranceTabulation                      =1.0d-6
     double precision                            , parameter     :: toleranceGradient                        =1.0d-6
@@ -676,11 +666,8 @@ contains
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
-    ! Get required objects.
-    darkMatterProfile_   => darkMatterProfile  ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Determine the minimum of the given radius and some small fraction of the virial radius.
-    radiusMinimum=min(radius/2.0d0,radiusVirialFraction*darkMatterHaloScale_%virialRadius(particulateNode))
+    radiusMinimum=min(radius/2.0d0,radiusVirialFraction*particulateSelf%darkMatterHaloScale_%virialRadius(particulateNode))
     ! Rebuild the density vs. potential table to have sufficient range if necessary.
     if (particularEnergyDistributionInitialized) then
        tableRebuild=(radiusMinimum < (1.0d0-toleranceTabulation)*particulateEnergyDistribution%x(1))
@@ -701,24 +688,24 @@ contains
             &                             )
        select case (particulateSofteningKernel)
        case (particulateKernelDelta)
-          energyPotentialTruncate=+darkMatterProfile_%potential(                            &
-               &                                                 particulateNode          , &
-               &                                                +particulateRadiusTruncate  &
-               &                                               )
+          energyPotentialTruncate=+particulateSelf%darkMatterProfile_%potential(                            &
+               &                                                                 particulateNode          , &
+               &                                                                +particulateRadiusTruncate  &
+               &                                                               )
        case default
           ! Potential will be computed directly from the smoothed density profile in these cases.
           energyPotentialTruncate=0.0d0
        end select
        do i=1,radiusCount
           particulateRadius=particulateEnergyDistribution%x(i)
-          call particulateEnergyDistribution%populate(                                                                          & 
-               &                                              +darkMatterProfile_%density  (                                    &
-               &                                                                            particulateNode                   , &
-               &                                                                            particulateEnergyDistribution%x(i)  &
-               &                                                                           )                                  , &
-               &                                                                                                            i , &
-               &                                table        =energyDistributionTableDensity                                  , &
-               &                                computeSpline=i==radiusCount                                                    &
+          call particulateEnergyDistribution%populate(                                                                                          & 
+               &                                              +particulateSelf%darkMatterProfile_%density  (                                    &
+               &                                                                                            particulateNode                   , &
+               &                                                                                            particulateEnergyDistribution%x(i)  &
+               &                                                                                           )                                  , &
+               &                                                                                                                            i , &
+               &                                table        =energyDistributionTableDensity                                                  , &
+               &                                computeSpline=i==radiusCount                                                                    &
                &                               )            
           select case (particulateSofteningKernel)
           case (particulateKernelDelta)
@@ -729,15 +716,15 @@ contains
                   &                                table        =energyDistributionTableDensitySmoothed                                 , &
                   &                                computeSpline=i==radiusCount                                                           &
                   &                               )            
-             call particulateEnergyDistribution%populate(                                                                          & 
-                  &                                              -darkMatterProfile_%potential(                                    &
-                  &                                                                            particulateNode                   , &
-                  &                                                                            particulateEnergyDistribution%x(i)  &
-                  &                                                                           )                                    &
-                  &                                              +energyPotentialTruncate                                        , &
-                  &                                                                                                            i , &
-                  &                                table        =energyDistributionTablePotential                                , &
-                  &                                computeSpline=i==radiusCount                                                    &
+             call particulateEnergyDistribution%populate(                                                                                          & 
+                  &                                              -particulateSelf%darkMatterProfile_%potential(                                    &
+                  &                                                                                            particulateNode                   , &
+                  &                                                                                            particulateEnergyDistribution%x(i)  &
+                  &                                                                                           )                                    &
+                  &                                              +energyPotentialTruncate                                                        , &
+                  &                                                                                                                            i , &
+                  &                                table        =energyDistributionTablePotential                                                , &
+                  &                                computeSpline=i==radiusCount                                                                    &
                   &                               )
          case default
              ! Compute potential from a density field smoothed by the density distribution corresponding to the softened
@@ -882,14 +869,13 @@ contains
     return
   end subroutine particulateTabulateEnergyDistribution
 
-  double precision function particulateEddingtonIntegrand(lradius)
+  double precision function particulateEddingtonIntegrand(radiusLogarithmic)
     !% The integrand appearing in Eddington's formula for the distribution function.
     implicit none
-    double precision, intent(in   ) :: lradius
-    double precision                :: potential
-    double precision :: radius
+    double precision, intent(in   ) :: radiusLogarithmic
+    double precision                :: potential        , radius
 
-    radius=exp(lradius)
+    radius=exp(radiusLogarithmic)
     potential=particulateEnergyDistribution%interpolate(radius,table=energyDistributionTablePotential)
     if (potential < particulateEnergy) then
        particulateEddingtonIntegrand=radius*particulateEnergyDistribution%interpolateGradient(radius,table=energyDistributionTableDensity)/sqrt(particulateEnergy-potential)
@@ -939,24 +925,21 @@ contains
   double precision function particulateSmoothingIntegrandR(radiusCylindrical)
     !% The integrand over cylindrical coordinate $z$ used in finding the smoothed density profile defined by
     !% \cite{barnes_gravitational_2012} to account for gravitational softening.
-    use Dark_Matter_Profiles
     implicit none
-    double precision                        , intent(in   ) :: radiusCylindrical
-    class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
-    double precision                                        :: radiusSplineKernel, lengthSplineKernel
+    double precision, intent(in   ) :: radiusCylindrical
+    double precision                :: radiusSplineKernel, lengthSplineKernel
 
-    darkMatterProfile_ => darkMatterProfile  ()
-    particulateSmoothingIntegrandR=+radiusCylindrical                                        &
-         &                         *darkMatterProfile_%density(                              &
-         &                                                     particulateNode             , &
-         &                                                     sqrt(                         &
-         &                                                          +radiusCylindrical  **2  &
-         &                                                          +(                       &
-         &                                                            +particulateHeight     &
-         &                                                            -particulateRadius     &
-         &                                                           )                  **2  &
-         &                                                         )                         &
-         &                                                    )
+    particulateSmoothingIntegrandR=+radiusCylindrical                                                        &
+         &                         *particulateSelf%darkMatterProfile_%density(                              &
+         &                                                                     particulateNode             , &
+         &                                                                     sqrt(                         &
+         &                                                                          +radiusCylindrical  **2  &
+         &                                                                          +(                       &
+         &                                                                            +particulateHeight     &
+         &                                                                            -particulateRadius     &
+         &                                                                           )                  **2  &
+         &                                                                         )                         &
+         &                                                                    )
     ! Apply the softening kernel density distribution.
     select case (particulateSofteningKernel)
     case (particulateKernelPlummer)

@@ -148,7 +148,7 @@ contains
     !% Perform a information content operation on a merger tree.
     use Merger_Tree_Walkers
     implicit none
-    class  (mergerTreeOperatorProfiler   ), intent(inout)          :: self
+    class  (mergerTreeOperatorProfiler   ), intent(inout), target   :: self
     type   (mergerTree                   ), intent(inout), target  :: tree
     type   (treeNode                     )               , pointer :: node
     class  (nodeComponentBasic           )               , pointer :: basic
