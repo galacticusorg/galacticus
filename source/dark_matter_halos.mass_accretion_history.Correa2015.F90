@@ -19,6 +19,8 @@
   !% An implementation of dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.
 
   use Cosmology_Functions
+  use Cosmological_Density_Field
+  use Linear_Growth
 
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryCorrea2015">
   !#  <description>Dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.</description>
@@ -26,7 +28,9 @@
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryCorrea2015
      !% A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+     class(linearGrowthClass            ), pointer :: linearGrowth_
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
    contains
      final     ::         correa2015Destructor
      procedure :: time => correa2015Time
@@ -48,19 +52,25 @@ contains
     type (darkMatterHaloMassAccretionHistoryCorrea2015)                :: self
     type (inputParameters                             ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                     ), pointer       :: cosmologyFunctions_
+    class(linearGrowthClass                           ), pointer       :: linearGrowth_
+    class(cosmologicalMassVarianceClass               ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=darkMatterHaloMassAccretionHistoryCorrea2015(cosmologyFunctions_)
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=darkMatterHaloMassAccretionHistoryCorrea2015(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function correa2015ConstructorParameters
 
-  function correa2015ConstructorInternal(cosmologyFunctions_) result(self)
+  function correa2015ConstructorInternal(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
     implicit none
     type (darkMatterHaloMassAccretionHistoryCorrea2015)                        :: self
     class(cosmologyFunctionsClass                     ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    class(linearGrowthClass                           ), intent(in   ), target :: linearGrowth_
+    class(cosmologicalMassVarianceClass               ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
     
     return
   end function correa2015ConstructorInternal
@@ -70,7 +80,9 @@ contains
     implicit none
     type(darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine correa2015Destructor
 
@@ -102,7 +114,7 @@ contains
     baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
     baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
     ! Find the a~ and b~ parameters.
-    call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,aTilde,bTilde)
+    call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(redshiftMassSolver                  )
