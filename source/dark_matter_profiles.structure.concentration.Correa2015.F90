@@ -20,6 +20,8 @@
 
   use Cosmology_Parameters
   use Cosmology_Functions
+  use Cosmological_Density_Field
+  use Linear_Growth
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
@@ -27,9 +29,11 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationCorrea2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{correa_accretion_2015}.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     double precision                                    :: A
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+     class           (linearGrowthClass            ), pointer :: linearGrowth_
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     double precision                                         :: A
    contains
      final     ::                                correa2015Destructor
      procedure :: concentration               => correa2015Concentration
@@ -52,6 +56,8 @@ contains
     type            (inputParameters                         ), intent(inout) :: parameters
     class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass                       ), pointer       :: linearGrowth_
+    class           (cosmologicalMassVarianceClass           ), pointer       :: cosmologicalMassVariance_
     double precision                                                          :: A
     
     !# <inputParameter>
@@ -64,21 +70,25 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=darkMatterProfileConcentrationCorrea2015(A,cosmologyParameters_,cosmologyFunctions_)
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=darkMatterProfileConcentrationCorrea2015(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function correa2015ConstructorParameters
   
-  function correa2015ConstructorInternal(A,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function correa2015ConstructorInternal(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily correa2015} dark matter halo profile concentration class.
     implicit none
     type            (darkMatterProfileConcentrationCorrea2015)                        :: self
     double precision                                          , intent(in   )         :: A
     class           (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="A, *cosmologyParameters_, *cosmologyFunctions_"/>
+    class           (linearGrowthClass                       ), intent(in   ), target :: linearGrowth_
+    class           (cosmologicalMassVarianceClass           ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="A, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
 
     return
   end function correa2015ConstructorInternal
@@ -88,8 +98,10 @@ contains
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine correa2015Destructor
   
@@ -118,7 +130,7 @@ contains
     expansionFactor=self%cosmologyFunctions_%expansionFactor            (time           )
     redshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(expansionFactor)
     ! Find the a~ and b~ parameters.
-    call Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,aTilde,bTilde)
+    call Dark_Matter_Halo_Correa2015_Fit_Parameters(mass,expansionFactor,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(concentrationSolver                  )
