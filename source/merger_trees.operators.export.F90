@@ -18,8 +18,12 @@
 
   !% Contains a module which implements a merger tree operator which exports merger trees to
   !% file.
-  
-  !# <mergerTreeOperator name="mergerTreeOperatorExport">
+
+  use Cosmology_Parameters
+  use Cosmology_Functions
+  use Cosmological_Density_Field
+
+  !# <mergerTreeOperator name="mergerTreeOperatorExport" defaultThreadPrivate="true">
   !#  <description>
   !#   A merger tree operator which exports merger trees to file.
   !# </description>
@@ -27,9 +31,12 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
      !% A merger tree operator class which exports merger trees to file.
      private
-     type   (varying_string) :: outputFileName
-     integer                 :: exportFormat
-     logical                 :: snapshotsRequired
+     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_
+     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     type   (varying_string               )          :: outputFileName
+     integer                                         :: exportFormat
+     logical                                         :: snapshotsRequired
    contains
      final     ::             exportDestructor
      procedure :: operate  => exportOperate
@@ -43,16 +50,19 @@
 
 contains
 
-  function exportConstructorParameters(parameters)
+  function exportConstructorParameters(parameters) result(self)
     !% Constructor for the export merger tree operator class which takes a
     !% parameter set as input.
     use Merger_Tree_Data_Structure
     use Input_Parameters
     implicit none
-    type   (mergerTreeOperatorExport)                :: exportConstructorParameters
-    type   (inputParameters         ), intent(inout) :: parameters
-    type   (varying_string          )                   outputFileName             , exportFormatText
-    integer                                          :: exportFormat
+    type   (mergerTreeOperatorExport     )                :: self
+    type   (inputParameters              ), intent(inout) :: parameters
+    class  (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class  (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class  (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    type   (varying_string               )                :: outputFileName            , exportFormatText
+    integer                                               :: exportFormat
 
     !# <inputParameter>
     !#   <name>outputFileName</name>
@@ -71,47 +81,49 @@ contains
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    ! Validate the output format.
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
-    ! Construct the object.
-    exportConstructorParameters=exportConstructorInternal(char(outputFileName),exportFormat)
+    self=exportConstructorInternal(char(outputFileName),exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function exportConstructorParameters
 
-  function exportConstructorInternal(outputFileName,exportFormat)
+  function exportConstructorInternal(outputFileName,exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the export merger tree operator class.
     use Merger_Tree_Data_Structure
     use Galacticus_Error
     implicit none
-    type     (mergerTreeOperatorExport)                :: exportConstructorInternal
-    character(len=*                   ), intent(in   ) :: outputFileName
-    integer                            , intent(in   ) :: exportFormat
-
+    type     (mergerTreeOperatorExport   )                        :: self
+    character(len=*                      ), intent(in   )         :: outputFileName
+    integer                               , intent(in   )         :: exportFormat
+    class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="outputFileName, exportFormat, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    
     ! Validate the export format.
     if (.not.enumerationMergerTreeFormatIsValid(exportFormat)) call Galacticus_Error_Report('exportFormat is invalid'//{introspection:location})
     ! Construct the object.
-    exportConstructorInternal%outputFileName   =outputFileName
-    exportConstructorInternal%exportFormat     =exportFormat
-    exportConstructorInternal%snapshotsRequired=(exportFormat == mergerTreeFormatIrate)
+    self%snapshotsRequired=(exportFormat == mergerTreeFormatIrate)
     return
   end function exportConstructorInternal
 
-  elemental subroutine exportDestructor(self)
+  subroutine exportDestructor(self)
     !% Destructor for the export merger tree operator function class.
     implicit none
     type(mergerTreeOperatorExport), intent(inout) :: self
-    !GCC$ attributes unused :: self
     
-    ! Nothing to do.
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine exportDestructor
 
   subroutine exportOperate(self,tree)
     !% Output the structure of {\normalfont \ttfamily thisTree}.
     use HDF5
-    use Cosmology_Parameters
-    use Cosmology_Functions
     use Dates_and_Times
     use Numerical_Constants_Astronomical
     use Numerical_Interpolation
@@ -123,7 +135,6 @@ contains
     use Sort
     use File_Utilities
     use System_Command
-    use Cosmological_Density_Field
     implicit none
     class           (mergerTreeOperatorExport     ), intent(inout), target         :: self
     type            (mergerTree                   ), intent(inout), target         :: tree
@@ -139,9 +150,6 @@ contains
     class           (nodeComponentBasic           ), pointer                       :: basic
     class           (nodeComponentPosition        ), pointer                       :: position
     type            (mergerTree                   ), pointer                       :: treeCurrent
-    class           (cosmologyParametersClass     ), pointer                       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), pointer                       :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), pointer                                               :: cosmologicalMassVariance_
     integer                                        , parameter                     :: snapshotCountIncrement         = 100
     type            (mergerTreeWalkerIsolatedNodes)                                :: treeWalker
     integer                                                                        :: nodeCount                           , snapshotCount
@@ -166,16 +174,13 @@ contains
        call mergerTrees%setUnits(unitsMass    ,unitsInSI=massSolar ,hubbleExponent=0,scaleFactorExponent=0,name="Msolar")
        call mergerTrees%setUnits(unitsLength  ,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0,name="Mpc"   )
        call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo      ,hubbleExponent=0,scaleFactorExponent=0,name="km/s"  )
-       ! Get the default cosmology.
-       cosmologyParameters_      => cosmologyParameters     ()
-       cosmologicalMassVariance_ => cosmologicalMassVariance()
        ! Set cosmology metadata.
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,cosmologyParameters_     %OmegaMatter    (                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,cosmologyParameters_     %OmegaBaryon    (                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,cosmologyParameters_     %OmegaDarkEnergy(                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,cosmologicalMassVariance_%sigma8         (                  ))
-       call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                              )
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaMatter'       ,self%cosmologyParameters_     %OmegaMatter    (                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaBaryon'       ,self%cosmologyParameters_     %OmegaBaryon    (                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'OmegaLambda'       ,self%cosmologyParameters_     %OmegaDarkEnergy(                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'HubbleParam'       ,self%cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'sigma_8'           ,self%cosmologicalMassVariance_%sigma8         (                  ))
+       call mergerTrees%addMetadata(metaDataTypeCosmology ,'powerSpectrumIndex',"not specified"                                                   )
        ! Set provenance metadata.
        call mergerTrees%addMetadata(metaDataTypeProvenance,'fileBuiltBy'       ,'Galacticus'                   )
        call mergerTrees%addMetadata(metaDataTypeProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))       
@@ -221,8 +226,6 @@ contains
        else
           snapshotCount=0
        end if
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_ => cosmologyFunctions()
        ! Serialize node data to arrays and write to merger tree data structure.
        treeIndex                =                              treeCurrent%index
        treeWeight               =                              treeCurrent%volumeWeight
@@ -235,8 +238,8 @@ contains
           descendentIndex(nodeCount)=  node%parent%index   ()
           basic                     => node       %basic   ()
           position                  => node       %position()
-          nodeMass       (nodeCount)=                                                                                    basic%mass()
-          nodeRedshift   (nodeCount)=cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%expansionFactor(basic%time()))
+          nodeMass       (nodeCount)=                                                                                              basic%mass()
+          nodeRedshift   (nodeCount)=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(basic%time()))
           if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=position%position()
           if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=position%velocity()
           if (self%snapshotsRequired)                                                                                      &
