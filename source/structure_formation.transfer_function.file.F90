@@ -19,6 +19,7 @@
   !% Implements a file-based transfer function class.
   
   use Tables
+  use Cosmology_Parameters
 
   !# <transferFunction name="transferFunctionFile" defaultThreadPrivate="yes">
   !#  <description>
@@ -177,8 +178,9 @@
   type, extends(transferFunctionClass) :: transferFunctionFile
      !% A transfer function class which interpolates a transfer function given in a file.
      private
-     type(varying_string) :: fileName
-     type(table1DGeneric) :: transfer
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     type (varying_string          )          :: fileName
+     type (table1DGeneric          )          :: transfer
    contains
      !@ <objectMethods>
      !@   <object>transferFunctionFile</object>
@@ -207,12 +209,14 @@
 
 contains
 
-  function fileConstructorParameters(parameters)
+  function fileConstructorParameters(parameters) result(self)
     !% Constructor for the file transfer function class which takes a parameter set as input.
+    use Input_Parameters
     implicit none
-    type(transferFunctionFile)                :: fileConstructorParameters
-    type(inputParameters     ), intent(inout) :: parameters
-    type(varying_string      )                :: fileName
+    type (transferFunctionFile    )                :: self
+    type (inputParameters         ), intent(inout) :: parameters
+    class(cosmologyParametersClass), pointer       :: cosmologyParameters_
+    type (varying_string          )                :: fileName
 
     !# <inputParameter>
     !#   <name>fileName</name>
@@ -221,34 +225,27 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    fileConstructorParameters=fileConstructorInternal(char(fileName))
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    self=transferFunctionFile(char(fileName),cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName)
+  function fileConstructorInternal(fileName,cosmologyParameters_) result(self)
     !% Internal constructor for the file transfer function class.
-    use Input_Parameters
-    use Cosmology_Parameters
-    use FoX_DOM
-    use IO_XML
-    use Numerical_Comparison
-    use Array_Utilities
-    use Galacticus_Error
-    use Galacticus_Display
     implicit none
-    type     (transferFunctionFile)                :: fileConstructorInternal
-    character(len=*               ), intent(in   ) :: fileName
+    type     (transferFunctionFile    )                        :: self
+    character(len=*                   ), intent(in   )         :: fileName
+    class    (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
+    !# <constructorAssign variables="fileName, *cosmologyParameters_"/>
 
-    fileConstructorInternal%fileName=fileName
-    call fileConstructorInternal%readFile(fileName)
+    call self%readFile(fileName)
     return
   end function fileConstructorInternal
 
   subroutine fileReadFile(self,fileName)
     !% Internal constructor for the file transfer function class.
     use Input_Parameters
-    use Cosmology_Parameters
     use FoX_DOM
     use IO_XML
     use IO_HDF5
@@ -267,7 +264,7 @@ contains
     type            (NodeList                ), pointer                   :: wavenumberExtrapolationList
     double precision                          , allocatable, dimension(:) :: transfer                        , wavenumber                 , &
          &                                                                   transferLogarithmic             , wavenumberLogarithmic
-    class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_            , cosmologyParametersFile
+    class           (cosmologyParametersClass), pointer                   :: cosmologyParametersFile
     double precision                          , parameter                 :: toleranceUniformity      =1.0d-6
     double precision                                                      :: HubbleConstant                  , OmegaBaryon                , &
          &                                                                   OmegaMatter                     , OmegaDarkEnergy            , &
@@ -281,8 +278,6 @@ contains
     type            (hdf5Object              )                            :: fileObject                      , parametersObject           , &
          &                                                                   extrapolationObject             , wavenumberObject
     
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
     ! Determine type of file.
     if (fileName(len_trim(fileName)-3:len_trim(fileName)) == ".xml") then
        ! Open and read the XML data file.
@@ -298,15 +293,15 @@ contains
        !$omp end critical (FoX_DOM_Access)
        transferFunctionCosmology=inputParameters(parameters)
        cosmologyParametersFile => cosmologyParameters(transferFunctionCosmology)
-       if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+       if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
             & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
-       if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+       if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
             & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
-       if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+       if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
             & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
-       if (Values_Differ(cosmologyParametersFile%HubbleConstant (),cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+       if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
             & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
-       if (Values_Differ(cosmologyParametersFile%temperatureCMB (),cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+       if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
             & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
        ! Get extrapolation methods.
        !$omp critical (FoX_DOM_Access)
@@ -357,15 +352,15 @@ contains
           call parametersObject%readAttribute('HubbleConstant' ,HubbleConstant )
           call parametersObject%readAttribute('temperatureCMB' ,temperatureCMB )
           cosmologyParametersFile=cosmologyParametersSimple(OmegaMatter,OmegaBaryon,OmegaDarkEnergy,temperatureCMB,HubbleConstant)
-          if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
+          if (Values_Differ(cosmologyParametersFile%OmegaBaryon    (),self%cosmologyParameters_%OmegaBaryon    (),absTol=1.0d-3)) &
                & call Galacticus_Display_Message('OmegaBaryon from transfer function file does not match internal value'    )
-          if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
+          if (Values_Differ(cosmologyParametersFile%OmegaMatter    (),self%cosmologyParameters_%OmegaMatter    (),absTol=1.0d-3)) &
                & call Galacticus_Display_Message('OmegaMatter from transfer function file does not match internal value'    )
-          if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
+          if (Values_Differ(cosmologyParametersFile%OmegaDarkEnergy(),self%cosmologyParameters_%OmegaDarkEnergy(),absTol=1.0d-3)) &
                & call Galacticus_Display_Message('OmegaDarkEnergy from transfer function file does not match internal value')
-          if (Values_Differ(cosmologyParametersFile%HubbleConstant (),cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
+          if (Values_Differ(cosmologyParametersFile%HubbleConstant (),self%cosmologyParameters_%HubbleConstant (),relTol=1.0d-3)) &
                & call Galacticus_Display_Message('HubbleConstant from transfer function file does not match internal value' )
-          if (Values_Differ(cosmologyParametersFile%temperatureCMB (),cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
+          if (Values_Differ(cosmologyParametersFile%temperatureCMB (),self%cosmologyParameters_%temperatureCMB (),relTol=1.0d-3)) &
                & call Galacticus_Display_Message('temperatureCMB from transfer function file does not match internal value' )
        end select
        deallocate(cosmologyParametersFile)
@@ -411,6 +406,7 @@ contains
     type(transferFunctionFile), intent(inout) :: self
 
     call self%transfer%destroy()
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine fileDestructor
 

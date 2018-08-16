@@ -31,7 +31,6 @@
      !% A transfer function class which utilizes the CAMB code to compute transfer functions.
      private
      logical                                             :: initialized
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
      type            (inputParameters         )          :: descriptor_
      double precision                                    :: wavenumberMaximum
@@ -160,6 +159,7 @@ contains
     type(transferFunctionCAMB), intent(inout) :: self
     
     !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%darkMatterParticle_" />
     return
   end subroutine cambDestructor
   
