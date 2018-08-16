@@ -22,6 +22,8 @@
   use Stateful_Types
   use Halo_Mass_Functions
   use Cosmology_Functions
+  use Cosmological_Density_Field
+  use Cosmology_Parameters
 
   type, public, extends(nodeData) :: nodeDataGalacticus
      !% Extension of the {\normalfont \ttfamily nodeData} class for \glc\ format merger trees. Stores particle indices and counts for nodes.
@@ -34,30 +36,32 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-     class           (haloMassFunctionClass  ), pointer                   :: haloMassFunction_
-     type            (hdf5Object             )                            :: file                    , forestHalos
-     type            (statefulInteger        )                            :: hasSubhalos             , areSelfContained              , &
-          &                                                                  includesHubbleFlow      , periodicPositions             , &
-          &                                                                  lengthStatus
-     type            (statefulLogical        )                            :: massesAreInclusive      , angularMomentaAreInclusive
-     type            (statefulDouble         )                            :: length
-     type            (importerUnits          )                            :: massUnit                , lengthUnit                    , &
-          &                                                                  timeUnit                , velocityUnit
-     logical                                                              :: fatalMismatches         , forestIndicesRead             , &
-          &                                                                  angularMomentaIsScalar  , angularMomentaIsVector        , &
-          &                                                                  spinIsScalar            , spinIsVector                  , &
-          &                                                                  reweightTrees
-     integer                                                              :: forestsCount            , formatVersion
-     integer                                  , allocatable, dimension(:) :: firstNodes              , nodeCounts
-     integer         (kind=kind_int8         ), allocatable, dimension(:) :: forestIndices
-     double precision                         , allocatable, dimension(:) :: weights
-     type            (hdf5Object             )                            :: particles
-     integer                                                              :: particleEpochType
-     type            (varying_string         )                            :: particleEpochDataSetName
-     character       (len=32                 )                            :: forestHalosGroupName    , forestContainmentAttributeName, &
-          &                                                                  forestIndexGroupName    , forestIndexDatasetName        , &
-          &                                                                  forestWeightDatasetName
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
+     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
+     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_
+     type            (hdf5Object                   )                            :: file                     , forestHalos
+     type            (statefulInteger              )                            :: hasSubhalos              , areSelfContained              , &
+          &                                                                        includesHubbleFlow       , periodicPositions             , &
+          &                                                                        lengthStatus
+     type            (statefulLogical              )                            :: massesAreInclusive       , angularMomentaAreInclusive
+     type            (statefulDouble               )                            :: length
+     type            (importerUnits                )                            :: massUnit                 , lengthUnit                    , &
+          &                                                                        timeUnit                 , velocityUnit
+     logical                                                                    :: fatalMismatches          , forestIndicesRead             , &
+          &                                                                        angularMomentaIsScalar   , angularMomentaIsVector        , &
+          &                                                                        spinIsScalar             , spinIsVector                  , &
+          &                                                                        reweightTrees
+     integer                                                                    :: forestsCount             , formatVersion
+     integer                                        , allocatable, dimension(:) :: firstNodes               , nodeCounts
+     integer         (kind=kind_int8               ), allocatable, dimension(:) :: forestIndices
+     double precision                               , allocatable, dimension(:) :: weights
+     type            (hdf5Object                   )                            :: particles
+     integer                                                                    :: particleEpochType
+     type            (varying_string               )                            :: particleEpochDataSetName
+     character       (len=32                       )                            :: forestHalosGroupName     , forestContainmentAttributeName, &
+          &                                                                        forestIndexGroupName     , forestIndexDatasetName        , &
+          &                                                                        forestWeightDatasetName
    contains
      final     ::                                  galacticusDestructor
      procedure :: open                          => galacticusOpen
@@ -109,11 +113,13 @@ contains
     !% Constructor for the \glc\ format merger tree importer which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (mergerTreeImporterGalacticus)                :: self
-    type   (inputParameters             ), intent(inout) :: parameters
-    class  (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
-    class  (haloMassFunctionClass       ), pointer       :: haloMassFunction_
-    logical                                              :: fatalMismatches    , reweightTrees
+    type   (mergerTreeImporterGalacticus )                :: self
+    type   (inputParameters              ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class  (haloMassFunctionClass        ), pointer       :: haloMassFunction_
+    class  (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class  (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+    logical                                               :: fatalMismatches          , reweightTrees
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
@@ -131,22 +137,26 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"   name="haloMassFunction_"   source="parameters"/>
-    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_)
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>  
     return
   end function galacticusConstructorParameters
 
-  function galacticusConstructorInternal(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_) result(self)
+  function galacticusConstructorInternal(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the \glc\ format merger tree importer.
     implicit none
-    type   (mergerTreeImporterGalacticus)                         :: self
-    logical                              , intent(in   )          :: fatalMismatches    , reweightTrees
-    class  (cosmologyFunctionsClass     ), intent(in   ), pointer :: cosmologyFunctions_
-    class  (haloMassFunctionClass       ), intent(in   ), pointer :: haloMassFunction_
-    !# <constructorAssign variables="fatalMismatches, reweightTrees, *cosmologyFunctions_, *haloMassFunction_"/>
-    
+    type   (mergerTreeImporterGalacticus )                        :: self
+    logical                               , intent(in   )         :: fatalMismatches          , reweightTrees
+    class  (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class  (haloMassFunctionClass        ), intent(in   ), target :: haloMassFunction_
+    class  (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
+    class  (cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="fatalMismatches, reweightTrees, *cosmologyFunctions_, *haloMassFunction_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
+
     self%hasSubhalos       %isSet=.false.
     self%massesAreInclusive%isSet=.false.
     self%areSelfContained  %isSet=.false.
@@ -162,8 +172,10 @@ contains
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%haloMassFunction_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%haloMassFunction_"        />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !$ call hdf5Access%set()
     if (self%file%isOpen()) call self%file%close()
     !$ call hdf5Access%unset()
@@ -175,13 +187,9 @@ contains
     use Numerical_Comparison
     use Galacticus_Display
     use Galacticus_Error
-    use Cosmological_Density_Field
-    use Cosmology_Parameters
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self
     type            (varying_string               ), intent(in   ) :: fileName
-    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
-    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     type            (hdf5Object                   )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset, spinDataset
     type            (varying_string               )                :: message
     character       (len=14                       )                :: valueString
@@ -195,15 +203,12 @@ contains
     self%periodicPositions %isSet=.false.
     self%length            %isSet=.false.
     self%forestIndicesRead       =.false.
-    ! Get the default cosmology.
-    cosmologyParameters_      => cosmologyParameters     ()
-    cosmologicalMassVariance_ => cosmologicalMassVariance()
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-    localLittleH0   =cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
-    localOmegaMatter=cosmologyParameters_     %OmegaMatter    (                  )
-    localOmegaDE    =cosmologyParameters_     %OmegaDarkEnergy(                  )
-    localOmegaBaryon=cosmologyParameters_     %OmegaBaryon    (                  )
-    localSigma8     =cosmologicalMassVariance_%sigma8         (                  )
+    localLittleH0   =self%cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
+    localOmegaMatter=self%cosmologyParameters_     %OmegaMatter    (                  )
+    localOmegaDE    =self%cosmologyParameters_     %OmegaDarkEnergy(                  )
+    localOmegaBaryon=self%cosmologyParameters_     %OmegaBaryon    (                  )
+    localSigma8     =self%cosmologicalMassVariance_%sigma8         (                  )
     !$ call hdf5Access%set()
     ! Open the file.
     call self%file%openFile(char(fileName),readOnly=.true.)
