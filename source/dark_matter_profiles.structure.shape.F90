@@ -16,19 +16,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements concentrations of dark matter halo profiles.
+!% Contains a module which provides a class that implements concentrations of dark matter halo profiles.
 
 module Dark_Matter_Profiles_Shape
-  !% Provides an object that implements shape parameters of dark matter halo profiles.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  use               Galacticus_Nodes
-  !# <include directive="darkMatterProfileShape" type="functionModules" >
-  include 'darkMatterProfileShape.functionModules.inc'
-  !# </include>
-  private
+  !% Provides a class that implements shape parameters of dark matter halo profiles.
+  use Galacticus_Nodes
 
-  !# <include directive="darkMatterProfileShape" type="function" >
+  !# <functionClass>
+  !#  <name>darkMatterProfileShape</name>
   !#  <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
   !#  <description>Object providing dark matter profile shape parameters.</description>
   !#  <default>gao2008</default>
@@ -39,7 +34,6 @@ module Dark_Matter_Profiles_Shape
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
   !#  </method>
-  include 'darkMatterProfileShape.type.inc'
-  !# </include>
+  !# </functionClass>
   
 end module Dark_Matter_Profiles_Shape
