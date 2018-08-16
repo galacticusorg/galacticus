@@ -18,31 +18,72 @@
 
   !% An implementation of dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.
 
+  use Cosmology_Functions
+
   !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryCorrea2015">
   !#  <description>Dark matter halo mass accretion histories using the \cite{correa_accretion_2015} algorithm.</description>
   !# </darkMatterHaloMassAccretionHistory>
-
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryCorrea2015
      !% A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
      private
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
    contains
+     final     ::         correa2015Destructor
      procedure :: time => correa2015Time
   end type darkMatterHaloMassAccretionHistoryCorrea2015
-    
+
+  interface darkMatterHaloMassAccretionHistoryCorrea2015
+     !% Constructors for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+     module procedure correa2015ConstructorParameters
+     module procedure correa2015ConstructorInternal
+  end interface darkMatterHaloMassAccretionHistoryCorrea2015
+
 contains
   
+  function correa2015ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class which takes a parameter
+    !% set as input.
+    use Input_Parameters
+    implicit none
+    type (darkMatterHaloMassAccretionHistoryCorrea2015)                :: self
+    type (inputParameters                             ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                     ), pointer       :: cosmologyFunctions_
+
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=darkMatterHaloMassAccretionHistoryCorrea2015(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function correa2015ConstructorParameters
+
+  function correa2015ConstructorInternal(cosmologyFunctions_) result(self)
+    !% Generic constructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    implicit none
+    type (darkMatterHaloMassAccretionHistoryCorrea2015)                        :: self
+    class(cosmologyFunctionsClass                     ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    
+    return
+  end function correa2015ConstructorInternal
+    
+  subroutine correa2015Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily correa2015} dark matter halo mass accretion history class.
+    implicit none
+    type(darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine correa2015Destructor
+
   double precision function correa2015Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{correa_accretion_2015}.
     use Root_Finder
-    use Cosmology_Functions
     use Dark_Matter_Halos_Correa2015
     implicit none
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
     double precision                                              , intent(in   ) :: mass
     class           (nodeComponentBasic                          ), pointer       :: baseBasicComponent
-    class           (cosmologyFunctionsClass                     ), pointer       :: cosmologyFunctions_
     double precision                                              , parameter     :: toleranceRelative  =1.0d-6
     double precision                                              , parameter     :: toleranceAbsolute  =0.0d0
     type            (rootFinder                                  ), save          :: finder
@@ -57,11 +98,9 @@ contains
     baseBasicComponent => node%basic()
     baseMass=baseBasicComponent%mass()
     baseTime=baseBasicComponent%time()
-    ! Get required objects.
-    cosmologyFunctions_ => cosmologyFunctions()
     ! Determine the base redshift. 
-    baseExpansionFactor=cosmologyFunctions_%expansionFactor            (baseTime           )
-    baseRedshift       =cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
+    baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
+    baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
     ! Find the a~ and b~ parameters.
     call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
@@ -76,11 +115,11 @@ contains
     end if
     redshift=finder%find(rootRange=[baseRedshift,2.0d0/baseExpansionFactor-1.0d0])
     ! Convert redshift to time.
-    correa2015Time=cosmologyFunctions_ %cosmicTime                 (           &
-         &          cosmologyFunctions_%expansionFactorFromRedshift (          &
-         &                                                            redshift &
-         &                                                          )          &
-         &                                                         )
+    correa2015Time=self%cosmologyFunctions_%cosmicTime                 (          &
+         &         self%cosmologyFunctions_%expansionFactorFromRedshift (         &
+         &                                                               redshift &
+         &                                                             )          &
+         &                                                            )
     return
 
   contains
