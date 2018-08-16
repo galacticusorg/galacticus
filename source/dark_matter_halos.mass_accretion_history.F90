@@ -16,18 +16,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of dark matter halo mass accretion histories.
+!% Contains a module which provides a class for calculations of dark matter halo mass accretion histories.
 
 module Dark_Matter_Halo_Mass_Accretion_Histories
-  !% Implements calculations of dark matter halo mass accretion histories.
-  use ISO_Varying_String
+  !% Provides a class for calculations of dark matter halo mass accretion histories.
   use Galacticus_Nodes
-   !# <include directive="darkMatterHaloMassAccretionHistory" type="functionModules" >
-  include 'darkMatterHaloMassAccretionHistory.functionModules.inc'
-  !# </include>
-  private
 
-  !# <include directive="darkMatterHaloMassAccretionHistory" type="function" >
+  !# <functionClass>
+  !#  <name>darkMatterHaloMassAccretionHistory</name>
   !#  <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
   !#  <description>Object providing dark matter halo mass accretion histories.</description>
   !#  <default>wechsler2002</default>
@@ -39,7 +35,6 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: mass</argument>
   !#  </method>
-  include 'darkMatterHaloMassAccretionHistory.type.inc'
-  !# </include>
+  !# </functionClass>
   
 end module Dark_Matter_Halo_Mass_Accretion_Histories

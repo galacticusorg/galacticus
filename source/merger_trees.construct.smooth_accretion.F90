@@ -19,16 +19,18 @@
   !% Implements a merger tree constructor class which builds merger trees assuming smooth accretion.
 
   use Cosmology_Functions
-  
+  use Dark_Matter_Halo_Mass_Accretion_Histories
+
   !# <mergerTreeConstructor name="mergerTreeConstructorSmoothAccretion">
   !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion
      !% A class implementing merger tree construction by building trees assuming smooth accretion.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     double precision                                   :: redshiftBase         , massHalo          , &
-          &                                                massHaloDeclineFactor, massHaloResolution
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
+     class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
+     double precision                                                   :: redshiftBase                       , massHalo          , &
+          &                                                                massHaloDeclineFactor              , massHaloResolution
    contains
      final     ::              smoothAccretionDestructor
      procedure :: construct => smoothAccretionConstruct
@@ -46,11 +48,12 @@ contains
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (mergerTreeConstructorSmoothAccretion)                :: self
-    type            (inputParameters                     ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
-    double precision                                                      :: redshiftBase         , massHalo          , &
-         &                                                                   massHaloDeclineFactor, massHaloResolution
+    type            (mergerTreeConstructorSmoothAccretion   )                :: self
+    type            (inputParameters                        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
+    double precision                                                         :: redshiftBase                       , massHalo          , &
+         &                                                                      massHaloDeclineFactor              , massHaloResolution
 
     !# <inputParameter>
     !#   <name>massHalo</name>
@@ -84,20 +87,22 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_)
+    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function smoothAccretionConstructorParameters
 
-  function smoothAccretionConstructorInternal(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_) result(self)
+  function smoothAccretionConstructorInternal(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     implicit none
-    type            (mergerTreeConstructorSmoothAccretion)          :: self
-    class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_
-    double precision                                                :: redshiftBase         , massHalo          , &
-         &                                                             massHaloDeclineFactor, massHaloResolution
-    !# <constructorAssign variables="redshiftBase, massHalo, massHaloDeclineFactor, massHaloResolution, *cosmologyFunctions_"/>
+    type            (mergerTreeConstructorSmoothAccretion   )          :: self
+    class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
+    double precision                                                   :: redshiftBase                       , massHalo          , &
+         &                                                                massHaloDeclineFactor              , massHaloResolution
+    !# <constructorAssign variables="redshiftBase, massHalo, massHaloDeclineFactor, massHaloResolution, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_"/>
 
     return    
   end function smoothAccretionConstructorInternal
@@ -107,7 +112,8 @@ contains
     implicit none
     type(mergerTreeConstructorSmoothAccretion), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"                />
+    !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
     return
   end subroutine smoothAccretionDestructor
 
@@ -116,18 +122,16 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes
     use               Kind_Numbers
-    use               Dark_Matter_Halo_Mass_Accretion_Histories
     use               Pseudo_Random
     implicit none
     class           (mergerTreeConstructorSmoothAccretion   ), intent(inout) :: self
     type            (mergerTree                             ), pointer       :: tree
     integer         (c_size_t                               ), intent(in   ) :: treeNumber
-    type            (treeNode                               ), pointer       :: nodeCurrent                        , nodeNew
-    class           (nodeComponentBasic                     ), pointer       :: basicBase                          , basicNew
-    class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
+    type            (treeNode                               ), pointer       :: nodeCurrent        , nodeNew
+    class           (nodeComponentBasic                     ), pointer       :: basicBase          , basicNew
     integer         (kind=kind_int8                         )                :: indexNode
-    double precision                                                         :: expansionFactorBase                , timeBase, &
-         &                                                                      massNode                           , timeNode, &
+    double precision                                                         :: expansionFactorBase, timeBase, &
+         &                                                                      massNode           , timeNode, &
          &                                                                      uniformRandom
 
     ! Build the merger tree.
@@ -150,8 +154,6 @@ contains
        uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOFfset=.false.,incrementSeed=int(tree%index))
        ! Assign a mass to the base node.
        call basicBase%massSet(self%massHalo)
-       ! Get required objects.
-       darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory()
        ! Find the cosmic time at which the tree is based.
        expansionFactorBase=self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftBase       )
        timeBase           =self%cosmologyFunctions_%cosmicTime                 (     expansionFactorBase)
@@ -174,7 +176,7 @@ contains
           ! Set the mass of the node.
           call basicNew%massSet(massNode)
           ! Find the time corresponding to this expansion factor.
-          timeNode=darkMatterHaloMassAccretionHistory_%time(tree%baseNode,massNode)
+          timeNode=self%darkMatterHaloMassAccretionHistory_%time(tree%baseNode,massNode)
           ! Set the time for the new node.
           call basicNew%            timeSet(timeNode)
           call basicNew%timeLastIsolatedSet(timeNode)
