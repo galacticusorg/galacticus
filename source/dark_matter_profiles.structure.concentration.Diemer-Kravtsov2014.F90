@@ -304,8 +304,8 @@ contains
        type is (darkMatterProfileNFW)
           select type (darkMatterHaloScaleDefinition)
           type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-             densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+             densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
              call densityProfileDefinition%makeIndestructible()
           end select
        end select

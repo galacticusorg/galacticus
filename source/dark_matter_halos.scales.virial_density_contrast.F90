@@ -20,6 +20,8 @@
 
   use Kind_Numbers
   use Tables
+  use Cosmology_Parameters
+  use Cosmology_Functions
   use Virial_Density_Contrast
 
   !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition">
@@ -28,7 +30,8 @@
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
      !% A dark matter halo scale contrast class using virial density contrasts.
      private
-     ! Virial density contrast object.
+     class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_       => null()
+     class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_        => null()
      class           (virialDensityContrastClass), pointer   :: virialDensityContrast_     => null()
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8            )            :: lastUniqueID
@@ -73,20 +76,26 @@ contains
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: self
     type (inputParameters                                   ), intent(inout) :: parameters
+    class(cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
 
+    !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    self=darkMatterHaloScaleVirialDensityContrastDefinition(virialDensityContrast_)
+    self=darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function virialDensityContrastDefinitionParameters
 
-  function virialDensityContrastDefinitionInternal(virialDensityContrast_) result(self)
+  function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
     !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition)                        :: self
+    class(cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
     class(virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="*virialDensityContrast_"/>
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
 
     self%lastUniqueID              =-1_kind_int8
     self%dynamicalTimescaleComputed=.false.
@@ -105,7 +114,9 @@ contains
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
-    if (associated(self%virialDensityContrast_).and.self%virialDensityContrast_%isFinalizable()) deallocate(self%virialDensityContrast_)
+    !# <objectDestructor name="self%cosmologyParameters_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     if (self%meanDensityTimeMinimum >= 0.0d0) call self%meanDensityTable%destroy()
     return
   end subroutine virialDensityContrastDefinitionDestructor
@@ -178,7 +189,7 @@ contains
     class(nodeComponentBasic                                )               , pointer :: basic
 
     ! Get the basic component.
-    basic                                              => node%basic()
+    basic => node%basic()
     virialDensityContrastDefinitionVirialVelocityGrowthRate= &
          & +0.5d0                                            &
          & *  self%virialVelocity        (node)              &
@@ -267,14 +278,10 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,node)
     !% Returns the mean density for {\normalfont \ttfamily node}.
-    use Cosmology_Parameters
-    use Cosmology_Functions
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node
     class           (nodeComponentBasic                                ), pointer       :: basic
-    class           (cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
     integer                                                                             :: i                   , meanDensityTablePoints
     double precision                                                                    :: time
 
@@ -286,12 +293,10 @@ contains
     ! For mass-dependent virial density contrasts we must always recompute the result.
     if (self%virialDensityContrast_%isMassDependent()) then
        ! Get default objects.
-       cosmologyParameters_                       =>  cosmologyParameters                                        (                )
-       cosmologyFunctions_                        =>  cosmologyFunctions                                         (                )
-       virialDensityContrastDefinitionMeanDensity =  +self                %virialDensityContrast_%densityContrast(basic%mass(),time)    &
-            &                                        *cosmologyParameters_                       %OmegaMatter    (                 )    &
-            &                                        *cosmologyParameters_                       %densityCritical(                 )    &
-            &                                        /cosmologyFunctions_                        %expansionFactor(             time)**3
+       virialDensityContrastDefinitionMeanDensity =  +self%virialDensityContrast_%densityContrast(basic%mass(),time)    &
+            &                                        *self%cosmologyParameters_  %OmegaMatter    (                 )    &
+            &                                        *self%cosmologyParameters_  %densityCritical(                 )    &
+            &                                        /self%cosmologyFunctions_   %expansionFactor(             time)**3
     else
        ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
        ! Retabulate the mean density vs. time if necessary.
@@ -306,16 +311,13 @@ contains
           meanDensityTablePoints=int(log10(self%meanDensityTimeMaximum/self%meanDensityTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
           call self%meanDensityTable%destroy()
           call self%meanDensityTable%create(self%meanDensityTimeMinimum,self%meanDensityTimeMaximum,meanDensityTablePoints)
-          ! Get default objects.
-          cosmologyParameters_ => cosmologyParameters()
-          cosmologyFunctions_  => cosmologyFunctions ()
           do i=1,meanDensityTablePoints
              call self%meanDensityTable%populate                                                               &
                   & (                                                                                          &
                   &  +self%virialDensityContrast_%densityContrast(basic%mass(),self%meanDensityTable%x(i))     &
-                  &  *cosmologyParameters_       %OmegaMatter    (                                       )     &
-                  &  *cosmologyParameters_       %densityCritical(                                       )     &
-                  &  /cosmologyFunctions_        %expansionFactor(             self%meanDensityTable%x(i))**3, &
+                  &  *self%cosmologyParameters_  %OmegaMatter    (                                       )     &
+                  &  *self%cosmologyParameters_  %densityCritical(                                       )     &
+                  &  /self%cosmologyFunctions_   %expansionFactor(             self%meanDensityTable%x(i))**3, &
                   &  i                                                                                         &
                   & )
           end do
@@ -328,12 +330,10 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
     !% Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
-    use Cosmology_Functions
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
     type            (treeNode                                          ), intent(inout), pointer :: node
     class           (nodeComponentBasic                                )               , pointer :: basic
-    class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctions_
     double precision                                                                             :: expansionFactor    , time
 
     if (node%isSatellite()) then
@@ -349,10 +349,8 @@ contains
           ! It is not, so recompute the density growth rate.
           self%timePrevious=time
           self%massPrevious=basic%mass()
-          ! Get default objects.
-          cosmologyFunctions_ => cosmologyFunctions()
           ! Get the expansion factor at this time.
-          expansionFactor=cosmologyFunctions_%expansionFactor(time)
+          expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
           ! Compute growth rate of its mean density based on mean cosmological density and overdensity of a collapsing halo.
           self%densityGrowthRatePrevious=                                                                 &
                & self%meanDensity(node)                                                                   &
@@ -360,7 +358,7 @@ contains
                &   +self%virialDensityContrast_%densityContrastRateOfChange(basic%mass(),time           ) &
                &   /self%virialDensityContrast_%densityContrast            (basic%mass(),time           ) &
                &   -3.0d0                                                                                 &
-               &   *cosmologyFunctions_        %expansionRate              (             expansionFactor) &
+               &   *self%cosmologyFunctions_   %expansionRate              (             expansionFactor) &
                &  )
        end if
        ! Return the stored value.
