@@ -18,6 +18,7 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{gao_redshift_2008} algorithm.
   
+  use Cosmology_Parameters
   use Cosmology_Functions
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
@@ -26,7 +27,8 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationGao2008
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
    contains
      final     ::                                gao2008Destructor
      procedure :: concentration               => gao2008Concentration
@@ -50,19 +52,22 @@ contains
     type (darkMatterProfileConcentrationGao2008)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
     class(cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
-     
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=darkMatterProfileConcentrationGao2008(cosmologyFunctions_)
+    class(cosmologyParametersClass             ), pointer       :: cosmologyParameters_
+
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    self=darkMatterProfileConcentrationGao2008(cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function gao2008ConstructorParameters
 
-  function gao2008ConstructorInternal(cosmologyFunctions_) result(self)
+  function gao2008ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
     implicit none
     type (darkMatterProfileConcentrationGao2008)                        :: self
+    class(cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     return
   end function gao2008ConstructorInternal
@@ -72,6 +77,7 @@ contains
     implicit none
     type(darkMatterProfileConcentrationGao2008), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine gao2008Destructor
@@ -133,8 +139,8 @@ contains
        type is (darkMatterProfileNFW)
           select type (darkMatterHaloScaleDefinition)
           type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-             densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+             densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
              call densityProfileDefinition%makeIndestructible()
           end select
        end select

@@ -25,6 +25,7 @@ module Dark_Matter_Profile_Scales
   use Dark_Matter_Profiles_Concentration
   use Dark_Matter_Halo_Scales
   use Cosmology_Functions
+  use Cosmology_Parameters
   use Virial_Density_Contrast
   private
   public :: Dark_Matter_Profile_Scale
@@ -59,6 +60,7 @@ contains
     type            (darkMatterHaloScaleVirialDensityContrastDefinition), allocatable, save                    :: darkMatterHaloScaleDefinition
     !$omp threadprivate(darkMatterHaloScaleDefinition)
     class           (darkMatterProfileClass                            ), pointer                              :: darkMatterProfileDefinition
+    class           (cosmologyParametersClass                          ), pointer                              :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), pointer                              :: cosmologyFunctions_
     class           (nodeComponentBasic                                ), pointer                              :: workBasic
     class           (nodeComponentDarkMatterProfile                    ), pointer                              :: workDarkMatterProfile
@@ -121,6 +123,7 @@ contains
             &               )                                                                                   &
             & ) then
           ! Get other required objects.
+          cosmologyParameters_        => cosmologyParameters                                                 ()
           cosmologyFunctions_         => cosmologyFunctions                                                  ()
           darkMatterProfile_          => darkMatterProfile                                                   ()
           darkMatterProfileDefinition => darkMatterProfileConcentrationDefinition%darkMatterProfileDefinition()
@@ -129,7 +132,7 @@ contains
           if (.not.associated(virialDensityContrastDefinition,virialDensityContrastDefinitionPrevious)) then
              if (allocated(darkMatterHaloScaleDefinition)) deallocate(darkMatterHaloScaleDefinition)
              allocate(darkMatterHaloScaleDefinition)
-             darkMatterHaloScaleDefinition           =  darkMatterHaloScaleVirialDensityContrastDefinition(virialDensityContrastDefinition)
+             darkMatterHaloScaleDefinition           =  darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrastDefinition)
              virialDensityContrastDefinitionPrevious => virialDensityContrastDefinition
           end if
           ! Create a node and set the mass and time.

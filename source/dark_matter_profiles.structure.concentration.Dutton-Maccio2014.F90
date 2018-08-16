@@ -18,6 +18,7 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{dutton_cold_2014} algorithm.
 
+  use Cosmology_Parameters
   use Cosmology_Functions
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDuttonMaccio2014">
@@ -26,6 +27,7 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
      private
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
      double precision                                    :: a1                   , a2                  , &
           &                                                 a3                   , a4                  , &
@@ -70,6 +72,7 @@ contains
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
+    class           (cosmologyParametersClass                      ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
     type            (varying_string                                )                :: fitType
     double precision                                                                :: a1                                   , a2, &
@@ -77,7 +80,8 @@ contains
          &                                                                             b1                                   , b2
 
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <inputParameter>
     !#   <name>fitType</name>
     !#   <source>parameters</source>
@@ -129,22 +133,23 @@ contains
        !#   <type>real</type>
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
-       self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyFunctions_)
+       self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_)
     else
-       self=darkMatterProfileConcentrationDuttonMaccio2014(char(fitType),cosmologyFunctions_)
+       self=darkMatterProfileConcentrationDuttonMaccio2014(char(fitType),cosmologyParameters_,cosmologyFunctions_)
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function duttonMaccio2014ConstructorParameters
 
-  function duttonMaccio2014ConstructorInternalType(fitType,cosmologyFunctions_) result(self)
+  function duttonMaccio2014ConstructorInternalType(fitType,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
     type     (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
     character(len=*                                         ), intent(in   )         :: fitType
+    class    (cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
     class    (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     select case (fitType)
     case ('nfwVirial'     )
@@ -180,17 +185,18 @@ contains
     return
   end function duttonMaccio2014ConstructorInternalType
   
-  function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyFunctions_) result(self)
+  function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily duttonMaccio2014} dark matter halo profile concentration class with user defined
     !% parameters.
     use Galacticus_Error
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
-    double precision                                                , intent(in   )         :: a1                 , a2, &
-         &                                                                                     a3                 , a4, &
-         &                                                                                     b1                 , b2
+    double precision                                                , intent(in   )         :: a1                  , a2, &
+         &                                                                                     a3                  , a4, &
+         &                                                                                     b1                  , b2
+    class           (cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="a1,a2,a3,a4,b1,b2,*cosmologyFunctions_"/>
+    !# <constructorAssign variables="a1,a2,a3,a4,b1,b2,*cosmologyParameters_, *cosmologyFunctions_"/>
 
     return
   end function duttonMaccio2014ConstructorInternalDefined
@@ -200,7 +206,8 @@ contains
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine duttonMaccio2014Destructor
   
@@ -282,15 +289,15 @@ contains
              allocate(darkMatterProfileNFW     :: densityProfileDefinition)
              select type (densityProfileDefinition)
              type is (darkMatterProfileNFW    )
-                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-                densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+                densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
              end select
           case (duttonMaccio2014DensityProfileMethodEinasto)
              allocate(darkMatterProfileEinasto :: densityProfileDefinition)
              select type (densityProfileDefinition)
              type is (darkMatterProfileEinasto)
-                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-                densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition   )
+                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+                densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition                                                      )
              end select
           end select
           call densityProfileDefinition%makeIndestructible()

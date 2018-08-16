@@ -168,8 +168,8 @@ contains
        type is (darkMatterProfileEinasto)
           select type (darkMatterHaloScaleDefinition)
           type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-             densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition   )
+             darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+             densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition                                                      )
              call densityProfileDefinition%makeIndestructible()
           end select
        end select

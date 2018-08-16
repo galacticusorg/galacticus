@@ -18,6 +18,7 @@
 
   !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
 
+  use Cosmology_Parameters
   use Cosmology_Functions
   use Cosmological_Density_Field
   use Virial_Density_Contrast
@@ -28,6 +29,7 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationNFW1996
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{navarro_structure_1996}.
      private
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -59,6 +61,7 @@ contains
     implicit none
     type            (darkMatterProfileConcentrationNFW1996)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
+    class           (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
     class           (criticalOverdensityClass             ), pointer       :: criticalOverdensity_     
     class           (cosmologicalMassVarianceClass        ), pointer       :: cosmologicalMassVariance_
@@ -86,26 +89,28 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
-    self=darkMatterProfileConcentrationNFW1996(f,C,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
+    self=darkMatterProfileConcentrationNFW1996(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function nfw1996ConstructorParameters
 
-  function nfw1996ConstructorInternal(f,C,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
+  function nfw1996ConstructorInternal(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
     !% concentration class.
     implicit none
     type            (darkMatterProfileConcentrationNFW1996)                        :: self
     double precision                                       , intent(in   )         :: f                         , C
+    class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass             ), intent(in   ), target :: criticalOverdensity_     
     class           (cosmologicalMassVarianceClass        ), intent(in   ), target :: cosmologicalMassVariance_
     class           (virialDensityContrastClass           ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="f,C,*cosmologyFunctions_,*criticalOverdensity_,*cosmologicalMassVariance_,*virialDensityContrast_"/>
+    !# <constructorAssign variables="f, C, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
 
     return
   end function nfw1996ConstructorInternal
@@ -115,6 +120,7 @@ contains
     implicit none
     type(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
     
+    !# <objectDestructor name="self%cosmologyParameters_"      />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%criticalOverdensity_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
@@ -211,8 +217,8 @@ contains
     type is (darkMatterProfileNFW)
        select type (darkMatterHaloScaleDefinition)
        type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition     =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-          nfw1996DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+          darkMatterHaloScaleDefinition     =darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+          nfw1996DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
        end select
     end select
     return

@@ -21,6 +21,7 @@
   use Tables
   use Cosmology_Parameters
   use Cosmology_Functions
+  use Cosmological_Density_Field
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
@@ -28,10 +29,11 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
      private
-     class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class  (cosmologyParametersClass), pointer :: cosmologyParameters_
-     integer                                    :: virialDensityContrast, fittingFunction
-     type   (table1DGeneric          )          :: fitParameters
+     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     integer                                         :: virialDensityContrast    , fittingFunction
+     type   (table1DGeneric               )          :: fitParameters
    contains
      final     ::                                klypin2015Destructor
      procedure :: concentration               => klypin2015Concentration
@@ -99,6 +101,7 @@ contains
     type (inputParameters                         ), intent(inout) :: parameters
     class(cosmologyParametersClass                ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                 ), pointer       :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass           ), pointer       :: cosmologicalMassVariance_
     type (varying_string                          )                :: sample
 
     ! Check and read parameters.
@@ -110,15 +113,16 @@ contains
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     ! Construct the object.
-    self=darkMatterProfileConcentrationKlypin2015(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
+    self=darkMatterProfileConcentrationKlypin2015(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function klypin2015ConstructorParameters
   
-  function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function klypin2015ConstructorInternal(sample,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily klypin2015} dark matter halo profile concentration class.
     use Table_Labels
     implicit none
@@ -126,7 +130,8 @@ contains
     integer                                          , intent(in   )         :: sample
     class  (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    class  (cosmologicalMassVarianceClass           ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
 
     select case (sample)
     case (klypin2015SamplePlanck200CritRelaxedMass)
@@ -628,35 +633,26 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Error
-    use Cosmological_Density_Field
-    use Cosmology_Parameters
-    use Cosmology_Functions
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), pointer :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
-    class           (cosmologyParametersClass                )               , pointer :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                 )               , pointer :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass           )               , pointer :: cosmologicalMassVariance_
     double precision                                          , parameter              :: massReference            =1.0d12
     double precision                                                                   :: massLittleH                     , concentration0, &
          &                                                                                mass0                           , gamma         , &
          &                                                                                redshift                        , a0            , &
          &                                                                                b0                              , sigma
 
-    ! Get required objects.
-    cosmologyParameters_ => cosmologyParameters()
-    cosmologyFunctions_  => cosmologyFunctions ()
     ! Get the basic component, and find the halo mass in "little-h" units.
-    basic       =>  node                %basic         (                  )
-    massLittleH =  +basic               %mass          (                  ) &
-         &         *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
+    basic       =>  node                     %basic         (                        )
+    massLittleH =  +basic                    %mass          (                        ) &
+         &         *self%cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)
     ! Find redshift.
-    redshift=cosmologyFunctions_ %redshiftFromExpansionFactor(    &
-         &    cosmologyFunctions_%expansionFactor             (   &
-         &     basic             %time                         () &
-         &                                                    )   &
-         &                                                   )
+    redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(              &
+         &   self%cosmologyFunctions_%expansionFactor             (             &
+         &                                                         basic%time() &
+         &                                                        )             &
+         &                                                       )
     ! Determine which fitting function to use.
     select case (self%fittingFunction)
     case (klypin2015FittingFunctionEqn24)
@@ -673,8 +669,7 @@ contains
             &                  /  (massLittleH/massReference)**gamma
     case (klypin2015FittingFunctionEqn25)
        ! Find sigma.
-       cosmologicalMassVariance_ => cosmologicalMassVariance()
-       sigma         =cosmologicalMassVariance_%rootVariance(basic%mass())
+       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass())
        ! Evaluate fitting function parameters.
        a0            =self%fitParameters%interpolate(redshift,table=1)
        b0            =self%fitParameters%interpolate(redshift,table=2)
@@ -742,8 +737,8 @@ contains
     type is (darkMatterProfileNFW)
        select type (darkMatterHaloScaleDefinition)
        type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition        =darkMatterHaloScaleVirialDensityContrastDefinition(self%densityContrastDefinition())
-          klypin2015DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition   )
+          darkMatterHaloScaleDefinition        =darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
+          klypin2015DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
        end select
     end select
     return
