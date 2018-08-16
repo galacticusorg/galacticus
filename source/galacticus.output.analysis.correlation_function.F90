@@ -785,7 +785,7 @@ contains
                 call haloModelPowerSpectrumModifier_%modify(                                                                      &
                      &                                       correlationFunction_%wavenumber                                      &
                      &                                      *correlationFunction_%cosmologyConversionSize(haloWork%outputNumber), &
-                     &                                       termOneHalo                                                        , &
+                     &                                       haloModelTermOneHalo                                               , &
                      &                                       oneHaloTerm(:,i)                                                   , &
                      &                                       modifierCovariance                                                 , &
                      &                                       mass=haloWork%hostMass                                               &
@@ -808,7 +808,7 @@ contains
              call haloModelPowerSpectrumModifier_%modify(                                                                      &
                   &                                       correlationFunction_%wavenumber                                      &
                   &                                      *correlationFunction_%cosmologyConversionSize(haloWork%outputNumber), &
-                  &                                       termTwoHalo                                                        , &
+                  &                                       haloModelTermTwoHalo                                               , &
                   &                                       twoHaloTerm(:,i)                                                   , &
                   &                                       modifierCovariance                                                 , &
                   &                                       mass=haloWork%hostMass                                               &

@@ -16,25 +16,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements empirical models of conditional mass functions.
+!% Contains a module which implements a class of modifiers of the power spectrum for the halo model.
 
 module Halo_Model_Power_Spectrum_Modifiers
-  !% Implements empirical models of conditional mass functions.
-  use ISO_Varying_String
-  !# <include directive="haloModelPowerSpectrumModifier" type="functionModules" >
-  include 'haloModelPowerSpectrumModifier.functionModules.inc'
-  !# </include>
-  implicit none
-  private
+  !% Implements a class of modifiers of the power spectrum for the halo model.
 
-  ! Labels for terms in the halo model.
-  integer, public, parameter :: termOneHalo=1
-  integer, public, parameter :: termTwoHalo=2
-
-  !# <include directive="haloModelPowerSpectrumModifier" type="function" >
+  !# <functionClass>
+  !#  <name>haloModelPowerSpectrumModifier</name>
   !#  <descriptiveName>Halo Model Power Spectrum Modifier</descriptiveName>
-  !#  <description>Object providing modifiers to the power spectra in the halo model.</description>
-  !#  <default>null</default>
+  !#  <description>Class providing modifiers to the power spectra in the halo model.</description>
+  !#  <default>identity</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="modify" >
   !#   <description>Modify the power spectra in the halo model of clustering.</description>
@@ -46,7 +37,14 @@ module Halo_Model_Power_Spectrum_Modifiers
   !#   <argument>double precision, intent(inout), dimension(:,:), optional :: powerSpectrumCovariance</argument>
   !#   <argument>double precision, intent(in   )                , optional :: mass</argument>
   !#  </method>
-  include 'haloModelPowerSpectrumModifier.type.inc'
-  !# </include>
+  !# </functionClass>
+
+  !# <enumeration>
+  !#  <name>haloModelTerm</name>
+  !#  <description>Enumeration of terms in the halo model.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="oneHalo"/>
+  !#  <entry label="twoHalo"/>
+  !# </enumeration>
 
 end module Halo_Model_Power_Spectrum_Modifiers
