@@ -74,11 +74,12 @@
       <lambda0 value="4.3245512787675661E-002"/>
     </haloSpinDistributionMethod>
     <hdf5CompressionLevel value="-1"/>
-    <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling"/>
-    <hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent value="-0.17671288265659479"/>
-    <hotHaloOutflowReincorporationVlctyMxSclngTimeScale value="0.73801252050383448"/>
-    <hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum value="1.0953944782915779E-002"/>
-    <hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent value="0.29779289184659419"/>
+    <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
+      <redshiftExponent value="-0.17671288265659479e+0"/>
+      <timeScale        value="+0.73801252050383448e+0"/>
+      <timescaleMinimum value="+1.09539447829157790e-2"/>
+      <velocityExponent value="+0.29779289184659419e+0"/>
+    </hotHaloOutflowReincorporationMethod>
     <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
     <imfChabrierRecycledInstantaneous value="0.46"/>
     <imfChabrierYieldInstantaneous value="0.0"/>

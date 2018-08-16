@@ -140,11 +140,12 @@
   <mergingTimescaleMultiplier value="1.2044009774202384"/>
   
   <!-- Hot atmosphere -->
-  <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling"/>
-  <hotHaloOutflowReincorporationVlctyMxSclngRedshiftExponent value="-0.35071002436845261"/>
-  <hotHaloOutflowReincorporationVlctyMxSclngTimeScale value="0.95502143265815487"/>
-  <hotHaloOutflowReincorporationVlctyMxSclngTimescaleMinimum value="1.0992084405881730E-002"/>
-  <hotHaloOutflowReincorporationVlctyMxSclngVelocityExponent value="-1.4059959597503769E-002"/>
+  <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
+    <redshiftExponent value="-0.35071002436845261e+0"/>
+    <timeScale        value="+0.95502143265815487e+0"/>
+    <timescaleMinimum value="+1.09920844058817300e-2"/>
+    <velocityExponent value="-1.40599595975037690e-2"/>
+  </hotHaloOutflowReincorporationMethod>
   
   <!-- Accretion onto halos -->
   <accretionHaloTotalMethod value="bertschinger"/>

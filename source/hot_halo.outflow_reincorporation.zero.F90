@@ -28,12 +28,28 @@
      procedure :: rate => zeroRate
   end type hotHaloOutflowReincorporationZero
 
+  interface hotHaloOutflowReincorporationZero
+     !% Constructors for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class.
+     module procedure zeroConstructorParameters
+  end interface hotHaloOutflowReincorporationZero
+
 contains
+
+  function zeroConstructorParameters(parameters) result(self)
+    !% Default constructor for the {\normalfont \ttfamily zero} hot halo outflow reincorporation class which takes a parameter set
+    !% as input.
+    use Input_Parameters
+    implicit none
+    type(hotHaloOutflowReincorporationZero)                :: self
+    type(inputParameters                  ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+
+    self=hotHaloOutflowReincorporationZero()
+    return
+  end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
     !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
-    use Cosmology_Functions
-    use Dark_Matter_Profiles
     implicit none
     class(hotHaloOutflowReincorporationZero), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node

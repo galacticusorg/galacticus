@@ -16,19 +16,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements reincorportation of outflowed mass into the hot halo.
+!% Contains a module which provides a class that implements reincorporation of outflowed mass into the hot halo.
 
 module Hot_Halo_Outflows_Reincorporations
-  !% Provides a class that implements reincorportation of outflowed mass into the hot halo.
-  use ISO_Varying_String
+  !% Provides a class that implements reincorporation of outflowed mass into the hot halo.
   use Galacticus_Nodes
-  use Kind_Numbers
-  !# <include directive="hotHaloOutflowReincorporation" type="functionModules" >
-  include 'hotHaloOutflowReincorporation.functionModules.inc'
-  !# </include>
-  private
 
-  !# <include directive="hotHaloOutflowReincorporation" type="function" >
+  !# <functionClass>
+  !#  <name>hotHaloOutflowReincorporation</name>
   !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
   !#  <description>Class implementing reincorportation of outflowed mass into the hot halo.</description>
   !#  <default>zero</default>
@@ -40,7 +35,6 @@ module Hot_Halo_Outflows_Reincorporations
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
-  include 'hotHaloOutflowReincorporation.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Hot_Halo_Outflows_Reincorporations
