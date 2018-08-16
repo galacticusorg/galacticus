@@ -21,11 +21,15 @@
   !$ use OMP_Lib
   use Locks
   use Power_Spectra_Nonlinear
+  use Cosmology_Parameters
+  use Cosmology_Functions
 
   !# <gravitationalLensing name="gravitationalLensingTakahashi2011">
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011     
+     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_
+     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_
      class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
      logical                                                :: tableInitialized        , cdfInitialized
      !$ type         (ompReadWriteLock           )          :: lock
@@ -83,21 +87,27 @@ contains
     implicit none
     type (gravitationalLensingTakahashi2011)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
+    class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(powerSpectrumNonlinearClass      ), pointer       :: powerSpectrumNonlinear_
     
+    !# <objectBuilder class="cosmologyParameters"    name="cosmologyParameters_"    source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"     name="cosmologyFunctions_"     source="parameters"/>
     !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
-    self=gravitationalLensingTakahashi2011(powerSpectrumNonlinear_)
+    self=gravitationalLensingTakahashi2011(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function takahashi2011ConstructorParameters
-
-  function takahashi2011ConstructorInternal(powerSpectrumNonlinear_) result(self)
+  
+  function takahashi2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_) result(self)
     !% Internal for the \cite{takahashi_probability_2011} gravitational lensing class.
     implicit none
     type (gravitationalLensingTakahashi2011)                        :: self
+    class(cosmologyParametersClass         ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class(powerSpectrumNonlinearClass      ), intent(in   ), target :: powerSpectrumNonlinear_
-    !# <constructorAssign variables="*powerSpectrumNonlinear_"/>
-    
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *powerSpectrumNonlinear_"/>
+
     self   %tableInitialized=.false.
     self   %cdfInitialized  =.false.
     self   %redshiftPrevious=-2.0d0
@@ -110,6 +120,8 @@ contains
     implicit none
     type(gravitationalLensingTakahashi2011), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyParameters_"   />
+    !# <objectDestructor name="self%cosmologyFunctions_"    />
     !# <objectDestructor name="self%powerSpectrumNonlinear_"/>
     return
   end subroutine takahashi2011Destructor
@@ -302,8 +314,6 @@ contains
     use Numerical_Integration
     use Numerical_Ranges
     use Numerical_Comparison
-    use Cosmology_Parameters
-    use Cosmology_Functions
     use Root_Finder
     use Galacticus_Error
     use Galacticus_Paths
@@ -313,8 +323,6 @@ contains
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource
-    class           (cosmologyParametersClass         ), pointer                     :: cosmologyParameters_
-    class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_
     double precision                                   , parameter                   :: redshiftZero                          =   0.0d0
     double precision                                   , parameter                   :: convergenceParametersToleranceAbsolute=   0.0d0
     double precision                                   , parameter                   :: convergenceParametersToleranceRelative=   1.0d-6
@@ -472,17 +480,14 @@ contains
           ! Update convergences.
           self%redshiftPrevious   =redshift
           self%scaleSourcePrevious=scaleSource
-          ! Get cosmology functions.
-          cosmologyFunctions_  => cosmologyFunctions ()
-          cosmologyParameters_ => cosmologyParameters()
           ! Find the comoving distance to the source.
-          distanceComovingSource=cosmologyFunctions_  %distanceComoving           (           &
-               &                  cosmologyFunctions_ %cosmicTime                  (          &
-               &                   cosmologyFunctions_%expansionFactorFromRedshift  (         &
-               &                                                                     redshift &
-               &                                                                    )         &
-               &                                                                   )          &
-               &                                                                  )
+          distanceComovingSource=self%cosmologyFunctions_%distanceComoving           (           &
+               &                 self%cosmologyFunctions_%cosmicTime                  (          &
+               &                 self%cosmologyFunctions_%expansionFactorFromRedshift  (         &
+               &                                                                        redshift &
+               &                                                                       )         &
+               &                                                                      )          &
+               &                                                                     )
           ! Find the convergence of an empty beam.
           integrationReset         =.true.
           self%convergenceEmptyBeam=Integrate(                               &
@@ -603,7 +608,7 @@ contains
       else
          convergencePdfParameterSolver=2.0d0+convergencePdfMoment1/convergencePdfMoment2*self%convergenceScale
       end if
-    return
+      return
     end function convergencePdfParameterSolver
     
     double precision function emptyBeamConvergenceIntegrand(redshiftLens)
@@ -615,32 +620,32 @@ contains
       double precision                :: distanceComovingLens
 
       ! Find cosmic time at this redshift.
-      timeLens            =cosmologyFunctions_ %cosmicTime                 (              &
-           &                cosmologyFunctions_%expansionFactorFromRedshift (             &
-           &                                                                 redshiftLens &
-           &                                                                )             &
-           &                                                               )
+      timeLens            =self%cosmologyFunctions_%cosmicTime                 (              &
+           &               self%cosmologyFunctions_%expansionFactorFromRedshift (             &
+           &                                                                     redshiftLens &
+           &                                                                    )             &
+           &                                                                   )
       ! Find comoving distance to the lens.
-      distanceComovingLens=cosmologyFunctions_ %distanceComoving           (              &
-           &                                                                 timeLens     &
-           &                                                               )
+      distanceComovingLens=self%cosmologyFunctions_%distanceComoving           (              &
+           &                                                                     timeLens     &
+           &                                                                   )
       ! Evaluate the integrand.
-      emptyBeamConvergenceIntegrand=                                                          &
-           &                        -1.5d0                                                    &
-           &                        /speedLight                                               &
-           &                        *kilo                                                     &
-           &                        *cosmologyParameters_%HubbleConstant        (        )**2 &
-           &                        /cosmologyFunctions_ %hubbleParameterEpochal(timeLens)    &
-           &                        *cosmologyParameters_%OmegaMatter           (        )    &
-           &                        *(                                                        &
-           &                          +1.0d0                                                  &
-           &                          +redshiftLens                                           &
-           &                         )                                                        &
-           &                        *  distanceComovingLens                                   &
-           &                        *(                                                        &
-           &                          +distanceComovingSource                                 &
-           &                          -distanceComovingLens                                   &
-           &                        )                                                         &
+      emptyBeamConvergenceIntegrand=                                                               &
+           &                        -1.5d0                                                         &
+           &                        /speedLight                                                    &
+           &                        *kilo                                                          &
+           &                        *self%cosmologyParameters_%HubbleConstant        (        )**2 &
+           &                        /self%cosmologyFunctions_ %hubbleParameterEpochal(timeLens)    &
+           &                        *self%cosmologyParameters_%OmegaMatter           (        )    &
+           &                        *(                                                             &
+           &                          +1.0d0                                                       &
+           &                          +redshiftLens                                                &
+           &                         )                                                             &
+           &                        *  distanceComovingLens                                        &
+           &                        *(                                                             &
+           &                          +distanceComovingSource                                      &
+           &                          -distanceComovingLens                                        &
+           &                        )                                                              &
            &                        /  distanceComovingSource
       return
     end function emptyBeamConvergenceIntegrand
@@ -660,15 +665,15 @@ contains
       type            (fgsl_integration_workspace)                :: integrationWorkspace
       
       ! Find cosmic time at this redshift.
-      timeLens            =cosmologyFunctions_ %cosmicTime                 (              &
-           &                cosmologyFunctions_%expansionFactorFromRedshift (             &
-           &                                                                 redshiftLens &
-           &                                                                )             &
-           &                                                               )
+      timeLens            =self%cosmologyFunctions_%cosmicTime                 (              &
+           &               self%cosmologyFunctions_%expansionFactorFromRedshift (             &
+           &                                                                     redshiftLens &
+           &                                                                    )             &
+           &                                                                   )
       ! Find comoving distance to the lens.
-      distanceComovingLens=cosmologyFunctions_ %distanceComoving           (              &
-           &                                                                 timeLens     &
-           &                                                               )
+      distanceComovingLens=self%cosmologyFunctions_%distanceComoving           (              &
+           &                                                                     timeLens     &
+           &                                                                   )
       ! Integrate over the power spectrum.
       logWavenumberMaximum=                    -log(scaleSource           )
       logWavenumberMinimum=logWavenumberMaximum+log(wavenumberDynamicRange)
@@ -684,27 +689,27 @@ contains
            &                        )
       call Integrate_Done(integrandFunction,integrationWorkspace)
       ! Evaluate the integrand.
-      convergenceVarianceIntegrand =                                                          &
-           &                        +9.0d0                                                    &
-           &                        /8.0d0                                                    &
-           &                        /Pi                                                       &
-           &                        /speedLight                                           **3 &
-           &                        *kilo                                                 **3 &
-           &                        *cosmologyParameters_%HubbleConstant        (        )**4 &
-           &                        /cosmologyFunctions_ %hubbleParameterEpochal(timeLens)    &
-           &                        *cosmologyParameters_%OmegaMatter           (        )**2 &
-           &                        *(                                                        &
-           &                          +1.0d0                                                  &
-           &                          +redshiftLens                                           &
-           &                         )                                                    **2 &
-           &                        *(                                                        &
-           &                          +  distanceComovingLens                                 &
-           &                          *(                                                      &
-           &                            +distanceComovingSource                               &
-           &                            -distanceComovingLens                                 &
-           &                           )                                                      &
-           &                          / distanceComovingSource                                &
-           &                         )                                                    **2 &
+      convergenceVarianceIntegrand =                                                               &
+           &                        +9.0d0                                                         &
+           &                        /8.0d0                                                         &
+           &                        /Pi                                                            &
+           &                        /speedLight                                                **3 &
+           &                        *kilo                                                      **3 &
+           &                        *self%cosmologyParameters_%HubbleConstant        (        )**4 &
+           &                        /self%cosmologyFunctions_ %hubbleParameterEpochal(timeLens)    &
+           &                        *self%cosmologyParameters_%OmegaMatter           (        )**2 &
+           &                        *(                                                             &
+           &                          +1.0d0                                                       &
+           &                          +redshiftLens                                                &
+           &                         )                                                         **2 &
+           &                        *(                                                             &
+           &                          +  distanceComovingLens                                      &
+           &                          *(                                                           &
+           &                            +distanceComovingSource                                    &
+           &                            -distanceComovingLens                                      &
+           &                           )                                                           &
+           &                          / distanceComovingSource                                     &
+           &                         )                                                         **2 &
            &                        *lensingPower
       return
     end function convergenceVarianceIntegrand
