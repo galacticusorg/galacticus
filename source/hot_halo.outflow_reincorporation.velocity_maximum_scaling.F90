@@ -30,17 +30,17 @@
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      private
-    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-    class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
-     double precision                                  :: timeScaleNormalization , velocityExponent            , &
-          &                                               redshiftExponent       , velocityMaximumFactor       , &
-          &                                               expansionFactorFactor  , rateStored                  , &
-          &                                               timeScaleMinimum       , timeScale
-     logical                                           :: velocityMaximumComputed, expansionFactorComputed     , &
-          &                                               rateComputed
-     integer         (kind=kind_int8                 ) :: lastUniqueID
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     double precision                                   :: timeScaleNormalization , velocityExponent            , &
+          &                                                redshiftExponent       , velocityMaximumFactor       , &
+          &                                                expansionFactorFactor  , rateStored                  , &
+          &                                                timeScaleMinimum       , timeScale
+     logical                                            :: velocityMaximumComputed, expansionFactorComputed     , &
+          &                                                rateComputed
+     integer         (kind=kind_int8                  ) :: lastUniqueID
      ! Fast exponentiation tables for rapid computation of the outflow rate.
-     type            (fastExponentiator              ) :: velocityExponentiator  , expansionFactorExponentiator
+     type            (fastExponentiator               ) :: velocityExponentiator  , expansionFactorExponentiator
    contains
      final     ::                     velocityMaximumScalingDestructor
      procedure :: calculationReset => velocityMaximumScalingCalculationReset
