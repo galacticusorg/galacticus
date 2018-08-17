@@ -111,9 +111,11 @@ contains
     buildFile=.false.
     if (File_Exists(char(self%fileName))) then
        ! Check file version number.
+       !$ call hdf5Access%set()
        call outputFile%openFile     (char(self%fileName),overwrite=.false.          )
        call outputFile%readAttribute('fileFormat'       ,          fileFormatVersion)
        call outputFile%close        (                                               )
+       !$ call hdf5Access%unset()
        buildFile=fileFormatVersion /= fileFormatVersionCurrent
     else
        buildFile=.true.
@@ -173,6 +175,7 @@ contains
        call File_Remove(char(recFastFile  ))
        call File_Remove(char(parameterFile))
        ! Create the output file.
+       !$ call hdf5Access%set()
        call outputFile%openFile      (char(self%fileName),overwrite=.true.)
        call outputFile%writeDataset  (redshift           ,'redshift'         ,'Redshift'                                            )
        call outputFile%writeDataset  (electronFraction   ,'electronFraction' ,'Electron fraction'                                   )
@@ -201,6 +204,7 @@ contains
        call recFastProvenance%close         (                                                                                                      )
        call provenance       %close         (                                                                                                      )
        call outputFile       %close         (                                                                                                      )
+       !$ call hdf5Access%unset()
     end if
     call File_Unlock(self%fileLock)
     return
