@@ -604,16 +604,7 @@ CODE
 	$code::offsetNameAll      = &offsetName('all'     ,$code::class,$code::member,$code::property);
 	$code::offsetNameActive   = &offsetName('active'  ,$code::class,$code::member,$code::property);
 	$code::offsetNameInactive = &offsetName('inactive',$code::class,$code::member,$code::property);
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
-if      (propertyType == propertyTypeAll     ) then
-                                  {$offsetNameAll}     =count      +1
-else if (propertyType == propertyTypeInactive) then
- if (     nodeInactives(count+1)) {$offsetNameInactive}=countSubset+1
-else if (propertyType == propertyTypeActive  ) then
- if (.not.nodeInactives(count+1)) {$offsetNameActive}  =countSubset+1
-end if
-CODE
-	# Update the counts by the size of this property.
+	# Get the size of this property.
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    if ( $code::property->{'data'}->{'type'} eq "double" ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
@@ -629,11 +620,24 @@ CODE
 propertySize=size(self%{$property->{'name'}}Data)
 CODE
         }
+	# Set the offset into this property, but only if the property has non-zero size.
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
-if (propertyType /= propertyTypeAll) then
- if ((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive)) countSubset=countSubset+propertySize
+if (propertySize > 0) then
+ if      (propertyType == propertyTypeAll     ) then
+                                   {$offsetNameAll}     =count      +1
+ else if (propertyType == propertyTypeInactive) then
+  if (     nodeInactives(count+1)) {$offsetNameInactive}=countSubset+1
+ else if (propertyType == propertyTypeActive  ) then
+  if (.not.nodeInactives(count+1)) {$offsetNameActive}  =countSubset+1
+ end if
+CODE
+	# Update the counts by the size of this property.
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+ if (propertyType /= propertyTypeAll) then
+  if ((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive)) countSubset=countSubset+propertySize
+ end if
+ count=count+propertySize
 end if
-count=count+propertySize
 CODE
     }
     # Insert a type-binding for this function into the treeNode type.
