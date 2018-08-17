@@ -21,6 +21,8 @@
   use Stateful_Types
   use ISO_Varying_String
   use Pseudo_Random
+  use Cosmology_Functions
+  use Cosmology_Parameters
 
   !# <mergerTreeImporter name="mergerTreeImporterSussing" abstract="yes">
   !#  <description>Importer for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.</description>
@@ -28,26 +30,28 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
      !% A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
      private
-     logical                                                     :: fatalMismatches         , treeIndicesRead    , &
-          &                                                         scaleRadiiAvailableValue, spinsAvailableValue, &
-          &                                                         fatalNonTreeNode
-     integer                                                     :: treesCount              , massOption
-     double precision                                            :: boxLength
-     type            (importerUnits )                            :: boxLengthUnits
-     type            (varying_string)                            :: mergerTreeFile
-     type            (varying_string), allocatable, dimension(:) :: snapshotFileName
-     integer         (kind_int8     ), allocatable, dimension(:) :: treeIndices
-     integer         (c_size_t      ), allocatable, dimension(:) :: treeIndexRanks
-     integer         (c_size_t      ), allocatable, dimension(:) :: treeSizes               , treeBegins
-     type            (nodeData      ), allocatable, dimension(:) :: nodes
-     double precision                , allocatable, dimension(:) :: snapshotTimes
-     integer                                                     :: subvolumeCount
-     integer                                      , dimension(3) :: subvolumeIndex
-     double precision                                            :: subvolumeBuffer
-     double precision                                            :: badValue
-     integer                                                     :: badValueTest
-     double precision                                            :: treeSampleRate
-     type            (pseudoRandom  )                            :: randomSequence
+     class           (cosmologyParametersClass), pointer                    :: cosmologyParameters_
+     class           (cosmologyFunctionsClass ), pointer                    :: cosmologyFunctions_
+     logical                                                                :: fatalMismatches         , treeIndicesRead    , &
+          &                                                                    scaleRadiiAvailableValue, spinsAvailableValue, &
+          &                                                                    fatalNonTreeNode
+     integer                                                                :: treesCount              , massOption
+     double precision                                                       :: boxLength
+     type            (importerUnits            )                            :: boxLengthUnits
+     type            (varying_string           )                            :: mergerTreeFile
+     type            (varying_string           ), allocatable, dimension(:) :: snapshotFileName
+     integer         (kind_int8                ), allocatable, dimension(:) :: treeIndices
+     integer         (c_size_t                 ), allocatable, dimension(:) :: treeIndexRanks
+     integer         (c_size_t                 ), allocatable, dimension(:) :: treeSizes               , treeBegins
+     type            (nodeData                 ), allocatable, dimension(:) :: nodes
+     double precision                           , allocatable, dimension(:) :: snapshotTimes
+     integer                                                                :: subvolumeCount
+     integer                                                 , dimension(3) :: subvolumeIndex
+     double precision                                                       :: subvolumeBuffer
+     double precision                                                       :: badValue
+     integer                                                                :: badValueTest
+     double precision                                                       :: treeSampleRate
+     type            (pseudoRandom             )                            :: randomSequence
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeImporterSussing</object>
@@ -76,6 +80,7 @@
      !@     <description>Return true if the given {\normalfont \ttfamily x} value is bad.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                                  sussingDestructor
      procedure :: load                          => sussingLoad
      procedure :: close                         => sussingClose
      procedure :: canReadSubsets                => sussingCanReadSubsets
@@ -141,12 +146,14 @@ contains
     implicit none
     type            (mergerTreeImporterSussing)                :: self
     type            (inputParameters          ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass ), pointer       :: cosmologyParameters_
     integer                                    , dimension(3)  :: subvolumeIndex
-    logical                                                    :: fatalMismatches , fatalNonTreeNode
+    logical                                                    :: fatalMismatches     , fatalNonTreeNode
     integer                                                    :: subvolumeCount
-    double precision                                           :: subvolumeBuffer , badValue        , &
+    double precision                                           :: subvolumeBuffer     , badValue        , &
          &                                                        treeSampleRate
-    type            (varying_string           )                :: badValueTestText, massOptionText
+    type            (varying_string           )                :: badValueTestText    , massOptionText
 
     !# <inputParameter>
     !#   <name>fatalMismatches</name>
@@ -222,6 +229,8 @@ contains
     !#   <type>string</type>
     !#   <variable>massOptionText</variable>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=mergerTreeImporterSussing(                                                                                     &
          &                         fatalMismatches                                                                    , &
          &                         fatalNonTreeNode                                                                   , &
@@ -231,23 +240,27 @@ contains
          &                         badValue                                                                           , &
          &                         enumerationSussingBadValueTestEncode(char(badValueTestText),includesPrefix=.false.), &
          &                         treeSampleRate                                                                     , &
-         &                         enumerationSussingMassOptionEncode  (char(massOptionText  ),includesPrefix=.false.)  &
+         &                         enumerationSussingMassOptionEncode  (char(massOptionText  ),includesPrefix=.false.), &
+         &                         cosmologyParameters_                                                               , &
+         &                         cosmologyFunctions_                                                                  &
          &                        )
     !# <inputParametersValidate source="parameters"/>    
     return
   end function sussingConstructorParameters
 
-  function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption) result(self)
+  function sussingConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``Sussing Merger Trees'' format \citep{srisawat_sussing_2013} merger tree importer class.
     implicit none
     type            (mergerTreeImporterSussing)                              :: self
     integer                                    , intent(in   ), dimension(3) :: subvolumeIndex
-    logical                                    , intent(in   )               :: fatalMismatches, fatalNonTreeNode
-    integer                                    , intent(in   )               :: subvolumeCount , badValueTest    , &
+    logical                                    , intent(in   )               :: fatalMismatches     , fatalNonTreeNode
+    integer                                    , intent(in   )               :: subvolumeCount      , badValueTest    , &
          &                                                                      massOption
-    double precision                           , intent(in   )               :: subvolumeBuffer, badValue        , &
+    double precision                           , intent(in   )               :: subvolumeBuffer     , badValue        , &
          &                                                                      treeSampleRate
-    !# <constructorAssign variables="fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption"/>
+    class           (cosmologyParametersClass ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass  ), intent(in   ), target       :: cosmologyFunctions_
+    !# <constructorAssign variables="fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,*cosmologyParameters_,*cosmologyFunctions_"/>
 
     self%treeIndicesRead         =.false.
     self%scaleRadiiAvailableValue=.true.
@@ -255,6 +268,15 @@ contains
     return
   end function sussingConstructorInternal
 
+  subroutine sussingDestructor(self)
+    implicit none
+    type(mergerTreeImporterSussing), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine sussingDestructor
+  
   subroutine sussingClose(self)
     !% Close a {\normalfont \ttfamily sussing} format merger tree file.
     implicit none
@@ -349,7 +371,7 @@ contains
     double precision                           , intent(in   )           :: time
     integer                                    , intent(  out), optional :: status
  
-    sussingCubeLength=importerUnitConvert(self%boxLength,time,self%boxLengthUnits,megaParsec)
+    sussingCubeLength=importerUnitConvert(self%boxLength,time,self%boxLengthUnits,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
     if (present(status)) status=booleanTrue
     return
   end function sussingCubeLength
@@ -770,13 +792,13 @@ contains
     ! Clean up display.
     call Galacticus_Display_Counter_Clear(verbosityWorking)
     ! Do unit conversion.
-    self   %nodes%nodeMass             =importerUnitConvert(self%nodes%nodeMass             ,self%nodes%nodeTime,massUnits    ,massSolar )
-    self   %nodes%scaleRadius          =importerUnitConvert(self%nodes%scaleRadius          ,self%nodes%nodeTime,lengthUnits  ,megaParsec)
-    self   %nodes%velocityMaximum      =importerUnitConvert(self%nodes%velocityMaximum      ,self%nodes%nodeTime,velocityUnits,kilo      )
-    self   %nodes%velocityDispersion   =importerUnitConvert(self%nodes%velocityDispersion   ,self%nodes%nodeTime,velocityUnits,kilo      )
+    self   %nodes%nodeMass             =importerUnitConvert(self%nodes%nodeMass             ,self%nodes%nodeTime,massUnits    ,massSolar ,self%cosmologyParameters_,self%cosmologyFunctions_)
+    self   %nodes%scaleRadius          =importerUnitConvert(self%nodes%scaleRadius          ,self%nodes%nodeTime,lengthUnits  ,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
+    self   %nodes%velocityMaximum      =importerUnitConvert(self%nodes%velocityMaximum      ,self%nodes%nodeTime,velocityUnits,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
+    self   %nodes%velocityDispersion   =importerUnitConvert(self%nodes%velocityDispersion   ,self%nodes%nodeTime,velocityUnits,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
     do i=1,3
-       self%nodes%position          (i)=importerUnitConvert(self%nodes%position          (i),self%nodes%nodeTime,lengthUnits  ,megaParsec)
-       self%nodes%velocity          (i)=importerUnitConvert(self%nodes%velocity          (i),self%nodes%nodeTime,velocityUnits,kilo      )
+       self%nodes%position          (i)=importerUnitConvert(self%nodes%position          (i),self%nodes%nodeTime,lengthUnits  ,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
+       self%nodes%velocity          (i)=importerUnitConvert(self%nodes%velocity          (i),self%nodes%nodeTime,velocityUnits,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
     end do
     ! Destroy temporary workspace.
     call deallocateArray(nodeSelfIndices        )
@@ -792,16 +814,13 @@ contains
     use Numerical_Constants_Boolean
     use Numerical_Constants_Astronomical
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
     class  (mergerTreeImporterSussing), intent(inout) :: self
     integer                           , intent(in   ) :: i
-    class  (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     !GCC$ attributes unused :: i
 
     ! Compute the inverse of the cube volume.
-    cosmologyFunctions_ => cosmologyFunctions()
-    sussingTreeWeight   =  1.0d0/self%cubeLength(cosmologyFunctions_%cosmicTime(1.0d0))**3/self%treeSampleRate
+    sussingTreeWeight   =  1.0d0/self%cubeLength(self%cosmologyFunctions_%cosmicTime(1.0d0))**3/self%treeSampleRate
     return
   end function sussingTreeWeight
 

@@ -314,7 +314,7 @@ contains
     return
   end function importerUnitsAreNotEqual
 
-  function importerUnitConvertScalar(values,times,units,requiredUnits)
+  function importerUnitConvertScalar(values,times,units,requiredUnits,cosmologyParameters_,cosmologyFunctions_)
     !% Convert a set of values for \glc\ internal units.
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -323,21 +323,19 @@ contains
     double precision                          , intent(in   ) :: values                    , times
     type            (importerUnits           ), intent(in   ) :: units
     double precision                          , intent(in   ) :: requiredUnits
+    class           (cosmologyParametersClass), intent(inout) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(inout) :: cosmologyFunctions_
     double precision                                          :: importerUnitConvertScalar
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
     if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
-    cosmologyParameters_ => cosmologyParameters()
     importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctions_ => cosmologyFunctions()
        importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctions_%expansionFactor(times)**units%scaleFactorExponent
     end if
     return
   end function importerUnitConvertScalar
   
-  function importerUnitConvert1D(values,times,units,requiredUnits)
+  function importerUnitConvert1D(values,times,units,requiredUnits,cosmologyParameters_,cosmologyFunctions_)
     !% Convert a set of values for \glc\ internal units.
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -346,16 +344,14 @@ contains
     double precision                          , intent(in   ), dimension(           :) :: values               , times
     type            (importerUnits           ), intent(in   )                          :: units
     double precision                          , intent(in   )                          :: requiredUnits
+    class           (cosmologyParametersClass), intent(inout)                          :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(inout)                          :: cosmologyFunctions_
     double precision                                         , dimension(size(values)) :: importerUnitConvert1D
-    class           (cosmologyParametersClass), pointer                                :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctions_
     integer                                                                            :: i
 
     if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
-    cosmologyParameters_ => cosmologyParameters()
     importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctions_ => cosmologyFunctions()
        do i=1,size(values)
           importerUnitConvert1D(i)=importerUnitConvert1D(i)*cosmologyFunctions_%expansionFactor(times(i))**units%scaleFactorExponent
        end do
@@ -363,7 +359,7 @@ contains
     return
   end function importerUnitConvert1D
   
-  function importerUnitConvert2D(values,times,units,requiredUnits)
+  function importerUnitConvert2D(values,times,units,requiredUnits,cosmologyParameters_,cosmologyFunctions_)
     !% Convert a set of values for \glc\ internal units.
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -373,16 +369,14 @@ contains
     double precision                          , intent(in   ), dimension(                                    :) :: times
     type            (importerUnits           ), intent(in   )                                                   :: units
     double precision                          , intent(in   )                                                   :: requiredUnits
+    class           (cosmologyParametersClass), intent(inout)                                                   :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(inout)                                                   :: cosmologyFunctions_
     double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: importerUnitConvert2D
-    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctions_
     integer                                                                                                     :: i
 
     if (.not.units%status) call Galacticus_Error_Report('units are not defined'//{introspection:location})
-    cosmologyParameters_ => cosmologyParameters()
     importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**units%hubbleExponent
     if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctions_ => cosmologyFunctions()
        do i=1,size(values,dim=2)
           importerUnitConvert2D(:,i)=importerUnitConvert2D(:,i)*cosmologyFunctions_%expansionFactor(times(i))**units%scaleFactorExponent
        end do

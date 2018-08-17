@@ -19,8 +19,6 @@
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
   
   use IO_HDF5
-  use Cosmology_Parameters
-  use Cosmology_Functions
   use Cosmological_Density_Field
 
   !# <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
@@ -29,8 +27,6 @@
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingHDF5
      !% A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
      private
-     class(cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
      type (hdf5Object                   )          :: file                     , snapshots
    contains
@@ -54,8 +50,6 @@ contains
     type(mergerTreeImporterSussingHDF5)                :: self
     type(inputParameters              ), intent(inout) :: parameters
 
-    !# <objectBuilder class="cosmologyParameters"      name="self%cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
     !# <inputParametersValidate source="parameters"/>    
@@ -76,9 +70,9 @@ contains
          &                                                                          massOption
     double precision                               , intent(in   )               :: subvolumeBuffer          , badValue        , &
          &                                                                          treeSampleRate
-    !# <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="*cosmologicalMassVariance_"/>
 
-    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption)
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_)
     return
   end function sussingHDF5ConstructorInternal
 
@@ -92,8 +86,6 @@ contains
     if (self%snapshots%isOpen()) call self%snapshots%close()
     if (self%file     %isOpen()) call self%file     %close()
     !$ call hdf5Access%unset()
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine sussingHDF5Destructor

@@ -17,9 +17,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
-
-  use Cosmology_Parameters
-  use Cosmology_Functions
  
   !# <mergerTreeImporter name="mergerTreeImporterSussingASCII">
   !#  <description>Importer for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.</description>
@@ -27,14 +24,11 @@
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingASCII
      !% A merger tree importer class for ``Sussing Merger Trees'' ASCII format merger tree files \citep{srisawat_sussing_2013}.
      private
-     class  (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
      logical                                    :: convertToBinary           , binaryFormatOld, &
           &                                        forestReverseSnapshotOrder, useForestFile
      integer                                    :: forestFirst               , forestLast
      type   (varying_string          )          :: forestFile
    contains
-     final     ::         sussingASCIIDestructor
      procedure :: open => sussingASCIIOpen
      procedure :: load => sussingASCIILoad
   end type mergerTreeImporterSussingASCII
@@ -118,8 +112,6 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="self%cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="self%cosmologyFunctions_"  source="parameters"/>
     self%useForestFile            =self%forestFile /= "none"
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
     !# <inputParametersValidate source="parameters"/>    
@@ -141,22 +133,13 @@ contains
     double precision                                , intent(in   )               :: subvolumeBuffer     , badValue        , &
          &                                                                           treeSampleRate
     type            (varying_string                )                              :: forestFile
-    !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_,*cosmologyFunctions_"/>
+    !# <constructorAssign variables="convertToBinary,binaryFormatOld,forestFile,forestFirst,forestLast,forestReverseSnapshotOrder,*cosmologyParameters_"/>
 
     self%useForestFile            =self%forestFile /= "none"
-    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption)
+    self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_)
     return
   end function sussingASCIIConstructorInternal
 
-  subroutine sussingASCIIDestructor(self)
-    implicit none
-    type(mergerTreeImporterSussingASCII), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-  return
-  end subroutine sussingASCIIDestructor
-  
   subroutine sussingASCIIOpen(self,fileName)
     !% Validate a {\normalfont \ttfamily sussing} ASCII format merger tree file.
     use Numerical_Comparison
@@ -216,12 +199,12 @@ contains
     read (fileUnit,*)
     do i=1,snapshotFileCount
        read (fileUnit,*) snapshotNumber,expansionFactor,redshift,timeNormalized,time
-       self%snapshotTimes(i)=                                            &
+       self%snapshotTimes(i)=                                                 &
             & self%cosmologyFunctions_ %cosmicTime                 (          &
             &  self%cosmologyFunctions_%expansionFactorFromRedshift (         &
-            &                                                   redshift &
-            &                                                  )         &
-            &                                                 )
+            &                                                        redshift &
+            &                                                       )         &
+            &                                                      )
     end do
     close(fileUnit)
     ! Read the simulation definition file.

@@ -577,7 +577,7 @@ contains
        self%lengthStatus%isSet=.true.
     end if
     if (self%lengthStatus%value == booleanTrue) then
-       galacticusCubeLength=importerUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
+       galacticusCubeLength=importerUnitConvert(self%length%value,time,self%lengthUnit,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
     else
        galacticusCubeLength=0.0d0
     end if
@@ -669,7 +669,7 @@ contains
           if      (self%forestHalos%hasDataset("time"           )) then
              ! Time is present, so read it.
              call self%forestHalos%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
-             nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear)
+             nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear,self%cosmologyParameters_,self%cosmologyFunctions_)
           else if (self%forestHalos%hasDataset("expansionFactor")) then
              ! Expansion factor is present, read it instead.
              call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
@@ -753,7 +753,7 @@ contains
     ! Do we have an array of weights for trees?
     if (allocated(self%weights)) then
        ! We do, so simply return the appropriate weight.
-       galacticusTreeWeight=importerUnitConvert(self%weights(i),timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
+       galacticusTreeWeight=importerUnitConvert(self%weights(i),timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3,self%cosmologyParameters_,self%cosmologyFunctions_)
     else
        ! We do not, so attempt to find the volume of the simulation cube.
        lengthSimulationBox=self%cubeLength(timePresent,statusActual)
@@ -887,7 +887,7 @@ contains
        ! Convert epochs into times.
        select case (self%particleEpochType)
        case (galacticusParticleEpochTypeTime           )
-          time=importerUnitConvert(time,time,self%timeUnit,gigaYear)
+          time=importerUnitConvert(time,time,self%timeUnit,gigaYear,self%cosmologyParameters_,self%cosmologyFunctions_)
        case (galacticusParticleEpochTypeExpansionFactor)
           do i=1,size(time)
              time(i)=self%cosmologyFunctions_%cosmicTime(                                                     time(i) )
@@ -898,8 +898,8 @@ contains
           end do
        end select
        ! Convert units of position and velocity into Galacticus internal units.
-       position=importerUnitConvert(position,time,self%lengthUnit  ,megaParsec)
-       velocity=importerUnitConvert(velocity,time,self%velocityUnit,kilo      )
+       position=importerUnitConvert(position,time,self%lengthUnit  ,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
+       velocity=importerUnitConvert(velocity,time,self%velocityUnit,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
     class default
        call Galacticus_Error_Report('node should be of type nodeDataGalacticus'//{introspection:location})
     end select
@@ -1226,16 +1226,16 @@ contains
        if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('non-positive units for velocity'//{introspection:location})
        if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('non-positive units for time'    //{introspection:location})
        if (.not.timesAreInternal)                                                                                                                                         &
-            & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
-       nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
+            & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
        if (present(requireScaleRadii).and.requireScaleRadii) then
-          nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
-          nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+          nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               ,self%cosmologyParameters_,self%cosmologyFunctions_)
+          nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               ,self%cosmologyParameters_,self%cosmologyFunctions_)
        end if
        if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
-            & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+            & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
        if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
-          angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+          angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
@@ -1243,8 +1243,8 @@ contains
        call deallocateArray(angularMomentum3D)
        end if
        if (present(requirePositions).and.requirePositions) then
-          position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
-          velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
+          position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec,self%cosmologyParameters_,self%cosmologyFunctions_)
+          velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      ,self%cosmologyParameters_,self%cosmologyFunctions_)
           ! Transfer to the nodes.  
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%position=position(:,iNode)
