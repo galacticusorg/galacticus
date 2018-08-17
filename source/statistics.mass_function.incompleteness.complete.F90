@@ -21,33 +21,39 @@
   !# <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
   !#  <description>Computes incompleteness for a complete survey.</description>
   !# </massFunctionIncompleteness>
-
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessComplete
      !% A class implementing incompleteness calculations for a complete survey.
      private
    contains
-     final     ::                 completeDestructor
      procedure :: completeness => completeCompleteness
   end type massFunctionIncompletenessComplete
 
+  interface massFunctionIncompletenessComplete
+     !% Constructors for the {\normalfont \ttfamily complete} incompleteness class.
+     module procedure completeConstructorParameters
+  end interface massFunctionIncompletenessComplete
+  
 contains
-
-  subroutine completeDestructor(self)
-    !% Destructor for the ``complete'' incompleteness class.
-     implicit none
-     type(massFunctionIncompletenessComplete), intent(inout) :: self
-     !GCC$ attributes unused :: self
-
-     return
-  end subroutine completeDestructor
-
+  
+  function completeConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily complete} incompleteness class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type(massFunctionIncompletenessComplete)                :: self
+    type(inputParameters                   ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=massFunctionIncompletenessComplete()
+    return
+  end function completeConstructorParameters
+  
   double precision function completeCompleteness(self,mass)
     !% Return the completeness.
     implicit none
     class           (massFunctionIncompletenessComplete), intent(inout) :: self
     double precision                                    , intent(in   ) :: mass
     !GCC$ attributes unused :: self, mass
-
+    
     completeCompleteness=1.0d0
     return
   end function completeCompleteness
