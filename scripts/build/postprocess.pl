@@ -71,6 +71,7 @@ my $buffer;
 my $status = 0;
 my $functionName;
 my $pointerName;
+my %bogusUninitialized;
 while ( my $line = <STDIN> ) {
     if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):(\d+):\s*$/ ) {
 	my $fileName     = $1;
@@ -98,8 +99,18 @@ while ( my $line = <STDIN> ) {
     $dropBuffer = 1
 	if ( $line =~ m/Only array FINAL procedures declared for derived type/ );
     # <workaround type="gfortran" PR="86117" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86117"/>
-    $dropBuffer = 1
-	if ( $line =~ m/Warning:\s+\'MEM\[\(struct\s+[a-z0-9_\s\*)[a-z0-9_&]+\s+\+\s+\d+B\]\' may be used uninitialized in this function/ );    
+    if ( $line =~ m/Warning:\s+\'MEM\[\(struct\s+([a-zA-Z0-9_]+)[a-z0-9_\s\*\)[a-z0-9_&]+\s+\+\s+\d+B\]\' (is|may be) used uninitialized in this function/ ) {
+	$dropBuffer = 1;
+	# In these cases we must add the problem structure to a list that we will ignore other "uninitialized" complaints about.
+	$bogusUninitialized{$1} = 1;
+    }
+    if ( $line =~ m/Warning:\s+\'([a-zA-Z0-9_\.]+)\'\s+may be used uninitialized in this function/ ) {
+	my @elements = split(/\./,$1);
+	foreach my $symbolName ( keys(%bogusUninitialized) ) {
+	    $dropBuffer = 1
+		if ( grep {$_ eq $symbolName} @elements );
+	}
+    }
     # Handle unused function attributes.
     if ( $line =~ m/^\s*subroutine\s+([a-z0-9_]+)/i ) {
 	$functionName = lc($1);
