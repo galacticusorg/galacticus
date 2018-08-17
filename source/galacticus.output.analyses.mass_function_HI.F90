@@ -29,6 +29,8 @@
      private
      class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+   contains
+     final :: massFunctionHIDestructor     
   end type outputAnalysisMassFunctionHI
 
   interface outputAnalysisMassFunctionHI
@@ -113,7 +115,7 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     !# <objectBuilder class="outputAnalysisMolecularRatio"       name="outputAnalysisMolecularRatio_"       source="parameters"            />
-    surveyGeometry_ => surveyGeometry()
+    !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
     return
@@ -288,3 +290,11 @@ contains
     nullify(normalizerSequence                              )
     return
   end function massFunctionHIConstructorInternal
+
+  subroutine massFunctionHIDestructor(self)
+    !% Destructor for  the ``massFunctionHI'' output analysis class.
+    type(outputAnalysisMassFunctionHI), intent(inout) :: self
+    
+    !# <objectDestructor name="self%surveyGeometry_"/>
+    return
+  end subroutine massFunctionHIDestructor
