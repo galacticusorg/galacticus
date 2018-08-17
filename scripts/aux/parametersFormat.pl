@@ -87,9 +87,6 @@ my @groups =
 	 description => "Intergalactic medium and reionization",
 	 members     =>
 	     [
-	      "reionizationSuppressionOpticalDepth",
-	      "reionizationSuppressionVelocity",
-	      "reionizationSuppressionRedshift",
 	      "intergalacticMediumStateMethod",
 	      qr/intergalaticMediumState.*/
 	     ]
@@ -225,11 +222,6 @@ my @groups =
 	 members     =>
 	     [
 	      "accretionHaloMethod",
-	      "accretionHalosSimpleNegativeAccretionAllowed",
-	      "accretionHalosSimpleAccreteNewGrowthOnly",
-	      "accretionColdModeShockStabilityThreshold",
-	      "accretionColdModeShockStabilityTransitionWidth",
-	      qr/^accretionHaloNaozBarkana2007.*/
 	     ]
      },
      {

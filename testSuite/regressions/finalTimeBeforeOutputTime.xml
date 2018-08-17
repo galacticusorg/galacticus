@@ -55,13 +55,14 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <hdf5CompressionLevel value="-1"/>
-  <accretionHaloMethod value="simple"/>
-  <reionizationSuppressionOpticalDepth value="0.0883790456"/>
+  <accretionHaloMethod value="simple">
+    <opticalDepthReionization        value="0.0883790456"/>
+    <velocitySuppressionReionization value="35.0"        />
+  </accretionHaloMethod>
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>
   <imfSelectionMethod value="fixed"/>
-  <reionizationSuppressionVelocity value="35.0"/>
   <treeNodeMethodBlackHole value="null"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/finalTimeBeforeOutputTime.hdf5"/>

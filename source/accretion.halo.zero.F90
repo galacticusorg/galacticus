@@ -16,147 +16,163 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of null accretion from the \gls{igm} onto halos.
+  !% An implementation of zero accretion from the \gls{igm} onto halos.
 
-  !# <accretionHalo name="accretionHaloNull">
+  !# <accretionHalo name="accretionHaloZero">
   !#  <description>Accretion onto halos assuming no accretion.</description>
   !# </accretionHalo>
-
-  type, extends(accretionHaloClass) :: accretionHaloNull
+  type, extends(accretionHaloClass) :: accretionHaloZero
      !% A halo accretion class that assumes no accretion.
      private
    contains
-     procedure :: branchHasBaryons       => nullBranchHasBaryons
-     procedure :: accretionRate          => nullAccretionRate
-     procedure :: accretedMass           => nullAccretedMass
-     procedure :: failedAccretionRate    => nullFailedAccretionRate
-     procedure :: failedAccretedMass     => nullFailedAccretedMass
-     procedure :: accretionRateMetals    => nullAccretionRateMetals
-     procedure :: accretedMassMetals     => nullAccretedMassMetals
-     procedure :: accretionRateChemicals => nullAccretionRateChemicals
-     procedure :: accretedMassChemicals  => nullAccretedMassChemicals
-  end type accretionHaloNull
+     procedure :: branchHasBaryons       => zeroBranchHasBaryons
+     procedure :: accretionRate          => zeroAccretionRate
+     procedure :: accretedMass           => zeroAccretedMass
+     procedure :: failedAccretionRate    => zeroFailedAccretionRate
+     procedure :: failedAccretedMass     => zeroFailedAccretedMass
+     procedure :: accretionRateMetals    => zeroAccretionRateMetals
+     procedure :: accretedMassMetals     => zeroAccretedMassMetals
+     procedure :: accretionRateChemicals => zeroAccretionRateChemicals
+     procedure :: accretedMassChemicals  => zeroAccretedMassChemicals
+  end type accretionHaloZero
+
+  interface accretionHaloZero
+     !% Constructors for the {\normalfont \ttfamily zero} halo accretion class.
+     module procedure zeroConstructorParameters
+  end interface accretionHaloZero
 
 contains
 
-  logical function nullBranchHasBaryons(self,node)
+  function zeroConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily zero} halo accretion class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type(accretionHaloZero)                :: self
+    type(inputParameters  ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=accretionHaloZero()
+    return
+  end function zeroConstructorParameters
+       
+  logical function zeroBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
     use Galacticus_Nodes
     implicit none
-    class(accretionHaloNull), intent(inout)         :: self
+    class(accretionHaloZero), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node
     !GCC$ attributes unused :: self, node
     
-    nullBranchHasBaryons=.false.
+    zeroBranchHasBaryons=.false.
     return
-  end function nullBranchHasBaryons
+  end function zeroBranchHasBaryons
 
-  double precision function nullAccretionRate(self,node,accretionMode)
+  double precision function zeroAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout) :: self
+    class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
     
-    nullAccretionRate=0.0d0
+    zeroAccretionRate=0.0d0
     return
-  end function nullAccretionRate
+  end function zeroAccretionRate
 
-  double precision function nullAccretedMass(self,node,accretionMode)
+  double precision function zeroAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout) :: self
+    class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretedMass=0.0d0
+    zeroAccretedMass=0.0d0
     return
-  end function nullAccretedMass
+  end function zeroAccretedMass
 
-  double precision function nullFailedAccretionRate(self,node,accretionMode)
+  double precision function zeroFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout) :: self
+    class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullFailedAccretionRate=0.0d0
+    zeroFailedAccretionRate=0.0d0
     return
-  end function nullFailedAccretionRate
+  end function zeroFailedAccretionRate
 
-  double precision function nullFailedAccretedMass(self,node,accretionMode)
+  double precision function zeroFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
     implicit none
-    class  (accretionHaloNull), intent(inout) :: self
+    class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullFailedAccretedMass=0.0d0
+    zeroFailedAccretedMass=0.0d0
     return
-  end function nullFailedAccretedMass
+  end function zeroFailedAccretedMass
 
-  function nullAccretionRateMetals(self,node,accretionMode)
+  function zeroAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (abundances       )                :: nullAccretionRateMetals
-    class  (accretionHaloNull), intent(inout) :: self
+    type   (abundances       )                :: zeroAccretionRateMetals
+    class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretionRateMetals=zeroAbundances
+    zeroAccretionRateMetals=zeroAbundances
     return
-  end function nullAccretionRateMetals
+  end function zeroAccretionRateMetals
 
-  function nullAccretedMassMetals(self,node,accretionMode)
+  function zeroAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type   (abundances       )                :: nullAccretedMassMetals
-    class  (accretionHaloNull), intent(inout) :: self
+    type   (abundances       )                :: zeroAccretedMassMetals
+    class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
     integer                   , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretedMassMetals=zeroAbundances
+    zeroAccretedMassMetals=zeroAbundances
     return
-  end function nullAccretedMassMetals
+  end function zeroAccretedMassMetals
 
-  function nullAccretionRateChemicals(self,node,accretionMode)
+  function zeroAccretionRateChemicals(self,node,accretionMode)
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type   (chemicalAbundances)                :: nullAccretionRateChemicals
-    class  (accretionHaloNull ), intent(inout) :: self
+    type   (chemicalAbundances)                :: zeroAccretionRateChemicals
+    class  (accretionHaloZero ), intent(inout) :: self
     type   (treeNode          ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretionRateChemicals=zeroChemicalAbundances
+    zeroAccretionRateChemicals=zeroChemicalAbundances
     return
-  end function nullAccretionRateChemicals
+  end function zeroAccretionRateChemicals
 
-  function nullAccretedMassChemicals(self,node,accretionMode)
+  function zeroAccretedMassChemicals(self,node,accretionMode)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type   (chemicalAbundances)                :: nullAccretedMassChemicals
-    class  (accretionHaloNull ), intent(inout) :: self
+    type   (chemicalAbundances)                :: zeroAccretedMassChemicals
+    class  (accretionHaloZero ), intent(inout) :: self
     type   (treeNode          ), intent(inout) :: node
     integer                    , intent(in   ) :: accretionMode
     !GCC$ attributes unused :: self, node, accretionMode
 
-    nullAccretedMassChemicals=zeroChemicalAbundances
+    zeroAccretedMassChemicals=zeroChemicalAbundances
     return
-  end function nullAccretedMassChemicals
+  end function zeroAccretedMassChemicals

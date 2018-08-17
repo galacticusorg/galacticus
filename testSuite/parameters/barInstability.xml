@@ -57,7 +57,7 @@
   </mergerTreeConstructorMethod>
 
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="null"/>
+  <accretionHaloMethod value="zero"/>
 
   <!-- Dark matter halo profile -->
   <darkMatterProfileMethod value="isothermal"/>

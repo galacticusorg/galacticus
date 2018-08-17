@@ -12,7 +12,7 @@
   <treeNodeMethodDisk value="verySimple"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <treeNodeMethodSatellite value="verySimple"/>
-  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpheroid value="null"/>
   <treeNodeMethodSpin value="null"/>
 
   <!-- Cosmological parameters and options -->
@@ -27,9 +27,9 @@
   <!-- Power spectrum options -->
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.818975624707821"/>
-  </cosmologicalMassVarianceMethod><cosmologicalMassVarianceMethod value="filteredPowerSpectrum"/>
+  </cosmologicalMassVarianceMethod>
   <transferFunctionMethod value="eisensteinHu1999">
-  <neutrinoNumberEffective value="3.04"/>
+    <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <powerSpectrumPrimordialMethod value="powerLaw">
@@ -39,9 +39,9 @@
   </powerSpectrumPrimordialMethod>
   <!-- Structure formation options -->
   <linearGrowthMethod value="simple"/>
-  <haloMassFunctionMethod value="tinker2008">
-  <alpha value="-0.127240525851282"/>
-    <beta value="0.0654435853813416"/>
+  <haloMassFunctionMethod value="tinker2008Generic">
+    <a value="-0.127240525851282"/>
+    <b value="0.0654435853813416"/>
   </haloMassFunctionMethod>
   <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
@@ -58,19 +58,20 @@
     <gamma2 value="-0.010"/>
     <accuracyFirstOrder value="+0.025"/>
   </mergerTreeBranchingProbabilityMethod>
-  <mergerTreesBuildMassResolutionMethod value="scaled"/>
   <mergerTreeMassResolutionMethod value="scaled">
     <massResolutionMinimum value="1.0e8"/>
     <massResolutionFractional value="1.0e-1"/>
-    <massResolution value="1.0e8"/>
-  </mergerTreeMassResolutionMethod><mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+  </mergerTreeMassResolutionMethod>
+  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="250"/>
     <massTreeMinimum value="2.0e08"/>
     <massTreeMaximum value="1.0e15"/>
-  </mergerTreeBuildMassesMethod><mergerTreeBuildMassDistributionMethod value="uniform"/>
-  <mergerTreeHaloMassFunctionSamplingMethod value="haloMassFunction"/>
-  <haloMassFunctionSamplingAbundanceMaximum value="1.0e-4"/>
-  <haloMassFunctionSamplingAbundanceMinimum value="1.0e-7"/>
+  </mergerTreeBuildMassesMethod>
+  <mergerTreeBuildMassDistributionMethod value="haloMassFunction">
+    <abundanceMaximum value="1.0e-4"/>
+    <abundanceMinimum value="1.0e-7"/>
+  </mergerTreeBuildMassDistributionMethod>
+  
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
 
@@ -78,9 +79,10 @@
   <darkMatterProfileMethod value="isothermal"/>
 
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="simple"/>
-  <reionizationSuppressionOpticalDepth value="0.0845240757566554"/>
-  <reionizationSuppressionVelocity value="38.8165530377"/>
+  <accretionHaloMethod value="simple">
+    <opticalDepthReionization        value=" 0.0845240757566554"/>
+    <velocitySuppressionReionization value="38.8165530377000000"/>
+  </accretionHaloMethod>
 
   <!-- Hot halo gas cooling model options -->
   <coolingRateMethod value="simpleScaling">
@@ -114,10 +116,11 @@
   <imfChabrierYieldInstantaneous value="0.0"/>
 
   <!-- Supernovae feedback options -->
-  <starFormationFeedbackDisksMethod value="haloScaling"/>
-  <diskOutflowVirialVelocityExponent value="-16.4687643864"/>
-  <diskOutflowRedshiftExponent value="-7.53946527906"/>
-  <diskOutflowFraction value="4.61431940043366e-05"/>
+  <starFormationFeedbackDisksMethod value="haloScaling">
+    <exponentVelocity value="-16.4687643864"/>
+    <exponentRedshift value="-7.53946527906"/>
+    <fraction value="4.61431940043366e-05"/>
+  </starFormationFeedbackDisksMethod>
   <diskOutflowTimescaleMinimum value="0.0032937916041941"/>
 
   <!-- Galaxy merger options -->
@@ -141,12 +144,8 @@
   <timestepSimpleRelative value="0.1"/>
 
   <!-- Output options -->
-  <mergerTreeOutput value="true">
+  <mergerTreeOutput>
     <outputReferences value="false"/>
-  </mergerTreeOutput><!-- Analyses -->
-  <sdssStellarMassFunctionZ0 value="0.41457726715"/>
-  <sdssStellarMassFunctionZ0 value="0.0777732492214"/>
-  <analysisMassFunctionCovarianceModel value="binomial"/>
-  <analysisMassFunctionsCorrelationTruncateLevel value="0.0"/>
-
+  </mergerTreeOutput>
+  
 </parameters>

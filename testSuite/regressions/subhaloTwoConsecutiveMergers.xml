@@ -102,14 +102,15 @@
     <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
-  <reionizationSuppressionOpticalDepth value="0.0883790456"/>
-  <accretionHaloMethod value="simple"/>
+  <accretionHaloMethod value="simple">
+    <opticalDepthReionization        value="0.0883790456"/>
+    <velocitySuppressionReionization value="35.0"        />
+  </accretionHaloMethod>
   <hdf5CompressionLevel value="-1"/>
   <imfSelectionMethod value="fixed"/>
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>
-  <reionizationSuppressionVelocity value="35.0"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/subhaloTwoConsecutiveMergers.hdf5"/>
   <coolingSpecificAngularMomentumMethod>

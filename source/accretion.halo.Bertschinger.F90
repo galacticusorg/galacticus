@@ -19,115 +19,79 @@
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization, and the Bertschinger mass to define available mass.
 
+  use Dark_Matter_Profiles
+
   !# <accretionHalo name="accretionHaloBertschinger">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.</description>
   !# </accretionHalo>
-
   type, extends(accretionHaloSimple) :: accretionHaloBertschinger
      !% A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define
      !% available mass.
      private
+     class(darkMatterProfileClass), pointer:: darkMatterProfile_
    contains
-     procedure :: velocityScale      => bertschingerVelocityScale
+     final     ::                  bertschingerDestructor
+     procedure :: velocityScale => bertschingerVelocityScale
   end type accretionHaloBertschinger
 
   interface accretionHaloBertschinger
      !% Constructors for the {\normalfont \ttfamily bertschinger} halo accretion class.
-     module procedure bertschingerConstructor
-     module procedure bertschingerDefaultConstructor
+     module procedure bertschingerConstructorParameters
+     module procedure bertschingerConstructorInternal
   end interface accretionHaloBertschinger
-
-  interface assignment(=)
-     module procedure bertschingerFromSimple
-  end interface assignment(=)
-
-  ! Initialization state.
-  logical :: bertschingerInitialized=.false.
 
 contains
   
-  subroutine bertschingerFromSimple(bertschinger,simple)
-    !% Assign a {\normalfont \ttfamily simple} halo accretion object to a {\normalfont \ttfamily bertschinger} halo accretion object.
-    implicit none
-    type(accretionHaloBertschinger), intent(inout) :: bertschinger
-    type(accretionHaloSimple      ), intent(in   ) :: simple
-    
-    bertschinger%reionizationSuppressionTime    =simple%reionizationSuppressionTime
-    bertschinger%reionizationSuppressionVelocity=simple%reionizationSuppressionVelocity
-    bertschinger%negativeAccretionAllowed       =simple%negativeAccretionAllowed
-    bertschinger%accreteNewGrowthOnly           =simple%accreteNewGrowthOnly
-    bertschinger%radiation                      =simple%radiation
-    return
-  end subroutine bertschingerFromSimple
-  
-  subroutine bertschingerInitialize()
-    !% Initialize the {\normalfont \ttfamily bertschinger} halo accretion class.
-    use Array_Utilities
-    use Galacticus_Nodes
-    use Galacticus_Error
-    implicit none
-    
-    if (.not.bertschingerInitialized) then
-       !$omp critical(accretionHaloBertschingerInitialize)
-       if (.not.bertschingerInitialized) then
-          if     (                                                                                                                      &
-               &  .not.(                                                                                                                &
-               &         defaultBasicComponent%         massBertschingerIsGettable()                                                    &
-               &        .and.                                                                                                           &
-               &         defaultBasicComponent%accretionRateBertschingerIsGettable()                                                    &
-               &       )                                                                                                                &
-               & )                                                                                                                      &
-               & call Galacticus_Error_Report                                                                                           &
-               &   (                                                                                                                    &
-               &    'the "massBertschinger" and "accretionRateBertschinger" properties of the basic component must be gettable.'     // &
-               &    Galacticus_Component_List(                                                                                          &
-               &                              'basic'                                                                                ,  &
-               &                                defaultBasicComponent%         massBertschingerAttributeMatch(requireGettable=.true.)   &
-               &                               .intersection.                                                                           &
-               &                                defaultBasicComponent%accretionRateBertschingerAttributeMatch(requireGettable=.true.)   &
-               &                             )                                                                                       // &
-               &    {introspection:location}                                                                                            &
-               &   )
-          bertschingerInitialized=.true.
-       end if
-       !$omp end critical(accretionHaloBertschingerInitialize)
-    end if
-    return
-  end subroutine bertschingerInitialize
-
-  function bertschingerDefaultConstructor()
+  function bertschingerConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
+    use Input_Parameters
     implicit none
-    type(accretionHaloBertschinger), target :: bertschingerDefaultConstructor
+    type (accretionHaloBertschinger)                :: self
+    type (inputParameters          ), intent(inout) :: parameters
 
-    call bertschingerInitialize()
-    bertschingerDefaultConstructor=accretionHaloSimple()
+    self%accretionHaloSimple=accretionHaloSimple(parameters)
+    !# <objectBuilder class="darkMatterProfile" name="self%darkMatterProfile_" source="parameters"/>
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function bertschingerDefaultConstructor
+  end function bertschingerConstructorParameters
        
-  function bertschingerConstructor(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
-    !% Default constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
+  function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfile_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
+    use Galacticus_Error
+    use Atomic_Data
     implicit none
-    type            (accretionHaloBertschinger), target        :: bertschingerConstructor
-    double precision                           , intent(in   ) :: reionizationSuppressionTime, reionizationSuppressionVelocity
-    logical                                    , intent(in   ) :: negativeAccretionAllowed   , accreteNewGrowthOnly
+    type            (accretionHaloBertschinger    )                        :: self
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
+    logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
+    class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class           (accretionHaloTotalClass      ), intent(in   ), target :: accretionHaloTotal_
+    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
+    class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
+    class           (darkMatterProfileClass       ), intent(in   ), target :: darkMatterProfile_
+    class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
+    !# <constructorAssign variables="*darkMatterProfile_"/>
 
-    call bertschingerInitialize()
-    bertschingerConstructor=accretionHaloSimple(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
+    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     return
-  end function bertschingerConstructor
+  end function bertschingerConstructorInternal
+
+  subroutine bertschingerDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
+    implicit none
+    type(accretionHaloBertschinger), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterProfile_"/>
+    return
+  end subroutine bertschingerDestructor
 
   double precision function bertschingerVelocityScale(self,node)
     !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the maximum circular velocity.
     use Galacticus_Nodes
-    use Dark_Matter_Profiles
     implicit none
     class(accretionHaloBertschinger), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node
-    class(darkMatterProfileClass   ), pointer       :: darkMatterProfile_
-    !GCC$ attributes unused :: self
     
-    darkMatterProfile_        => darkMatterProfile                         (    )
-    bertschingerVelocityScale =  darkMatterProfile_%circularVelocityMaximum(node)
+    bertschingerVelocityScale=self%darkMatterProfile_%circularVelocityMaximum(node)
     return
   end function bertschingerVelocityScale

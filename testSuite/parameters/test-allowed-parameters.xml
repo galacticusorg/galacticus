@@ -131,7 +131,7 @@
   <darkMatterProfileMethod value="NFW"/>
   
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="null"/>
+  <accretionHaloMethod value="zero"/>
 
   <!-- Hot halo gas model options -->
   <hotHaloMassDistributionMethod value="null"/>
