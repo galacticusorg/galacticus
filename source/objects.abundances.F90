@@ -239,6 +239,11 @@ module Abundances_Structure
      procedure         :: outputNames           =>Abundances_Output_Names
   end type abundances
 
+  interface abundances
+     !% Constructors for the {\normalfont \ttfamily abundances} class.
+     module procedure abundancesConstructorZero
+  end interface abundances
+  
   ! Count of the number of elements being tracked.
   integer                                                                    :: elementsCount        =0
   integer                                                                    :: propertyCount
@@ -333,6 +338,16 @@ contains
     return
   end subroutine Abundances_Initialize
 
+  function abundancesConstructorZero() result(self)
+    !% A constructor for {\normalfont \ttfamily abundances} objects which sets all content to zero.
+    implicit none
+    type(abundances) :: self
+
+    call Abundances_Initialize()
+    self=zeroAbundances
+    return
+  end function abundancesConstructorZero
+  
   subroutine Abundances_Destroy(self)
     !% Destroy an abundances object.
     use Memory_Management
