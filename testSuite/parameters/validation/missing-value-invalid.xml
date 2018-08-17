@@ -73,9 +73,10 @@
   <randomSpinResetMassFactor value="2.0"/>
 
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="simple"/>
-  <reionizationSuppressionRedshift value="10.5"/>
-  <reionizationSuppressionVelocity value="35.0"/>
+  <accretionHaloMethod value="simple">
+    <redshiftReionization            value="10.5"/>
+    <velocitySuppressionReionization value="35.0"/>
+  </accretionHaloMethod>
 
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistributionMethod value="betaProfile"/>

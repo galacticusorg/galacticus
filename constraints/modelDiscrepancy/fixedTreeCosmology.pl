@@ -88,7 +88,7 @@ my @treeConstructParameters =
 	 value => 0.814932725148418
      },
      {
-	 name  => "reionizationSuppressionOpticalDepth",
+	 name  => "accretionHaloMethod->opticalDepthReionization",
 	 value => 0.0658422364961477
      },
      {

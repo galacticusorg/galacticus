@@ -25,21 +25,11 @@ module Accretion_Halos
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Kind_Numbers
-  !# <include directive="accretionHalo" type="functionModules" >
-  include 'accretionHalo.functionModules.inc'
-  !# </include>
   private
   public :: Accretion_Halos_Hot_Halo_Output, Accretion_Halos_Hot_Halo_Output_Count, Accretion_Halos_Hot_Halo_Output_Names
 
-  ! Options controlling whether hot, cold, or total accretion is required.
-  integer, public, parameter :: accretionModeTotal=0
-  integer, public, parameter :: accretionModeHot  =1
-  integer, public, parameter :: accretionModeCold =2
-
-  ! Options controlling output.
-  logical                    :: outputHaloAccretionMode, accretionHalosOutputInitialized
-
-  !# <include directive="accretionHalo" type="function" >
+  !# <functionClass>
+  !#  <name>accretionHalo</name>
   !#  <descriptiveName>Accretion Onto Halos</descriptiveName>
   !#  <description>Class providing rates of accretion of gas from the \gls{igm} onto halos.</description>
   !#  <default>simple</default>
@@ -107,9 +97,23 @@ module Accretion_Halos
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#   <argument>integer       , intent(in   ) :: accretionMode</argument>
   !#  </method>
-  include 'accretionHalo.type.inc'
-  !# </include>
+  !# </functionClass>
 
+  ! Enumeration of accretion types.
+  !# <enumeration>
+  !#  <name>accretionMode</name>
+  !#  <description>Enumeration of accretion modes for the {\normalfont \ttfamily accrtionHalo} class.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="total"/>
+  !#  <entry label="hot"  />
+  !#  <entry label="cold" />
+  !# </enumeration>
+
+  ! Options controlling output.
+  logical :: outputHaloAccretionMode, accretionHalosOutputInitialized
+
+contains
+  
   subroutine Accretion_Halos_Output_Initialize()
     !% Initialize output in the halo accretion module.
     use Input_Parameters

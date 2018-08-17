@@ -122,17 +122,18 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
   <starFormationHistoryMetallicityCount value="0"/>
-  <accretionHaloMethod value="simple"/>
   <blackHoleSeedMass value="100"/>
   <imfSelectionMethod value="fixed"/>
-  <reionizationSuppressionVelocity value="30"/>
   <stellarPopulationPropertiesMethod value="noninstantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/test.hdf5"/>
   <treeNodeMethodSatellite value="standard"/>
   <stateFileRoot value="galacticusDebug"/>
   <imfSelectionFixed value="Salpeter"/>
   <treeNodeMethodHotHalo value="standard"/>
-  <reionizationSuppressionRedshift value="9"/>
+  <accretionHaloMethod value="simple">
+    <redshiftReionization            value="9"/>
+    <velocitySuppressionReionization value="30.0"/>
+  </accretionHaloMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <exponent value="2.0"/>
     <velocityCharacteristic value="50.0"/>

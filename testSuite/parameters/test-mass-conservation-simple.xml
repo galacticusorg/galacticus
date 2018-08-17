@@ -14,7 +14,10 @@
   </pbs>
 
   <parameters formatVersion="2" version="0.9.4">
-    <accretionHaloMethod value="bertschinger"/>
+    <accretionHaloMethod value="bertschinger">
+      <opticalDepthReionization        value="0.0524245066049212"/>
+      <velocitySuppressionReionization value="47.370163695687651"/>
+    </accretionHaloMethod>
     <accretionHaloTotalMethod value="bertschinger"/>
     <coolingRateMethod value="velocityMaximumScaling">
       <exponentCutOff value="1.7906261504610221"/>
@@ -141,8 +144,6 @@
     </powerSpectrumPrimordialMethod>
     <powerSpectrumPrimordialTransferredMethod value="simple"/>
     <randomSpinResetMassFactor value="2.0"/>
-    <reionizationSuppressionOpticalDepth value="0.0524245066049212"/>
-    <reionizationSuppressionVelocity value="47.370163695687651"/>
     <satelliteMergingMassMovementsMethod value="verySimple"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
     <satelliteMergingTimescalesMethod value="jiang2008"/>

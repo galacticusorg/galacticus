@@ -18,19 +18,32 @@
 
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization.
-
+  
   use Radiation_Structure
+  use Intergalactic_Medium_State, only : intergalacticMediumStateClass, intergalacticMediumState
+  use Cosmology_Functions       , only : cosmologyFunctionsClass      , cosmologyFunctions
+  use Cosmology_Parameters      , only : cosmologyParametersClass     , cosmologyParameters
+  use Accretion_Halo_Totals     , only : accretionHaloTotalClass      , accretionHaloTotal
+  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass     , darkMatterHaloScale
+  use Chemical_States           , only : chemicalStateClass           , chemicalState
 
   !# <accretionHalo name="accretionHaloSimple">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization.</description>
   !# </accretionHalo>
-
   type, extends(accretionHaloClass) :: accretionHaloSimple
      !% A halo accretion class using simple truncation to mimic the effects of reionization.
      private
-     double precision                     :: reionizationSuppressionTime, reionizationSuppressionVelocity
-     logical                              :: negativeAccretionAllowed   , accreteNewGrowthOnly
-     type            (radiationStructure) :: radiation
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
+     class           (accretionHaloTotalClass      ), pointer :: accretionHaloTotal_
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_
+     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ 
+     class           (chemicalStateClass           ), pointer :: chemicalState_
+     double precision                                         :: timeReionization         , velocitySuppressionReionization, &
+          &                                                      opticalDepthReionization
+     logical                                                  :: accretionNegativeAllowed , accretionNewGrowthOnly
+     type            (radiationStructure           )          :: radiation
+     integer                                                  :: countChemicals
    contains
      !@ <objectMethods>
      !@   <object>accretionHaloSimple</object>
@@ -47,6 +60,7 @@
      !@     <description>Returns the velocity scale to use for {\normalfont \ttfamily node}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                           simpleDestructor
      procedure :: branchHasBaryons       => simpleBranchHasBaryons
      procedure :: accretionRate          => simpleAccretionRate
      procedure :: accretedMass           => simpleAccretedMass
@@ -62,132 +76,111 @@
 
   interface accretionHaloSimple
      !% Constructors for the {\normalfont \ttfamily simple} halo accretion class.
-     module procedure simpleConstructor
-     module procedure simpleDefaultConstructor
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
   end interface accretionHaloSimple
-
-  ! Parameters controlling when accretion is suppressed.
-  double precision                     :: simpleReionizationSuppressionRedshift  , simpleReionizationSuppressionTime, &
-       &                                  simpleReionizationSuppressionVelocity
-
-  ! Options controlling accretion.
-  logical                              :: simpleNegativeAccretionAllowed
-  logical                              :: simpleAccreteNewGrowthOnly
-
-  ! Index of Solar abundance pattern.
-  integer                              :: simpleAbundanceIndexSolar
-
-  ! Internal record of the number of chemicals being tracked.
-  integer                              :: simpleChemicalsCount
-
-  ! Initialization state.
-  logical                              :: simpleInitialized=.false., simpleDefaultInitialized=.false.
-
+  
 contains
 
-  function simpleDefaultConstructor()
+  function simpleConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
-    use Intergalactic_Medium_State
-    use Cosmology_Functions
     use Galacticus_Error
     use Input_Parameters
     implicit none
-    type            (accretionHaloSimple          ), target  :: simpleDefaultConstructor
-    class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-    class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ 
-    double precision                                         :: reionizationSuppressionOpticalDepth
+    type            (accretionHaloSimple          )                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class           (accretionHaloTotalClass      ), pointer       :: accretionHaloTotal_
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
+    class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_ 
+    class           (chemicalStateClass           ), pointer       :: chemicalState_
+    double precision                                               :: timeReionization         , velocitySuppressionReionization, &
+         &                                                            opticalDepthReionization , redshiftReionization
+    logical                                                        :: accretionNegativeAllowed , accretionNewGrowthOnly
 
-    ! Get default parameters.
-    if (.not.simpleDefaultInitialized) then
-       !$omp critical(accretionHaloSimpleDefaultInitialize)
-       if (.not.simpleDefaultInitialized) then
-          if (globalParameters%isPresent("simpleReionizationSuppressionOpticalDepth")) then
-             if (globalParameters%isPresent("simpleReionizationSuppressionRedshift")) call Galacticus_Error_Report("only one of [simpleReionizationSuppressionOpticalDepth] and [simpleReionizationSuppressionRedshift] should be specified"//{introspection:location})
-             !# <inputParameter>
-             !#   <name>reionizationSuppressionOpticalDepth</name>
-             !#   <cardinality>1</cardinality>
-             !#   <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>real</type>
-             !# </inputParameter>
-             intergalacticMediumState_        => intergalacticMediumState()
-             simpleReionizationSuppressionTime=intergalacticMediumState_%electronScatteringTime(reionizationSuppressionOpticalDepth&
-                  &,assumeFullyIonized=.true.)
-          else
-             !# <inputParameter>
-             !#   <name>reionizationSuppressionRedshift</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
-             !#   <defaultValue>9.97d0</defaultValue>
-             !#   <description>The redshift below which baryonic accretion is suppressed.</description>
-             !#   <source>globalParameters</source>
-             !#   <type>real</type>
-             !#   <variable>simpleReionizationSuppressionRedshift</variable>
-             !# </inputParameter>
-             cosmologyFunctions_               => cosmologyFunctions()
-             simpleReionizationSuppressionTime =  cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(simpleReionizationSuppressionRedshift))
-          end if
-          !# <inputParameter>
-          !#   <name>reionizationSuppressionVelocity</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>35.0d0</defaultValue>
-          !#   <description>The velocity scale below which baryonic accretion is suppressed.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !#   <variable>simpleReionizationSuppressionVelocity</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>accretionHalosSimpleNegativeAccretionAllowed</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !#   <variable>simpleNegativeAccretionAllowed</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>accretionHalosSimpleAccreteNewGrowthOnly</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !#   <variable>simpleAccreteNewGrowthOnly</variable>
-          !# </inputParameter>
-          ! Record that class is now initialized.
-          simpleDefaultInitialized=.true.
-       end if
-       !$omp end critical(accretionHaloSimpleDefaultInitialize)
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="accretionHaloTotal"       name="accretionHaloTotal_"       source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
+    !# <objectBuilder class="chemicalState"            name="chemicalState_"            source="parameters"/>
+    if (parameters%isPresent("opticalDepthReionization")) then
+       if (parameters%isPresent("redshiftReionization")) call Galacticus_Error_Report("only one of [opticalDepthReionization] and [redshiftReionization] should be specified"//{introspection:location})
+       !# <inputParameter>
+       !#   <name>opticalDepthReionization</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The optical depth to electron scattering below which baryonic accretion is suppressed.</description>
+       !#   <source>parameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       timeReionization=intergalacticMediumState_%electronScatteringTime(opticalDepthReionization,assumeFullyIonized=.true.)
+    else
+       !# <inputParameter>
+       !#   <name>redshiftReionization</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+       !#   <defaultValue>9.97d0</defaultValue>
+       !#   <description>The redshift below which baryonic accretion is suppressed.</description>
+       !#   <source>parameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+       timeReionization=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftReionization))
     end if
-    simpleDefaultConstructor=simpleConstructor(simpleReionizationSuppressionTime,simpleReionizationSuppressionVelocity,simpleNegativeAccretionAllowed,simpleAccreteNewGrowthOnly)
+    !# <inputParameter>
+    !#   <name>velocitySuppressionReionization</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>35.0d0</defaultValue>
+    !#   <description>The velocity scale below which baryonic accretion is suppressed.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>accretionNegativeAllowed</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>accretionNewGrowthOnly</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function simpleDefaultConstructor
+  end function simpleConstructorParameters
        
-  function simpleConstructor(reionizationSuppressionTime,reionizationSuppressionVelocity,negativeAccretionAllowed,accreteNewGrowthOnly)
-    !% Default constructor for the {\normalfont \ttfamily simple} halo accretion class.
-    use Input_Parameters
-    use Galacticus_Nodes
+  function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
     use Galacticus_Error
     use Atomic_Data
-    use Chemical_Abundances_Structure
     implicit none
-    type            (accretionHaloSimple), target        :: simpleConstructor
-    double precision                     , intent(in   ) :: reionizationSuppressionTime, reionizationSuppressionVelocity
-    logical                              , intent(in   ) :: negativeAccretionAllowed   , accreteNewGrowthOnly
-
-    simpleConstructor%reionizationSuppressionTime    =reionizationSuppressionTime
-    simpleConstructor%reionizationSuppressionVelocity=reionizationSuppressionVelocity
-    simpleConstructor%negativeAccretionAllowed       =negativeAccretionAllowed
-    simpleConstructor%accreteNewGrowthOnly           =accreteNewGrowthOnly
-    call simpleConstructor%radiation%define([radiationTypeCMB])
+    type            (accretionHaloSimple          ), target                :: self
+    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
+    logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
+    class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class           (accretionHaloTotalClass      ), intent(in   ), target :: accretionHaloTotal_
+    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
+    class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
+    class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
+    !# <constructorAssign variables="timeReionization, velocitySuppressionReionization, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
+   
+    call self%radiation%define([radiationTypeCMB])
     ! Check that required properties have required attributes.       
     if     (                                                                                                       &
-         &   accreteNewGrowthOnly                                                                                  &
+         &   accretionNewGrowthOnly                                                                                &
          &  .and.                                                                                                  &
          &   .not.defaultBasicComponent%massMaximumIsGettable()                                                    &
          & ) call Galacticus_Error_Report                                                                          &
          &   (                                                                                                     &
-         &    'accreteNewGrowthOnly=true requires that the "massMaximum" '//                                       &
+         &    'accretionNewGrowthOnly=true requires that the "massMaximum" '//                                     &
          &    'property of the basic component be gettable.'              //                                       &
          &    Galacticus_Component_List(                                                                           &
          &                              'basic'                                                                 ,  &
@@ -195,20 +188,23 @@ contains
          &                             )                                                                        // &
          &    {introspection:location}                                                                             &
          &   )
-    ! Perform class global initialization.
-    if (.not.simpleInitialized) then
-       !$omp critical(accretionHaloSimpleInitialize)
-       if (.not.simpleInitialized) then
-          simpleAbundanceIndexSolar=Abundance_Pattern_Lookup(abundanceName="solar")
-          ! Get a count of the number of chemicals being tracked.
-          simpleChemicalsCount     =Chemicals_Property_Count(                     )
-          ! Record that initialization is completed.
-          simpleInitialized=.true.
-       end if
-       !$omp end critical(accretionHaloSimpleInitialize)
-    end if
+    self%countChemicals=Chemicals_Property_Count()
     return
-  end function simpleConstructor
+  end function simpleConstructorInternal
+
+  subroutine simpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily simple} halo accretion class.
+    implicit none
+    type(accretionHaloSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%darkMatterHaloScale_"     />
+    !# <objectDestructor name="self%accretionHaloTotal_"      />
+    !# <objectDestructor name="self%chemicalState_"           />
+    !# <objectDestructor name="self%intergalacticMediumState_"/>
+    return
+  end subroutine simpleDestructor
 
   logical function simpleBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
@@ -234,17 +230,13 @@ contains
   double precision function simpleAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
-    use Cosmology_Parameters
-    use Accretion_Halo_Totals
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     integer                                   , intent(in   ) :: accretionMode
     class           (nodeComponentBasic      ), pointer       :: basic
     class           (nodeComponentHotHalo    ), pointer       :: hotHalo
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
-    double precision                                          :: growthRate             , unaccretedMass, &
+    double precision                                          :: growthRate    , unaccretedMass, &
          &                                                       failedFraction
 
     simpleAccretionRate=0.0d0
@@ -253,24 +245,22 @@ contains
     ! Get the failed accretion fraction.
     failedFraction=self%failedFraction(node)
     ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    accretionHaloTotal_  => accretionHaloTotal ()
     basic                => node%basic         ()
     hotHalo              => node%hotHalo       ()
-    simpleAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretionRate(node)*(1.0d0-failedFraction)
+    simpleAccretionRate=(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretionRate(node)*(1.0d0-failedFraction)
     ! Test for negative accretion.
-    if (.not.self%negativeAccretionAllowed.and.accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+    if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
        ! Accretion rate is negative, and not allowed. Return zero accretion rate.
        simpleAccretionRate=0.0d0
     else
        ! Return the standard accretion rate.
        unaccretedMass=hotHalo%unaccretedMass()
-       growthRate=accretionHaloTotal_%accretionRate(node)/accretionHaloTotal_%accretedMass(node)
+       growthRate=self%accretionHaloTotal_%accretionRate(node)/self%accretionHaloTotal_%accretedMass(node)
        simpleAccretionRate=simpleAccretionRate+unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
-    if (self%accreteNewGrowthOnly) then
-       if (accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
+    if (self%accretionNewGrowthOnly) then
+       if (self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
     end if
     return
   end function simpleAccretionRate
@@ -278,69 +268,54 @@ contains
   double precision function simpleAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
-    use Cosmology_Parameters
-    use Accretion_Halo_Totals
     implicit none
-    class           (accretionHaloSimple     ), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: basic
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
-    double precision                                          :: failedFraction
+    class           (accretionHaloSimple), intent(inout) :: self
+    type            (treeNode           ), intent(inout) :: node
+    integer                              , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic ), pointer       :: basic
+    double precision                                     :: failedFraction
 
     simpleAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
     ! Get the failed accretion fraction.
-    failedFraction=self%failedFraction(node)
-    basic   => node%basic     ()
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    accretionHaloTotal_  => accretionHaloTotal ()
-    simpleAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretedMass(node)*(1.0d0-failedFraction)
+    failedFraction     =  self%failedFraction(node)
+    basic              => node%basic         (    )
+    simpleAccretedMass =  (self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*(1.0d0-failedFraction)
     return
   end function simpleAccretedMass
 
   double precision function simpleFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
     use Galacticus_Nodes
-    use Cosmology_Parameters
-    use Dark_Matter_Halo_Scales
-    use Accretion_Halo_Totals
-    implicit none
-    class           (accretionHaloSimple     ), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: basic
-    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
-    double precision                                          :: growthRate          , unaccretedMass, &
-         &                                                       failedFraction
+     implicit none
+    class           (accretionHaloSimple ), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node
+    integer                               , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic  ), pointer       :: basic
+    class           (nodeComponentHotHalo), pointer       :: hotHalo
+    double precision                                      :: growthRate    , unaccretedMass, &
+         &                                                   failedFraction
 
     simpleFailedAccretionRate=0.0d0
     if (accretionMode               == accretionModeCold) return
     if (node         %isSatellite()                     ) return
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters      ()
-    accretionHaloTotal_  => accretionHaloTotal       ()
-    basic                => node               %basic()
     ! Get the failed fraction.
     failedFraction=self%failedFraction(node)
-    hotHalo => node%hotHalo()
     ! Test for negative accretion.
-    if (.not.self%negativeAccretionAllowed.and.accretionHaloTotal_%accretionRate(node) < 0.0d0) then
-       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretionRate(node)
+    if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+       simpleFailedAccretionRate=(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretionRate(node)
     else
-       simpleFailedAccretionRate=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretionRate(node)*failedFraction
+       hotHalo => node%hotHalo()
+       simpleFailedAccretionRate=(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretionRate(node)*failedFraction
        unaccretedMass=hotHalo%unaccretedMass()
-       growthRate=accretionHaloTotal_%accretionRate(node)/accretionHaloTotal_%accretedMass(node)
+       growthRate=self%accretionHaloTotal_%accretionRate(node)/self%accretionHaloTotal_%accretedMass(node)
        simpleFailedAccretionRate=simpleFailedAccretionRate-unaccretedMass*growthRate*(1.0d0-failedFraction)
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
-    if (self%accreteNewGrowthOnly) then
-       if (accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
+    if (self%accretionNewGrowthOnly) then
+       basic => node%basic()
+       if (self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
     end if
     return
   end function simpleFailedAccretionRate
@@ -348,17 +323,12 @@ contains
   double precision function simpleFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
     use Galacticus_Nodes
-    use Cosmology_Parameters
-    use Dark_Matter_Halo_Scales
-    use Accretion_Halo_Totals
     implicit none
-    class           (accretionHaloSimple     ), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    integer                                   , intent(in   ) :: accretionMode
-    class           (nodeComponentBasic      ), pointer       :: basic
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (accretionHaloTotalClass ), pointer       :: accretionHaloTotal_
-    double precision                                          :: failedFraction
+    class           (accretionHaloSimple), intent(inout) :: self
+    type            (treeNode           ), intent(inout) :: node
+    integer                              , intent(in   ) :: accretionMode
+    class           (nodeComponentBasic ), pointer       :: basic
+    double precision                                     :: failedFraction
 
     simpleFailedAccretedMass=0.0d0
     if (accretionMode      == accretionModeCold) return
@@ -366,10 +336,7 @@ contains
     ! Get the failed fraction.
     failedFraction=self%failedFraction(node)
     basic => node%basic()
-    ! Get the default cosmology.
-    cosmologyParameters_ => cosmologyParameters()
-    accretionHaloTotal_     => accretionHaloTotal ()
-    simpleFailedAccretedMass=(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretedMass(node)*failedFraction
+    simpleFailedAccretedMass=(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*failedFraction
     return
   end function simpleFailedAccretedMass
   
@@ -419,7 +386,7 @@ contains
     ! Ensure that chemicals are reset to zero.
     call simpleAccretionRateChemicals%reset()
     ! Return immediately if no chemicals are being tracked.
-    if (simpleChemicalsCount == 0) return
+    if (self%countChemicals == 0) return
     ! Get the total mass accretion rate onto the halo.
     massAccretionRate=simpleAccretionRate(self,node,accretionMode)
     ! Get the mass accretion rates.
@@ -442,7 +409,7 @@ contains
     ! Ensure that chemicals are reset to zero.
     call simpleAccretedMassChemicals%reset()
     ! Return if no chemicals are being tracked.
-    if (simpleChemicalsCount == 0) return
+    if (self%countChemicals == 0) return
     ! Total mass of material accreted.
     massAccreted=simpleAccretedMass(self,node,accretionMode)
     ! Get the masses of chemicals accreted.
@@ -453,44 +420,29 @@ contains
   function simpleChemicalMasses(self,node,massAccreted)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes
-    use Cosmology_Parameters
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
-    use Chemical_States
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
-    use Accretion_Halo_Totals
     implicit none
-    class           (accretionHaloSimple     ), intent(inout) :: self
-    type            (chemicalAbundances      )                :: simpleChemicalMasses
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: massAccreted
-    class           (nodeComponentBasic      ), pointer       :: basic
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-    class           (accretionHaloTotalClass )               , pointer :: accretionHaloTotal_
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    class           (chemicalStateClass      ), pointer       :: chemicalState_
-    type            (chemicalAbundances      ), save          :: chemicalDensities
+    class           (accretionHaloSimple), intent(inout) :: self
+    type            (chemicalAbundances )                :: simpleChemicalMasses
+    type            (treeNode           ), intent(inout) :: node
+    double precision                     , intent(in   ) :: massAccreted
+    type            (chemicalAbundances ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                          :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                       temperature
+    double precision                                     :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                  temperature
 
-    ! Get required objects.
-    cosmologyParameters_ => cosmologyParameters()
-    accretionHaloTotal_  => accretionHaloTotal ()
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    chemicalState_       => chemicalState      ()
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperature          =darkMatterHaloScale_%virialTemperature(node)
-    basic   => node%basic()
-    numberDensityHydrogen=hydrogenByMassPrimordial*(cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter())*accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
+    temperature          =  self%darkMatterHaloScale_%virialTemperature(node)
+    numberDensityHydrogen=  hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     call self%radiation%set(node)
     ! Get the chemical densities.
-    call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
+    call self%chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
     ! Convert from densities to masses.
     call chemicalDensities%numberToMass(simpleChemicalMasses)
     simpleChemicalMasses=simpleChemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
@@ -500,15 +452,11 @@ contains
   double precision function simpleVelocityScale(self,node)
     !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
     use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(accretionHaloSimple     ), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    !GCC$ attributes unused :: self
+    class(accretionHaloSimple), intent(inout) :: self
+    type (treeNode           ), intent(inout) :: node
 
-    darkMatterHaloScale_ => darkMatterHaloScale                (    )
-    simpleVelocityScale  =  darkMatterHaloScale_%virialVelocity(node)
+    simpleVelocityScale=self%darkMatterHaloScale_%virialVelocity(node)
     return
   end function simpleVelocityScale
 
@@ -522,9 +470,9 @@ contains
 
     basic => node%basic()
     if     (                                                                 &
-         &  basic%time         (    ) > self%reionizationSuppressionTime     &
+         &  basic%time         (    ) > self%timeReionization     &
          &   .and.                                                           &
-         &  self %velocityScale(node) < self%reionizationSuppressionVelocity &
+         &  self %velocityScale(node) < self%velocitySuppressionReionization &
          & ) then
        simpleFailedFraction=1.0d0
     else

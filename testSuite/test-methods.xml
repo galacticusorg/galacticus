@@ -820,9 +820,10 @@
       <lambda0 value="0.04326"/>
     </haloSpinDistributionMethod>
     <randomSpinResetMassFactor value="2.0"/>
-    <accretionHaloMethod value="simple"/>
-    <reionizationSuppressionRedshift value="10.5"/>
-    <reionizationSuppressionVelocity value="35.0"/>
+    <accretionHaloMethod value="simple">
+      <redshiftReionization            value="10.5"/>
+      <velocitySuppressionReionization value="35.0"/>
+    </accretionHaloMethod>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -858,7 +859,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -939,7 +940,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -980,7 +981,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1026,7 +1027,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1061,7 +1062,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1099,7 +1100,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1136,7 +1137,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1173,7 +1174,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1210,7 +1211,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1252,7 +1253,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1289,7 +1290,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1336,7 +1337,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1379,7 +1380,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
@@ -1546,7 +1547,7 @@
     </mergerTreeMassResolutionMethod>
     <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
     <darkMatterProfileMethod value="NFW"/>
-    <accretionHaloMethod value="null"/>
+    <accretionHaloMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
     <odeToleranceAbsolute value="0.01"/>

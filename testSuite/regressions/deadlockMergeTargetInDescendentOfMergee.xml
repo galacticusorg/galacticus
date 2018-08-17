@@ -13,7 +13,7 @@
   </cosmologyParametersMethod>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.8228"/>
-  </cosmologicalMassVarianceMethod><accretionHaloMethod value="null"/>
+  </cosmologicalMassVarianceMethod><accretionHaloMethod value="zero"/>
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>

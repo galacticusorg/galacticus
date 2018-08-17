@@ -78,7 +78,7 @@
   <darkMatterProfileMethod value="isothermal"/>
 
   <!-- Halo accretion options -->
-  <accretionHaloMethod value="null"/>
+  <accretionHaloMethod value="zero"/>
 
   <!-- Switch off baryonic physics -->
   <hotHaloMassDistributionMethod value="null"/>

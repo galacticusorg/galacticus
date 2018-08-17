@@ -16,7 +16,10 @@
       <efficiencyRadiation value="0.01"/>
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
-  <accretionHaloMethod value="simple"/>
+  <accretionHaloMethod value="simple">
+    <redshiftReionization            value="9" />
+    <velocitySuppressionReionization value="30"/>
+  </accretionHaloMethod>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
   <adiabaticContractionGnedinA value="0.8"/>
@@ -102,8 +105,6 @@
   </powerSpectrumPrimordialMethod>
   <randomSeed value="228"/>
   <randomSpinResetMassFactor value="2"/>
-  <reionizationSuppressionRedshift value="9"/>
-  <reionizationSuppressionVelocity value="30"/>
   <satelliteMergingMassMovementsMethod value="simple"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>

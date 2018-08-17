@@ -106,7 +106,6 @@
     <nodeMergersMethod value="singleLevelHierarchy"/>
 
     <!-- Prevent negative accretion -->
-    <accretionHalosSimpleNegativeAccretionAllowed value="false"/>
     <hotHaloNodeMergerLimitBaryonFraction value="true"/>
     <hotHaloAngularMomentumAlwaysGrows value="true"/>
     
@@ -132,9 +131,11 @@
     <randomSpinResetMassFactor value="2.0"/>
 
     <!-- Halo accretion options -->
-    <accretionHaloMethod value="simple"/>
-    <reionizationSuppressionRedshift value="10.5"/>
-    <reionizationSuppressionVelocity value="35.0"/>
+    <accretionHaloMethod value="simple">
+      <redshiftReionization            value="10.5" />
+      <velocitySuppressionReionization value="35.0" />
+      <accretionNegativeAllowed        value="false"/>
+    </accretionHaloMethod>
     <intergalacticMediumStateMethod value="file">
       <fileName value="constraints/data/igmState.xml"/>
     </intergalacticMediumStateMethod>

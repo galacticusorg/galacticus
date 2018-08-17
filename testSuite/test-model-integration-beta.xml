@@ -49,11 +49,10 @@
   <gravitationalLensingMethod value="takahashi2011"/>
   
   <!-- Intergalactic medium and reionization -->
-  <reionizationSuppressionOpticalDepth value="0.0586876996811808"/>
   <intergalacticMediumStateMethod value="instantReionization">
     <electronScatteringOpticalDepth value="0.0586876996811808"/>
     <intergalacticMediumStateMethod value="file">
-      <fileName value="data/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
+      <fileName value="%DATASTATICPATH%/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
     </intergalacticMediumStateMethod>
     <presentDayTemperature value="6740.8086092437970"/>
     <reionizationTemperature value="9641.9553322180927"/>
@@ -151,9 +150,11 @@
   <accretionHaloTotalMethod value="bertschinger"/>
   
   <!-- Accretion from the IGM -->
-  <accretionHaloMethod value="naozBarkana2007"/>
-  <accretionHaloNaozBarkana2007MassMinimum value="1.0e6"/>
-  <accretionHaloNaozBarkana2007RateAdjust value="0.5"/>
+  <accretionHaloMethod value="naozBarkana2007">
+    <opticalDepthReionization value="0.0586876996811808"/>
+    <massMinimum              value="1.0e6"             />
+    <rateAdjust               value="0.5"               />
+  </accretionHaloMethod>
   
   <!-- Cooling and infall -->
   <coolingRateMethod value="velocityMaximumScaling">
