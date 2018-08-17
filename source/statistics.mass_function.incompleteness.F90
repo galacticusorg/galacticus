@@ -19,16 +19,13 @@
 !% Contains a module that provides an object that implements incompleteness calculations for observed mass functions.
 
 module Mass_Function_Incompletenesses
-  !% Provides an object that implements incompleteness calculations for observed mass functions.
-  use ISO_Varying_String
-  !# <include directive="massFunctionIncompleteness" type="functionModules" >
-  include 'massFunctionIncompleteness.functionModules.inc'
-  !# </include>
+  !% Provides a class that implements incompleteness calculations for observed mass functions.
   private
 
-  !# <include directive="massFunctionIncompleteness" type="function" >
+  !# <functionClass>
+  !#  <name>massFunctionIncompleteness</name>
   !#  <descriptiveName>Mass Function Incompletenesses</descriptiveName>
-  !#  <description>Object providing incompleteness calculations for observed mass functions.</description>
+  !#  <description>Class providing incompleteness calculations for observed mass functions.</description>
   !#  <default>complete</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="completeness" >
@@ -37,7 +34,6 @@ module Mass_Function_Incompletenesses
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: mass</argument>
   !#  </method>
-  include 'massFunctionIncompleteness.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Mass_Function_Incompletenesses

@@ -21,123 +21,109 @@
   !# <massFunctionIncompleteness name="massFunctionIncompletenessSurfaceBrightness">
   !#  <description>Computes incompleteness assuming a normal distribution of surface brightnesses.</description>
   !# </massFunctionIncompleteness>
-
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessSurfaceBrightness
      !% A class implementing incompleteness calculations assuming a normal distribution of surface brightnesses.
      private
-     double precision :: surfaceBrightnessLimit       , surfaceBrightnessZeroPoint  , &
-          &              surfaceBrightnessModelSlope  , surfaceBrightnessModelOffset, &
-          &              surfaceBrightnessModelScatter
+     double precision :: limit  , zeroPoint, &
+          &              slope  , offset   , &
+          &              scatter
    contains
-     procedure :: completeness => surfaceBrightnessSurfaceBrightnessness
+     procedure :: completeness => surfaceBrightnessCompleteness
   end type massFunctionIncompletenessSurfaceBrightness
 
   interface massFunctionIncompletenessSurfaceBrightness
      !% Constructors for the ``surface brightness'' incompleteness class.
-     module procedure surfaceBrightnessDefaultConstructor
-     module procedure surfaceBrightnessConstructor
+     module procedure surfaceBrightnessConstructorParameters
+     module procedure surfaceBrightnessConstructorInternal
   end interface massFunctionIncompletenessSurfaceBrightness
 
-  ! Initialization state.
-  logical          :: surfaceBrightnessInitialized=.false.
-
-  ! Default values.
-  double precision :: surfaceBrightnessDefaultLimit      , surfaceBrightnessDefaultZeroPoint  , &
-       &              surfaceBrightnessDefaultModelSlope , surfaceBrightnessDefaultModelOffset, &
-       &              surfaceBrightnessDefaultModelScatter
-
 contains
-
-  function surfaceBrightnessDefaultConstructor()
-    !% Default constructor for the ``surface brightness'' incompleteness class.
+  
+  function surfaceBrightnessConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily surfaceBrightness} incompleteness class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(massFunctionIncompletenessSurfaceBrightness) :: surfaceBrightnessDefaultConstructor
-    
-    if (.not.surfaceBrightnessInitialized) then
-       !$omp critical (massFunctionIncompletenessSurfaceBrightnessInitialize)
-       if (.not.surfaceBrightnessInitialized) then
-          !# <inputParameter>
-          !#   <name>massFunctionIncompletenessSurfaceBrightnessLimit</name>
-          !#   <cardinality>1</cardinality>
-          !#   <description>Limiting surface brightness for mass function incompleteness calculations.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>surfaceBrightnessDefaultLimit</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>massFunctionIncompletenessSurfaceBrightnessZeroPoint</name>
-          !#   <cardinality>1</cardinality>
-          !#   <description>Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>surfaceBrightnessDefaultZeroPoint</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>massFunctionIncompletenessSurfaceBrightnessModelSlope</name>
-          !#   <cardinality>1</cardinality>
-          !#   <description>Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>surfaceBrightnessDefaultModelSlope</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>massFunctionIncompletenessSurfaceBrightnessModelOffset</name>
-          !#   <cardinality>1</cardinality>
-          !#   <description>Offset in the mass function incompleteness surface brightness model, i.e. $beta$in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>surfaceBrightnessDefaultModelOffset</variable>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>massFunctionIncompletenessSurfaceBrightnessModelScatter</name>
-          !#   <cardinality>1</cardinality>
-          !#   <description>Scatter in the mass function incompleteness surface brightness model.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !#   <variable>surfaceBrightnessDefaultModelScatter</variable>
-          !# </inputParameter>
-          ! Record that we are now initialized.
-          surfaceBrightnessInitialized=.true.
-       end if
-       !$omp end critical (massFunctionIncompletenessSurfaceBrightnessInitialize)
-    end if
-    surfaceBrightnessDefaultConstructor=surfaceBrightnessConstructor(                                      &
-         &                                                           surfaceBrightnessDefaultLimit       , &
-         &                                                           surfaceBrightnessDefaultZeroPoint   , &
-         &                                                           surfaceBrightnessDefaultModelSlope  , &
-         &                                                           surfaceBrightnessDefaultModelOffset , &
-         &                                                           surfaceBrightnessDefaultModelScatter  &
-         &                                                          )
+    type            (massFunctionIncompletenessSurfaceBrightness)                :: self
+    type            (inputParameters                            ), intent(inout) :: parameters
+    double precision                                                             :: limit     , zeroPoint, &
+         &                                                                          slope     , offset   , &
+         &                                                                          scatter
+
+    !# <inputParameter>
+    !#   <name>limit</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Limiting surface brightness for mass function incompleteness calculations.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>zeroPoint</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Mass zero point for the mass function incompleteness surface brightness model, i.e. $M_0$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>slope</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Slope of mass function incompleteness surface brightness model, i.e. $\alpha$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>offset</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Offset in the mass function incompleteness surface brightness model, i.e. $beta$ in $\mu(M) = \alpha \log_{10}(M/M_0)+\beta$.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>scatter</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>Scatter in the mass function incompleteness surface brightness model.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    self=massFunctionIncompletenessSurfaceBrightness(limit,zeroPoint,slope,offset,scatter)
+    !# <inputParametersValidate source="parameters"/>  
     return
-  end function surfaceBrightnessDefaultConstructor
-
-  function surfaceBrightnessConstructor(surfaceBrightnessLimit,surfaceBrightnessZeroPoint,surfaceBrightnessModelSlope,surfaceBrightnessModelOffset,surfaceBrightnessModelScatter)
-    !% Generic constructor for the ``surface brightness'' incompleteness class.
+  end function surfaceBrightnessConstructorParameters
+  
+  function surfaceBrightnessConstructorInternal(limit,zeroPoint,slope,offset,scatter) result(self)
+    !% Internal constructor for the ``surface brightness'' incompleteness class.
     implicit none
-    type            (massFunctionIncompletenessSurfaceBrightness) :: surfaceBrightnessConstructor
-    double precision                                              :: surfaceBrightnessLimit       , surfaceBrightnessZeroPoint  , &
-         &                                                           surfaceBrightnessModelSlope  , surfaceBrightnessModelOffset, &
-         &                                                           surfaceBrightnessModelScatter
-    
-    surfaceBrightnessConstructor%surfaceBrightnessLimit       =surfaceBrightnessLimit
-    surfaceBrightnessConstructor%surfaceBrightnessZeroPoint   =surfaceBrightnessZeroPoint
-    surfaceBrightnessConstructor%surfaceBrightnessModelSlope  =surfaceBrightnessModelSlope
-    surfaceBrightnessConstructor%surfaceBrightnessModelOffset =surfaceBrightnessModelOffset
-    surfaceBrightnessConstructor%surfaceBrightnessModelScatter=surfaceBrightnessModelScatter
-   return
-  end function surfaceBrightnessConstructor
+    type            (massFunctionIncompletenessSurfaceBrightness)                :: self
+    double precision                                             , intent(in   ) :: limit  , zeroPoint, &
+         &                                                                          slope  , offset   , &
+         &                                                                          scatter
+    !# <constructorAssign variables="limit, zeroPoint, slope, offset, scatter"/> 
 
-  double precision function surfaceBrightnessSurfaceBrightnessness(self,mass)
+    return
+  end function surfaceBrightnessConstructorInternal
+
+  double precision function surfaceBrightnessCompleteness(self,mass)
     !% Return the completeness.
     use Error_Functions
     implicit none
     class           (massFunctionIncompletenessSurfaceBrightness), intent(inout) :: self
     double precision                                             , intent(in   ) :: mass
-    double precision                                                             :: surfaceBrightnessMean, surfaceBrightnessLimitNormalized
+    double precision                                                             :: surfaceBrightnessMean, limitNormalized
 
-    surfaceBrightnessMean                 =self%surfaceBrightnessModelSlope*log10(mass/self%surfaceBrightnessZeroPoint)+self%surfaceBrightnessModelOffset
-    surfaceBrightnessLimitNormalized      =(self%surfaceBrightnessLimit-surfaceBrightnessMean)/self%surfaceBrightnessModelScatter    
-    surfaceBrightnessSurfaceBrightnessness=0.5d0*(1.0d0+Error_Function(surfaceBrightnessLimitNormalized))
+    surfaceBrightnessMean        =+      self%slope                  &
+         &                        *log10(                            &
+         &                               +     mass                  &
+         &                               /self%zeroPoint             &
+         &                              )                            &
+         &                        +       self%offset
+    limitNormalized              =+(                                 &
+         &                          +     self%limit                 &
+         &                          -          surfaceBrightnessMean &
+         &                         )                                 &
+         &                        /       self%scatter    
+    surfaceBrightnessCompleteness=+0.5d0                             &
+         &                        *(                                 &
+         &                          +1.0d0                           &
+         &                          +Error_Function(limitNormalized) &
+         &                        )
     return
-  end function surfaceBrightnessSurfaceBrightnessness
+  end function surfaceBrightnessCompleteness
