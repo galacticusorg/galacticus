@@ -29,6 +29,8 @@
      private
      class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+   contains
+     final :: luminosityFunctionHalphaDestructor
   end type outputAnalysisLuminosityFunctionHalpha
 
   interface outputAnalysisLuminosityFunctionHalpha
@@ -124,7 +126,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
-    surveyGeometry_ => surveyGeometry()
+    !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
     return
@@ -301,3 +303,12 @@ contains
     nullify(propertyOperatorSequence                        )
     return
   end function luminosityFunctionHalphaConstructorInternal
+
+  subroutine luminosityFunctionHalphaDestructor(self)
+    !% Destructor for  the ``luminosityFunctionHalpha'' output analysis class.
+    type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
+    
+    !# <objectDestructor name="self%surveyGeometry_"/>
+    return
+  end subroutine luminosityFunctionHalphaDestructor
+  
