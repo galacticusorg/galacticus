@@ -16,7 +16,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements cosmological parameters.
+!% Contains a module which provides an object that implements feedback from star formation in disks.
 
 module Star_Formation_Feedback_Disks
   !% Provides an object that implements calculations of feedback from star formation in disks.

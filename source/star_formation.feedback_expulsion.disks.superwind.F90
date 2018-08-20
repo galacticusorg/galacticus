@@ -16,93 +16,102 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a ``superwind'' expulsive outflow rate (as in \citep{baugh_can_2005}) due to star
-!% formation feedback in galactic disks.
+  !% Implementation of a ``superwind'' expulsive outflow rate due to star formation feedback in galactic disks.
+  
+  !# <starFormationExpulsiveFeedbackDisks name="starFormationExpulsiveFeedbackDisksSuperWind">
+  !#  <description>A superwind expulsive outflow rate due to star formation feedback in galactic disks.</description>
+  !# </starFormationExpulsiveFeedbackDisks>
+  type, extends(starFormationExpulsiveFeedbackDisksClass) :: starFormationExpulsiveFeedbackDisksSuperWind
+     !% Implementation of a superwind expulsive outflow rate due to star formation feedback in galactic disks.
+     private
+     double precision :: velocityCharacteristic, massLoading
+   contains
+     procedure :: outflowRate => superWindOutflowRate
+  end type starFormationExpulsiveFeedbackDisksSuperWind
 
-module Star_Formation_Expulsive_Feedback_Disks_Superwind
-  !% Implements a``superwind'' outflow rate (as in \citep{baugh_can_2005}) due to star formation feedback in
-  !% galactic disks.
-  implicit none
-  private
-  public :: Star_Formation_Expulsive_Feedback_Disks_SW_Initialize
-
-  ! Parameters of the feedback model.
-  double precision :: diskSuperwindMassLoading, diskSuperwindVelocity
+  interface starFormationExpulsiveFeedbackDisksSuperWind
+     !% Constructors for the superwind expulsive star formation feedback in disks class.
+     module procedure superWindConstructorParameters
+     module procedure superWindConstructorInternal
+  end interface starFormationExpulsiveFeedbackDisksSuperWind
 
 contains
 
-  !# <starFormationExpulsiveFeedbackDisksMethod>
-  !#  <unitName>Star_Formation_Expulsive_Feedback_Disks_SW_Initialize</unitName>
-  !# </starFormationExpulsiveFeedbackDisksMethod>
-  subroutine Star_Formation_Expulsive_Feedback_Disks_SW_Initialize(starFormationExpulsiveFeedbackDisksMethod&
-       &,Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get)
-    !% Initializes the ``superwind'' disk star formation expulsive feedback module.
-    use ISO_Varying_String
+  function superWindConstructorParameters(parameters) result(self)
+    !% Constructor for the superwind expulsive star formation feedback in disks class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                                        ), intent(in   )          :: starFormationExpulsiveFeedbackDisksMethod
-    procedure(Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW), intent(inout), pointer :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
+    type            (starFormationExpulsiveFeedbackDisksSuperWind)                :: self
+    type            (inputParameters                             ), intent(inout) :: parameters
+    double precision                                                              :: velocityCharacteristic, massLoading
 
-    if (starFormationExpulsiveFeedbackDisksMethod == 'superwind') then
-       Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW
-       ! Get parameters of for the feedback calculation.
-       !# <inputParameter>
-       !#   <name>diskSuperwindMassLoading</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>2.0d0</defaultValue>
-       !#   <description>The mass loading of the disk superwind.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskSuperwindVelocity</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>200.0d0</defaultValue>
-       !#   <description>The velocity scale of the disk superwind.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>velocityCharacteristic</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>200.0d0</defaultValue>
+    !#   <description>The velocity scale at which the \gls{sne}-driven superwind outflow rate transitions to a constant in disks.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>massLoading</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The mass-loading of ``superwind'' expulsive outflows in disks..</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=starFormationExpulsiveFeedbackDisksSuperWind(velocityCharacteristic,massLoading)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Star_Formation_Expulsive_Feedback_Disks_SW_Initialize
+  end function superWindConstructorParameters
 
-  double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW(thisNode,starFormationRate,energyInputRate)
-    !% Returns the expulsive outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The outflow
+  function superWindConstructorInternal(velocityCharacteristic,massLoading) result(self)
+    !% Internal constructor for the superwind expulsive star formation feedback from disks class.
+    implicit none
+    type            (starFormationExpulsiveFeedbackDisksSuperWind)                :: self
+    double precision                                              , intent(in   ) :: velocityCharacteristic, massLoading
+    !# <constructorAssign variables="velocityCharacteristic, massLoading"/>
+    
+    return
+  end function superWindConstructorInternal
+
+  double precision function superWindOutflowRate(self,node,rateEnergyInput,rateStarFormation)
+    !% Returns the expulsive outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}. The outflow
     !% rate is given by
     !% \begin{equation}
     !% \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
     !% \end{equation}
-    !%  where $V_\mathrm{disk,SW}=${\normalfont \ttfamily
-    !% [diskSuperwindVelocity]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily [diskSuperwindMassLoading]}. Note that the velocity $V_\mathrm{
-    !% disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to
-    !% that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005}, except that they specifically used the
-    !% circular velocity at half-mass radius.
-    use Galacticus_Nodes
+    !% where $V_\mathrm{disk,SW}=${\normalfont \ttfamily [velocityCharacteristic]} and $f_\mathrm{SW,0}=${\normalfont \ttfamily
+    !% [massLoadnig]}. Note that the velocity $V_\mathrm{ disk}$ is whatever characteristic value returned by the disk
+    !% method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
+    !% except that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
-    class           (nodeComponentDisk), pointer       :: thisDiskComponent
-    double precision                   , intent(in   ) :: energyInputRate  , starFormationRate
-    double precision                                   :: diskVelocity     , outflowRateToStarFormationRate
-    !GCC$ attributes unused :: starFormationRate
-    
-    ! Get the disk.
-    thisDiskComponent => thisNode%disk()
+    class           (starFormationExpulsiveFeedbackDisksSuperWind), intent(inout) :: self
+    type            (treeNode                                    ), intent(inout) :: node
+    class           (nodeComponentDisk                           ), pointer       :: disk
+    double precision                                              , intent(in   ) :: rateEnergyInput, rateStarFormation
+    double precision                                                              :: velocityDisk   , outflowRateToStarFormationRate
+    !GCC$ attributes unused :: rateStarFormation
 
-    ! Get disk circular velocity.
-    diskVelocity=thisDiskComponent%velocity()
-
+    disk         => node%disk    ()
+    velocityDisk =  disk%velocity()
     ! Check for zero velocity disk.
-    if (diskVelocity <= 0.0d0) then
-       Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW=0.0d0 ! No well defined answer in this case.
+    if (velocityDisk <= 0.0d0) then
+       superWindOutflowRate=0.0d0 ! No well defined answer in this case.
     else
-       outflowRateToStarFormationRate=diskSuperwindMassLoading*(diskSuperwindVelocity/max(diskVelocity,diskSuperwindVelocity))**2
-       Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW=outflowRateToStarFormationRate*energyInputRate &
-            &/feedbackEnergyInputAtInfinityCanonical
+       outflowRateToStarFormationRate=+      self%massLoading                 &
+            &                         *(                                      &
+            &                           +    self%velocityCharacteristic      &
+            &                           /max(                                 &
+            &                                     velocityDisk          ,     & 
+            &                                self%velocityCharacteristic      &
+            &                               )                                 &
+            &                         )**2
+       superWindOutflowRate          =+outflowRateToStarFormationRate         &
+            &                         *rateEnergyInput                        &
+            &                         /feedbackEnergyInputAtInfinityCanonical
     end if
     return
-  end function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_SW
-
-end module Star_Formation_Expulsive_Feedback_Disks_Superwind
+  end function superWindOutflowRate

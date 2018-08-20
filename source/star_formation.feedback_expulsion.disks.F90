@@ -16,78 +16,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of expulsive feedback from star formation in disks.
+!% Contains a module which provides a class that implements expulsive feedback from star formation in disks.
 
 module Star_Formation_Feedback_Expulsion_Disks
-  !% Implements calculations of expulsive feedback from star formation in disks.
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of expulsive feedback from star formation in disks.
   use Galacticus_Nodes
-  implicit none
-  private
-  public :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                                 :: starFormationExpulsiveFeedbackDisksInitialized =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                                     )          :: starFormationExpulsiveFeedbackDisksMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate), pointer :: Star_Formation_Expulsive_Feedback_Disk_Rate_Get=>null()
-
-contains
-
-  subroutine Star_Formation_Expulsive_Feedback_Disks_Initialize
-    !% Initialize the disk star formation expulsive feedback module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="moduleUse">
-    include 'star_formation.feedbacks_expulsive.disks.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
-       !$omp critical(Star_Formation_Expulsive_Feedback_Disks_Initialization)
-       if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
-          ! Get the disk star formation expulsive feedback method parameter.
-          !# <inputParameter>
-          !#   <name>starFormationExpulsiveFeedbackDisksMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used for calculations of expulsive \gls{sne} feedback in disks.</description>
-          !#   <group>starFormation</group>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationExpulsiveFeedbackDisksMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>starFormationExpulsiveFeedbackDisksMethod,Star_Formation_Expulsive_Feedback_Disk_Rate_Get</functionArgs>
-          include 'star_formation.feedback_expulsive.disks.inc'
-          !# </include>
-          if (.not.associated(Star_Formation_Expulsive_Feedback_Disk_Rate_Get)) &
-               & call Galacticus_Error_Report('method '//char(starFormationExpulsiveFeedbackDisksMethod)//' is unrecognized'//{introspection:location})
-          starFormationExpulsiveFeedbackDisksInitialized=.true.
-       end if
-       !$omp end critical(Star_Formation_Expulsive_Feedback_Disks_Initialization)
-    end if
-
-    return
-  end subroutine Star_Formation_Expulsive_Feedback_Disks_Initialize
-
-  double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-    !% Returns the expulsive outflow rate due to star formation in the disk component of {\normalfont \ttfamily thisNode}.
-    implicit none
-    type            (treeNode), intent(inout) :: thisNode
-    double precision          , intent(in   ) :: energyInputRate, starFormationRate
-
-    ! Initialize the module.
-    call Star_Formation_Expulsive_Feedback_Disks_Initialize
-
-    ! Get the energy using the selected method.
-    Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate=Star_Formation_Expulsive_Feedback_Disk_Rate_Get(thisNode,starFormationRate,energyInputRate)
-
-    return
-  end function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
+  
+  !# <functionClass>
+  !#  <name>starFormationExpulsiveFeedbackDisks</name>
+  !#  <descriptiveName>Epulsive feedback from star formation in disks</descriptiveName>
+  !#  <description>Class providing models of expulsive feedback from star formation in disks.</description>
+  !#  <default>zero</default>
+  !#  <method name="outflowRate" >
+  !#   <description>Returns the outflow rate due to star formation in the disk component of {\normalfont \ttfamily node} in units of $M_\odot/$Gyr.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: rateEnergyInput, rateStarFormation</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Star_Formation_Feedback_Expulsion_Disks
