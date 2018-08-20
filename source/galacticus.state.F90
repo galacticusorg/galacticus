@@ -48,10 +48,10 @@ contains
 
   subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
-    !$ use OMP_Lib
-    use String_Handling
-    use FGSL
-    use MPI_Utilities
+    !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num
+    use    String_Handling
+    use    FGSL           , only : fgsl_file, FGSL_Open, FGSL_Close
+    use    MPI_Utilities
     !# <include directive="galacticusStateStoreTask" type="moduleUse">
     include 'galacticus.state.store.modules.inc'
     !# </include>
@@ -114,10 +114,10 @@ contains
 
   subroutine Galacticus_State_Retrieve
     !% Retrieve the interal state.
-    !$ use OMP_Lib
-    use String_Handling
-    use FGSL
-    use MPI_Utilities
+    !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num
+    use    String_Handling
+    use    FGSL           , only : fgsl_file, FGSL_Open, FGSL_Close
+    use    MPI_Utilities
     !# <include directive="galacticusStateRetrieveTask" type="moduleUse">
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
