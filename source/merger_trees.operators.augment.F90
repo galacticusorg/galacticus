@@ -19,6 +19,7 @@
   !% Contains a module which implements an augmenting operator on merger trees.
   use, intrinsic :: ISO_C_Binding
   use               Merger_Trees_Builders
+  use               Cosmology_Functions
 
   !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
@@ -26,16 +27,17 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
      !% An augmenting merger tree operator class.
      private
-     double precision                        , allocatable, dimension(   :) :: timeSnapshots
-     integer         (c_size_t)                           , dimension(0:10) :: retryHistogram              , trialCount
-     double precision                                                       :: massCutOff                  , timeEarliest             , &
-          &                                                                    toleranceScale              , massCutOffScaleFactor    , &
-          &                                                                    massOvershootScaleFactor
-     integer                                                                :: retryMaximum                , rescaleMaximum           , &
-          &                                                                    attemptsMaximum             , massCutOffAttemptsMaximum, &
-          &                                                                    massOvershootAttemptsMaximum
-     logical                                                                :: performChecks               , useOneNodeTrees
-     class           (mergerTreeBuilderClass), pointer                      :: mergerTreeBuilder_
+     double precision                         , allocatable, dimension(   :) :: timeSnapshots
+     integer         (c_size_t               )             , dimension(0:10) :: retryHistogram              , trialCount
+     double precision                                                        :: massCutOff                  , timeEarliest             , &
+          &                                                                     toleranceScale              , massCutOffScaleFactor    , &
+          &                                                                     massOvershootScaleFactor
+     integer                                                                 :: retryMaximum                , rescaleMaximum           , &
+          &                                                                     attemptsMaximum             , massCutOffAttemptsMaximum, &
+          &                                                                     massOvershootAttemptsMaximum
+     logical                                                                 :: performChecks               , useOneNodeTrees
+     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_
+     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeOperatorAugment</object>
@@ -108,14 +110,13 @@
   
 contains
 
-  function augmentConstructorParameters(parameters)
+  function augmentConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
-    use Cosmology_Functions
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type            (mergerTreeOperatorAugment)                              :: augmentConstructorParameters
+    type            (mergerTreeOperatorAugment)                              :: self
     type            (inputParameters          ), intent(inout)               :: parameters
     double precision                           , allocatable  , dimension(:) :: timeSnapshots
     class           (cosmologyFunctionsClass  ), pointer                     :: cosmologyFunctions_
@@ -128,7 +129,8 @@ contains
          &                                                                      massOvershootAttemptsMaximum
     logical                                                                  :: performChecks               , useOneNodeTrees
 
-    !# <objectBuilder class="mergerTreeBuilder"        name="mergerTreeBuilder_"        source="parameters"/>
+    !# <objectBuilder class="mergerTreeBuilder"  name="mergerTreeBuilder_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <inputParameter>
     !#   <name>massCutOff</name>
     !#   <source>parameters</source>
@@ -227,7 +229,6 @@ contains
        !#   <type>double precision</type>
        !#   <cardinality> 0..</cardinality>
        !# </inputParameter>
-       cosmologyFunctions_ => cosmologyFunctions()
        do i=1,size(timeSnapshots)
           timeSnapshots(i)=cosmologyFunctions_ %cosmicTime                 (                  &
                &            cosmologyFunctions_%expansionFactorFromRedshift (                 &
@@ -235,21 +236,22 @@ contains
                &                                                            )                 &
                &                                                           )
        end do
-       augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,timeSnapshots)
-    else
-       augmentConstructorParameters=augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_              )
     end if
+    !# <conditionalCall>
+    !#  <call>self=mergerTreeOperatorAugment(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,cosmologyFunctions_{conditions})</call>
+    !#  <argument name="timeSnapshots" value="timeSnapshots" condition="parameters%isPresent('snapshotRedshifts')"/>
+    !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     return
   end function augmentConstructorParameters
-
-  function augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,timeSnapshots)
+  
+  function augmentConstructorInternal(massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,mergerTreeBuilder_,cosmologyFunctions_,timeSnapshots) result(self)
     !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
     use Memory_Management
     use Cosmology_Functions
     use Sort
     implicit none
-    type            (mergerTreeOperatorAugment)                                        :: augmentConstructorInternal
+    type            (mergerTreeOperatorAugment)                                        :: self
     double precision                           , intent(in   )                         :: massCutOff                       , toleranceScale           , &
          &                                                                                massCutOffScaleFactor            , massOvershootScaleFactor
     integer                                    , intent(in   )                         :: retryMaximum                     , rescaleMaximum           , &
@@ -257,38 +259,26 @@ contains
          &                                                                                massOvershootAttemptsMaximum
     double precision                           , intent(in   ), dimension(:), optional :: timeSnapshots
     class           (mergerTreeBuilderClass   ), intent(in   ), pointer                :: mergerTreeBuilder_
+    class           (cosmologyFunctionsClass  ), intent(in   ), pointer                :: cosmologyFunctions_
     logical                                    , intent(in   )                         :: performChecks                    , useOneNodeTrees
-    class           (cosmologyFunctionsClass  )               , pointer                :: cosmologyFunctions_
     double precision                           , parameter                             :: expansionFactorDefault    =0.01d0
+    !# <constructorAssign variables="massCutOff,performChecks,toleranceScale,retryMaximum,rescaleMaximum,attemptsMaximum,massCutOffAttemptsMaximum,massCutOffScaleFactor,massOvershootAttemptsMaximum,massOvershootScaleFactor,useOneNodeTrees,*mergerTreeBuilder_,*cosmologyFunctions_"/>
 
-    cosmologyFunctions_ => cosmologyFunctions()
     if (present(timeSnapshots)) then
-       allocate(augmentConstructorInternal%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
-       call allocateArray(augmentConstructorInternal%timeSnapshots,shape(timeSnapshots))
-       augmentConstructorInternal%timeSnapshots=timeSnapshots
-       call Sort_Do(augmentConstructorInternal%timeSnapshots)
-       augmentConstructorInternal%timeEarliest=min(                                                                  &
-            &                                      cosmologyFunctions_       %cosmicTime   (expansionFactorDefault), &
-            &                                      augmentConstructorInternal%timeSnapshots(                     1)  &
-            &                                     )
+       allocate(self%timeSnapshots(0)) ! Allocate to zero size to avoid compiler warning.
+       call allocateArray(self%timeSnapshots,shape(timeSnapshots))
+       self%timeSnapshots=timeSnapshots
+       call Sort_Do(self%timeSnapshots)
+       self%timeEarliest=min(                                                           &
+            &                cosmologyFunctions_%cosmicTime   (expansionFactorDefault), &
+            &                self               %timeSnapshots(                     1)  &
+            &               )
     else
-       augmentConstructorInternal%timeEarliest=    cosmologyFunctions_       %cosmicTime   (expansionFactorDefault)
+       self%timeEarliest=    cosmologyFunctions_%cosmicTime   (expansionFactorDefault)
     end if
-    augmentConstructorInternal%retryHistogram               =  0
-    augmentConstructorInternal%trialCount                   =  0
-    augmentConstructorInternal%massCutOff                   =  massCutOff
-    augmentConstructorInternal%performChecks                =  performChecks
-    augmentConstructorInternal%toleranceScale               =  toleranceScale
-    augmentConstructorInternal%retryMaximum                 =  retryMaximum
-    augmentConstructorInternal%rescaleMaximum               =  rescaleMaximum
-    augmentConstructorInternal%attemptsMaximum              =  attemptsMaximum
-    augmentConstructorInternal%massCutOffAttemptsMaximum    =  massCutOffAttemptsMaximum
-    augmentConstructorInternal%massCutOffScaleFactor        =  massCutOffScaleFactor
-    augmentConstructorInternal%massOvershootAttemptsMaximum =  massOvershootAttemptsMaximum
-    augmentConstructorInternal%massOvershootScaleFactor     =  massOvershootScaleFactor
-    augmentConstructorInternal%useOneNodeTrees              =  useOneNodeTrees
-    augmentConstructorInternal%mergerTreeBuilder_           => mergerTreeBuilder_
-    call augmentConstructorInternal%mergerTreeBuilder_%timeEarliestSet(augmentConstructorInternal%timeEarliest)    
+    self%retryHistogram=0
+    self%trialCount    =0
+    call self%mergerTreeBuilder_%timeEarliestSet(self%timeEarliest)    
     return
   end function augmentConstructorInternal
 
@@ -298,6 +288,7 @@ contains
     type(mergerTreeOperatorAugment), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerTreeBuilder_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end subroutine augmentDestructor
 

@@ -18,6 +18,7 @@
 
   !% Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
   
+  use Cosmology_Functions
   use Statistics_NBody_Halo_Mass_Errors
   !$ use OMP_Lib
 
@@ -147,6 +148,7 @@
      !% A merger tree operator class which accumulates conditional mass functions for trees.
      private
      class           (nbodyHaloMassErrorClass), pointer                             :: haloMassError_
+     class           (cosmologyFunctionsClass), pointer                             :: cosmologyFunctions_
      double precision                         , allocatable, dimension(:          ) :: timeParents                         , timeProgenitors                      , &
           &                                                                            parentRedshifts                     , progenitorRedshifts                  , &
           &                                                                            massParents                         , massRatios                           , &
@@ -199,24 +201,26 @@
 
 contains
   
-  function conditionalMFConstructorParameters(parameters)
+  function conditionalMFConstructorParameters(parameters) result(self)
     !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
     use Memory_Management
     implicit none
-    type            (mergerTreeOperatorConditionalMF)                              :: conditionalMFConstructorParameters
+    type            (mergerTreeOperatorConditionalMF)                              :: self
     type            (inputParameters                ), intent(inout), target       :: parameters
-    double precision                                 , allocatable  , dimension(:) :: progenitorRedshifts               , parentRedshifts
+    double precision                                 , allocatable  , dimension(:) :: progenitorRedshifts      , parentRedshifts
+    class           (cosmologyFunctionsClass        ), pointer                     :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass        ), pointer                     :: haloMassError_
-    integer                                                                        :: parentMassCount                   , massRatioCount       , &
-         &                                                                            primaryProgenitorDepth            , subhaloHierarchyDepth
-    double precision                                                               :: parentMassMinimum                 , parentMassMaximum    , &
-         &                                                                            massRatioMinimum                  , massRatioMaximum     , &
+    integer                                                                        :: parentMassCount          , massRatioCount       , &
+         &                                                                            primaryProgenitorDepth   , subhaloHierarchyDepth
+    double precision                                                               :: parentMassMinimum        , parentMassMaximum    , &
+         &                                                                            massRatioMinimum         , massRatioMaximum     , &
          &                                                                            formationRateTimeFraction
-    logical                                                                        :: alwaysIsolatedHalosOnly           , extendedStatistics   , &
+    logical                                                                        :: alwaysIsolatedHalosOnly  , extendedStatistics   , &
          &                                                                            computeCovariances
     type            (varying_string                 )                              :: outputGroupName
 
-    !# <objectBuilder class="nbodyHaloMassError" name="haloMassError_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError" name="haloMassError_"      source="parameters"/>
     !# <inputParameter>
     !#   <name>parentMassCount</name>
     !#   <source>parameters</source>
@@ -340,36 +344,36 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     ! Construct the instance.
-    conditionalMFConstructorParameters=conditionalMFConstructorInternal(                           &
-         &                                                              parentMassCount          , &
-         &                                                              parentMassMinimum        , &
-         &                                                              parentMassMaximum        , &
-         &                                                              massRatioCount           , &
-         &                                                              massRatioMinimum         , &
-         &                                                              massRatioMaximum         , &
-         &                                                              parentRedshifts          , &
-         &                                                              progenitorRedshifts      , &
-         &                                                              primaryProgenitorDepth   , &
-         &                                                              formationRateTimeFraction, &
-         &                                                              subhaloHierarchyDepth    , &
-         &                                                              alwaysIsolatedHalosOnly  , &
-         &                                                              extendedStatistics       , &
-         &                                                              computeCovariances       , &
-         &                                                              outputGroupName          , &
-         &                                                              haloMassError_             &
-         &                                                             )
+    self=mergerTreeOperatorConditionalMF(                           &
+         &                               parentMassCount          , &
+         &                               parentMassMinimum        , &
+         &                               parentMassMaximum        , &
+         &                               massRatioCount           , &
+         &                               massRatioMinimum         , &
+         &                               massRatioMaximum         , &
+         &                               parentRedshifts          , &
+         &                               progenitorRedshifts      , &
+         &                               primaryProgenitorDepth   , &
+         &                               formationRateTimeFraction, &
+         &                               subhaloHierarchyDepth    , &
+         &                               alwaysIsolatedHalosOnly  , &
+         &                               extendedStatistics       , &
+         &                               computeCovariances       , &
+         &                               outputGroupName          , &
+         &                               cosmologyFunctions_      , &
+         &                               haloMassError_             &
+         &                              )
     !# <inputParametersValidate source="parameters"/>
     return
   end function conditionalMFConstructorParameters
 
-  function conditionalMFConstructorInternal(parentMassCount,parentMassMinimum,parentMassMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,parentRedshifts,progenitorRedshifts,primaryProgenitorDepth,formationRateTimeFraction,subhaloHierarchyDepth,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,haloMassError_)
+  function conditionalMFConstructorInternal(parentMassCount,parentMassMinimum,parentMassMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,parentRedshifts,progenitorRedshifts,primaryProgenitorDepth,formationRateTimeFraction,subhaloHierarchyDepth,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,cosmologyFunctions_,haloMassError_) result(self)
     !% Internal constructor for the conditional mass function merger tree operator class.
-    use Cosmology_Functions
     use Numerical_Ranges
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type            (mergerTreeOperatorConditionalMF)                              :: conditionalMFConstructorInternal
+    type            (mergerTreeOperatorConditionalMF)                              :: self
     double precision                                 , intent(in   ), dimension(:) :: parentRedshifts                 , progenitorRedshifts
     integer                                          , intent(in   )               :: parentMassCount                 , massRatioCount       , &
          &                                                                            primaryProgenitorDepth          , subhaloHierarchyDepth
@@ -379,24 +383,15 @@ contains
     logical                                          , intent(in   )               :: alwaysIsolatedHalosOnly         , extendedStatistics   , &
          &                                                                            computeCovariances
     type            (varying_string                 ), intent(in   )               :: outputGroupName
+    class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass        ), intent(in   ), target       :: haloMassError_
-    class           (cosmologyFunctionsClass        ), pointer                     :: cosmologyFunctions_
     integer                                                                        :: i
-
+    !# <constructorAssign variables="parentMassCount,massRatioCount,primaryProgenitorDepth,subhaloHierarchyDepth,formationRateTimeFraction,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,*haloMassError_,*cosmologyFunctions_"/>
+    
     ! Store array sizes.
-    conditionalMFConstructorInternal%timeCount                         =  size(parentRedshifts)
-    conditionalMFConstructorInternal%parentMassCount                   =  parentMassCount
-    conditionalMFConstructorInternal%massRatioCount                    =  massRatioCount
-    conditionalMFConstructorInternal%primaryProgenitorDepth            =  primaryProgenitorDepth
-    conditionalMFConstructorInternal%subhaloHierarchyDepth             =  subhaloHierarchyDepth
-    conditionalMFConstructorInternal%formationRateTimeFraction         =  formationRateTimeFraction
-    conditionalMFConstructorInternal%alwaysIsolatedHalosOnly           =  alwaysIsolatedHalosOnly
-    conditionalMFConstructorInternal%extendedStatistics                =  extendedStatistics
-    conditionalMFConstructorInternal%computeCovariances                =  computeCovariances
-    conditionalMFConstructorInternal%outputGroupName                   =  outputGroupName
-    conditionalMFConstructorInternal%haloMassError_                    => haloMassError_
-    conditionalMFConstructorInternal%primaryProgenitorStatisticsValid  =  conditionalMFConstructorInternal%haloMassError_%errorZeroAlways()
-    if (size(progenitorRedshifts) /= conditionalMFConstructorInternal%timeCount) &
+    self%timeCount                       =size(parentRedshifts)
+    self%primaryProgenitorStatisticsValid=self%haloMassError_%errorZeroAlways()
+    if (size(progenitorRedshifts) /= self%timeCount) &
          & call Galacticus_Error_Report('mismatch in sizes of parent and progenitor redshift arrays'//{introspection:location})
     ! Check for required property attributes.
     if (alwaysIsolatedHalosOnly.and..not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                              &
@@ -410,200 +405,198 @@ contains
          &       {introspection:location}                                                                                                                      &
          &      )     
     ! Allocate arrays.
-    call allocateArray(conditionalMFConstructorInternal%parentRedshifts    ,[conditionalMFConstructorInternal%timeCount        ])
-    call allocateArray(conditionalMFConstructorInternal%progenitorRedshifts,[conditionalMFConstructorInternal%timeCount        ])
-    call allocateArray(conditionalMFConstructorInternal%timeProgenitors    ,[conditionalMFConstructorInternal%timeCount        ])
-    call allocateArray(conditionalMFConstructorInternal%timeParents        ,[conditionalMFConstructorInternal%timeCount        ])
-    call allocateArray(conditionalMFConstructorInternal%massParents        ,[conditionalMFConstructorInternal%parentMassCount+1])
-    call allocateArray(conditionalMFConstructorInternal%massRatios         ,[conditionalMFConstructorInternal%massRatioCount +1])
-    call allocateArray(                                                                      &
-         &            conditionalMFConstructorInternal%normalization                     , &
-         &           [                                                                     &
-         &            conditionalMFConstructorInternal%timeCount                         , &
-         &            conditionalMFConstructorInternal%parentMassCount                     &
-         &           ]                                                                     &
+    call allocateArray(self%parentRedshifts    ,[self%timeCount        ])
+    call allocateArray(self%progenitorRedshifts,[self%timeCount        ])
+    call allocateArray(self%timeProgenitors    ,[self%timeCount        ])
+    call allocateArray(self%timeParents        ,[self%timeCount        ])
+    call allocateArray(self%massParents        ,[self%parentMassCount+1])
+    call allocateArray(self%massRatios         ,[self%massRatioCount +1])
+    call allocateArray(                                        &
+         &            self%normalization                     , &
+         &           [                                         &
+         &            self%timeCount                         , &
+         &            self%parentMassCount                     &
+         &           ]                                         &
          &          )
-    call allocateArray(                                                                      &
-         &            conditionalMFConstructorInternal%normalizationError                , &
-         &           [                                                                     &
-         &            conditionalMFConstructorInternal%timeCount                         , &
-         &            conditionalMFConstructorInternal%parentMassCount                     &
-         &           ]                                                                     &
+    call allocateArray(                                        &
+         &            self%normalizationError                , &
+         &           [                                         &
+         &            self%timeCount                         , &
+         &            self%parentMassCount                     &
+         &           ]                                         &
          &          )
-    call allocateArray(                                                                      &
-         &            conditionalMFConstructorInternal%conditionalMassFunction           , &
-         &           [                                                                     &
-         &            conditionalMFConstructorInternal%timeCount                         , &
-         &            conditionalMFConstructorInternal%parentMassCount                   , &
-         &            conditionalMFConstructorInternal%massRatioCount                      &
-         &           ]                                                                     &
+    call allocateArray(                                        &
+         &            self%conditionalMassFunction           , &
+         &           [                                         &
+         &            self%timeCount                         , &
+         &            self%parentMassCount                   , &
+         &            self%massRatioCount                      &
+         &           ]                                         &
          &          )
-    call allocateArray(                                                                      &
-         &            conditionalMFConstructorInternal%conditionalMassFunctionError      , &
-         &           [                                                                     &
-         &            conditionalMFConstructorInternal%timeCount                         , &
-         &            conditionalMFConstructorInternal%parentMassCount                   , &
-         &            conditionalMFConstructorInternal%massRatioCount                      &
-         &           ]                                                                     &
+    call allocateArray(                                        &
+         &            self%conditionalMassFunctionError      , &
+         &           [                                         &
+         &            self%timeCount                         , &
+         &            self%parentMassCount                   , &
+         &            self%massRatioCount                      &
+         &           ]                                         &
          &          )
-    if (conditionalMFConstructorInternal%computeCovariances) then
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%conditionalMassFunctionCovariance , &
-            &           [                                                                     &
-            &            conditionalMFConstructorInternal%timeCount                         , &
-            &            conditionalMFConstructorInternal%parentMassCount                   , &
-            &            conditionalMFConstructorInternal%massRatioCount                    , &
-            &            conditionalMFConstructorInternal%timeCount                         , &
-            &            conditionalMFConstructorInternal%parentMassCount                   , &
-            &            conditionalMFConstructorInternal%massRatioCount                      &
-            &           ]                                                                     &
+    if (self%computeCovariances) then
+       call allocateArray(                                        &
+            &            self%conditionalMassFunctionCovariance , &
+            &           [                                         &
+            &            self%timeCount                         , &
+            &            self%parentMassCount                   , &
+            &            self%massRatioCount                    , &
+            &            self%timeCount                         , &
+            &            self%parentMassCount                   , &
+            &            self%massRatioCount                      &
+            &           ]                                         &
             &          )
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%normalizationCovariance           , &
-            &           [                                                                     &
-            &            conditionalMFConstructorInternal%timeCount                         , &
-            &            conditionalMFConstructorInternal%parentMassCount                   , &
-            &            conditionalMFConstructorInternal%timeCount                         , &
-            &            conditionalMFConstructorInternal%parentMassCount                     &
-            &           ]                                                                     &
+       call allocateArray(                                        &
+            &            self%normalizationCovariance           , &
+            &           [                                         &
+            &            self%timeCount                         , &
+            &            self%parentMassCount                   , &
+            &            self%timeCount                         , &
+            &            self%parentMassCount                     &
+            &           ]                                         &
             &          )
     end if
-    if (conditionalMFConstructorInternal%extendedStatistics) then
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%normalizationSubhaloMassFunction     , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%parentMassCount                        &
-            &           ]                                                                        &
+    if (self%extendedStatistics) then
+       call allocateArray(                                           &
+            &            self%normalizationSubhaloMassFunction     , &
+            &           [                                            &
+            &            self%parentMassCount                        &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                         &
-            &            conditionalMFConstructorInternal%normalizationSubhaloMassFunctionError, &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%parentMassCount                        &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%normalizationSubhaloMassFunctionError, &
+            &           [                                            &
+            &            self%parentMassCount                        &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                         &
-            &            conditionalMFConstructorInternal%primaryProgenitorMassFunction        , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%timeCount                            , &
-            &            conditionalMFConstructorInternal%parentMassCount                      , &
-            &            conditionalMFConstructorInternal%massRatioCount                       , &
-            &            conditionalMFConstructorInternal%primaryProgenitorDepth                 &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%primaryProgenitorMassFunction        , &
+            &           [                                            &
+            &            self%timeCount                            , &
+            &            self%parentMassCount                      , &
+            &            self%massRatioCount                       , &
+            &            self%primaryProgenitorDepth                 &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%primaryProgenitorMassFunctionError   , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%timeCount                            , &
-            &            conditionalMFConstructorInternal%parentMassCount                      , &
-            &            conditionalMFConstructorInternal%massRatioCount                       , &
-            &            conditionalMFConstructorInternal%primaryProgenitorDepth                 &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%primaryProgenitorMassFunctionError   , &
+            &           [                                            &
+            &            self%timeCount                            , &
+            &            self%parentMassCount                      , &
+            &            self%massRatioCount                       , &
+            &            self%primaryProgenitorDepth                 &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%formationRateFunction                , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%timeCount                            , &
-            &            conditionalMFConstructorInternal%parentMassCount                      , &
-            &            conditionalMFConstructorInternal%massRatioCount                       , &
-            &            2                                                                       &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%formationRateFunction                , &
+            &           [                                            &
+            &            self%timeCount                            , &
+            &            self%parentMassCount                      , &
+            &            self%massRatioCount                       , &
+            &            2                                           &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%formationRateFunctionError           , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%timeCount                            , &
-            &            conditionalMFConstructorInternal%parentMassCount                      , &
-            &            conditionalMFConstructorInternal%massRatioCount                       , &
-            &            2                                                                       &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%formationRateFunctionError           , &
+            &           [                                            &
+            &            self%timeCount                            , &
+            &            self%parentMassCount                      , &
+            &            self%massRatioCount                       , &
+            &            2                                           &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%subhaloMassFunction                  , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%parentMassCount                      , &
-            &            conditionalMFConstructorInternal%massRatioCount                       , &
-            &            conditionalMFConstructorInternal%subhaloHierarchyDepth                  &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%subhaloMassFunction                  , &
+            &           [                                            &
+            &            self%parentMassCount                      , &
+            &            self%massRatioCount                       , &
+            &            self%subhaloHierarchyDepth                  &
+            &           ]                                            &
             &          )
-       call allocateArray(                                                                      &
-            &            conditionalMFConstructorInternal%subhaloMassFunctionError             , &
-            &           [                                                                        &
-            &            conditionalMFConstructorInternal%parentMassCount                      , &
-            &            conditionalMFConstructorInternal%massRatioCount                       , &
-            &            conditionalMFConstructorInternal%subhaloHierarchyDepth                  &
-            &           ]                                                                        &
+       call allocateArray(                                           &
+            &            self%subhaloMassFunctionError             , &
+            &           [                                            &
+            &            self%parentMassCount                      , &
+            &            self%massRatioCount                       , &
+            &            self%subhaloHierarchyDepth                  &
+            &           ]                                            &
             &          )
     end if
     ! Construct bins for parent node mass.
-    conditionalMFConstructorInternal%massParentLogarithmicMinimum        =  log( parentMassMinimum)
-    conditionalMFConstructorInternal%massParentLogarithmicBinWidthInverse= dble( parentMassCount  ) &
-         &                                                                / log(                    &
-         &                                                                      +parentMassMaximum  &
-         &                                                                      /parentMassMinimum  &
-         &                                                                     )
-    conditionalMFConstructorInternal%massParents=Make_Range(                                        &
-         &                                                  parentMassMinimum                     , &
-         &                                                  parentMassMaximum                     , &
-         &                                                  parentMassCount                       , &
-         &                                                  rangeType        =rangeTypeLogarithmic  &
-         &                                                 )
+    self%massParentLogarithmicMinimum        =  log( parentMassMinimum)
+    self%massParentLogarithmicBinWidthInverse= dble( parentMassCount  ) &
+         &                                    / log(                    &
+         &                                          +parentMassMaximum  &
+         &                                          /parentMassMinimum  &
+         &                                         )
+    self%massParents=Make_Range(                                        &
+         &                      parentMassMinimum                     , &
+         &                      parentMassMaximum                     , &
+         &                      parentMassCount                       , &
+         &                      rangeType        =rangeTypeLogarithmic  &
+         &                     )
     ! Construct bins for mass ratio.
-    conditionalMFConstructorInternal%massRatioLogarithmicMinimum        =  log( massRatioMinimum)
-    conditionalMFConstructorInternal%massRatioLogarithmicBinWidthInverse= dble( massRatioCount  ) &
-         &                                                               / log(                   &
-         &                                                                     +massRatioMaximum  &
-         &                                                                     /massRatioMinimum  &
-         &                                                                    )
-    conditionalMFConstructorInternal%massRatios=Make_Range(                                       &
-         &                                                 massRatioMinimum                     , &
-         &                                                 massRatioMaximum                     , &
-         &                                                 massRatioCount                       , &
-         &                                                 rangeType       =rangeTypeLogarithmic, &
-         &                                                 rangeBinned     =.true.                &
-         &                                                )
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
+    self%massRatioLogarithmicMinimum        =  log( massRatioMinimum)
+    self%massRatioLogarithmicBinWidthInverse= dble( massRatioCount  ) &
+         &                                   / log(                   &
+         &                                         +massRatioMaximum  &
+         &                                         /massRatioMinimum  &
+         &                                        )
+    self%massRatios=Make_Range(                                       &
+         &                     massRatioMinimum                     , &
+         &                     massRatioMaximum                     , &
+         &                     massRatioCount                       , &
+         &                     rangeType       =rangeTypeLogarithmic, &
+         &                     rangeBinned     =.true.                &
+         &                    )
     ! Construct arrays of times for progenitors.
-    conditionalMFConstructorInternal%progenitorRedshifts=progenitorRedshifts
-    do i=1,conditionalMFConstructorInternal%timeCount
-       conditionalMFConstructorInternal%timeProgenitors(i)=              &
-            & cosmologyFunctions_%cosmicTime(                   &
-            &  cosmologyFunctions_%expansionFactorFromRedshift( &
-            &   progenitorRedshifts(i)                          &
-            &  )                                                &
+    self%progenitorRedshifts=progenitorRedshifts
+    do i=1,self%timeCount
+       self%timeProgenitors(i)=                                      &
+            & self%cosmologyFunctions_%cosmicTime(                   &
+            &  self%cosmologyFunctions_%expansionFactorFromRedshift( &
+            &   progenitorRedshifts(i)                               &
+            &  )                                                     &
             & )
     end do
     ! Construct arrays of times for parents.
-    conditionalMFConstructorInternal%parentRedshifts=parentRedshifts
-    do i=1,conditionalMFConstructorInternal%timeCount
-       conditionalMFConstructorInternal%timeParents(i)=         & 
-            & cosmologyFunctions_%cosmicTime(                   &
-            &  cosmologyFunctions_%expansionFactorFromRedshift( &
-            &   parentRedshifts(i)                              &
-            &  )                                                &
+    self%parentRedshifts=parentRedshifts
+    do i=1,self%timeCount
+       self%timeParents(i)=                                          & 
+            & self%cosmologyFunctions_%cosmicTime(                   &
+            &  self%cosmologyFunctions_%expansionFactorFromRedshift( &
+            &   parentRedshifts(i)                                   &
+            &  )                                                     &
             & )
     end do
     ! Initialize mass function arrays.
-    conditionalMFConstructorInternal   %normalization                        =0.0d0
-    conditionalMFConstructorInternal   %normalizationError                   =0.0d0
-    conditionalMFConstructorInternal   %conditionalMassFunction              =0.0d0
-    conditionalMFConstructorInternal   %conditionalMassFunctionError         =0.0d0
-    if (conditionalMFConstructorInternal%computeCovariances) then
-       conditionalMFConstructorInternal%normalizationCovariance              =0.0d0
-       conditionalMFConstructorInternal%conditionalMassFunctionCovariance    =0.0d0
+    self   %normalization                        =0.0d0
+    self   %normalizationError                   =0.0d0
+    self   %conditionalMassFunction              =0.0d0
+    self   %conditionalMassFunctionError         =0.0d0
+    if (self%computeCovariances) then
+       self%normalizationCovariance              =0.0d0
+       self%conditionalMassFunctionCovariance    =0.0d0
     end if
-    if (conditionalMFConstructorInternal%extendedStatistics) then
-       conditionalMFConstructorInternal%normalizationSubhaloMassFunction     =0.0d0
-       conditionalMFConstructorInternal%normalizationSubhaloMassFunctionError=0.0d0
-       conditionalMFConstructorInternal%primaryProgenitorMassFunction        =0.0d0
-       conditionalMFConstructorInternal%primaryProgenitorMassFunctionError   =0.0d0
-       conditionalMFConstructorInternal%formationRateFunction                =0.0d0
-       conditionalMFConstructorInternal%formationRateFunctionError           =0.0d0
-       conditionalMFConstructorInternal%subhaloMassFunction                  =0.0d0
-       conditionalMFConstructorInternal%subhaloMassFunctionError             =0.0d0
+    if (self%extendedStatistics) then
+       self%normalizationSubhaloMassFunction     =0.0d0
+       self%normalizationSubhaloMassFunctionError=0.0d0
+       self%primaryProgenitorMassFunction        =0.0d0
+       self%primaryProgenitorMassFunctionError   =0.0d0
+       self%formationRateFunction                =0.0d0
+       self%formationRateFunctionError           =0.0d0
+       self%subhaloMassFunction                  =0.0d0
+       self%subhaloMassFunctionError             =0.0d0
     end if
     ! Initialize OpenMP lock.
-    !$ call OMP_Init_Lock(conditionalMFConstructorInternal%accumulateLock)
+    !$ call OMP_Init_Lock(self%accumulateLock)
     return
   end function conditionalMFConstructorInternal
 
@@ -611,9 +604,9 @@ contains
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorConditionalMF), intent(inout) :: self
-    !GCC$ attributes unused :: self
     
-    !# <objectDestructor name="self%haloMassError_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%haloMassError_"     />
     ! Destroy OpenMP lock.
     !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
@@ -628,35 +621,35 @@ contains
     use Galacticus_Error
     use Merger_Tree_Walkers
     implicit none
-    class           (mergerTreeOperatorConditionalMF), intent(inout)                         , target :: self
-    type            (mergerTree                     ), intent(inout)                         , target :: tree
-    type            (treeNode                       ), pointer                                        :: node                          , nodeChild                 , &
-         &                                                                                               nodeParent                    , nodeParentChild           , &
-         &                                                                                               descendentNode                , nodeSibling
-    type            (mergerTree                     ), pointer                                        :: treeCurrent
-    class           (nodeComponentBasic             ), pointer                                        :: basic                         , basicChild                , &
-         &                                                                                               basicParent                   , descendentBasic           , &
-         &                                                                                               basicParentChild              , basicSibling
-    class           (nodeComponentMergingStatistics ), pointer                                        :: mergingStatistics
-    type            (mergerTreeWalkerIsolatedNodes  )                                                 :: treeWalker
-    integer                                                                                           :: i                             , binMassParent             , &
-         &                                                                                               binMassRatio                  , iPrimary                  , &
-         &                                                                                               jPrimary                      , depthHierarchy            , &
-         &                                                                                               j                             , j2                        , &
-         &                                                                                               k2
-    double precision                                                                                  :: branchBegin                   , branchEnd                 , &
-         &                                                                                               parentBranchBegin             , parentBranchEnd           , &
-         &                                                                                               massProgenitor                , massParent                , &
-         &                                                                                               branchMassInitial             , branchMassFinal           , &
-         &                                                                                               parentBranchMassInitial       , parentBranchMassFinal     , &
-         &                                                                                               massRatioLogarithmic          , timeUnevolved             , &
-         &                                                                                               massRatio                     , massUnevolved
-    logical                                                                                           :: includeBranch
-    double precision                                  , dimension(                                                                                                   &
-         &                                                        self%timeCount             ,                                                                       &
-         &                                                        self%parentMassCount       ,                                                                       &
-         &                                                        self%primaryProgenitorDepth                                                                        &
-         &                                                       )                                    :: primaryProgenitorMass
+    class           (mergerTreeOperatorConditionalMF), intent(inout)                               , target :: self
+    type            (mergerTree                     ), intent(inout)                               , target :: tree
+    type            (treeNode                       ), pointer                                              :: node                   , nodeChild            , &
+         &                                                                                                     nodeParent             , nodeParentChild      , &
+         &                                                                                                     descendentNode         , nodeSibling
+    type            (mergerTree                     ), pointer                                              :: treeCurrent
+    class           (nodeComponentBasic             ), pointer                                              :: basic                  , basicChild           , &
+         &                                                                                                     basicParent            , descendentBasic      , &
+         &                                                                                                     basicParentChild       , basicSibling
+    class           (nodeComponentMergingStatistics ), pointer                                              :: mergingStatistics
+    type            (mergerTreeWalkerIsolatedNodes  )                                                       :: treeWalker
+    integer                                                                                                 :: i                      , binMassParent        , &
+         &                                                                                                     binMassRatio           , iPrimary             , &
+         &                                                                                                     jPrimary               , depthHierarchy       , &
+         &                                                                                                     j                      , j2                   , &
+         &                                                                                                     k2
+    double precision                                                                                        :: branchBegin            , branchEnd            , &
+         &                                                                                                     parentBranchBegin      , parentBranchEnd      , &
+         &                                                                                                     massProgenitor         , massParent           , &
+         &                                                                                                     branchMassInitial      , branchMassFinal      , &
+         &                                                                                                     parentBranchMassInitial, parentBranchMassFinal, &
+         &                                                                                                     massRatioLogarithmic   , timeUnevolved        , &
+         &                                                                                                     massRatio              , massUnevolved
+    logical                                                                                                 :: includeBranch
+    double precision                                  , dimension(                                                                                             &
+         &                                                        self%timeCount             ,                                                                 &
+         &                                                        self%parentMassCount       ,                                                                 &
+         &                                                        self%primaryProgenitorDepth                                                                  &
+         &                                                       )                                          :: primaryProgenitorMass
     double precision                                  , dimension(self%parentMassCount                    ) :: weights1D
     double precision                                  , dimension(self%parentMassCount,self%massRatioCount) :: weights2D
     

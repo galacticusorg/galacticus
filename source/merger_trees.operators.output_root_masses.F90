@@ -17,7 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a merger tree operator which outputs a file of tree root masses (and weights).
-  
+
   ! Buffer size for tree data.
   integer, parameter :: outputRootMassesBufferSize=1000
   
@@ -45,11 +45,11 @@
 
 contains
 
-  function outputRootMassesConstructorParameters(parameters)
+  function outputRootMassesConstructorParameters(parameters) result(self)
     !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
     use Cosmology_Functions
     implicit none
-    type            (mergerTreeOperatorOutputRootMasses)                :: outputRootMassesConstructorParameters
+    type            (mergerTreeOperatorOutputRootMasses)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
     double precision                                                    :: time                                 , redshift
@@ -79,34 +79,33 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     ! Get time from redshift.
-    cosmologyFunctions_ => cosmologyFunctions()
-    time                =  cosmologyFunctions_ %cosmicTime                 (          &
-         &                  cosmologyFunctions_%expansionFactorFromRedshift (         &
-         &                                                                   redshift &
-         &                                                                  )         &
-         &                                                                 )
+    time   =cosmologyFunctions_ %cosmicTime                 (          &
+         &   cosmologyFunctions_%expansionFactorFromRedshift (         &
+         &                                                    redshift &
+         &                                                   )         &
+         &                                                  )
     ! Construct the instance.
-    outputRootMassesConstructorParameters=outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName)
+    self=mergerTreeOperatorOutputRootMasses(time,alwaysIsolatedHalosOnly,fileName)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function outputRootMassesConstructorParameters
 
-  function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName)
+  function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName) result(self)
     !% Internal constructor for the conditional mass function merger tree operator class.
     use File_Utilities
     use System_Command
     implicit none
-    type            (mergerTreeOperatorOutputRootMasses)                :: outputRootMassesConstructorInternal
+    type            (mergerTreeOperatorOutputRootMasses)                :: self
     double precision                                    , intent(in   ) :: time
     logical                                             , intent(in   ) :: alwaysIsolatedHalosOnly
     type            (varying_string                    ), intent(in   ) :: fileName
-
+    !# <constructorAssign variables="time,alwaysIsolatedHalosOnly,fileName"/>
+    
     ! Initialize.
-    outputRootMassesConstructorInternal%time                   =time
-    outputRootMassesConstructorInternal%alwaysIsolatedHalosOnly=alwaysIsolatedHalosOnly
-    outputRootMassesConstructorInternal%fileName               =fileName
-    outputRootMassesConstructorInternal%treeCount              =0
+    self%treeCount=0
     ! Remove any pre-existing file.
     call hdf5Access%set()
     if (File_Exists(fileName)) call System_Command_Do("rm -f "//fileName)
