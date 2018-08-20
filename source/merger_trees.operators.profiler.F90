@@ -19,6 +19,7 @@
   !% Contains a module which implements a merger tree operator which profiles tree structure.
   
   use Kind_Numbers
+  use Cosmology_Functions
 
   !# <mergerTreeOperator name="mergerTreeOperatorProfiler" defaultThreadPrivate="yes">
   !#  <description>
@@ -28,13 +29,15 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorProfiler
      !% A merger tree operator class which profiles merger tree structure.
      private
-     integer         (kind_int8)                              :: nodeCount                  , singleProgenitorCount
-     integer         (kind_int8), allocatable, dimension(:,:) :: nonPrimaryProgenitorCount
-     integer                                                  :: massBinsCount              , timeBinsCount
-     double precision           , allocatable, dimension(:  ) :: mass                       , time
-     double precision                                         :: massMinimumLogarithmic     , timeMinimumLogarithmic     , &
-          &                                                      massLogarithmicDeltaInverse, timeLogarithmicDeltaInverse
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
+     integer         (kind_int8              )                              :: nodeCount                  , singleProgenitorCount
+     integer         (kind_int8              ), allocatable, dimension(:,:) :: nonPrimaryProgenitorCount
+     integer                                                                :: massBinsCount              , timeBinsCount
+     double precision                         , allocatable, dimension(:  ) :: mass                       , time
+     double precision                                                       :: massMinimumLogarithmic     , timeMinimumLogarithmic     , &
+          &                                                                    massLogarithmicDeltaInverse, timeLogarithmicDeltaInverse
    contains
+     final     ::             profilerDestructor
      procedure :: operate  => profilerOperate
      procedure :: finalize => profilerFinalize
   end type mergerTreeOperatorProfiler
@@ -53,9 +56,10 @@ contains
     implicit none
     type            (mergerTreeOperatorProfiler)                :: self
     type            (inputParameters           ), intent(inout) :: parameters
-    double precision                                            :: massMinimum      , massMaximum      , &
-         &                                                         redshiftMinimum  , redshiftMaximum
-    integer                                                     :: massBinsPerDecade, timeBinsPerDecade
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    double precision                                            :: massMinimum        , massMaximum      , &
+         &                                                         redshiftMinimum    , redshiftMaximum
+    integer                                                     :: massBinsPerDecade  , timeBinsPerDecade
 
     !# <inputParameter>
     !#   <name>massMinimum</name>
@@ -105,36 +109,36 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade)
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function profilerConstructorParameters
   
-  function profilerConstructorInternal(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade) result(self)
+  function profilerConstructorInternal(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_) result(self)
     !% Internal constructor for the information content merger tree operator class.
     use Numerical_Ranges
-    use Cosmology_Functions
     use Memory_Management
     implicit none
-    type            (mergerTreeOperatorProfiler)                :: self
-    double precision                            , intent(in   ) :: massMinimum        , massMaximum      , &
-         &                                                         redshiftMinimum    , redshiftMaximum
-    integer                                     , intent(in   ) :: massBinsPerDecade  , timeBinsPerDecade
-    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
-    double precision                                            :: timeMinimum        , timeMaximum
+    type            (mergerTreeOperatorProfiler)                        :: self
+    double precision                            , intent(in   )         :: massMinimum        , massMaximum      , &
+         &                                                                 redshiftMinimum    , redshiftMaximum
+    integer                                     , intent(in   )         :: massBinsPerDecade  , timeBinsPerDecade
+    class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
+    double precision                                                    :: timeMinimum        , timeMaximum
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
     
     ! Construct bins in mass and time.
-    cosmologyFunctions_             => cosmologyFunctions()
-    timeMinimum                     =  cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
-    timeMaximum                     =  cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
-    self%massBinsCount              =  int(dble(massBinsPerDecade)*log10(massMaximum/massMinimum))+1
-    self%timeBinsCount              =  int(dble(timeBinsPerDecade)*log10(timeMaximum/timeMinimum))+1
-    self%mass                       =  Make_Range(massMinimum,massMaximum,self%massBinsCount,rangeType=rangeTypeLogarithmic,rangeBinned=.true.)
-    self%time                       =  Make_Range(timeMinimum,timeMaximum,self%timeBinsCount,rangeType=rangeTypeLogarithmic,rangeBinned=.true.)
-    self%massMinimumLogarithmic     =  log10(massMinimum)
-    self%timeMinimumLogarithmic     =  log10(timeMinimum)
-    self%massLogarithmicDeltaInverse=  dble(self%massBinsCount)/log10(massMaximum/massMinimum)
-    self%timeLogarithmicDeltaInverse=  dble(self%timeBinsCount)/log10(timeMaximum/timeMinimum)
+    timeMinimum                     =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
+    timeMaximum                     =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
+    self%massBinsCount              =int(dble(massBinsPerDecade)*log10(massMaximum/massMinimum))+1
+    self%timeBinsCount              =int(dble(timeBinsPerDecade)*log10(timeMaximum/timeMinimum))+1
+    self%mass                       =Make_Range(massMinimum,massMaximum,self%massBinsCount,rangeType=rangeTypeLogarithmic,rangeBinned=.true.)
+    self%time                       =Make_Range(timeMinimum,timeMaximum,self%timeBinsCount,rangeType=rangeTypeLogarithmic,rangeBinned=.true.)
+    self%massMinimumLogarithmic     =log10(massMinimum)
+    self%timeMinimumLogarithmic     =log10(timeMinimum)
+    self%massLogarithmicDeltaInverse=dble(self%massBinsCount)/log10(massMaximum/massMinimum)
+    self%timeLogarithmicDeltaInverse=dble(self%timeBinsCount)/log10(timeMaximum/timeMinimum)
     ! Allocate bins.
     call allocateArray(self%nonPrimaryProgenitorCount,[self%massBinsCount,self%timeBinsCount])
     ! Initialize counts.
@@ -143,6 +147,15 @@ contains
     self%nonPrimaryProgenitorCount=0_kind_int8
     return
   end function profilerConstructorInternal
+
+  subroutine profilerDestructor(self)
+    !% Destructor for the profiler merger tree operator function class.
+    implicit none
+    type(mergerTreeOperatorProfiler), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine profilerDestructor
 
   subroutine profilerOperate(self,tree)
     !% Perform a information content operation on a merger tree.

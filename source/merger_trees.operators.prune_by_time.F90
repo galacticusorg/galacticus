@@ -18,7 +18,7 @@
 
   !% Contains a module which implements a merger tree operator which prunes branches to end at a fixed time.
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneByTime">
+  !# <mergerTreeOperator name="mergerTreeOperatorPruneByTime" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which prunes branches to end at a fixed time.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByTime
@@ -74,7 +74,7 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    cosmologyFunctions_ => cosmologyFunctions()
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     pruneByTimeConstructorParameters%timeEarliest             &
          & =cosmologyFunctions_ %cosmicTime(                  &
          &   cosmologyFunctions_%expansionFactorFromRedshift( &
@@ -82,6 +82,7 @@ contains
          &                                                  ) &
          &                                 )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function pruneByTimeConstructorParameters
 

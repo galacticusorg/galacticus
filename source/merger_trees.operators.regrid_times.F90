@@ -18,15 +18,20 @@
 
   !% Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
 
-  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
+  use Cosmology_Functions
+  use Cosmological_Density_Field
+
+  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
      !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      private
-     logical                                     :: dumpTrees
-     double precision                            :: snapTolerance
-     double precision, allocatable, dimension(:) :: timeGrid
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
+     class           (criticalOverdensityClass), pointer                   :: criticalOverdensity_
+     logical                                                               :: dumpTrees
+     double precision                                                      :: snapTolerance
+     double precision                          , allocatable, dimension(:) :: timeGrid
    contains
      final     ::            regridTimesDestructor
      procedure :: operate => regridTimesOperate
@@ -52,14 +57,14 @@
   
 contains
 
-  function regridTimesConstructorParameters(parameters)
+  function regridTimesConstructorParameters(parameters) result(self)
     !% Constructor for the regrid times merger tree operator class which takes a parameter set as input.
     use Galacticus_Error
-    use Cosmology_Functions
     implicit none
-    type            (mergerTreeOperatorRegridTimes)                              :: regridTimesConstructorParameters
+    type            (mergerTreeOperatorRegridTimes)                              :: self
     type            (inputParameters              ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
+    class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_
     double precision                               , allocatable  , dimension(:) :: snapshotTimes
     logical                                                                      :: dumpTrees
     integer                                                                      :: regridCount                     , snapshotSpacing   , &
@@ -68,6 +73,8 @@ contains
          &                                                                          snapTolerance
     type            (varying_string               )                              :: snapshotSpacingText
         
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
     !# <inputParameter>
     !#   <name>dumpTrees</name>
     !#   <source>parameters</source>
@@ -131,71 +138,63 @@ contains
        !#   <type>real</type>
        !#   <cardinality>0..</cardinality>
        !# </inputParameter>
-       cosmologyFunctions_ => cosmologyFunctions()
        do iTime=1,size(snapshotTimes)
           snapshotTimes(iTime)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(snapshotTimes(iTime)))
        end do
     end if
     ! Build the instance.
-    regridTimesConstructorParameters=regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
+    self=mergerTreeOperatorRegridTimes(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function regridTimesConstructorParameters
 
-  function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes)
+  function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_) result(self)
     !% Internal constructor for the regrid times merger tree operator class.
-    use Cosmology_Functions
-    use Cosmological_Density_Field
     use Numerical_Ranges
     use Galacticus_Error
     use Memory_Management
     use Sort
     implicit none
-    type            (mergerTreeOperatorRegridTimes)                                        :: regridTimesConstructorInternal
+    type            (mergerTreeOperatorRegridTimes)                                        :: self
     integer                                        , intent(in   )                         :: regridCount
-    double precision                               , intent(in   )                         :: expansionFactorStart          , expansionFactorEnd, &
+    double precision                               , intent(in   )                         :: expansionFactorStart, expansionFactorEnd, &
          &                                                                                    snapTolerance
     integer                                        , intent(in   )                         :: snapshotSpacing
     logical                                        , intent(in   )                         :: dumpTrees
     double precision                               , intent(in   ), optional, dimension(:) :: snapshotTimes
-    class           (cosmologyFunctionsClass      ), pointer                               :: cosmologyFunctions_
-    class           (criticalOverdensityClass     ), pointer                               :: criticalOverdensity_
+    class           (cosmologyFunctionsClass      ), intent(in   ), target                 :: cosmologyFunctions_
+    class           (criticalOverdensityClass     ), intent(in   ), target                 :: criticalOverdensity_
     integer                                                                                :: iTime
+    !# <constructorAssign variables="dumpTrees, snapTolerance, *cosmologyFunctions_, *criticalOverdensity_"/>
     
     ! Validate arguments.
     if (regridCount < 2) call Galacticus_Error_Report('regridCount > 2 is required'//{introspection:location})
-    ! Store options.
-    regridTimesConstructorInternal%dumpTrees    =dumpTrees
-    regridTimesConstructorInternal%snapTolerance=snapTolerance
     ! Construct array of grid expansion factors.
-    call allocateArray(regridTimesConstructorInternal%timeGrid,[regridCount])
-    cosmologyFunctions_  => cosmologyFunctions ()
-    criticalOverdensity_ => criticalOverdensity()
+    call allocateArray(self%timeGrid,[regridCount])
     select case (snapshotSpacing)
     case (snapshotSpacingLinear                )
-       regridTimesConstructorInternal%timeGrid=Make_Range(expansionFactorStart,expansionFactorEnd,regridCount,rangeTypeLinear     )
+       self%timeGrid=Make_Range(expansionFactorStart,expansionFactorEnd,regridCount,rangeTypeLinear     )
        ! Convert expansion factors to time.
        do iTime=1,regridCount
-          regridTimesConstructorInternal%timeGrid(iTime)=cosmologyFunctions_%cosmicTime(regridTimesConstructorInternal%timeGrid(iTime))
+          self%timeGrid(iTime)=self%cosmologyFunctions_%cosmicTime(self%timeGrid(iTime))
        end do
     case (snapshotSpacingLogarithmic           )
-       regridTimesConstructorInternal%timeGrid=Make_Range(expansionFactorStart,expansionFactorEnd,regridCount,rangeTypeLogarithmic)
+       self%timeGrid=Make_Range(expansionFactorStart,expansionFactorEnd,regridCount,rangeTypeLogarithmic)
        ! Convert expansion factors to time.
        do iTime=1,regridCount
-          regridTimesConstructorInternal%timeGrid(iTime)=cosmologyFunctions_%cosmicTime(regridTimesConstructorInternal%timeGrid(iTime))
+          self%timeGrid(iTime)=self%cosmologyFunctions_%cosmicTime(self%timeGrid(iTime))
        end do
     case (snapshotSpacingLogCriticalOverdensity)
        ! Build a logarithmic grid in critical overdensity.
-       regridTimesConstructorInternal%timeGrid                                                              &
-            & =Make_Range(                                                                                  &
-            &              criticalOverdensity_%value(cosmologyFunctions_%cosmicTime(expansionFactorStart)) &
-            &             ,criticalOverdensity_%value(cosmologyFunctions_%cosmicTime(expansionFactorEnd  )) &
-            &             ,regridCount                                                                      &
-            &             ,rangeTypeLogarithmic                                                             &
-            &            )
+       self%timeGrid=Make_Range(                                                                                            &
+            &                    self%criticalOverdensity_%value(self%cosmologyFunctions_%cosmicTime(expansionFactorStart)) &
+            &                   ,self%criticalOverdensity_%value(self%cosmologyFunctions_%cosmicTime(expansionFactorEnd  )) &
+            &                   ,regridCount                                                                                &
+            &                   ,rangeTypeLogarithmic                                                                       &
+            &                  )
        ! Convert critical overdensity to time.
        do iTime=1,regridCount
-          regridTimesConstructorInternal%timeGrid(iTime)=criticalOverdensity_%timeOfCollapse(regridTimesConstructorInternal%timeGrid(iTime))
+          self%timeGrid(iTime)=self%criticalOverdensity_%timeOfCollapse(self%timeGrid(iTime))
        end do
     case (snapshotSpacingMillennium            )
        ! Use the timesteps used in the original Millennium Simulation as reported by Croton et al.  (2006; MNRAS; 365;
@@ -204,36 +203,36 @@ contains
        ! Check for consistent number of timesteps.
        if (regridCount /= 60) call Galacticus_Error_Report('"millennium" grid spacing requires exactly 60 timesteps'//{introspection:location})
        ! Convert expansion factors to time.
-       regridTimesConstructorInternal%timeGrid=[                                                                         &
-            &                                   19.915688d0,18.243723d0,16.724525d0,15.343073d0,14.085914d0,12.940780d0, &
-            &                                   11.896569d0,10.943864d0,10.073462d0, 9.277915d0, 8.549912d0, 7.883204d0, &
-            &                                    7.272188d0, 6.711586d0, 6.196833d0, 5.723864d0, 5.288833d0, 4.888449d0, &
-            &                                    4.519556d0, 4.179469d0, 3.865683d0, 3.575905d0, 3.308098d0, 3.060419d0, &
-            &                                    2.831182d0, 2.618862d0, 2.422044d0, 2.239486d0, 2.070027d0, 1.912633d0, &
-            &                                    1.766336d0, 1.630271d0, 1.503636d0, 1.385718d0, 1.275846d0, 1.173417d0, &
-            &                                    1.077875d0, 0.988708d0, 0.905463d0, 0.827699d0, 0.755036d0, 0.687109d0, &
-            &                                    0.623590d0, 0.564177d0, 0.508591d0, 0.456577d0, 0.407899d0, 0.362340d0, &
-            &                                    0.319703d0, 0.279802d0, 0.242469d0, 0.207549d0, 0.174898d0, 0.144383d0, &
-            &                                    0.115883d0, 0.089288d0, 0.064493d0, 0.041403d0, 0.019933d0, 0.000000d0  &
-            &                                  ]
+       self%timeGrid=[                                                                         &
+            &         19.915688d0,18.243723d0,16.724525d0,15.343073d0,14.085914d0,12.940780d0, &
+            &         11.896569d0,10.943864d0,10.073462d0, 9.277915d0, 8.549912d0, 7.883204d0, &
+            &          7.272188d0, 6.711586d0, 6.196833d0, 5.723864d0, 5.288833d0, 4.888449d0, &
+            &          4.519556d0, 4.179469d0, 3.865683d0, 3.575905d0, 3.308098d0, 3.060419d0, &
+            &          2.831182d0, 2.618862d0, 2.422044d0, 2.239486d0, 2.070027d0, 1.912633d0, &
+            &          1.766336d0, 1.630271d0, 1.503636d0, 1.385718d0, 1.275846d0, 1.173417d0, &
+            &          1.077875d0, 0.988708d0, 0.905463d0, 0.827699d0, 0.755036d0, 0.687109d0, &
+            &          0.623590d0, 0.564177d0, 0.508591d0, 0.456577d0, 0.407899d0, 0.362340d0, &
+            &          0.319703d0, 0.279802d0, 0.242469d0, 0.207549d0, 0.174898d0, 0.144383d0, &
+            &          0.115883d0, 0.089288d0, 0.064493d0, 0.041403d0, 0.019933d0, 0.000000d0  &
+            &        ]
        do iTime=1,regridCount
-          regridTimesConstructorInternal%timeGrid(iTime)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(regridTimesConstructorInternal%timeGrid(iTime)))
+          self%timeGrid(iTime)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%timeGrid(iTime)))
        end do
     case (snapshotSpacingList                  )
        if (.not.present(snapshotTimes)) call Galacticus_Error_Report('"list" grid spacing requires a list of snapshot times be supplied'//{introspection:location})
-       regridTimesConstructorInternal%timeGrid=snapshotTimes
-       call Sort_Do(regridTimesConstructorInternal%timeGrid)
+       self%timeGrid=snapshotTimes
+       call Sort_Do(self%timeGrid)
     end select
     return
   end function regridTimesConstructorInternal
 
-  elemental subroutine regridTimesDestructor(self)
+  subroutine regridTimesDestructor(self)
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorRegridTimes), intent(inout) :: self
-    !GCC$ attributes unused :: self
     
-    ! Nothing to do.
+    !# <objectDestructor name="self%criticalOverdensity_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine regridTimesDestructor
 
