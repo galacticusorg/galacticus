@@ -139,8 +139,9 @@
 
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>
-  <starFormationRateSurfaceDensityDisksMethod value="KMT09"/>
-  <molecularFractionFastKMT09 value="true"/>
+  <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
+    <molecularFractionFast value="true" />
+  </starFormationRateSurfaceDensityDisksMethod>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <starFormationSpheroidEfficiency value="0.004"/>
