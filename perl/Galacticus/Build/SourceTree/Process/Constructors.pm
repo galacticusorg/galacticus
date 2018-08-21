@@ -66,7 +66,9 @@ sub Process_Constructors {
 	    {
 		type       => "code"           ,
 		content    => $assignmentSource,
-		firstChild => undef()
+		firstChild => undef()          ,
+		source     => "Galacticus::Build::SourceTree::Process::Constructor::Process_Constructors()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);

@@ -2348,7 +2348,7 @@ CODE
 	    # we parse and process our generated code here, before serializing it back into the original node. Should we need to
 	    # retain this behavior permanently it would be cleaner to just generate the code as text (i.e. not in a node), then
 	    # parse into a tree and unshift() it to the start of the postcontains array.	    
-	    my $treeTmp = &Galacticus::Build::SourceTree::ParseCode ($postContains->[0]->{'content'},'null');
+	    my $treeTmp = &Galacticus::Build::SourceTree::ParseCode ($postContains->[0]->{'content'},'Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass()');
 	    &Galacticus::Build::SourceTree::ProcessTree($treeTmp);
 	    $postContains->[0]->{'content'} = &Galacticus::Build::SourceTree::Serialize($treeTmp);
 	    # </workaround>

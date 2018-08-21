@@ -28,6 +28,10 @@ sub Parse_Declarations {
 	    my $rawCode;
 	    my $rawDeclaration;
 	    my @declarations;
+	    my $lineNumber         = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
+	    my $source             = exists($node->{'source'}) ? $node->{'source'} : "unknown";
+	    my $rawCodeLine        = $lineNumber;
+	    my $rawDeclarationLine = $lineNumber;
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
@@ -74,7 +78,9 @@ sub Parse_Declarations {
 		    {
 			type       => "code"  ,
 			content    => $rawCode,
-			firstChild => undef()
+			firstChild => undef(),
+			source     => $source,
+			line       => $rawCodeLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -84,6 +90,8 @@ sub Parse_Declarations {
 			);
 		    # Reset the raw code text.
 		    undef($rawCode);
+		    $rawCodeLine        = $lineNumber;
+		    $rawDeclarationLine = $lineNumber;
 		}
 		if ( ( $isDeclaration == 0 || eof($code) ) && $rawDeclaration ) {
 		    # Create a new node.
@@ -94,11 +102,13 @@ sub Parse_Declarations {
 		    @{$newNode->{'declarations'}} = @declarations;
 		    $newNode->{'firstChild'} =
 		    {
-			type         => "code"         ,
-			content      => $rawDeclaration,
-			parent       => $newNode       ,
-			sibling      => undef()        ,
-			firstChild   => undef()
+			type         => "code"             ,
+			content      => $rawDeclaration    ,
+			parent       => $newNode           ,
+			sibling      => undef()            ,
+			firstChild   => undef()            ,
+			source       => $source            ,
+			line         => $rawDeclarationLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -115,7 +125,10 @@ sub Parse_Declarations {
 		    # Reset the raw module use text.
 		    undef($rawDeclaration);
 		    undef(@declarations  );
+		    $rawCodeLine        = $lineNumber;
+		    $rawDeclarationLine = $lineNumber;
 		}
+		$lineNumber += $rawLine =~ tr/\n//;
 	    } until ( eof($code) );
 	    close($code);
 	    # If we have a single code block, nothing needs to change.
