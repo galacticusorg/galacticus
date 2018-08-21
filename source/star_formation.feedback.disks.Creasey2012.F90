@@ -17,35 +17,40 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
-  
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012">
+
+  use Star_Formation_Rate_Surface_Density_Disks
+ 
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012" defaultThreadPrivate="yes">
   !#  <description>The \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksCreasey2012
      !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
      private
-     double precision :: nu   , mu, &
-          &              beta0
+    class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_
+     double precision                                                    :: nu                                   , mu, &
+          &                                                                 beta0
    contains
-     procedure :: outflowRate => creasy2012OutflowRate
+     final     ::                creasey2012Destructor
+     procedure :: outflowRate => creasey2012OutflowRate
   end type starFormationFeedbackDisksCreasey2012
 
   interface starFormationFeedbackDisksCreasey2012
-     !% Constructors for the creasy2012 fraction star formation feedback in disks class.
-     module procedure creasy2012ConstructorParameters
-     module procedure creasy2012ConstructorInternal
+     !% Constructors for the creasey2012 fraction star formation feedback in disks class.
+     module procedure creasey2012ConstructorParameters
+     module procedure creasey2012ConstructorInternal
   end interface starFormationFeedbackDisksCreasey2012
 
 contains
 
-  function creasy2012ConstructorParameters(parameters) result(self)
+  function creasey2012ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{creasey_how_2012} star formation feedback in disks class which takes a parameter set as input.
     use Galacticus_Error
     implicit none
-    type            (starFormationFeedbackDisksCreasey2012)                :: self
-    type            (inputParameters                      ), intent(inout) :: parameters
-    double precision                                                       :: mu        , nu, &
-         &                                                                    beta0
+    type            (starFormationFeedbackDisksCreasey2012    )                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
+    double precision                                                           :: mu                                   , nu, &
+         &                                                                        beta0
 
     !# <inputParameter>
     !#   <name>mu</name>
@@ -74,23 +79,34 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0)
+    !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
+    self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function creasy2012ConstructorParameters
+  end function creasey2012ConstructorParameters
 
-  function creasy2012ConstructorInternal(mu,nu,beta0) result(self)
-    !% Internal constructor for the creasy2012 star formation feedback from disks class.
+  function creasey2012ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily creasey2012} star formation feedback from disks class.
     implicit none
-    type            (starFormationFeedbackDisksCreasey2012)                :: self
-    double precision                                       , intent(in   ) :: mu   , nu, &
-         &                                                                    beta0
-
-    !# <constructorAssign variables="mu, nu, beta0"/>    
+    type            (starFormationFeedbackDisksCreasey2012    )                        :: self
+    class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
+    double precision                                           , intent(in   )         :: mu                                   , nu, &
+         &                                                                                beta0
+    !# <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_"/>
+    
     return
-  end function creasy2012ConstructorInternal
+  end function creasey2012ConstructorInternal
 
-  double precision function creasy2012OutflowRate(self,node,rateEnergyInput,rateStarFormation)
+  subroutine creasey2012Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily creasey2012} feedback in disks class.
+    implicit none
+    type(starFormationFeedbackDisksCreasey2012), intent(inout) :: self
+
+    !# <objectDestructor name="self%starFormationRateSurfaceDensityDisks_"/>
+    return
+  end subroutine creasey2012Destructor
+  
+  double precision function creasey2012OutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode} using
     !% the model of \cite{creasey_how_2012}. The outflow rate is given by
     !% \begin{equation}
@@ -122,14 +138,14 @@ contains
     radiusScale =  disk%radius     ()
     ! Return immediately for a null disk.
     if (massGas <= 0.0d0 .or. massStellar <= 0.0d0 .or. radiusScale <= 0.0d0) then
-       creasy2012OutflowRate=0.0d0
+       creasey2012OutflowRate=0.0d0
        return
     end if
     ! Compute suitable limits for the integration.
     radiusInner=radiusScale*radiusInnerDimensionless
     radiusOuter=radiusScale*radiusOuterDimensionless
     ! Compute the outflow rate.
-    creasy2012OutflowRate=+2.0d0&
+    creasey2012OutflowRate=+2.0d0&
          &                *Pi                                     &
          &                *self%beta0                             &
          &                *Integrate(                             &
@@ -153,7 +169,6 @@ contains
       !% Integrand function for the ``Creasey et al. (2012)'' supernovae feedback calculation.
       use Galactic_Structure_Surface_Densities
       use Galactic_Structure_Options
-      use Star_Formation_Rate_Surface_Density_Disks
       use Numerical_Constants_Prefixes
       implicit none
       double precision, intent(in   ) :: radius
@@ -186,7 +201,7 @@ contains
       densitySurfaceGas=+densitySurfaceGas &
            &            /mega**2
       ! Get the surface density of star formation rate.
-      densitySurfaceRateStarFormation=Star_Formation_Rate_Surface_Density_Disk(node,radius)
+      densitySurfaceRateStarFormation=self%starFormationRateSurfaceDensityDisks_%rate(node,radius)
       ! Compute the outflow rate.
       outflowRateIntegrand=+densitySurfaceGas              **(-self%mu) &
            &               *fractionGas                    **  self%nu  &
@@ -195,5 +210,5 @@ contains
       return
     end function outflowRateIntegrand
 
-  end function creasy2012OutflowRate
+  end function creasey2012OutflowRate
 

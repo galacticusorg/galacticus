@@ -75,24 +75,26 @@ contains
     use Numerical_Integration
     use Star_Formation_Rate_Surface_Density_Disks
     implicit none
-    type            (treeNode                  ), intent(inout), target         :: thisNode
-    double precision                            , allocatable  , dimension(:,:) :: intervals
-    class           (nodeComponentDisk         ), pointer                       :: thisDiskComponent
-    double precision                            , parameter                     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
-    double precision                                                            :: diskScaleRadius               , gasMass                        , &
-         &                                                                         radiusInner                   , radiusOuter                    , &
-         &                                                                         starFormationRate
-    type            (fgsl_function             )                                :: integrandFunction
-    type            (fgsl_integration_workspace)                                :: integrationWorkspace
-    logical                                                                     :: integrationReset
-    integer                                                                     :: i
+    type            (treeNode                                 ), intent(inout), target         :: thisNode
+    double precision                                           , allocatable  , dimension(:,:) :: intervals
+    class           (nodeComponentDisk                        ), pointer                       :: thisDiskComponent
+    class           (starFormationRateSurfaceDensityDisksClass), pointer                       :: starFormationRateSurfaceDensityDisks_
+    double precision                                           , parameter                     :: radiusInnerDimensionless             =0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                                                           :: diskScaleRadius                            , gasMass                        , &
+         &                                                                                        radiusInner                                , radiusOuter                    , &
+         &                                                                                        starFormationRate
+    type            (fgsl_function                            )                                :: integrandFunction
+    type            (fgsl_integration_workspace               )                                :: integrationWorkspace
+    logical                                                                                    :: integrationReset
+    integer                                                                                    :: i
 
     ! Get the disk properties.
+    starFormationRateSurfaceDensityDisks_ => starFormationRateSurfaceDensityDisks()
     thisDiskComponent => thisNode%disk()
     gasMass             =thisDiskComponent%massGas()
     diskScaleRadius     =thisDiskComponent%radius ()
     ! Test whether the star formation rate surface density function changed. If it did not we can re-use the previous integral.
-    if (Star_Formation_Rate_Surface_Density_Disk_Unchanged(thisNode)) then
+    if (starFormationRateSurfaceDensityDisks_%unchanged(thisNode)) then
        starFormationRate=starFormationRatePrevious
     else
        ! Check if the disk is physical.
@@ -106,7 +108,7 @@ contains
           radiusInner=diskScaleRadius*radiusInnerDimensionless
           radiusOuter=diskScaleRadius*radiusOuterDimensionless
           ! Get a set of intervals into which this integral should be broken.
-          intervals=Star_Formation_Rate_Surface_Density_Disk_Intervals(thisNode,radiusInner,radiusOuter)
+          intervals=starFormationRateSurfaceDensityDisks_%intervals(thisNode,radiusInner,radiusOuter)
           ! Compute the star formation rate. A low order integration rule (FGSL_Integ_Gauss15) works well here.       
           starFormationRate=0.0d0
           do i=1,size(intervals,dim=2)       
@@ -142,10 +144,12 @@ contains
     !% Integrand function for the ``integrated surface density'' star formation rate calculation.
     use Star_Formation_Rate_Surface_Density_Disks
     implicit none
-    double precision, intent(in   ) :: radius
+    double precision                                           , intent(in   ) :: radius
+    class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
 
     ! Compute the star formation rate integrand.
-    Star_Formation_Rate_Integrand_Surface_Density=radius*Star_Formation_Rate_Surface_Density_Disk(activeNode,radius)
+    starFormationRateSurfaceDensityDisks_ => starFormationRateSurfaceDensityDisks()
+    Star_Formation_Rate_Integrand_Surface_Density=radius*starFormationRateSurfaceDensityDisks_%rate(activeNode,radius)
     return
   end function Star_Formation_Rate_Integrand_Surface_Density
   

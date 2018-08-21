@@ -144,10 +144,11 @@
 
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>
-  <starFormationRateSurfaceDensityDisksMethod value="KMT09"/>
-  <molecularComplexClumpingFactorKMT09 value="5.0"/>
-  <starFormationFrequencyKMT09 value="0.385"/>
-  <molecularFractionFastKMT09 value="true"/>
+  <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
+    <frequencyStarFormation         value="0.385"/>
+    <clumpingFactorMolecularComplex value="5.000"/>
+    <molecularFractionFast          value="true" />
+  </starFormationRateSurfaceDensityDisksMethod>
   <starFormationDiskMinimumTimescale value="0.001"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <starFormationSpheroidEfficiency value="0.04"/>

@@ -15,141 +15,148 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
 
-!% Contains a module which implements the Kennicutt-Schmidt star formation rate surface density for galactic disks.
-
-module Star_Formation_Rate_Surface_Density_Disks_KS
-  !% Implements the Kennicutt-Schmidt star formation rate surface density for galactic disks.
-  use Galacticus_Nodes
   use Kind_Numbers
-  implicit none
-  private
-  public :: Star_Formation_Rate_Surface_Density_Disks_KS_Reset,&
-       & Star_Formation_Rate_Surface_Density_Disks_KS_Initialize
+ 
+  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
+  !#  <description>A Kennicutt-Schmidt star formation rate surface density for galactic disks.</description>
+  !# </starFormationRateSurfaceDensityDisks>
+  type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKennicuttSchmidt
+     !% Implementation of a Kennicutt-Schmidt star formation rate surface density for galactic disks.
+     private
+     double precision            :: normalization               , exponent                 , &
+          &                         exponentTruncated           , velocityDispersionDiskGas, &
+          &                         toomreParameterCritical
+     logical                     :: truncate
+     integer         (kind_int8) :: lastUniqueID
+     logical                     :: factorsComputed
+     double precision            :: surfaceDensityCriticalFactor, hydrogenMassFraction
+   contains
+     procedure :: calculationReset => kennicuttSchmidtCalculationReset
+     procedure :: rate             => kennicuttSchmidtRate
+  end type starFormationRateSurfaceDensityDisksKennicuttSchmidt
 
-  ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8) :: lastUniqueID                              =-1
-  !$omp threadprivate(lastUniqueID)
-  ! Record of whether or not factors have been precomputed.
-  logical                          :: factorsComputed                           =.false.
-  !$omp threadprivate(factorsComputed)
-  ! Precomputed factors.
-  double precision                 :: criticalDensityFactor                             , hydrogenMassFraction
-  !$omp threadprivate(criticalDensityFactor,hydrogenMassFraction)
-  ! Parameters of the model.
-  double precision                 :: starFormationKennicuttSchmidtExponent             , starFormationKennicuttSchmidtExponentTruncated, &
-       &                              starFormationKennicuttSchmidtNormalization        , toomreParameterCritical                       , &
-       &                              velocityDispersionDiskGas
-  logical                          :: starFormationKennicuttSchmidtTruncate
+  interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
+     !% Constructors for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class.
+     module procedure kennicuttSchmidtConstructorParameters
+     module procedure kennicuttSchmidtConstructorInternal
+  end interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
 
 contains
 
-  !# <calculationResetTask>
-  !# <unitName>Star_Formation_Rate_Surface_Density_Disks_KS_Reset</unitName>
-  !# </calculationResetTask>
-  subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Reset(thisNode)
-    !% Reset the Kennicutt-Schmidt relation calculation.
+  function kennicuttSchmidtConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    use Galacticus_Error
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
+    type            (inputParameters                                     ), intent(inout) :: parameters
+    double precision                                                                      :: normalization          , exponent                 , &
+         &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
+         &                                                                                   toomreParameterCritical
+    logical                                                                               :: truncate
 
-    factorsComputed=.false.
-    lastUniqueID   =thisNode%uniqueID()
+    !# <inputParameter>
+    !#   <name>normalization</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
+    !#   <defaultValue>0.147d0</defaultValue>
+    !#   <description>The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponent</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
+    !#   <defaultValue>1.400d0</defaultValue>
+    !#   <description>The exponent in the Kennicutt-Schmidt star formation law.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>truncate</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not to truncate star formation below a critical surface density in disks.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentTruncated</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>6.0d0</defaultValue>
+    !#   <description>The exponent of the $\Sigma_\mathrm{gas}/\Sigma_\mathrm{crit}$ term used in truncating the Kennicutt-Schmidt star formation law.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>velocityDispersionDiskGas</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
+    !#   <defaultValue>10.0d0</defaultValue>
+    !#   <description>The velocity dispersion of gas in disks.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>toomreParameterCritical</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultSource>\citep{kennicutt_star_1989}</defaultSource>
+    !#   <defaultValue>0.4d0</defaultValue>
+    !#   <description>The critical Toomre parameter for star formation in disks.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=starFormationRateSurfaceDensityDisksKennicuttSchmidt(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Reset
+  end function kennicuttSchmidtConstructorParameters
 
-  !# <starFormationRateSurfaceDensityDisksMethod>
-  !#  <unitName>Star_Formation_Rate_Surface_Density_Disks_KS_Initialize</unitName>
-  !# </starFormationRateSurfaceDensityDisksMethod>
-  subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize(starFormationRateSurfaceDensityDisksMethod&
-       &,Star_Formation_Rate_Surface_Density_Disk_Get,Star_Formation_Rate_Surface_Density_Disk_Intervals_Get,Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get)
-    !% Initializes the ``Kennicutt-Schmidt'' disk star formation rate surface density.
-    use ISO_Varying_String
-    use Input_Parameters
+  function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
     use Numerical_Constants_Prefixes
     implicit none
-    type     (varying_string                                       ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
-    procedure(Star_Formation_Rate_Surface_Density_Disk_KS          ), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
-    procedure(Star_Formation_Rate_Surface_Density_Disk_Intervals_KS), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Intervals_Get
-    procedure(Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get
+    type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
+    double precision                                                      , intent(in   ) :: normalization          , exponent                 , &
+         &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
+         &                                                                                   toomreParameterCritical
+    logical                                                               , intent(in   ) :: truncate
+    !# <constructorAssign variables="normalization, exponent, truncate, exponentTruncated, velocityDispersionDiskGas, toomreParameterCritical"/>
 
-    if (starFormationRateSurfaceDensityDisksMethod == 'Kennicutt-Schmidt') then
-       Star_Formation_Rate_Surface_Density_Disk_Get           => Star_Formation_Rate_Surface_Density_Disk_KS
-       Star_Formation_Rate_Surface_Density_Disk_Intervals_Get => Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
-       Star_Formation_Rate_Surface_Density_Disk_Unchanged_Get => Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS
-       ! Get parameters of for the timescale calculation.
-       !# <inputParameter>
-       !#   <name>starFormationKennicuttSchmidtNormalization</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
-       !#   <defaultValue>0.147d0</defaultValue>
-       !#   <description>The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationKennicuttSchmidtExponent</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
-       !#   <defaultValue>1.400d0</defaultValue>
-       !#   <description>The exponent in the Kennicutt-Schmidt star formation law.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationKennicuttSchmidtTruncate</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>.true.</defaultValue>
-       !#   <description>Specifies whether or not to truncate star formation below a critical surface density in disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>boolean</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationKennicuttSchmidtExponentTruncated</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>6.0d0</defaultValue>
-       !#   <description>The exponent of the $\Sigma_\mathrm{gas}/\Sigma_\mathrm{crit}$ term used in truncating the Kennicutt-Schmidt star formation law.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>velocityDispersionDiskGas</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
-       !#   <defaultValue>10.0d0</defaultValue>
-       !#   <description>The velocity dispersion of gas in disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>toomreParameterCritical</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultSource>\citep{kennicutt_star_1989}</defaultSource>
-       !#   <defaultValue>0.4d0</defaultValue>
-       !#   <description>The critical Toomre parameter for star formation in disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       ! Renormalize the Kennicutt-Schmidt relation to our internal units.
-       starFormationKennicuttSchmidtNormalization=                       &
-            &  starFormationKennicuttSchmidtNormalization                &
-            & *mega**(2.0d0-2.0d0*starFormationKennicuttSchmidtExponent)
-    end if
+    self%lastUniqueID   =-1_kind_int8
+    self%factorsComputed=.false.
+    ! Renormalize the Kennicutt-Schmidt relation to our internal units.
+    self%normalization=+self%normalization                &
+         &             *mega**(2.0d0-2.0d0*self%exponent)
     return
-  end subroutine Star_Formation_Rate_Surface_Density_Disks_KS_Initialize
+  end function kennicuttSchmidtConstructorInternal
 
-  double precision function Star_Formation_Rate_Surface_Density_Disk_KS(thisNode,radius)
-    !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\normalfont \ttfamily thisNode}. The disk is assumed to obey the Kennicutt-Schmidt law:
+  subroutine kennicuttSchmidtCalculationReset(self,node)
+    !% Reset the Kennicutt-Schmidt relation calculation.
+    implicit none
+    class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
+    type (treeNode                                            ), intent(inout) :: node
+
+    self%factorsComputed=.false.
+    self%lastUniqueID   =node%uniqueID()
+    return
+  end subroutine kennicuttSchmidtCalculationReset
+
+  double precision function kennicuttSchmidtRate(self,node,radius)
+    !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the Kennicutt-Schmidt law:
     !% \begin{equation}
     !% \Sigma_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
     !% \end{equation}
-    !% where $A=${\normalfont \ttfamily [starFormationKennicuttSchmidtNormalization]} and $N=${\normalfont \ttfamily
-    !% [starFormationKennicuttSchmidtExponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
+    !% where $A=${\normalfont \ttfamily [self%normalization]} and $N=${\normalfont \ttfamily
+    !% [self%exponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
     !% \begin{equation}
     !% \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
     !% \end{equation}
@@ -163,75 +170,61 @@ contains
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode         ), intent(inout) :: thisNode
-    double precision                   , intent(in   ) :: radius
-    class           (nodeComponentDisk), pointer       :: thisDiskComponent
-    type            (abundances       ), save          :: fuelAbundances
-    !$omp threadprivate(fuelAbundances)
-    double precision                                   :: criticalDensity  , gasMass, surfaceDensityGas
+    class           (starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
+    type            (treeNode                                            ), intent(inout) :: node
+    double precision                                                      , intent(in   ) :: radius
+    class           (nodeComponentDisk                                   ), pointer       :: disk
+    type            (abundances                                          ), save          :: abundancesFuel
+    !$omp threadprivate(abundancesFuel)
+    double precision                                                                      :: surfaceDensityCritical, massGas, &
+         &                                                                                   surfaceDensityGas
 
     ! Check if node differs from previous one for which we performed calculations.
-    if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_KS_Reset(thisNode)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if factors have been precomputed.
-    if (.not.factorsComputed) then
+    if (.not.self%factorsComputed) then
        ! Get the disk properties.
-       thisDiskComponent => thisNode         %disk   ()
-       gasMass             =thisDiskComponent%massGas()
+       disk   => node%disk   ()
+       massGas = disk%massGas()
        ! Find the hydrogen fraction in the disk gas of the fuel supply.
-       fuelAbundances=thisDiskComponent%abundancesGas()
-       call fuelAbundances%massToMassFraction(gasMass)
-       hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
+       abundancesFuel=disk%abundancesGas()
+       call abundancesFuel%massToMassFraction(massGas)
+       self%hydrogenMassFraction=abundancesFuel%hydrogenMassFraction()
        ! Compute the constant factor appearing in the critical density.
-       criticalDensityFactor=toomreParameterCritical*sqrt(2.0d0)&
-            &*velocityDispersionDiskGas*thisDiskComponent%velocity()/Pi/gravitationalConstantGalacticus
+       self%surfaceDensityCriticalFactor=+self%toomreParameterCritical      &
+            &                            *sqrt(2.0d0)                       &
+            &                            *self%velocityDispersionDiskGas    &
+            &                            *disk%velocity                  () &
+            &                            /Pi                                &
+            &                            /gravitationalConstantGalacticus
        ! Record that factors have now been computed.
-       factorsComputed=.true.
+       self%factorsComputed=.true.
     end if
     ! Get gas surface density.
-    surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
+    surfaceDensityGas=Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     ! Compute the star formation rate surface density.
-    Star_Formation_Rate_Surface_Density_Disk_KS=                             &
-         &  starFormationKennicuttSchmidtNormalization                                      &
-         & *(hydrogenMassFraction*surfaceDensityGas)**starFormationKennicuttSchmidtExponent
+    kennicuttSchmidtRate=+self%normalization          &
+         &               *(                           &
+         &                 +self%hydrogenMassFraction &
+         &                 *surfaceDensityGas         &
+         &                )**self%exponent
     ! Check if we are applying a truncation radius.
-    if (starFormationKennicuttSchmidtTruncate) then
+    if (self%truncate) then
        ! Always return zero star formation rate at zero radius, as critical density will be infinite.
        if (radius <= 0.0d0) then
-          Star_Formation_Rate_Surface_Density_Disk_KS=0.0d0
+          kennicuttSchmidtRate=0.0d0
           return
        end if
        ! Compute the critical density for star formation.
-       criticalDensity=criticalDensityFactor/radius
-       ! Check if gas is above the critical density. Return zero star formation rate if it is not.
-       if (surfaceDensityGas < criticalDensity) Star_Formation_Rate_Surface_Density_Disk_KS&
-            &=Star_Formation_Rate_Surface_Density_Disk_KS*(surfaceDensityGas/criticalDensity)&
-            &**starFormationKennicuttSchmidtExponentTruncated
+       surfaceDensityCritical=+self%surfaceDensityCriticalFactor &
+            &                 /radius
+       ! Check if gas is above the critical density. Truncate it if not.
+       if (surfaceDensityGas < surfaceDensityCritical)        &
+            & kennicuttSchmidtRate=+kennicuttSchmidtRate      &
+            &                      *(                         &
+            &                        +surfaceDensityGas       &
+            &                        /surfaceDensityCritical  &
+            &                       )**self%exponentTruncated
     end if
     return
-  end function Star_Formation_Rate_Surface_Density_Disk_KS
-
-  function Star_Formation_Rate_Surface_Density_Disk_Intervals_KS(thisNode,radiusInner,radiusOuter)
-    !% Returns intervals to use for integrating the Kennicutt-Schmidt star formation rate over a galactic disk.
-    implicit none
-    double precision          , allocatable  , dimension(:,:) :: Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
-    type            (treeNode), intent(inout), target         :: thisNode
-    double precision          , intent(in   )                 :: radiusInner, radiusOuter
-    !GCC$ attributes unused :: thisNode
-
-    allocate(Star_Formation_Rate_Surface_Density_Disk_Intervals_KS(2,1))
-    Star_Formation_Rate_Surface_Density_Disk_Intervals_KS=reshape([radiusInner,radiusOuter],[2,1])
-    return
-  end function Star_Formation_Rate_Surface_Density_Disk_Intervals_KS
-
-  logical function Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS(thisNode)
-    !% Claim that the surface rate density of star formation is unchanged so that it is always re-evaluated.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
-
-    Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS=.false.
-    return
-  end function Star_Formation_Rate_Surface_Density_Disk_Unchanged_KS
-
-end module Star_Formation_Rate_Surface_Density_Disks_KS
+  end function kennicuttSchmidtRate

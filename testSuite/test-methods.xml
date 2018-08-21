@@ -269,16 +269,16 @@
     <version>0.9.4</version>
     <starFormationTimescaleDisksMethod value="dynamicalTime"/>
     <starFormationTimescaleDisksMethod value="integratedSurfaceDensity">
-      <starFormationRateSurfaceDensityDisksMethod value="Kennicutt-Schmidt" parameterLevel="top">
-        <starFormationKennicuttSchmidtTruncate value="true" parameterLevel="top"/>
-        <starFormationKennicuttSchmidtTruncate value="false" parameterLevel="top"/>
+      <starFormationRateSurfaceDensityDisksMethod value="kennicuttSchmidt" parameterLevel="top">
+        <truncate value="true" />
+        <truncate value="false"/>
       </starFormationRateSurfaceDensityDisksMethod>
-      <starFormationRateSurfaceDensityDisksMethod value="Blitz-Rosolowsky2006" parameterLevel="top"/>
-      <starFormationRateSurfaceDensityDisksMethod value="KMT09" parameterLevel="top">
-        <molecularFractionFastKMT09 value="false" parameterLevel="top"/>
-        <molecularFractionFastKMT09 value="true" parameterLevel="top"/>
+      <starFormationRateSurfaceDensityDisksMethod value="blitz2006"    parameterLevel="top"/>
+      <starFormationRateSurfaceDensityDisksMethod value="krumholz2009" parameterLevel="top" >
+        <molecularFractionFast value="false"/>
+        <molecularFractionFast value="true" />
       </starFormationRateSurfaceDensityDisksMethod>
-      <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt" parameterLevel="top"/>
+      <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt"     parameterLevel="top"/>
     </starFormationTimescaleDisksMethod>
     <starFormationTimescaleDisksMethod value="Baugh2005"/>
   </parameters>
