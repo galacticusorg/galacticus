@@ -30,6 +30,10 @@ sub Parse_Visibilities {
 	    my $rawCode;
 	    my $rawVisibility;
 	    my $visibilities;
+	    my $lineNumber        = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
+	    my $source            = exists($node->{'source'}) ? $node->{'source'} : "unknown";
+	    my $rawCodeLine       = $lineNumber;
+	    my $rawVisibilityLine = $lineNumber;
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
@@ -55,7 +59,9 @@ sub Parse_Visibilities {
 		    {
 			type       => "code"  ,
 			content    => $rawCode,
-			firstChild => undef()
+			firstChild => undef(),
+			source     => $source,
+			line       => $rawCodeLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -65,6 +71,8 @@ sub Parse_Visibilities {
 			);
 		    # Reset the raw code text.
 		    undef($rawCode);
+		    $rawCodeLine       = $lineNumber;
+		    $rawVisibilityLine = $lineNumber;
 		}
 		if ( ( $isVisibility == 0 || eof($code) ) && $rawVisibility ) {
 		    # Create a new node.
@@ -75,11 +83,13 @@ sub Parse_Visibilities {
 		    };		    
 		    $newNode->{'firstChild'} =
 		    {
-			type       => "code"        ,
-			content    => $rawVisibility,
-			parent     => $newNode      ,
-			sibling    => undef()       ,
-			firstChild => undef()
+			type       => "code"            ,
+			content    => $rawVisibility    ,
+			parent     => $newNode          ,
+			sibling    => undef()           ,
+			firstChild => undef()           ,
+			source     => $source           ,
+			line       => $rawVisibilityLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -95,7 +105,10 @@ sub Parse_Visibilities {
 			if ( eof($code) && $isVisibility == 0 );		    
 		    # Reset the raw visibility text.
 		    undef($rawVisibility);
+		    $rawCodeLine       = $lineNumber;
+		    $rawVisibilityLine = $lineNumber;
 		}
+		$lineNumber += $rawLine =~ tr/\n//;
 	    } until ( eof($code) );
 	    close($code);
 	    # If we have a single code block, nothing needs to change.

@@ -284,6 +284,8 @@ sub Show_Tree {
 	print $indent."--> ".$_->{'node'}->{'type'};
 	print " {".$_->{'node'}->{'name'}."}"
 	    if ( exists($_->{'node'}->{'name'}) );
+	# print " [".$_->{'node'}->{'source'}.":".$_->{'node'}->{'line'}."]"
+	#     if ( exists($_->{'node'}->{'source'}) && exists($_->{'node'}->{'line'}) );
 	print"\n";
 	$depthPrevious = $_->{'depth'};
     }

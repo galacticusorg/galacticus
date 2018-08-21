@@ -30,6 +30,10 @@ sub Parse_ModuleProcedures {
 	    my $rawCode;
 	    my $rawModuleProcedure;
 	    my @moduleProcedures;
+	    my $lineNumber             = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
+	    my $source                 = exists($node->{'source'}) ? $node->{'source'} : "unknown";
+	    my $rawCodeLine            = $lineNumber;
+	    my $rawModuleProcedureLine = $lineNumber;
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
@@ -52,7 +56,9 @@ sub Parse_ModuleProcedures {
 		    {
 			type       => "code"  ,
 			content    => $rawCode,
-			firstChild => undef()
+			firstChild => undef(),
+			source     => $source,
+			line       => $rawCodeLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -62,6 +68,8 @@ sub Parse_ModuleProcedures {
 			);
 		    # Reset the raw code text.
 		    undef($rawCode);
+		    $rawCodeLine            = $lineNumber;
+		    $rawModuleProcedureLine = $lineNumber;
 		}
 		if ( ( $isModuleProcedure == 0 || eof($code) ) && $rawModuleProcedure ) {
 		    # Create a new node.
@@ -76,7 +84,9 @@ sub Parse_ModuleProcedures {
 			content    => $rawModuleProcedure,
 			parent     => $newNode      ,
 			sibling    => undef()       ,
-			firstChild => undef()
+			firstChild => undef(),
+			source     => $source,
+			line       => $rawModuleProcedureLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -92,7 +102,10 @@ sub Parse_ModuleProcedures {
 			if ( eof($code) && $isModuleProcedure == 0 );		    
 		    # Reset the raw module procedure text.
 		    undef($rawModuleProcedure);
+		    $rawCodeLine            = $lineNumber;
+		    $rawModuleProcedureLine = $lineNumber;
 		}
+		$lineNumber += $rawLine =~ tr/\n//;
 	    } until ( eof($code) );
 	    close($code);
 	    # If we have a single code block, nothing needs to change.

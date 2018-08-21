@@ -28,6 +28,10 @@ sub Parse_ModuleUses {
 	    my $rawModuleUse;
 	    my $moduleUses;
 	    my @preprocessorStack;
+	    my $lineNumber       = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
+	    my $source           = exists($node->{'source'}) ? $node->{'source'} : "unknown";
+	    my $rawCodeLine      = $lineNumber;
+	    my $rawModuleUseLine = $lineNumber;
 	    open(my $code,"<",\$node->{'content'});
 	    do {
 		# Get a line.
@@ -82,7 +86,9 @@ sub Parse_ModuleUses {
 		    {
 			type       => "code"  ,
 			content    => $rawCode,
-			firstChild => undef()
+			firstChild => undef(),
+			source     => $source,
+			line       => $rawCodeLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -92,6 +98,8 @@ sub Parse_ModuleUses {
 			);
 		    # Reset the raw code text.
 		    undef($rawCode);
+		    $rawCodeLine      = $lineNumber;
+		    $rawModuleUseLine = $lineNumber;
 		}
 		if ( ( $isModuleUse == 0 || eof($code) ) && $rawModuleUse ) {
 		    # Create a new node.
@@ -106,7 +114,9 @@ sub Parse_ModuleUses {
 			content    => $rawModuleUse,
 			parent     => $newNode      ,
 			sibling    => undef()       ,
-			firstChild => undef()
+			firstChild => undef()       ,
+			source       => $source            ,
+			line         => $rawModuleUseLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -122,7 +132,10 @@ sub Parse_ModuleUses {
 			if ( eof($code) && $isModuleUse == 0 );		    
 		    # Reset the raw module use text.
 		    undef($rawModuleUse);
+		    $rawCodeLine      = $lineNumber;
+		    $rawModuleUseLine = $lineNumber;
 		}
+		$lineNumber += $rawLine =~ tr/\n//;
 	    } until ( eof($code) );
 	    close($code);
 	    # If we have a single code block, nothing needs to change.

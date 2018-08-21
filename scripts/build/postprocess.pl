@@ -41,7 +41,7 @@ push(
 open(my $file,$preprocessedSourceName);
 while ( my $line = <$file> ) {
     ++$lineNumber;
-    if ( $line =~ m/^\!\-\-\>\s+(\d+)\s+\"([a-zA-Z0-9_\.\/\(\):]+)\"\s*$/ ) {
+    if ( $line =~ m/^\!\-\-\>\s+(\d+)\s+\"([a-zA-Z0-9_\-\.\/\(\):]+)\"\s*$/ ) {
 	push(
 	    @map,
 	    {
@@ -88,7 +88,7 @@ while ( my $line = <STDIN> ) {
 	    } else {
 		$lineNumber = $lineOriginal-$_->{'lineOriginal'}+$_->{'line'};
 	    }
-	    $line = $source.":".$lineNumber.":".$flag."\n";
+    	    $line = $source.":".$lineNumber.":".$flag."\n";
 	}
 	print $buffer
 	    if ( $buffer );

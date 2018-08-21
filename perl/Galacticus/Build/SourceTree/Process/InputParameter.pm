@@ -140,7 +140,9 @@ sub Process_InputParameters {
 	    {
 		type       => "code"            ,
 		content    => $inputParameterSource,
-		firstChild => undef()
+		firstChild => undef(),
+		source     => "Galacticus::Build::SourceTree::Process::InputParameter::Process_InputParameters()",
+		line       => 1
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);

@@ -29,6 +29,10 @@ sub Parse_Directives {
 	    my $strippedDirective;
 	    my $inDirective = 0;
 	    my $directiveRoot;
+	    my $lineNumber       = exists($node->{'line'  }) ? $node->{'line'  } : 0        ;
+	    my $source           = exists($node->{'source'}) ? $node->{'source'} : "unknown";
+	    my $rawCodeLine      = $lineNumber;
+	    my $rawDirectiveLine = $lineNumber;
 	    open(my $code,"<",\$node->{'content'});
 	    while ( my $line = <$code> ) {
 		# Determine if line is a directive line.
@@ -61,7 +65,9 @@ sub Parse_Directives {
 		    {
 			type       => "code"            ,
 			content    => $rawCode          ,
-			firstChild => undef()
+			firstChild => undef(),
+			source     => $source,
+			line       => $rawCodeLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -71,6 +77,8 @@ sub Parse_Directives {
 			);
 		    # Reset the raw code text.
 		    undef($rawCode);
+		    $rawCodeLine      = $lineNumber;
+		    $rawDirectiveLine = $lineNumber;
 		}
 		if ( ( $inDirective == 0 || eof($code) || $endDirective ) && $rawDirective ) {
 		    # Attempt to parse the directive XML.
@@ -91,11 +99,13 @@ sub Parse_Directives {
 		    };
 		    $newNode->{'firstChild'} =
 		    {
-			type       => "code"       ,
-			content    => $rawDirective,
-			parent     => $newNode     ,
-			sibling    => undef()      ,
-			firstChild => undef()
+			type       => "code"           ,
+			content    => $rawDirective    ,
+			parent     => $newNode         ,
+			sibling    => undef()          ,
+			firstChild => undef()          ,
+			source     => $source          ,
+			line       => $rawDirectiveLine
 		    };
 		    $newNodes[$#newNodes]->{'sibling'} = $newNode
 			if ( scalar(@newNodes) > 0 );
@@ -113,7 +123,10 @@ sub Parse_Directives {
 		    $inDirective = 0;
 		    undef($rawDirective     );
 		    undef($strippedDirective);
+		    $rawCodeLine      = $lineNumber;
+		    $rawDirectiveLine = $lineNumber;
 		}
+		++$lineNumber;
 	    }
 	    close($code);
 	    # If we have a single code block, nothing needs to change.
