@@ -18,7 +18,7 @@
   <cosmologyFunctionsMethod value="matterLambda"/>
   
   <!-- Power spectrum -->
-  <powerSpectrumMethod value="standard"/>
+  <powerSpectrumPrimordialMethod value="standard"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.960052033479219"/>
     <running value="0.0"/>
@@ -141,7 +141,7 @@
   <!-- Hot atmosphere -->
   <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
     <redshiftExponent value="-0.35071002436845261e+0"/>
-    <timeScale        value="+0.95502143265815487e+0"/>
+    <timeScale value="+0.95502143265815487e+0"/>
     <timescaleMinimum value="+1.09920844058817300e-2"/>
     <velocityExponent value="-1.40599595975037690e-2"/>
   </hotHaloOutflowReincorporationMethod>
@@ -152,8 +152,8 @@
   <!-- Accretion from the IGM -->
   <accretionHaloMethod value="naozBarkana2007">
     <opticalDepthReionization value="0.0586876996811808"/>
-    <massMinimum              value="1.0e6"             />
-    <rateAdjust               value="0.5"               />
+    <massMinimum value="1.0e6"/>
+    <rateAdjust value="0.5"/>
   </accretionHaloMethod>
   
   <!-- Cooling and infall -->
@@ -174,10 +174,13 @@
   <galacticStructureRadiiFixedRadius value="turnaround"/>
   
   <!-- Star formation in disks -->
-  <starFormationTimescaleDisksMethod value="velocityMaximumScaling"/>
-  <starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent value="-2.6841093892429728"/>
-  <starFormationTimescaleDisksVelocityMaximumScalingTimescale value="8.5952943576927687"/>
-  <starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent value="1.5643560026940344"/>
+  <starFormationTimescaleDisksMethod value="velocityMaxScaling"/>
+  <starFormationTimescaleDisks value="velocityMaxScaling">
+    <exponentRedshift value="-2.6841093892429728"/>
+    <timescale value="8.5952943576927687"/>
+    <exponentVelocity value="1.5643560026940344"/>
+  </starFormationTimescaleDisks>
+
   <diskStarFormationTimescaleMinimum value="2.2925637877309368E-005"/>
   <diskVerySimpleSurfaceDensityThreshold value="128685124731.37694"/>
   <diskVerySimpleSurfaceDensityVelocityExponent value="-0.82656309641695880"/>

@@ -84,7 +84,7 @@
 
   <!-- Halo accretion options -->
   <accretionHaloMethod value="simple">
-    <redshiftReionization            value="10.5"/>
+    <redshiftReionization value="10.5"/>
     <velocitySuppressionReionization value="35.0"/>
   </accretionHaloMethod>
 
@@ -141,17 +141,22 @@
   <stabilityThresholdStellar value="1.1"/>
 
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>
+  <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
-    <frequencyStarFormation         value="0.385"/>
+    <frequencyStarFormation value="0.385"/>
     <clumpingFactorMolecularComplex value="5.000"/>
-    <molecularFractionFast          value="true" />
+    <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationDiskMinimumTimescale value="0.001"/>
+  <starFormationTimescaleDisks value="dynamicalTime">
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleDisks>
+
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
-  <starFormationSpheroidEfficiency value="0.04"/>
-  <starFormationSpheroidVelocityExponent value="2.0"/>
-  <starFormationSpheroidMinimumTimescale value="0.001"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
+    <efficiency value="0.04"/>
+    <exponentVelocity value="2.0"/>
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleSpheroids>
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>

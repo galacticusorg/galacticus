@@ -8,7 +8,12 @@
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
   <treeNodeMethodDarkMatterProfile value="null"/>
-  <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
+  <starFormationTimescaleDisks value="haloScaling">
+    <exponentRedshift value="0.0"/>
+    <exponentVelocityVirial value="0.0"/>
+    <timescale value="1.0"/>
+  </starFormationTimescaleDisks>
+
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
@@ -32,12 +37,13 @@
   <stellarPopulationSpectraMethod value="FSPS"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <barInstabilityMethod value="null"/>
-  <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="3200"/>
     <massTreeMaximum value="2.0e14"/>
     <massTreeMinimum value="2.0e10"/>
-  </mergerTreeBuildMassesMethod><criticalOverdensityMethod value="kitayamaSuto1996"/>
+  </mergerTreeBuildMassesMethod>
+
+  <criticalOverdensityMethod value="kitayamaSuto1996"/>
   <cosmologyFunctionsMethod value="matterLambda"/>
   <treeNodeMethodBlackHole value="null"/>
   <treeNodeMethodSpheroid value="standard"/>
@@ -75,7 +81,6 @@
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
-  <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <allTreesExistAtFinalTime value="false"/>

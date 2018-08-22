@@ -902,18 +902,20 @@ contains
     use Dark_Matter_Profiles
     use Numerical_Constants_Math
     implicit none
-    class           (nodeComponentDiskVerySimple), intent(inout) :: self
-    class           (darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass     ), pointer       :: darkMatterProfile_
-    double precision                                             :: diskDynamicalTime              , gasMass              , &
-         &                                                          starFormationTimescale         , surfaceDensityCentral, &
-         &                                                          radiusThreshold                , massStarForming      , &
-         &                                                          surfaceDensityThreshold
+    class           (nodeComponentDiskVerySimple     ), intent(inout) :: self
+    class           (darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass          ), pointer       :: darkMatterProfile_
+    class           (starFormationTimescaleDisksClass), pointer       :: starFormationTimescaleDisks_
+    double precision                                                  :: diskDynamicalTime           , gasMass              , &
+         &                                                               starFormationTimescale      , surfaceDensityCentral, &
+         &                                                               radiusThreshold             , massStarForming      , &
+         &                                                               surfaceDensityThreshold
 
     ! Get the gas mass.
     gasMass=self%massGas()    
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Disk(self%hostNode)
+    starFormationTimescaleDisks_ => starFormationTimescaleDisks           (             )
+    starFormationTimescale       =  starFormationTimescaleDisks_%timescale(self%hostNode)
     ! Limit the star formation timescale to a multiple of the dynamical time.
     darkMatterHaloScale_   => darkMatterHaloScale()
     darkMatterProfile_     => darkMatterProfile  ()

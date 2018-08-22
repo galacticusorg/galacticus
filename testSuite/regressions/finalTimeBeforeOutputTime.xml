@@ -7,7 +7,12 @@
   <treeNodeMethodDarkMatterProfile value="null"/>
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
-  <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.0"/>
+  <starFormationTimescaleDisks value="haloScaling">
+    <exponentRedshift value="0.0"/>
+    <exponentVelocityVirial value="0.0"/>
+    <timescale value="1.0"/>
+  </starFormationTimescaleDisks>
+
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
@@ -34,7 +39,6 @@
   <satelliteMergingRemnantSizeMethod value="null"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <barInstabilityMethod value="null"/>
-  <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="0.0"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
@@ -56,8 +60,8 @@
   </mergerTreeBranchingProbabilityMethod>
   <hdf5CompressionLevel value="-1"/>
   <accretionHaloMethod value="simple">
-    <opticalDepthReionization        value="0.0883790456"/>
-    <velocitySuppressionReionization value="35.0"        />
+    <opticalDepthReionization value="0.0883790456"/>
+    <velocitySuppressionReionization value="35.0"/>
   </accretionHaloMethod>
   <mergerTreeOutput>
     <outputReferences value="false"/>
@@ -121,7 +125,6 @@
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
   <outputRedshifts value="0.0700"/>
-  <starFormationTimescaleDisksHaloScalingTimescale value="1.0"/>
   <starveSatellites value="true"/>
   <coolingRadiusMethod value="isothermal"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>

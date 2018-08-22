@@ -16,172 +16,165 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  !% Implementation of a timescale for star formation feedback in galactic disks which scales with the circular velocity of the host halo.
 
-!% Contains a module which implements a star formation timescale for galactic disks which scales with halo virial velocity and
-!% redshift.
+  use Cosmology_Functions
+  use Dark_Matter_Halo_Scales
 
-module Star_Formation_Timescale_Disks_Halo_Scaling
-  !% Implements a star formation timescale for galactic disks which scales with halo virial velocity and
-  !% redshift.
-  use Galacticus_Nodes
-  use Kind_Numbers
-  implicit none
-  private
-  public :: Star_Formation_Timescale_Disks_Halo_Scaling_Initialize, Star_Formation_Timescale_Disks_Halo_Scaling_Reset
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksHaloScaling" defaultThreadPrivate="yes">
+  !#  <description>A haloScaling timescale for star formation feedback in galactic disks.</description>
+  !# </starFormationTimescaleDisks>
+  type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksHaloScaling
+     !% Implementation of a haloScaling timescale for star formation feedback in galactic disks.
+     private
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: expansionFactorFactorPrevious, exponentVelocityVirial , &
+          &                                                 exponentRedshift             , timescaleNormalization , &
+          &                                                 timescaleStored              , velocityPrevious       , &
+          &                                                 velocityFactorPrevious       , expansionFactorPrevious
+     logical                                             :: timescaleComputed
+     integer         (kind_int8                        ) :: lastUniqueID
+   contains
+     final     ::                     haloScalingDestructor
+     procedure :: timescale        => haloScalingTimescale
+     procedure :: calculationReset => haloScalingCalculationReset
+  end type starFormationTimescaleDisksHaloScaling
 
-  ! Parameters of the timescale model.
-  double precision                 :: starFormationTimescaleDisksHaloScalingRedshiftExponent              , starFormationTimescaleDisksHaloScalingTimescale, &
-       &                              starFormationTimescaleDisksHaloScalingVirialVelocityExponent
+  interface starFormationTimescaleDisksHaloScaling
+     !% Constructors for the {\normalfont \ttfamily haloScaling} timescale for star formation in disks class.
+     module procedure haloScalingConstructorParameters
+     module procedure haloScalingConstructorInternal
+  end interface starFormationTimescaleDisksHaloScaling
 
-  ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8) :: lastUniqueID                                                =-1
-  !$omp threadprivate(lastUniqueID)
-  ! Record of whether or not timescale has already been computed for this node.
-  logical                          :: timescaleComputed                                           =.false.
-  !$omp threadprivate(timescaleComputed)
-  ! Stored values of the timescale.
-  double precision                 :: timeScaleStored
-  !$omp threadprivate(timescaleStored)
-  ! Normalization of the timescale.
-  double precision :: timeScaleNormalization
-  
+  double precision, parameter :: haloScalingVelocityVirialNormalization=200.0d0
+
 contains
 
-  !# <starFormationTimescaleDisksMethod>
-  !#  <unitName>Star_Formation_Timescale_Disks_Halo_Scaling_Initialize</unitName>
-  !# </starFormationTimescaleDisksMethod>
-  subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Initialize(starFormationTimescaleDisksMethod,Star_Formation_Timescale_Disk_Get)
-    !% Initializes the ``halo scaling'' disk star formation timescale module.
-    use ISO_Varying_String
+  function haloScalingConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback in disks class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type            (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod 
-    procedure       (Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
-    double precision                                            , parameter              :: virialVelocityNormalization=200.0d0
+    type            (starFormationTimescaleDisksHaloScaling)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
+    double precision                                                        :: timescale           , exponentVelocityVirial, &
+         &                                                                     exponentRedshift
 
-    if (starFormationTimescaleDisksMethod == 'haloScaling') then
-       Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Halo_Scaling
-       ! Get parameters of for the timescale calculation.
-       !# <inputParameter>
-       !#   <name>starFormationTimescaleDisksHaloScalingTimescale</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d0</defaultValue>
-       !#   <description>The timescale for star formation in the halo scaling timescale model for disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationTimescaleDisksHaloScalingVirialVelocityExponent</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model for disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationTimescaleDisksHaloScalingRedshiftExponent</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model for disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       ! Compute the normalization of the timescale.
-       timeScaleNormalization= starFormationTimescaleDisksHaloScalingTimescale                                           &
-       &                      /virialVelocityNormalization**starFormationTimescaleDisksHaloScalingVirialVelocityExponent
-    end if
+    !# <inputParameter>
+    !#   <name>timescale</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The timescale for star formation in the halo scaling timescale model for disks.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentVelocityVirial</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model for disks.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentRedshift</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model for disks.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=starFormationTimescaleDisksHaloScaling(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Initialize
+  end function haloScalingConstructorParameters
 
-  double precision function Star_Formation_Timescale_Disk_Halo_Scaling(node)
-    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
-    use Cosmology_Functions
-    use Dark_Matter_Halo_Scales
+  function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation in disks class.
     implicit none
-    type            (treeNode                ), intent(inout), target :: node
-    class           (nodeComponentBasic      ), pointer               :: basic
-    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass), pointer               :: darkMatterHaloScale_
-    double precision                          , parameter             :: virialVelocityNormalization=200.0d0
-    double precision                          , save                  :: velocityPrevious           =-1.0d0 , velocityFactorPrevious       =-1.0d0
-    !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    double precision                          , save                  :: expansionFactorPrevious    =-1.0d0 , expansionFactorFactorPrevious=-1.0d0
-    !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                                  :: expansionFactor                    , virialVelocity
-
-    ! Get the basic component.
-    basic => node%basic()
-
-    ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= lastUniqueID) call Star_Formation_Timescale_Disks_Halo_Scaling_Reset(node)
-
-    ! Compute the timescale if necessary.
-    if (.not.timescaleComputed) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_  => cosmologyFunctions ()
-       darkMatterHaloScale_ => darkMatterHaloScale()
-
-       ! Get virial velocity and expansion factor.
-       virialVelocity =darkMatterHaloScale_%virialVelocity (node        )
-       expansionFactor=cosmologyFunctions_ %expansionFactor(basic%time())
-
-       ! Compute the velocity factor.
-       if (virialVelocity /= velocityPrevious) then
-          velocityPrevious      =virialVelocity
-          velocityFactorPrevious=virialVelocity**starFormationTimescaleDisksHaloScalingVirialVelocityExponent
-       end if
-
-       ! Compute the expansion-factor factor.
-       if (expansionFactor /= expansionFactorPrevious) then
-          expansionFactorPrevious      =      expansionFactor
-          expansionFactorFactorPrevious=1.0d0/expansionFactor**starFormationTimescaleDisksHaloScalingRedshiftExponent
-       end if
-
-       ! Return the timescale.
-       timescaleStored=                      &
-            &  timeScaleNormalization        &
-            & *velocityFactorPrevious        &
-            & *expansionFactorFactorPrevious
-
-       ! Record that the timescale is now computed.
-       timescaleComputed=.true.
-    end if
-
-    ! Return the stored timescale.
-    Star_Formation_Timescale_Disk_Halo_Scaling=timescaleStored
+    type            (starFormationTimescaleDisksHaloScaling)                        :: self
+    double precision                                        , intent(in   )         :: timescale           , exponentVelocityVirial, &
+         &                                                                             exponentRedshift
+    class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="exponentVelocityVirial, exponentRedshift, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    
+    self%lastUniqueID                 =-1_kind_int8
+    self%timescaleComputed            =.false.
+    self%velocityPrevious             =-1.0d0
+    self%velocityFactorPrevious       =-1.0d0
+    self%expansionFactorPrevious      =-1.0d0
+    self%expansionFactorFactorPrevious=-1.0d0
+    ! Compute the normalization of the timescale.
+    self%timeScaleNormalization=+timescale                                                           &
+         &                      /haloScalingVelocityVirialNormalization**self%exponentVelocityVirial
     return
-  end function Star_Formation_Timescale_Disk_Halo_Scaling
+  end function haloScalingConstructorInternal
 
-  !# <calculationResetTask>
-  !# <unitName>Star_Formation_Timescale_Disks_Halo_Scaling_Reset</unitName>
-  !# </calculationResetTask>
-  subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset(node)
+  subroutine haloScalingDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation in disks class.
+    implicit none
+    type(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    return
+  end subroutine haloScalingDestructor
+
+  subroutine haloScalingCalculationReset(self,node)
     !% Reset the halo scaling disk star formation timescale calculation.
     implicit none
-    type(treeNode), intent(inout) :: node
+    class(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
+    type (treeNode                              ), intent(inout) :: node
 
-    timescaleComputed=.false.
-    lastUniqueID     =node%uniqueID()
+    self%timescaleComputed=.false.
+    self%lastUniqueID     =node%uniqueID()
     return
-  end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset
+  end subroutine haloScalingCalculationReset
 
-end module Star_Formation_Timescale_Disks_Halo_Scaling
+  double precision function haloScalingTimescale(self,node)
+    !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
+    implicit none
+    class           (starFormationTimescaleDisksHaloScaling), intent(inout), target :: self
+    type            (treeNode                              ), intent(inout), target :: node
+    class           (nodeComponentBasic                    ), pointer               :: basic
+    double precision                                                                :: expansionFactor, velocityVirial
+    
+    
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Compute the timescale if necessary.
+    if (.not.self%timescaleComputed) then
+       ! Get virial velocity and expansion factor.
+       basic           => node%basic                               (            )
+       velocityVirial  =  self%darkMatterHaloScale_%virialVelocity (node        )
+       expansionFactor =  self%cosmologyFunctions_ %expansionFactor(basic%time())
+       ! Compute the velocity factor.
+       if (velocityVirial /= self%velocityPrevious) then
+           self%velocityPrevious      =velocityVirial
+           self%velocityFactorPrevious=velocityVirial**self%exponentVelocityVirial
+       end if
+       ! Compute the expansion-factor factor.
+       if (expansionFactor /= self%expansionFactorPrevious) then
+          self%expansionFactorPrevious      =      expansionFactor
+          self%expansionFactorFactorPrevious=1.0d0/expansionFactor**self%exponentRedshift
+       end if
+       ! Computed the timescale.
+       self%timescaleStored=+self%timeScaleNormalization        &
+            &               *self%velocityFactorPrevious        &
+            &               *self%expansionFactorFactorPrevious
+       ! Record that the timescale is now computed.
+       self%timescaleComputed=.true.
+    end if
+    ! Return the stored timescale.
+    haloScalingTimescale=self%timescaleStored
+    return
+  end function haloScalingTimescale

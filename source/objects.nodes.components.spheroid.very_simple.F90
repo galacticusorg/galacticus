@@ -775,15 +775,17 @@ contains
     use Star_Formation_Timescales_Spheroids
     use Dark_Matter_Halo_Scales
     implicit none
-    class           (nodeComponentSpheroidVerySimple), intent(inout) :: self
-    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
-    double precision                                                 :: spheroidDynamicalTime , gasMass, &
-         &                                                              starFormationTimescale
+    class           (nodeComponentSpheroidVerySimple     ), intent(inout) :: self
+    class           (darkMatterHaloScaleClass            ), pointer       :: darkMatterHaloScale_
+    class           (starFormationTimescaleSpheroidsClass), pointer       :: starFormationTimescaleSpheroids_
+    double precision                                                      :: spheroidDynamicalTime           , gasMass, &
+         &                                                                   starFormationTimescale
 
     ! Get the gas mass.
     gasMass=self%massGas()    
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Spheroid(self%hostNode)
+    starFormationTimescaleSpheroids_ => starFormationTimescaleSpheroids           (             )
+    starFormationTimescale           =  starFormationTimescaleSpheroids_%timescale(self%hostNode)
     ! Limit the star formation timescale to a multiple of the dynamical time.
     darkMatterHaloScale_   => darkMatterHaloScale                    (             )
     spheroidDynamicalTime  =  darkMatterHaloScale_%dynamicalTimescale(self%hostNode)

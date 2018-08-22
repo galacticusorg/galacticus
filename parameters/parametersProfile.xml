@@ -34,7 +34,9 @@
   <!-- Power spectrum options -->
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
+  </cosmologicalMassVarianceMethod>
+
+  <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
   </transferFunctionMethod>
@@ -67,7 +69,9 @@
     <massTreeMaximum value="1.0e13"/>
     <massTreeMinimum value="1.0e10"/>
     <treesPerDecade value="5"/>
-  </mergerTreeBuildMassesMethod><mergerTreeMassResolutionMethod value="fixed">
+  </mergerTreeBuildMassesMethod>
+
+  <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e9"/>
   </mergerTreeMassResolutionMethod>
 
@@ -86,7 +90,7 @@
 
   <!-- Halo accretion options -->
   <accretionHaloMethod value="simple">
-    <redshiftReionization            value="10.5"/>
+    <redshiftReionization value="10.5"/>
     <velocitySuppressionReionization value="35.0"/>
   </accretionHaloMethod>
 
@@ -143,17 +147,22 @@
   <stabilityThresholdStellar value="1.1"/>
 
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>
+  <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
-    <frequencyStarFormation         value="0.385"/>
+    <frequencyStarFormation value="0.385"/>
     <clumpingFactorMolecularComplex value="5.000"/>
-    <molecularFractionFast          value="true" />
+    <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationDiskMinimumTimescale value="0.001"/>
+  <starFormationTimescaleDisks value="dynamicalTime">
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleDisks>
+
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
-  <starFormationSpheroidEfficiency value="0.04"/>
-  <starFormationSpheroidVelocityExponent value="2.0"/>
-  <starFormationSpheroidMinimumTimescale value="0.001"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
+    <efficiency value="0.04"/>
+    <exponentVelocity value="2.0"/>
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleSpheroids>
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
@@ -229,6 +238,8 @@
   <timestepSimpleRelative value="0.1"/>
 
   <!-- Output options -->
-  <mergerTreeOutput value="true">
+  <mergerTreeOutput>
     <outputReferences value="false"/>
-  </mergerTreeOutput></parameters>
+  </mergerTreeOutput>
+
+</parameters>

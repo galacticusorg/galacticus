@@ -14,6 +14,8 @@
   </pbs>
 
   <parameters formatVersion="2" version="0.9.4">
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
 
     <!-- Component selection -->
     <treeNodeMethodBasic value="standard"/>
@@ -132,9 +134,9 @@
 
     <!-- Halo accretion options -->
     <accretionHaloMethod value="simple">
-      <redshiftReionization            value="10.5" />
-      <velocitySuppressionReionization value="35.0" />
-      <accretionNegativeAllowed        value="false"/>
+      <redshiftReionization value="10.5"/>
+      <velocitySuppressionReionization value="35.0"/>
+      <accretionNegativeAllowed value="false"/>
     </accretionHaloMethod>
     <intergalacticMediumStateMethod value="file">
       <fileName value="constraints/data/igmState.xml"/>
@@ -194,12 +196,12 @@
     <stabilityThresholdStellar value="1.1"/>
 
     <!-- Star formation rate options -->
-    <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>
+    <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
     <starFormationTimescaleIntegratedSurfaceDensityTolerance value="1.0e-2"/>
     <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
-      <frequencyStarFormation         value="0.385"/>
+      <frequencyStarFormation value="0.385"/>
       <clumpingFactorMolecularComplex value="5.000"/>
-      <molecularFractionFast          value="true" />
+      <molecularFractionFast value="true"/>
     </starFormationRateSurfaceDensityDisksMethod>
     <starFormationDiskMinimumTimescale value="0.001"/>
     <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>

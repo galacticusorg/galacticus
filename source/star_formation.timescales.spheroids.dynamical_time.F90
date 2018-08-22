@@ -16,111 +16,143 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a a dynamical time-based star formation timescale for galactic spheroids.
+  !% Implementation of a timescale for star formation in galactic spheroids which scales with the spheroid dynamical time.
+  
+  !# <starFormationTimescaleSpheroids name="starFormationTimescaleSpheroidsDynamicalTime">
+  !#  <description>A timescale for star formation in galactic spheroids which scales with the spheroid dynamical time.</description>
+  !# </starFormationTimescaleSpheroids>
+  type, extends(starFormationTimescaleSpheroidsClass) :: starFormationTimescaleSpheroidsDynamicalTime
+     !% Implementation of a timescale for star formation in galactic spheroids which scales with the dynamical time.
+     private
+     double precision :: efficiency      , exponentVelocity, &
+          &              timescaleMinimum
+   contains
+     procedure :: timescale => dynamicalTimeTimescale
+  end type starFormationTimescaleSpheroidsDynamicalTime
 
-module Star_Formation_Timescale_Spheroids_Dynamical_Time
-  !% Implements a a dynamical time-based star formation timescale for galactic spheroids.
-  implicit none
-  private
-  public :: Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize
-
-  ! Parameters of the timescale model.
-  double precision :: starFormationSpheroidEfficiency      , starFormationSpheroidMinimumTimescale, &
-       &              starFormationSpheroidVelocityExponent
+  interface starFormationTimescaleSpheroidsDynamicalTime
+     !% Constructors for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in spheroids class.
+     module procedure dynamicalTimeConstructorParameters
+     module procedure dynamicalTimeConstructorInternal
+  end interface starFormationTimescaleSpheroidsDynamicalTime
 
 contains
 
-  !# <starFormationTimescaleSpheroidsMethod>
-  !#  <unitName>Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize</unitName>
-  !# </starFormationTimescaleSpheroidsMethod>
-  subroutine Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize(starFormationTimescaleSpheroidsMethod&
-       &,Star_Formation_Timescale_Spheroid_Get)
-    !% Initializes the ``dynamical time'' spheroid star formation timescale module.
-    use ISO_Varying_String
+  function dynamicalTimeConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in spheroids class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                                  ), intent(in   )          :: starFormationTimescaleSpheroidsMethod
-    procedure(Star_Formation_Timescale_Spheroid_Dynamical_Time), intent(inout), pointer :: Star_Formation_Timescale_Spheroid_Get
-
-    if (starFormationTimescaleSpheroidsMethod == 'dynamicalTime') then
-       Star_Formation_Timescale_Spheroid_Get => Star_Formation_Timescale_Spheroid_Dynamical_Time
-       ! Get parameters of for the timescale calculation.
-       !# <inputParameter>
-       !#   <name>starFormationSpheroidEfficiency</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.04d0</defaultValue>
-       !#   <description>The efficiency of star formation in spheroids for the dynamical time method.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationSpheroidVelocityExponent</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>2.0d0</defaultValue>
-       !#   <description>The velocity exponent for star formation in spheroids for the dynamical time method.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>starFormationSpheroidMinimumTimescale</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-3</defaultValue>
-       !#   <description>The minimum timescale for star formation in disks.</description>
-       !#   <group>starFormation</group>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    type            (starFormationTimescaleSpheroidsDynamicalTime)                :: self
+    type            (inputParameters                             ), intent(inout) :: parameters
+    double precision                                                              :: efficiency      , exponentVelocity, &
+         &                                                                           timescaleMinimum
+    
+    !# <inputParameter>
+    !#   <name>efficiency</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.01d0</defaultValue>
+    !#   <description>The efficiency of star formation in spheroids for the dynamical time method.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>exponentVelocity</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>-1.500d0</defaultValue>
+    !#   <description>The velocity exponent for star formation in spheroids for the dynamical time method.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timescaleMinimum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-3</defaultValue>
+    !#   <description>The minimum timescale for star formation in spheroids.</description>
+    !#   <group>starFormation</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=starFormationTimescaleSpheroidsDynamicalTime(efficiency,exponentVelocity,timescaleMinimum)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize
+  end function dynamicalTimeConstructorParameters
 
-  double precision function Star_Formation_Timescale_Spheroid_Dynamical_Time(node)
+  function dynamicalTimeConstructorInternal(efficiency,exponentVelocity,timescaleMinimum) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in spheroids class.
+    use Galacticus_Error
+    use Array_Utilities
+    implicit none
+    type            (starFormationTimescaleSpheroidsDynamicalTime)                :: self
+    double precision                                              , intent(in   ) :: efficiency      , exponentVelocity, &
+         &                                                                           timescaleMinimum
+    !# <constructorAssign variables="efficiency, exponentVelocity, timescaleMinimum"/>
+
+    if     (                                                                                                            &
+         &  .not.(                                                                                                      &
+         &         defaultSpheroidComponent%velocityIsGettable()                                                        &
+         &        .and.                                                                                                 &
+         &         defaultSpheroidComponent%  radiusIsGettable()                                                        &
+         &       )                                                                                                      &
+         & ) call Galacticus_Error_Report                                                                               &
+         &        (                                                                                                     &
+         &         'spheroid component must have gettable radius and velocity properties.'//                            &
+         &         Galacticus_Component_List(                                                                           &
+         &                                   'spheroid'                                                              ,  &
+         &                                    defaultSpheroidComponent%velocityAttributeMatch(requireGettable=.true.)   &
+         &                                   .intersection.                                                             &
+         &                                    defaultSpheroidComponent%  radiusAttributeMatch(requireGettable=.true.)   &
+         &                                  )                                                                        // &
+         &         {introspection:location}                                                                             &
+         &        )
+    return
+  end function dynamicalTimeConstructorInternal
+
+  double precision function dynamicalTimeTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily node}. The timescale is given by
     !% \begin{equation}
     !% \tau_\star = \epsilon_\star^{-1} \tau_\mathrm{dynamical, spheroid} \left( {V_\mathrm{spheroid} \over 200\hbox{km/s}} \right)^{\alpha_\star},
     !% \end{equation}
-    !% where $\epsilon_\star$(={\normalfont \ttfamily starFormationSpheroidEfficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily
-    !% starFormationSpheroidVelocityExponent}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical,spheroid}=R_\mathrm{
+    !% where $\epsilon_\star$(={\normalfont \ttfamily efficiency}) is a star formation efficiency and $\alpha_\star$(={\normalfont \ttfamily
+    !% exponentVelocity}) controls the scaling with velocity. Note that $\tau_\mathrm{dynamical,spheroid}=R_\mathrm{
     !% spheroid}/V_\mathrm{spheroid}$ where the radius and velocity are whatever characteristic values returned by the spheroid method. This
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
-    use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode             ), intent(inout) :: node
-    class           (nodeComponentSpheroid), pointer       :: spheroid
-    double precision                       , parameter     :: velocityZeroPoint=200.0d+0           !   (km/s)
-    double precision                       , parameter     :: velocityTiny     =  1.0d-3           !   (km/s)
-    double precision                                       :: timeDynamical             , velocity
+    class           (starFormationTimescaleSpheroidsDynamicalTime), intent(inout)         :: self
+    type            (treeNode                                    ), intent(inout), target :: node
+    class           (nodeComponentSpheroid                       ), pointer               :: spheroid
+    double precision                                              , parameter             :: velocityZeroPoint=200.0d+0               !   (km/s)
+    double precision                                              , parameter             :: velocityTiny     =  1.0d-3               !   (km/s)
+    double precision                                                                      :: velocitySpheroid         , timeDynamical
 
-    ! Get spheroid circular velocity.
-    spheroid => node    %spheroid()
-    velocity =  spheroid%velocity()
-    ! Check for tiny velocity spheroid.
-    if (velocity <= velocityTiny) then
-       Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0 ! No well defined answer in this case.
-    else if (starFormationSpheroidEfficiency == 0.0d0) then
+    spheroid         => node%spheroid    ()
+    velocitySpheroid =  spheroid%velocity()
+    ! Check for zero velocity spheroid.
+    if (velocitySpheroid <= velocityTiny) then
+       ! No well defined answer in this case.
+       dynamicalTimeTimescale=0.0d0
+    else if (self%efficiency == 0.0d0) then
        ! No star formation occurs if the efficiency is zero.
-       Star_Formation_Timescale_Spheroid_Dynamical_Time=0.0d0
+       dynamicalTimeTimescale=0.0d0
     else
        ! Get the dynamical time in Gyr.
-       timeDynamical=+Mpc_per_km_per_s_To_Gyr   &
-            &        *spheroid%radius        () &
-            &        /velocity
+       timeDynamical=+Mpc_per_km_per_s_To_Gyr &
+            &        *spheroid%radius()       &
+            &        /velocitySpheroid
        ! Compute the star formation timescale using a simple scaling factor.
-       Star_Formation_Timescale_Spheroid_Dynamical_Time=max(                                           &
-            &                                               +timeDynamical                             &
-            &                                               *(                                         &
-            &                                                 +velocity                                &
-            &                                                 /velocityZeroPoint                       &
-            &                                                )**starFormationSpheroidVelocityExponent  &
-            &                                               /   starFormationSpheroidEfficiency      , &
-            &                                               +   starFormationSpheroidMinimumTimescale  &
-            &                                               )
+       dynamicalTimeTimescale=max(                           &
+            &                     +timeDynamical             &
+            &                     *(                         &
+            &                       +velocitySpheroid        &
+            &                       /velocityZeroPoint       &
+            &                      )**self%exponentVelocity  &
+            &                     /self%efficiency         , &
+            &                     +self%timescaleMinimum     &
+            &                    )
     end if
     return
-  end function Star_Formation_Timescale_Spheroid_Dynamical_Time
-
-end module Star_Formation_Timescale_Spheroids_Dynamical_Time
+  end function dynamicalTimeTimescale

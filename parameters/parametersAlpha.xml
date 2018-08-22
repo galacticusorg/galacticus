@@ -80,7 +80,7 @@
 
   <!-- Halo accretion options -->
   <accretionHaloMethod value="simple">
-    <opticalDepthReionization        value=" 0.0845240757566554"/>
+    <opticalDepthReionization value=" 0.0845240757566554"/>
     <velocitySuppressionReionization value="38.8165530377000000"/>
   </accretionHaloMethod>
 
@@ -103,9 +103,12 @@
 
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="haloScaling"/>
-  <starFormationTimescaleDisksHaloScalingRedshiftExponent value="0.316329039863"/>
-  <starFormationTimescaleDisksHaloScalingVirialVelocityExponent value="-3.34818453376"/>
-  <starFormationTimescaleDisksHaloScalingTimescale value="0.680886564265287"/>
+  <starFormationTimescaleDisks value="haloScaling">
+    <exponentRedshift value="0.316329039863"/>
+    <exponentVelocityVirial value="-3.34818453376"/>
+    <timescale value="0.680886564265287"/>
+  </starFormationTimescaleDisks>
+
   <diskStarFormationTimescaleMinimum value="0.000129182223339982"/>
 
   <!-- Stellar populations options -->

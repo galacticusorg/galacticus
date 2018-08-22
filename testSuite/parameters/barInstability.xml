@@ -69,13 +69,15 @@
   <galacticStructureRadiusSolverMethod value="simple"/>
 
   <!-- Galactic dynamics options -->
-  <barInstabilityMethod value="ELN" />
-  <stabilityThresholdGaseous value="0.7" />
-  <stabilityThresholdStellar value="0.7" />
+  <barInstabilityMethod value="ELN"/>
+  <stabilityThresholdGaseous value="0.7"/>
+  <stabilityThresholdStellar value="0.7"/>
   
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod value="fixed"/>
-  <starFormationTimescaleDisksFixedTimescale value="0.25"/>
+  <starFormationTimescaleDisks value="fixed">
+    <timescale value="0.25"/>
+  </starFormationTimescaleDisks>
 
   <!-- Feedback -->
   <starFormationFeedbackDisksMethod value="fixed">
@@ -83,7 +85,7 @@
   </starFormationFeedbackDisksMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <velocityCharacteristic value="0.0"/>
-    <exponent               value="1.0"/>
+    <exponent value="1.0"/>
   </starFormationFeedbackSpheroidsMethod>
 
   <!-- Metal production -->

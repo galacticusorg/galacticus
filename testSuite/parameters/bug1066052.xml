@@ -26,9 +26,13 @@
     <OmegaDarkEnergy value="0.725"/>
     <OmegaBaryon value="0.0458"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
+  </cosmologyParametersMethod>
+
+  <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.816"/>
-  </cosmologicalMassVarianceMethod><outputVirialData value="true"/>
+  </cosmologicalMassVarianceMethod>
+
+  <outputVirialData value="true"/>
   <outputDescendentIndices value="true"/>
   <diskOutputStarFormationRate value="true"/>
   <spheroidOutputStarFormationRate value="true"/>
@@ -38,6 +42,9 @@
   <nodePromotionIndexShift value="false"/>
   <outputRedshifts value="0.000"/>
   <barInstabilityMethod value="null"/>
-  <starFormationSpheroidEfficiency value="0.0"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
+    <efficiency value="0.0"/>
+  </starFormationTimescaleSpheroids>
+
   <mergingTimescaleMultiplier value="1.0e30"/>
 </parameters>

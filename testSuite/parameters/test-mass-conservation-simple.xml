@@ -14,8 +14,10 @@
   </pbs>
 
   <parameters formatVersion="2" version="0.9.4">
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
     <accretionHaloMethod value="bertschinger">
-      <opticalDepthReionization        value="0.0524245066049212"/>
+      <opticalDepthReionization value="0.0524245066049212"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
     </accretionHaloMethod>
     <accretionHaloTotalMethod value="bertschinger"/>
@@ -79,7 +81,7 @@
     <hdf5CompressionLevel value="-1"/>
     <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
       <redshiftExponent value="-0.17671288265659479e+0"/>
-      <timeScale        value="+0.73801252050383448e+0"/>
+      <timeScale value="+0.73801252050383448e+0"/>
       <timescaleMinimum value="+1.09539447829157790e-2"/>
       <velocityExponent value="+0.29779289184659419e+0"/>
     </hotHaloOutflowReincorporationMethod>
@@ -152,7 +154,7 @@
       <exponentRedshift value="1.9464430036515628"/>
       <exponentVelocity value="-5.2559103933618596"/>
     </starFormationFeedbackDisksMethod>
-    <starFormationTimescaleDisksMethod value="velocityMaximumScaling"/>
+    <starFormationTimescaleDisksMethod value="velocityMaxScaling"/>
     <starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent value="-2.2302610673721670"/>
     <starFormationTimescaleDisksVelocityMaximumScalingTimescale value="5.6305510122690903"/>
     <starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent value="0.99961968363471687"/>
