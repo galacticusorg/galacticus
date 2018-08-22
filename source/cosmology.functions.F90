@@ -55,7 +55,6 @@ module Cosmology_Functions
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
-  !#   <bindC>true</bindC>
   !#  </method>
   !#  <method name="expansionRate" >
   !#   <description>Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.</description>
