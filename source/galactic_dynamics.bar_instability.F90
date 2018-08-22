@@ -16,75 +16,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of bar instability in galactic disks.
+
+!% Contains a module which provides a class that implements calculations of bar instability in galactic disks.
 
 module Galactic_Dynamics_Bar_Instabilities
-  !% Implements calculations of bar instability in galactic disks.
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of bar instability in galactic disks.
   use Galacticus_Nodes
-  implicit none
-  private
-  public :: Bar_Instability_Timescale
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                       :: barInstabilitiesInitialized  =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string           )          :: barInstabilityMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Bar_Instability_Timescale), pointer :: Bar_Instability_Timescale_Get=>null()
-
-contains
-
-  subroutine Galactic_Dynamics_Bar_Instability_Initialize
-    !% Initialize the bar instability module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="barInstabilityMethod" type="moduleUse">
-    include 'galactic_dynamics.bar_instability.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.barInstabilitiesInitialized) then
-       !$omp critical(Galactic_Dynamics_Bar_Instability_Initialize)
-       if (.not.barInstabilitiesInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !# <inputParameter>
-          !#   <name>barInstabilityMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('ELN')</defaultValue>
-          !#   <description>The name of the method to be used for bar instability calculations.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="barInstabilityMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>barInstabilityMethod,Bar_Instability_Timescale_Get</functionArgs>
-          include 'galactic_dynamics.bar_instability.inc'
-          !# </include>
-          if (.not.associated(Bar_Instability_Timescale_Get)) &
-               & call Galacticus_Error_Report('method ' //char(barInstabilityMethod)//' is unrecognized'//{introspection:location})
-          barInstabilitiesInitialized=.true.
-       end if
-       !$omp end critical(Galactic_Dynamics_Bar_Instability_Initialize)
-    end if
-    return
-  end subroutine Galactic_Dynamics_Bar_Instability_Initialize
-
-  subroutine Bar_Instability_Timescale(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
-    !% Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value
-    !% indicates no instability. Also returns the net torque due to any external force causing this instability.
-    implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
-
-    ! Initialize the module.
-    call Galactic_Dynamics_Bar_Instability_Initialize
-    ! Get the timescale using the selected method.
-    call Bar_Instability_Timescale_Get(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
-    return
-  end subroutine Bar_Instability_Timescale
-
+  
+  !# <functionClass>
+  !#  <name>galacticDynamicsBarInstability</name>
+  !#  <descriptiveName>Bar instabilities in galactic disks</descriptiveName>
+  !#  <description>Class providing models of bar instabilities in galactic disks.</description>
+  !#  <default>efstathiou1982</default>
+  !#  <method name="timescale" >
+  !#   <description>Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value indicates no instability. Also returns the net torque due to any external force causing this instability.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(  out) :: timescale, externalDrivingSpecificTorque</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Galactic_Dynamics_Bar_Instabilities

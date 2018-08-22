@@ -36,7 +36,7 @@
   </powerSpectrumPrimordialMethod>
   <stellarPopulationSpectraMethod value="FSPS"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
-  <barInstabilityMethod value="null"/>
+  <galacticDynamicsBarInstabilityMethod value="stable"/>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="3200"/>
     <massTreeMaximum value="2.0e14"/>

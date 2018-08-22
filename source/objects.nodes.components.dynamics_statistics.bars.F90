@@ -150,18 +150,19 @@ contains
     use Satellite_Orbits
     use Kepler_Orbits
     implicit none
-    type            (mergerTree                     ), intent(in   )          :: tree
-    type            (treeNode                       ), intent(inout), pointer :: node
-    integer                                          , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic             )               , pointer :: basic
-    class           (nodeComponentDisk              )               , pointer :: disk
-    class           (nodeComponentSatellite         )               , pointer :: satellite
-    class           (nodeComponentDynamicsStatistics)               , pointer :: dynamicsStatistics
-    type            (treeNode                       )               , pointer :: hostNode
-    type            (keplerOrbit                    )                         :: orbit
-    double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
-         &                                                                       adiabaticRatio         , velocityPericenter                         , &
-         &                                                                       radiusPericenter
+    type            (mergerTree                         ), intent(in   )          :: tree
+    type            (treeNode                           ), intent(inout), pointer :: node
+    integer                                              , intent(inout)          :: deadlockStatus
+    class           (nodeComponentBasic                 )               , pointer :: basic
+    class           (nodeComponentDisk                  )               , pointer :: disk
+    class           (nodeComponentSatellite             )               , pointer :: satellite
+    class           (nodeComponentDynamicsStatistics    )               , pointer :: dynamicsStatistics
+    class           (galacticDynamicsBarInstabilityClass)               , pointer :: galacticDynamicsBarInstability_
+    type            (treeNode                           )               , pointer :: hostNode
+    type            (keplerOrbit                        )                         :: orbit
+    double precision                                                              :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
+         &                                                                           adiabaticRatio         , velocityPericenter                         , &
+         &                                                                           radiusPericenter
     !GCC$ attributes unused :: tree, deadlockStatus
     
     ! Get components.
@@ -170,12 +171,13 @@ contains
     ! Record the state.
     select type (dynamicsStatistics)
     class is (nodeComponentDynamicsStatisticsBars)
-       disk      => node     %disk       ()
-       satellite => node     %satellite  ()
-       hostNode      => node     %parent
-       orbit     =  satellite%virialOrbit()
+       galacticDynamicsBarInstability_ => galacticDynamicsBarInstability            ()
+       disk                            => node                          %disk       ()
+       satellite                       => node                          %satellite  ()
+       hostNode                        => node                          %parent
+       orbit                           =  satellite                     %virialOrbit()
        call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,orbit,extremumPericenter,radiusPericenter,velocityPericenter)
-       call Bar_Instability_Timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
+       call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
        if (disk%radius() > 0.0d0) then
           adiabaticRatio=(radiusPericenter/velocityPericenter)/(2.0d0*Pi*disk%radius()/disk%velocity())
        else

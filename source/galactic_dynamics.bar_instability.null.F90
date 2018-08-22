@@ -16,43 +16,52 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null calculation of bar instability.
+  !% Implementation of a perfectly stable model for galactic disk bar instability.
 
-module Galactic_Dynamics_Bar_Instabilities_Null
-  !% Implements a null calculation of bar instability.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Galactic_Dynamics_Bar_Instabilities_Null_Initialize
+  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityStable">
+  !#  <description>A perfect stability model for galactic disk bar instability.</description>
+  !# </galacticDynamicsBarInstability>
+  type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityStable
+     !% Implementation of a perfectly stable model for galactic disk bar instability.
+     private
+   contains
+     procedure :: timescale => stableTimescale
+  end type galacticDynamicsBarInstabilityStable
+
+  interface galacticDynamicsBarInstabilityStable
+     !% Constructors for the {\normalfont \ttfamily stable} model for galactic disk bar instability class.
+     module procedure stableConstructorParameters
+  end interface galacticDynamicsBarInstabilityStable
 
 contains
 
-  !# <barInstabilityMethod>
-  !#  <unitName>Galactic_Dynamics_Bar_Instabilities_Null_Initialize</unitName>
-  !# </barInstabilityMethod>
-  subroutine Galactic_Dynamics_Bar_Instabilities_Null_Initialize(barInstabilityMethod,Bar_Instability_Timescale_Get)
-    !% Initializes the ``Null'' bar instability module.
-    use ISO_Varying_String
+  function stableConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily stable} model for galactic disk bar instability class which takes a
+    !% parameter set as input.
+    use Input_Parameters
     implicit none
-    type     (varying_string                ), intent(in   )          :: barInstabilityMethod
-    procedure(Bar_Instability_Timescale_Null), intent(inout), pointer :: Bar_Instability_Timescale_Get
-
-    if (barInstabilityMethod == 'null') Bar_Instability_Timescale_Get => Bar_Instability_Timescale_Null
-    return
-  end subroutine Galactic_Dynamics_Bar_Instabilities_Null_Initialize
-
-  subroutine Bar_Instability_Timescale_Null(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
-    !% Assumes that disks are never bar unstable and so returns an infinite timescale for bar instability.
-    implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
-    !GCC$ attributes unused :: thisNode, barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
+    type(galacticDynamicsBarInstabilityStable)                :: self
+    type(inputParameters                     ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
-    ! Assume infinite timescale (i.e. no instability).
-    barInstabilityTimeScale                    =-1.0d0
-    ! Also assume no torque.
-    barInstabilityExternalDrivingSpecificTorque= 0.0d0
+    self=galacticDynamicsBarInstabilityStable()
     return
-  end subroutine Bar_Instability_Timescale_Null
+  end function stableConstructorParameters
 
-end module Galactic_Dynamics_Bar_Instabilities_Null
+  subroutine stableTimescale(self,node,timescale,externalDrivingSpecificTorque)
+    !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
+    !% \cite{efstathiou_stability_1982}.
+    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Physical
+    implicit none
+    class           (galacticDynamicsBarInstabilityStable), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(  out) :: externalDrivingSpecificTorque, timescale
+    !GCC$ attributes unused :: self, node
+
+    ! Assume infinite timescale (i.e. no instability).
+    timescale                    =-1.0d0
+    ! Also assume no torque.
+    externalDrivingSpecificTorque=+0.0d0
+    return
+  end subroutine stableTimescale

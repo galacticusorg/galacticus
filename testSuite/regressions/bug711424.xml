@@ -44,7 +44,10 @@
     <alpha value="2.509"/>
     <lambda0 value="0.04326"/>
   </haloSpinDistributionMethod>
-  <barInstabilityMethod value="ELN"/>
+  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+  <stabilityThresholdGaseous value="0.9"/>
+    <stabilityThresholdStellar value="1.1"/>
+  </galacticDynamicsBarInstabilityMethod>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="4"/>
@@ -73,7 +76,6 @@
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
-  <stabilityThresholdGaseous value="0.9"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <treeNodeMethodDisk value="standard"/>
   <linearGrowthMethod value="simple"/>
@@ -142,7 +144,6 @@
   <mergerTreeStructureOutput value="false"/>
   <timestepHostRelative value="0.1"/>
   <randomSeed value="228"/>
-  <stabilityThresholdStellar value="1.1"/>
   <elementsToTrack value="Ca O Fe"/>
   <starFormationFeedbackDisksMethod value="powerLaw">
     <exponent value="2"/>

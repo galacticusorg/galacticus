@@ -69,10 +69,10 @@
   <galacticStructureRadiusSolverMethod value="simple"/>
 
   <!-- Galactic dynamics options -->
-  <barInstabilityMethod value="ELN"/>
+  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
   <stabilityThresholdGaseous value="0.7"/>
-  <stabilityThresholdStellar value="0.7"/>
-  
+    <stabilityThresholdStellar value="0.7"/>
+  </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod value="fixed"/>
   <starFormationTimescaleDisks value="fixed">

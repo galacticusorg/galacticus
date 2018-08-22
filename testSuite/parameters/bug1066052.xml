@@ -41,7 +41,7 @@
   <verbosityLevel value="1"/>
   <nodePromotionIndexShift value="false"/>
   <outputRedshifts value="0.000"/>
-  <barInstabilityMethod value="null"/>
+  <galacticDynamicsBarInstabilityMethod value="stable"/>
   <starFormationTimescaleSpheroids value="dynamicalTime">
     <efficiency value="0.0"/>
   </starFormationTimescaleSpheroids>
