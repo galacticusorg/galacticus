@@ -17,7 +17,7 @@
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <accretionHaloMethod value="simple">
-    <redshiftReionization            value="9" />
+    <redshiftReionization value="9"/>
     <velocitySuppressionReionization value="30"/>
   </accretionHaloMethod>
   <accretionRateThinDiskMaximum value="0.30d0"/>
@@ -82,7 +82,9 @@
     <massTreeMaximum value="1e+12"/>
     <massTreeMinimum value="10000000000"/>
     <treesPerDecade value="5"/>
-  </mergerTreeBuildMassesMethod><mergerTreeBuilderMethod value="cole2000">
+  </mergerTreeBuildMassesMethod>
+
+  <mergerTreeBuilderMethod value="cole2000">
   <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
   </mergerTreeBuilderMethod>
@@ -110,20 +112,28 @@
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod><spheroidEnergeticOutflowMassRate value="1"/>
+  </cosmologicalMassVarianceMethod>
+
+  <spheroidEnergeticOutflowMassRate value="1"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
   <stabilityThresholdGaseous value="0.9"/>
   <stabilityThresholdStellar value="1.1"/>
-  <starFormationDiskEfficiency value="0.01"/>
-  <starFormationDiskMinimumTimescale value="0.001"/>
-  <starFormationDiskVelocityExponent value="-1.5"/>
+  <starFormationTimescaleDisks value="dynamicalTime">
+    <efficiency value="0.01"/>
+    <timescaleMinimum value="0.001"/>
+    <exponentVelocity value="-1.5"/>
+  </starFormationTimescaleDisks>
+
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <exponent value="2"/>
     <velocityCharacteristic value="50"/>
   </starFormationFeedbackSpheroidsMethod>
-  <starFormationSpheroidEfficiency value="0.1"/>
-  <starFormationSpheroidMinimumTimescale value="0.001"/>
-  <starFormationSpheroidVelocityExponent value="0"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
+    <efficiency value="0.1"/>
+    <timescaleMinimum value="0.001"/>
+    <exponentVelocity value="0"/>
+  </starFormationTimescaleSpheroids>
+
   <starFormationTimescaleDisksMethod value="dynamicalTime"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <starveSatellites value="true"/>

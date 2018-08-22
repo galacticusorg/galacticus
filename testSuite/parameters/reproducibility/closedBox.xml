@@ -69,7 +69,9 @@
 
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod value="fixed"/>
-  <starFormationTimescaleDisksFixedTimescale value="0.25"/>
+  <starFormationTimescaleDisks value="fixed">
+    <timescale value="0.25"/>
+  </starFormationTimescaleDisks>
 
   <!-- Feedback -->
   <starFormationFeedbackDisksMethod value="fixed">

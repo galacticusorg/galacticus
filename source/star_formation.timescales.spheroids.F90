@@ -16,76 +16,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of star formation timescales for galactic spheroids.
+!% Contains a module which provides a class that implements timescales for star formation in spheroids.
 
 module Star_Formation_Timescales_Spheroids
-  !% Implements calculations of star formation timescales for galactic spheroids.
-  use ISO_Varying_String
+  !% Provides a class that implements calculations of timescales for star formation in spheroids.
   use Galacticus_Nodes
-  implicit none
-  private
-  public :: Star_Formation_Timescale_Spheroid
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                               :: starFormationTimescaleSpheroidsInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                   )          :: starFormationTimescaleSpheroidsMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Timescale_Spheroid), pointer :: Star_Formation_Timescale_Spheroid_Get     =>null()
-
-contains
-
-  subroutine Star_Formation_Timescale_Spheroids_Initialize
-    !% Initialize the spheroid star formation timecale module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="starFormationTimescaleSpheroidsMethod" type="moduleUse">
-    include 'star_formation.timescales.spheroids.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.starFormationTimescaleSpheroidsInitialized) then
-       !$omp critical(Star_Formation_Timescale_Spheroids_Initialization)
-       if (.not.starFormationTimescaleSpheroidsInitialized) then
-          ! Get the spheroid star formation timescale method parameter.
-          !# <inputParameter>
-          !#   <name>starFormationTimescaleSpheroidsMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('dynamicalTime')</defaultValue>
-          !#   <description>The name of the method to be used for computing star formation timescales in spheroids.</description>
-          !#   <group>starFormation</group>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationTimescaleSpheroidsMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</functionArgs>
-          include 'star_formation.timescales.spheroids.inc'
-          !# </include>
-          if (.not.associated(Star_Formation_Timescale_Spheroid_Get)) &
-               & call Galacticus_Error_Report('method ' //char(starFormationTimescaleSpheroidsMethod)//' is unrecognized'//{introspection:location})
-          starFormationTimescaleSpheroidsInitialized=.true.
-       end if
-       !$omp end critical(Star_Formation_Timescale_Spheroids_Initialization)
-    end if
-    return
-  end subroutine Star_Formation_Timescale_Spheroids_Initialize
-
-  double precision function Star_Formation_Timescale_Spheroid(thisNode)
-    !% Returns the timescale (in Gyr) for star formation in the spheroid component of {\normalfont \ttfamily thisNode}.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    ! Initialize the module.
-    call Star_Formation_Timescale_Spheroids_Initialize
-
-    ! Get the energy using the selected method.
-    Star_Formation_Timescale_Spheroid=Star_Formation_Timescale_Spheroid_Get(thisNode)
-
-    return
-  end function Star_Formation_Timescale_Spheroid
-
+  
+  !# <functionClass>
+  !#  <name>starFormationTimescaleSpheroids</name>
+  !#  <descriptiveName>Timescales for star formation in spheroids</descriptiveName>
+  !#  <description>Class providing models of timescales for star formation in spheroids.</description>
+  !#  <default>integratedSurfaceDensity</default>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="timescale" >
+  !#   <description>Returns the timescale (in Gyr) for star formation in the spheroid component of {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Star_Formation_Timescales_Spheroids

@@ -19,12 +19,18 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
   <adiabaticContractionGnedinOmega value="0.77"/>
-  <starFormationDiskEfficiency value="0.01"/>
+  <starFormationTimescaleDisks value="dynamicalTime">
+    <efficiency value="0.01"/>
+    <timescaleMinimum value="0.001"/>
+    <exponentVelocity value="-1.5"/>
+  </starFormationTimescaleDisks>
+
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod><timestepSimpleAbsolute value="1"/>
+  </cosmologicalMassVarianceMethod>
+
+  <timestepSimpleAbsolute value="1"/>
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  <starFormationDiskMinimumTimescale value="0.001"/>
   <darkMatterProfileMethod value="NFW"/>
   <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
@@ -76,7 +82,6 @@
     <dimensionless value="true"/>
   </diskMassDistribution>
   <linearGrowthMethod value="simple"/>
-  <starFormationDiskVelocityExponent value="-1.5"/>
   <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="5.0e10"/>
   </mergerTreeMassResolutionMethod>
@@ -92,7 +97,12 @@
   <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
-  <starFormationSpheroidMinimumTimescale value="0.001"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
+    <timescaleMinimum value="0.001"/>
+    <exponentVelocity value="0"/>
+    <efficiency value="0.1"/>
+  </starFormationTimescaleSpheroids>
+
   <satelliteMergingMassMovementsMethod value="simple"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <accretionDisksMethod value="ADAF">
@@ -103,7 +113,6 @@
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <starFormationHistoriesMethod value="metallicitySplit"/>
-  <starFormationSpheroidVelocityExponent value="0"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
@@ -131,7 +140,7 @@
   <imfSelectionFixed value="Salpeter"/>
   <treeNodeMethodHotHalo value="standard"/>
   <accretionHaloMethod value="simple">
-    <redshiftReionization            value="9"/>
+    <redshiftReionization value="9"/>
     <velocitySuppressionReionization value="30.0"/>
   </accretionHaloMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
@@ -161,7 +170,6 @@
   <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
   <timestepHostAbsolute value="1"/>
-  <starFormationSpheroidEfficiency value="0.1"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <mergerTreeConstructorMethod value="build">
       <treeBeginAt value="1"/>

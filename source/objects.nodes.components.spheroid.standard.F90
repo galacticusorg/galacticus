@@ -1494,15 +1494,17 @@ contains
     !% Return the star formation rate of the standard spheroid.
     use Star_Formation_Timescales_Spheroids
     implicit none
-    class           (nodeComponentSpheroidStandard ), intent(inout) :: self
-    type            (treeNode                      ), pointer       :: node
-    double precision                                                :: gasMass , starFormationTimescale
+    class           (nodeComponentSpheroidStandard       ), intent(inout) :: self
+    type            (treeNode                            ), pointer       :: node
+    class           (starFormationTimescaleSpheroidsClass), pointer       :: starFormationTimescaleSpheroids_
+    double precision                                                      :: gasMass                         , starFormationTimescale
 
     ! Get the associated node.
     node => self%host()
 
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Spheroid(node)
+    starFormationTimescaleSpheroids_ => starFormationTimescaleSpheroids           (    )
+    starFormationTimescale           =  starFormationTimescaleSpheroids_%timescale(node)
 
     ! Get the gas mass.
     gasMass=self%massGas()

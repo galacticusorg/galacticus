@@ -38,7 +38,9 @@
   <!-- as parameters used in Bolshoi simulation -->
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.82"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="CAMB"/>
+  </cosmologicalMassVarianceMethod>
+
+  <transferFunctionMethod value="CAMB"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.95"/>
     <wavenumberReference value="1.00"/>
@@ -65,13 +67,13 @@
     <presetUnphysicalSpins value="true"/>
     <presetScaleRadii value="true"/>
     <presetScaleRadiiMinimumMass value="1.0e10"/>
-    <presetMergerTimes           value="true"/>
-    <presetMergerNodes           value="true"/>
-    <presetSubhaloIndices        value="true"/>
-    <presetSubhaloMasses         value="true"/>
-    <missingHostsAreFatal        value="true"/>
-    <allowSubhaloPromotions      value="true"/>
-    <presetNamedReals            value="velocityMaximum velocityDispersion"/>
+    <presetMergerTimes value="true"/>
+    <presetMergerNodes value="true"/>
+    <presetSubhaloIndices value="true"/>
+    <presetSubhaloMasses value="true"/>
+    <missingHostsAreFatal value="true"/>
+    <allowSubhaloPromotions value="true"/>
+    <presetNamedReals value="velocityMaximum velocityDispersion"/>
   </mergerTreeConstructorMethod>
   <allTreesExistAtFinalTime value="false"/>
    <!-- Use merger tree node positions -->
@@ -97,7 +99,7 @@
 
   <!-- Halo accretion options -->
   <accretionHaloMethod value="simple">
-    <redshiftReionization            value="9.0" />
+    <redshiftReionization value="9.0"/>
     <velocitySuppressionReionization value="30.0"/>
   </accretionHaloMethod>
 
@@ -154,19 +156,24 @@
   <stabilityThresholdStellar value="1.1"/>
 
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="integratedSurfaceDensity"/>
+  <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
-    <frequencyStarFormation         value="0.385"/>
+    <frequencyStarFormation value="0.385"/>
     <clumpingFactorMolecularComplex value="5.000"/>
-    <molecularFractionFast          value="true" />
+    <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationDiskEfficiency value="0.01"/>
-  <starFormationDiskMinimumTimescale value="0.001"/>
-  <starFormationDiskVelocityExponent value="-1.5"/>
+  <starFormationTimescaleDisks value="dynamicalTime">
+    <efficiency value="0.01"/>
+    <timescaleMinimum value="0.001"/>
+    <exponentVelocity value="-1.5"/>
+  </starFormationTimescaleDisks>
+
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
-  <starFormationSpheroidEfficiency value="0.1"/>
-  <starFormationSpheroidVelocityExponent value="2.0"/>
-  <starFormationSpheroidMinimumTimescale value="0.001"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
+    <efficiency value="0.1"/>
+    <exponentVelocity value="2.0"/>
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleSpheroids>
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>

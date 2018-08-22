@@ -268,7 +268,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <starFormationTimescaleDisksMethod value="dynamicalTime"/>
-    <starFormationTimescaleDisksMethod value="integratedSurfaceDensity">
+    <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
       <starFormationRateSurfaceDensityDisksMethod value="kennicuttSchmidt" parameterLevel="top">
         <truncate value="true" />
         <truncate value="false"/>
@@ -280,7 +280,7 @@
       </starFormationRateSurfaceDensityDisksMethod>
       <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt"     parameterLevel="top"/>
     </starFormationTimescaleDisksMethod>
-    <starFormationTimescaleDisksMethod value="Baugh2005"/>
+    <starFormationTimescaleDisksMethod value="baugh2005"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>

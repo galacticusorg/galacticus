@@ -1289,15 +1289,17 @@ contains
     !% Return the star formation rate of the standard disk.
     use Star_Formation_Timescales_Disks
     implicit none
-    class           (nodeComponentDiskStandard), intent(inout) :: self
-    type            (treeNode                 ), pointer       :: node
-    double precision                                           :: gasMass , starFormationTimescale
+    class           (nodeComponentDiskStandard       ), intent(inout) :: self
+    type            (treeNode                        ), pointer       :: node
+    class           (starFormationTimescaleDisksClass), pointer       :: starFormationTimescaleDisks_
+    double precision                                                  :: gasMass                     , starFormationTimescale
 
     ! Get the associated node.
     node => self%host()
 
     ! Get the star formation timescale.
-    starFormationTimescale=Star_Formation_Timescale_Disk(node)
+    starFormationTimescaleDisks_ => starFormationTimescaleDisks           (    )
+    starFormationTimescale       =  starFormationTimescaleDisks_%timescale(node)
 
     ! Get the gas mass.
     gasMass=self%massGas()
