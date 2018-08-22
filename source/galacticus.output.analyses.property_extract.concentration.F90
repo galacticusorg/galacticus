@@ -20,7 +20,7 @@
 
   use Virial_Density_Contrast
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorConcentration">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorConcentration" defaultThreadPrivate="yes">
   !#  <description>A concentration output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorConcentration
