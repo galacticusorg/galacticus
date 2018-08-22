@@ -20,7 +20,7 @@
 
   use Virial_Density_Contrast
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassHalo">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassHalo" defaultThreadPrivate="yes">
   !#  <description>A halo mass output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMassHalo
