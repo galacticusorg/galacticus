@@ -246,13 +246,6 @@ sub Functions_Generate_Output {
 	}
 	);    
 
-    # Determine if any methods request that C-bindings be produced.
-    my @methodsCBound;
-    foreach ( @methods ) {
-	push(@methodsCBound,$_)
-	    if ( exists($_->{'bindC'}) && $_->{'bindC'} eq "true" );
-    }
-
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::Function\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
@@ -441,13 +434,6 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   class(".$directive."Class), private , pointer :: ".$directive."PublicDefault => null()\n"
 	if ( $requireThreadPublicDefault  == 1 );
     $buildData->{'content'} .= "\n";
-
-    # If we need to generate C-bindings, insert a wrapper class to permit passing of polymorphic pointers between Fortran and C++.
-    if ( @methodsCBound ) {
-	$buildData->{'content'} .= "   type :: ".$directive."Wrapper\n";
-	$buildData->{'content'} .= "     class(".$directive."Class), pointer :: wrappedObject\n";
-	$buildData->{'content'} .= "   end type ".$directive."Wrapper\n\n";
-    }
 
     # Insert any module-scope class content.
     foreach ( &List::ExtraUtils::as_array($buildData->{'data'}) ) {
@@ -727,82 +713,6 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "      return\n";
 	$buildData->{'content'} .= "   end ".$category." ".$directive.ucfirst($method->{'name'}).$extension."\n\n";
     }
-    # Generate C-bindings if required.
-    if ( @methodsCBound ) {
-	# C-bound default constructor. Here, we use a wrapper object which contains a pointer to the default polymorphic Fortran
-	# object. This wrapper is then passed back to the calling C++ function so that it can be stored in the appropriate C++
-	# class.
-	$buildData->{'content'} .= "   function ".$directive."_C() bind(c,name='".$directive."')\n";
-	$buildData->{'content'} .= "     implicit none\n";
-	$buildData->{'content'} .= "     type(c_ptr) :: ".$directive."_C\n";
-	$buildData->{'content'} .= "     type(".$directive."Wrapper), pointer :: wrapper\n";
-	$buildData->{'content'} .= "      if (.not.associated(".$directive."Default)) call ".$directive."Initialize()\n";
-	$buildData->{'content'} .= "       allocate(wrapper)\n";
-	$buildData->{'content'} .= "       wrapper%wrappedObject => ".$directive."Default\n";
-	$buildData->{'content'} .= "       ".$directive."_C=c_loc(wrapper)\n";
-	$buildData->{'content'} .= "     return\n";
-	$buildData->{'content'} .= "   end function ".$directive."_C\n\n";
-	# C-bound destructor. We simply deallocate the wrapper object, letting the associated finalizor clean up the Fortran
-	# object.
-	$buildData->{'content'} .= "   subroutine ".$directive."Destructor_C(wrapperC) bind(c,name='".$directive."Destructor')\n";
-	$buildData->{'content'} .= "     implicit none\n";
-	$buildData->{'content'} .= "     type(c_ptr), intent(in   ), value :: wrapperC\n";
-	$buildData->{'content'} .= "     type(".$directive."Wrapper), pointer :: wrapper\n\n";
-	$buildData->{'content'} .= "     call c_f_pointer(wrapperC,wrapper)\n";
-	$buildData->{'content'} .= "     deallocate(wrapper)\n";
-	$buildData->{'content'} .= "     return\n";
-	$buildData->{'content'} .= "   end subroutine ".$directive."Destructor_C\n\n";
-	# Generate method functions.
-	foreach ( @methodsCBound ) {
-	    my @arguments;
-	    if ( exists($_->{'argument'}) ) {
-		if ( UNIVERSAL::isa($_->{'argument'},"ARRAY") ) {
-		    push(@arguments,@{$_->{'argument'}});
-		} else {
-		    push(@arguments,  $_->{'argument'} );
-		}
-	    }
-	    my $separator    = "";
-	    my $argumentList = "";
-	    foreach my $argument ( @arguments ) {
-		foreach my $intrinsic ( keys(%intrinsicDeclarations) ) {
-		    my $declarator = $intrinsicDeclarations{$intrinsic};
-		    if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
-			my $intrinsicName =                          $declarator->{'intrinsic' }    ;
-			my $type          =                 $matches[$declarator->{'type'      }-1] ;
-			my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
-			$attributeList =~ s/^\s*,?\s*//;
-			$attributeList =~ s/\s*$//;
-			my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
-			foreach my $attribute ( @attributes ) {
-			    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
-				unless ( $attribute eq "intent(in)" );
-			}
-			my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }-1]);
-			die("Galacticus::Build::Functions::Functions_Generate_Output: non-standard kinds are not supported for C++-binding")
-			    if ( defined($type) );
-			$argumentList .= $separator.join(",",@variables);
-			$separator     = ",";
-		    }
-		}
-	    }
-	    $buildData->{'content'} .= "  double precision function ".$_->{'name'}."_C(";
-	    $buildData->{'content'} .= "wrapperC".$separator
-		if ( $_->{'pass'} eq "yes" );
-	    $buildData->{'content'} .= $argumentList.") bind(c,name='".$_->{'name'}."_C')\n";
-	    $buildData->{'content'} .= "     implicit none\n";
-	    $buildData->{'content'} .= "     type(c_ptr), intent(in   ), value :: wrapperC\n";
-	    foreach my $argument( @arguments ) {
-		(my $argumentInteroperable = $argument) =~ s/(\s*::)/, value$1/;
-		$buildData->{'content'} .= "     ".$argumentInteroperable."\n"
-	    }
-	    $buildData->{'content'} .= "     type(".$directive."Wrapper), pointer :: wrapper\n";
-	    $buildData->{'content'} .= "     call c_f_pointer(wrapperC,wrapper)\n";
-	    $buildData->{'content'} .= "     ".$_->{'name'}."_C=wrapper\%wrappedObject\%".$_->{'name'}."(".$argumentList.")\n";
-	    $buildData->{'content'} .= "     return\n";
-	    $buildData->{'content'} .= "   end function ".$_->{'name'}."_C\n\n";
-	}
-    }
     # Check if debugging is required.
     my $debug = 0;
     if ( exists($ENV{'GALACTICUS_FCFLAGS'}) ) {
@@ -857,112 +767,6 @@ sub Functions_Generate_Output {
 		if ( $processedLine =~ m/^\s*contains\s*$/i && $unitDepth == 0 );
 	}
 	close($classFile);
-    }
-    # Generate C-bindings here if required.
-    if ( @methodsCBound ){
-	# Iterate over methods and generate the necessary code.
-	my $externCode;
-	my $classCode;
-	my $methodCode;
-	foreach ( @methodsCBound ) {
-	    my $type;
-	    if ( $_->{'type'} eq "double precision" ) {
-		$type = "double";
-	    } else {
-		die("Galacticus::Build::Functions::Functions_Generate_Output: type unsupported for C++-binding");
-	    }
-	    my $separator     = "";
-	    my $fullSeparator = "";
-	    my $argumentList  = "";
-	    my $variableList  = "";
-	    my $fullList      = "";
-	    if ( $_->{'pass'} eq "yes" ) {
-		$argumentList .= $separator."void*";
-		$variableList .= $separator."fortranSelf";
-		$separator     = ",";
-	    }
-	    my @arguments;
-	    if ( exists($_->{'argument'}) ) {
-		if ( UNIVERSAL::isa($_->{'argument'},"ARRAY") ) {
-		    push(@arguments,@{$_->{'argument'}});
-		} else {
-		    push(@arguments,  $_->{'argument'} );
-		}
-	    }
-	    foreach my $argument ( @arguments ) {
-		foreach my $intrinsic ( keys(%intrinsicDeclarations) ) {
-		    my $declarator = $intrinsicDeclarations{$intrinsic};
-		    if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
-			my $intrinsicName =                          $declarator->{'intrinsic' }    ;
-			my $type          =                 $matches[$declarator->{'type'      }-1] ;
-			my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
-			$attributeList =~ s/^\s*,?\s*//;
-			$attributeList =~ s/\s*$//;
-			my @attributes = &Fortran::Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
-			foreach my $attribute ( @attributes ) {
-			    die("Galacticus::Build::Functions::Functions_Generate_Output:  attribute not supported for C++-binding")
-				unless ( $attribute eq "intent(in)" );
-			}
-			my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }-1]);
-			die("Galacticus::Build::Functions::Functions_Generate_Output: non-standard kinds are not supported for C++-binding")
-			    if ( defined($type) );
-			my $cType;
-			if ( $intrinsicName eq "double precision" ) {
-			    $cType = "double";
-			} else {
-			    die("Galacticus::Build::Functions::Functions_Generate_Output: type not supported for C++-binding");
-			}
-			$argumentList .=     $separator.join(",",map($cType       ,1..scalar(@variables)));
-			$variableList .=     $separator.join(",",                            @variables  );
-			$fullList     .= $fullSeparator.join(",",map($cType." ".$_,          @variables ));
-			$separator     = ",";
-			$fullSeparator = ",";
-		    }
-		}
-	    }
-	    # Build extern and class declarations.
-	    $externCode .= " ".$type." ".$_->{'name'}."_C(".$argumentList.");\n";
-	    my $classArgumentList = $argumentList;
-	    $classArgumentList =~ s/^void\*,?//
-		if ( $_->{'pass'} eq "yes" );
-	    $classCode  .= " ".$type." ".$_->{'name'}."(".$classArgumentList.");\n";
-	    # Build the method.
-	    $methodCode .= $type." ".$directive."Class::".$_->{'name'}." (".$fullList.") {\n";
-	    $methodCode .= " return ".$_->{'name'}."_C(".$variableList.");\n";
-	    $methodCode .= "}\n\n";
-	}
-	my $cBindings;
-	$cBindings  = "// Generated automatically by Galacticus::Build::Function\n";
-	$cBindings .= "//  From: ".$buildData->{'fileName'}."\n";
-	$cBindings .= "//  Time: ".$now."\n\n";
-	# Generate external linkage for creator, destructor, and method functions.
-	$cBindings .= "extern \"C\"\n";
-	$cBindings .= "{\n";
-	$cBindings .= " void* ".$directive."();\n";
-	$cBindings .= " void ".$directive."Destructor(void*);\n";
-	$cBindings .= $externCode;
-	$cBindings .= "}\n\n";
-	# Create a class for this object.
-	$cBindings .= "class ".$directive."Class {\n";
-	$cBindings .= "  void *fortranSelf;\n";
-	$cBindings .= " public:\n";
-	$cBindings .= " ".$directive."Class ();\n";
-	$cBindings .= " ~".$directive."Class ();\n";
-	$cBindings .= $classCode;
-	$cBindings .= "};\n\n";	
-	# Create a creator.
-	$cBindings .= $directive."Class::".$directive."Class () {\n";
-	$cBindings .= " fortranSelf=".$directive."();\n";
-	$cBindings .= "};\n\n";
-	# Create a destructor.
-	$cBindings .= $directive."Class::~".$directive."Class () {\n";
-	$cBindings .= " ".$directive."Destructor(fortranSelf);\n";
-	$cBindings .= "};\n\n";
-	# Create methods.
-	$cBindings .= $methodCode;
-	open(cHndl,">".$ENV{'BUILDPATH'}."/".$directive.".h");
-	print cHndl $cBindings;
-	close(cHndl);
     }
     # Generate documentation.
     my $documentation = "\\subsubsection{".$buildData->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive)."}\n\n";

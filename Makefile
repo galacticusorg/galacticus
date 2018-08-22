@@ -171,6 +171,7 @@ $(BUILDPATH)/flock_config.h : source/flock_config.c
 # Configuration for availability of FFTW3.
 -include $(BUILDPATH)/Makefile_Config_FFTW3
 $(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
+	@mkdir -p $(BUILDPATH)
 	$(FCCOMPILER) -c source/fftw3_config.F90 -o $(BUILDPATH)/fftw3_config.o $(FCFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS += -DFFTW3AVAIL"   > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
@@ -181,6 +182,7 @@ $(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
 # Configuration for availability of ANN.
 -include $(BUILDPATH)/Makefile_Config_ANN
 $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
+	@mkdir -p $(BUILDPATH)
 	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/fftw3_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DANNAVAIL"   >  $(BUILDPATH)/Makefile_Config_ANN ; \
@@ -416,24 +418,24 @@ tidy:
 all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
-$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/moduleDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
+$(BUILDPATH)/Makefile_Use_Dependencies: ./scripts/build/useDependencies.pl $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp) $(wildcard source/*.Inc)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/useDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.pl `pwd`
 	./scripts/build/stateStorables.pl `pwd`
 
-$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/includeDependencies.pl `pwd`
 
-$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl source/*.[fF]90 source/*.h source/*.c $(wildcard source/*.cpp)
+$(BUILDPATH)/Makefile_All_Execs: ./scripts/build/findExecutables.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/findExecutables.pl `pwd`
 

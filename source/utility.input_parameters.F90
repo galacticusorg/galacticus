@@ -18,8 +18,6 @@
 
 !% Contains a module which implements reading of parameters from an XML data file.
 
-!: $(BUILDPATH)/utility.input_parameters.C.o
-
 module Input_Parameters
   !% Implements reading of parameters from an XML file.
   use Hashes_Cryptographic
@@ -921,17 +919,9 @@ contains
 
   subroutine inputParametersMarkGlobal(self)
     !% Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
-    use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
     implicit none
     class(inputParameters), intent(inout), target :: self
-    type (c_ptr          )                        :: globalParametersC
-    interface
-       subroutine inputParametersSetGlobalC(globalParametersC) bind(c,name="inputParametersSetGlobalC")
-         import c_ptr
-         type(c_ptr), value :: globalParametersC
-       end subroutine inputParametersSetGlobalC
-    end interface
 
     ! Check that global parameters have not yet been assigned.
     if (associated(globalParameters)) call Galacticus_Error_Report('global parameters cannot be reassigned'//{introspection:location})
@@ -939,9 +929,6 @@ contains
     self%global=.true.
     ! Set global parameters pointer.
     globalParameters => self
-    ! Set global parameters pointer in the C interface also.
-    globalParametersC=c_loc(globalParameters)
-    call inputParametersSetGlobalC(globalParametersC)
     return
   end subroutine inputParametersMarkGlobal
   
@@ -1304,63 +1291,6 @@ contains
     !$omp end critical (FoX_DOM_Access)
     return
   end subroutine inputParametersValueNode{Type¦label}
-
-  subroutine cInputParametersFinalize(cSelf) bind(c,name="inputParametersFinalize")
-    !% A C-callable wrapper function to finalize an {\normalfont \ttfamily inputParameters} object.
-    use, intrinsic :: ISO_C_Binding
-    implicit none
-    type(c_ptr          ), value   :: cSelf
-    type(inputParameters), pointer :: self
-    
-    call c_f_pointer(cSelf,self)
-    call inputParametersFinalize(self)
-    return
-  end subroutine cInputParametersFinalize
-
-  subroutine cInputParametersSubParameters(cSelf,parameterNameLength,parameterName,subParameters) bind(c,name="inputParametersSubParameters")
-    !% A C-callable wrapper function to obtain subparameters from an {\normalfont \ttfamily inputParameters} object.
-    use, intrinsic :: ISO_C_Binding
-    use               ISO_Varying_String
-    implicit none
-    type     (c_ptr          ), value                          :: cSelf
-    integer  (kind=c_int     ), value                          :: parameterNameLength
-    type     (inputParameters), pointer                        :: self
-    type     (inputParameters), pointer                        :: subParametersF
-    character(kind=c_char    ), dimension(parameterNameLength) :: parameterName
-    type     (varying_string )                                 :: parameterNameF
-    type     (c_ptr          )                                 :: subParameters
-    
-    parameterNameF=String_C_to_Fortran(parameterName)
-    call c_f_pointer(cSelf,self)
-    allocate(subParametersF)
-    subParametersF=self%subParameters(char(parameterNameF))
-    subParameters=c_loc(subParametersF)
-    return
-  end subroutine cInputParametersSubParameters
-
-  subroutine cInputParametersValueName{cType¦label}(cSelf,parameterNameLength,parameterName,parameterValue,defaultValue,errorStatus,writeOutput) bind(c,name="inputParametersValueName{cType¦label}")
-    !% C-callable interface to input parameter get-by-name functions.
-    use, intrinsic :: ISO_C_Binding
-    use               ISO_Varying_String
-    implicit none
-    type             (c_ptr          ), value                                    :: cSelf
-    integer          (kind=c_int     ), value                                    :: parameterNameLength
-    character        (kind=c_char    ), dimension(parameterNameLength)           :: parameterName
-    {cType¦intrinsic}                 , intent(  out)                            :: parameterValue
-    {cType¦intrinsic}                 , intent(in   )                            :: defaultValue
-    integer          (kind=c_int     ), intent(  out)                            :: errorStatus
-    logical          (kind=c_bool    ), intent(in   )                 , optional :: writeOutput
-    type             (inputParameters), pointer                                  :: self
-    type             (varying_string )                                           :: parameterNameF
-    logical                                                                      :: writeOutput_
-
-    parameterNameF=String_C_to_Fortran(parameterName)
-    call c_f_pointer(cSelf,self)
-    writeOutput_=.true.
-    if (present(writeOutput)) writeOutput_=logical(writeOutput)
-    call self%value(char(parameterNameF),parameterValue,defaultValue,errorStatus,writeOutput_)
-    return
-  end subroutine cInputParametersValueName{cType¦label}
 
   function inputParameterListConstructor()
     !% Construct an {\normalfont \ttfamily inputParameterList} object.
