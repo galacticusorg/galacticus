@@ -221,7 +221,7 @@ call thisNode%<class>Destroy()
 
 \subsubsection{Component Methods}\label{sec:ComponentMethods}\index{components!methods}
 
-Component implementations optionally provide functions to get and set their properties (and to set the rate of change of evolvable properties) so that other components and functions within \glc\ to can interact with them in a way that is independent of the specific component implementation chosen. To permit this, \glc\ creates functions for each property to access it in all permitted ways\footnote{Additionally, C wrappers are generated to the get methods for real scalar properties. See \S\protect\ref{sec:MixedLanguageCoding} for a discussion of includeing C code within \protect\glc.}. For example, the {\normalfont \ttfamily exponential} implementation of the {\normalfont \ttfamily disk} component class has a ``{\normalfont \ttfamily massStellar}'' property defined by:
+Component implementations optionally provide functions to get and set their properties (and to set the rate of change of evolvable properties) so that other components and functions within \glc\ to can interact with them in a way that is independent of the specific component implementation chosen. To permit this, \glc\ creates functions for each property to access it in all permitted ways. For example, the {\normalfont \ttfamily exponential} implementation of the {\normalfont \ttfamily disk} component class has a ``{\normalfont \ttfamily massStellar}'' property defined by:
 \begin{verbatim}
  <method>
    <name>massStellar</name>
