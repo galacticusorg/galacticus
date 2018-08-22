@@ -38,7 +38,7 @@
   <stellarPopulationSpectraMethod value="FSPS"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
-  <barInstabilityMethod value="null"/>
+  <galacticDynamicsBarInstabilityMethod value="stable"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>

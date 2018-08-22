@@ -191,25 +191,30 @@
     <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
     <!-- Galactic disk dynamics options -->
-    <barInstabilityMethod value="ELN"/>
-    <stabilityThresholdGaseous value="0.7"/>
+    <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+  <stabilityThresholdGaseous value="0.7"/>
     <stabilityThresholdStellar value="1.1"/>
-
+  </galacticDynamicsBarInstabilityMethod>
     <!-- Star formation rate options -->
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
-    <starFormationTimescaleIntegratedSurfaceDensityTolerance value="1.0e-2"/>
-    <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
+    <starFormationTimescaleDisks value="intgrtdSurfaceDensity">
+    <tolerance value="1.0e-2"/>
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleDisks>
+
+  <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
       <frequencyStarFormation value="0.385"/>
       <clumpingFactorMolecularComplex value="5.000"/>
       <molecularFractionFast value="true"/>
     </starFormationRateSurfaceDensityDisksMethod>
-    <starFormationDiskMinimumTimescale value="0.001"/>
     <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
-    <starFormationSpheroidEfficiency value="0.04"/>
-    <starFormationSpheroidVelocityExponent value="2.0"/>
-    <starFormationSpheroidMinimumTimescale value="0.001"/>
+    <starFormationTimescaleSpheroids value="dynamicalTime">
+    <efficiency value="0.04"/>
+    <exponentVelocity value="2.0"/>
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleSpheroids>
 
-    <!-- Stellar populations options -->
+  <!-- Stellar populations options -->
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <stellarPopulationSpectraMethod value="FSPS"/>
     <imfSelectionMethod value="fixed"/>

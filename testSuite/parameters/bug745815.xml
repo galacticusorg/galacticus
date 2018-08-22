@@ -24,7 +24,10 @@
   <accretionRateThinDiskMinimum value="0.01d0"/>
   <adiabaticContractionGnedinA value="0.8"/>
   <adiabaticContractionGnedinOmega value="0.77"/>
-  <barInstabilityMethod value="ELN"/>
+  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+  <stabilityThresholdGaseous value="0.9"/>
+    <stabilityThresholdStellar value="1.1"/>
+  </galacticDynamicsBarInstabilityMethod>
   <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
   <blackHoleSeedMass value="100"/>
   <blackHoleWindEfficiency value="0.001"/>
@@ -116,8 +119,6 @@
 
   <spheroidEnergeticOutflowMassRate value="1"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
-  <stabilityThresholdGaseous value="0.9"/>
-  <stabilityThresholdStellar value="1.1"/>
   <starFormationTimescaleDisks value="dynamicalTime">
     <efficiency value="0.01"/>
     <timescaleMinimum value="0.001"/>

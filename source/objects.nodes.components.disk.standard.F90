@@ -635,6 +635,7 @@ contains
     procedure       (interruptTask                           )               , pointer :: interruptProcedure
     class           (starFormationFeedbackDisksClass         )               , pointer :: starFormationFeedbackDisks_
     class           (starFormationExpulsiveFeedbackDisksClass)               , pointer :: starFormationExpulsiveFeedbackDisks_
+    class           (galacticDynamicsBarInstabilityClass     )               , pointer :: galacticDynamicsBarInstability_
     type            (abundances                              ), save                   :: fuelAbundances                      , fuelAbundancesRates        , &
          &                                                                                stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -751,7 +752,8 @@ contains
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
        if (node%isPhysicallyPlausible) then
           ! Disk has positive angular momentum, so compute an instability timescale.
-          call Bar_Instability_Timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque)
+          galacticDynamicsBarInstability_ => galacticDynamicsBarInstability()
+          call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque)
        else
           ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
           ! case as the disk radius may be unphysical also.

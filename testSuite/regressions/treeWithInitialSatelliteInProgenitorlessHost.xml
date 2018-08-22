@@ -135,10 +135,10 @@
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
   <!-- Galactic disk dynamics options -->
-  <barInstabilityMethod value="ELN"/>
+  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
   <stabilityThresholdGaseous value="0.7"/>
-  <stabilityThresholdStellar value="0.7"/>
-
+    <stabilityThresholdStellar value="0.7"/>
+  </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">

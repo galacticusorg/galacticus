@@ -28,9 +28,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <barInstabilityMethod value="ELN"/>
-    <barInstabilityMethod value="null"/>
-    <barInstabilityMethod value="ELN+tidal"/>
+    <galacticDynamicsBarInstabilityMethod value="efstathiou1982"/>
+    <galacticDynamicsBarInstabilityMethod value="stable"/>
+    <galacticDynamicsBarInstabilityMethod value="efstathiou1982Tidal"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -64,13 +64,13 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <haloMassFunctionMethod value="shethTormen"        />
-    <haloMassFunctionMethod value="tinker2008"         />
-    <haloMassFunctionMethod value="tinker2008Generic"  />
-    <haloMassFunctionMethod value="pressSchechter"     />
+    <haloMassFunctionMethod value="shethTormen"/>
+    <haloMassFunctionMethod value="tinker2008"/>
+    <haloMassFunctionMethod value="tinker2008Generic"/>
+    <haloMassFunctionMethod value="pressSchechter"/>
     <haloMassFunctionMethod value="rodriguezPuebla2016"/>
-    <haloMassFunctionMethod value="bhattacharya2011"   />
-    <haloMassFunctionMethod value="despali2015"        />
+    <haloMassFunctionMethod value="bhattacharya2011"/>
+    <haloMassFunctionMethod value="despali2015"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -114,14 +114,14 @@
 	</mergerTreeBuildMassDistributionMethod>
 	<mergerTreeBuildMassDistributionMethod value="haloMassFunction" parameterLevel="top"/>
 	<mergerTreeBuildMassDistributionMethod value="stllrMssFnctn" parameterLevel="top">
-	  <massMaximum         value="7.5857758e11"/>
-	  <massMinimum         value="1.2589254e8" />
-	  <constant            value="1.0e-8"      />
-	  <alpha               value="-0.3"        />
-	  <beta                value="0.75"        />
-	  <massCharacteristic  value="5.5e10"      />
-	  <normalization       value="2.0e-4"      />
-	  <binWidthLogarithmic value="0.097"       />
+	  <massMaximum value="7.5857758e11"/>
+	  <massMinimum value="1.2589254e8"/>
+	  <constant value="1.0e-8"/>
+	  <alpha value="-0.3"/>
+	  <beta value="0.75"/>
+	  <massCharacteristic value="5.5e10"/>
+	  <normalization value="2.0e-4"/>
+	  <binWidthLogarithmic value="0.097"/>
 	  <timePerTreeFitFileName value="testSuite/data/treeTiming.xml" parameterLevel="top"/>
 	  <mergerTreeMassResolutionMethod value="fixed" parameterLevel="top">
 	    <massResolution value="5.0e11"/>
@@ -149,7 +149,7 @@
       <treeNodeMethodSatellite value="preset" parameterLevel="top">
     	<presetMergerTimes value="true" parameterLevel="-1"/>
     	<presetMergerNodes value="true" parameterLevel="-1"/>
-    	<satelliteMergingTimescalesSubresolutionMethod value="zero"              parameterLevel="-1"/>
+    	<satelliteMergingTimescalesSubresolutionMethod value="zero" parameterLevel="-1"/>
     	<satelliteMergingTimescalesSubresolutionMethod value="boylanKolchin2008" parameterLevel="-1"/>
       </treeNodeMethodSatellite>
       <presetSubhaloMasses value="false"/>
@@ -270,15 +270,15 @@
     <starFormationTimescaleDisksMethod value="dynamicalTime"/>
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
       <starFormationRateSurfaceDensityDisksMethod value="kennicuttSchmidt" parameterLevel="top">
-        <truncate value="true" />
+        <truncate value="true"/>
         <truncate value="false"/>
       </starFormationRateSurfaceDensityDisksMethod>
-      <starFormationRateSurfaceDensityDisksMethod value="blitz2006"    parameterLevel="top"/>
-      <starFormationRateSurfaceDensityDisksMethod value="krumholz2009" parameterLevel="top" >
+      <starFormationRateSurfaceDensityDisksMethod value="blitz2006" parameterLevel="top"/>
+      <starFormationRateSurfaceDensityDisksMethod value="krumholz2009" parameterLevel="top">
         <molecularFractionFast value="false"/>
-        <molecularFractionFast value="true" />
+        <molecularFractionFast value="true"/>
       </starFormationRateSurfaceDensityDisksMethod>
-      <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt"     parameterLevel="top"/>
+      <starFormationRateSurfaceDensityDisksMethod value="extendedSchmidt" parameterLevel="top"/>
     </starFormationTimescaleDisksMethod>
     <starFormationTimescaleDisksMethod value="baugh2005"/>
   </parameters>
@@ -821,7 +821,7 @@
     </haloSpinDistributionMethod>
     <randomSpinResetMassFactor value="2.0"/>
     <accretionHaloMethod value="simple">
-      <redshiftReionization            value="10.5"/>
+      <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>
     </accretionHaloMethod>
     <hotHaloMassDistributionMethod value="null"/>
@@ -1533,7 +1533,7 @@
       <massMinimum value="1.0e5"/>
     </mergerTreeBranchingProbabilityMethod>
     <mergerTreeBranchingProbabilityModifierMethod value="parkinson2008">
-      <G0     value="+0.57"/>
+      <G0 value="+0.57"/>
       <gamma1 value="+0.38"/>
       <gamma2 value="-0.01"/>
     </mergerTreeBranchingProbabilityModifierMethod>
@@ -1568,15 +1568,15 @@
     <taskMethod value="powerSpectra">
       <wavenumberMinimum value="1.0e-3"/>
       <wavenumberMaximum value="1.0e+3"/>
-      <pointsPerDecade   value="10"    />
-      <includeNonLinear  value="false" />
+      <pointsPerDecade value="10"/>
+      <includeNonLinear value="false"/>
     </taskMethod>
     <cosmologyParametersMethod value="simple">
-      <HubbleConstant  value="70.7"   />
-      <OmegaMatter     value="0.2695" />
-      <OmegaDarkEnergy value="0.7305" /> 
-      <OmegaBaryon     value="0.04541"/>
-      <temperatureCMB  value="2.72548"/>
+      <HubbleConstant value="70.7"/>
+      <OmegaMatter value="0.2695"/>
+      <OmegaDarkEnergy value="0.7305"/> 
+      <OmegaBaryon value="0.04541"/>
+      <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
     <outputRedshifts value="0.0 1.0"/>
   </parameters>

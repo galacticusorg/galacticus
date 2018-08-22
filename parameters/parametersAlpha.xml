@@ -99,7 +99,7 @@
   <galacticStructureRadiusSolverMethod value="fixed"/>
 
   <!-- Galactic disk dynamics options -->
-  <barInstabilityMethod value="null"/>
+  <galacticDynamicsBarInstabilityMethod value="stable"/>
 
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="haloScaling"/>
