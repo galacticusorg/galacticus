@@ -112,7 +112,7 @@ while ( my $line = <STDIN> ) {
 	}
     }
     # Handle unused function attributes.
-    if ( $line =~ m/^\s*subroutine\s+([a-z0-9_]+)/i ) {
+    if ( $line =~ m/^\d+\s*\|\s*subroutine\s+([a-z0-9_]+)/i ) {
 	$functionName = lc($1);
     }
     if ( $line =~ m/\[\-Wunused\-function\]/ && defined($functionName) ) {
@@ -121,7 +121,7 @@ while ( my $line = <STDIN> ) {
 	undef($functionName);
     }
     # Handle ignore "pointer may outlive target" warnings.
-    if ( $line =~ m/^\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
+    if ( $line =~ m/^\d+\s*\|\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
 	$pointerName = lc($1);
     }
     if ( $line =~ m/\[\-Wtarget\-lifetime\]/ ) {
