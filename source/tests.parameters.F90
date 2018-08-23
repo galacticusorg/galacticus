@@ -18,8 +18,6 @@
 
 !% Contains a program which tests parameter input.
 
-!: $(BUILDPATH)/tests.parameters.C.o
-
 program Test_Parameters
   !% Test reading of input parameters.
   use, intrinsic :: ISO_C_Binding
@@ -31,19 +29,11 @@ program Test_Parameters
   use               Cosmology_Parameters
   use               Cosmological_Density_Field
   implicit none
-  type   (hdf5Object                   )               :: outputFile
-  type   (varying_string               )               :: parameterFile
-  class  (cosmologyParametersClass     ), pointer      :: cosmologyParameters_
-  class  (cosmologicalMassVarianceClass), pointer      :: cosmologicalMassVariance_
-  type   (inputParameters              ), target       :: testParameters
-  logical(kind=c_bool                  ), dimension(3) :: results  
-  ! Define an interface to the C-based portion of the testing code.
-  interface
-     subroutine testParametersC(results) bind(c,name='testParametersC')
-       import c_bool
-       logical(c_bool), intent(  out) :: results(3)
-     end subroutine testParametersC
-  end interface
+  type (hdf5Object                   )          :: outputFile
+  type (varying_string               )          :: parameterFile
+  class(cosmologyParametersClass     ), pointer :: cosmologyParameters_
+  class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+  type (inputParameters              ), target  :: testParameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.parameters.size')
@@ -62,13 +52,6 @@ program Test_Parameters
   call Assert('ΩΛ  ',cosmologyParameters_%OmegaDarkEnergy(), 0.7275d0,relTol=1.0d-6)
   call Assert('H₀  ',cosmologyParameters_%HubbleConstant (),70.2000d0,relTol=1.0d-6)
   call Assert('TCMB',cosmologyParameters_%temperatureCMB (),2.72548d0,relTol=1.0d-6)
-  call Unit_Tests_End_Group()
-  ! Perform tests of the C interface to input parameter functions.
-  call Unit_Tests_Begin_Group("C interface")
-  call testParametersC(results)
-  call Assert('Retrieve double'                   ,logical(results(1)),.true.)
-  call Assert('Retrieve long'                     ,logical(results(2)),.true.)
-  call Assert('Retrieve double from subparameters',logical(results(3)),.true.)
   call Unit_Tests_End_Group()
   ! Test retrieval of cosmological mass variance through a reference.
   cosmologicalMassVariance_ => cosmologicalMassVariance()
