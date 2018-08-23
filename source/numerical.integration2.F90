@@ -767,17 +767,19 @@ contains
     !% is based on that in the \gls{gsl}.
     implicit none
     class           (integratorCompositeGaussKronrod1D), intent(inout)                    :: self
-    double precision                                   , intent(in   )                    :: a                 , b
-    double precision                                   , intent(  out)                    :: integralKronrod   , error
-    double precision                                   , dimension(size(self%xKronrod)-1) :: fValue1           , fValue2
-    double precision                                                                      :: integralGauss     , fCenter         , &
-         &                                                                                   xCenter           , halfLength      , &
-         &                                                                                   fSum              , x               , &
-         &                                                                                   halfLengthAbsolute, integralAbsolute, &
-         &                                                                                   mean              , integralAsc     , &
+    double precision                                   , intent(in   )                    :: a                                          , b
+    double precision                                   , intent(  out)                    :: integralKronrod                            , error
+    double precision                                   , dimension(size(self%xKronrod)-1) :: fValue1                                    , fValue2
+    double precision                                   , parameter                        :: errorScaleFactor   =200.0d0
+    double precision                                   , parameter                        :: errorScaleFactorPow=errorScaleFactor**1.5d0
+    double precision                                                                      :: integralGauss                              , fCenter         , &
+         &                                                                                   xCenter                                    , halfLength      , &
+         &                                                                                   fSum                                       , x               , &
+         &                                                                                   halfLengthAbsolute                         , integralAbsolute, &
+         &                                                                                   mean                                       , integralAsc     , &
          &                                                                                   scale
-    integer                                                                               :: pointCountKronrod , pointCountGauss , &
-         &                                                                                   jtw               , jtwm1           , &
+    integer                                                                               :: pointCountKronrod                          , pointCountGauss , &
+         &                                                                                   jtw                                        , jtwm1           , &
          &                                                                                   j
     
     pointCountKronrod =size(self%wKronrod)
@@ -817,11 +819,14 @@ contains
     integralKronrod =integralKronrod *halfLength
     integralAbsolute=integralAbsolute*halfLengthAbsolute
     integralAsc     =integralAsc     *halfLengthAbsolute
-    ! Compute error.
-    if (integralAsc /= 0.0d0 .and. error /= 0.0d0) then
-       scale=(200.0d0*error/integralAsc)**1.5d0
-       if (scale < 1.0d0) then
-          error=integralAsc*scale
+    ! Compute error. This is based on the GSL implementation. The logic is modified so that no power/sqrt is performed until after
+    ! the evaluation of the conditional (no need to compute an expensive function if we don't really need to). Additionally, the
+    ! expression for the error in the case where the conditional evaluates true is modified so that it involves a sqrt() instead
+    ! of a ()**1.5 as this is better optimized.
+    if (integralAsc /= 0.0d0 .and. error /= 0.0d0) then       
+       scale=errorScaleFactor*error
+       if (scale < integralAsc) then
+          error=errorScaleFactorPow*error*sqrt(error/integralAsc)
        else
           error=integralAsc
        end if
@@ -829,7 +834,7 @@ contains
     if (integralAbsolute > tiny(1.0d0)/(50.0d0*epsilon(1.0d0))) error=max(error,50.0d0*epsilon(1.0d0)*integralAbsolute)
     return
   end subroutine compositeGaussKronrod1DEvaluateInterval
-  
+
   ! Vectorized composite Gauss-Kronrod 1D integrator.
 
   subroutine vectorizedCompositeGaussKronrod1DInitialize(self,iterationsMaximum,order)
@@ -1088,16 +1093,18 @@ contains
     !% is based on that in the \gls{gsl}.
     implicit none
     class           (integratorVectorizedCompositeGaussKronrod1D), intent(inout)                                     :: self
-    double precision                                             , intent(in   )                                     :: a                 , b
-    double precision                                             , intent(  out)                                     :: integralKronrod   , error
-    double precision                                             , pointer      , dimension(:                      ) :: fValue1           , fValue2
+    double precision                                             , intent(in   )                                     :: a                                          , b
+    double precision                                             , intent(  out)                                     :: integralKronrod                            , error
+    double precision                                             , pointer      , dimension(:                      ) :: fValue1                                    , fValue2
     double precision                                             , target       , dimension(2*size(self%xKronrod)-1) :: fUnion
     double precision                                                            , dimension(2*size(self%xKronrod)-1) :: xUnion
-    double precision                                                                                                 :: integralGauss     , scale           , &
-         &                                                                                                              xCenter           , halfLength      , &
-         &                                                                                                              halfLengthAbsolute, integralAbsolute, &
-         &                                                                                                              mean              , integralAsc
-    integer                                                                                                          :: pointCountKronrod , pointCountGauss
+    double precision                                             , parameter                                         :: errorScaleFactor   =200.0d0
+    double precision                                             , parameter                                         :: errorScaleFactorPow=errorScaleFactor**1.5d0
+    double precision                                                                                                 :: integralGauss                              , scale           , &
+         &                                                                                                              xCenter                                    , halfLength      , &
+         &                                                                                                              halfLengthAbsolute                         , integralAbsolute, &
+         &                                                                                                              mean                                       , integralAsc
+    integer                                                                                                          :: pointCountKronrod                          , pointCountGauss
 
     ! Establish point counts and interval.
     pointCountKronrod =size(self%wKronrod)
@@ -1148,11 +1155,14 @@ contains
     integralKronrod =integralKronrod *halfLength
     integralAbsolute=integralAbsolute*halfLengthAbsolute
     integralAsc     =integralAsc     *halfLengthAbsolute
-    ! Compute error.
+    ! Compute error. This is based on the GSL implementation. The logic is modified so that no power/sqrt is performed until after
+    ! the evaluation of the conditional (no need to compute an expensive function if we don't really need to). Additionally, the
+    ! expression for the error in the case where the conditional evaluates true is modified so that it involves a sqrt() instead
+    ! of a ()**1.5 as this is better optimized.
     if (integralAsc /= 0.0d0 .and. error /= 0.0d0) then
-       scale=(200.0d0*error/integralAsc)**1.5d0
-       if (scale < 1.0d0) then
-          error=integralAsc*scale
+       scale=errorScaleFactor*error
+       if (scale < integralAsc) then
+          error=errorScaleFactorPow*error*sqrt(error/integralAsc)
        else
           error=integralAsc
        end if
@@ -1808,17 +1818,19 @@ contains
     !% is based on that in the \gls{gsl}.
     implicit none
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                                                         :: self
-    double precision                                                  , intent(in   )                                                         :: a                 , b
-    double precision                                                  , intent(  out), dimension(self%integrandCount                        ) :: integralKronrod   , error
+    double precision                                                  , intent(in   )                                                         :: a                                          , b
+    double precision                                                  , intent(  out), dimension(self%integrandCount                        ) :: integralKronrod                            , error
     logical                                                           , intent(inout), dimension(self%integrandCount                        ) :: mustEvaluate
-    double precision                                                                 , dimension(self%integrandCount                        ) :: integralGauss     , integralAbsolute  , &
-         &                                                                                                                                       mean              , integralAsc
-    double precision                                                  , pointer      , dimension(:                  ,:                      ) :: fValue1           , fValue2
+    double precision                                                                 , dimension(self%integrandCount                        ) :: integralGauss                              , integralAbsolute  , &
+         &                                                                                                                                       mean                                       , integralAsc
+    double precision                                                  , pointer      , dimension(:                  ,:                      ) :: fValue1                                    , fValue2
     double precision                                                  , target       , dimension(self%integrandCount,2*size(self%xKronrod)-1) :: fUnion
     double precision                                                                 , dimension(                    2*size(self%xKronrod)-1) :: xUnion
-    double precision                                                                                                                          :: halfLength        , halfLengthAbsolute, &
-         &                                                                                                                                       xCenter           , scale
-    integer                                                                                                                                   :: pointCountKronrod , pointCountGauss   , &
+    double precision                                                                                                                          :: halfLength                                 , halfLengthAbsolute, &
+         &                                                                                                                                       xCenter                                    , scale
+    double precision                                                  , parameter                                                             :: errorScaleFactor   =200.0d0
+    double precision                                                  , parameter                                                             :: errorScaleFactorPow=errorScaleFactor**1.5d0
+    integer                                                                                                                                   :: pointCountKronrod                          , pointCountGauss   , &
          &                                                                                                                                       i
 
     ! Establish point counts and interval.
@@ -1873,14 +1885,18 @@ contains
        integralKronrod (i)=integralKronrod (i)*halfLength
        integralAbsolute(i)=integralAbsolute(i)*halfLengthAbsolute
        integralAsc     (i)=integralAsc     (i)*halfLengthAbsolute
-       ! Compute error.
+       ! Compute error. This is based on the GSL implementation. The logic is modified so that no power/sqrt is performed until after
+       ! the evaluation of the conditional (no need to compute an expensive function if we don't really need to). Additionally, the
+       ! expression for the error in the case where the conditional evaluates true is modified so that it involves a sqrt() instead
+       ! of a ()**1.5 as this is better optimized.
        if (integralAsc(i) /= 0.0d0 .and. error(i) /= 0.0d0) then
-          scale=(200.0d0*error(i)/integralAsc(i))**1.5d0
-          if (scale < 1.0d0) then
-             error(i)=integralAsc(i)*scale
+          scale=errorScaleFactor*error(i)
+          if (scale < integralAsc(i)) then
+             error(i)=errorScaleFactorPow*error(i)*sqrt(error(i)/integralAsc(i))
           else
              error(i)=integralAsc(i)
           end if
+
        end if
        if (integralAbsolute(i) > tiny(1.0d0)/(50.0d0*epsilon(1.0d0))) error(i)=max(error(i),50.0d0*epsilon(1.0d0)*integralAbsolute(i))
     end do
@@ -1936,7 +1952,7 @@ contains
          &                                                                                                             previous         , newInterval
     integer         (c_size_t                                       )                                               :: iInterval        , intervalCount
     type            (varying_string                                 )                                               :: message
-    character       (len=13                                         )                                               :: label
+    character       (len=32                                         )                                               :: label
 
     ! If the interval has zero size, return a zero result.
     if (a == b) then

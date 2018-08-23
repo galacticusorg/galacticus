@@ -100,7 +100,7 @@ program Test_Integration2
      integrators     ( 4)%description="Vector YEPPP! adaptive composite trapezoidal"
      integrators     ( 4)%useYEPPP=.true.
      allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 5)%integrator_)
-     integrators     ( 5)%description="Scalar adaptive com     posite Gauss-Kronrod 15-point"
+     integrators     ( 5)%description="Scalar adaptive composite Gauss-Kronrod 15-point"
      integrators     ( 5)%useYEPPP=.false.
      integrators     ( 5)%order   =15
      allocate(integratorCompositeGaussKronrod1D                :: integrators     ( 6)%integrator_)
@@ -177,7 +177,10 @@ program Test_Integration2
      do trial=1,trialCount
         ! Evaluate internal integrators.
         do i=1,integratorCount
-          select type (integrator_ => integrators(i)%integrator_)
+#ifndef YEPPP
+           if (integrators(i)%useYEPPP) cycle
+#endif
+           select type (integrator_ => integrators(i)%integrator_)
            class is (integrator1D)
               call System_Clock(countStart,countRate)
               integral(i)=integrator_%evaluate(testFunctions(iFunction)%rangeLow,testFunctions(iFunction)%rangeHigh)
@@ -218,7 +221,10 @@ program Test_Integration2
      end do
      ! Report.
      do i=1,integratorCount
-        timeMean=dble(time(i))/dble(trialCount)
+#ifndef YEPPP
+        if (integrators(i)%useYEPPP) cycle
+#endif
+       timeMean=dble(time(i))/dble(trialCount)
         error= +abs(integral(i)-testFunctions(iFunction)%solution) &
              & /abs(            testFunctions(iFunction)%solution)
         if (error > toleranceAbsolute/abs(testFunctions(iFunction)%solution) .and. error > toleranceRelative) then
