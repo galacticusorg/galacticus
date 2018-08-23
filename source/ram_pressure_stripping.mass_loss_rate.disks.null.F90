@@ -16,39 +16,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null mass loss rates from disks due to ram pressure stripping.
+  !% Implementation of a null ram pressure stripping of disks class.
 
-module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null
-  !% Implements a null mass loss rates from disks due to ram pressure stripping.
-  implicit none
-  private
-  public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null_Init
+  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksNull" defaultThreadPrivate="yes">
+  !#  <description>A null model of ram pressure stripping in galactic disks.</description>
+  !# </ramPressureStrippingDisks>
+  type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksNull
+     !% Implementation of a null model of ram pressure stripping of galactic disks.
+     private
+   contains
+     procedure :: rateMassLoss => nullRateMassLoss
+  end type ramPressureStrippingDisksNull
+
+  interface ramPressureStrippingDisksNull
+     !% Constructors for the {\normalfont \ttfamily null} model of ram pressure stripping of disks class.
+     module procedure nullConstructorParameters
+  end interface ramPressureStrippingDisksNull
 
 contains
-
-  !# <ramPressureStrippingMassLossRateDisksMethod>
-  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null_Init</unitName>
-  !# </ramPressureStrippingMassLossRateDisksMethod>
-  subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null_Init(ramPressureStrippingMassLossRateDisksMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get)
-    !% Initializes the ``null'' ram pressure stripping mass loss rate from disks module.
-    use ISO_Varying_String
+  
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily null} timescale for star formation feedback in disks class which takes a
+    !% parameter set as input.
+    use Input_Parameters
     implicit none
-    type     (varying_string                                 ), intent(in   )          :: ramPressureStrippingMassLossRateDisksMethod
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
-
-    if (ramPressureStrippingMassLossRateDisksMethod == 'null') Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null
-    return
-  end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null_Init
-
-  double precision function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null(thisNode)
-    !% Computes the mass loss rate from disks due to ram pressure stripping. Always returns zero.
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type(ramPressureStrippingDisksNull)                :: self
+    type(inputParameters              ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
-    Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null=0.0d0
+    self=ramPressureStrippingDisksNull()
     return
-  end function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null
+  end function nullConstructorParameters
 
-end module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null
+  double precision function nullRateMassLoss(self,node)
+    !% Returns a zero mass loss rate due to ram pressure stripping.
+    implicit none
+    class(ramPressureStrippingDisksNull), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+    
+    nullRateMassLoss=0.0d0
+    return
+  end function nullRateMassLoss

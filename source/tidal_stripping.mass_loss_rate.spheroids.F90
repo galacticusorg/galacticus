@@ -16,65 +16,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of mass loss rates from spheroids due to tidal
-!% stripping.
+!% Contains a module which provides a class that implements tidal stripping in spheroids.
 
 module Tidal_Stripping_Mass_Loss_Rate_Spheroids
-  !% Implements calculations of mass loss rates from spheroids due to tidal stripping.
-  implicit none
-  private
-  public :: Tidal_Stripping_Mass_Loss_Rate_Spheroid
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                     :: moduleInitialized                          =.false.
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Tidal_Stripping_Mass_Loss_Rate_Spheroid), pointer :: Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get=>null()
-
-contains
-
-  double precision function Tidal_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
-    !% Return the tidal force for the hot halo of {\normalfont \ttfamily thisNode}.
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Input_Parameters
-    use ISO_Varying_String
-    !# <include directive="tidalStrippingMassLossRateSpheroidsMethod" type="moduleUse">
-    include 'tidal_stripping.mass_loss_rate.spheroids.modules.inc'
-    !# </include>
-    implicit none
-    type(treeNode      ), intent(inout) :: thisNode
-    type(varying_string)                :: tidalStrippingMassLossRateSpheroidsMethod
-
-    ! Initialize if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init)
-       if (.not.moduleInitialized) then
-          ! Get the tidal stripping mass loss rate method parameter.
-          !# <inputParameter>
-          !#   <name>tidalStrippingMassLossRateSpheroidsMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used when computing mass loss rates from spheroids due to tidal stripping.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="tidalStrippingMassLossRateSpheroidsMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>tidalStrippingMassLossRateSpheroidsMethod,Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get</functionArgs>
-          include 'tidal_stripping.mass_loss_rate.spheroids.inc'
-          !# </include>
-          if (.not.associated(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get)) call Galacticus_Error_Report('method ' &
-               &//char(tidalStrippingMassLossRateSpheroidsMethod)//' is unrecognized'//{introspection:location})
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init)
-    end if
-
-    ! Get the mass loss rate using the selected method.
-    Tidal_Stripping_Mass_Loss_Rate_Spheroid=Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get(thisNode)
-
-    return
-  end function Tidal_Stripping_Mass_Loss_Rate_Spheroid
-
+  !% Provides a class that implements calculations of tidal stripping in spheroids.
+  use Galacticus_Nodes
+  
+  !# <functionClass>
+  !#  <name>tidalStrippingSpheroids</name>
+  !#  <descriptiveName>Tidal stripping in spheroids</descriptiveName>
+  !#  <description>Class providing models of tidal stripping in spheroids.</description>
+  !#  <default>null</default>
+  !#  <method name="rateMassLoss" >
+  !#   <description>Returns the rate of mass loss (in $\M_\odot$~Gyr$^{-1}$) due to tidal stripping of the spheroid component of {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Tidal_Stripping_Mass_Loss_Rate_Spheroids

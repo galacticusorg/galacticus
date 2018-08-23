@@ -16,46 +16,76 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements simple mass loss rates from spheroids due to tidal stripping.
+  !% Implementation of a simple tidal stripping of spheroids class.
 
-module Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple
-  !% Implements simple mass loss rates from spheroids due to tidal stripping.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init
+  use Satellites_Tidal_Fields, only : satelliteTidalFieldClass, satelliteTidalField
+  
+  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsSimple" defaultThreadPrivate="yes">
+  !#  <description>A simple model of tidal stripping in galactic spheroids.</description>
+  !# </tidalStrippingSpheroids>
+  type, extends(tidalStrippingSpheroidsClass) :: tidalStrippingSpheroidsSimple
+     !% Implementation of a simple model of tidal stripping of galactic spheroids.
+     private
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_
+     double precision                                    :: rateFractionalMaximum
+   contains
+     final     ::                 simpleDestructor
+     procedure :: rateMassLoss => simpleRateMassLoss
+  end type tidalStrippingSpheroidsSimple
 
-  ! Parameter controlling the maximum mass loss fraction per dynamical time.
-  double precision :: tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum
+  interface tidalStrippingSpheroidsSimple
+     !% Constructors for the {\normalfont \ttfamily simple} model of tidal stripping of spheroids class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface tidalStrippingSpheroidsSimple
 
 contains
-
-  !# <tidalStrippingMassLossRateSpheroidsMethod>
-  !#  <unitName>Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init</unitName>
-  !# </tidalStrippingMassLossRateSpheroidsMethod>
-  subroutine Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init(tidalStrippingMassLossRateSpheroidsMethod,Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get)
-    !% Initializes the ``simple'' tidal stripping mass loss rate from spheroids module.
-    use ISO_Varying_String
+  
+  function simpleConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily simple} timescale for star formation feedback in spheroids class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                                ), intent(in   )          :: tidalStrippingMassLossRateSpheroidsMethod
-    procedure(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple), intent(inout), pointer :: Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get
+    type            (tidalStrippingSpheroidsSimple)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (satelliteTidalFieldClass     ), pointer       :: satelliteTidalField_
+    double precision                                               :: rateFractionalMaximum
 
-    if (tidalStrippingMassLossRateSpheroidsMethod == 'simple') then
-       Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get => Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple
-       !# <inputParameter>
-       !#   <name>tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>10.0d0</defaultValue>
-       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to tidal stripping.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>rateFractionalMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10.0d0</defaultValue>
+    !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to tidal stripping.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
+    self=tidalStrippingSpheroidsSimple(rateFractionalMaximum,satelliteTidalField_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init
+  end function simpleConstructorParameters
 
-  double precision function Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple(thisNode)
+  function simpleConstructorInternal(rateFractionalMaximum,satelliteTidalField_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily simple} model of tidal stripping of spheroids class.
+    implicit none
+    type            (tidalStrippingSpheroidsSimple)                        :: self
+    double precision                               , intent(in   )         :: rateFractionalMaximum
+    class           (satelliteTidalFieldClass     ), intent(in   ), target :: satelliteTidalField_
+    !# <constructorAssign variables="rateFractionalMaximum, *satelliteTidalField_"/>
+    
+    return
+  end function simpleConstructorInternal
+
+  subroutine simpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily simple} model of tidal stripping of spheroids class.
+    implicit none
+    type(tidalStrippingSpheroidsSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%satelliteTidalField_"/>
+    return
+  end subroutine simpleDestructor
+  
+  double precision function simpleRateMassLoss(self,node)
     !% Computes the mass loss rate from spheroids due to tidal stripping assuming a simple model. Specifically, the mass loss
     !% rate is
     !% \begin{equation}
@@ -71,55 +101,64 @@ contains
     !% \end{equation}
     !% is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$.
     use Galacticus_Nodes
-    use Satellites_Tidal_Fields
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
-    class           (nodeComponentSpheroid   ), pointer       :: thisSpheroid
-    class           (satelliteTidalFieldClass), pointer       :: satelliteTidalField_
-    double precision                                          :: forceGravitational  , forceTidal, massLossRateFractional, &
-         &                                                       radiusHalfMass      , tidalField, timeDynamical         , &
-         &                                                       velocityRotation
+    class           (tidalStrippingSpheroidsSimple), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    class           (nodeComponentSpheroid        ), pointer       :: spheroid
+    double precision                                               :: forceGravitational    , forceTidal    , &
+         &                                                            rateMassLossFractional, radiusHalfMass, &
+         &                                                            tidalTensorRadial     , timeDynamical , &
+         &                                                            velocityRotation
 
     ! Assume no mass loss rate due to tidal by default.
-    Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple=0.0d0
+    simpleRateMassLoss=0.0d0
     ! Return immediately if this is not a satellite.
-    if (.not.thisNode%isSatellite()) return
+    if (.not.node%isSatellite()) return
     ! Get the spheroid component.
-    thisSpheroid         => thisNode%spheroid()
+    spheroid          => node    %spheroid                              (    )
     ! Get the tidal field due to the host halo.
-    satelliteTidalField_ => satelliteTidalField                   (        )
-    tidalField           =  satelliteTidalField_%tidalTensorRadial(thisNode)
+    tidalTensorRadial =  self    %satelliteTidalField_%tidalTensorRadial(node)
     ! Get the spheroid half-mass radius.
-    radiusHalfMass       =  thisSpheroid%halfMassRadius()
+    radiusHalfMass    =  spheroid%halfMassRadius                        (    )
     ! Get the tidal force exerted at the half-mass radius.
-    forceTidal           =  tidalField*radiusHalfMass
+    forceTidal        =  +tidalTensorRadial &
+         &               *radiusHalfMass
     ! Return if the tidal field is compressive.
     if (forceTidal <= 0.0d0) return
-    ! Compute the rotation curve.
+    ! Compute the spheroid rotation curve.
     velocityRotation=Galactic_Structure_Rotation_Curve(                &
-         &                                             thisNode      , &
+         &                                             node          , &
          &                                             radiusHalfMass  &
          &                                            )
     ! Compute the gravitational restoring force in the spheroid midplane.
-    forceGravitational=velocityRotation**2/radiusHalfMass
+    forceGravitational=+velocityRotation**2 &
+         &             /radiusHalfMass
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
-    if (forceTidal < tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum*forceGravitational) then
-       massLossRateFractional=forceTidal/forceGravitational
+    if (forceTidal < self%rateFractionalMaximum*forceGravitational) then
+       rateMassLossFractional=+forceTidal         &
+            &                 /forceGravitational
     else
-       massLossRateFractional=tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum
+       rateMassLossFractional=+self%rateFractionalMaximum
     end if
     ! Compute the dynamical time.
-    timeDynamical         =(megaParsec/kilo/gigaYear)*thisSpheroid%radius()/thisSpheroid%velocity()
+    timeDynamical     =+megaParsec               &
+         &             /kilo                     &
+         &             /gigaYear                 &
+         &             *  spheroid%radius     () &
+         &             /  spheroid%velocity   ()
     ! Compute the mass loss rate.
-    Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple=massLossRateFractional*(thisSpheroid%massGas()+thisSpheroid%massStellar())/timeDynamical
+    simpleRateMassLoss=+rateMassLossFractional   &
+         &             *(                        &
+         &               +spheroid%massGas    () &
+         &               +spheroid%massStellar() &
+         &              )                        &
+         &             /timeDynamical
     return
-  end function Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple
-
-end module Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple
+  end function simpleRateMassLoss

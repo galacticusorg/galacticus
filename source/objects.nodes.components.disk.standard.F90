@@ -636,6 +636,8 @@ contains
     class           (starFormationFeedbackDisksClass         )               , pointer :: starFormationFeedbackDisks_
     class           (starFormationExpulsiveFeedbackDisksClass)               , pointer :: starFormationExpulsiveFeedbackDisks_
     class           (galacticDynamicsBarInstabilityClass     )               , pointer :: galacticDynamicsBarInstability_
+    class           (tidalStrippingDisksClass                )               , pointer :: tidalStrippingDisks_
+    class           (ramPressureStrippingDisksClass          )               , pointer :: ramPressureStrippingDisks_
     type            (abundances                              ), save                   :: fuelAbundances                      , fuelAbundancesRates        , &
          &                                                                                stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -813,7 +815,8 @@ contains
 
        ! Apply mass loss rate due to ram pressure stripping.
        if (disk%massGas() > 0.0d0) then
-          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(node)
+          ramPressureStrippingDisks_ => ramPressureStrippingDisks              (    )
+          massLossRate               =  ramPressureStrippingDisks_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo => node%hotHalo()
              call    disk%                  massGasRate(-massLossRate                                                                       )
@@ -827,7 +830,8 @@ contains
 
        ! Apply mass loss rate due to tidal stripping.
        if (disk%massGas()+disk%massStellar() > 0.0d0) then
-          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Disk(node)
+          tidalStrippingDisks_ => tidalStrippingDisks              (    )
+          massLossRate         =  tidalStrippingDisks_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo    => node%hotHalo()
              fractionGas    =  min(1.0d0,max(0.0d0,disk%massGas()/(disk%massGas()+disk%massStellar())))

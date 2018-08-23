@@ -16,45 +16,76 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements simple mass loss rates from disks due to ram pressure stripping.
+  !% Implementation of a simple ram pressure stripping of disks class.
 
-module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple
-  !% Implements simple mass loss rates from disks due to ram pressure stripping.
-  implicit none
-  private
-  public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init
+  use Hot_Halo_Ram_Pressure_Forces
 
-  ! Parameter controlling the maximum mass loss fraction per dynamical time.
-  double precision :: ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum
+  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksSimple" defaultThreadPrivate="yes">
+  !#  <description>A simple model of ram pressure stripping in galactic disks.</description>
+  !# </ramPressureStrippingDisks>
+  type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksSimple
+     !% Implementation of a simple model of ram pressure stripping of galactic disks.
+     private
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     double precision                                        :: rateFractionalMaximum
+   contains
+     final     ::                 simpleDestructor
+     procedure :: rateMassLoss => simpleRateMassLoss
+  end type ramPressureStrippingDisksSimple
+
+  interface ramPressureStrippingDisksSimple
+     !% Constructors for the {\normalfont \ttfamily simple} model of ram pressure stripping of disks class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface ramPressureStrippingDisksSimple
 
 contains
-
-  !# <ramPressureStrippingMassLossRateDisksMethod>
-  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init</unitName>
-  !# </ramPressureStrippingMassLossRateDisksMethod>
-  subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init(ramPressureStrippingMassLossRateDisksMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get)
-    !% Initializes the ``simple'' ram pressure stripping mass loss rate from disks module.
-    use ISO_Varying_String
+  
+  function simpleConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily simple} timescale for star formation feedback in disks class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                                   ), intent(in   )          :: ramPressureStrippingMassLossRateDisksMethod
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
+    type            (ramPressureStrippingDisksSimple)                :: self
+    type            (inputParameters                ), intent(inout) :: parameters
+    class           (hotHaloRamPressureForceClass   ), pointer       :: hotHaloRamPressureForce_
+    double precision                                                 :: rateFractionalMaximum
 
-    if (ramPressureStrippingMassLossRateDisksMethod == 'simple') then
-       Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple
-       !# <inputParameter>
-       !#   <name>ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>10.0d0</defaultValue>
-       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to ram pressure stripping.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>rateFractionalMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10.0d0</defaultValue>
+    !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from disks due to ram pressure stripping.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    self=ramPressureStrippingDisksSimple(rateFractionalMaximum,hotHaloRamPressureForce_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init
+  end function simpleConstructorParameters
 
-  double precision function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple(thisNode)
+  function simpleConstructorInternal(rateFractionalMaximum,hotHaloRamPressureForce_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily simple} model of ram pressure stripping of disks class.
+    implicit none
+    type            (ramPressureStrippingDisksSimple)                        :: self
+    double precision                                 , intent(in   )         :: rateFractionalMaximum
+    class           (hotHaloRamPressureForceClass   ), intent(in   ), target :: hotHaloRamPressureForce_
+    !# <constructorAssign variables="rateFractionalMaximum, *hotHaloRamPressureForce_"/>
+    
+    return
+  end function simpleConstructorInternal
+
+  subroutine simpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily simple} model of ram pressure stripping of disks class.
+    implicit none
+    type(ramPressureStrippingDisksSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    return
+  end subroutine simpleDestructor
+  
+  double precision function simpleRateMassLoss(self,node)
     !% Computes the mass loss rate from disks due to ram pressure stripping assuming a simple model. Specifically, the mass loss
     !% rate is
     !% \begin{equation}
@@ -70,60 +101,67 @@ contains
     !% \end{equation}
     !% is the gravitational restoring force in the disk at the half-mass radius, $r_\mathrm{1/2}$.
     use Galacticus_Nodes
-    use Hot_Halo_Ram_Pressure_Forces
     use Galactic_Structure_Options
     use Galactic_Structure_Surface_Densities
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
-    class           (nodeComponentDisk           ), pointer       :: thisDisk
-    class           (hotHaloRamPressureForceClass), pointer       :: hotHaloRamPressureForce_
-    double precision                                              :: forceGravitational, forceRamPressure , massLossRateFractional, &
-         &                                                           radiusHalfMass    , surfaceDensityGas, surfaceDensityTotal   , &
-         &                                                           timeDynamical
+    class           (ramPressureStrippingDisksSimple), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    class           (nodeComponentDisk              ), pointer       :: disk
+    double precision                                                 :: forceGravitational    , forceRamPressure   , &
+         &                                                              rateMassLossFractional, radiusHalfMass     , &
+         &                                                              surfaceDensityGas     , surfaceDensityTotal, &
+         &                                                              timeDynamical
 
     ! Assume no mass loss rate due to ram pressure by default.
-    Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple=0.0d0
+    simpleRateMassLoss=0.0d0
     ! Return immediately if this is not a satellite.
-    if (.not.thisNode%isSatellite()) return
+    if (.not.node%isSatellite()) return
     ! Get the disk component.
-    thisDisk           => thisNode%disk()
+    disk                => node%disk                          (    )
     ! Get the ram pressure force due to the hot halo.
-    hotHaloRamPressureForce_ => hotHaloRamPressureForce()
-    forceRamPressure         =  hotHaloRamPressureForce_%force(thisNode)
+    forceRamPressure    =  self%hotHaloRamPressureForce_%force(node)
     ! Get the disk half-mass radius.
-    radiusHalfMass     =  thisDisk%halfMassRadius()
+    radiusHalfMass      =  disk%halfMassRadius                (    )
     ! Compute the disk densities at the half mass radius.
-    surfaceDensityGas  =Galactic_Structure_Surface_Density(                                              &
-         &                                                 thisNode                                    , &
-         &                                                 [radiusHalfMass,0.0d0,0.0d0]                , &
-         &                                                 coordinateSystem=coordinateSystemCylindrical, &
-         &                                                 massType        =massTypeGaseous            , &
-         &                                                 componentType   =componentTypeDisk            &
-         &                                              )
-    surfaceDensityTotal=Galactic_Structure_Surface_Density(                                              &
-         &                                                 thisNode                                    , &
-         &                                                 [radiusHalfMass,0.0d0,0.0d0]                , &
-         &                                                 coordinateSystem=coordinateSystemCylindrical, &
-         &                                                 massType        =massTypeAll                , &
-         &                                                 componentType   =componentTypeDisk            &
-         &                                                )
+    surfaceDensityGas   =  Galactic_Structure_Surface_Density(                                              &
+         &                                                    node                                        , &
+         &                                                    [radiusHalfMass,0.0d0,0.0d0]                , &
+         &                                                    coordinateSystem=coordinateSystemCylindrical, &
+         &                                                    massType        =massTypeGaseous            , &
+         &                                                    componentType   =componentTypeDisk            &
+         &                                                   )
+    surfaceDensityTotal =  Galactic_Structure_Surface_Density(                                              &
+         &                                                    node                                        , &
+         &                                                    [radiusHalfMass,0.0d0,0.0d0]                , &
+         &                                                    coordinateSystem=coordinateSystemCylindrical, &
+         &                                                    massType        =massTypeAll                , &
+         &                                                    componentType   =componentTypeDisk            &
+         &                                                   )
     ! Compute the gravitational restoring force in the disk midplane.
-    forceGravitational =2.0d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*surfaceDensityTotal
+    forceGravitational  =  +2.0d0                           &
+         &                 *Pi                              &
+         &                 *gravitationalConstantGalacticus &
+         &                 *surfaceDensityGas               &
+         &                 *surfaceDensityTotal
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
-    if (forceRamPressure < ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum*forceGravitational) then
-       massLossRateFractional=forceRamPressure/forceGravitational
+    if (forceRamPressure < self%rateFractionalMaximum*forceGravitational) then
+       rateMassLossFractional=forceRamPressure/forceGravitational
     else
-       massLossRateFractional=ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum
+       rateMassLossFractional=self%rateFractionalMaximum
     end if
     ! Compute the dynamical time.
-    timeDynamical         =(megaParsec/kilo/gigaYear)*thisDisk%radius()/thisDisk%velocity()
+    timeDynamical     =+megaParsec             &
+         &             /kilo                   &
+         &             /gigaYear               &
+         &             *disk%radius  ()        &
+         &             /disk%velocity()
     ! Compute the mass loss rate.
-    Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple=massLossRateFractional*thisDisk%massGas()/timeDynamical
+    simpleRateMassLoss=+rateMassLossFractional &
+         &             *disk%massGas ()        &
+         &             /timeDynamical
     return
-  end function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple
-
-end module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple
+  end function simpleRateMassLoss

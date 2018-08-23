@@ -16,41 +16,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null mass loss rates from disks due to tidal stripping.
+  !% Implementation of a null tidal stripping of disks class.
 
-module Tidal_Stripping_Mass_Loss_Rate_Disks_Null
-  !% Implements a null mass loss rates from disks due to tidal stripping.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Tidal_Stripping_Mass_Loss_Rate_Disks_Null_Init
+  !# <tidalStrippingDisks name="tidalStrippingDisksNull" defaultThreadPrivate="yes">
+  !#  <description>A null model of tidal stripping in galactic disks.</description>
+  !# </tidalStrippingDisks>
+  type, extends(tidalStrippingDisksClass) :: tidalStrippingDisksNull
+     !% Implementation of a null model of tidal stripping of galactic disks.
+     private
+   contains
+     procedure :: rateMassLoss => nullRateMassLoss
+  end type tidalStrippingDisksNull
+
+  interface tidalStrippingDisksNull
+     !% Constructors for the {\normalfont \ttfamily null} model of tidal stripping of disks class.
+     module procedure nullConstructorParameters
+  end interface tidalStrippingDisksNull
 
 contains
-
-  !# <tidalStrippingMassLossRateDisksMethod>
-  !#  <unitName>Tidal_Stripping_Mass_Loss_Rate_Disks_Null_Init</unitName>
-  !# </tidalStrippingMassLossRateDisksMethod>
-  subroutine Tidal_Stripping_Mass_Loss_Rate_Disks_Null_Init(tidalStrippingMassLossRateDisksMethod,Tidal_Stripping_Mass_Loss_Rate_Disk_Get)
-    !% Initializes the ``null'' tidal stripping mass loss rate from disks module.
-    use ISO_Varying_String
+  
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily null} timescale for star formation feedback in disks class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                          ), intent(in   )          :: tidalStrippingMassLossRateDisksMethod
-    procedure(Tidal_Stripping_Mass_Loss_Rate_Disk_Null), intent(inout), pointer :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
-
-    if (tidalStrippingMassLossRateDisksMethod == 'null') Tidal_Stripping_Mass_Loss_Rate_Disk_Get => Tidal_Stripping_Mass_Loss_Rate_Disk_Null
-    return
-  end subroutine Tidal_Stripping_Mass_Loss_Rate_Disks_Null_Init
-
-  double precision function Tidal_Stripping_Mass_Loss_Rate_Disk_Null(thisNode)
-    !% Computes the mass loss rate from disks due to tidal stripping. Always returns zero.
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type(tidalStrippingDisksNull)                :: self
+    type(inputParameters        ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
-    Tidal_Stripping_Mass_Loss_Rate_Disk_Null=0.0d0
+    self=tidalStrippingDisksNull()
     return
-  end function Tidal_Stripping_Mass_Loss_Rate_Disk_Null
+  end function nullConstructorParameters
 
-end module Tidal_Stripping_Mass_Loss_Rate_Disks_Null
+  double precision function nullRateMassLoss(self,node)
+    !% Returns a zero mass loss rate due to tidal stripping.
+    implicit none
+    class(tidalStrippingDisksNull), intent(inout) :: self
+    type (treeNode               ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+    
+    nullRateMassLoss=0.0d0
+    return
+  end function nullRateMassLoss

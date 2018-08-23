@@ -116,12 +116,12 @@
   <hotHaloTrackStrippedGas value="true"/>
 
   <!-- Galaxy ram pressure stripping options -->
-  <ramPressureStrippingMassLossRateDisksMethod value="null"/>
-  <ramPressureStrippingMassLossRateSpheroidsMethod value="null"/>
+  <ramPressureStrippingDisksMethod value="null"/>
+  <ramPressureStrippingSpheroidsMethod value="null"/>
 
   <!-- Galaxy tidal stripping options -->
-  <tidalStrippingMassLossRateDisksMethod value="null"/>
-  <tidalStrippingMassLossRateSpheroidsMethod value="null"/>
+  <tidalStrippingDisksMethod value="null"/>
+  <tidalStrippingSpheroidsMethod value="null"/>
   <satelliteTidalFieldMethod value="null"/>
 
   <!-- Galactic structure solver options -->

@@ -16,65 +16,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of mass loss rates from disks due to tidal
-!% stripping.
+!% Contains a module which provides a class that implements tidal stripping in disks.
 
 module Tidal_Stripping_Mass_Loss_Rate_Disks
-  !% Implements calculations of mass loss rates from disks due to tidal stripping.
-  implicit none
-  private
-  public :: Tidal_Stripping_Mass_Loss_Rate_Disk
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                                 :: moduleInitialized                      =.false.
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Tidal_Stripping_Mass_Loss_Rate_Disk), pointer :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get=>null()
-
-contains
-
-  double precision function Tidal_Stripping_Mass_Loss_Rate_Disk(thisNode)
-    !% Return the tidal force for the hot halo of {\normalfont \ttfamily thisNode}.
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Input_Parameters
-    use ISO_Varying_String
-    !# <include directive="tidalStrippingMassLossRateDisksMethod" type="moduleUse">
-    include 'tidal_stripping.mass_loss_rate.disks.modules.inc'
-    !# </include>
-    implicit none
-    type(treeNode      ), intent(inout) :: thisNode
-    type(varying_string)                :: tidalStrippingMassLossRateDisksMethod
-
-    ! Initialize if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical(Tidal_Stripping_Mass_Loss_Rate_Disk_Init)
-       if (.not.moduleInitialized) then
-          ! Get the tidal stripping mass loss rate method parameter.
-          !# <inputParameter>
-          !#   <name>tidalStrippingMassLossRateDisksMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used when computing mass loss rates from disks due to tidal stripping.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="tidalStrippingMassLossRateDisksMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>tidalStrippingMassLossRateDisksMethod,Tidal_Stripping_Mass_Loss_Rate_Disk_Get</functionArgs>
-          include 'tidal_stripping.mass_loss_rate.disks.inc'
-          !# </include>
-          if (.not.associated(Tidal_Stripping_Mass_Loss_Rate_Disk_Get)) call Galacticus_Error_Report('method ' &
-               &//char(tidalStrippingMassLossRateDisksMethod)//' is unrecognized'//{introspection:location})
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(Tidal_Stripping_Mass_Loss_Rate_Disk_Init)
-    end if
-
-    ! Get the mass loss rate using the selected method.
-    Tidal_Stripping_Mass_Loss_Rate_Disk=Tidal_Stripping_Mass_Loss_Rate_Disk_Get(thisNode)
-
-    return
-  end function Tidal_Stripping_Mass_Loss_Rate_Disk
-
+  !% Provides a class that implements calculations of tidal stripping in disks.
+  use Galacticus_Nodes
+  
+  !# <functionClass>
+  !#  <name>tidalStrippingDisks</name>
+  !#  <descriptiveName>Tidal stripping in disks</descriptiveName>
+  !#  <description>Class providing models of tidal stripping in disks.</description>
+  !#  <default>null</default>
+  !#  <method name="rateMassLoss" >
+  !#   <description>Returns the rate of mass loss (in $\M_\odot$~Gyr$^{-1}$) due to tidal stripping of the disk component of {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Tidal_Stripping_Mass_Loss_Rate_Disks
