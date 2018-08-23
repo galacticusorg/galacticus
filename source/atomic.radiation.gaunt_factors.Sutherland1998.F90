@@ -18,16 +18,25 @@
 
   !% An implementation of Gaunt factors using the \cite{sutherland_accurate_1998} fitting function.
 
+  use Atomic_Ionization_Potentials
+
   !# <gauntFactor name="gauntFactorSutherland1998">
   !#  <description>Gaunt factors are computed using the fitting function of \cite{sutherland_accurate_1998}.</description>
   !# </gauntFactor>
-
   type, extends(gauntFactorClass) :: gauntFactorSutherland1998
      !% A gaunt factor class implementing the fitting function of \cite{sutherland_accurate_1998}.
      private
+     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_
    contains
+     final     ::          sutherland1998Destructor
      procedure :: total => sutherland1998Total
   end type gauntFactorSutherland1998
+
+  interface gauntFactorSutherland1998
+     !% Constructors for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+     module procedure sutherland1998ConstructorParameters
+     module procedure sutherland1998ConstructorInternal
+  end interface gauntFactorSutherland1998
   
   ! Arrays to hold coefficients of the fitting function.
   integer         , parameter                                 :: sutherland1998CoefficientCount       =  41
@@ -98,24 +107,54 @@
        &                                                                                             ]
 
 contains
-  
+
+  function sutherland1998ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type (gauntFactorSutherland1998     )                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
+
+    !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    self=gauntFactorSutherland1998(atomicIonizationPotential_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function sutherland1998ConstructorParameters
+
+  function sutherland1998ConstructorInternal(atomicIonizationPotential_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    implicit none
+    type (gauntFactorSutherland1998     )                        :: self
+    class(atomicIonizationPotentialClass), intent(in   ), target :: atomicIonizationPotential_
+    !# <constructorAssign variables="*atomicIonizationPotential_"/>
+
+    return
+  end function sutherland1998ConstructorInternal
+
+  subroutine sutherland1998Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily sutherland1998} gaunt factor class.
+    implicit none
+    type(gauntFactorSutherland1998), intent(inout) :: self
+
+    !# <objectDestructor name="self%atomicIonizationPotential_"/>
+    return
+  end subroutine sutherland1998Destructor
+
   double precision function sutherland1998Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
     !% \cite{sutherland_accurate_1998}. 
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
-    use Arrays_Search
-    use Atomic_Ionization_Potentials
-    use Galacticus_Error
+    use               Numerical_Constants_Physical
+    use               Numerical_Constants_Units
+    use               Arrays_Search
+    use               Galacticus_Error
     implicit none
-    class           (gauntFactorSutherland1998     ), intent(inout) :: self
-    integer                                         , intent(in   ) :: atomicNumber              , electronNumber
-    double precision                                , intent(in   ) :: temperature
-    class           (atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
-    integer         (c_size_t                      )                :: iTable
-    double precision                                                :: energyScaleOffset         , energyScaleLogarithmic
-    !GCC$ attributes unused :: self
+    class           (gauntFactorSutherland1998), intent(inout) :: self
+    integer                                    , intent(in   ) :: atomicNumber     , electronNumber
+    double precision                           , intent(in   ) :: temperature
+    integer         (c_size_t                 )                :: iTable
+    double precision                                           :: energyScaleOffset, energyScaleLogarithmic
     
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then
@@ -125,27 +164,26 @@ contains
     ! Validate input.
     if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
-    atomicIonizationPotential_ => atomicIonizationPotential()
-    if (atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
+    if (self%atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        sutherland1998Total=0.0d0
     else
-       energyScaleLogarithmic=log10(atomicIonizationPotential_%potential(atomicNumber,electronNumber)*electronVolt/temperature)-log10(boltzmannsConstant)
+       energyScaleLogarithmic=log10(self%atomicIonizationPotential_%potential(atomicNumber,electronNumber)*electronVolt/temperature)-log10(boltzmannsConstant)
        iTable=Search_Array(sutherland1998EnergyScalesLogarithmic,energyScaleLogarithmic)
        if (iTable <=                0) iTable=               1
        if (iTable >= sutherland1998CoefficientCount) iTable=sutherland1998CoefficientCount
        ! Interpolate to get actual value.
-       energyScaleOffset          =+energyScaleLogarithmic          &
+       energyScaleOffset          =+energyScaleLogarithmic                        &
             &                      -sutherland1998EnergyScalesLogarithmic(iTable)
        sutherland1998Total=+sutherland1998GauntFactorZeroPoint           (iTable) &
-            &                      +    energyScaleOffset           &
-            &                      *(                               &
+            &                      +    energyScaleOffset                         &
+            &                      *(                                             &
             &                        +  sutherland1998FitCoefficient1    (iTable) &
-            &                        +  energyScaleOffset           &
-            &                        *(                             &
+            &                        +  energyScaleOffset                         &
+            &                        *(                                           &
             &                          +sutherland1998FitCoefficient2    (iTable) &
-            &                          +energyScaleOffset           &
+            &                          +energyScaleOffset                         &
             &                          *sutherland1998FitCoefficient3    (iTable) &
-            &                         )                             &
+            &                         )                                           &
             &                       )
     end if
     return

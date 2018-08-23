@@ -18,16 +18,25 @@
 
   !% An implementation of Gaunt factors using the \cite{van_hoof_accurate_2014} fitting function.
 
+  use Atomic_Ionization_Potentials
+
   !# <gauntFactor name="gauntFactorVanHoof2014">
   !#  <description>Gaunt factors are computed using the fitting function of \cite{van_hoof_accurate_2014}.</description>
   !# </gauntFactor>
-
   type, extends(gauntFactorClass) :: gauntFactorVanHoof2014
      !% A gaunt factor class implementing the fitting function of \cite{van_hoof_accurate_2014}.
      private
+     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_
    contains
+     final     ::          vanHoof2014Destructor
      procedure :: total => vanHoof2014Total
   end type gauntFactorVanHoof2014
+  
+  interface gauntFactorVanHoof2014
+     !% Constructors for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+     module procedure vanHoof2014ConstructorParameters
+     module procedure vanHoof2014ConstructorInternal
+  end interface gauntFactorVanHoof2014
   
   ! Arrays to hold coefficients of the fitting function.
   double precision, dimension(0:4,2) :: vanHoof2014FitA=reshape(                       &
@@ -63,6 +72,39 @@
 
 contains
   
+  function vanHoof2014ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type (gauntFactorVanHoof2014        )                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
+
+    !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    self=gauntFactorVanHoof2014(atomicIonizationPotential_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function vanHoof2014ConstructorParameters
+
+  function vanHoof2014ConstructorInternal(atomicIonizationPotential_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    implicit none
+    type (gauntFactorVanHoof2014        )                        :: self
+    class(atomicIonizationPotentialClass), intent(in   ), target :: atomicIonizationPotential_
+    !# <constructorAssign variables="*atomicIonizationPotential_"/>
+
+    return
+  end function vanHoof2014ConstructorInternal
+
+  subroutine vanHoof2014Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily vanHoof2014} gaunt factor class.
+    implicit none
+    type(gauntFactorVanHoof2014), intent(inout) :: self
+
+    !# <objectDestructor name="self%atomicIonizationPotential_"/>
+    return
+  end subroutine vanHoof2014Destructor
+
   double precision function vanHoof2014Total(self,atomicNumber,electronNumber,temperature)
     !% Compute thermally averaged Gaunt factors for thermal electron distributions using the tabulations and fits of
     !% \cite{van_hoof_accurate_2014}. 
@@ -70,16 +112,13 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Arrays_Search
-    use Atomic_Ionization_Potentials
     use Galacticus_Error
     implicit none
-    class           (gauntFactorVanHoof2014        ), intent(inout) :: self
-    integer                                         , intent(in   ) :: atomicNumber              , electronNumber
-    double precision                                , intent(in   ) :: temperature                     
-    class           (atomicIonizationPotentialClass), pointer       :: atomicIonizationPotential_
-    double precision                                                :: gammaSquared              , g
-    integer                                                         :: i
-    !GCC$ attributes unused :: self
+    class           (gauntFactorVanHoof2014), intent(inout) :: self
+    integer                                 , intent(in   ) :: atomicNumber, electronNumber
+    double precision                        , intent(in   ) :: temperature       
+    double precision                                        :: gammaSquared, g
+    integer                                                 :: i
     
     ! Return zero for unphysical temperatures
     if (temperature <= 0.0d0) then
@@ -89,8 +128,7 @@ contains
     ! Validate input.
     if (electronNumber > atomicNumber) call Galacticus_Error_Report('number of electrons exceeds atomic number'//{introspection:location})
     ! Return zero if ioniziation potential is not available for this ion.
-    atomicIonizationPotential_ => atomicIonizationPotential()
-    if (atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
+    if (self%atomicIonizationPotential_%potential(atomicNumber,electronNumber) == 0.0d0) then
        vanHoof2014Total=0.0d0
     else
        ! Evaluate the gamma parameter.

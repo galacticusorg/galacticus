@@ -20,14 +20,9 @@
 
 module Atomic_Radiation_Gaunt_Factors
   !% Provides a class implenting Gaunt factors.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  !# <include directive="gauntFactor" type="functionModules" >
-  include 'gauntFactor.functionModules.inc'
-  !# </include>
-  private
 
-  !# <include directive="gauntFactor" type="function" >
+  !# <functionClass>
+  !#  <name>gauntFactor</name>
   !#  <descriptiveName>Gaunt Factors</descriptiveName>
   !#  <description>Class providing Gaunt factors.</description>
   !#  <default>sutherland1998</default>
@@ -39,7 +34,6 @@ module Atomic_Radiation_Gaunt_Factors
   !#   <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
   !#   <argument>double precision, intent(in   ) :: temperature</argument>                     
   !#  </method>
-  include 'gauntFactor.type.inc'
-  !# </include>
+  !# </functionClass>
   
 end module Atomic_Radiation_Gaunt_Factors
