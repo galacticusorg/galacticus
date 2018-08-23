@@ -413,7 +413,15 @@ my @translations =
 	     "stabilityThresholdStellar"                                             => "galacticDynamicsBarInstabilityMethod.efstathiou1982.--stabilityThresholdStellar"    ,
 	     "stabilityThresholdGaseous"                                             => "galacticDynamicsBarInstabilityMethod.efstathiou1982.--stabilityThresholdGaseous"    ,
 	     "stabilityTimescaleMinimum"                                             => "galacticDynamicsBarInstabilityMethod.efstathiou1982.--timescaleMinimum"             ,
-	     "harrassmentMassThreshold"                                              => "galacticDynamicsBarInstabilityMethod.efstathiou1982Tidal.--massThresholdHarrassment"
+	     "harrassmentMassThreshold"                                              => "galacticDynamicsBarInstabilityMethod.efstathiou1982Tidal.--massThresholdHarrassment",
+	     "tidalStrippingMassLossRateDisksMethod"                                 => "tidalStrippingDisksMethod"                                                          ,
+	     "tidalStrippingMassLossRateDiskSimpleFractionalRateMaximum"             => "tidalStrippingDisksMethod.simple.--rateFractionalMaximum"                           ,
+	     "tidalStrippingMassLossRateSpheroidsMethod"                             => "tidalStrippingSpheroidsMethod"                                                      ,
+	     "tidalStrippingMassLossRateSpheroidSimpleFractionalRateMaximum"         => "tidalStrippingSpheroidsMethod.simple.--rateFractionalMaximum"                       ,
+	     "ramPressureStrippingMassLossRateDisksMethod"                           => "ramPressureStrippingDisksMethod"                                                    ,
+	     "ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum"       => "ramPressureStrippingDisksMethod.simple.--rateFractionalMaximum"                     ,
+	     "ramPressureStrippingMassLossRateSpheroidsMethod"                       => "ramPressureStrippingSpheroidsMethod"                                                ,
+	     "ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMaximum"   => "ramPressureStrippingSpheroidsMethod.simple.--rateFractionalMaximum"                 ,
 	 },
 		 values        =>
 	     {

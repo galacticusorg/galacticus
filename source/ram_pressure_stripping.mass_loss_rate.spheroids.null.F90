@@ -16,41 +16,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null mass loss rates from spheroids due to ram pressure stripping.
+  !% Implementation of a null ram pressure stripping of spheroids class.
 
-module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null
-  !% Implements a null mass loss rates from spheroids due to ram pressure stripping.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null_Init
+  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsNull" defaultThreadPrivate="yes">
+  !#  <description>A null model of ram pressure stripping in galactic spheroids.</description>
+  !# </ramPressureStrippingSpheroids>
+  type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsNull
+     !% Implementation of a null model of ram pressure stripping of galactic spheroids.
+     private
+   contains
+     procedure :: rateMassLoss => nullRateMassLoss
+  end type ramPressureStrippingSpheroidsNull
+
+  interface ramPressureStrippingSpheroidsNull
+     !% Constructors for the {\normalfont \ttfamily null} model of ram pressure stripping of spheroids class.
+     module procedure nullConstructorParameters
+  end interface ramPressureStrippingSpheroidsNull
 
 contains
-
-  !# <ramPressureStrippingMassLossRateSpheroidsMethod>
-  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null_Init</unitName>
-  !# </ramPressureStrippingMassLossRateSpheroidsMethod>
-  subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null_Init(ramPressureStrippingMassLossRateSpheroidsMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get)
-    !% Initializes the ``null'' ram pressure stripping mass loss rate from spheroids module.
-    use ISO_Varying_String
+  
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily null} timescale for star formation feedback in spheroids class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                                     ), intent(in   )          :: ramPressureStrippingMassLossRateSpheroidsMethod
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get
-
-    if (ramPressureStrippingMassLossRateSpheroidsMethod == 'null') Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null
-    return
-  end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null_Init
-
-  double precision function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null(thisNode)
-    !% Computes the mass loss rate from spheroids due to ram pressure stripping. Always returns zero.
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type(ramPressureStrippingSpheroidsNull)                :: self
+    type(inputParameters                  ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
-    Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null=0.0d0
+    self=ramPressureStrippingSpheroidsNull()
     return
-  end function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null
+  end function nullConstructorParameters
 
-end module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null
+  double precision function nullRateMassLoss(self,node)
+    !% Returns a zero mass loss rate due to ram pressure stripping.
+    implicit none
+    class(ramPressureStrippingSpheroidsNull), intent(inout) :: self
+    type (treeNode                         ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
+    
+    nullRateMassLoss=0.0d0
+    return
+  end function nullRateMassLoss

@@ -664,28 +664,28 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <ramPressureStrippingMassLossRateDisksMethod value="simple"/>
-    <ramPressureStrippingMassLossRateDisksMethod value="null"/>
+    <ramPressureStrippingDisksMethod value="simple"/>
+    <ramPressureStrippingDisksMethod value="null"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <ramPressureStrippingMassLossRateSpheroidsMethod value="simple"/>
-    <ramPressureStrippingMassLossRateSpheroidsMethod value="null"/>
+    <ramPressureStrippingSpheroidsMethod value="simple"/>
+    <ramPressureStrippingSpheroidsMethod value="null"/>
   </parameters>
 
   <!-- Disk and spheroid tidal mass loss rates -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <tidalStrippingMassLossRateDisksMethod value="simple"/>
-    <tidalStrippingMassLossRateDisksMethod value="null"/>
+    <tidalStrippingDisksMethod value="simple"/>
+    <tidalStrippingDisksMethod value="null"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <tidalStrippingMassLossRateSpheroidsMethod value="simple"/>
-    <tidalStrippingMassLossRateSpheroidsMethod value="null"/>
+    <tidalStrippingSpheroidsMethod value="simple"/>
+    <tidalStrippingSpheroidsMethod value="null"/>
   </parameters>
   
   <!-- Dark energy cosmology -->

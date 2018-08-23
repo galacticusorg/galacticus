@@ -597,6 +597,8 @@ contains
     class           (darkMatterHaloScaleClass                    )               , pointer :: darkMatterHaloScale_
     class           (starFormationFeedbackSpheroidsClass         )               , pointer :: starFormationFeedbackSpheroids_
     class           (starFormationExpulsiveFeedbackSpheroidsClass)               , pointer :: starFormationExpulsiveFeedbackSpheroids_
+    class           (tidalStrippingSpheroidsClass                )               , pointer :: tidalStrippingSpheroids_
+    class           (ramPressureStrippingSpheroidsClass          )               , pointer :: ramPressureStrippingSpheroids_
     class           (satelliteTidalFieldClass                    )               , pointer :: satelliteTidalField_
     double precision                                              , parameter              :: radiusMinimum                           =1.0d-12
     double precision                                              , parameter              :: massMinimum                             =1.0d-06
@@ -705,7 +707,8 @@ contains
 
        ! Apply mass loss rate due to ram pressure stripping.
        if (spheroid%massGas() > 0.0d0) then
-          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid(node)
+          ramPressureStrippingSpheroids_ => ramPressureStrippingSpheroids              (    )
+          massLossRate                   =  ramPressureStrippingSpheroids_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo => node%hotHalo()
              call spheroid%                  massGasRate(-massLossRate                                                                       )
@@ -719,7 +722,8 @@ contains
 
        ! Apply mass loss rate due to tidal stripping.
        if (spheroid%massGas()+spheroid%massStellar() > 0.0d0) then
-          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Spheroid(node)
+          tidalStrippingSpheroids_ => tidalStrippingSpheroids              (    )
+          massLossRate             =  tidalStrippingSpheroids_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo    => node%hotHalo()
              fractionGas    =  min(1.0d0,max(0.0d0,spheroid%massGas()/(spheroid%massGas()+spheroid%massStellar())))

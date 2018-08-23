@@ -16,47 +16,76 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements simple mass loss rates from spheroids due to ram pressure stripping.
+  !% Implementation of a simple ram pressure stripping of spheroids class.
 
-module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple
-  !% Implements simple mass loss rates from spheroids due to ram pressure stripping.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init
+  use Hot_Halo_Ram_Pressure_Forces
 
-  ! Parameter controlling the maximum mass loss fraction per dynamical time.
-  double precision :: ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax
+  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsSimple" defaultThreadPrivate="yes">
+  !#  <description>A simple model of ram pressure stripping in galactic spheroids.</description>
+  !# </ramPressureStrippingSpheroids>
+  type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsSimple
+     !% Implementation of a simple model of ram pressure stripping of galactic spheroids.
+     private
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     double precision                                        :: rateFractionalMaximum
+   contains
+     final     ::                 simpleDestructor
+     procedure :: rateMassLoss => simpleRateMassLoss
+  end type ramPressureStrippingSpheroidsSimple
+
+  interface ramPressureStrippingSpheroidsSimple
+     !% Constructors for the {\normalfont \ttfamily simple} model of ram pressure stripping of spheroids class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface ramPressureStrippingSpheroidsSimple
 
 contains
-
-  !# <ramPressureStrippingMassLossRateSpheroidsMethod>
-  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init</unitName>
-  !# </ramPressureStrippingMassLossRateSpheroidsMethod>
-  subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init(ramPressureStrippingMassLossRateSpheroidsMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get)
-    !% Initializes the ``simple'' ram pressure stripping mass loss rate from spheroids module.
-    use ISO_Varying_String
+  
+  function simpleConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily simple} timescale for star formation feedback in spheroids class which takes a
+    !% parameter set as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                                       ), intent(in   )          :: ramPressureStrippingMassLossRateSpheroidsMethod
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get
+    type            (ramPressureStrippingSpheroidsSimple)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
+    double precision                                                     :: rateFractionalMaximum
 
-    if (ramPressureStrippingMassLossRateSpheroidsMethod == 'simple') then
-       Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple
-       !# <inputParameter>
-       !#   <name>ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMaximum</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>10.0d0</defaultValue>
-       !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to ram pressure stripping.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !#   <variable>ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax</variable>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>rateFractionalMaximum</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10.0d0</defaultValue>
+    !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spheroids due to ram pressure stripping.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    self=ramPressureStrippingSpheroidsSimple(rateFractionalMaximum,hotHaloRamPressureForce_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple_Init
+  end function simpleConstructorParameters
 
-  double precision function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple(thisNode)
+  function simpleConstructorInternal(rateFractionalMaximum,hotHaloRamPressureForce_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily simple} model of ram pressure stripping of spheroids class.
+    implicit none
+    type            (ramPressureStrippingSpheroidsSimple)                        :: self
+    double precision                                     , intent(in   )         :: rateFractionalMaximum
+    class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
+    !# <constructorAssign variables="rateFractionalMaximum, *hotHaloRamPressureForce_"/>
+    
+    return
+  end function simpleConstructorInternal
+
+  subroutine simpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily simple} model of ram pressure stripping of spheroids class.
+    implicit none
+    type(ramPressureStrippingSpheroidsSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    return
+  end subroutine simpleDestructor
+  
+  double precision function simpleRateMassLoss(self,node)
     !% Computes the mass loss rate from spheroids due to ram pressure stripping assuming a simple model. Specifically, the mass loss
     !% rate is
     !% \begin{equation}
@@ -71,62 +100,68 @@ contains
     !% F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
     !% \end{equation}
     !% is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
-    use Galacticus_Nodes
-    use Hot_Halo_Ram_Pressure_Forces
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
-    use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
-    class           (nodeComponentSpheroid       ), pointer       :: thisSpheroid
-    class           (hotHaloRamPressureForceClass), pointer       :: hotHaloRamPressureForce_
-    double precision                                              :: densityGas              , forceGravitational    , forceRamPressure, &
-         &                                                           massHalf                , massLossRateFractional, radiusHalfMass  , &
-         &                                                           timeDynamical
+    class           (ramPressureStrippingSpheroidsSimple), intent(inout) :: self
+    type            (treeNode                           ), intent(inout) :: node
+    class           (nodeComponentSpheroid              ), pointer       :: spheroid
+    double precision                                                     :: forceGravitational    , forceRamPressure, &
+         &                                                                  rateMassLossFractional, radiusHalfMass  , &
+         &                                                                  densityGas            , massHalf        , &
+         &                                                                  timeDynamical
 
     ! Assume no mass loss rate due to ram pressure by default.
-    Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple=0.0d0
+    simpleRateMassLoss=0.0d0
     ! Return immediately if this is not a satellite.
-    if (.not.thisNode%isSatellite()) return
+    if (.not.node%isSatellite()) return
     ! Get the spheroid component.
-    thisSpheroid       => thisNode%spheroid()
+    spheroid            => node    %spheroid                      (    )
     ! Get the ram pressure force due to the hot halo.
-    hotHaloRamPressureForce_ => hotHaloRamPressureForce()
-    forceRamPressure         =  hotHaloRamPressureForce_%force(thisNode)
+    forceRamPressure    =  self    %hotHaloRamPressureForce_%force(node)
     ! Get the spheroid half-mass radius.
-    radiusHalfMass     =  thisSpheroid%halfMassRadius()
+    radiusHalfMass      =  spheroid%halfMassRadius                (    )
     ! Compute the spheroid densities at the half mass radius.
-    densityGas=Galactic_Structure_Density      (                                            &
-         &                                      thisNode                                  , &
-         &                                      [radiusHalfMass,0.0d0,0.0d0]              , &
-         &                                      coordinateSystem=coordinateSystemSpherical, &
-         &                                      massType        =massTypeGaseous          , &
-         &                                      componentType   =componentTypeSpheroid      &
-         &                                     )
-    massHalf  =Galactic_Structure_Enclosed_Mass(                                            &
-         &                                      thisNode                                  , &
-         &                                      radiusHalfMass                            , &
-         &                                      massType        =massTypeAll              , &
-         &                                      componentType   =componentTypeSpheroid      &
-         &                                     )
+    densityGas          =  Galactic_Structure_Density      (                                            &
+         &                                                  node                                      , &
+         &                                                  [radiusHalfMass,0.0d0,0.0d0]              , &
+         &                                                  coordinateSystem=coordinateSystemSpherical, &
+         &                                                  massType        =massTypeGaseous          , &
+         &                                                  componentType   =componentTypeSpheroid      &
+         &                                                 )
+    massHalf            =  Galactic_Structure_Enclosed_Mass(                                            &
+         &                                                  node                                      , &
+         &                                                  radiusHalfMass                            , &
+         &                                                  massType        =massTypeAll              , &
+         &                                                  componentType   =componentTypeSpheroid      &
+         &                                                 )
     ! Compute the gravitational restoring force in the spheroid midplane.
-    forceGravitational =4.0*densityGas*gravitationalConstantGalacticus*massHalf/3.0d0/radiusHalfMass
+    forceGravitational  =  +4.0d0                           &
+         &                 *gravitationalConstantGalacticus &
+         &                 *densityGas                      &
+         &                 *massHalf                        &
+         &                 /3.0d0                           &
+         &                 /radiusHalfMass
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
-    if (forceRamPressure < ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax*forceGravitational) then
-       massLossRateFractional=forceRamPressure/forceGravitational
+    if (forceRamPressure < self%rateFractionalMaximum*forceGravitational) then
+       rateMassLossFractional=forceRamPressure/forceGravitational
     else
-       massLossRateFractional=ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax
+       rateMassLossFractional=self%rateFractionalMaximum
     end if
     ! Compute the dynamical time.
-    timeDynamical         =(megaParsec/kilo/gigaYear)*thisSpheroid%radius()/thisSpheroid%velocity()
+    timeDynamical     =+megaParsec             &
+         &             /kilo                   &
+         &             /gigaYear               &
+         &             *spheroid%radius  ()    &
+         &             /spheroid%velocity()
     ! Compute the mass loss rate.
-    Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple=massLossRateFractional*thisSpheroid%massGas()/timeDynamical
+    simpleRateMassLoss=+rateMassLossFractional &
+         &             *spheroid%massGas ()    &
+         &             /timeDynamical
     return
-  end function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple
-
-end module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple
+  end function simpleRateMassLoss
