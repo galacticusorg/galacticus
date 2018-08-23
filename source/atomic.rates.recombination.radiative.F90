@@ -16,76 +16,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of atomic radiative recombination rates.
+!% Contains a module which provides a class implenting atomic radiative recombination rates.
 
 module Atomic_Rates_Recombination_Radiative
-  !% Implements calculations of atomic radiative recombination rates.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Atomic_Rate_Recombination_Radiative
+  !% Provides a class implenting radiative recombiantion rates.
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                          :: recombinationRateInitialized           =.false.
+  !# <functionClass>
+  !#  <name>atomicRecombinationRateRadiative</name>
+  !#  <descriptiveName>Atomic Radiative Recombination</descriptiveName>
+  !#  <description>Class providing atomic radiative recombination rates.</description>
+  !#  <default>verner1996</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="rate" >
+  !#   <description>Returns the radiative recombination rate.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
+  !#   <argument>double precision, intent(in   )           :: temperature</argument>                     
+  !#   <argument>integer         , intent(in   ), optional :: level</argument>
+  !#  </method>
+  !# </functionClass>
 
-  ! Name of ionization state method used.
-  type     (varying_string                              )          :: atomicRadiativeRecombinationMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Rate_Recombination_Radiative), pointer :: Atomic_Rate_Recombination_Radiative_Get=>null()
-
-contains
-
-  subroutine Atomic_Rate_Recombination_Radiative_Initialize
-    !% Initialize the atomic radiative recombination rate module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="atomicRadiativeRecombinationMethod" type="moduleUse">
-    include 'atomic.rates.recombination.radiative.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.recombinationRateInitialized) then
-       !$omp critical(Atomic_Rate_Recombination_Radiative_Initialization)
-       if (.not.recombinationRateInitialized) then
-          ! Get the ionization state method parameter.
-          !# <inputParameter>
-          !#   <name>atomicRadiativeRecombinationMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Verner')</defaultValue>
-          !#   <description>The name of the method to be used for computing atomic radiative recombination rates.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="atomicRadiativeRecombinationMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>atomicRadiativeRecombinationMethod,Atomic_Rate_Recombination_Radiative_Get</functionArgs>
-          include 'atomic.rates.recombination.radiative.inc'
-          !# </include>
-          if (.not.associated(Atomic_Rate_Recombination_Radiative_Get)) &
-               & call Galacticus_Error_Report('method '//char(atomicRadiativeRecombinationMethod)//' is unrecognized'//{introspection:location})
-          recombinationRateInitialized=.true.
-       end if
-       !$omp end critical(Atomic_Rate_Recombination_Radiative_Initialization)
-    end if
-    return
-  end subroutine Atomic_Rate_Recombination_Radiative_Initialize
-
-  double precision function Atomic_Rate_Recombination_Radiative(atomicNumber,ionizationState,temperature,level)
-    implicit none
-    integer         , intent(in   )           :: atomicNumber, ionizationState
-    double precision, intent(in   )           :: temperature
-    integer         , intent(in   ), optional :: level
-
-    ! Initialize the module.
-    call Atomic_Rate_Recombination_Radiative_Initialize
-
-    ! Call the routine to do the calculation.
-    Atomic_Rate_Recombination_Radiative=Atomic_Rate_Recombination_Radiative_Get(atomicNumber,ionizationState,temperature,level)
-
-    return
-  end function Atomic_Rate_Recombination_Radiative
+  !# <enumeration>
+  !#  <name>recombinationCase</name>
+  !#  <description>Enumeration of radiative recombination cases (A or B).</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="a"/>
+  !#  <entry label="b"/>
+  !# </enumeration>
 
 end module Atomic_Rates_Recombination_Radiative

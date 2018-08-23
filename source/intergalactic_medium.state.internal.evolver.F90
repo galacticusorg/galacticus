@@ -481,7 +481,6 @@
      use Atomic_Rates_Recombination_Dielectronic
      use Atomic_Radiation_Gaunt_Factors
      use Atomic_Rates_Excitation_Collisional
-     use Atomic_Rates_Recombination_Radiative_Data
      use Radiation_Structure
      use Atomic_Cross_Sections_Ionization_Photo
      use Intergalactic_Medium_Filtering_Masses
@@ -499,6 +498,7 @@
      class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ 
      class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_
      class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_
+     class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_
      double precision                                          , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
      double precision                                          , parameter                   :: massFilteringMinimum                      =1.0d2
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
@@ -547,6 +547,7 @@
      atomicCrossSectionIonizationPhoto_   => atomicCrossSectionIonizationPhoto  ()
      atomicIonizationPotential_           => atomicIonizationPotential          ()
      atomicRecombinationRateDielectronic_ => atomicRecombinationRateDielectronic()
+     atomicRecombinationRateRadiative_    => atomicRecombinationRateRadiative   ()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute rates of change of filtering mass composite parameters and optical depth.
@@ -628,24 +629,24 @@
            end if
            ! Compute recombination rates from this ion.
            if (ionizationState > 1) then
-              recombinationRateFrom      =-Atomic_Rate_Recombination_Radiative(atomicNumber,ionizationState-1,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                     &
+              recombinationRateFrom      =-atomicRecombinationRateRadiative_%rate(atomicNumber,ionizationState-1,temperature,recombinationCaseB) &
+                   &                      *densityThisIon                                                                                        &
                    &                      *densityElectron
            else
               recombinationRateFrom      =+0.0d0
            end if
            ! Compute recombination rates to this ion.
            if (electronNumber  > 0) then
-              recombinationRateTo        =+Atomic_Rate_Recombination_Radiative(atomicNumber,ionizationState  ,temperature,recombinationCaseB) &
-                   &                      *densityUpperIon                                                                                    &
+              recombinationRateTo        =+atomicRecombinationRateRadiative_%rate(atomicNumber,ionizationState  ,temperature,recombinationCaseB) &
+                   &                      *densityUpperIon                                                                                       &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                        &
-                   &                      -recombinationRateFrom                                                                              &
-                   &                      *gigaYear                                                                                           &
-                   &                      *centi**3                                                                                           &
-                   &                      *clumpingFactor                                                                                     &
-                   &                      *0.75d0                                                                                             &
-                   &                      *boltzmannsConstant                                                                                 &
+              heatingRate                =+heatingRate                                                                                           &
+                   &                      -recombinationRateFrom                                                                                 &
+                   &                      *gigaYear                                                                                              &
+                   &                      *centi**3                                                                                              &
+                   &                      *clumpingFactor                                                                                        &
+                   &                      *0.75d0                                                                                                &
+                   &                      *boltzmannsConstant                                                                                    &
                    &                      *temperature
            else
               recombinationRateTo        =+0.0d0
