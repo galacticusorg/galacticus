@@ -22,7 +22,7 @@
   use Abundances_Structure
   use Kind_Numbers
 
-  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
+  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009" defaultThreadPrivate="yes">
   !#  <description>The \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.</description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKrumholz2009
