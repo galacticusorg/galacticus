@@ -20,10 +20,10 @@
 
   use Kind_Numbers
  
-  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
+  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKnncttSchmdt">
   !#  <description>A Kennicutt-Schmidt star formation rate surface density for galactic disks.</description>
   !# </starFormationRateSurfaceDensityDisks>
-  type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKennicuttSchmidt
+  type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKnncttSchmdt
      !% Implementation of a Kennicutt-Schmidt star formation rate surface density for galactic disks.
      private
      double precision            :: normalization               , exponent                 , &
@@ -34,28 +34,28 @@
      logical                     :: factorsComputed
      double precision            :: surfaceDensityCriticalFactor, hydrogenMassFraction
    contains
-     procedure :: calculationReset => kennicuttSchmidtCalculationReset
-     procedure :: rate             => kennicuttSchmidtRate
-  end type starFormationRateSurfaceDensityDisksKennicuttSchmidt
+     procedure :: calculationReset => knncttSchmdtCalculationReset
+     procedure :: rate             => knncttSchmdtRate
+  end type starFormationRateSurfaceDensityDisksKnncttSchmdt
 
-  interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
-     !% Constructors for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class.
-     module procedure kennicuttSchmidtConstructorParameters
-     module procedure kennicuttSchmidtConstructorInternal
-  end interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
+  interface starFormationRateSurfaceDensityDisksKnncttSchmdt
+     !% Constructors for the {\normalfont \ttfamily knncttSchmdt} star formation surface density rate in disks class.
+     module procedure knncttSchmdtConstructorParameters
+     module procedure knncttSchmdtConstructorInternal
+  end interface starFormationRateSurfaceDensityDisksKnncttSchmdt
 
 contains
 
-  function kennicuttSchmidtConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+  function knncttSchmdtConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily knncttSchmdt} star formation surface density rate in disks class which takes a parameter set as input.
     use Galacticus_Error
     implicit none
-    type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
-    type            (inputParameters                                     ), intent(inout) :: parameters
-    double precision                                                                      :: normalization          , exponent                 , &
-         &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
-         &                                                                                   toomreParameterCritical
-    logical                                                                               :: truncate
+    type            (starFormationRateSurfaceDensityDisksKnncttSchmdt)                :: self
+    type            (inputParameters                                 ), intent(inout) :: parameters
+    double precision                                                                  :: normalization          , exponent                 , &
+         &                                                                               exponentTruncated      , velocityDispersionDiskGas, &
+         &                                                                               toomreParameterCritical
+    logical                                                                           :: truncate
 
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -115,20 +115,20 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    self=starFormationRateSurfaceDensityDisksKennicuttSchmidt(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical)
+    self=starFormationRateSurfaceDensityDisksKnncttSchmdt(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function kennicuttSchmidtConstructorParameters
+  end function knncttSchmdtConstructorParameters
 
-  function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
+  function knncttSchmdtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily knncttSchmdt} star formation surface density rate from disks class.
     use Numerical_Constants_Prefixes
     implicit none
-    type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
-    double precision                                                      , intent(in   ) :: normalization          , exponent                 , &
-         &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
-         &                                                                                   toomreParameterCritical
-    logical                                                               , intent(in   ) :: truncate
+    type            (starFormationRateSurfaceDensityDisksKnncttSchmdt)                :: self
+    double precision                                                  , intent(in   ) :: normalization          , exponent                 , &
+         &                                                                               exponentTruncated      , velocityDispersionDiskGas, &
+         &                                                                               toomreParameterCritical
+    logical                                                           , intent(in   ) :: truncate
     !# <constructorAssign variables="normalization, exponent, truncate, exponentTruncated, velocityDispersionDiskGas, toomreParameterCritical"/>
 
     self%lastUniqueID   =-1_kind_int8
@@ -137,20 +137,20 @@ contains
     self%normalization=+self%normalization                &
          &             *mega**(2.0d0-2.0d0*self%exponent)
     return
-  end function kennicuttSchmidtConstructorInternal
+  end function knncttSchmdtConstructorInternal
 
-  subroutine kennicuttSchmidtCalculationReset(self,node)
+  subroutine knncttSchmdtCalculationReset(self,node)
     !% Reset the Kennicutt-Schmidt relation calculation.
     implicit none
-    class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
-    type (treeNode                                            ), intent(inout) :: node
+    class(starFormationRateSurfaceDensityDisksKnncttSchmdt), intent(inout) :: self
+    type (treeNode                                        ), intent(inout) :: node
 
     self%factorsComputed=.false.
     self%lastUniqueID   =node%uniqueID()
     return
-  end subroutine kennicuttSchmidtCalculationReset
+  end subroutine knncttSchmdtCalculationReset
 
-  double precision function kennicuttSchmidtRate(self,node,radius)
+  double precision function knncttSchmdtRate(self,node,radius)
     !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the Kennicutt-Schmidt law:
     !% \begin{equation}
     !% \Sigma_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
@@ -170,14 +170,14 @@ contains
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
     implicit none
-    class           (starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
-    type            (treeNode                                            ), intent(inout) :: node
-    double precision                                                      , intent(in   ) :: radius
-    class           (nodeComponentDisk                                   ), pointer       :: disk
-    type            (abundances                                          ), save          :: abundancesFuel
+    class           (starFormationRateSurfaceDensityDisksKnncttSchmdt), intent(inout) :: self
+    type            (treeNode                                        ), intent(inout) :: node
+    double precision                                                  , intent(in   ) :: radius
+    class           (nodeComponentDisk                               ), pointer       :: disk
+    type            (abundances                                      ), save          :: abundancesFuel
     !$omp threadprivate(abundancesFuel)
-    double precision                                                                      :: surfaceDensityCritical, massGas, &
-         &                                                                                   surfaceDensityGas
+    double precision                                                                  :: surfaceDensityCritical, massGas, &
+         &                                                                               surfaceDensityGas
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -203,28 +203,28 @@ contains
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     ! Compute the star formation rate surface density.
-    kennicuttSchmidtRate=+self%normalization          &
-         &               *(                           &
-         &                 +self%hydrogenMassFraction &
-         &                 *surfaceDensityGas         &
-         &                )**self%exponent
+    knncttSchmdtRate=+self%normalization          &
+         &           *(                           &
+         &             +self%hydrogenMassFraction &
+         &             *surfaceDensityGas         &
+         &            )**self%exponent
     ! Check if we are applying a truncation radius.
     if (self%truncate) then
        ! Always return zero star formation rate at zero radius, as critical density will be infinite.
        if (radius <= 0.0d0) then
-          kennicuttSchmidtRate=0.0d0
+          knncttSchmdtRate=0.0d0
           return
        end if
        ! Compute the critical density for star formation.
        surfaceDensityCritical=+self%surfaceDensityCriticalFactor &
             &                 /radius
        ! Check if gas is above the critical density. Truncate it if not.
-       if (surfaceDensityGas < surfaceDensityCritical)        &
-            & kennicuttSchmidtRate=+kennicuttSchmidtRate      &
-            &                      *(                         &
-            &                        +surfaceDensityGas       &
-            &                        /surfaceDensityCritical  &
-            &                       )**self%exponentTruncated
+       if (surfaceDensityGas < surfaceDensityCritical)    &
+            & knncttSchmdtRate=+knncttSchmdtRate          &
+            &                  *(                         &
+            &                    +surfaceDensityGas       &
+            &                    /surfaceDensityCritical  &
+            &                   )**self%exponentTruncated
     end if
     return
-  end function kennicuttSchmidtRate
+  end function knncttSchmdtRate
