@@ -129,8 +129,8 @@ my @constraints = @{$constraintsRef};
 
 # Remove any old semaphore file.
 my $semaphoreName = "galacticus";
-$semaphoreName = $parameters->{'treeEvolveThreadLockName'}->{'value'}
-    if ( exists($parameters->{'treeEvolveThreadLockName'}) );
+$semaphoreName = $parameters->{'taskMethod'}->{'threadLockName'}->{'value'}
+    if ( exists($parameters->{'taskMethod'}->{'threadLockName'}) );
 unlink("/dev/shm/sem.".$semaphoreName)
     if ( -e "/dev/shm/sem.".$semaphoreName );
 
