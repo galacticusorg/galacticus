@@ -16,67 +16,67 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic disks.
+  !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic spheroids.
   
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksFixed">
-  !#  <description>A fixed fraction outflow rate due to star formation feedback in galactic disks.</description>
-  !# </starFormationFeedbackDisks>
-  type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksFixed
-     !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic disks.
+  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsFixed">
+  !#  <description>A fixed fraction outflow rate due to star formation feedback in galactic spheroids.</description>
+  !# </starFormationFeedbackSpheroids>
+  type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsFixed
+     !% Implementation of a fixed fraction outflow rate due to star formation feedback in galactic spheroids.
      private
      double precision :: fraction
    contains
      procedure :: outflowRate => fixedOutflowRate
-  end type starFormationFeedbackDisksFixed
+  end type starFormationFeedbackSpheroidsFixed
 
-  interface starFormationFeedbackDisksFixed
-     !% Constructors for the fixed fraction star formation feedback in disks class.
+  interface starFormationFeedbackSpheroidsFixed
+     !% Constructors for the fixed fraction star formation feedback in spheroids class.
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
-  end interface starFormationFeedbackDisksFixed
+  end interface starFormationFeedbackSpheroidsFixed
 
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the fixed fraction star formation feedback in disks class which takes a parameter set as input.
+    !% Constructor for the fixed fraction star formation feedback in spheroids class which takes a parameter set as input.
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type            (starFormationFeedbackDisksFixed)                :: self
-    type            (inputParameters                ), intent(inout) :: parameters
-    double precision                                                 :: fraction
+    type            (starFormationFeedbackSpheroidsFixed)                :: self
+    type            (inputParameters                    ), intent(inout) :: parameters
+    double precision                                                     :: fraction
 
     !# <inputParameter>
     !#   <name>fraction</name>
     !#   <source>parameters</source>
     !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The ratio of outflow rate to star formation rate in disks.</description>
+    !#   <description>The ratio of outflow rate to star formation rate in spheroids.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=starFormationFeedbackDisksFixed(fraction)
+    self=starFormationFeedbackSpheroidsFixed(fraction)
     !# <inputParametersValidate source="parameters"/>
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(fraction) result(self)
-    !% Internal constructor for the fixed star formation feedback from disks class.
+    !% Internal constructor for the fixed star formation feedback from spheroids class.
     implicit none
-    type            (starFormationFeedbackDisksFixed)                :: self
-    double precision                                 , intent(in   ) :: fraction
+    type            (starFormationFeedbackSpheroidsFixed)                :: self
+    double precision                                     , intent(in   ) :: fraction
 
     !# <constructorAssign variables="fraction"/>    
     return
   end function fixedConstructorInternal
 
   double precision function fixedOutflowRate(self,node,rateEnergyInput,rateStarFormation)
-    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily
+    !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily
     !% node}. Assumes a fixed ratio of outflow rate to star formation rate.
     use Stellar_Feedback
     implicit none
-    class           (starFormationFeedbackDisksFixed), intent(inout) :: self
-    type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: rateEnergyInput, rateStarFormation
+    class           (starFormationFeedbackSpheroidsFixed), intent(inout) :: self
+    type            (treeNode                           ), intent(inout) :: node
+    double precision                                     , intent(in   ) :: rateEnergyInput, rateStarFormation
     !GCC$ attributes unused :: node, rateStarFormation
 
     fixedOutflowRate=+self%fraction                          &
