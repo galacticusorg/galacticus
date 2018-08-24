@@ -124,7 +124,7 @@ contains
     type            (treeNode                                         ), intent(inout) :: node
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                                                   , parameter     :: velocityBoostFactor  =1.1800237580d0
+    double precision                                                   , parameter     :: velocityBoostFactor=1.1800237580d0
     class           (nodeComponentDisk                                ), pointer       :: disk
     double precision                                                                   :: massDisk
     

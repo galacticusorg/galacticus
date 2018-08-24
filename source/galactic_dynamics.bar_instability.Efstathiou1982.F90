@@ -118,6 +118,9 @@ contains
          &                                                                           stabilityEstimatorRelative                   , stabilityIsolatedRelative, &
          &                                                                           stabilityThreshold                           , timescaleDimensionless
 
+    ! Assume infinite timescale (i.e. no instability) initially.
+    timescale                    =-1.0d0
+    externalDrivingSpecificTorque= 0.0d0
     ! Get the disk.
     disk => node%disk()
     ! Compute the disk mass.
@@ -126,9 +129,6 @@ contains
     if (disk%angularMomentum() <= 0.0d0                            ) return
     ! Return if disk has unphysical velocity or radius.
     if (disk%velocity       () <= 0.0d0 .or. disk%radius() <= 0.0d0) return
-    ! Assume infinite timescale (i.e. no instability) initially.
-    timescale                    =-1.0d0
-    externalDrivingSpecificTorque= 0.0d0
     ! Compute the gas fraction in the disk.
     fractionGas=disk%massGas()/massDisk
     ! Compute the stability threshold.
