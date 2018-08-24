@@ -488,7 +488,7 @@ contains
   end subroutine meanFunction1DAnalyze
 
   subroutine meanFunction1DFinalize(self)
-    !% Implement a meanFunction1D output analysis finalization.
+    !% Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.
     use IO_HDF5
     use Galacticus_HDF5
     implicit none
