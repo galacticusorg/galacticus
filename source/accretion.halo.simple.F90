@@ -33,15 +33,15 @@
   type, extends(accretionHaloClass) :: accretionHaloSimple
      !% A halo accretion class using simple truncation to mimic the effects of reionization.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class           (accretionHaloTotalClass      ), pointer :: accretionHaloTotal_
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_
-     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ 
-     class           (chemicalStateClass           ), pointer :: chemicalState_
-     double precision                                         :: timeReionization         , velocitySuppressionReionization, &
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
+     class           (accretionHaloTotalClass      ), pointer :: accretionHaloTotal_       => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_      => null()
+     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
+     class           (chemicalStateClass           ), pointer :: chemicalState_            => null()
+     double precision                                         :: timeReionization                   , velocitySuppressionReionization, &
           &                                                      opticalDepthReionization
-     logical                                                  :: accretionNegativeAllowed , accretionNewGrowthOnly
+     logical                                                  :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationStructure           )          :: radiation
      integer                                                  :: countChemicals
    contains
