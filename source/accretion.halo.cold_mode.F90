@@ -84,7 +84,7 @@ contains
     !#   <defaultSource>\citep{birnboim_virial_2003}</defaultSource>
     !#   <defaultValue>0.0126d0</defaultValue>
     !#   <description>The threshold value, $\epsilon_\mathrm{s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <variable>self%thresholdStabilityShock</variable>
     !# </inputParameter>
@@ -94,7 +94,7 @@ contains
     !#   <defaultSource>\citep{benson_cold_2010}</defaultSource>
     !#   <defaultValue>0.01d0</defaultValue>
     !#   <description>The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <variable>self%widthTransitionStabilityShock</variable>
     !# </inputParameter>

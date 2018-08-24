@@ -88,7 +88,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.3d0</defaultValue>
     !#   <description>The dimensionless multiplier for the rate at which the halo gas content adjusts to changes in the filtering mass.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <variable>self%rateAdjust</variable>
     !# </inputParameter>
@@ -97,7 +97,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The minimum mass of gas accreted into a halo below which the mass is truncated to zero.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <type>real</type>
     !#   <variable>self%massMinimum</variable>
     !# </inputParameter>
