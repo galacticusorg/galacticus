@@ -54,8 +54,8 @@ sub COSMOS2012 {
     my $analysis                         = $model   ->group ('analyses'                                            )
     	                                            ->group ('stellarHaloMassRelationLeauthaud2012z'.$redshiftRange)       ;
     my $massHaloModel                    = $analysis->dataset('massHalo'                                           )->get();
-    my $massStellarModel                 = $analysis->dataset('massStellar'                                        )->get();
-    my $massStellarCovarianceModel       = $analysis->dataset('massStellarCovariance'                              )->get();
+    my $massStellarModel                 = $analysis->dataset('massStellarLog10'                                   )->get();
+    my $massStellarCovarianceModel       = $analysis->dataset('massStellarLog10Covariance'                         )->get();
     my $modelParameters                  = $model   ->group('Parameters');
     my $massResolution = pdl 0.0;
     if ( grep {$_ eq "mergerTreeMassResolutionMethod"} $modelParameters->groups() ) {
@@ -76,9 +76,9 @@ sub COSMOS2012 {
 	    &
 	    ($massHaloModel                             >  20.0*$massResolution     )
 	);
-    my $massHaloModelLogarithmic         = log($massHaloModel   ->($modelEntries));
-    my $massStellarModelLogarithmic      = log($massStellarModel->($modelEntries));
-    my $massStellarErrorModelLogarithmic = $massStellarCovarianceModel->diagonal(0,1)->($modelEntries)->sqrt()/$massStellarModel->($modelEntries);
+    my $massHaloModelLogarithmic         = log(      $massHaloModel                            ->($modelEntries))        ;
+    my $massStellarModelLogarithmic      = log(10.0)*$massStellarModel                         ->($modelEntries)         ;
+    my $massStellarErrorModelLogarithmic = log(10.0)*$massStellarCovarianceModel->diagonal(0,1)->($modelEntries) ->sqrt();
 
     # Interpolate observational data to model points.
     my $massStellarDataLogarithmicInterpolated      =  $spline     ->eval ($massHaloModelLogarithmic);
@@ -161,13 +161,16 @@ sub COSMOS2012 {
 	     title     => "Leauthaud et al. (2012)"
 	    );
 	# Plot model points.
+	my $massStellarModelLinear    = +10.0** $massStellarModel                                                                            ;
+	my $massStellarModelErrorUp   = +10.0**($massStellarModel+$massStellarCovarianceModel->diagonal(0,1)->sqrt())-$massStellarModelLinear;
+	my $massStellarModelErrorDown = -10.0**($massStellarModel-$massStellarCovarianceModel->diagonal(0,1)->sqrt())+$massStellarModelLinear;
 	&GnuPlot::PrettyPlots::Prepare_Dataset
 	    (
 	     \$plot,
-	     $massStellarModel,
+	     $massStellarModelLinear,
 	     $massHaloModel,
-	     errorLeft  => $massStellarCovarianceModel->diagonal(0,1)->sqrt(),
-	     errorRight => $massStellarCovarianceModel->diagonal(0,1)->sqrt(),
+	     errorLeft  => $massStellarModelErrorDown,
+	     errorRight => $massStellarModelErrorUp  ,
 	     style      => "point",
 	     symbol     => [6,7], 
 	     weight     => [3,1],
@@ -217,8 +220,8 @@ sub COSMOS2012_FastReject {
     my $analysis                         = $model   ->group  ('analyses'                                            )
     	                                            ->group  ('stellarHaloMassRelationLeauthaud2012z'.$redshiftRange)       ;
     my $massHaloModel                    = $analysis->dataset('massHalo'                                            )->get();
-    my $massStellarModel                 = $analysis->dataset('massStellar'                                         )->get();
-    my $massStellarCovarianceModel       = $analysis->dataset('massStellarCovariance'                               )->get();
+    my $massStellarModel                 = $analysis->dataset('massStellarLog10'                                    )->get();
+    my $massStellarCovarianceModel       = $analysis->dataset('massStellarLog10Covariance'                          )->get();
     my $modelParameters                  = $model   ->group  ('Parameters'                                          )       ;
     my $rawParameters;
     if ( grep {$_ eq "rawXML"} $modelParameters->attrs() ) {
@@ -229,24 +232,49 @@ sub COSMOS2012_FastReject {
 	die("Galacticus::Constraints::StellarHaloMassRelation::COSMOS2012_FastReject(): raw parameters XML not found");
     }
     my $binSelect                        = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'binSelect'}->{'value'};
-    my $massHaloModelLogarithmic         = log($massHaloModel   ->($binSelect));
-    my $massStellarModelLogarithmic      = log($massStellarModel->($binSelect));
-    my $massStellarErrorModelLogarithmic = $massStellarCovarianceModel->diagonal(0,1)->($binSelect)->sqrt()/$massStellarModel->($binSelect);
-
+    my $massHaloModelLogarithmic         = log(      $massHaloModel                            ->($binSelect))        ;
+    my $massStellarModelLogarithmic      = log(10.0)*$massStellarModel                         ->($binSelect)         ;
+    my $massStellarErrorModelLogarithmic = log(10.0)*$massStellarCovarianceModel->diagonal(0,1)->($binSelect) ->sqrt();
     # Interpolate observational data to model points.
     my $massStellarDataLogarithmicInterpolated      =  $spline     ->eval ($massHaloModelLogarithmic);
     my $massStellarErrorDataLogarithmicInterpolated =  $spline     ->deriv($massHaloModelLogarithmic)
 	*$splineError->eval ($massHaloModelLogarithmic);
-
+    # If available, compute the scatter in the stellar mass.
+    my $sigmaLog10MassStellar;
+    if ( grep {$_ eq 'stellarHaloMassSquaredRelationLeauthaud2012z'.$redshiftRange} $model->group('analyses')->groups() ) {
+	my $analysisSquared              = $model          ->group  ('analyses'                                                   )
+	                                                   ->group  ('stellarHaloMassSquaredRelationLeauthaud2012z'.$redshiftRange)       ;
+	my $massStellarSquaredModel      = $analysisSquared->dataset('massStellarLog10Squared'                                    )->get();
+	my $sigmaLog10MassStellarSquared = +$massStellarSquaredModel->(($binSelect))
+	                                   -$massStellarModel       ->(($binSelect))**2;
+	$sigmaLog10MassStellar           = $sigmaLog10MassStellarSquared > 0.0 ? sqrt($sigmaLog10MassStellarSquared) : 0.0;
+    } else {
+	# If no mean square is available, set scatter to zero (which is always considered to be viable).
+	$sigmaLog10MassStellar      = pdl 0.0;
+    }
     # Compute the likelihood:
     if ( exists($options{'outputFile'}) ) {
 	my $constraint;
 	if ( isfinite($massStellarModelLogarithmic->((0))) ) {
-	    my $toleranceSigma   = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'toleranceSigma'  }->{'value'};
-	    my $factorSigma      = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'factorSigma'     }->{'value'};
-	    my $likelihoodViable = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'likelihoodViable'}->{'value'};
-	    my $offset           = ($massStellarModelLogarithmic-$massStellarDataLogarithmicInterpolated)**2/$massStellarErrorDataLogarithmicInterpolated**2;
-	    my $logLikelihood    = $offset < $toleranceSigma**2 ? $likelihoodViable : sclr(-0.5*($offset-$toleranceSigma**2)*$factorSigma**2);
+	    my $toleranceSigma       = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'toleranceSigma'  }->{'value'};
+	    my $factorSigma          = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'factorSigma'     }->{'value'};
+	    my $likelihoodViable     = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'likelihoodViable'}->{'value'};
+	    my $scatterMaximum       = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'scatterMaximum'  }->{'value'};
+	    my $scatterSigma         = $rawParameters->{'stellarHaloMassRelationCosmos2012'}->{'redshiftInterval'.$redshiftRange}->{'scatterSigma'    }->{'value'};
+	    my $offset               = ($massStellarModelLogarithmic-$massStellarDataLogarithmicInterpolated)**2/$massStellarErrorDataLogarithmicInterpolated**2;
+	    my $logLikelihoodMass    = $offset                < $toleranceSigma**2 ? 0.0 : sclr(-0.5*( $offset               -$toleranceSigma**2)*$factorSigma  **2);
+	    my $logLikelihoodScatter = $sigmaLog10MassStellar < $scatterMaximum    ? 0.0 : sclr(-0.5*(($sigmaLog10MassStellar-$scatterMaximum   )/$scatterSigma)**2);
+	    my $logLikelihood        = 
+		(
+		 $offset                < $toleranceSigma**2 
+		 &&
+		 $sigmaLog10MassStellar < $scatterMaximum
+		)
+		?
+		$likelihoodViable 
+		:
+		+$logLikelihoodMass
+		+$logLikelihoodScatter;
 	    $constraint->{'logLikelihood'} = $logLikelihood;
 	} else {
 	    $constraint->{'logLikelihood'} =  -1.0e30;
@@ -311,13 +339,16 @@ sub COSMOS2012_FastReject {
 	     title     => "Leauthaud et al. (2012)"
 	    );
 	# Plot model points.
+	my $massStellarModelLinear    = +10.0** $massStellarModel                                                                            ;
+	my $massStellarModelErrorUp   = +10.0**($massStellarModel+$massStellarCovarianceModel->diagonal(0,1)->sqrt())-$massStellarModelLinear;
+	my $massStellarModelErrorDown = -10.0**($massStellarModel-$massStellarCovarianceModel->diagonal(0,1)->sqrt())+$massStellarModelLinear;
 	&GnuPlot::PrettyPlots::Prepare_Dataset
 	    (
 	     \$plot,
-	     $massStellarModel                                               ->($binSelect),
-	     $massHaloModel                                                  ->($binSelect),
-	     errorLeft  => $massStellarCovarianceModel->diagonal(0,1)->sqrt()->($binSelect),
-	     errorRight => $massStellarCovarianceModel->diagonal(0,1)->sqrt()->($binSelect),
+	     $massStellarModelLinear                 ->($binSelect),
+	     $massHaloModel                          ->($binSelect),
+	     errorLeft  => $massStellarModelErrorDown->($binSelect),
+	     errorRight => $massStellarModelErrorUp  ->($binSelect),
 	     style      => "point",
 	     symbol     => [6,7], 
 	     weight     => [3,1],
