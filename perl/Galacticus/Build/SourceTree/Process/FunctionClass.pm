@@ -663,32 +663,45 @@ CODE
 		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		}		
 		if ( $declarationMatches && defined($allowedParameters) ) {
-		    $parametersPresent      = 1;		    
-		    $allowedParametersCode .= "type is (".$class->{'name'}.")\n";
-		    foreach my $source ( keys(%{$allowedParameters}) ) {
-			my $parameterCount = scalar(@{$allowedParameters->{$source}->{'all'}});
-			if ( $parameterCount > 0 ) {
-			    $allowedParametersCode .= "  if (sourceName == '".$source."') then\n";
-			    $allowedParametersCode .= "    if (allocated(allowedParameters)) then\n";
-			    $allowedParametersCode .= "      call move_alloc(allowedParameters,allowedParametersTmp)\n";
-			    $allowedParametersCode .= "      allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
-			    $allowedParametersCode .= "      allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
-			    $allowedParametersCode .= "      deallocate(allowedParametersTmp)\n";
-			    $allowedParametersCode .= "    else\n";
-			    $allowedParametersCode .= "      allocate(allowedParameters(".$parameterCount."))\n";
-			    $allowedParametersCode .= "    end if\n";
-			    $allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".$parameterCount."+1:size(allowedParameters))=[".join(",",map {"var_str('".$_."')"} @{$allowedParameters->{$source}->{'all'}})."]\n";
-			    $allowedParametersCode .= "  end if\n";
+		    $parametersPresent      = 1;
+		    
+		    $allowedParametersCode .= "select type (self)\n";		    
+		    my $className = $class->{'name'};
+		    while ( defined($className) ) {		    
+			$allowedParametersCode .= "class is (".$className.")\n";
+			foreach my $source ( keys(%{$allowedParameters}) ) {
+			    my $parameterCount = scalar(@{$allowedParameters->{$source}->{'all'}});
+			    if ( $parameterCount > 0 ) {
+				$allowedParametersCode .= "  if (sourceName == '".$source."') then\n";
+				$allowedParametersCode .= "    if (allocated(allowedParameters)) then\n";
+				$allowedParametersCode .= "      call move_alloc(allowedParameters,allowedParametersTmp)\n";
+				$allowedParametersCode .= "      allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
+				$allowedParametersCode .= "      allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+				$allowedParametersCode .= "      deallocate(allowedParametersTmp)\n";
+				$allowedParametersCode .= "    else\n";
+				$allowedParametersCode .= "      allocate(allowedParameters(".$parameterCount."))\n";
+				$allowedParametersCode .= "    end if\n";
+				$allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".$parameterCount."+1:size(allowedParameters))=[".join(",",map {"var_str('".$_."')"} @{$allowedParameters->{$source}->{'all'}})."]\n";
+				$allowedParametersCode .= "  end if\n";
+			    }
+			    # Call the allowedParameters() method of any stored obejcts.
+			    if ( $className eq $class->{'name'} ) {
+				foreach ( @{$allowedParameters->{$source}->{'objects'}} ) {
+				    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."')\n";
+				}
+			    }
 			}
-			# Call the allowedParameters() method of any stored obejcts.
-			foreach ( @{$allowedParameters->{$source}->{'objects'}} ) {
-			    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."')\n";
+			if ( $classes{$className}->{'extends'} eq $directive->{'name'}."Class" ) {
+			    undef($className);
+			} else {
+			    $className = $classes{$className}->{'extends'};
 			}
 		    }
+		    $allowedParametersCode .= "end select\n";		    
 		}
 	    }
 	    if ( $parametersPresent ) {		
-		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\nselect type (self)\n".$allowedParametersCode."end select\n";
+		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$allowedParametersCode;
 	    } else {
 		$allowedParametersCode = "!GCC\$ attributes unused :: self, allowedParameters, sourceName\n";
 	    }
