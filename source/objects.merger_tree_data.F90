@@ -1825,7 +1825,7 @@ contains
     call forestHalos%close()
 
     ! Add a flag to indicate successfully completed writing merger tree information.
-    if (appendActual) then
+    if (fileExists) then
        call outputFile%readAttribute('fileCompleteFlag',completeCount)
        completeCount=completeCount+1
     else
