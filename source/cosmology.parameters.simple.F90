@@ -57,7 +57,7 @@ contains
     !#   <name>OmegaMatter</name>
     !#   <source>parameters</source>
     !#   <variable>simpleConstructorParameters%OmegaMatterValue</variable>
-    !#   <defaultValue>0.3153</defaultValue>
+    !#   <defaultValue>0.3153d0</defaultValue>
     !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of matter in the Universe in units of the critical density.</description>
     !#   <type>real</type>
