@@ -111,8 +111,8 @@ contains
     !#   <name>sigma_8</name>
     !#   <source>parameters</source>
     !#   <variable>sigma8Value</variable>
-    !#   <defaultValue>0.817d0</defaultValue>
-    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <defaultValue>0.8111d0</defaultValue>
+    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>

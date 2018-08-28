@@ -57,8 +57,8 @@ contains
     !#   <name>OmegaMatter</name>
     !#   <source>parameters</source>
     !#   <variable>simpleConstructorParameters%OmegaMatterValue</variable>
-    !#   <defaultValue>0.2812d0</defaultValue>
-    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <defaultValue>0.3153</defaultValue>
+    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of matter in the Universe in units of the critical density.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -67,7 +67,8 @@ contains
     !#   <name>OmegaBaryon</name>
     !#   <source>parameters</source>
     !#   <variable>simpleConstructorParameters%OmegaBaryonValue</variable>
-    !#   <defaultValue>0.04611d0</defaultValue>
+    !#   <defaultValue>0.04930d0</defaultValue>
+    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of baryons in the Universe in units of the critical density.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -76,8 +77,8 @@ contains
     !#   <name>OmegaDarkEnergy</name>
     !#   <source>parameters</source>
     !#   <variable>simpleConstructorParameters%OmegaDarkEnergyValue</variable>
-    !#   <defaultValue>0.7188d0</defaultValue>
-    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <defaultValue>0.6847d0</defaultValue>
+    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The density of dark energy in the Universe in units of the critical density.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -96,8 +97,8 @@ contains
     !#   <name>HubbleConstant</name>
     !#   <source>parameters</source>
     !#   <variable>simpleConstructorParameters%HubbleConstantValue</variable>
-    !#   <defaultValue>69.7d0</defaultValue>
-    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <defaultValue>67.36d0</defaultValue>
+    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The present day value of the Hubble parameter in units of km/s/Mpc.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>

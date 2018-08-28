@@ -57,8 +57,8 @@ contains
     !#   <name>index</name>
     !#   <source>parameters</source>
     !#   <variable>powerLawConstructorParameters%index</variable>
-    !#   <defaultValue>0.9646d0</defaultValue>
-    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+    !#   <defaultValue>0.9649d0</defaultValue>
+    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
     !#   <description>The index of the power-law primordial power spectrum.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
