@@ -28,6 +28,7 @@ program Test_Cooling_Functions
   use Cooling_Functions
   use Abundances_Structure
   use Chemical_Abundances_Structure
+  use Chemical_States
   use Radiation_Structure
   use Numerical_Constants_Physical
   use Numerical_Constants_Units
@@ -35,6 +36,7 @@ program Test_Cooling_Functions
   implicit none
   type            (inputParameters               ), target  :: testParameters
   class           (coolingFunctionClass          ), pointer :: coolingFunction_
+  class           (chemicalStateClass            ), pointer :: chemicalState_
   type            (varying_string                )          :: parameterFile
   type            (abundances                    )          :: gasAbundances
   type            (chemicalAbundances            )          :: chemicalDensities
@@ -61,9 +63,10 @@ program Test_Cooling_Functions
   call radiation    %           set(1.0d0                                    )
   call gasAbundances%metallicitySet(1.0d0,metallicityType= metallicityTypeLinearByMassSolar )
   ! Get the cooling functions.
-  coolingFunction_                => coolingFunction               ()
-  coolingFunctionCMBCompton_      =  coolingFunctionCMBCompton     ()
-  coolingFunctionAtomicCIECloudy_ =  coolingFunctionAtomicCIECloudy()
+  chemicalState_                  => chemicalState                 (              )
+  coolingFunction_                => coolingFunction               (              )
+  coolingFunctionCMBCompton_      =  coolingFunctionCMBCompton     (chemicalState_)
+  coolingFunctionAtomicCIECloudy_ =  coolingFunctionAtomicCIECloudy(              )
   ! Summed cooling function should be twice the CMB Compton cooling function.
   coolantSummation       =  coolingFunction_          %coolingFunction                   (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   coolantCMBCompton      =  coolingFunctionCMBCompton_%coolingFunction                   (numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
