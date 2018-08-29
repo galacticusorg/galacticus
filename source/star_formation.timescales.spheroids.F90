@@ -26,7 +26,7 @@ module Star_Formation_Timescales_Spheroids
   !#  <name>starFormationTimescaleSpheroids</name>
   !#  <descriptiveName>Timescales for star formation in spheroids</descriptiveName>
   !#  <description>Class providing models of timescales for star formation in spheroids.</description>
-  !#  <default>integratedSurfaceDensity</default>
+  !#  <default>dynamicalTime</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="timescale" >
   !#   <description>Returns the timescale (in Gyr) for star formation in the spheroid component of {\normalfont \ttfamily node}.</description>
