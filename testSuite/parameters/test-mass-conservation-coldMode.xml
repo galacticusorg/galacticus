@@ -200,7 +200,7 @@
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
     <tolerance value="1.0e-2"/>
     <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
       <frequencyStarFormation value="0.385"/>

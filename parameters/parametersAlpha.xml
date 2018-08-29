@@ -107,7 +107,7 @@
     <exponentRedshift value="0.316329039863"/>
     <exponentVelocityVirial value="-3.34818453376"/>
     <timescale value="0.680886564265287"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <diskStarFormationTimescaleMinimum value="0.000129182223339982"/>
 

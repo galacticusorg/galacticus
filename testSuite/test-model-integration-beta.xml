@@ -179,7 +179,7 @@
     <exponentRedshift value="-2.6841093892429728"/>
     <timescale value="8.5952943576927687"/>
     <exponentVelocity value="1.5643560026940344"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <diskStarFormationTimescaleMinimum value="2.2925637877309368E-005"/>
   <diskVerySimpleSurfaceDensityThreshold value="128685124731.37694"/>

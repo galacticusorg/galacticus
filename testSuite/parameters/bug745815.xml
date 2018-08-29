@@ -123,7 +123,7 @@
     <efficiency value="0.01"/>
     <timescaleMinimum value="0.001"/>
     <exponentVelocity value="-1.5"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
     <exponent value="2"/>
