@@ -72,7 +72,7 @@
   <starFormationTimescaleDisksMethod value="fixed"/>
   <starFormationTimescaleDisksMethod value="fixed">
     <timescale value="0.50"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <!-- Feedback -->
   <starFormationFeedbackDisksMethod value="fixed">

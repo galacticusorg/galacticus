@@ -143,7 +143,7 @@
   </starFormationRateSurfaceDensityDisksMethod>
   <starFormationTimescaleDisksMethod value="dynamicalTime">
     <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <starFormationTimescaleSpheroids value="dynamicalTime">

@@ -8,7 +8,7 @@
     <exponentRedshift value="0.0"/>
     <exponentVelocityVirial value="0.0"/>
     <timescale value="1.0"/>
-  </starFormationTimescaleDisks>
+  </starFormationTimescaleDisksMethod>
 
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
