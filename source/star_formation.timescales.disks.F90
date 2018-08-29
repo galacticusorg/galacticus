@@ -26,7 +26,7 @@ module Star_Formation_Timescales_Disks
   !#  <name>starFormationTimescaleDisks</name>
   !#  <descriptiveName>Timescales for star formation in disks</descriptiveName>
   !#  <description>Class providing models of timescales for star formation in disks.</description>
-  !#  <default>integratedSurfaceDensity</default>
+  !#  <default>intgrtdSurfaceDensity</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="timescale" >
   !#   <description>Returns the timescale (in Gyr) for star formation in the disk component of {\normalfont \ttfamily node}.</description>
