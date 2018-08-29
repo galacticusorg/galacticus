@@ -75,7 +75,7 @@
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod value="fixed"/>
-  <starFormationTimescaleDisks value="fixed">
+  <starFormationTimescaleDisksMethod value="fixed">
     <timescale value="0.25"/>
   </starFormationTimescaleDisks>
 

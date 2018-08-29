@@ -9,7 +9,7 @@
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
   <treeNodeMethodDarkMatterProfile value="null"/>
-  <starFormationTimescaleDisks value="haloScaling">
+  <starFormationTimescaleDisksMethod value="haloScaling">
     <exponentRedshift value="0.0"/>
     <exponentVelocityVirial value="0.0"/>
     <timescale value="1.0"/>

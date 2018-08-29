@@ -175,7 +175,7 @@
   
   <!-- Star formation in disks -->
   <starFormationTimescaleDisksMethod value="velocityMaxScaling"/>
-  <starFormationTimescaleDisks value="velocityMaxScaling">
+  <starFormationTimescaleDisksMethod value="velocityMaxScaling">
     <exponentRedshift value="-2.6841093892429728"/>
     <timescale value="8.5952943576927687"/>
     <exponentVelocity value="1.5643560026940344"/>

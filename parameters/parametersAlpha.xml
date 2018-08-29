@@ -103,7 +103,7 @@
 
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="haloScaling"/>
-  <starFormationTimescaleDisks value="haloScaling">
+  <starFormationTimescaleDisksMethod value="haloScaling">
     <exponentRedshift value="0.316329039863"/>
     <exponentVelocityVirial value="-3.34818453376"/>
     <timescale value="0.680886564265287"/>
