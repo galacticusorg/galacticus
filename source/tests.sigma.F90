@@ -71,7 +71,7 @@ program Tests_Sigma
   radius8=8.0d0/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
   mass8=4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
   sigma8=cosmologicalMassVariance_%rootVariance(mass8)
-  call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVariance_%sigma8(),relTol=2.5d-6)
+  call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVariance_%sigma8(),relTol=2.55d-6)
   ! Check normalization of sigma(M) when using a non-top-hat filter. Here, we use a simple power-law power spectrum with index
   ! n=-1, and a sharp k-space filter, and normalize to σ₈=1. For these, the normalization of σ(M₈) can be computed analytically to
   ! be (π√2/3)^{1/3}.
