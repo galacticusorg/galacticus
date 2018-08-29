@@ -197,7 +197,7 @@
   </galacticDynamicsBarInstabilityMethod>
     <!-- Star formation rate options -->
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
-    <starFormationTimescaleDisks value="intgrtdSurfaceDensity">
+    <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
     <tolerance value="1.0e-2"/>
     <timescaleMinimum value="0.001"/>
   </starFormationTimescaleDisks>

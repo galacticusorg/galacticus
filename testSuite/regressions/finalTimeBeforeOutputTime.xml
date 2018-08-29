@@ -7,7 +7,7 @@
   <treeNodeMethodDarkMatterProfile value="null"/>
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
-  <starFormationTimescaleDisks value="haloScaling">
+  <starFormationTimescaleDisksMethod value="haloScaling">
     <exponentRedshift value="0.0"/>
     <exponentVelocityVirial value="0.0"/>
     <timescale value="1.0"/>

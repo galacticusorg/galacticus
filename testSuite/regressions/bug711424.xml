@@ -20,7 +20,7 @@
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
   <adiabaticContractionGnedinOmega value="0.77"/>
-  <starFormationTimescaleDisks value="dynamicalTime">
+  <starFormationTimescaleDisksMethod value="dynamicalTime">
     <efficiency value="0.01"/>
     <timescaleMinimum value="0.001"/>
     <exponentVelocity value="-1.5"/>

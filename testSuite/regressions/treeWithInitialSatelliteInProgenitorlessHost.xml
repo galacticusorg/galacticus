@@ -144,7 +144,7 @@
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
     <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationTimescaleDisks value="dynamicalTime">
+  <starFormationTimescaleDisksMethod value="dynamicalTime">
     <timescaleMinimum value="0.001"/>
   </starFormationTimescaleDisks>
 
