@@ -27,7 +27,7 @@ module Star_Formation_Rate_Surface_Density_Disks
   !#  <descriptiveName>Surface density rates of star formation in disks.</descriptiveName>
   !#  <description>Class providing models of the surface density rate of star formation in disks.</description>
   !#  <calculationReset>yes</calculationReset>
-  !#  <default>KMT09</default>
+  !#  <default>krumholz2009</default>
   !#  <method name="intervals" >
   !#   <description>Return a set of integration intervals to use when integrating over the surface density of star formation rate.</description>
   !#   <type>double precision, allocatable, dimension(:,:)</type>
