@@ -3,6 +3,13 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
+  <cosmologyParametersMethod value="simple">
+    <HubbleConstant  value="70.2"   />
+    <OmegaMatter     value="0.2725" />
+    <OmegaDarkEnergy value="0.7275" />
+    <OmegaBaryon     value="0.0455" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParametersMethod>
   <coolingFunctionMethod value="summation">
     <coolingFunctionMethod value="CMBCompton"/>
     <coolingFunctionMethod value="CMBCompton"/>

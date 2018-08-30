@@ -129,11 +129,11 @@
     <exponent value="2"/>
     <velocityCharacteristic value="50"/>
   </starFormationFeedbackSpheroidsMethod>
-  <starFormationTimescaleSpheroids value="dynamicalTime">
+  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.1"/>
     <timescaleMinimum value="0.001"/>
     <exponentVelocity value="0"/>
-  </starFormationTimescaleSpheroids>
+  </starFormationTimescaleSpheroidsMethod>
 
   <starFormationTimescaleDisksMethod value="dynamicalTime"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>

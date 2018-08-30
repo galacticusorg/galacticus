@@ -56,10 +56,7 @@
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
   <odeToleranceRelative value="0.01"/>
-  <intergalacticMediumStateMethod value="file">
-    <fileName value="constraints/data/igmState.xml"/>
-  </intergalacticMediumStateMethod>
-  <intergalacticMediumStateMethod value="file"/>
+  <intergalacticMediumStateMethod value="recFast"/>
   <mergerTreeBuildMassDistributionMethod value="stellarMassFunction">
     <massMaximum value="7.5857758e11"/>
     <massMinimum value="1.2589254e8"/>

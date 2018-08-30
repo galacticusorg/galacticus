@@ -158,11 +158,11 @@
   </starFormationTimescaleDisksMethod>
 
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
-  <starFormationTimescaleSpheroids value="dynamicalTime">
+  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.04"/>
     <exponentVelocity value="2.0"/>
     <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleSpheroids>
+  </starFormationTimescaleSpheroidsMethod>
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>

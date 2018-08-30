@@ -42,9 +42,9 @@
   <nodePromotionIndexShift value="false"/>
   <outputRedshifts value="0.000"/>
   <galacticDynamicsBarInstabilityMethod value="stable"/>
-  <starFormationTimescaleSpheroids value="dynamicalTime">
+  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.0"/>
-  </starFormationTimescaleSpheroids>
+  </starFormationTimescaleSpheroidsMethod>
 
   <mergingTimescaleMultiplier value="1.0e30"/>
 </parameters>
