@@ -13,7 +13,7 @@
     <maxJobsInQueue>40</maxJobsInQueue>
   </pbs>
 
-  <parameters formatVersion="2" version="0.9.4">
+  <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="bertschinger">
@@ -90,9 +90,7 @@
     <imfChabrierYieldInstantaneous value="0.0"/>
     <imfSelectionFixed value="Chabrier"/>
     <imfSelectionMethod value="fixed"/>
-    <intergalacticMediumStateMethod value="file">
-      <fileName value="constraints/data/igmState.xml"/>
-    </intergalacticMediumStateMethod>
+    <intergalacticMediumStateMethod value="recFast"/>
     <linearGrowthMethod value="simple"/>
     <mergerTreeBuilderMethod value="cole2000">
       <accretionLimit value="0.1"/>
@@ -137,7 +135,6 @@
     <odeToleranceAbsolute value="1.0e-3"/>
     <odeToleranceRelative value="0.1"/>
     <outputRedshifts value="0"/>
-    <powerSpectrumMethod value="standard"/>
     <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
     <powerSpectrumPrimordialMethod value="powerLaw">
       <index value="0.958781924494571"/>
@@ -154,10 +151,11 @@
       <exponentRedshift value="1.9464430036515628"/>
       <exponentVelocity value="-5.2559103933618596"/>
     </starFormationFeedbackDisksMethod>
-    <starFormationTimescaleDisksMethod value="velocityMaxScaling"/>
-    <starFormationTimescaleDisksVelocityMaximumScalingRedshiftExponent value="-2.2302610673721670"/>
-    <starFormationTimescaleDisksVelocityMaximumScalingTimescale value="5.6305510122690903"/>
-    <starFormationTimescaleDisksVelocityMaximumScalingVelocityExponent value="0.99961968363471687"/>
+    <starFormationTimescaleDisksMethod value="velocityMaxScaling">
+  <exponentRedshift value="-2.2302610673721670"/>
+    <timescale value="5.6305510122690903"/>
+    <exponentVelocity value="0.99961968363471687"/>
+  </starFormationTimescaleDisksMethod>
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.01"/>

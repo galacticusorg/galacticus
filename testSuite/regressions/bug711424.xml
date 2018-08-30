@@ -93,11 +93,11 @@
   <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
-  <starFormationTimescaleSpheroids value="dynamicalTime">
+  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <timescaleMinimum value="0.001"/>
     <exponentVelocity value="0"/>
     <efficiency value="0.1"/>
-  </starFormationTimescaleSpheroids>
+  </starFormationTimescaleSpheroidsMethod>
 
   <satelliteMergingMassMovementsMethod value="simple"/>
   <haloMassFunctionMethod value="tinker2008"/>

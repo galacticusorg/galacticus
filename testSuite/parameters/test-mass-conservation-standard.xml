@@ -13,7 +13,7 @@
     <maxJobsInQueue>40</maxJobsInQueue>
   </pbs>
 
-  <parameters formatVersion="2" version="0.9.4">
+  <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -192,29 +192,27 @@
 
     <!-- Galactic disk dynamics options -->
     <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
-  <stabilityThresholdGaseous value="0.7"/>
-    <stabilityThresholdStellar value="1.1"/>
-  </galacticDynamicsBarInstabilityMethod>
+      <stabilityThresholdGaseous value="0.7"/>
+      <stabilityThresholdStellar value="1.1"/>
+    </galacticDynamicsBarInstabilityMethod>
     <!-- Star formation rate options -->
-    <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
-    <tolerance value="1.0e-2"/>
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleDisksMethod>
+      <tolerance value="1.0e-2"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleDisksMethod>
 
-  <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
+    <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
       <frequencyStarFormation value="0.385"/>
       <clumpingFactorMolecularComplex value="5.000"/>
       <molecularFractionFast value="true"/>
     </starFormationRateSurfaceDensityDisksMethod>
-    <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
-    <starFormationTimescaleSpheroids value="dynamicalTime">
-    <efficiency value="0.04"/>
-    <exponentVelocity value="2.0"/>
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleSpheroids>
+    <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
+      <efficiency value="0.04"/>
+      <exponentVelocity value="2.0"/>
+      <timescaleMinimum value="0.001"/>
+    </starFormationTimescaleSpheroidsMethod>
 
-  <!-- Stellar populations options -->
+    <!-- Stellar populations options -->
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <stellarPopulationSpectraMethod value="FSPS"/>
     <imfSelectionMethod value="fixed"/>
