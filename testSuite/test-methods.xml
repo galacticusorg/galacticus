@@ -482,9 +482,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <starFormationExpulsiveFeedbackDisksMethod value="zero"/>
-    <starFormationExpulsiveFeedbackDisksMethod value="superwind">
+    <starFormationExpulsiveFeedbackDisksMethod value="superWind">
       <starFormationExpulsiveFeedbackSpheroidsMethod value="zero"/>
-      <starFormationExpulsiveFeedbackSpheroidsMethod value="superwind"/>
+      <starFormationExpulsiveFeedbackSpheroidsMethod value="superWind"/>
     </starFormationExpulsiveFeedbackDisksMethod>
   </parameters>
 
