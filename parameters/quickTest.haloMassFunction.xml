@@ -154,11 +154,6 @@
     <clumpingFactorMolecularComplex value="5.000"/>
     <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationTimescaleDisksMethod value="dynamicalTime">
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleDisksMethod>
-
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.04"/>
     <exponentVelocity value="2.0"/>

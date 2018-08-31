@@ -43,7 +43,6 @@
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <starFormationTimescaleDisksMethod value="haloScaling"/>
   <odeToleranceAbsolute value="0.01"/>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="3200"/>

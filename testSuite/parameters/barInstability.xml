@@ -74,7 +74,6 @@
     <stabilityThresholdStellar value="0.7"/>
   </galacticDynamicsBarInstabilityMethod>
   <!-- Star formation rate -->
-  <starFormationTimescaleDisksMethod value="fixed"/>
   <starFormationTimescaleDisksMethod value="fixed">
     <timescale value="0.25"/>
   </starFormationTimescaleDisksMethod>
