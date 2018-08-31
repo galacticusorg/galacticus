@@ -102,7 +102,6 @@
   <galacticDynamicsBarInstabilityMethod value="stable"/>
 
   <!-- Star formation rate options -->
-  <starFormationTimescaleDisksMethod value="haloScaling"/>
   <starFormationTimescaleDisksMethod value="haloScaling">
     <exponentRedshift value="0.316329039863"/>
     <exponentVelocityVirial value="-3.34818453376"/>

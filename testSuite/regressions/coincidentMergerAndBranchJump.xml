@@ -146,11 +146,6 @@
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
     <molecularFractionFast value="true"/>
   </starFormationRateSurfaceDensityDisksMethod>
-  <starFormationTimescaleDisksMethod value="dynamicalTime">
-    <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleDisksMethod>
-
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.004"/>
     <exponentVelocity value="4.0"/>

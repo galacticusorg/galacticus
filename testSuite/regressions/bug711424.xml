@@ -108,7 +108,6 @@
       <efficiencyRadiation value="0.01"/>
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
   <imfSalpeterRecycledInstantaneous value="0.39"/>
@@ -118,7 +117,6 @@
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <odeToleranceAbsolute value="0.01"/>
-  <starFormationTimescaleDisksMethod value="dynamicalTime"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
     <G0 value="+0.57"/>
     <gamma1 value="+0.38"/>

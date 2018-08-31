@@ -102,7 +102,6 @@
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
   <odeToleranceAbsolute value="0.01"/>
-  <starFormationTimescaleDisksMethod value="haloScaling"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
     <G0 value="+0.57"/>
     <gamma1 value="+0.38"/>

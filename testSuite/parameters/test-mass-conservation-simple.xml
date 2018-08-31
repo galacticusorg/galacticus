@@ -152,10 +152,10 @@
       <exponentVelocity value="-5.2559103933618596"/>
     </starFormationFeedbackDisksMethod>
     <starFormationTimescaleDisksMethod value="velocityMaxScaling">
-  <exponentRedshift value="-2.2302610673721670"/>
-    <timescale value="5.6305510122690903"/>
-    <exponentVelocity value="0.99961968363471687"/>
-  </starFormationTimescaleDisksMethod>
+      <exponentRedshift value="-2.2302610673721670"/>
+      <timescale value="5.6305510122690903"/>
+      <exponentVelocity value="0.99961968363471687"/>
+    </starFormationTimescaleDisksMethod>
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.01"/>
