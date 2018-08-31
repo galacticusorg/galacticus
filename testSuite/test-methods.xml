@@ -269,7 +269,7 @@
     <version>0.9.4</version>
     <starFormationTimescaleDisksMethod value="dynamicalTime"/>
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
-      <starFormationRateSurfaceDensityDisksMethod value="kennicuttSchmidt" parameterLevel="top">
+      <starFormationRateSurfaceDensityDisksMethod value="knncttSchmdt" parameterLevel="top">
         <truncate value="true"/>
         <truncate value="false"/>
       </starFormationRateSurfaceDensityDisksMethod>
