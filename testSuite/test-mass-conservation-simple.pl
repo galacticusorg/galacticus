@@ -47,10 +47,10 @@ for(my $i=0;$i<nelem($centrals);++$i) {
     my $inTree = which($properties->{'mergerTreeIndex'}->($satellites) == $properties->{'mergerTreeIndex'}->($centrals)->(($i)));
     $massSatellites->(($i)) .=
 	    (
-	     +$properties->{'diskMassStellar'}->($satellites)->($inTree)->sum()
-	     +$properties->{'diskMassGas'}->($satellites)->($inTree)->sum()	
-	     +$properties->{'hotHaloMass'}->($satellites)->($inTree)->sum()
-	     +$properties->{'hotHaloOutflowedMass'}->($satellites)->($inTree)->sum()
+	     +$properties->{'diskMassStellar'      }->($satellites)->($inTree)->sum()
+	     +$properties->{'diskMassGas'          }->($satellites)->($inTree)->sum()	
+	     +$properties->{'hotHaloMass'          }->($satellites)->($inTree)->sum()
+	     +$properties->{'hotHaloOutflowedMass' }->($satellites)->($inTree)->sum()
 	     +$properties->{'hotHaloUnaccretedMass'}->($satellites)->($inTree)->sum()
 	    )
 	    /(
