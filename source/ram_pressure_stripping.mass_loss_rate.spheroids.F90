@@ -28,7 +28,7 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
   !#  <description>Class providing models of ram pressure stripping in spheroids.</description>
   !#  <default>null</default>
   !#  <method name="rateMassLoss" >
-  !#   <description>Returns the rate of mass loss (in $\M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the spheroid component of {\normalfont \ttfamily node}.</description>
+  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the spheroid component of {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
