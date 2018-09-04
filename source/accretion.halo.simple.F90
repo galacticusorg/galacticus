@@ -470,7 +470,7 @@ contains
 
     basic => node%basic()
     if     (                                                                 &
-         &  basic%time         (    ) > self%timeReionization     &
+         &  basic%time         (    ) > self%timeReionization                &
          &   .and.                                                           &
          &  self %velocityScale(node) < self%velocitySuppressionReionization &
          & ) then
