@@ -29,7 +29,7 @@
      private
      double precision                                                  :: beta
      type            (massDistributionBetaProfile           )          :: distribution
-     class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_
+     class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
      !@ <objectMethods>
      !@   <object>hotHaloMassDistributionBetaProfile</object>
