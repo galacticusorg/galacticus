@@ -35,6 +35,7 @@
      class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_
      class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_
      class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_
+     logical                                                              :: criticalOverdensityIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                          , timeEarliest             , &
           &                                                                  mergeProbability
@@ -66,13 +67,20 @@
      !@     <arguments>\textless class(criticalOverdensityClass)\textgreater criticalOverdensity_</arguments>
      !@     <description>Set the critical overdensity object.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>criticalOverdensityUpdate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ deltaCritical\argin, \doublezero\ massCurrent\argin, \doublezero\ massNew\argin, \textless type(treeNode)\textgreater\ nodeNew\arginout</arguments>
+     !@     <description>Set the critical overdensity object.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                           cole2000Destructor
-     procedure :: build                  => cole2000Build
-     procedure :: shouldAbort            => cole2000ShouldAbort
-     procedure :: shouldFollowBranch     => cole2000ShouldFollowBranch
-     procedure :: timeEarliestSet        => cole2000TimeEarliestSet
-     procedure :: criticalOverdensitySet => cole2000CriticalOverdensitySet
+     final     ::                              cole2000Destructor
+     procedure :: build                     => cole2000Build
+     procedure :: shouldAbort               => cole2000ShouldAbort
+     procedure :: shouldFollowBranch        => cole2000ShouldFollowBranch
+     procedure :: timeEarliestSet           => cole2000TimeEarliestSet
+     procedure :: criticalOverdensitySet    => cole2000CriticalOverdensitySet
+     procedure :: criticalOverdensityUpdate => cole2000CriticalOverdensityUpdate
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -180,8 +188,10 @@ contains
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     !# <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_"/>
+
     ! Initialize state.
     self%branchingIntervalDistributionInitialized=.false.
+    self%criticalOverdensityIsMassDependent      =self%criticalOverdensity_%isMassDependent()
     ! Validate parameters.
     if (self%accretionLimit >= 1.0d0) call Galacticus_Error_Report('accretionLimit < 1 required'//{introspection:location})
     return
@@ -214,18 +224,19 @@ contains
     type            (treeNode                        ), pointer               :: nodeNew1                  , nodeNew2                   , node
     class           (nodeComponentBasic              ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
          &                                                                       basicParent
-    double precision                                  , parameter             :: toleranceDeltaCritical   =1.0d-6
+    double precision                                  , parameter             :: toleranceDeltaCritical=1.0d-6
+    double precision                                  , parameter             :: toleranceTime         =1.0d-6
     type            (mergerTreeWalkerTreeConstruction)                        :: treeWalkerConstruction
     type            (mergerTreeWalkerIsolatedNodes   )                        :: treeWalkerIsolated
     integer         (kind=kind_int8                  )                        :: nodeIndex
     double precision                                                          :: accretionFraction         , baseNodeTime               , branchingProbability      , &
          &                                                                       collapseTime              , deltaCritical              , deltaCritical1            , &
          &                                                                       deltaCritical2            , deltaW                     , nodeMass1                 , &
-         &                                                                       nodeMass2                 , time                       , uniformRandom             , &
+         &                                                                       nodeMass2                 , deltaCriticalEarliest      , uniformRandom             , &
          &                                                                       massResolution            , accretionFractionCumulative, branchMassCurrent         , &
          &                                                                       branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
          &                                                                       branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                       deltaCriticalEarliest
+         &                                                                       collapseTimeTruncate
     logical                                                                   :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
          &                                                                       snapEarliestTime
     type            (varying_string                  )                        :: message
@@ -279,10 +290,9 @@ contains
                 basicNew1      => nodeNew1%basic(autoCreate=.true.)
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
-                ! Compute the time corresponding to this new node.
-                time           =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=nodeNew1)
+                ! Compute the critical overdensity corresponding to this new node.
+                deltaCritical1=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,nodeNew1)
                 ! Set properties of the new node.
-                deltaCritical1 =  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
                 call basicNew1%massSet(nodeMass1     )
                 call basicNew1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
@@ -309,31 +319,27 @@ contains
                 basicNew1          => nodeNew1%basic(autoCreate=.true. )
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1          = massResolution
-                ! Compute the time corresponding to this event.
-                time               = self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
-                ! Convert to a critical overdensity.
-                deltaCritical1     = self%criticalOverdensity_%value         (time               =time                      ,mass=nodeMass1        ,node=nodeNew1)
+                ! Compute critical overdensity for this new node.
+                deltaCritical1=self%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
                 ! Ensure critical overdensity exceeds that of the current node.
-                if      (                                                                             &
-                     &    deltaCritical1 <  branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
-                     &  ) then
+                collapseTime        =self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
+                collapseTimeTruncate=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1            ,mass=nodeMass1        ,node=nodeNew1)
+                if (collapseTimeTruncate >  collapseTime*(1.0d0+toleranceTime)) then
                    call Galacticus_Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
-                else if (                                                                             &
-                     &    deltaCritical1 >= branchDeltaCriticalCurrent*(1.0d0-toleranceDeltaCritical) &
-                     &   .and.                                                                        &
-                     &    deltaCritical1 <= branchDeltaCriticalCurrent*(1.0d0+toleranceDeltaCritical) &
-                     &  ) then
-                   deltaCritical1=branchDeltaCriticalCurrent*(1.0d0+toleranceDeltaCritical)
+                else
+                   do while (collapseTime > collapseTimeTruncate*(1.0d0-toleranceTime)) 
+                      deltaCritical1=deltaCritical1*(1.0d0+toleranceTime)
+                   end do
                 end if
                 ! Set properties of the new node.
                 call basicNew1%massSet(nodeMass1     )
                 call basicNew1%timeSet(deltaCritical1)
                 ! Create links from old to new node and vice-versa.
-                node%firstChild => nodeNew1
+                node    %firstChild => nodeNew1
                 nodeNew1%parent     => node
                 ! Move to the terminating node (necessary otherwise we would move to this terminating node next and continue to
                 ! grow a branch from it), and flag that the branch is done.
-                node            => nodeNew1
+                node                => nodeNew1
                 branchIsDone        =  .true.
              else
                 ! Finding maximum allowed step in w. Limit based on branching rate only if we are using the original Cole et
@@ -470,10 +476,8 @@ contains
                    nodeMass2     =  basic%mass()-nodeMass1
                    nodeMass1=nodeMass1*(1.0d0-accretionFractionCumulative)
                    nodeMass2=nodeMass2*(1.0d0-accretionFractionCumulative)
-                   ! Compute the time corresponding to this branching event.
-                   time          =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=nodeNew1)
-                   ! Set properties of first new node.
-                   deltaCritical1=  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
+                   ! Compute the critical overdensity of the first new node.
+                   deltaCritical1=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,nodeNew1)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical1=deltaCritical
                    call basicNew1%massSet(nodeMass1     )
@@ -482,8 +486,8 @@ contains
                    nodeIndex=nodeIndex+1
                    nodeNew2  => treeNode(nodeIndex,tree)
                    basicNew2 => nodeNew2%basic(autoCreate=.true.)
-                   ! Set properties of second new node.
-                   deltaCritical2=self%criticalOverdensity_%value(time=time,mass=nodeMass2,node=nodeNew2)
+                   ! Compute the critical overdensity of the second new node.
+                   deltaCritical2=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass2,nodeNew2)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical
                    call basicNew2%massSet(nodeMass2     )
@@ -507,10 +511,8 @@ contains
                       basicNew1      => nodeNew1%basic(autoCreate=.true.)
                       ! Compute new mass accounting for sub-resolution accretion.
                       nodeMass1      =  basic%mass()*(1.0d0-accretionFractionCumulative)
-                      ! Compute the time corresponding to this new node.
-                      time           =  self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=nodeNew1)
-                      ! Set properties of the new node.
-                      deltaCritical1 =  self%criticalOverdensity_%value         (time               =time         ,mass=nodeMass1        ,node=nodeNew1)
+                      ! Compute the critical overdensity corresponding to this new node.
+                      deltaCritical1=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,nodeNew1)
                       call basicNew1%massSet(nodeMass1     )
                       call basicNew1%timeSet(deltaCritical1)
                       ! Create links from old to new node and vice-versa.
@@ -522,9 +524,9 @@ contains
                       ! overdensity and take another step. We update the critical overdensity by mapping to a time at the current
                       ! branch mass, then mapping back to a critical overdensity at the new branch mass. This ensures that if
                       ! critical overdensity is a function of mass we preserve correct time-ordering along the branch.
-                      time                      =self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=branchMassCurrent,node=node)
-                      branchMassCurrent         =basic%mass()*(1.0d0-accretionFractionCumulative)
-                      branchDeltaCriticalCurrent=self%criticalOverdensity_%value         (time               =time         ,mass=branchMassCurrent,node=node)
+                      nodeMass1                 =basic%mass()*(1.0d0-accretionFractionCumulative)
+                      branchDeltaCriticalCurrent=self%criticalOverdensityUpdate(deltaCritical,branchMassCurrent,nodeMass1,node)
+                      branchMassCurrent         =nodeMass1
                    end if
                 end select
              end if
@@ -561,6 +563,8 @@ contains
              else
                 ! Parent halo is not close to the resolution limit - this is an error.
                 message="branch is not well-ordered in time:"           //char(10)
+                write (label,'(i20)'   ) tree       %index
+                message=message//" ->      tree index = "//label        //char(10)
                 write (label,'(i20)'   ) node       %index()
                 message=message//" ->      node index = "//label        //char(10)
                 write (label,'(i20)'   ) node%parent%index()
@@ -633,6 +637,27 @@ contains
     class(criticalOverdensityClass ), intent(in   ), target :: criticalOverdensity_
 
     !# <objectDestructor name="self%criticalOverdensity_"/>
-    self%criticalOverdensity_ => criticalOverdensity_
+    self%criticalOverdensity_               =>      criticalOverdensity_
+    self%criticalOverdensityIsMassDependent =  self%criticalOverdensity_%isMassDependent()
     return
   end subroutine cole2000CriticalOverdensitySet
+  
+  double precision function cole2000CriticalOverdensityUpdate(self,deltaCritical,massCurrent,massNew,nodeNew)
+    !% Update the critical overdensity for a new node, given that of the parent,
+    class           (mergerTreeBuilderCole2000), intent(inout) :: self
+    double precision                           , intent(in   ) :: massCurrent  , massNew, &
+         &                                                        deltaCritical
+    type            (treeNode                 ), intent(inout) :: nodeNew
+    double precision                                           :: time
+
+    if (self%criticalOverdensityIsMassDependent) then
+       ! Critical overdensity is mass-dependent, so convert current critical overdensity to a time at the mass of the parent, and
+       ! then convert that time back to a critical overdensity at the mass of the new node.
+       time                             =self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical,mass=massCurrent,node=nodeNew)
+       cole2000CriticalOverdensityUpdate=self%criticalOverdensity_%value         (time               =time         ,mass=massNew    ,node=nodeNew)
+    else
+       ! Critical overdensity is mass independent, so the critical overdensity for parent and child node is the same.
+       cole2000CriticalOverdensityUpdate=                                                             deltaCritical
+    end if
+    return
+  end function cole2000CriticalOverdensityUpdate
