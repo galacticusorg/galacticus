@@ -99,7 +99,7 @@ while ( my $line = <STDIN> ) {
     $dropBuffer = 1
 	if ( $line =~ m/Only array FINAL procedures declared for derived type/ );
     # <workaround type="gfortran" PR="86117" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86117"/>
-    if ( $line =~ m/Warning:\s+\'MEM\[\(struct\s+([a-zA-Z0-9_]+)[a-z0-9_\s\*\)[a-z0-9_&]+\s+\+\s+\d+B\]\' (is|may be) used uninitialized in this function/ ) {
+    if ( $line =~ m/Warning:\s+\'MEM\[\(struct\s+([a-zA-Z0-9_]+)[a-z0-9_\s\*]+\)[a-z0-9_&]+\s+\+\s+\d+B\]\' (is|may be) used uninitialized in this function/ ) {
 	$dropBuffer = 1;
 	# In these cases we must add the problem structure to a list that we will ignore other "uninitialized" complaints about.
 	$bogusUninitialized{$1} = 1;
