@@ -37,10 +37,11 @@
      type            (fgsl_interp_accel       )                            :: interpolationAccelerator
      type            (fgsl_interp             )                            :: interpolationObject
    contains
-     final     ::                 barkana2001WDMDestructor
-     procedure :: value        => barkana2001WDMValue
-     procedure :: gradientTime => barkana2001WDMGradientTime
-     procedure :: gradientMass => barkana2001WDMGradientMass
+     final     ::                    barkana2001WDMDestructor
+     procedure :: value           => barkana2001WDMValue
+     procedure :: gradientTime    => barkana2001WDMGradientTime
+     procedure :: gradientMass    => barkana2001WDMGradientMass
+     procedure :: isMassDependent => barkana2001WDMIsMassDependent
   end type criticalOverdensityBarkana2001WDM
 
   interface criticalOverdensityBarkana2001WDM
@@ -393,3 +394,13 @@ contains
          &                     *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)
     return
   end function barkana2001WDMGradientMass
+
+  logical function barkana2001WDMIsMassDependent(self)
+    !% Return whether the critical overdensity is mass dependent.
+    implicit none
+    class(criticalOverdensityBarkana2001WDM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+    
+    barkana2001WDMIsMassDependent=.true.
+    return
+  end function barkana2001WDMIsMassDependent

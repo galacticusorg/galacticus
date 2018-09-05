@@ -29,10 +29,11 @@
      double precision                             :: criticalOverdensity
      class           (linearGrowthClass), pointer :: linearGrowth_
     contains
-     final     ::                   fixedDestructor
-     procedure :: value          => fixedValue
-     procedure :: gradientTime   => fixedGradientTime
-     procedure :: gradientMass   => fixedGradientMass
+     final     ::                    fixedDestructor
+     procedure :: value           => fixedValue
+     procedure :: gradientTime    => fixedGradientTime
+     procedure :: gradientMass    => fixedGradientMass
+     procedure :: isMassDependent => fixedIsMassDependent
   end type criticalOverdensityFixed
 
   interface criticalOverdensityFixed
@@ -143,3 +144,13 @@ contains
     fixedGradientMass=0.0d0
     return
   end function fixedGradientMass
+
+  logical function fixedIsMassDependent(self)
+    !% Return whether the critical overdensity is mass dependent.
+    implicit none
+    class(criticalOverdensityFixed), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    fixedIsMassDependent=.false.
+    return
+  end function fixedIsMassDependent
