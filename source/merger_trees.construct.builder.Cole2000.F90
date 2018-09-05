@@ -159,8 +159,8 @@ contains
          &                                                                                                           toleranceResolutionParent        , &
          &                                                                                                           mergerTreeBranchingProbability_  , &
          &                                                                                                           mergerTreeMassResolution_        , &
-         &                                                                                                           cosmologyFunctions_             , &
-         &                                                                                                           criticalOverdensity_                &
+         &                                                                                                           cosmologyFunctions_              , &
+         &                                                                                                           criticalOverdensity_               &
          &                           )
     !# <inputParametersValidate source="parameters"/>
     return
