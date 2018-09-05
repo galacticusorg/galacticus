@@ -27,7 +27,7 @@ module Galacticus_Output_Trees_Projected_Density
        &    Galacticus_Output_Tree_Projected_Density_Names
 
   ! Flag indicating whether or not projected density information is to be output.
-  logical :: outputProjectedDensityData
+  logical :: outputProjectedDensityData, outputProjectedDensityIncludeRadii
 
   ! Flag indicating whether or not this module has been initialized.
   logical :: outputProjectedDensityDataInitialized=.false.
@@ -79,7 +79,16 @@ contains
           !#   <name>outputProjectedDensityData</name>
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether or not projected density data should be incldued in the output file.</description>
+          !#   <description>Specifies whether or not projected density data should be included in the output file.</description>
+          !#   <group>output</group>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>outputProjectedDensityIncludeRadii</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not the radii at which projected density data are output should also be included in the output file.</description>
           !#   <group>output</group>
           !#   <source>globalParameters</source>
           !#   <type>boolean</type>
@@ -267,7 +276,14 @@ contains
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='projectedDensity:'//char(radii(i)%name)
           doublePropertyComments(doubleProperty)='projected density at a given radius'
-          doublePropertyUnitsSI (doubleProperty)=kilo
+          doublePropertyUnitsSI (doubleProperty)=+massSolar     &
+               &                                 /megaParsec**2
+          if (outputProjectedDensityIncludeRadii) then
+             doubleProperty=doubleProperty+1
+             doublePropertyNames   (doubleProperty)='projectedDensityRadius:'//char(radii(i)%name)
+             doublePropertyComments(doubleProperty)='radius at which projected density is output'
+             doublePropertyUnitsSI (doubleProperty)=+megaParsec
+          end if
        end do
     end if
     return
@@ -290,7 +306,10 @@ contains
     call Galacticus_Output_Tree_Projected_Density_Initialize
 
     ! Increment property count if we are outputting projected density data.
-    if (outputProjectedDensityData) doublePropertyCount=doublePropertyCount+radiiCount
+    if (outputProjectedDensityData) then
+       doublePropertyCount=doublePropertyCount+radiiCount
+       if (outputProjectedDensityIncludeRadii)doublePropertyCount=doublePropertyCount+radiiCount
+    end if
     return
   end subroutine Galacticus_Output_Tree_Projected_Density_Property_Count
 
@@ -382,8 +401,12 @@ contains
                &                                                   integrationWorkspace                                     , &
                &                                                   toleranceAbsolute                                 =0.0d+0, &
                &                                                   toleranceRelative                                 =1.0d-3  &
-               &                                                  )
+               &                                                  )          
           call Integrate_Done(integrandFunction,integrationWorkspace)
+          if (outputProjectedDensityIncludeRadii) then
+             doubleProperty=doubleProperty+1
+             doubleBuffer(doubleBufferCount,doubleProperty)=radiusProjected
+          end if
        end do
     end if
     return
