@@ -46,11 +46,12 @@
      !@     <description>Tabulate spherical collapse critical overdensity.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                 sphericalCollapseMatterLambdaDestructor
-     procedure :: value        => sphericalCollapseMatterLambdaValue
-     procedure :: gradientTime => sphericalCollapseMatterLambdaGradientTime
-     procedure :: gradientMass => sphericalCollapseMatterLambdaGradientMass
-     procedure :: retabulate   => sphericalCollapseMatterLambdaRetabulate
+     final     ::                    sphericalCollapseMatterLambdaDestructor
+     procedure :: value           => sphericalCollapseMatterLambdaValue
+     procedure :: gradientTime    => sphericalCollapseMatterLambdaGradientTime
+     procedure :: gradientMass    => sphericalCollapseMatterLambdaGradientMass
+     procedure :: retabulate      => sphericalCollapseMatterLambdaRetabulate
+     procedure :: isMassDependent => sphericalCollapseMatterLambdaIsMassDependent
   end type criticalOverdensitySphericalCollapseMatterLambda
 
   interface criticalOverdensitySphericalCollapseMatterLambda
@@ -220,3 +221,13 @@ contains
     sphericalCollapseMatterLambdaGradientMass=0.0d0
     return
   end function sphericalCollapseMatterLambdaGradientMass
+
+  logical function sphericalCollapseMatterLambdaIsMassDependent(self)
+    !% Return whether the critical overdensity is mass dependent.
+    implicit none
+    class(criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    sphericalCollapseMatterLambdaIsMassDependent=.false.
+    return
+  end function sphericalCollapseMatterLambdaIsMassDependent

@@ -27,10 +27,11 @@
      class(criticalOverdensityClass), pointer :: criticalOverdensity_
      class(haloEnvironmentClass    ), pointer :: haloEnvironment_
     contains
-     final     ::                   peakBackgroundSplitDestructor
-     procedure :: value          => peakBackgroundSplitValue
-     procedure :: gradientTime   => peakBackgroundSplitGradientTime
-     procedure :: gradientMass   => peakBackgroundSplitGradientMass
+     final     ::                    peakBackgroundSplitDestructor
+     procedure :: value           => peakBackgroundSplitValue
+     procedure :: gradientTime    => peakBackgroundSplitGradientTime
+     procedure :: gradientMass    => peakBackgroundSplitGradientMass
+     procedure :: isMassDependent => peakBackgroundSplitIsMassDependent
   end type criticalOverdensityPeakBackgroundSplit
 
   interface criticalOverdensityPeakBackgroundSplit
@@ -130,3 +131,12 @@ contains
     peakBackgroundSplitGradientMass=self%criticalOverdensity_%gradientMass(time,expansionFactor,collapsing,mass,node)
     return
   end function peakBackgroundSplitGradientMass
+
+  logical function peakBackgroundSplitIsMassDependent(self)
+    !% Return whether the critical overdensity is mass dependent.
+    implicit none
+    class(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
+
+    peakBackgroundSplitIsMassDependent=self%criticalOverdensity_%isMassDependent()
+    return
+  end function peakBackgroundSplitIsMassDependent

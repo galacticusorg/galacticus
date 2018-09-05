@@ -16,11 +16,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a critical overdensity class based on the fitting functions of
-!% \cite{kitayama_semianalytic_1996}.
+  !% Contains a module which implements a critical overdensity class based on the fitting functions of
+  !% \cite{kitayama_semianalytic_1996}.
+
   use Linear_Growth
   use Cosmology_Functions
-    use Dark_Matter_Particles
+  use Dark_Matter_Particles
 
   !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996" defaultThreadPrivate="yes">
   !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
@@ -32,10 +33,11 @@
      class           (linearGrowthClass      ), pointer :: linearGrowth_
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_
     contains
-     final     ::                   kitayamaSuto1996Destructor
-     procedure :: value          => kitayamaSuto1996Value
-     procedure :: gradientTime   => kitayamaSuto1996GradientTime
-     procedure :: gradientMass   => kitayamaSuto1996GradientMass
+     final     ::                    kitayamaSuto1996Destructor
+     procedure :: value           => kitayamaSuto1996Value
+     procedure :: gradientTime    => kitayamaSuto1996GradientTime
+     procedure :: gradientMass    => kitayamaSuto1996GradientMass
+     procedure :: isMassDependent => kitayamaSuto1996IsMassDependent
   end type criticalOverdensityKitayamaSuto1996
 
   interface criticalOverdensityKitayamaSuto1996
@@ -167,3 +169,13 @@ contains
     kitayamaSuto1996GradientMass=0.0d0
     return
   end function kitayamaSuto1996GradientMass
+
+  logical function kitayamaSuto1996IsMassDependent(self)
+    !% Return whether the critical overdensity is mass dependent.
+    implicit none
+    class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    kitayamaSuto1996IsMassDependent=.false.
+    return
+  end function kitayamaSuto1996IsMassDependent
