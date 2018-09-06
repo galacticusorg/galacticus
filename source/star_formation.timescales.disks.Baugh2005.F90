@@ -21,7 +21,7 @@
   use Cosmology_Functions
 
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksBaugh2005" defaultThreadPrivate="yes">
-  !#  <description>The \caite{baugh_can_2005} timescale for star formation in galactic disks.</description>
+  !#  <description>The \cite{baugh_can_2005} timescale for star formation in galactic disks.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksBaugh2005
      !% Implementation of the \cite{baugh_can_2005} timescale for star formation in galactic disks.
