@@ -437,6 +437,7 @@ my @translations =
 	     "accretionHalosSimpleAccreteNewGrowthOnly"                              => "accretionHaloMethod.simple.--accretionNewGrowthOnly"                                     ,
 	     "reionizationSuppressionVelocity"                                       => "accretionHaloMethod.simple.--velocitySuppressionReionization"                            ,
 	     "reionizationSuppressionRedshift"                                       => "accretionHaloMethod.simple.--redshiftReionization"                                       ,
+	     "virialDensityContrastPercolationLinkingLength"                         => "virialDensityContrastMethod.percolation.--linkingLength"
 	 },
 	 values        =>
 	 {

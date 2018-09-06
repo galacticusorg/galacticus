@@ -104,6 +104,8 @@ contains
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
     self%fileName=self%fileName//'.hdf5'
+    ! Create directory for output.
+    call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium')
     ! Lock file
     call File_Lock_Initialize(self%fileLock)
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
@@ -145,8 +147,6 @@ contains
           if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) &
                & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
        end if
-       ! Create directory for output.
-       call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium')
        ! Build RecFast parameter file.
        parameterFile=File_Name_Temporary("recFastParameters")
        recFastFile  =parameterFile//".out"
