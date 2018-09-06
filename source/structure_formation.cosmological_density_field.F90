@@ -154,6 +154,11 @@ module Cosmological_Density_Field
   !#   <argument>double precision          , intent(in   ), optional :: mass                       </argument>
   !#   <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
   !#  </method>
+  !#  <method name="isMassDependent" >
+  !#   <description>Return true if the critical overdensity is dependent on the mass of the halo.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
 
   !# <functionClass>
