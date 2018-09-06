@@ -14,10 +14,10 @@
   </pbs>
 
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <accretionHaloMethod value="bertschinger">
-      <opticalDepthReionization value="0.0524245066049212"/>
+      <redshiftReionization value="10.5" />
       <velocitySuppressionReionization value="47.370163695687651"/>
     </accretionHaloMethod>
     <accretionHaloTotalMethod value="bertschinger"/>
