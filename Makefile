@@ -100,6 +100,16 @@ endif
 # FCFLAGS += -I$(YEPROOT)/bindings/fortran/modules/$(YEPPLATFORM)-gfortran/ -L$(YEPBINARIES) -DYEPPP
 # endif
 
+# OFD locks option.
+OFDLOCKS ?= enabled
+ifeq '$(OFDLOCKS)' 'enabled'
+CFLAGS   += -DOFDLOCKS
+CPPFLAGS += -DOFDLOCKS 
+else
+CFLAGS   += -DNOOFDLOCKS
+CPPFLAGS += -DNOOFDLOCKS 
+endif
+
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
 
@@ -296,6 +306,14 @@ $(BUILDPATH)/%.d : ./source/%.cpp
 	@if [ ! -f $*.d ]; then \
 	 mkdir -p `dirname $*.d`; \
 	 touch $*.d; \
+	fi
+
+# In some instances a C header file may not be required due to being preprocessed out, but a dependency for it still appears in
+# the Makefiles. In these instances we just create an empty file, since it won't be used anyway.
+%.h :
+	@if [ ! -f $*.h ]; then \
+	 mkdir -p `dirname $*.h`; \
+	 touch $*.h; \
 	fi
 
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
