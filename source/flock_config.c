@@ -31,7 +31,11 @@ void flockConfig() {
   struct flock fl;
 #ifdef __linux__
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#ifdef OFDLOCKS
   int s = fcntl(fd, F_OFD_SETLKW, &fl);
+#else
+  fail
+#endif
 #else
   fail 
 #endif
