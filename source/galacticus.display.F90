@@ -32,13 +32,13 @@ module Galacticus_Display
   character(len=10), allocatable, dimension(:) :: indentationFormat
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
-  character(len=20)                            :: threadFormat                      , masterFormat
+  character(len=20)                            :: threadFormat                              , masterFormat
   
   logical                                      :: displayInitialized        =.false.
-  integer                                      :: verbosityLevel            =1
-  integer          , parameter  , public       :: verbosityDebug            =5      , verbosityInfo   =4, &
-       &                                          verbosityWarn             =3      , verbosityWorking=2, &
-       &                                          verbosityStandard         =1      , verbositySilent =0
+  integer          , parameter  , public       :: verbosityDebug            =5              , verbosityInfo   =4, &
+       &                                          verbosityWarn             =3              , verbosityWorking=2, &
+       &                                          verbosityStandard         =1              , verbositySilent =0
+  integer                                      :: verbosityLevel            =verbositySilent
 
   ! Progress bar state.
   logical                                      :: barVisible                =.false.

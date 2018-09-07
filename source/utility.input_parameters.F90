@@ -799,6 +799,7 @@ contains
     !$ use OMP_Lib
     use Regular_Expressions
     use String_Handling
+    use Galacticus_Display
     implicit none
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
@@ -806,15 +807,21 @@ contains
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: thisRegEx
     !$omp threadprivate(thisRegEx)
-    logical                                                           :: warningsFound                , parameterMatched
+    logical                                                           :: warningsFound                , parameterMatched    , &
+         &                                                               verbose
     integer                                                           :: allowedParametersCount       , errorStatus         , &
          &                                                               distance                     , distanceMinimum     , &
-         &                                                               j
+         &                                                               j                            , verbosityLevel
     character(len=1024       )                                        :: parameterValue
     character(len=1024       )                                        :: unknownName                  , allowedParameterName, &
          &                                                               parameterNameGuess
 
-    ! Return if there are no parameters to check.
+    ! Determine whether we should be verbose.
+    verbose=Galacticus_Verbosity_Level() > verbositySilent
+    if (verbose .and. self%isPresent('verbosityLevel')) then
+       call self%value('verbosityLevel',verbosityLevel)
+       verbose=verbosityLevel > verbositySilent
+    end if
     ! Validate parameters.
     warningsFound=.false.
     if (associated(self%parameters)) then
@@ -854,15 +861,17 @@ contains
                   &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
-                !$ if (omp_in_parallel()) then
-                !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-                !$ else
-                !$    write (0,'(a2,a2,$)') "MM",": "
-                !$ end if
-                write (0,'(a)') '-> WARNING: problems found with input parameters:'
+                if (verbose) then
+                   !$ if (omp_in_parallel()) then
+                   !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
+                   !$ else
+                   !$    write (0,'(a2,a2,$)') "MM",": "
+                   !$ end if
+                   write (0,'(a)') '-> WARNING: problems found with input parameters:'
+                end if
                 warningsFound=.true.
              end if
-             if (errorStatus /= inputParameterErrorStatusSuccess) then
+             if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
                 !$ if (omp_in_parallel()) then
                 !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
                 !$ else
@@ -877,7 +886,7 @@ contains
                 end select
                 !$omp end critical (FoX_DOM_Access)
              end if
-             if (allowedParametersCount > 0 .and. .not.parameterMatched) then
+             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
                 !$ if (omp_in_parallel()) then
                 !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
                 !$ else
@@ -896,17 +905,19 @@ contains
                       parameterNameGuess=allowedParameterName
                    end if
                 end do
-                if (distanceMinimum < 0) then
-                   write (0,'(3a)') '    unrecognized parameter [',trim(unknownName),']'
-                else
-                   write (0,'(5a)') '    unrecognized parameter [',trim(unknownName),'] (did you mean [',trim(parameterNameGuess),']?)'
+                if (verbose) then
+                   if (distanceMinimum < 0) then
+                      write (0,'(3a)') '    unrecognized parameter [',trim(unknownName),']'
+                   else
+                      write (0,'(5a)') '    unrecognized parameter [',trim(unknownName),'] (did you mean [',trim(parameterNameGuess),']?)'
+                   end if
                 end if
              end if
           end if
           currentParameter => currentParameter%sibling   
        end do
     end if
-    if (warningsFound) then
+    if (warningsFound .and. verbose) then
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else

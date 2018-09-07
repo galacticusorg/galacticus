@@ -32,6 +32,7 @@ program Galacticus
   use Memory_Management
   use Input_Parameters
   use Functions_Global_Utilities
+  use System_Limits
 #ifdef USEMPI
   use MPI
   use MPI_Utilities
@@ -42,13 +43,12 @@ program Galacticus
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
-
+  integer                                         :: parentCommunicator         , status
+  
   ! Initialize MPI.
 #ifdef USEMPI
   call mpiInitialize(MPI_Thread_Multiple)
 #endif
-  ! Show the Galacticus banner.
-  call Galacticus_Banner_Show()
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
   ! Read in basic code memory usage.
@@ -66,6 +66,10 @@ program Galacticus
   call Functions_Global_Set()
   ! Set verbosity.
   call Galacticus_Verbosity_Set_From_Parameters()
+  ! Set resource limits.
+  Call System_Limits_Set()
+  ! Show the Galacticus banner.
+  call Galacticus_Banner_Show()
   ! Perform task.
   task_ => task()
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
@@ -73,6 +77,8 @@ program Galacticus
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI
+  call MPI_Comm_Get_Parent(parentCommunicator,status)
+  if (parentCommunicator /= MPI_Comm_Null) call MPI_Barrier(parentCommunicator,status)
   call mpiFinalize()
 #endif
   ! All done, finish.
