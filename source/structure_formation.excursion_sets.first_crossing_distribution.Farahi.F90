@@ -162,6 +162,7 @@ contains
     use Input_Parameters
     use Galacticus_Paths
     use Galacticus_Display
+    use System_Command
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
@@ -191,6 +192,8 @@ contains
        self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/firstCrossDistributionFarahi_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
        call Galacticus_Display_Message('excursion set data will be read from/written to "'//char(self%fileName)//'"',verbosityWorking)
     end if
+    ! Ensure directory exists.
+    call System_Command_Do("mkdir -p `dirname "//char(self%fileName)//"`")
     ! Initialize file lock.    
     if (.not.farahiFileLockInitialized) then
        !$omp critical(farahiFileLockInitialize)
