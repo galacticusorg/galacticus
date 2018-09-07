@@ -32,7 +32,7 @@ sub COSMOS2012 {
 	if ( $redshiftRange < 1 || $redshiftRange > 3 );
     
     # Read observational data.
-    my $data             = new PDL::IO::HDF5("data/observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5");
+    my $data             = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5");
     my $redshiftGroup    = $data         ->group  ('redshiftInterval'.$redshiftRange)       ;
     my $massStellarData  = $redshiftGroup->dataset('massStellar'                    )->get();
     my $massHaloMeanData = $redshiftGroup->dataset('massHaloMean'                   )->get();
@@ -198,7 +198,7 @@ sub COSMOS2012_FastReject {
 	if ( $redshiftRange < 1 || $redshiftRange > 3 );
     
     # Read observational data.
-    my $data             = new PDL::IO::HDF5("data/observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5");
+    my $data             = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/observations/stellarHaloMassRelation/stellarHaloMassRelation_COSMOS_Leauthaud2012.hdf5");
     my $redshiftGroup    = $data         ->group  ('redshiftInterval'.$redshiftRange)       ;
     my $massStellarData  = $redshiftGroup->dataset('massStellar'                    )->get();
     my $massHaloMeanData = $redshiftGroup->dataset('massHaloMean'                   )->get();
