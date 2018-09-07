@@ -104,43 +104,43 @@ contains
     use Galacticus_Error
     use Virial_Density_Contrast
     implicit none
-    type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012        )                                :: self
-    integer                                                                       , intent(in   )                 :: redshiftInterval
-    logical                                                                       , intent(in   )                 :: computeMeanSquare
-    double precision                                                              , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
-    class           (cosmologyFunctionsClass                                     ), intent(inout), target         :: cosmologyFunctions_
-    integer         (c_size_t                                                    ), parameter                     :: massHaloCount                                         =26
-    double precision                                                              , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                  =1.0d15
-    integer                                                                       , parameter                     :: covarianceBinomialBinsPerDecade                       =10
-    double precision                                                              , parameter                     :: covarianceBinomialMassHaloMinimum                     = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
-    double precision                                                              , allocatable  , dimension(:  ) :: massHalo
-    double precision                                                              , allocatable  , dimension(:,:) :: outputWeight
-    type            (galacticFilterStellarMass                                   ), pointer                       :: galacticFilterStellarMass_
-    type            (galacticFilterHaloIsolated                                  ), pointer                       :: galacticFilterHaloIsolated_
-    type            (galacticFilterAll                                           ), pointer                       :: galacticFilterAll_
-    type            (filterList                                                  ), pointer                       :: filters_
-    type            (outputAnalysisDistributionOperatorIdentity                  ), pointer                       :: outputAnalysisDistributionOperator_
-    type            (outputAnalysisWeightOperatorIdentity                        ), pointer                       :: outputAnalysisWeightOperator_
-    type            (outputAnalysisPropertyOperatorLog10                         ), pointer                       :: outputAnalysisPropertyOperator_                              , outputAnalysisWeightPropertyOperatorLog10_
-    type            (outputAnalysisPropertyOperatorAntiLog10                     ), pointer                       :: outputAnalysisPropertyUnoperator_                            , outputAnalysisWeightPropertyOperatorAntiLog10_
-    type            (outputAnalysisPropertyOperatorSequence                      ), pointer                       :: outputAnalysisWeightPropertyOperator_
-    type            (outputAnalysisPropertyOperatorSquare                        ), pointer                       :: outputAnalysisWeightPropertyOperatorSquare_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc             ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial             ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
-    type            (outputAnalysisPropertyOperatorFilterHighPass                ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
-    type            (outputAnalysisPropertyExtractorMassHalo                     ), pointer                       :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorMassStellar                  ), pointer                       :: outputAnalysisWeightPropertyExtractor_
-    type            (propertyOperatorList                                        ), pointer                       :: propertyOperators_
-    type            (cosmologyParametersSimple                                   ), pointer                       :: cosmologyParametersData
-    type            (cosmologyFunctionsMatterLambda                              ), pointer                       :: cosmologyFunctionsData
-    type            (virialDensityContrastFixed                                  ), pointer                       :: virialDensityContrast_
-    double precision                                                              , parameter                     :: errorPolynomialZeroPoint                              =11.3d00
-    integer         (c_size_t                                                    )                                :: iBin
-    double precision                                                                                              :: massStellarLimit                                              , redshiftMinimum                         , &
-         &                                                                                                           redshiftMaximum
-    type            (surveyGeometryFullSky                                       )                                :: surveyGeometry_
-    type            (varying_string                                              )                                :: analysisLabel                                                 , weightPropertyLabel                     , &
-         &                                                                                                           weightPropertyDescription
+    type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                                :: self
+    integer                                                               , intent(in   )                 :: redshiftInterval
+    logical                                                               , intent(in   )                 :: computeMeanSquare
+    double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
+    class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
+    integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
+    double precision                                                      , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                  =1.0d15
+    integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                       =10
+    double precision                                                      , parameter                     :: covarianceBinomialMassHaloMinimum                     = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
+    double precision                                                      , allocatable  , dimension(:  ) :: massHalo
+    double precision                                                      , allocatable  , dimension(:,:) :: outputWeight
+    type            (galacticFilterStellarMass                           ), pointer                       :: galacticFilterStellarMass_
+    type            (galacticFilterHaloIsolated                          ), pointer                       :: galacticFilterHaloIsolated_
+    type            (galacticFilterAll                                   ), pointer                       :: galacticFilterAll_
+    type            (filterList                                          ), pointer                       :: filters_
+    type            (outputAnalysisDistributionOperatorIdentity          ), pointer                       :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisWeightOperatorIdentity                ), pointer                       :: outputAnalysisWeightOperator_
+    type            (outputAnalysisPropertyOperatorLog10                 ), pointer                       :: outputAnalysisPropertyOperator_                              , outputAnalysisWeightPropertyOperatorLog10_
+    type            (outputAnalysisPropertyOperatorAntiLog10             ), pointer                       :: outputAnalysisPropertyUnoperator_                            , outputAnalysisWeightPropertyOperatorAntiLog10_
+    type            (outputAnalysisPropertyOperatorSequence              ), pointer                       :: outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyOperatorSquare                ), pointer                       :: outputAnalysisWeightPropertyOperatorSquare_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorSystmtcPolynomial     ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
+    type            (outputAnalysisPropertyOperatorFilterHighPass        ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
+    type            (outputAnalysisPropertyExtractorMassHalo             ), pointer                       :: outputAnalysisPropertyExtractor_
+    type            (outputAnalysisPropertyExtractorMassStellar          ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (propertyOperatorList                                ), pointer                       :: propertyOperators_
+    type            (cosmologyParametersSimple                           ), pointer                       :: cosmologyParametersData
+    type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
+    type            (virialDensityContrastFixed                          ), pointer                       :: virialDensityContrast_
+    double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d00
+    integer         (c_size_t                                            )                                :: iBin
+    double precision                                                                                      :: massStellarLimit                                              , redshiftMinimum                         , &
+         &                                                                                                   redshiftMaximum
+    type            (surveyGeometryFullSky                               )                                :: surveyGeometry_
+    type            (varying_string                                      )                                :: analysisLabel                                                 , weightPropertyLabel                     , &
+         &                                                                                                   weightPropertyDescription
     
     ! Construct survey geometry.
     select case (redshiftInterval)
