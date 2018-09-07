@@ -115,7 +115,7 @@ module MPI_Utilities
      !@   <objectMethod>
      !@     <method>sum</method>
      !@     <type>\intzero|\intone</type>
-     !@     <arguments>(\intzero|\intone) array\argin</arguments>
+     !@     <arguments>(\intzero|\intone|\doublezero|\doubleone|\doubletwo) array\argin</arguments>
      !@     <description>Return the sum of {\normalfont \ttfamily array} over all processes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -157,32 +157,34 @@ module MPI_Utilities
      procedure :: nodeCount      => mpiGetNodeCount
      procedure :: nodeAffinity   => mpiGetNodeAffinity
      procedure :: hostAffinity   => mpiGetHostAffinity
-     procedure ::                   mpiRequestData1D   , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D, mpiRequestDataLogical1D
-     generic   :: requestData    => mpiRequestData1D   , mpiRequestData2D       , &
-          &                         mpiRequestDataInt1D, mpiRequestDataLogical1D
+     procedure ::                   mpiRequestData1D    , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
+     generic   :: requestData    => mpiRequestData1D    , mpiRequestData2D       , &
+          &                         mpiRequestDataInt1D , mpiRequestDataLogical1D
      procedure :: messageWaiting => mpiMessageWaiting
-     procedure ::                   mpiAverageScalar   , mpiAverageArray
-     generic   :: average        => mpiAverageScalar   , mpiAverageArray
+     procedure ::                   mpiAverageScalar    , mpiAverageArray
+     generic   :: average        => mpiAverageScalar    , mpiAverageArray
      procedure ::                   mpiMedianArray
      generic   :: median         => mpiMedianArray
-     procedure ::                   mpiSumScalarInt    , mpiSumArrayInt
-     procedure ::                   mpiSumScalarDouble , mpiSumArrayDouble
-     generic   :: sum            => mpiSumScalarInt    , mpiSumArrayInt         , &
-          &                         mpiSumScalarDouble , mpiSumArrayDouble
+     procedure ::                   mpiSumScalarInt     , mpiSumArrayInt
+     procedure ::                   mpiSumScalarDouble  , mpiSumArrayDouble      , &
+          &                         mpiSumArrayTwoDouble
+     generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
+          &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
+          &                         mpiSumArrayTwoDouble
      procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar    , mpiMaxvalArray
-     generic   :: maxval         => mpiMaxvalScalar    , mpiMaxvalArray
+     procedure ::                   mpiMaxvalScalar     , mpiMaxvalArray
+     generic   :: maxval         => mpiMaxvalScalar     , mpiMaxvalArray
      procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar    , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar , mpiMinvalIntArray
-     generic   :: minval         => mpiMinvalScalar    , mpiMinvalArray         , &
-          &                         mpiMinValIntScalar , mpiMinvalIntArray
-     procedure ::                   mpiGather1D        , mpiGather2D            , &
-          &                         mpiGatherScalar    , mpiGatherInt1D         , &
+     procedure ::                   mpiMinvalScalar     , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar  , mpiMinvalIntArray
+     generic   :: minval         => mpiMinvalScalar     , mpiMinvalArray         , &
+          &                         mpiMinValIntScalar  , mpiMinvalIntArray
+     procedure ::                   mpiGather1D         , mpiGather2D            , &
+          &                         mpiGatherScalar     , mpiGatherInt1D         , &
           &                         mpiGatherIntScalar
-     generic   :: gather         => mpiGather1D        , mpiGather2D            , &
-          &                         mpiGatherScalar    , mpiGatherInt1D         , &
+     generic   :: gather         => mpiGather1D         , mpiGather2D            , &
+          &                         mpiGatherScalar     , mpiGatherInt1D         , &
           &                         mpiGatherIntScalar
   end type mpiObject
   
@@ -864,7 +866,7 @@ contains
     maskedArray=array
     activeCount=self%count()
     if (present(mask)) then
-       if (.not.mask(self%rank())) maskedArray=0
+       if (.not.mask(self%rank())) maskedArray=0.0d0
        activeCount=count(mask)
     end if
     call MPI_AllReduce(maskedArray,mpiSumArrayDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
@@ -876,7 +878,37 @@ contains
 #endif
     return
   end function mpiSumArrayDouble
-
+  
+  function mpiSumArrayTwoDouble(self,array,mask)
+    !% Sum an rank-2 double array over all processes, returning it to all processes.
+    implicit none
+    class           (mpiObject), intent(in   )                                                           :: self
+    double precision           , intent(in   ), dimension( :               , :               )           :: array
+    logical                    , intent(in   ), dimension(0:                                 ), optional :: mask
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2))           :: mpiSumArrayTwoDouble
+#ifdef USEMPI
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2))            :: maskedArray
+    integer                                                                                               :: iError           , activeCount
+#endif
+    
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0.0d0
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayTwoDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, array, mask
+    mpiSumArrayTwoDouble=0.0d0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayTwoDouble
+  
   double precision function mpiSumScalarDouble(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
     implicit none
