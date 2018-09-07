@@ -664,8 +664,9 @@ CODE
 		}		
 		if ( $declarationMatches && defined($allowedParameters) ) {
 		    $parametersPresent      = 1;
-		    
 		    $allowedParametersCode .= "select type (self)\n";		    
+		    # Include the class and all parent classes here - in the parent class constructor we want to accept parameters
+		    # that are valid in child classes.
 		    my $className = $class->{'name'};
 		    while ( defined($className) ) {		    
 			$allowedParametersCode .= "class is (".$className.")\n";
