@@ -197,7 +197,7 @@ contains
     implicit none
     integer            :: error
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , parentCommunicator
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -216,12 +216,20 @@ contains
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call MPI_Comm_Get_Parent(parentCommunicator        ,error)
+       call MPI_Comm_Rank      (MPI_Comm_World    ,mpiRank,error)
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
-       call Flush(0)
-       call Sleep(86400)
+       if (parentCommunicator == MPI_Comm_Null) then
+          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          call Flush(0)
+          call Sleep(86400)
+       else
+          write (0,*) " => Returning control to parent process"
+          call Flush(0)
+          call MPI_Barrier(parentCommunicator,error)
+          call MPI_Finalize(error)
+       end if
     end if
 #endif
     call H5Close_F                (error)
@@ -241,7 +249,7 @@ contains
     implicit none
     integer            :: error
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , parentCommunicator
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -260,12 +268,20 @@ contains
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call MPI_Comm_Get_Parent(parentCommunicator        ,error)
+       call MPI_Comm_Rank      (MPI_Comm_World    ,mpiRank,error)
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
-       call Flush(0)
-       call Sleep(86400)
+       if (parentCommunicator == MPI_Comm_Null) then
+          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          call Flush(0)
+          call Sleep(86400)
+       else
+          write (0,*) " => Returning control to parent process"
+          call Flush(0)
+          call MPI_Barrier(parentCommunicator,error)
+          call MPI_Finalize(error)
+       end if
     end if
 #endif
     call H5Close_F                (error)
@@ -285,7 +301,7 @@ contains
     implicit none
     integer            :: error
 #ifdef USEMPI
-    integer            :: mpiRank
+    integer            :: mpiRank , parentCommunicator
     character(len=128) :: hostName
     logical            :: flag
 #endif
@@ -304,12 +320,20 @@ contains
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
     if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call MPI_Comm_Get_Parent(parentCommunicator        ,error)
+       call MPI_Comm_Rank      (MPI_Comm_World    ,mpiRank,error)
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
-       call Flush(0)
-       call Sleep(86400)
+       if (parentCommunicator == MPI_Comm_Null) then
+          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          call Flush(0)
+          call Sleep(86400)
+       else
+          write (0,*) " => Returning control to parent process"
+          call Flush(0)
+          call MPI_Barrier(parentCommunicator,error)
+          call MPI_Finalize(error)
+       end if
     end if
 #endif
     call H5Close_F                (error)
@@ -322,8 +346,15 @@ contains
 
   subroutine Galacticus_Signal_Handler_SIGXCPU()
     !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
+#ifdef USEMPI
+    use MPI
+#endif
     implicit none
     integer :: error
+#ifdef USEMPI
+    integer :: parentCommunicator
+    logical :: flag
+#endif
 
     write (0,*) 'Galacticus exceeded available CPU time - will try to flush data before exiting.'
     call Semaphore_Post_On_Error()
@@ -331,8 +362,18 @@ contains
 #ifndef UNCLEANEXIT
     call H5Close_F(error)
     call H5Close_C()
-    call Exit(errorStatusXCPU)
 #endif
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Get_Parent(parentCommunicator,error)
+       if (parentCommunicator /= MPI_Comm_Null) then
+          call MPI_Barrier(parentCommunicator,error)
+          call MPI_Finalize(error)
+       end if
+    end if
+#endif
+    call Exit(errorStatusXCPU)
     return
   end subroutine Galacticus_Signal_Handler_SIGXCPU
 
@@ -348,7 +389,7 @@ contains
     character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
     integer                                          :: error
 #ifdef USEMPI
-    integer                                          :: mpiRank
+    integer                                          :: mpiRank , parentCommunicator
     character(len=128                       )        :: hostName
     logical                                          :: flag
 #endif
@@ -371,12 +412,20 @@ contains
 #ifdef USEMPI
        call MPI_Initialized(flag,error)
        if (flag) then
-          call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+          call MPI_Comm_Get_Parent(parentCommunicator        ,error)
+          call MPI_Comm_Rank      (MPI_Comm_World    ,mpiRank,error)
           call hostnm(hostName)
           write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
-          call Flush(0)
-          call Sleep(86400)
+          if (parentCommunicator == MPI_Comm_Null) then
+             write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+             call Flush(0)
+             call Sleep(86400)
+          else
+             write (0,*) " => Returning control to parent process"
+             call Flush(0)
+             call MPI_Barrier(parentCommunicator,error)
+             call MPI_Finalize(error)
+          end if
        end if
 #endif
     call H5Close_F                (error)

@@ -31,24 +31,26 @@ contains
 #ifdef USEMPI
     use MPI_Utilities
 #endif
+    use Galacticus_Display
     implicit none
-
 #ifdef USEMPI
     if (mpiSelf%rank() == 0) then
 #endif
-       write (0,*) '             ##                                     '
-       write (0,*) '  ####        #                  #                  '
-       write (0,*) ' #   #        #             #                       '
-       write (0,*) '#       ###   #  ###   ### ###  ##   ### ## ##   ## '
-       write (0,*) '#       #  #  #  #  # #  #  #    #  #  #  #  #  #   '
-       write (0,*) '#   ###  ###  #   ### #     #    #  #     #  #   #  '
-       write (0,*) ' #   #  #  #  #  #  # #     #    #  #     #  #    # '
-       write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
-       write (0,*)
-       write (0,*) '© 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,'
-       write (0,*) '  2017, 2018'
-       write (0,*) '  - Andrew Benson'
-       write (0,*)
+       if (Galacticus_Verbosity_Level() > verbositySilent) then
+          write (0,*) '             ##                                     '
+          write (0,*) '  ####        #                  #                  '
+          write (0,*) ' #   #        #             #                       '
+          write (0,*) '#       ###   #  ###   ### ###  ##   ### ## ##   ## '
+          write (0,*) '#       #  #  #  #  # #  #  #    #  #  #  #  #  #   '
+          write (0,*) '#   ###  ###  #   ### #     #    #  #     #  #   #  '
+          write (0,*) ' #   #  #  #  #  #  # #     #    #  #     #  #    # '
+          write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
+          write (0,*)
+          write (0,*) '© 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,'
+          write (0,*) '  2017, 2018'
+          write (0,*) '  - Andrew Benson'
+          write (0,*)
+       end if
 #ifdef USEMPI
     end if
 #endif
