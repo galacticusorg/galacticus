@@ -113,7 +113,7 @@ contains
          &                                                                                         forceCounts
     double precision                                              , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
     double precision                                                                            :: logLikelihoodVariance_, timeEvaluate_          , &
-         &                                                                                         logLikelihood
+         &                                                                                         logLikelihood         , logPriorProposed_
     integer                                                                                     :: i                     , j                      , &
          &                                                                                         likelihoodCount       , evaluateCount          , &
          &                                                                                         forceCount
@@ -141,103 +141,114 @@ contains
        message=message//evaluateCount//" has been reached globally"
        call Galacticus_Display_Message(message)
     end if
+    ! Initialize a local copy of the proposed log prior. In order to ensure MPI synchronization between processes we must always
+    ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class can spawn Galacticus runs under
+    ! MPI, one at a time, and the MPI processes must coordinate to ensure only one such Galacticus is spawned at a time. To avoid
+    ! unneccesary calculation we will force this local proposed log prior to an impossible value if we don't need to evaluate
+    ! it. The called model likelihood functions are expected to instantly return in such cases without actually computing their
+    ! likelihood.
+    logPriorProposed_=logPriorProposed
+    ! If this chain has already reached beyond the current evaluate level then we do not want to evaluate it again. Set the
+    ! proposed prior to an impossible value to prevent the model likehood being evaluated. This will result in the chain remaining
+    ! locked into its current state.
     if (evaluateCounts(simulationState%chainIndex()) > evaluateCount) then
-       ! This chain has already reached beyond the current evaluate level. Simply return an impossible likelihood to keep it
-       ! locked into its current state.
+       logPriorProposed_                       =logImpossible
        independentLikelihoodsSequantialEvaluate=logImpossible
-    else
-       ! Iterate through likelihoods, until none remain, or until we reach the maximum to currently evaluate (we do not evaluate
-       ! further than the least likelihood reached over all chains).
-       do while (associated(modelLikelihood_).and.likelihoodCount <= evaluateCount)
-          likelihoodCount=likelihoodCount+1
-          finalLikelihood=.not.associated(modelLikelihood_%next)
-          if (.not.modelLikelihood_%parameterMapInitialized) then
-             do i=1,size(modelLikelihood_%parameterMap)
-                ! Determine the mapping of the simulation state vector to this likelihood.
-                modelLikelihood_%parameterMap(i)=-1
-                do j=1,size(modelParametersActive_)
-                   if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
-                      modelLikelihood_%parameterMap(i)=j
+    end if
+    ! Iterate through likelihoods, until none remain, or until we reach the maximum to currently evaluate (we do not evaluate
+    ! further than the least likelihood reached over all chains).
+    do while (associated(modelLikelihood_).and.likelihoodCount <= evaluateCount)
+       likelihoodCount=likelihoodCount+1
+       finalLikelihood=.not.associated(modelLikelihood_%next)
+       if (.not.modelLikelihood_%parameterMapInitialized) then
+          do i=1,size(modelLikelihood_%parameterMap)
+             ! Determine the mapping of the simulation state vector to this likelihood.
+             modelLikelihood_%parameterMap(i)=-1
+             do j=1,size(modelParametersActive_)
+                if (modelParametersActive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNames(i)) then
+                   modelLikelihood_%parameterMap(i)=j
+                   exit
+                end if
+             end do
+             if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})             
+             ! Copy the model parameter definition.
+             allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
+             call modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersActive_(i)%modelParameter_)
+          end do
+          if (allocated(modelLikelihood_%parameterMapInactive)) then
+             do i=1,size(modelLikelihood_%parameterMapInactive)
+                ! Determine the mapping of the inactive parameters to this likelihood.
+                modelLikelihood_%parameterMapInactive(i)=-1
+                do j=1,size(modelParametersInActive_)
+                   if (modelParametersInactive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNamesInactive(i)) then
+                      modelLikelihood_%parameterMapInactive(i)=j
                       exit
                    end if
                 end do
-                if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})             
+                if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
-                allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
-                call modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersActive_(i)%modelParameter_)
+                allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
+                call modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersInactive_(i)%modelParameter_)
              end do
-             if (allocated(modelLikelihood_%parameterMapInactive)) then
-                do i=1,size(modelLikelihood_%parameterMapInactive)
-                   ! Determine the mapping of the inactive parameters to this likelihood.
-                   modelLikelihood_%parameterMapInactive(i)=-1
-                   do j=1,size(modelParametersInActive_)
-                      if (modelParametersInactive_(j)%modelParameter_%name() == modelLikelihood_%parameterMapNamesInactive(i)) then
-                         modelLikelihood_%parameterMapInactive(i)=j
-                         exit
-                      end if
-                   end do
-                   if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
-                   ! Copy the model parameter definition.
-                   allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
-                   call modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_%deepCopy(modelLikelihood_%modelParametersInactive_(i)%modelParameter_)
-                end do
-             end if
-             ! Mark the likelihood as initialized.
-             modelLikelihood_%parameterMapInitialized=.true.
           end if
-          ! Map the overall simulation state to the state for this likelihood.
-          forall(i=1:size(modelLikelihood_%parameterMap))
-             stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
-          end forall
-          call modelLikelihood_%simulationState%update(stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
-          ! Evaluate this likelihood
-          logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &
-               &                                                                                                 modelLikelihood_%simulationState         , &
-               &                                                                                                 modelLikelihood_%modelParametersActive_  , &
-               &                                                                                                 modelLikelihood_%modelParametersInactive_, &
-               &                                                                                                                  simulationConvergence   , &
-               &                                                                                                                  temperature             , &
-               &                                                                                                                  logLikelihoodCurrent    , &
-               &                                                                                                                  logPriorCurrent         , &
-               &                                                                                                                  logPriorProposed        , &
-               &                                                                                                                  timeEvaluate            , &
-               &                                                                                                                  logLikelihoodVariance     &
-               &                                                                                                                 )
-          independentLikelihoodsSequantialEvaluate                  =+independentLikelihoodsSequantialEvaluate &
-               &                                                     +logLikelihood
-          if (present(logLikelihoodVariance)) logLikelihoodVariance_=+logLikelihoodVariance_                   &
-               &                                                     +logLikelihoodVariance
-          timeEvaluate_                                             =+timeEvaluate_                            &
-               &                                                     +timeEvaluate
-          if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
-             if (likelihoodCount > evaluateCounts(simulationState%chainIndex())) then                
-                ! We have matched or exceeded the previous number of likelihoods evaluated.
-                ! Force acceptance if this is the first time we have reached this far.
-                if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex())) then
-                   if (.not.present(forceAcceptance)) call Galacticus_Error_Report('"forceAcceptance" argument must be present'//{introspection:location})
-                   forceCounts    (simulationState%chainIndex())=evaluateCounts(simulationState%chainIndex())
-                   forceAcceptance                              =.true.
-                end if
-                ! Check for acceptable likelihood.
-                if (logLikelihood > 0.0d0) then
-                   ! We have achieved a match at a new likelihood.
-                   evaluateCounts(simulationState%chainIndex())=likelihoodCount                   
-                else
-                   ! We have evaluated at least as many likelihoods as previously, but now have a negative likelihood. Do not evaluate
-                   ! further.
-                   exit
-                end if
-             else if (logLikelihood < 0.0d0) then
-                ! We have a negative likelihood and have not yet exceeded the maximum number of likelihoods previously
-                ! acheived. Return an impossible likelihood to prevent this state from being accepted.
-                independentLikelihoodsSequantialEvaluate=logImpossible
-                exit
+          ! Mark the likelihood as initialized.
+          modelLikelihood_%parameterMapInitialized=.true.
+       end if
+       ! Map the overall simulation state to the state for this likelihood.
+       forall(i=1:size(modelLikelihood_%parameterMap))
+          stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
+       end forall
+       call modelLikelihood_%simulationState%update(stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
+       ! Evaluate this likelihood
+       logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &
+            &                                                                                                 modelLikelihood_%simulationState         , &
+            &                                                                                                 modelLikelihood_%modelParametersActive_  , &
+            &                                                                                                 modelLikelihood_%modelParametersInactive_, &
+            &                                                                                                                  simulationConvergence   , &
+            &                                                                                                                  temperature             , &
+            &                                                                                                                  logLikelihoodCurrent    , &
+            &                                                                                                                  logPriorCurrent         , &
+            &                                                                                                                  logPriorProposed_       , &
+            &                                                                                                                  timeEvaluate            , &
+            &                                                                                                                  logLikelihoodVariance     &
+            &                                                                                                                 )
+       ! Accumulate the likelihood unless our local proposed prior is impossible (in which case we did not actually need to
+       ! compute this likelihood, but were calling the evaluate method just to ensure MPI synchronization).
+       if (logPriorProposed_ > logImpossible)                                                               &
+            & independentLikelihoodsSequantialEvaluate           =+independentLikelihoodsSequantialEvaluate &
+            &                                                     +logLikelihood
+       if (present(logLikelihoodVariance)) logLikelihoodVariance_=+logLikelihoodVariance_                   &
+            &                                                     +logLikelihoodVariance
+       timeEvaluate_                                             =+timeEvaluate_                            &
+            &                                                     +timeEvaluate
+       if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
+          if (likelihoodCount > evaluateCounts(simulationState%chainIndex())) then                
+             ! We have matched or exceeded the previous number of likelihoods evaluated.
+             ! Force acceptance if this is the first time we have reached this far.
+             if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex())) then
+                if (.not.present(forceAcceptance)) call Galacticus_Error_Report('"forceAcceptance" argument must be present'//{introspection:location})
+                forceCounts    (simulationState%chainIndex())=evaluateCounts(simulationState%chainIndex())
+                forceAcceptance                              =.true.
              end if
+             ! Check for acceptable likelihood.
+             if (logLikelihood > 0.0d0) then
+                ! We have achieved a match at a new likelihood.
+                evaluateCounts(simulationState%chainIndex())=likelihoodCount                   
+             else
+                ! We have evaluated at least as many likelihoods as previously, but now have a negative likelihood. Do not evaluate
+                ! further.
+                logPriorProposed_=logImpossible
+             end if
+          else if (logLikelihood < 0.0d0) then
+             ! We have a negative likelihood and have not yet exceeded the maximum number of likelihoods previously
+             ! acheived. Return an impossible likelihood to prevent this state from being accepted.
+             independentLikelihoodsSequantialEvaluate=logImpossible
+             logPriorProposed_                       =logImpossible
           end if
-          modelLikelihood_ =>  modelLikelihood_%next
-       end do
-    end if
-    ! Retrieve the evaluation count for this process back frmo whichever process ran our chain.
+       end if
+       modelLikelihood_ => modelLikelihood_%next
+    end do
+    ! Retrieve the evaluation count for this process back from whichever process ran our chain.
     evaluateCount =evaluateCounts(simulationState%chainIndex())
     forceCount    =forceCounts   (simulationState%chainIndex())
     evaluateCounts=mpiSelf%gather(evaluateCount)
