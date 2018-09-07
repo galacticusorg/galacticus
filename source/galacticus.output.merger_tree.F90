@@ -82,60 +82,20 @@ module Galacticus_Output_Merger_Tree
 
 contains
 
-  subroutine Galacticus_Merger_Tree_Output(tree,iOutput,time,isLastOutput)
-    !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
-    use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Calculations_Resets
-    use               Galacticus_Nodes
-    use               Galacticus_Output_Open
-    use               Input_Parameters
-    use               Galactic_Structure_Radii
-    use               Galacticus_Output_Merger_Tree_Data
-    use               Multi_Counters
-    use               Merger_Tree_Walkers
-    !# <include directive="mergerTreeOutputTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.tasks.modules.inc'
-    !# </include>
-    !# <include directive="mergerTreeOutputInstances" type="moduleUse">
-    include 'galacticus.output.merger_tree.instances.modules.inc'
-    !# </include>
-    !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
-    !# </include>
-    !# <include directive="mergerTreeAnalysisTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.analysis.modules.inc'
-    !# </include>
-    ! Define two inputParameter ojbects here, even though they are both used to access the same "mergerTreeOutput" parameter
-    ! block. This is necessary to trigger automatic finalization of the objects when this function is exited. That finalization
-    ! cleans up (e.g. closes the associated HDF5 group). Otherwise we could do this manually, but it's easier to simply have it
-    ! done automatically. They are defined on separate lines as, currently, the "objectBuilder" preprocessor directive is
-    ! insufficiently intelligent to modify the attributes of these variables if they are on a single line.
+  subroutine Galacticus_Merger_Tree_Output_Initialize()
+    !% Initialize tree output by reading relevant parameters.
+    use Galacticus_Output_Open
+    use Input_Parameters
     implicit none
-    type            (mergerTree              )              , intent(inout), target   :: tree
-    integer         (c_size_t                )              , intent(in   )           :: iOutput
-    double precision                                        , intent(in   )           :: time
-    logical                                                 , intent(in   ), optional :: isLastOutput
-    type            (treeNode                ), pointer                               :: node
-    integer         (kind=HSIZE_T            ), dimension(1)                          :: referenceLength       , referenceStart
-    class           (nodeComponentBasic      ), pointer                               :: basic
-    type            (mergerTree              ), pointer                               :: currentTree
-    type            (mergerTreeWalkerAllNodes)                                        :: treeWalker
-    integer                                                                           :: doubleProperty        , nodeStatus     , &
-         &                                                                               iProperty             , integerProperty, &
-         &                                                                               i                     , analysisCount
-    integer         (c_size_t                )                                        :: iGroup
-    logical                                                                           :: nodePassesFilter
-    type            (hdf5Object              )                                        :: toDataset
-    type            (inputParameters         )                                        :: outputParameters
-    type            (inputParameters         )                                        :: outputParametersFilter
-    type            (multiCounter            )                                        :: instance
-          
+    integer                  :: i               ,analysisCount
+    type   (inputParameters) :: outputParameters
+
     ! Initialize if necessary.
     if (.not.mergerTreeOutputInitialized) then
        !$omp critical(Merger_Tree_Output_Initialization)
        if (.not.mergerTreeOutputInitialized) then
           ! Ensure file is open.
-          call Galacticus_Output_Open_File
+          call Galacticus_Output_Open_File()
           outputParameters=globalParameters%subParameters('mergerTreeOutput',requirePresent=.false.,requireValue=.false.)
           allocate(analyses(outputParameters%count('analyses',zeroIfNotPresent=.true.)))
           !# <inputParameter>
@@ -176,6 +136,57 @@ contains
        end if
        !$omp end critical(Merger_Tree_Output_Initialization)
     end if
+    return
+  end subroutine Galacticus_Merger_Tree_Output_Initialize
+  
+  subroutine Galacticus_Merger_Tree_Output(tree,iOutput,time,isLastOutput)
+    !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
+    use, intrinsic :: ISO_C_Binding
+    use               Galacticus_Calculations_Resets
+    use               Galacticus_Nodes
+    use               Input_Parameters
+    use               Galactic_Structure_Radii
+    use               Galacticus_Output_Merger_Tree_Data
+    use               Multi_Counters
+    use               Merger_Tree_Walkers
+    !# <include directive="mergerTreeOutputTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.tasks.modules.inc'
+    !# </include>
+    !# <include directive="mergerTreeOutputInstances" type="moduleUse">
+    include 'galacticus.output.merger_tree.instances.modules.inc'
+    !# </include>
+    !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
+    !# </include>
+    !# <include directive="mergerTreeAnalysisTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.analysis.modules.inc'
+    !# </include>
+    ! Define two inputParameter ojbects here, even though they are both used to access the same "mergerTreeOutput" parameter
+    ! block. This is necessary to trigger automatic finalization of the objects when this function is exited. That finalization
+    ! cleans up (e.g. closes the associated HDF5 group). Otherwise we could do this manually, but it's easier to simply have it
+    ! done automatically. They are defined on separate lines as, currently, the "objectBuilder" preprocessor directive is
+    ! insufficiently intelligent to modify the attributes of these variables if they are on a single line.
+    implicit none
+    type            (mergerTree              )              , intent(inout), target   :: tree
+    integer         (c_size_t                )              , intent(in   )           :: iOutput
+    double precision                                        , intent(in   )           :: time
+    logical                                                 , intent(in   ), optional :: isLastOutput
+    type            (treeNode                ), pointer                               :: node
+    integer         (kind=HSIZE_T            ), dimension(1)                          :: referenceLength       , referenceStart
+    class           (nodeComponentBasic      ), pointer                               :: basic
+    type            (mergerTree              ), pointer                               :: currentTree
+    type            (mergerTreeWalkerAllNodes)                                        :: treeWalker
+    integer                                                                           :: doubleProperty        , nodeStatus     , &
+         &                                                                               iProperty             , integerProperty, &
+         &                                                                               i
+    integer         (c_size_t                )                                        :: iGroup
+    logical                                                                           :: nodePassesFilter
+    type            (hdf5Object              )                                        :: toDataset
+    type            (inputParameters         )                                        :: outputParametersFilter
+    type            (multiCounter            )                                        :: instance
+
+    ! Initialize output.
+    call Galacticus_Merger_Tree_Output_Initialize()
     ! Get a galactic filter for determining which nodes are to be output. Note that this is done separately from the parameter
     ! reading above, as we need to get a per-thread object here, such that it matches up precisely with any per-thread objects
     ! used later in the output process. Failure to do this can lead to problems. For example, in lightcone output, the output
@@ -367,6 +378,8 @@ contains
     integer(c_size_t) :: iGroup, iDataset
     integer           :: i
 
+    ! Ensure output has been initialized.
+    call Galacticus_Merger_Tree_Output_Initialize()
     ! Close any open output groups.
     !$ call hdf5Access%set()
     do iGroup=1,outputGroupsCount
