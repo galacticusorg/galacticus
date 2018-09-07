@@ -708,7 +708,7 @@
     <backgroundRadiationCompute value="true"/>
     <intergalacticMediumStateMethod value="recFast"/>
     <intergalacticMediumStateMethod value="file">
-      <fileName value="%DATADYNAMICPATH%/intergalacticMedium/recFast_OmegaMatter0.2812_OmegaDarkEnergy0.7188_OmegaBaryon0.0461_HubbleConstant69.7_temperatureCMB2.7255_YHe0.22.hdf5"/>
+      <fileName value="%DATASTATICPATH%/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
     </intergalacticMediumStateMethod>
     <intergalacticMediumStateMethod value="simple"/>
   </parameters>
