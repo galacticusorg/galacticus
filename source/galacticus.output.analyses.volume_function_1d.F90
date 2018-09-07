@@ -490,6 +490,7 @@ contains
 
   subroutine volumeFunction1DFinalizeAnalysis(self)
     !% Compute final covariances and normalize.
+    use MPI_Utilities
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout) :: self
     double precision                                , parameter     :: weightFractionMaximum=0.99d0
@@ -535,6 +536,11 @@ contains
           end if
        end do
     end if
+#ifdef USEMPI
+    ! If running under MPI, perform a summation reduction across all processes.
+    self%functionValue     =mpiSelf%sum(self%functionValue     )
+    self%functionCovariance=mpiSelf%sum(self%functionCovariance)
+#endif
     ! Apply final distribution operators - pass only the non-buffer bin values here.
     call self%outputAnalysisDistributionNormalizer_%normalize(self%functionValue,self%functionCovariance,self%binMinimum(1:self%binCount),self%binMaximum(1:self%binCount))
     ! Apply any "unoperator" to output bin values. This can be used to reverse transformations (e.g. if masses were converted to
