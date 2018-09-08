@@ -43,7 +43,9 @@ program Galacticus
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
+#ifdef USEMPI
   integer                                         :: parentCommunicator         , status
+#endif
   
   ! Initialize MPI.
 #ifdef USEMPI
