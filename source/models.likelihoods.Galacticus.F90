@@ -294,6 +294,7 @@ contains
     if (self%timeCommand == "" .and. .not.self%spawnMPI) call Galacticus_Error_Report('a working GNU time command is required'//{introspection:location})
     ! Build an MPI info object for use when spawning Galacticus.
     if (self%spawnMPI) then
+#ifdef USEMPI
        call MPI_Info_Create(self%spawnInfo,status)
        if (status /= 0) call Galacticus_Error_Report('failed to create info object'//{introspection:location})
        infoString=var_str("OMP_NUM_THREADS="        )//threadsMPI//char(10)// &
@@ -308,6 +309,9 @@ contains
        end do
        call MPI_Info_Set(self%spawnInfo,'env',char(infoString),status)
        if (status /= 0) call Galacticus_Error_Report("failed to build environment info object"//{introspection:location})
+#else
+       call Galacticus_Error_Report('can not spawn MPI jobs - not compiled for MPI'//{introspection:location})
+#endif
     end if
     return
   end function galacticusConstructorInternal
@@ -321,7 +325,9 @@ contains
     use Posterior_Sampling_Convergence
     use System_Command
     use String_Handling
+#ifdef USEMPI
     use MPI
+#endif
     use MPI_Utilities
     use Galacticus_Error
     use File_Utilities
@@ -358,6 +364,7 @@ contains
     
     galacticusEvaluate=logImpossible
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
+#ifdef USEMPI
     if (self%spawnMPI) then
        ! We will be spawning Galacticus under MPI. Iterate over all ranks, and construct new MPI communicators each of which
        ! contain just a single process.
@@ -369,11 +376,17 @@ contains
        iRankStart=mpiSelf%Rank ()
        iRankEnd  =mpiSelf%Rank ()
     end if
+#else
+    iRankStart=mpiSelf%Rank ()
+    iRankEnd  =mpiSelf%Rank ()
+#endif
     do iRank=iRankStart,iRankEnd
        if (self%spawnMPI) then
           ! If spawning Galacticus under MPI, synchronize all processes here, and then let only the currently active process
           ! proceed.
+#ifdef USEMPI
           call mpiBarrier()
+#endif
           if (mpiSelf%rank() /= iRank) cycle
        end if
        ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
@@ -461,12 +474,15 @@ contains
              end select
           end do
           ! Append parameters to set resource limits.
+#ifdef USEMPI
           if (self%spawnMPI) &
                & wrapperCommand=wrapperCommand//" --parameter    cpuLimit="//self%cpuLimit
+#endif
           ! If requested, sleep for a short time to desynchronize launching of the Galacticus wrapper command. On some systems this is
           ! necessary to avoid resource conflicts.
           if (self%delayInterval > 0.0d0) call Sleep(int(self%delayInterval*dble(mpiSelf%rank())))
           ! Determine if we are to run Galacticus under MPI.
+#ifdef USEMPI
           if (self%spawnMPI) then
              ! Galacticus is to be run under MPI - we need to do this ourselves as forked processes can't launch MPI jobs.
              ! Run just the "pre" stage of the wrapper.
@@ -501,6 +517,7 @@ contains
                 call Galacticus_Error_Report(message//{introspection:location})
              end if           
           else
+#endif
              ! Run the Galacticus model (without MPI, so the wrapper can do all of the work) and evaluate likelihood.
              call System_Command_Do(wrapperCommand,status)
              if (status /= 0) then     
@@ -513,30 +530,38 @@ contains
                 end if
                 call Galacticus_Error_Report(message//{introspection:location})
              end if
+#ifdef USEMPI
           end if
+#endif
           ! Read the likelihood back from file.
           open(newUnit=likelihoodFileUnit,file=char(likelihoodFileName),status='old',form='formatted')
           read                                     (likelihoodFileUnit,*) galacticusEvaluate
           if (present(logLikelihoodVariance)) read (likelihoodFileUnit,*) logLikelihoodVariance
           close(likelihoodFileUnit,status='delete')
           ! Determine timing data if necessary.
+#ifdef USEMPI
           if (self%spawnMPI) then
              ! Timing eas recorded internally - just compute the difference between time before and after running Galacticus.
              timeEvaluate=timeEnd-timeBegin
           else
+#endif
              ! Read the timing data back from file.
              open(newUnit=timingFileUnit,file=char(timingFileName),status='old',form='formatted')
              read (timingFileUnit,*) timeSystem,timeUser
              close(timingFileUnit,status='delete')
              timeEvaluate=timeSystem+timeUser
+#ifdef USEMPI
           end if
+#endif
        end if
     end do
+#ifdef USEMPI
     if (self%spawnMPI) then
        ! Clean up our split MPI communicators.
        call MPI_Comm_Free(splitCommunicator,status)
        if (status /= 0) call Galacticus_Error_Report('failed to free split communicator'//{introspection:location})
     end if
+#endif
     return
   end function galacticusEvaluate
 
