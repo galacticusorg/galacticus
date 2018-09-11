@@ -284,8 +284,10 @@ contains
          &                                                                                             adjustOutputs        , spawnMPI
     integer                                              , intent(in   )                            :: treesPerDecadeMinimum, threads      , &
          &                                                                                             cpuLimit             , threadsMPI
+#ifdef USEMPI
     integer                                                                                         :: status               ,i
     type   (varying_string                              )                                           :: infoString
+#endif
     !# <constructorAssign variables="delayInterval,name,executable,compilation,baseParameters,workPath,scratchPath,failPath,environment,report,randomize,saveState,cleanUp,coreDump,useFixedTrees,fixedTreesInScratch,adjustMasses,adjustOutputs,treesPerDecadeMinimum,threads,threadsMPI,cpuLimit,spawnMPI"/>
 
     self%storeCountPrevious=0
@@ -341,11 +343,9 @@ contains
     real                                                 , intent(inout)               :: timeEvaluate
     double precision                                     , intent(  out), optional     :: logLikelihoodVariance
     logical                                              , intent(inout), optional     :: forceAcceptance
-    integer                                              , allocatable  , dimension(:) :: spawnStatus
     double precision                                     , allocatable  , dimension(:) :: stateVector
     type            (varying_string                     )                              :: wrapperCommand        , likelihoodFileName      , &
-         &                                                                                timingFileName        , message                 , &
-         &                                                                                wrapperCommandStaged
+         &                                                                                timingFileName        , message
     character       (len=23                             )                              :: temperatureLabel      , reportLabel             , &
          &                                                                                randomizeLabel        , saveStateLabel          , &
          &                                                                                cleanUpLabel          , coreDumpLabel           , &
@@ -355,11 +355,15 @@ contains
     integer                                                                            :: i                     , likelihoodFileUnit      , &
          &                                                                                timingFileUnit        , status                  , &
          &                                                                                iRankStart            , iRankEnd                , &
-         &                                                                                iRank                 , childCommunicator       , &
-         &                                                                                splitCommunicator
+         &                                                                                iRank
     logical                                                                            :: storeModel
-    real                                                                               :: timeSystem            , timeUser                , &
-         &                                                                                timeBegin             , timeEnd
+    real                                                                               :: timeSystem            , timeUser
+#ifdef USEMPI
+    real                                                                               :: timeBegin             , timeEnd
+    integer                                                                            :: childCommunicator     , splitCommunicator
+    integer                                              , allocatable  , dimension(:) :: spawnStatus
+    type            (varying_string                     )                              :: wrapperCommandStaged
+#endif
     !GCC$ attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance
     
     galacticusEvaluate=logImpossible
