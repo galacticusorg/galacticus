@@ -29,9 +29,10 @@ module System_Limits
   public :: System_Limits_Set
 
   interface
-     integer(c_int) function setResourceLimit(resource,limit) bind(c,name='setResourceLimit_C')
+     function setResourceLimit(resource,limit) bind(c,name='setResourceLimit_C')
        !% Template for a C function that calls {\normalfont \ttfamily setrlimit()} to set a resource limit.
        import
+       integer(c_int )        :: setResourceLimit
        integer(c_int ), value :: resource
        integer(c_long), value :: limit
      end function setResourceLimit
