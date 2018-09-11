@@ -115,15 +115,16 @@ contains
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
     type            (varying_string)               , dimension(4) :: specialFilterWords
-    type            (node          ), pointer                     :: vegaElement             , wavelengthEffectiveElement
-    double precision                , parameter                   :: cutOffResolution=1.0d4
-    integer                                                       :: filterIndex             , ioErr
-    type            (varying_string)                              :: filterFileName          , errorMessage
+    type            (node          ), pointer                     :: vegaElement                   , wavelengthEffectiveElement
+    double precision                , parameter                   :: cutOffResolution        =1.0d4
+    integer                                                       :: filterIndex                   , ioErr
+    type            (varying_string)                              :: filterFileName                , errorMessage
     type            (DOMException  )                              :: exception
-    logical                                                       :: parseSuccess            , firstFilter
-    character       (len=32        )                              :: word
-    double precision                                              :: centralWavelength       , resolution, filterWidth
-    type            (hdf5Object    )                              :: filtersGroup            , dataset
+    logical                                                       :: parseSuccess                  , firstFilter
+    character       (len=64        )                              :: word
+    double precision                                              :: centralWavelength             , resolution                , &
+         &                                                           filterWidth
+    type            (hdf5Object    )                              :: filtersGroup                  , dataset
 
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
