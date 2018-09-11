@@ -1475,7 +1475,6 @@ contains
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
        end if
-
        ! Arrays of top-hat filters for equivalent width calculations
        if (extract(luminosityFilter(i),1,26) == "emissionLineContinuumPair_") then
           call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
@@ -1497,8 +1496,8 @@ contains
           newFilterCount=0
           wavelengthCentral=wavelengthMinimum/((sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution)
           wavelengthCentral = wavelengthCentral/wavelengthRatio
-          do k = 1,3,1
-             if(k.eq.1.or.k.eq.3)newFilterCount=newFilterCount+1
+          do k=1,3,1
+             if (k == 1 .or. k == 3) newFilterCount=newFilterCount+1
              wavelengthCentral=wavelengthCentral*wavelengthRatio
           end do
           ! Resize the arrays.
@@ -1531,7 +1530,7 @@ contains
              write (newFilterName,'(a,a,a,a,a,a)') "emissionLineContinuumBracketed_",trim(adjustl(lineName)),&
                   "_",trim(adjustl(wavelengthCentralLabel)),"_",trim(adjustl(resolutionLabel))             
              ! Create new filter.
-             if(k.eq.1.or.k.eq.3)then
+             if (k == 1 .or. k == 3) then
                 j=j+1
                 luminosityRedshiftText   (j+i-1)=luminosityRedshiftTextTmp  (i)
                 luminosityRedshift       (j+i-1)=luminosityRedshiftTmp      (i)
