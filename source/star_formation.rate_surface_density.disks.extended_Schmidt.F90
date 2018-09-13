@@ -124,8 +124,8 @@ contains
     !% \dot{\Sigma}_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)
     !% ^{N_1} \left({\Sigma_{\star}\over M_\odot \hbox{pc}^{-2}}\right)^{N_2},
     !% \end{equation}
-    !% where $A=${\normalfont \ttfamily [self%normalization]} and $N_1=${\normalfont \ttfamily
-    !% [self%exponentGas]}. $N_2=${\normalfont \ttfamily [self%exponentStars]}.
+    !% where $A=${\normalfont \ttfamily [normalization]} and $N_1=${\normalfont \ttfamily
+    !% [exponentGas]}. $N_2=${\normalfont \ttfamily [exponentStars]}.
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
