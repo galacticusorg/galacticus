@@ -163,6 +163,7 @@ contains
     use Galacticus_Paths
     use Galacticus_Display
     use System_Command
+    use File_Utilities
     implicit none
     type            (excursionSetFirstCrossingFarahi)                        :: self
     double precision                                 , intent(in   )         :: timeStepFractional
@@ -192,6 +193,8 @@ contains
        self%fileName=galacticusPath(pathTypeDataDynamic)//'largeScaleStructure/excursionSets/firstCrossDistributionFarahi_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'
        call Galacticus_Display_Message('excursion set data will be read from/written to "'//char(self%fileName)//'"',verbosityWorking)
     end if
+    ! Expand file name.
+    self%fileName=File_Name_Expand(char(self%fileName))
     ! Ensure directory exists.
     call System_Command_Do("mkdir -p `dirname "//char(self%fileName)//"`")
     ! Initialize file lock.    
@@ -245,7 +248,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
-       call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
+       call File_Lock(char(self%fileName),farahiFileLock)
        locked=.true.
        call self%fileRead()
     end if
@@ -254,7 +257,7 @@ contains
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (self%useFile.and..not.locked) then
-          call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
+          call File_Lock(char(self%fileName),farahiFileLock)
           locked=.true.
        end if
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
@@ -522,7 +525,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
-       call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
+       call File_Lock(char(self%fileName),farahiFileLock)
        locked=.true.
        call self%fileRead()
     end if
@@ -530,7 +533,7 @@ contains
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (self%useFile.and..not.locked) then
-          call File_Lock(char(File_Name_Expand(char(self%fileName))),farahiFileLock)
+          call File_Lock(char(self%fileName),farahiFileLock)
           locked=.true.
        end if
        if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
@@ -748,7 +751,7 @@ contains
     if (.not.File_Exists(File_Name_Expand(char(self%fileName)))) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(File_Name_Expand(char(self%fileName))))
+    call dataFile%openFile(char(self%fileName))
     ! Check if the standard table is populated.
     if (dataFile%hasGroup('probability')) then
        ! Deallocate arrays if necessary.
@@ -845,7 +848,7 @@ contains
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(File_Name_Expand(char(self%fileName))),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
+    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
        dataGroup=dataFile%openGroup("probability")
