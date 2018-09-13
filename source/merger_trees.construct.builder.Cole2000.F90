@@ -315,10 +315,10 @@ contains
              if (accretionFraction < 0.0d0) then
                 ! Terminate the branch with a final node.
                 nodeIndex          =  nodeIndex+1
-                nodeNew1           => treeNode      (nodeIndex,tree)
-                basicNew1          => nodeNew1%basic(autoCreate=.true. )
-                ! Compute new mass accounting for sub-resolution accretion.
-                nodeMass1          = massResolution
+                nodeNew1           => treeNode      (nodeIndex        ,tree)
+                basicNew1          => nodeNew1%basic(autoCreate=.true.     )
+                ! Create a node at the mass resolution.
+                nodeMass1          =  massResolution
                 ! Compute critical overdensity for this new node.
                 deltaCritical1=self%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
                 ! Ensure critical overdensity exceeds that of the current node.
@@ -327,8 +327,9 @@ contains
                 if (collapseTimeTruncate >  collapseTime*(1.0d0+toleranceTime)) then
                    call Galacticus_Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
                 else
-                   do while (collapseTime > collapseTimeTruncate*(1.0d0-toleranceTime)) 
-                      deltaCritical1=deltaCritical1*(1.0d0+toleranceTime)
+                   do while (collapseTimeTruncate > collapseTime*(1.0d0-toleranceTime)) 
+                      deltaCritical1      =deltaCritical1*(1.0d0+toleranceTime)
+                      collapseTimeTruncate=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1,mass=nodeMass1,node=nodeNew1)
                    end do
                 end if
                 ! Set properties of the new node.
