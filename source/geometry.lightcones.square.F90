@@ -46,7 +46,7 @@
   !#   \end{eqnarray}
   !#   where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
   !#  
-  !#   Various sub-parameters specify the details of the light geomtry. The {\normalfont \ttfamily lengthReplication} parameter
+  !#   Various sub-parameters specify the details of the light geometry. The {\normalfont \ttfamily lengthReplication} parameter
   !#   should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
   !#   with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
   !#   lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The {\normalfont \ttfamily angularSize}
