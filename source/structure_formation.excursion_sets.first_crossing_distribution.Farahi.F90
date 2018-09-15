@@ -740,13 +740,17 @@ contains
     use File_Utilities
     use Memory_Management
     use Numerical_Interpolation
+    use Galacticus_Display
+    use ISO_Varying_String
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)                   :: self
     type            (hdf5Object                     )                                  :: dataFile                   , dataGroup
     double precision                                 , allocatable  , dimension(:    ) :: varianceTableBaseTmp       , varianceTableTmp
     double precision                                 , allocatable  , dimension(:,:  ) :: firstCrossingProbabilityTmp, nonCrossingTableRate
     double precision                                 , allocatable  , dimension(:,:,:) :: firstCrossingRateTmp
-
+    type            (varying_string                 )                                  :: message
+    character       (len=32                         )                                  :: label
+    
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(File_Name_Expand(char(self%fileName)))) return
     ! Open the data file.
@@ -785,6 +789,19 @@ contains
        call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
        self%interpolationResetVariance=.true.
        self%interpolationResetTime    =.true.
+       ! Report.
+       message=var_str('read excursion set first crossing probability from: ')//File_Name_Expand(char(self%fileName))
+       call Galacticus_Display_Indent  (message,verbosityWorking)
+       write (label,'(e12.6)') self%timeMinimum
+       message=var_str('    time minimum: ')//label//' Gyr'
+       call Galacticus_Display_Message (message,verbosityWorking)
+       write (label,'(e12.6)') self%timeMaximum
+       message=var_str('    time maximum: ')//label//' Gyr'
+       write (label,'(e12.6)') self%varianceMaximum
+       message=var_str('variance minimum: ')//label
+       call Galacticus_Display_Message (message,verbosityWorking)
+       call Galacticus_Display_Message (message,verbosityWorking)
+       call Galacticus_Display_Unindent(''     ,verbosityWorking)
     end if
     ! Check if the rate table is populated.
     if (dataFile%hasGroup('rate')) then
@@ -829,6 +846,19 @@ contains
        self%interpolationResetVarianceRate    =.true.
        self%interpolationResetVarianceRateBase=.true.
        self%interpolationResetTimeRate        =.true.
+       ! Report.
+       message=var_str('read excursion set first crossing rates from: ')//File_Name_Expand(char(self%fileName))
+       call Galacticus_Display_Indent  (message,verbosityWorking)
+       write (label,'(e12.6)') self%timeMinimumRate
+       message=var_str('    time minimum: ')//label//' Gyr'
+       call Galacticus_Display_Message (message,verbosityWorking)
+       write (label,'(e12.6)') self%timeMaximumRate
+       message=var_str('    time maximum: ')//label//' Gyr'
+       write (label,'(e12.6)') self%varianceMaximumRate
+       message=var_str('variance minimum: ')//label
+       call Galacticus_Display_Message (message,verbosityWorking)
+       call Galacticus_Display_Message (message,verbosityWorking)
+       call Galacticus_Display_Unindent(''     ,verbosityWorking)
     end if
     ! Close the data file.
     call dataFile%close()
