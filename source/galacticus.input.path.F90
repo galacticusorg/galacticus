@@ -65,6 +65,9 @@ contains
           end if
           paths(pathTypeDataDynamic)=paths(pathTypeDataStatic)//"dynamic/"
           paths(pathTypeDataStatic )=paths(pathTypeDataStatic)//"static/"
+          call Get_Environment_Variable("GALACTICUS_DYNAMIC_DATA_PATH",length=pathLength,status=pathStatus)
+          if (pathStatus == 0)                                                                     &
+               & call pathsRetrieve(pathTypeDataDynamic,"GALACTICUS_DYNAMIC_DATA_PATH",pathLength)
           pathsRetrieved=.true.
        end if
        !$omp end critical (Galacticus_Path_Initialize)
