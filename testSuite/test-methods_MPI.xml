@@ -21,6 +21,8 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <errorWaitTime value="0"/>
+    <evolveForestsWorkShareMethod value="cyclic"/>
     <mergerTreeConstructorMethod value="build">
       <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
 	<massTreeMinimum value="1.0e10"/>
