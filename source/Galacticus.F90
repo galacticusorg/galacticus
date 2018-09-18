@@ -32,6 +32,7 @@ program Galacticus
   use Memory_Management
   use Input_Parameters
   use Functions_Global_Utilities
+  use Galacticus_Error_Wait
   use System_Limits
 #ifdef USEMPI
   use MPI
@@ -49,7 +50,11 @@ program Galacticus
   
   ! Initialize MPI.
 #ifdef USEMPI
-  call mpiInitialize(MPI_Thread_Multiple)
+  !$ if (OMP_Get_Max_Threads() > 1) then
+  !$  call mpiInitialize(MPI_Thread_Multiple)
+  !$ else
+      call mpiInitialize(MPI_Thread_Single  )
+  !$ end if
 #endif
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
@@ -68,6 +73,8 @@ program Galacticus
   call Functions_Global_Set()
   ! Set verbosity.
   call Galacticus_Verbosity_Set_From_Parameters()
+  ! Set error wait times.
+  call Galacticus_Error_Wait_Set_From_Parameters()
   ! Set resource limits.
   Call System_Limits_Set()
   ! Show the Galacticus banner.
