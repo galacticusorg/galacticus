@@ -34,19 +34,19 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes"                 ,
-	 mpiRun                  => "mpirun --map-by node",
-	 mpiProcesses            => 1                     ,
-	 maxJobsInQueue          => -1                    ,
-	 postSubmitSleepDuration => 10                    ,
-	 jobWaitSleepDuration    => 60                    ,
+	 mpiLaunch               => "yes"                                                                     ,
+	 mpiRun                  => "mpirun --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE",
+	 mpiProcesses            => 1                                                                         ,
+	 maxJobsInQueue          => -1                                                                        ,
+	 postSubmitSleepDuration => 10                                                                        ,
+	 jobWaitSleepDuration    => 60                                                                        ,
 	 analyze                 => "yes"
 	);
     # Attempt to detect MPI implementation.
     my $mpiIs = &mpiDetect();
     if ( $mpiIs eq "OpenMPI" ) {
-	$defaults{'mpiLaunch'} = "yes"                 ;
-	$defaults{'mpiRun'   } = "mpirun --map-by node";
+	$defaults{'mpiLaunch'} = "yes"                                                                     ;
+	$defaults{'mpiRun'   } = "mpirun --map-by node --mca mpi_preconnect_mpi 1 -hostfile \$PBS_NODEFILE";
     }    
     # Apply defaults.
     foreach ( keys(%defaults) ) {
