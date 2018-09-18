@@ -31,7 +31,7 @@ module Galacticus_Error
   public :: Galacticus_Error_Report               , Galacticus_Error_Handler_Register    , &
        &    Galacticus_Component_List             , Galacticus_GSL_Error_Handler_Abort_On, &
        &    Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Status          , &
-       &    Galacticus_Warn
+       &    Galacticus_Warn                       , Galacticus_Error_Wait_Set
 
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
@@ -60,6 +60,9 @@ module Galacticus_Error
   integer, parameter, public :: errorStatusUnderflow   =FGSL_eUndrFlw ! Floating point underflow.
   integer, parameter, public :: errorStatusXCPU        =1025          ! CPU time limit exceeded.
 
+  ! Time to wait after errors under MPI.
+  integer                    :: errorWaitTime          =86400
+  
   ! GSL error status.
   logical             :: abortOnErrorGSL=.true.
   integer(kind=c_int) :: errorStatusGSL
@@ -221,9 +224,9 @@ contains
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        if (parentCommunicator == MPI_Comm_Null) then
-          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
           call Flush(0)
-          call Sleep(86400)
+          call Sleep(errorWaitTime)
        else
           write (0,*) " => Returning control to parent process"
           call Flush(0)
@@ -273,9 +276,9 @@ contains
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        if (parentCommunicator == MPI_Comm_Null) then
-          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
           call Flush(0)
-          call Sleep(86400)
+          call Sleep(errorWaitTime)
        else
           write (0,*) " => Returning control to parent process"
           call Flush(0)
@@ -325,9 +328,9 @@ contains
        call hostnm(hostName)
        write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
        if (parentCommunicator == MPI_Comm_Null) then
-          write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+          write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
           call Flush(0)
-          call Sleep(86400)
+          call Sleep(errorWaitTime)
        else
           write (0,*) " => Returning control to parent process"
           call Flush(0)
@@ -417,9 +420,9 @@ contains
           call hostnm(hostName)
           write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
           if (parentCommunicator == MPI_Comm_Null) then
-             write (0,*) " => Sleeping for 86400s to allow for attachment of debugger"
+             write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
              call Flush(0)
-             call Sleep(86400)
+             call Sleep(errorWaitTime)
           else
              write (0,*) " => Returning control to parent process"
              call Flush(0)
@@ -479,5 +482,14 @@ contains
     end if
     return
   end function Galacticus_Component_List
+
+  subroutine Galacticus_Error_Wait_Set(errorWaitTimeNew)
+    !% Set the time to wait after an error occurs.
+    implicit none
+    integer, intent(in   ) :: errorWaitTimeNew
+
+    errorWaitTime=errorWaitTimeNew
+    return
+  end subroutine Galacticus_Error_Wait_Set
   
 end module Galacticus_Error
