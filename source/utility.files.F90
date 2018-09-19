@@ -266,6 +266,7 @@ contains
   function File_Name_Temporary(fileRootName,path) result(fileName)
     !% Returns the path to the file.
     !$ use OMP_Lib
+    use    MPI_Utilities
     use    String_Handling
     implicit none
     type     (varying_string)                          :: fileName
@@ -283,6 +284,9 @@ contains
        end if
        fileName=fileName//trim(fileRootName)//"."//GetPID()
        !$ if (OMP_In_Parallel()) fileName=fileName//"."//OMP_Get_Thread_Num()
+#ifdef MPI
+       fileName=fileName//"."//mpiSelf%rankLabel()
+#endif
        fileName=fileName//"."//i
     end do
     return
