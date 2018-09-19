@@ -86,8 +86,14 @@ program Galacticus
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI
-  call MPI_Comm_Get_Parent(parentCommunicator,status)
-  if (parentCommunicator /= MPI_Comm_Null) call MPI_Barrier(parentCommunicator,status)
+  call    MPI_Barrier        (MPI_Comm_World    ,status)
+  if    (status /= 0) call Galacticus_Error_Report('MPI barrier failed'                   //{introspection:location})
+  call    MPI_Comm_Get_Parent(parentCommunicator,status)
+  if    (status /= 0) call Galacticus_Error_Report('failed to get MPI parent communicator'//{introspection:location})
+  if (parentCommunicator /= MPI_Comm_Null) then
+     call MPI_Barrier        (parentCommunicator,status)
+     if (status /= 0) call Galacticus_Error_Report('MPI barrier failed'                   //{introspection:location})
+  end if
   call mpiFinalize()
 #endif
   ! All done, finish.
