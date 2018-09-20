@@ -128,9 +128,9 @@ contains
     if (distributionNumber < 1 .or. distributionNumber > 10) call Galacticus_Error_Report('distributionNumber ∈ [1..7] is required'//{introspection:location})
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationDistributionCocoCDM.hdf5'),readOnly=.true.        )
-    call dataFile%readDataset(                              'concentration'                                         ,         concentrations)
-    call dataFile%readDataset(                              'mass'                                                  ,         masses        )
-    call dataFile%close      (                                                                                                              )
+    call dataFile%readDataset(                                         'concentration'                                    ,         concentrations)
+    call dataFile%readDataset(                                         'mass'                                             ,         masses        )
+    call dataFile%close      (                                                                                                                    )
     !$ call hdf5Access%unset()
     self%binCount=size(concentrations)
     ! Determine minimum and maximum halo masses for this distribution.
