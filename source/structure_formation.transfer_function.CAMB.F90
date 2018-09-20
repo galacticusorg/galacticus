@@ -75,11 +75,11 @@
 
 contains
 
-  function cambConstructorParameters(parameters)
+  function cambConstructorParameters(parameters) result(self)
     !% Constructor for the CAMB transfer function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (transferFunctionCAMB    )                :: cambConstructorParameters
+    type   (transferFunctionCAMB    )                :: self
     type   (inputParameters         ), intent(inout) :: parameters
     class  (cosmologyParametersClass), pointer       :: cosmologyParameters_    
     class  (darkMatterParticleClass ), pointer       :: darkMatterParticle_
@@ -95,12 +95,12 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    cambConstructorParameters=cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFileGlobally)
+    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,lockFileGlobally)
     !# <inputParametersValidate source="parameters"/>
     return
   end function cambConstructorParameters
   
-  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFileGlobally)
+  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFileGlobally) result(self)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
     use Input_Parameters
     use Galacticus_Error
@@ -108,8 +108,9 @@ contains
     use Galacticus_Paths
     use Hashes_Cryptographic
     use Dark_Matter_Particles
+    use System_Command
     implicit none
-    type     (transferFunctionCAMB    )                          :: cambConstructorInternal
+    type     (transferFunctionCAMB    )                          :: self
     class    (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
     class    (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_    
     logical                            , intent(in   ), optional :: lockFileGlobally
@@ -118,7 +119,7 @@ contains
     !# <optionalArgument name="lockFileGlobally" defaultsTo=".true." />
     
     ! Require that the dark matter be cold dark matter.
-    cambConstructorInternal%darkMatterParticle_ => darkMatterParticle_
+    self%darkMatterParticle_ => darkMatterParticle_
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
@@ -126,30 +127,32 @@ contains
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
     ! Set lock file option.
-    cambConstructorInternal%lockFileGlobally=lockFileGlobally_
+    self%lockFileGlobally=lockFileGlobally_
     ! Set cosmoogical parameters.
-    cambConstructorInternal%cosmologyParameters_ => cosmologyParameters_
+    self%cosmologyParameters_ => cosmologyParameters_
     ! Get a constructor descriptor for this object.
-    cambConstructorInternal%descriptor_=inputParameters()
-    call cambConstructorInternal%cosmologyParameters_%descriptor(cambConstructorInternal%descriptor_)
+    self%descriptor_=inputParameters()
+    call self%cosmologyParameters_%descriptor(self%descriptor_)
     ! Add primordial helium abundance to the descriptor.
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call cambConstructorInternal%descriptor_%addParameter("Y_He",parameterLabel)
+    call self%descriptor_%addParameter("Y_He",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=cambConstructorInternal%descriptor_%serializeToString()// &
-         &      "_sourceDigest:"                                       // &
+    uniqueLabel=self%descriptor_%serializeToString()// &
+         &      "_sourceDigest:"                    // &
          &      cambSourceDigest
-    call cambConstructorInternal%descriptor_%addParameter("uniqueLabel",char(uniqueLabel))
+    call self%descriptor_%addParameter("uniqueLabel",char(uniqueLabel))
     ! Generate the name of the data file.
-    cambConstructorInternal%fileName=char(galacticusPath(pathTypeDataDynamic))    // &
+    self%fileName=char(galacticusPath(pathTypeDataDynamic))                       // &
          &                           'largeScaleStructure/transfer_function_CAMB_'// &
          &                           Hash_MD5(uniqueLabel)                        // &
          &                           '.hdf5'
-    cambConstructorInternal%initialized=.false.
+    ! Create the directory.
+    call System_Command_Do("mkdir -p `dirname "//self%fileName//"`")
+    self%initialized=.false.
     ! Set maximum wavenumber.
-    cambConstructorInternal%wavenumberMaximum=+cambWavenumberMaximumLimit                                                            &
-         &                                    *cambConstructorInternal%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
-    cambConstructorInternal%wavenumberMaximumReached=.false.
+    self%wavenumberMaximum=+cambWavenumberMaximumLimit                                         &
+         &                 *self%cosmologyParameters_%hubbleConstant(units=hubbleUnitsLittleH)
+    self%wavenumberMaximumReached=.false.
     return
   end function cambConstructorInternal
 
@@ -259,8 +262,6 @@ contains
           call System_Command_Do('cd '//galacticusPath(pathTypeExec)//'/aux/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; make -j1',status);
           if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
        end if
-       ! Create the directory.
-       call System_Command_Do("mkdir -p `dirname "//self%fileName//"`")
        ! Determine maximum wavenumber.
        wavenumberCAMB=exp(max(log(wavenumber)+1.0d0,cambLogWavenumberMaximumDefault))
        if (wavenumberCAMB > self%wavenumberMaximum) then
