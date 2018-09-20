@@ -9,7 +9,7 @@ use PDL::NiceSlice;
 # Andrew Benson (15-Jun-2018)
 
 # Run full store model.
-system("export OMP_NUM_THREADS=2; rm -f outputs/state.state* outputs/state.fgsl.state*; cd ..; mpirun -np 4 Galacticus.exe testSuite/parameters/state/store.xml"  );
+system("export OMP_NUM_THREADS=1; rm -f outputs/state.state* outputs/state.fgsl.state*; cd ..; mpirun -np 8 Galacticus.exe testSuite/parameters/state/store.xml"  );
 die("FAILED: failed to run store model")
     unless ( $? == 0 );
 # Find which threads ran the final tree.

@@ -10,8 +10,9 @@
   <launchMethod>pbs</launchMethod>
   <pbs>
     <mpiLaunch>yes</mpiLaunch>
-    <mpiProcesses>4</mpiProcesses>
-    <ompThreads>16</ompThreads>
+    <mpiNodes>4</mpiNodes>
+    <mpiProcesses>48</mpiProcesses>
+    <ompThreads>1</ompThreads>
     <maxJobsInQueue>40</maxJobsInQueue>
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
     <jobWaitSleepDuration>10</jobWaitSleepDuration>

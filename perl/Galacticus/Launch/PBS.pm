@@ -94,11 +94,21 @@ sub Launch {
 	    if ( exists($launchScript->{'pbs'}->{'wallTime'}) );
 	print $pbsFile "#PBS -l mem=".$launchScript->{'pbs'}->{'memory'}."\n"
 	    if ( exists($launchScript->{'pbs'}->{'memory'}) );
-	if ( exists($launchScript->{'pbs'}->{'ompThreads'}) ) {
-	    print $pbsFile "#PBS -l nodes=".($launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" ? $launchScript->{'pbs'}->{'mpiProcesses'} : "1").":ppn=".$launchScript->{'pbs'}->{'ompThreads'}."\n";
+	my $nodes;
+	my $ppn  ;
+	if ( $launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" ) {
+	    if ( exists($launchScript->{'pbs'}->{'mpiNodes'}) ) {
+		$nodes = $launchScript->{'pbs'}->{'mpiNodes'};
+		$ppn   = $launchScript->{'pbs'}->{'mpiProcesses'}*$launchScript->{'pbs'}->{'ompThreads'}/$launchScript->{'pbs'}->{'mpiNodes'};
+	    } else {
+		$nodes = 1;
+		$ppn   = $launchScript->{'pbs'}->{'mpiProcesses'}*$launchScript->{'pbs'}->{'ompThreads'}
+	    }
 	} else {
-	    print $pbsFile "#PBS -l nodes=".($launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" ? $launchScript->{'pbs'}->{'mpiProcesses'} : "1").":ppn=1\n";
+	    $nodes = 1;
+	    $ppn   = $launchScript->{'pbs'}->{'ompThreads'};
 	}
+	print $pbsFile "#PBS -l nodes=".$nodes.":ppn=".$ppn."\n";
 	print $pbsFile "#PBS -j oe\n";
 	my $pwd = "";
 	unless ( $job->{'directory'} =~ m/^\// ) {
