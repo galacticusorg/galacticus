@@ -178,7 +178,7 @@
   type, extends(transferFunctionClass) :: transferFunctionFile
      !% A transfer function class which interpolates a transfer function given in a file.
      private
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      type (varying_string          )          :: fileName
      type (table1DGeneric          )          :: transfer
    contains
