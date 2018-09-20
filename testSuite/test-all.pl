@@ -506,7 +506,7 @@ foreach $mpi ( "noMPI", "MPI" ) {
 	 launchFile   => "testSuite/compileGalacticus".$mpi.".pbs",
 	 label        => "testSuite-compileGalacticus".$mpi       ,
 	 logFile      => "testSuite/compileGalacticus".$mpi.".log",
-	 command      => "rm *.exe; make ".($mpi eq "MPI" ? "GALACTICUS_BUILD_OPTION=MPI" : "")." -j16 all",
+	 command      => "rm *.exe; make ".($mpi eq "MPI" ? "GALACTICUS_BUILD_OPTION=MPI" : "")." -j16 all; cp Galacticus.exe Galacticus_".$mpi.".exe",
 	 ppn          => 16,
 	 onCompletion => 
 	 {
