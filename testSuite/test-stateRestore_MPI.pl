@@ -13,19 +13,16 @@ system("export OMP_NUM_THREADS=1; rm -f outputs/state.state* outputs/state.fgsl.
 die("FAILED: failed to run store model")
     unless ( $? == 0 );
 # Find which threads ran the final tree.
-my $finalTreeThreadOpenMP;
 my $finalTreeProcessMPI;
 opendir(my $stateDirectory,"outputs");
 while ( my $fileName = readdir($stateDirectory) ) {
-    if  ( $fileName =~ m/state\.state\.log\:openMP(\d+):MPI(\d+)/ ) {
-	my $threadOpenMP = $1;
-	my $processMPI   = $2;
+    if  ( $fileName =~ m/state\.state\.log:MPI(\d+)/ ) {
+	my $processMPI = $1;
 	open(my $stateLogFile,"outputs/".$fileName);
 	while (my $line = <$stateLogFile> ) {
 	    if ( $line =~ m/^\s*Storing state for tree #(\d+)/ ) {
 		if ( $1 == 15 ) {
-		    $finalTreeThreadOpenMP = $threadOpenMP;
-		    $finalTreeProcessMPI   = $processMPI  ;
+		    $finalTreeProcessMPI = $processMPI;
 		}
 	    }
 	}
@@ -33,10 +30,12 @@ while ( my $fileName = readdir($stateDirectory) ) {
     }    
 }
 closedir($stateDirectory);
-if ( defined($finalTreeThreadOpenMP) && defined($finalTreeProcessMPI) ) {
-    print "Final tree was run by OpenMP thread ".$finalTreeThreadOpenMP." on MPI process ".$finalTreeProcessMPI."\n";
-    system("cp -f outputs/state.state:openMP"     .$finalTreeThreadOpenMP.":MPI".$finalTreeProcessMPI." outputs/state.state:MPI0000"     );
-    system("cp -f outputs/state.fgsl.state:openMP".$finalTreeThreadOpenMP.":MPI".$finalTreeProcessMPI." outputs/state.fgsl.state:MPI0000");
+if ( defined($finalTreeProcessMPI) ) {
+    print "Final tree was run on MPI process ".$finalTreeProcessMPI."\n";
+    unless ( $finalTreeProcessMPI eq "0000" ) {
+	system("cp -f outputs/state.state:MPI".$finalTreeProcessMPI." outputs/state.state:MPI0000"     );
+	system("cp -f outputs/state.fgsl.state:MPI".$finalTreeProcessMPI." outputs/state.fgsl.state:MPI0000");
+    }
 } else {
     die("FAILED: failed to identify which thread/process ran final tree");
 }
