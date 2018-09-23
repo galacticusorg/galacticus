@@ -24,11 +24,15 @@ program Test_Integration
   use Numerical_Integration
   use Test_Integration_Functions
   use Numerical_Constants_Math
+  use Galacticus_Display
   implicit none
   double precision                             :: integral
   type            (fgsl_function             ) :: integrandFunction
   type            (fgsl_integration_workspace) :: integrationWorkspace
   logical                                      :: integrationReset
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical integration")

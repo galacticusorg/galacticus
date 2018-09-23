@@ -31,6 +31,7 @@ program Tests_Power_Spectrum
   use Transfer_Functions
   use Numerical_Constants_Math
   use Cosmology_Parameters
+  use Galacticus_Display
   implicit none
   type            (inputParameters                         ), target       :: parameters
   double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.
@@ -63,6 +64,9 @@ program Tests_Power_Spectrum
   double precision                                                         :: mass                                                            , &
        &                                                                      ratio                                                           , &
        &                                                                      sigma
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.power_spectrum.size')

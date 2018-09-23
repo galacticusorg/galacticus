@@ -22,11 +22,15 @@ program Tests_Tree_Branch_Destroy
   use Galacticus_Nodes
   use Kind_Numbers
   use Input_Parameters
+  use Galacticus_Display
   implicit none
   type   (mergerTree     ), pointer :: thisTree
   type   (treeNodeList   )          :: nodes   (5)
   integer(kind=kind_int8 )          :: iNode
   type   (inputParameters)          :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.tree_branch_destroy.size')

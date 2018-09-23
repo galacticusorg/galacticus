@@ -31,6 +31,7 @@ program Tests_Halo_Mass_Function_Tinker
   use Cosmology_Parameters
   use File_Utilities
   use Cosmological_Density_Field
+  use Galacticus_Display
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &
@@ -44,6 +45,9 @@ program Tests_Halo_Mass_Function_Tinker
   class           (criticalOverdensityClass), pointer                            :: criticalOverdensity_
   class           (haloMassFunctionClass   ), pointer                            :: haloMassFunction_
   type            (inputParameters         )                                     :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.halo_mass_function.Tinker.size')

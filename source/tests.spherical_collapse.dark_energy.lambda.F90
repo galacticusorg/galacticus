@@ -32,6 +32,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   use Numerical_Constants_Math
   use Cosmological_Density_Field
   use Linear_Growth
+  use Galacticus_Display
   implicit none
   double precision                            , dimension(7) :: redshift                     =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
@@ -47,6 +48,9 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
        &                                                        omegaf                                                                      , virialDensityContrastActual, &
        &                                                        virialDensityContrastExpected
   type            (inputParameters           )               :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.lambda.size')

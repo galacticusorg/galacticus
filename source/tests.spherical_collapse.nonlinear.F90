@@ -28,6 +28,7 @@ program Tests_Spherical_Collapse_NonLinear
   use Cosmology_Parameters
   use Linear_Growth
   use Spherical_Collapse_Matter_Lambda
+  use Galacticus_Display
   implicit none
   ! Target nonlinear overdensities are computed using the analytic solutions for expanding/collapsing perturbations in an
   ! Einstein-de Sitter universe.
@@ -39,6 +40,9 @@ program Tests_Spherical_Collapse_NonLinear
   type            (cosmologyParametersSimple     )                          :: cosmologyParameters_
   type            (linearGrowthSimple            )                          :: linearGrowth_
   integer                                                                   :: i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.nonlinear.size')

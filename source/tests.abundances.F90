@@ -25,11 +25,15 @@ program Test_Abundances
   use Memory_Management
   use Input_Parameters
   use Abundances_Structure
+  use Galacticus_Display
   implicit none
   type            (varying_string )               :: parameterFile
   type            (abundances     )               :: abundances1    , abundances2, abundances3
   double precision                 , dimension(5) :: abundancesArray
   type            (inputParameters)               :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.abundances.size')

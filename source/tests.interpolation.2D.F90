@@ -22,6 +22,7 @@ program Test_Interpolation_2D
   !% Tests that 2D interpolation routines work.
   use Unit_Tests
   use Numerical_Interpolation_2D_Irregular
+  use Galacticus_Display
   implicit none
   double precision                         , dimension(30) :: xTable                       , yTable    , &
        &                                                      zTable
@@ -30,6 +31,9 @@ program Test_Interpolation_2D
   type            (interp2dIrregularObject)                :: interpolationWorkspace
   logical                                                  :: resetInterpolation    =.true.
   integer                                                  :: i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("2D interpolation")

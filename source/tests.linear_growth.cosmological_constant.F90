@@ -25,6 +25,7 @@ program Tests_Linear_Growth_Cosmological_Constant
   use Linear_Growth
   use Cosmology_Functions
   use Memory_Management
+  use Galacticus_Display
   implicit none
   double precision                         , dimension(8), parameter :: redshift                 =[0.000d0,1.0000d0,3.0000d0,9.0d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
   double precision                         , dimension(8), parameter :: growthFactorDarkEnergy   =[0.7789810167707876d0,0.9531701355446482d0,0.9934824792317063d0,0.9995762227500181d0,0.9999857599010360d0,0.9999995882349219d0,0.9999999844434028d0,0.9999999995770291d0]
@@ -35,6 +36,9 @@ program Tests_Linear_Growth_Cosmological_Constant
   integer                                                            :: iExpansion
   double precision                                                   :: expansionFactor                                                                                                                                                                                    , linearGrowthFactor
   type            (inputParameters        )                          :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.linear_growth.cosmological_constant.size')

@@ -23,6 +23,7 @@ program Test_Math_Fast
   use Unit_Tests
   use Math_Exponentiation
   use Kind_Numbers
+  use Galacticus_Display
   implicit none
   integer                            , parameter             :: pointCount  =10000
   double precision                   , dimension(pointCount) :: exact                  , fast                , &
@@ -34,6 +35,9 @@ program Test_Math_Fast
   integer         (kind_int8        )                        :: timeBeforeExact        , timeAfterExact      , &
        &                                                        timeBeforeFast         , timeAfterFast
   character       (len=7            )                        :: label
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: fast functions")

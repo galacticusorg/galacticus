@@ -23,9 +23,13 @@ program Test_Make_Ranges
   use Unit_Tests
   use Numerical_Ranges
   use Array_Utilities
+  use Galacticus_Display
   implicit none
   double precision, dimension(1:11) :: range1
   double precision, dimension(0:10) :: range2
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical ranges")

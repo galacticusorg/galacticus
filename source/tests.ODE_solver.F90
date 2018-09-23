@@ -24,6 +24,7 @@ program Test_ODE_Solver
   use FGSL
   use ODE_Solver
   use Test_ODE_Solver_Functions
+  use Galacticus_Display
   implicit none
   double precision                    , dimension(10) :: xEnd
   double precision                    , dimension( 2) :: y
@@ -35,6 +36,9 @@ program Test_ODE_Solver
   integer                                             :: i
   double precision                                    :: xStart
   character       (len=32            )                :: message
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("ODE solver")

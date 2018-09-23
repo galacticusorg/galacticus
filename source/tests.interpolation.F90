@@ -24,6 +24,7 @@ program Test_Interpolation
   use Numerical_Interpolation
   use FGSL
   use Table_Labels
+  use Galacticus_Display
   implicit none
   type            (fgsl_interp      )                 :: interpolationObject
   type            (fgsl_interp_accel)                 :: interpolationAccelerator
@@ -31,6 +32,9 @@ program Test_Interpolation
   double precision                   , dimension(0:9) :: xArray                  =[1.0d0,3.0d0,3.3d0,4.3d0,6.7d0,7.2d0,8.9d0,9.1d0,12.0d0,13.0d0]
   double precision                   , dimension(0:9) :: yArray                  =[2.0d0,3.0d0,-23.0d0,4.0d0,6.0d0,-1.0d0,-5.0d0,-0.1d0,5.0d0,9.0d0]
   double precision                                    :: x                                                                                          , y
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical interpolation")

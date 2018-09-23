@@ -24,11 +24,15 @@ program Test_Root_Finding
   use Root_Finder
   use Test_Root_Finding_Functions
   use Galacticus_Error
+  use Galacticus_Display
   implicit none
   type            (rootFinder)               :: finder1, finder2
   double precision                           :: xGuess , xRoot
   double precision            , dimension(2) :: xRange
   integer                                    :: status
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Root finding")

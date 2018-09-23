@@ -25,6 +25,7 @@ program Test_Accretion_Disks
   use Numerical_Constants_Physical
   use Accretion_Disks
   use Unit_Tests
+  use Galacticus_Display
   implicit none
   double precision                                , dimension(6) :: spin            =[0.000d+0,0.200d+0,0.400d+0,0.600d+0,0.800d+0,0.950d+0]
   double precision                                , dimension(6) :: jetPowerExpected=[2.993d-3,3.916d-3,6.571d-3,1.564d-2,5.246d-2,4.119d-1]
@@ -32,6 +33,9 @@ program Test_Accretion_Disks
   type            (accretionDisksADAF            )               :: accretionDisk
   type            (nodeComponentBlackHoleStandard)               :: blackHole
   integer                                                        :: i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Accretion disks")

@@ -24,8 +24,12 @@ program Test_Hashes_Cryptographic
   use ISO_Varying_String
   use Memory_Management
   use Hashes_Cryptographic
+  use Galacticus_Display
   implicit none
   type(varying_string) :: myHash, myText
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.hashes.cryptographic.size')

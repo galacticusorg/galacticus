@@ -23,12 +23,16 @@ program Test_Inoue2014
   use Unit_Tests
   use Stellar_Population_Spectra_Postprocess
   use Numerical_Constants_Atomic
+  use Galacticus_Display
   implicit none
   type            (spectraPostprocessorInoue2014)               :: postprocessor
   integer                                                       :: inoueUnit        , ioStatus        , i
   double precision                                              :: wavelength       , relativeError   , relativeErrorMaximum
   double precision                               , dimension(7) :: transmissionInoue, transmissionSelf
   double precision                               , dimension(7) :: redshift=[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0]
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Inoue et al. (2014) IGM attenuation model")

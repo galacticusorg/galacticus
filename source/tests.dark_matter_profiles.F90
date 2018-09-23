@@ -29,6 +29,7 @@ program Test_Dark_Matter_Profiles
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles
+  use Galacticus_Display
   implicit none
   type            (treeNode                      ), pointer      :: node
   class           (nodeComponentBasic            ), pointer      :: basic
@@ -46,6 +47,9 @@ program Test_Dark_Matter_Profiles
   type            (inputParameters               )               :: parameters
   integer                                                        :: i
   double precision                                               :: radiusScale
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage         ('tests.dark_matter_profiles.size')

@@ -28,6 +28,7 @@ program Test_Locks
   use            :: String_Handling
   use            :: ISO_Varying_String
   !$ use         :: OMP_Lib
+  use Galacticus_Display
   implicit none
   integer         (c_size_t          ), parameter               :: elementCount   =100_c_size_t
   integer         (c_size_t          ), dimension(elementCount) :: orderedCount
@@ -37,6 +38,9 @@ program Test_Locks
   double precision                                              :: uniformRandom
   integer                                                       :: sleepTime
   type            (varying_string    )                          :: message
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   call Unit_Tests_Begin_Group("OpenMP")
   ! Test incremental locks. We generate a counter which is not guaranteed to be ordered in terms of OpenMP threads. Then we use an

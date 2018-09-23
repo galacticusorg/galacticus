@@ -26,6 +26,7 @@ program Tests_Bug745815
   use Galacticus_Nodes
   use Kind_Numbers
   use Merger_Tree_Walkers
+  use Galacticus_Display
   implicit none
   type   (varying_string          )          :: parameterFile
   type   (treeNodeList            )          :: nodes        (5)
@@ -35,6 +36,9 @@ program Tests_Bug745815
   integer(kind=kind_int8          )          :: i
   type   (inputParameters         )          :: parameters
   type   (mergerTreeWalkerAllNodes)          :: treeWalker
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.bug745815.size')

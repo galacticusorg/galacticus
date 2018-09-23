@@ -26,6 +26,7 @@ program Tests_IO_XML
   use Galacticus_Error  
   use Memory_Management
   use System_Command
+  use Galacticus_Display
   implicit none
   type            (node    )                           , pointer :: doc        , xmlElement
   type            (nodeList)                           , pointer :: xmlElements
@@ -34,6 +35,9 @@ program Tests_IO_XML
   character       (len=1   ), allocatable, dimension(:)          :: carray1
   integer                                , dimension(1)          :: iValue
   integer                                                        :: ioErr      , status
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.IO.XML.size')

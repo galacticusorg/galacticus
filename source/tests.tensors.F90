@@ -22,8 +22,12 @@ program Test_Tensors
   !% Tests of coordinate system functions.
   use Unit_Tests
   use Tensors
+  use Galacticus_Display
   type(tensorRank2Dimension3Symmetric) :: tensorR2D3Sym,resultTensor
 
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tensors")
 

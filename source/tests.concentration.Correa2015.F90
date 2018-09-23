@@ -28,6 +28,7 @@ program Test_Correa2015_Concentration
   use Unit_Tests
   use Galacticus_Paths
   use Galacticus_Nodes
+  use Galacticus_Display
   implicit none
   type            (treeNode                               ), pointer      :: node
   class           (nodeComponentBasic                     ), pointer      :: basic
@@ -38,6 +39,9 @@ program Test_Correa2015_Concentration
   double precision                                         , dimension(3) :: concentrationTarget                , mass         , &
        &                                                                     redshift                           , concentration
   integer                                                                 :: i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.concentration.Correa2015.size')

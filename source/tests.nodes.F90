@@ -29,6 +29,7 @@ program Test_Nodes
   use Array_Utilities
   use Memory_Management
   use Test_Nodes_Tasks
+  use Galacticus_Display
   implicit none
   type            (treeNode                     )                                     :: thisNode
   type            (treeNode                     )                           , pointer :: hostNode
@@ -39,6 +40,9 @@ program Test_Nodes
   double precision                                                                    :: propertyValueGet
   type            (varying_string               )                                     :: parameterFile
   type            (inputParameters              )                                     :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.nodes.size')

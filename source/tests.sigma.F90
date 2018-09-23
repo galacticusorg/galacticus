@@ -30,6 +30,7 @@ program Tests_Sigma
   use Cosmology_Parameters
   use Numerical_Constants_Math
   use Transfer_Functions
+  use Galacticus_Display
   implicit none
   type            (varying_string                          )                       :: parameterFile
   integer                                                   , parameter            :: massCount                             =10
@@ -47,6 +48,9 @@ program Tests_Sigma
   double precision                                                                 :: mass8                                        , radius8            , &
        &                                                                              sigma8
   type            (inputParameters                         )                       :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.sigma.size')

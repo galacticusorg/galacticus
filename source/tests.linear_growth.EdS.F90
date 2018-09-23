@@ -24,6 +24,7 @@ program Tests_Linear_Growth_EdS
   use Linear_Growth
   use Cosmology_Functions
   use Memory_Management
+  use Galacticus_Display
   implicit none
   double precision                         , dimension(8), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
   class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctions_
@@ -33,6 +34,9 @@ program Tests_Linear_Growth_EdS
   integer                                                            :: iExpansion
   double precision                                                   :: expansionFactor                                                                    , linearGrowthFactor
   type            (inputParameters        )                          :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.linear_growth.EdS.size')

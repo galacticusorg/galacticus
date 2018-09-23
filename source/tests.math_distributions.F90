@@ -25,6 +25,7 @@ program Test_Math_Distributions
   use Pseudo_Random
   use Statistics_Distributions
   use Input_Parameters
+  use Galacticus_Display
   implicit none
   double precision                             , dimension(  10) :: p                , x           , y
   integer                                      , dimension(0:10) :: trials
@@ -34,6 +35,9 @@ program Test_Math_Distributions
   integer                                                        :: i                , j           , k
   type            (pseudoRandom               )                  :: prng
   type            (inputParameters            )                  :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: distributions")

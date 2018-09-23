@@ -27,6 +27,7 @@ program Test_Math_Special_Functions
   use Gamma_Functions
   use Hypergeometric_Functions
   use Error_Functions
+  use Galacticus_Display
   implicit none
   double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
   double precision, dimension(10) :: P                                   =[0.1353352832d0,0.4060058496d0,0.6766764160d0,0.8571234602d0,0.9473469824d0,0.9834363913d0,0.9954661943d0,0.9989032808d0,0.9997625524d0,0.9999535016d0]
@@ -42,6 +43,9 @@ program Test_Math_Special_Functions
        &                             hypergeometric1F2                                                                                                                                                                           , hypergeometric2F1approx
   double complex  , dimension(17) :: errorFunctionComplex
   integer                         :: i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: special functions")

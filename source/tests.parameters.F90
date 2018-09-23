@@ -28,12 +28,16 @@ program Test_Parameters
   use               Input_Parameters
   use               Cosmology_Parameters
   use               Cosmological_Density_Field
+  use Galacticus_Display
   implicit none
   type (hdf5Object                   )          :: outputFile
   type (varying_string               )          :: parameterFile
   class(cosmologyParametersClass     ), pointer :: cosmologyParameters_
   class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
   type (inputParameters              ), target  :: testParameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.parameters.size')
