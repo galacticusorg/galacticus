@@ -26,6 +26,7 @@ program Test_Gaunt_Factors
   use Atomic_Ionization_Potentials
   use Atomic_Radiation_Gaunt_Factors
   use Input_Parameters
+  use Galacticus_Display
   implicit none
   type            (atomicIonizationPotentialVerner)                          :: atomicIonizationPotential_
   type            (gauntFactorVanHoof2014         )                          :: gauntFactorVanHoof2014_
@@ -35,6 +36,9 @@ program Test_Gaunt_Factors
   double precision                                 , dimension(5), parameter :: gauntFactorsTarget        =[1.2651040532869235d0,1.4144240304642641d0,1.4005277750508995d0,1.2421867138942060d0,1.1500622299841357d0]
   integer                                                                    :: i
   type            (inputParameters                )                          :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.gaunt_factors.size')

@@ -22,7 +22,11 @@ program Test_Comparison
   !% Tests that numerical comparison functions work.
   use Unit_Tests
   use Numerical_Comparison
+  use Galacticus_Display
   implicit none
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("numerical comparison")

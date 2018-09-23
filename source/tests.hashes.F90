@@ -23,8 +23,12 @@ program Test_Hashes
   use Unit_Tests
   use Memory_Management
   use Hashes
+  use Galacticus_Display
   implicit none
   type(integerScalarHash) :: myHash
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.hashes.size')

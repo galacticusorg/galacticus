@@ -27,6 +27,7 @@ program Tests_Comoving_Distance
   use Cosmology_Functions
   use Cosmology_Parameters
   use Memory_Management
+  use Galacticus_Display
   implicit none
   double precision                                , dimension(8), parameter         :: redshift                               =[0.1000000d0,1.0000000d0,3.0000000d0,9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
   double precision                                , dimension(8)           , target :: distanceEdS                            =[27.9031290d0,175.6143280d0,299.7923450d0,409.9791330d0,491.8947530d0,539.9166970d0,564.9913370d0,580.4490760d0]
@@ -42,6 +43,9 @@ program Tests_Comoving_Distance
   integer                                                                           :: i                                                                                                                                                       , iExpansion
   double precision                                                                  :: distance                                                                                                                                                , distanceModulus        , &
        &                                                                               time                                                                                                                                                    , timeLookup
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.comoving_distance.size')

@@ -22,7 +22,11 @@ program Test_Black_Hole_Fundamentals
   !% Tests of black hole fundamental functions.
   use Black_Hole_Fundamentals
   use Unit_Tests
+  use Galacticus_Display
   implicit none
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Black hole functions")

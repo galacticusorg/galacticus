@@ -32,6 +32,7 @@ program Test_NFW96_Concentration_Dark_Energy
   use Galacticus_Nodes
   use String_Handling
   use Unit_Tests
+  use Galacticus_Display
   implicit none
   type            (treeNode                           )                         , pointer :: node
   class           (nodeComponentBasic                 )                         , pointer :: basic
@@ -44,6 +45,9 @@ program Test_NFW96_Concentration_Dark_Energy
   type            (inputParameters                    )                                   :: parameters
   integer                                                                                 :: iMass
   double precision                                                                        :: ourConcentration
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.NFW96_concentration.dark_energy.size')

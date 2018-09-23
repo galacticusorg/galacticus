@@ -23,12 +23,16 @@ program Test_Coordinate_Systems
   use Unit_Tests
   use Coordinate_Systems
   use Numerical_Constants_Math
+  use Galacticus_Display
   implicit none
   double precision        , dimension(3,8) :: cartesian  =reshape([0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,1.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cartesian))
   double precision        , dimension(3,8) :: spherical  =reshape([0.0d0,0.0d0,0.0d0,sqrt(3.0d0),0.955316618d0,Pi/4.0d0,1.0d0,Pi/2.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi/2.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi,1.0d0,Pi/2.0d0,-0.5d0*Pi,1.0d0,Pi,0.0d0],shape(spherical))
   double precision        , dimension(3,8) :: cylindrical=reshape([0.0d0,0.0d0,0.0d0,sqrt(2.0d0),Pi/4.0d0,1.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,Pi,0.0d0,1.0d0,-0.5d0*Pi,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cylindrical))
   integer                                  :: i
   character       (len=43)                 :: groupName
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Coordinate systems")

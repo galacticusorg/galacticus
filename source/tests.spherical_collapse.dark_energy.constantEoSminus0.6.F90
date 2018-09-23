@@ -29,6 +29,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   use Memory_Management
   use Cosmology_Functions
   use Virial_Density_Contrast
+  use Galacticus_Display
   implicit none
   double precision                            , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
   double precision                            , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
@@ -41,6 +42,9 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   double precision                                           :: age                                                       , expansionFactor, &
        &                                                        virialDensityContrastActual
   type            (inputParameters           )               :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminus0.6.size')

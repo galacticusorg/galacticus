@@ -24,6 +24,7 @@ program Test_Tables
   use Tables
   use Memory_Management
   use Array_Utilities
+  use Galacticus_Display
   implicit none
   class           (table           ), allocatable :: myTable
   class           (table1D         ), allocatable :: myReversedTable
@@ -32,6 +33,9 @@ program Test_Tables
   double precision                                :: x              , y, &
        &                                             yPrevious
   logical                                         :: isMonotonic
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.tables.size')

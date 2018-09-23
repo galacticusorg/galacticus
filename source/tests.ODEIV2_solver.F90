@@ -27,6 +27,7 @@ program Test_ODE_Solver
   use               ODEIV2_Solver
   use               Test_ODE_Solver_Functions
   use               Numerical_Integration2
+  use Galacticus_Display
   implicit none
   double precision                                                  , dimension(10  ) :: xEnd
   double precision                                                  , dimension(   2) :: y            , z
@@ -46,6 +47,9 @@ program Test_ODE_Solver
   double precision                                                                    :: xStart
   character       (len=32                                          )                  :: message
   type            (integratorMultiVectorizedCompositeGaussKronrod1D)                 :: integrator_
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("ODE-IV2 solver")

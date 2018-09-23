@@ -26,6 +26,7 @@ program Test_Mass_Distributions
   use Mass_Distributions
   use Coordinates
   use Numerical_Constants_Math
+  use Galacticus_Display
   implicit none
   class           (massDistributionClass), allocatable                 :: massDistribution_
   integer                                , parameter                   :: sersicTableCount          =8
@@ -41,6 +42,9 @@ program Test_Mass_Distributions
   type            (coordinateSpherical  )                              :: position                                                                                                     , positionZero
   integer                                                              :: i
   double precision                                                     :: radiusInProjection
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.mass_distributions.size')

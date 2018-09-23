@@ -34,6 +34,7 @@ program Test_DiemerKravtsov2014_Concentration
   use Galacticus_Paths
   use Cosmological_Density_Field
   use Power_Spectra
+  use Galacticus_Display
   implicit none
   type            (treeNode                                        ), pointer :: node
   class           (nodeComponentBasic                              ), pointer :: basic
@@ -51,6 +52,9 @@ program Test_DiemerKravtsov2014_Concentration
        &                                                                         differenceFractionalMaximum
   integer                                                                     :: referenceUnit                  , ioStatus            , &
        &                                                                         i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.DiemerKravtsov2014_concentration.size')

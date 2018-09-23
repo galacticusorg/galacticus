@@ -20,6 +20,7 @@
 
 module Test_Root_Finding_Functions
   !% Contains functions for root finding unit tests.
+  use Galacticus_Display
   implicit none
   private
   public :: Root_Function_1, Root_Function_2, Root_Function_2_Derivative, Root_Function_2_Both, Root_Function_3, &

@@ -33,6 +33,9 @@ program Test_Vectors
   character       (len=24        )                              :: label
   integer         (kind=kind_int8)                              :: countStart, countEnd , countRate
 
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Vectors")
  

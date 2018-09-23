@@ -24,11 +24,15 @@ program Test_Sort
   use Kind_Numbers
   use Sort
   use, intrinsic :: ISO_C_Binding
+  use Galacticus_Display
   implicit none
   integer         (kind=c_size_t ), dimension(19) :: indexArray
   integer                         , dimension(19) :: integerArray
   integer         (kind=kind_int8), dimension(19) :: longIntegerArray
   double precision                , dimension(19) :: doubleArray
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Sorting")

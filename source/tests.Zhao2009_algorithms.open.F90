@@ -35,6 +35,7 @@ program Test_Zhao2009_Open
   use String_Handling
   use Galacticus_Paths
   use File_Utilities
+  use Galacticus_Display
   implicit none
   type            (treeNode                               )                         , pointer :: node
   class           (nodeComponentBasic                     )                         , pointer :: basic
@@ -53,6 +54,9 @@ program Test_Zhao2009_Open
        &                                                                                         redshift                                 , theirConcentration              , &
        &                                                                                         theirTime                                , timeDifferenceMaximum
   type            (inputParameters                        )                                   :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.open.size')

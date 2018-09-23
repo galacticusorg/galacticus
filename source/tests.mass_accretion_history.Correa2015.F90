@@ -28,6 +28,7 @@ program Test_Correa2015_MAH
   use Unit_Tests
   use Galacticus_Paths
   use Galacticus_Nodes
+  use Galacticus_Display
   implicit none
   type            (treeNode                               ), pointer      :: node
   class           (nodeComponentBasic                     ), pointer      :: basic
@@ -38,6 +39,9 @@ program Test_Correa2015_MAH
        &                                                                     redshift                           , redshiftTarget
   integer                                                                 :: i
   type            (inputParameters                        )               :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.mass_accretion_history.Correa2015.size')

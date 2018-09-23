@@ -24,6 +24,7 @@ program Test_Array_Monotonicity
   use ISO_Varying_String
   use Array_Utilities
   use Kind_Numbers
+  use Galacticus_Display
   implicit none
   double precision                , dimension( 1,2), target     :: singleElementArrays       =reshape([1.23d0,-2.31d0],shape(singleElementArrays))
   integer         (kind=kind_int8), dimension( 1,2), target     :: singleElementArraysInteger=reshape([123,-231],shape(singleElementArraysInteger))
@@ -56,6 +57,9 @@ program Test_Array_Monotonicity
   logical                                                        :: isMonotonic
   integer                                                        :: iArray                                                                                  , iArraySet
   type            (varying_string)                               :: test
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Array functions")

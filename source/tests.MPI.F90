@@ -31,6 +31,9 @@ program Test_MPI
   type   (mpiCounter) :: counter
   integer(c_size_t  ) :: i
 
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+
   call mpiInitialize(MPI_Thread_Multiple)
   if (mpiSelf%rank() == 0) call Unit_Tests_Begin_Group("MPI")
   ! Test MPI/OpenMP counters.

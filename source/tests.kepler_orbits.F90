@@ -24,11 +24,15 @@ program Tests_Kepler_Orbits
   use Memory_Management
   use Kepler_Orbits
   use Numerical_Constants_Physical
+  use Galacticus_Display
   implicit none
   type            (varying_string ) :: parameterFile
   type            (keplerOrbit    ) :: thisOrbit
   double precision                  :: valueActual  , valueExpected, velocityScale
   type            (inputParameters) :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.kepler_orbits.size')

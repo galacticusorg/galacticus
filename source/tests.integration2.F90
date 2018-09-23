@@ -62,6 +62,9 @@ program Test_Integration2
   integer         (c_int                     )                                                 :: yepppStatus
 #endif
 
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+
   ! Initialize the YEPPP library.
 #ifdef YEPPP
   yepppStatus=yepLibrary_Init()

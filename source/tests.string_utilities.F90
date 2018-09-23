@@ -24,10 +24,14 @@ program Test_String_Utilities
   use ISO_Varying_String
   use String_Handling
   use Kind_Numbers
+  use Galacticus_Display
   implicit none
   character(len=20        ), dimension(3) :: words
   type     (varying_string), dimension(3) :: myStrings
   type     (varying_string)               :: myString1, myString2
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("String handling utilities")

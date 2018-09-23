@@ -26,6 +26,7 @@ program Tests_Cosmic_Age
   use Cosmology_Parameters
   use Numerical_Constants_Math
   use Memory_Management
+  use Galacticus_Display
   implicit none
   double precision                                    , dimension(8), parameter :: redshift                                      =[0.0000000000d+0,1.0000000000d+0,3.0000000000d+0,9.0000000000d+0,3.0000000000d+1,1.0000000000d+2,3.0000000000d+2,1.0000000000d+3]
   double precision                                    , dimension(8), parameter :: ageEdS                                        =[0.6518682071d+0,0.2304700578d+0,0.0814833670d+0,0.0206137656d+0,0.0037766710d+0,0.0006421713d+0,0.0001248044d+0,0.0000205705d+0]
@@ -44,6 +45,9 @@ program Tests_Cosmic_Age
   integer                                                                       :: iExpansion
   double precision                                                              :: age                                                                                                                                                                             , expansionFactor                                 , &
        &                                                                           expansionFactorSymmetric                                                                                                                                                        , timeTurnaround
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.cosmic_age.size')

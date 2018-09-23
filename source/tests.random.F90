@@ -24,6 +24,7 @@ program Test_Random
   use Unit_Tests
   use Pseudo_Random
   use Input_Parameters
+  use Galacticus_Display
   implicit none
   integer                          , parameter             :: sampleCount=10000000, limitCount=6
   double precision                 , dimension(limitCount) :: upperLimit=[1.0d-5,1.0d-4,1.0d-3,1.0d-2,1.0d-1,0.5d0]
@@ -33,6 +34,9 @@ program Test_Random
   double precision                                         :: x
   integer                                                  :: i,j
   type            (inputParameters)                        :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.random.size')

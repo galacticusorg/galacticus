@@ -28,6 +28,7 @@ program Test_Prada2011_Concentration
   use Cosmology_Parameters
   use Galacticus_Nodes
   use Unit_Tests
+  use Galacticus_Display
   implicit none
   type            (treeNode                           )                                 , pointer :: node
   class           (nodeComponentBasic                 )                                 , pointer :: basic
@@ -41,6 +42,9 @@ program Test_Prada2011_Concentration
   class           (cosmologyFunctionsClass )                                            , pointer :: cosmologyFunctions_
   integer                                                                                         :: iMass
   type            (inputParameters         )                                                      :: parameters
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Prada2011_concentration.size')

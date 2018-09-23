@@ -24,6 +24,7 @@ program Test_Search
   use Kind_Numbers
   use Arrays_Search
   use ISO_Varying_String
+  use Galacticus_Display
   implicit none
   double precision                , dimension(10) :: myArray    =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
   double precision                , dimension(10) :: mySearch   =[3.4d0,9.0d0,4.2d0,-1.0d0,10.0d0,5.5d0,5.999999d0,6.000001d0,1.1d0,7.5d0]
@@ -33,6 +34,9 @@ program Test_Search
   integer                         , dimension(10) :: myIndices
   type            (varying_string), dimension(26) :: stringArray
   integer                                         :: i
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Define an array of varying strings.
   stringArray=[            &

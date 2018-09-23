@@ -33,6 +33,7 @@ program Test_Cooling_Functions
   use Numerical_Constants_Physical
   use Numerical_Constants_Units
   use Numerical_Constants_Astronomical
+  use Galacticus_Display
   implicit none
   type            (inputParameters               ), target  :: testParameters
   class           (coolingFunctionClass          ), pointer :: coolingFunction_
@@ -46,6 +47,9 @@ program Test_Cooling_Functions
   double precision                                          :: numberDensityHydrogen          , temperature           , &
        &                                                       coolantSummation               , coolantCMBCompton     , &
        &                                                       timescaleCooling               , coolantAtomicCIECloudy
+
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.cooling_functions.size')
