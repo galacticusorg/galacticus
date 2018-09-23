@@ -209,7 +209,8 @@ contains
     type   (varying_string   ), intent(in   ) :: key
     class  ({Type¦label}ScalarHash), intent(inout) :: thisHash
     integer(c_size_t         )   , save          :: iKey
-
+    !$omp threadprivate(iKey)
+    
     if (Exists_{Type¦label}_Scalar_VS(thisHash,key)) then
        iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
        thisHash%hashKeys  (ikey:thisHash%elementCount-1)=thisHash%hashKeys  (ikey+1:thisHash%elementCount)
@@ -308,7 +309,8 @@ contains
     character       (len=*                 ), intent(in   ) :: keyCH
     class           ({Type¦label}ScalarHash), intent(inout) :: thisHash
     type            (varying_string        ), save          :: key
-
+    !$omp threadprivate(key)
+    
     key=trim(keyCH)
     call Set_{Type¦label}_Scalar_VS(thisHash,key,value)
     return
