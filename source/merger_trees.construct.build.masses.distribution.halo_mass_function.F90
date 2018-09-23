@@ -19,6 +19,7 @@
   !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
 
   use Halo_Mass_Functions
+  use Cosmological_Density_Field
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction" defaultThreadPrivate="yes">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
@@ -27,6 +28,7 @@
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
      private
      class           (haloMassFunctionClass), pointer :: haloMassFunction_
+     class           (haloEnvironmentClass ), pointer :: haloEnvironment_
      double precision                                 :: abundanceMinimum, abundanceMaximum, &
           &                                              modifier1       , modifier2
    contains
@@ -47,10 +49,11 @@ contains
     use Input_Parameters
     implicit none
     type            (mergerTreeBuildMassDistributionHaloMassFunction)                :: self
-    type            (inputParameters                                   ), intent(inout) :: parameters
-    class           (haloMassFunctionClass                             ), pointer       :: haloMassFunction_
-    double precision                                                                    :: abundanceMinimum , abundanceMaximum, &
-         &                                                                                 modifier1        , modifier2
+    type            (inputParameters                                ), intent(inout) :: parameters
+    class           (haloMassFunctionClass                          ), pointer       :: haloMassFunction_
+    class           (haloEnvironmentClass                           ), pointer       :: haloEnvironment_
+    double precision                                                                 :: abundanceMinimum , abundanceMaximum, &
+         &                                                                              modifier1        , modifier2
 
     !# <inputParameter>
     !#   <name>abundanceMinimum</name>
@@ -85,20 +88,22 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
-    self=mergerTreeBuildMassDistributionHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_)
+    !# <objectBuilder class="haloEnvironment" name="haloEnvironment_"   source="parameters"/>
+    self=mergerTreeBuildMassDistributionHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_) result(self)
+  function haloMassFunctionConstructorInternal(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_,haloEnvironment_) result(self)
     !% Internal constructor for the haloMassFunction merger tree halo mass function sampling class.
     implicit none
     type            (mergerTreeBuildMassDistributionHaloMassFunction)                        :: self
-    double precision                                                    , intent(in   )         :: abundanceMinimum, abundanceMaximum, &
-         &                                                                                         modifier1       , modifier2
-    class           (haloMassFunctionClass                             ), intent(in   ), target :: haloMassFunction_
-    !# <constructorAssign variables="abundanceMinimum, abundanceMaximum, modifier1, modifier2, *haloMassFunction_"/>
-    
+    double precision                                                 , intent(in   )         :: abundanceMinimum, abundanceMaximum, &
+         &                                                                                      modifier1       , modifier2
+    class           (haloMassFunctionClass                          ), intent(in   ), target :: haloMassFunction_
+    class           (haloEnvironmentClass                           ), intent(in   ), target :: haloEnvironment_
+    !# <constructorAssign variables="abundanceMinimum, abundanceMaximum, modifier1, modifier2, *haloMassFunction_, *haloEnvironment_"/>
+
     return
   end function haloMassFunctionConstructorInternal
 
@@ -116,28 +121,31 @@ contains
     use Galacticus_Nodes
     implicit none
     class           (mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
-    double precision                                                    , intent(in   ) :: mass                , massMaximum, &
-         &                                                                                 massMinimum         , time
-    double precision                                                    , parameter     :: massZeroPoint=1.0d13
-    type            (treeNode                                          ), pointer       :: node
-    class           (nodeComponentBasic                                ), pointer       :: basic
+    double precision                                                 , intent(in   ) :: mass                , massMaximum, &
+         &                                                                              massMinimum         , time
+    double precision                                                 , parameter     :: massZeroPoint=1.0d13
+    class           (nodeComponentBasic                             ), pointer       :: basic
+    type            (mergerTree                                     ), target        :: tree
     !GCC$ attributes unused :: massMinimum, massMaximum
 
     ! Create a work node.
-    node  => treeNode      (                 )
-    basic => node    %basic(autoCreate=.true.)
-    call basic%timeSet            (time)
-    call basic%timeLastIsolatedSet(time)
-    call basic%massSet            (mass)
+    tree %baseNode          => treeNode               (                 )
+    tree %baseNode%hostTree => tree
+    basic                   => tree    %baseNode%basic(autoCreate=.true.)
+    call tree %properties         %initialize          (                               )
+    call self %haloEnvironment_   %overdensityLinearSet(tree%baseNode,overdensity=0.0d0)
+    call basic%timeSet                                 (time                           )
+    call basic%timeLastIsolatedSet                     (time                           )
+    call basic%massSet                                 (mass                           )
     ! Construct sampling rate.
-    haloMassFunctionSample=+                                         mass         &
-         &                 *self%haloMassFunction_%differential(time,mass,node)   &
-         &                 *10.0d0**(                                             &
-         &                           +self%modifier1*log10(mass/massZeroPoint)    &
-         &                           +self%modifier2*log10(mass/massZeroPoint)**2 &
+    haloMassFunctionSample=+                                         mass                &
+         &                 *self%haloMassFunction_%differential(time,mass,tree%baseNode) &
+         &                 *10.0d0**(                                                    &
+         &                           +self%modifier1*log10(mass/massZeroPoint)           &
+         &                           +self%modifier2*log10(mass/massZeroPoint)**2        &
          &                          )
-    call node%destroy()
-    deallocate(node)
+    call tree%baseNode%destroy()
+    deallocate(tree%baseNode)
     ! Limit sampling rate.
     if (self%abundanceMinimum > 0.0d0)  &
          & haloMassFunctionSample       &
