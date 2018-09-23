@@ -24,6 +24,7 @@ program Tests_IO_HDF5
   use Unit_Tests
   use ISO_Varying_String
   use Memory_Management
+  use Galacticus_Display
   implicit none
   type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
        &                                                                      groupObject
@@ -67,6 +68,9 @@ program Tests_IO_HDF5
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.IO.HDF5.size')
 
+  ! Set verbosity level.
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("HDF5 IO")
 
@@ -724,6 +728,9 @@ program Tests_IO_HDF5
      call datasetObject%destroy()
   end do
 
+  ! Test identifying HDF5 file.
+  call Assert("test if file is HDF5",IO_HDF5_Is_HDF5('testSuite/outputs/test.IO.HDF5.hdf5'),.true.)
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
