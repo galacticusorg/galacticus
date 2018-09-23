@@ -172,6 +172,8 @@ module MPI_Utilities
      generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
           &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
           &                         mpiSumArrayTwoDouble
+     procedure ::                   mpiAnyLogicalScalar
+     generic   :: any            => mpiAnyLogicalScalar
      procedure :: maxloc         => mpiMaxloc
      procedure ::                   mpiMaxvalScalar     , mpiMaxvalArray
      generic   :: maxval         => mpiMaxvalScalar     , mpiMaxvalArray
@@ -223,7 +225,7 @@ module MPI_Utilities
   end interface mpiCounter
   
   ! Record of whether we're running under MPI or not.
-  logical         :: mpiIsActiveValue=.false.
+  logical            :: mpiIsActiveValue=.false.
 
   ! Tags.
   integer, parameter :: tagRequestForData= 1, tagState=2
@@ -248,16 +250,21 @@ contains
     character(len=MPI_MAX_PROCESSOR_NAME), dimension(:), allocatable   :: processorNames
     type     (integerScalarHash         )                              :: processCount
     !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_THREAD_FUNNELED" />
-    
-    call MPI_Init_Thread       (mpiThreadingRequired_,mpiThreadingProvided,iError)
-    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to initialize MPI'                                        //{introspection:location})
-    if (mpiThreadingProvided <  mpiThreadingRequired_) call Galacticus_Error_Report('MPI library does not provide required level of threading support'//{introspection:location})
-    call MPI_Comm_Size         (MPI_Comm_World       ,mpiSelf%countValue  ,iError)
-    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to determine MPI count'                                   //{introspection:location})
-    call MPI_Comm_Rank         (MPI_Comm_World       ,mpiSelf% rankValue  ,iError)
-    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to determine MPI rank'                                    //{introspection:location})
-    call MPI_Get_Processor_Name(processorName(1)     ,processorNameLength ,iError)
-    if (iError               /= 0                    ) call Galacticus_Error_Report('failed to get MPI processor name'                                //{introspection:location})
+
+    if (mpiThreadingRequired_ == MPI_Thread_Single) then
+       call MPI_Init              (                                           iError)
+       if (iError               /= 0                    ) call Galacticus_Error_Report('failed to initialize MPI'                                        //{introspection:location})
+    else
+       call MPI_Init_Thread       (mpiThreadingRequired_,mpiThreadingProvided,iError)
+       if (iError               /= 0                    ) call Galacticus_Error_Report('failed to initialize MPI'                                        //{introspection:location})
+       if (mpiThreadingProvided <  mpiThreadingRequired_) call Galacticus_Error_Report('MPI library does not provide required level of threading support'//{introspection:location})
+    end if
+    call    MPI_Comm_Size         (MPI_Comm_World       ,mpiSelf%countValue  ,iError)
+    if    (iError               /= 0                    ) call Galacticus_Error_Report('failed to determine MPI count'                                   //{introspection:location})
+    call    MPI_Comm_Rank         (MPI_Comm_World       ,mpiSelf% rankValue  ,iError)
+    if    (iError               /= 0                    ) call Galacticus_Error_Report('failed to determine MPI rank'                                    //{introspection:location})
+    call    MPI_Get_Processor_Name(processorName(1)     ,processorNameLength ,iError)
+    if    (iError               /= 0                    ) call Galacticus_Error_Report('failed to get MPI processor name'                                //{introspection:location})
     mpiSelf%hostName=trim(processorName(1))
     call mpiBarrier()
     ! Construct an array containing all ranks.
@@ -1241,6 +1248,34 @@ contains
 #endif
     return
   end function mpiMinloc
+
+  logical function mpiAnyLogicalScalar(self,boolean,mask)
+    !% Return true if any of the given booleans is true over all processes.
+#ifdef USEMPI
+    use Galacticus_Error
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                         :: self
+    logical           , intent(in   )                         :: boolean
+    logical           , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
+    integer                                                   :: iError
+    logical                          , dimension(1)           :: array
+#endif
+
+#ifdef USEMPI
+    array=boolean
+    if (present(mask)) then
+       if (.not.mask(self%rank())) array=.false.
+    end if
+    call MPI_AllReduce(array,mpiAnyLogicalScalar,size(array),MPI_Logical,MPI_LOr,MPI_Comm_World,iError)
+#else
+    !GCC$ attributes unused :: self, boolean, mask
+    mpiAnyLogicalScalar=.false.
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiAnyLogicalScalar
 
   function mpiGatherScalar(self,scalar)
     !% Gather a scalar from all processes, returning it as a 1-D array.
