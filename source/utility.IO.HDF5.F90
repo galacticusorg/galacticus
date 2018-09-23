@@ -30,7 +30,7 @@ module IO_HDF5
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: hdf5Object, IO_HDF5_Set_Defaults
+  public :: hdf5Object, IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5
 #ifdef DEBUGHDF5
   public :: IO_HDF5_Start_Critical, IO_HDF5_End_Critical
 
@@ -14354,4 +14354,21 @@ contains
     return
   end function IO_HDF5_Parent
 
+  logical function IO_HDF5_Is_HDF5(fileName)
+    !% Return true if the named file is an HDF5 file.
+    use Galacticus_Error
+    use File_Utilities
+    implicit none
+    character(len=*), intent(in   ) :: fileName
+    integer                         :: errorCode
+
+    if (File_Exists(trim(fileName))) then
+       call h5fis_hdf5_f(trim(fileName),IO_HDF5_Is_HDF5,errorCode)
+       if (errorCode /= 0) call Galacticus_Error_Report('failed to determine nature of file'//{introspection:location})
+    else
+       IO_HDF5_Is_HDF5=.false.
+    end if
+    return
+  end function IO_HDF5_Is_HDF5
+  
 end module IO_HDF5
