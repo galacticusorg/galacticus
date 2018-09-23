@@ -111,7 +111,7 @@ $options{'cpuLimit'} = $options{'cpuLimit'}*$options{'threads'}
 my $projectDirectory     = $options{'workPath'};
 my $galacticusFileRoot   = "galacticusLikelihood_".$options{'mpiRank'};
 my $galacticusFile       = $galacticusFileRoot.".hdf5";
-my $galacticusFileMaster = $galacticusFileRoot.":MPI0000.hdf5";
+my $galacticusFileMaster = $galacticusFileRoot.($options{'stage'} eq "all" ? "" : ":MPI0000").".hdf5";
 
 # Bad log likelihood (highly improbable) which we will return in failure conditions.
 my $badLogLikelihood         = -1.0e30;
@@ -127,7 +127,7 @@ my @constraints = @{$constraintsRef};
 # Remove any old semaphore file.
 my $semaphoreName = "galacticus";
 $semaphoreName = $parameters->{'taskMethod'}->{'threadLockName'}->{'value'}
-    if ( exists($parameters->{'taskMethod'}->{'threadLockName'}) );
+    if ( exists($parameters->{'taskMethod'}) && exists($parameters->{'taskMethod'}->{'threadLockName'}) );
 unlink("/dev/shm/sem.".$semaphoreName)
     if ( -e "/dev/shm/sem.".$semaphoreName );
 
@@ -608,21 +608,21 @@ sub reportFailure {
 	    my $xml     = new XML::Simple;
 	    my $galacticusConfig  = $xml->XMLin("galacticusConfig.xml");
 	    if ( exists($galacticusConfig->{'contact'}->{'email'}) && &File::Which::which('sendmail') ) {
-		my $message  = "A Galacticus model failed while seeking constraints.\n";
-		$message    .= "Failed model is in: ".$failArchiveName."\n";
-		my $msg = MIME::Lite->new(
-		    From    => '',
-		    To      => $galacticusConfig->{'contact'}->{'email'},
-		    Subject => 'Galacticus model failed while seeking constraints',
-		    Type    => 'TEXT',
-		    Data    => $message
-		    );
-		$msg->send();
+	    	my $message  = "A Galacticus model failed while seeking constraints.\n";
+	    	$message    .= "Failed model is in: ".$failArchiveName."\n";
+	    	my $msg = MIME::Lite->new(
+	    	    From    => '',
+	    	    To      => $galacticusConfig->{'contact'}->{'email'},
+	    	    Subject => 'Galacticus model failed while seeking constraints',
+	    	    Type    => 'TEXT',
+	    	    Data    => $message
+	    	    );
+	    	$msg->send();
 	    } else {
-		open(my $eHndl,">".$options{'failPath'}."/galacticusLikelihoodError.txt");
-		print $eHndl "A Galacticus model failed while seeking constraints.\n";
-		print $eHndl "Failed model is in: ".$failArchiveName."\n";
-		close($eHndl);
+	    	open(my $eHndl,">".$options{'failPath'}."/galacticusLikelihoodError.txt");
+	    	print $eHndl "A Galacticus model failed while seeking constraints.\n";
+	    	print $eHndl "Failed model is in: ".$failArchiveName."\n";
+	    	close($eHndl);
 	    }
 	}
 	if ( ! -e $failArchiveName ) {
