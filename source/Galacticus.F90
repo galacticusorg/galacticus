@@ -55,6 +55,13 @@ program Galacticus
   !$ else
       call mpiInitialize(MPI_Thread_Single  )
   !$ end if
+  ! If we have been spawned by another MPI process, immediately disconnect.
+  call MPI_Comm_Get_Parent(parentCommunicator,status)
+  if (status /= 0) call Galacticus_Error_Report('failed to get MPI parent communicator'//{introspection:location})
+  if (parentCommunicator /= MPI_Comm_Null) then
+     call MPI_Comm_Disconnect(parentCommunicator,status)
+     if (status /= 0) call Galacticus_Error_Report('failed to disconnect from MPI parent process'//{introspection:location})
+  end if
 #endif
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
@@ -86,14 +93,6 @@ program Galacticus
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI
-  call    MPI_Barrier        (MPI_Comm_World    ,status)
-  if    (status /= 0) call Galacticus_Error_Report('MPI barrier failed'                   //{introspection:location})
-  call    MPI_Comm_Get_Parent(parentCommunicator,status)
-  if    (status /= 0) call Galacticus_Error_Report('failed to get MPI parent communicator'//{introspection:location})
-  if (parentCommunicator /= MPI_Comm_Null) then
-     call MPI_Barrier        (parentCommunicator,status)
-     if (status /= 0) call Galacticus_Error_Report('MPI barrier failed'                   //{introspection:location})
-  end if
   call mpiFinalize()
 #endif
   ! All done, finish.
