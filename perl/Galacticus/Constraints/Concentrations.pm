@@ -29,7 +29,7 @@ sub COCOCDM {
     die("Galacticus::Constraints::Concentrations::COCOCDM(): distributionNumber ∈ [1..7] is required")
 	if ( $distributionNumber < 1 || $distributionNumber > 7 );
     # Read data.
-    my $dataCompilation = new PDL::IO::HDF5("data/darkMatter/concentrationDistributionCocoCDM.hdf5");
+    my $dataCompilation = new PDL::IO::HDF5($ENV{'GALACTICUS_DATA_PATH'}."/static/darkMatter/concentrationDistributionCocoCDM.hdf5");
     my $mass                   = $dataCompilation->dataset('mass'                  )->get();
     my $concentration          = $dataCompilation->dataset('concentration'         )->get();
     my $distribution           = $dataCompilation->dataset('distribution'          )->get();
@@ -40,8 +40,8 @@ sub COCOCDM {
     $data->{'covariance'       } = $distributionCovariance                 ->(:,:,($distributionNumber-1))                                ;
     $data->{'massMinimum'      } = $mass                                   ->(    ($distributionNumber-1))/sqrt($mass->((1))/$mass->((0)));
     $data->{'massMaximum'      } = $mass                                   ->(    ($distributionNumber-1))*sqrt($mass->((1))/$mass->((0)));
-     $data->{'distributionError'} = $data                  ->{'covariance'}->diagonal(0,1)->sqrt();
-   # Read model.
+    $data->{'distributionError'} = $data                  ->{'covariance'}->diagonal(0,1)->sqrt();
+    # Read model.
     my $model        = new PDL::IO::HDF5($galacticusFileName);
     my $analyses     = $model   ->group('analyses'                                           );
     my $modelData    = $analyses->group('concentrationDistributionCDMCOCO'.$distributionLabel);
