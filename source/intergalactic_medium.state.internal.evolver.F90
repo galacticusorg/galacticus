@@ -500,6 +500,7 @@
      class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_
      class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_
      class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_
+     class           (atomicExcitationRateCollisionalClass    ), pointer                     :: atomicExcitationRateCollisional_
      double precision                                          , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
      double precision                                          , parameter                   :: massFilteringMinimum                      =1.0d2
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
@@ -550,6 +551,7 @@
      atomicRecombinationRateDielectronic_ => atomicRecombinationRateDielectronic()
      atomicRecombinationRateRadiative_    => atomicRecombinationRateRadiative   ()
      atomicIonizationRateCollisional_     => atomicIonizationRateCollisional    ()
+     atomicExcitationRateCollisional_     => atomicExcitationRateCollisional    ()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute rates of change of filtering mass composite parameters and optical depth.
@@ -783,12 +785,12 @@
                    &      *clumpingFactor
            end if
            ! Add collisional excitation cooling rate.
-           heatingRate=+heatingRate                                         &
-                &      -Collisional_Excitation_Cooling_Rate(                &
-                &                                           atomicNumber  , &
-                &                                           electronNumber, &
-                &                                           temperature     &
-                &                                          )                &
+           heatingRate=+heatingRate                                                  &
+                &      -atomicExcitationRateCollisional_%coolingRate(                &
+                &                                                    atomicNumber  , &
+                &                                                    electronNumber, &
+                &                                                    temperature     &
+                &                                                   )                &
                 &      *clumpingFactor
            ! Compute net rate of change of density.
            propertiesRateOfChange(iProperty)=                                                   &
