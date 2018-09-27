@@ -513,7 +513,7 @@ N/A---disk radii are computed using the selected galactic structure solver.
 
 \subsection{``Standard Implementation}\label{sec:DiskStandard}
 
-This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:MassDistributions}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
+This implementation assumes a disk with a cylindrical symmetry and a flattened profile in which stars trace gas. Currently, one option for the density profile is allowed\footnote{The disk density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:methodsMassDistribution}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard disk component.}:
 \begin{description}
 \item [{\normalfont \ttfamily exponentialDisk}] Assumes an exponential profile, $\rho(R,z) = \rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$, for the disk \gls{component} of a galaxy. The thickness, $z_\mathrm{s}/r_\mathrm{s}$ is set by the parameter {\normalfont \ttfamily [heightToRadialScaleDisk]}.
 \end{description}
@@ -634,7 +634,7 @@ with $\tau_\mathrm{spheroid, star~formation}$ being the greater of the star form
 
 \subsection{``Standard'' Implementation}
 
-The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:MassDistributions}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard spheroid component.}:
+The standard spheroid implementation assumes a spheroid density profile described by a single length scale in which stars trace gas. Currently, two options for the density profile are allowed\footnote{The spheroid density distribution is handled internally using a {\normalfont \ttfamily massDistribution} object (see \S\ref{sec:methodsMassDistribution}). As such, any mass distribution implemented as an extension of the {\normalfont \ttfamily massDistribution} class (and which is described by a single length scale) could be trivially addded to the standard spheroid component.}:
 \begin{description}
 \item [{\normalfont \ttfamily hernquist}] Assumes a Hernquist profile \citep{hernquist_analytical_1990} for the spheroidal \gls{component} of a galaxy.
 \item [{\normalfont \ttfamily sersic}] Assumes a S\'ersic profile (\citealt{sersic_influence_1963}; see also \citealt{mazure_exact_2002}) for the spheroidal \gls{component} of a galaxy in which stars trace gas. The projected density profile of the spheroid is given by:
