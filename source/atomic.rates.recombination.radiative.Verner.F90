@@ -23,7 +23,7 @@
   !#  <description>Atomic radiative recombination rates are computed based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.</description>
   !# </atomicRecombinationRateRadiative>
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeVerner1996
-     !% A gaunt factor class based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
+     !% A radiative recombination rate class based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
      private
    contains
      procedure :: rate => verner1996Rate
