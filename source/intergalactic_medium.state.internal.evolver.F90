@@ -499,6 +499,7 @@
      class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_
      class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_
      class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_
+     class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_
      double precision                                          , parameter                   :: dielectronicRecombinationRateHeIEnergyLoss=40.74d0 ! electron volts.
      double precision                                          , parameter                   :: massFilteringMinimum                      =1.0d2
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
@@ -548,6 +549,7 @@
      atomicIonizationPotential_           => atomicIonizationPotential          ()
      atomicRecombinationRateDielectronic_ => atomicRecombinationRateDielectronic()
      atomicRecombinationRateRadiative_    => atomicRecombinationRateRadiative   ()
+     atomicIonizationRateCollisional_     => atomicIonizationRateCollisional    ()
      ! Initialize heating rate to zero.
      heatingRate          =  0.0d0
      ! Compute rates of change of filtering mass composite parameters and optical depth.
@@ -606,23 +608,23 @@
            shellNumber=1          
            ! Compute collisional ionization rates from this ion.
            if (electronNumber  > 0) then
-              collisionIonizationRateFrom=-Atomic_Rate_Ionization_Collisional  (atomicNumber,ionizationState  ,temperature                   ) &
-                   &                      *densityThisIon                                                                                      &
+              collisionIonizationRateFrom=-atomicIonizationRateCollisional_%rate    (atomicNumber,ionizationState  ,temperature) &
+                   &                      *densityThisIon                                                                        &
                    &                      *densityElectron
-              heatingRate                =+heatingRate                                                                                         &
-                   &                      -atomicIonizationPotential_%potential(atomicNumber,electronNumber +1                               ) &
-                   &                      *electronVolt                                                                                        &
-                   &                      *collisionIonizationRateFrom                                                                         &
-                   &                      *gigaYear                                                                                            &
-                   &                      *centi**3                                                                                            &
+              heatingRate                =+heatingRate                                                                           &
+                   &                      -atomicIonizationPotential_      %potential(atomicNumber,electronNumber+1            ) &
+                   &                      *electronVolt                                                                          &
+                   &                      *collisionIonizationRateFrom                                                           &
+                   &                      *gigaYear                                                                              &
+                   &                      *centi**3                                                                              &
                    &                      *clumpingFactor
             else
               collisionIonizationRateFrom=+0.0d0
            end if
            ! Compute collisional ionization rates to this ion.
            if (ionizationState > 1) then
-              collisionIonizationRateTo  =+Atomic_Rate_Ionization_Collisional (atomicNumber,ionizationState-1,temperature                   ) &
-                   &                      *densityLowerIon                                                                                    &
+              collisionIonizationRateTo  =+atomicIonizationRateCollisional_%rate     (atomicNumber,ionizationState-1,temperature) &
+                   &                      *densityLowerIon                                                                        &
                    &                      *densityElectron
            else
               collisionIonizationRateTo  =+0.0d0  

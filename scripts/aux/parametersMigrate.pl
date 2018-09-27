@@ -20,8 +20,8 @@ my $inputFileName  = $ARGV[0];
 my $outputFileName = $ARGV[1];
 my %options =
     (
-     inputVersion        => "0.9.3",
-     outputVersion       => "0.9.4",
+     inputVersion        => "0.9.4",
+     outputVersion       => "0.9.5",
      validate            => "yes"  ,
      prettyify           => "no"   ,
      inputFormatVersion  => 1      ,
@@ -522,9 +522,24 @@ my @translations =
 		 "Creasey2012"               => "creasey2012"
 	     }
 	 }
-    }
+     },
+     {
+	 inputVersion  => "0.9.4",
+	 outputVersion => "0.9.5",
+	 names         =>
+	 {
+	     "atomicCollisionalIonizationMethod" => "atomicIonizationRateCollisionalMethod",
+	 },
+	 values        =>
+	 {
+	     atomicCollisionalIonizationMethod =>
+	     {
+		 "Verner" => "verner1996"
+	     },
+	 }
+     }
     );
-
+     
 # Define known defaults.
 my %knownDefaults =
     (

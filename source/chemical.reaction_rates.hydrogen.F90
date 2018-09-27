@@ -171,14 +171,15 @@ contains
     use Radiation_Structure
     use Atomic_Rates_Ionization_Collisional
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                   =.false., reactionInitialized        =.false.
-    integer                             , save                :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
-         &                                                       electronChemicalIndex
-    double precision                                          :: rate                                     , rateCoefficient
+    double precision                                      , intent(in   ) :: temperature
+    type            (radiationStructure                  ), intent(in   ) :: radiation
+    type            (chemicalAbundances                  ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                  ), intent(inout) :: chemicalRates
+    class           (atomicIonizationRateCollisionalClass), pointer       :: atomicIonizationRateCollisional_
+    logical                                               , save          :: reactionActive                   =.false., reactionInitialized        =.false.
+    integer                                               , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
+         &                                                                   electronChemicalIndex
+    double precision                                                      :: rate                                     , rateCoefficient
     !GCC$ attributes unused :: radiation
     
     ! Check if this reaction needs initializing.
@@ -200,7 +201,8 @@ contains
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Get the rate coefficient.
-       rateCoefficient=Atomic_Rate_Ionization_Collisional(1,1,temperature)
+       atomicIonizationRateCollisional_ => atomicIonizationRateCollisional      (               )
+       rateCoefficient                  =  atomicIonizationRateCollisional_%rate(1,1,temperature)
 
        ! Compute the rate.
        rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
