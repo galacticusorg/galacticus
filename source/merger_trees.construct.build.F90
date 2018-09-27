@@ -241,7 +241,7 @@ contains
        tree%index=treeIndex
        ! Restart the random number sequence.
        tree%randomNumberGenerator=pseudoRandom()
-       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOFfset=.false.,incrementSeed=int(tree%index))
+       uniformRandom=tree%randomNumberGenerator%uniformSample(ompThreadOffset=.false.,mpiRankOffset=.false.,incrementSeed=int(tree%index))
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber
