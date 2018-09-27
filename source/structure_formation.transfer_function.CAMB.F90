@@ -247,7 +247,7 @@ contains
        ! Download CAMB if necessary.
        if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz")) then
           call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
-          call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz",status)
+          call System_Command_Do("wget https://github.com/cmbant/CAMB/archive/0.1.7.tar.gz -O "//galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
        end if
        ! Unpack the code.
