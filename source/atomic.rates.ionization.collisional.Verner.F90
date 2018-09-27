@@ -30,7 +30,7 @@
   end type atomicIonizationRateCollisionalVerner1996
   
   interface atomicIonizationRateCollisionalVerner1996
-     !% Constructors for the {\normalfont \ttfamily verner1996} atomic radiative recombination class.
+     !% Constructors for the {\normalfont \ttfamily verner1996} atomic collisional ionization class.
      module procedure verner1996ConstructorParameters
   end interface atomicIonizationRateCollisionalVerner1996
   
@@ -475,6 +475,7 @@ contains
     double precision                                           , intent(in   ) :: temperature
     integer                                                                    :: electronNumber
     double precision                                                           :: energyScaled  , temperatureScaled
+    !GCC$ attributes unused :: self
 
     ! Set a default rate coefficient of zero.
     verner1996Rate=0.0d0
