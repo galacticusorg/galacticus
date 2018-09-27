@@ -210,16 +210,16 @@ contains
     integer :: iStatus
 
     ! Ensure that we have the mangle source.
-    if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/mangle")) then
+    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle")) then
        ! Clone the mangle repo.
        call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux; git clone https://github.com/mollyswanson/mangle.git",iStatus)
-       if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/mangle"            )) &
+       if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle"            )) &
             & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
     end if
     ! Test for presence of the "ransack" executable - build if necessary.
-    if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/mangle/bin/ransack")) then
-       call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux/mangle/src; ./configure; make cleanest; make",iStatus)
-       if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/mangle/bin/ransack")) &
+    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle/bin/ransack")) then
+       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"mangle/src; ./configure; make cleanest; make",iStatus)
+       if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle/bin/ransack")) &
             & call Galacticus_Error_Report("failed to build mangle executables"//{introspection:location})
     end if
     return
@@ -274,7 +274,7 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleSolidAngle')
-          call System_Command_Do(galacticusPath(pathTypeExec)//"aux/mangle/bin/harmonize "//fileName//" "//fileNameTmp,iStatus)
+          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"mangle/bin/harmonize "//fileName//" "//fileNameTmp,iStatus)
           if (iStatus /= 0) call Galacticus_Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)
@@ -359,7 +359,7 @@ contains
              multiplier=-1.0d0
           end if
           fileNameTmp=File_Name_Temporary('geometryMangleAngularPower')
-          call System_Command_Do(galacticusPath(pathTypeExec)//"aux/mangle/bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,iStatus)
+          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"mangle/bin/harmonize -l "//degreeMaximum//" "//fileName//" "//fileNameTmp,iStatus)
           if (iStatus /= 0) call Galacticus_Error_Report('failed to run mangle harmonize'//{introspection:location})
           open(newUnit=wlmFile,file=char(fileNameTmp),status="old",form="formatted")
           read (wlmFile,*)

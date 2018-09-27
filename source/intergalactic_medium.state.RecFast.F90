@@ -127,24 +127,24 @@ contains
        call File_Unlock(                    self%fileLock                     )
        call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")) then
           call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
-          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeExec)//"aux/RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")
-          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")) &
+          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")) &
                & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
        end if
        ! Patch the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/patched")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/patched")) then
           call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//galacticusPath(pathTypeExec)//"aux/RecFast/; cd "//galacticusPath(pathTypeExec)//"aux/RecFast/; patch < recfast.for.patch",status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//galacticusPath(pathTypeDataDynamic)//"RecFast/; cd "//galacticusPath(pathTypeDataDynamic)//"RecFast/; patch < recfast.for.patch",status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
-          call System_Command_Do("touch "//galacticusPath(pathTypeExec)//"aux/RecFast/patched")
+          call System_Command_Do("touch "//galacticusPath(pathTypeDataDynamic)//"RecFast/patched")
        end if
        ! Build the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe")) then
           call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
-          call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux/RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
-          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) &
+          call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe")) &
                & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
        end if
        ! Build RecFast parameter file.
@@ -158,7 +158,7 @@ contains
        write (parametersUnit,*    )  6
        close(parametersUnit)
        ! Run RecFast.
-       call System_Command_Do(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe < "//parameterFile)
+       call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe < "//parameterFile)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
        allocate(redshift         (countRedshift))

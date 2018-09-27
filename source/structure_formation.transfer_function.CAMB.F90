@@ -245,22 +245,22 @@ contains
        command='rm -f '//self%fileName
        call System_Command_Do(command)
        ! Download CAMB if necessary.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
           call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
-          call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz",status)
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
+          call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
+          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
        end if
        ! Unpack the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB")) then
           call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeExec)//"aux -f "//galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz");
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB")) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeExec)//"aux -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
+          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB")) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
        end if
        ! Build the CAMB code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB/camb")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) then
           call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
           call System_Command_Do('cd '//galacticusPath(pathTypeExec)//'/aux/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; make -j1',status);
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
+          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
        end if
        ! Determine maximum wavenumber.
        wavenumberCAMB=exp(max(log(wavenumber)+1.0d0,cambLogWavenumberMaximumDefault))
@@ -373,7 +373,7 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(cambParameterFile)
        ! Run CAMB.
-       call System_Command_Do(galacticusPath(pathTypeExec)//"aux/CAMB/camb "//parameterFile)
+       call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"CAMB/camb "//parameterFile)
         ! Read the CAMB transfer function file.
        cambTransferCount=Count_Lines_In_File("camb_transfer_out.dat","#")
        allocate(cambTransferWavenumber(cambTransferCount))

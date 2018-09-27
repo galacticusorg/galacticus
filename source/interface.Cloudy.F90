@@ -40,7 +40,7 @@ contains
     ! Specify Cloudy version.
     cloudyVersion="c17.01"
     ! Specify Cloudy path.
-    cloudyPath   =galacticusPath(pathTypeExec)//"aux/"//cloudyVersion
+    cloudyPath   =galacticusPath(pathTypeDataDynamic)//cloudyVersion
     ! Download the Cloudy code.
     if (.not.File_Exists(cloudyPath//".tar.gz")) then
        call Galacticus_Display_Message("downloading Cloudy code....",verbosityWorking)
