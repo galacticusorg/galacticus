@@ -18,80 +18,24 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-!% Contains a module that implements calculations of collisional excitation rates.
+!% Contains a module which provides a class implenting atomic collisional excitation rates.
 
 module Atomic_Rates_Excitation_Collisional
-  !% Implements calculations of collisional excitation rates.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Collisional_Excitation_Cooling_Rate
+  !% Provides a class implenting atomic collisional excitation rates.
 
-  ! Flag to indicate if this module has been initialized.
-  logical                 :: collisionalExcitationInitialized=.false.
-
-  ! Name of collisional excitation method used.
-  type   (varying_string) :: collisionalExcitationMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Collisional_Excitation_Rate_Template), pointer :: Collisional_Excitation_Rate_Get => null()
-  abstract interface
-     double precision function Collisional_Excitation_Rate_Template(atomicNumber,electronNumber,temperature)
-       double precision,   intent(in) :: temperature                     
-       integer,            intent(in) :: atomicNumber, electronNumber
-     end function Collisional_Excitation_Rate_Template
-   end interface
-
-contains
-
-  subroutine Collisional_Excitation_Rate_Initialize
-    !% Initialize the collisional excitation rate module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="collisionalExcitationMethod" type="moduleUse">
-    include 'atomic.rates.excitation.collisional.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.collisionalExcitationInitialized) then
-       !$omp critical(Atomic_Rate_Excitation_Collisional_Initialization)
-       if (.not.collisionalExcitationInitialized) then
-          ! Get the collisional excitation method parameter.
-          !# <inputParameter>
-          !#   <name>collisionalExcitationMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('ScholzWalters91')</defaultValue>
-          !#   <description>The name of the method to be used for computing collisional excitation rates.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="collisionalExcitationMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>collisionalExcitationMethod,Collisional_Excitation_Rate_Get</functionArgs>
-          include 'atomic.rates.excitation.collisional.inc'
-          !# </include>
-          if (.not.associated(Collisional_Excitation_Rate_Get)) call&
-               & Galacticus_Error_Report('method '//char(collisionalExcitationMethod)//' is unrecognized'//{introspection:location})
-          collisionalExcitationInitialized = .true.
-       end if
-       !$omp end critical(Atomic_Rate_Excitation_Collisional_Initialization)
-    end if
-    return
-  end subroutine Collisional_Excitation_Rate_Initialize
-
-  double precision function Collisional_Excitation_Cooling_Rate(atomicNumber, electronNumber, temperature)
-    !% Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily
-    !% atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).
-    implicit none
-    double precision, intent(in   ) :: temperature                     
-    integer         , intent(in   ) :: atomicNumber, electronNumber
-
-    ! Initialize the module.
-    call Collisional_Excitation_Rate_Initialize()
-    ! Call the routine to do the calculation.
-    Collisional_Excitation_Cooling_Rate=Collisional_Excitation_Rate_Get(atomicNumber,electronNumber,temperature)
-    return
-  end function Collisional_Excitation_Cooling_Rate
+  !# <functionClass>
+  !#  <name>atomicExcitationRateCollisional</name>
+  !#  <descriptiveName>Atomic Collisional Excitation</descriptiveName>
+  !#  <description>Class providing atomic collisional excitation rates.</description>
+  !#  <default>scholzWalters91</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="coolingRate" >
+  !#   <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
+  !#   <argument>double precision, intent(in   ) :: temperature</argument>                     
+  !#  </method>
+  !# </functionClass>
 
 end module Atomic_Rates_Excitation_Collisional

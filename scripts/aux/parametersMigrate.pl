@@ -529,13 +529,18 @@ my @translations =
 	 names         =>
 	 {
 	     "atomicCollisionalIonizationMethod" => "atomicIonizationRateCollisionalMethod",
+	     "collisionalExcitationMethod"       => "atomicExcitationRateCollisionalMethod"
 	 },
 	 values        =>
 	 {
 	     atomicCollisionalIonizationMethod =>
 	     {
-		 "Verner" => "verner1996"
+		 "Verner"          => "verner1996"
 	     },
+	     collisionalExcitationMethod => 
+	     {
+		 "ScholzWalters91" => "scholzWalters91"
+	     }
 	 }
      }
     );
