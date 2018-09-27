@@ -41,7 +41,7 @@ contains
     character(len=40        )                :: currentRevision
     
     ! Specify source code path.
-    fspsPath=galacticusPath(pathTypeExec)//"aux/FSPS_v2.5"
+    fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
     ! Check out the code.
     if (.not.File_Exists(fspsPath)) then
        call Galacticus_Display_Message("downloading FSPS source code....",verbosityWorking)
@@ -65,17 +65,17 @@ contains
     end if
     ! Patch the code.
     if (.not.File_Exists(fspsPath//"/src/galacticus_IMF.f90")) then
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"/aux/FSPS_v2.5_Galacticus_Modifications/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
+       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
        if (status /= 0) call Galacticus_Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"/aux/FSPS_v2.5_Galacticus_Modifications/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
+       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
        if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"/aux/FSPS_v2.5_Galacticus_Modifications/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
+       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
        if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"/aux/FSPS_v2.5_Galacticus_Modifications/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
+       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
        if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"/aux/FSPS_v2.5_Galacticus_Modifications/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
+       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
        if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"/aux/FSPS_v2.5_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
+       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
        if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
        call System_Command_Do("rm -f "//fspsPath//"/src/autosps.exe")
     end if

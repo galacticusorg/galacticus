@@ -208,31 +208,31 @@ contains
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
-          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1")
-          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.exe")) then    
+          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then    
              ! Check for presence of the source code.
-             if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.c")) then
+             if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
                 ! Download the code.
-                if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")) then
+                if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
                    call Galacticus_Display_Message("downloading CosmicEmu code....",verbosityWorking)
-                   call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")
-                   if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")) &
+                   call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
+                   if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
                         & call Galacticus_Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
                 call Galacticus_Display_Message("unpacking CosmicEmu code....",verbosityWorking)
-                call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1 -f "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1.tar.gz")
-                if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.c")) &
+                call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
+                if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
                      & call Galacticus_Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
              call Galacticus_Display_Message("compiling CosmicEmu code....",verbosityWorking)
-             call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
-             if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.exe")) &
+             call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
+             if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
                   & call Galacticus_Error_Report("failed to build Cosmic_Emu code"//{introspection:location})
           end if
           ! Generate the power spectrum.
-          call System_Command_Do(galacticusPath(pathTypeExec)//"aux/CosmicEmu_v1.1/emu.exe < "//parameterFile)
+          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe < "//parameterFile)
           ! Read the data file.
           self%wavenumberCount=Count_Lines_In_File(powerSpectrumFile,"#")
           if (allocated(self%wavenumberTable   )) call deallocateArray(self%wavenumberTable   )
