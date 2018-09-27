@@ -63,39 +63,59 @@ ls enumerations/specifiers/*.tex | sort | awk '{print "\\input{"substr($1,1,leng
 iPass=1
 while [ $iPass -le 6 ]; do
  # Run pdflatex.
- pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
- if [ $? -ne 0 ]; then
-  echo pdflatex failed
-  exit 1
- fi
+    if [ $iPass -le 5 ]; then
+	pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d >& /dev/null
+    else
+	pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
+    fi
+    if [ $? -ne 0 ]; then
+	echo pdflatex failed
+	exit 1
+    fi
 
  # Run bibtex.
- bibtex Galacticus
- if [ $? -ne 0 ]; then
-  echo bibtex failed
-  exit 1
- fi
+    if [ $iPass -le 5 ]; then
+	bibtex Galacticus >& /dev/null
+    else
+	bibtex Galacticus
+    fi
+    if [ $? -ne 0 ]; then
+	echo bibtex failed
+	exit 1
+    fi
 
  # Run makeindex.
- makeindex Galacticus
- if [ $? -ne 0 ]; then
-  echo makeindex failed for main index
-  exit 1
- fi
+    if [ $iPass -le 5 ]; then
+	makeindex Galacticus >& /dev/null
+    else
+	makeindex Galacticus
+    fi
+    if [ $? -ne 0 ]; then
+	echo makeindex failed for main index
+	exit 1
+    fi
 
  # Run makeindex for code index.
- makeindex -s Galacticus.isty Galacticus.cdx -o Galacticus.cnd
- if [ $? -ne 0 ]; then
-  echo makeindex failed for code index
-  exit 1
- fi
+    if [ $iPass -le 5 ]; then
+	makeindex -s Galacticus.isty Galacticus.cdx -o Galacticus.cnd >& /dev/null
+    else
+	makeindex -s Galacticus.isty Galacticus.cdx -o Galacticus.cnd
+    fi
+    if [ $? -ne 0 ]; then
+	echo makeindex failed for code index
+	exit 1
+    fi
 
  # Run makeglossaries.
- makeglossaries Galacticus
- if [ $? -ne 0 ]; then
-  echo make glossaries failed
-  exit 1
- fi
+    if [ $iPass -le 5 ]; then
+	makeglossaries Galacticus >& /dev/null
+    else
+	makeglossaries Galacticus
+    fi
+    if [ $? -ne 0 ]; then
+	echo make glossaries failed
+	exit 1
+    fi
 
  iPass=$((iPass+1))
 done
