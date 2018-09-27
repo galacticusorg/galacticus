@@ -688,6 +688,27 @@
     <tidalStrippingSpheroidsMethod value="null"/>
   </parameters>
   
+  <!-- Power spectrum window function methods -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <powerSpectrumWindowFunctionMethod value="topHat"            />
+    <powerSpectrumWindowFunctionMethod value="sharpKSpace"        >
+      <normalization value="2.5"/>
+    </powerSpectrumWindowFunctionMethod>
+    <powerSpectrumWindowFunctionMethod value="topHatSharpKHybrid" >
+      <normalization value="2.5"/>
+      <radiiRatio    value="1.0"/>
+    </powerSpectrumWindowFunctionMethod>
+    <powerSpectrumWindowFunctionMethod value="smoothKSpace"       >
+      <normalization value="3.5"/>
+      <beta          value="3.7"/>
+    </powerSpectrumWindowFunctionMethod>
+    <powerSpectrumWindowFunctionMethod value="lagrangianChan2017" >
+      <f             value="1.0"/>
+    </powerSpectrumWindowFunctionMethod>
+  </parameters>
+
   <!-- Dark energy cosmology -->
   <parameters>
     <formatVersion>2</formatVersion>
