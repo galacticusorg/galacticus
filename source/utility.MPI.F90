@@ -137,6 +137,12 @@ module MPI_Utilities
      !@     <description>Return the minimum value of {\normalfont \ttfamily array} over all processes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>any</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\logicalzero\ scalar\argin, \logicalzero\ [mask]\argin</arguments>
+     !@     <description>Return true if any of {\normalfont \ttfamily scalar} is true over all processes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>minloc</method>
      !@     <type>\intone</type>
      !@     <arguments>\doubleone array\argin</arguments>
