@@ -20,6 +20,9 @@
 
 module Intergalactic_Medium_State
   !% Provides a class for calculations of the intergalactic medium thermal and ionization state.
+  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
+  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
+  use Linear_Growth       , only : linearGrowth       , linearGrowthClass
   use Tables
   private
   
@@ -103,11 +106,10 @@ module Intergalactic_Medium_State
   !#   <description>Return the cosmological time at which the given electron scattering {\normalfont \ttfamily opticalDepth} is reached (integrating from the present day) in the \gls{igm}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <modules>Galacticus_Error Cosmology_Functions</modules>
+  !#   <modules>Galacticus_Error</modules>
   !#   <argument>double precision, intent(in   )           :: opticalDepth</argument>
   !#   <argument>logical         , intent(in   ), optional :: assumeFullyIonized</argument>
   !#   <code>
-  !#    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
   !#    logical                                            :: assumeFullyIonizedActual
   !#    double precision                                   :: time
   !#    ! Check for invalid input.
@@ -115,10 +117,8 @@ module Intergalactic_Medium_State
   !#    ! Determine which optical depth to use.
   !#    assumeFullyIonizedActual=.false.
   !#    if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
-  !#    ! Get the default cosmology functions object.
-  !#    cosmologyFunctions_ => cosmologyFunctions()
   !#    ! Ensure that the table is initialized.
-  !#    time=cosmologyFunctions_%cosmicTime(1.0d0)
+  !#    time=self%cosmologyFunctions_%cosmicTime(1.0d0)
   !#    call intergalacticMediumStateElectronScatteringTabulate(self,time)
   !#    do while (                                                                                                    &amp;
   !#         &amp;     (.not.assumeFullyIonizedActual .and. self%electronScattering            %y(1) > -opticalDepth) &amp;
@@ -147,16 +147,20 @@ module Intergalactic_Medium_State
   !#    intergalacticMediumStateFilteringMass=self%filteringMassTable%interpolate(time)
   !#   </code>
   !#  </method>
+  !#  <!-- Objects. -->
+  !#  <data scope="self"  >class           (cosmologyParametersClass), pointer     :: cosmologyParameters_                   => null()                                  </data>
+  !#  <data scope="self"  >class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_                    => null()                                  </data>
+  !#  <data scope="self"  >class           (linearGrowthClass       ), pointer     :: linearGrowth_                          => null()                                  </data>
   !#  <!-- Filtering mass table. -->
-  !#  <data scope="module">integer                                   , parameter   :: filteringMassTablePointsPerDecade     =100                                        </data>
-  !#  <data scope="self"  >logical                                                 :: filteringMassTableInitialized         =.false.                                    </data>
+  !#  <data scope="module">integer                                   , parameter   :: filteringMassTablePointsPerDecade      =  100                                     </data>
+  !#  <data scope="self"  >logical                                                 :: filteringMassTableInitialized          =  .false.                                 </data>
   !#  <data scope="self"  >integer                                                 :: filteringMassTableNumberPoints                                                    </data>
-  !#  <data scope="self"  >double precision                                        :: filteringMassTableTimeMaximum                 , filteringMassTableTimeMinimum     </data>
+  !#  <data scope="self"  >double precision                                        :: filteringMassTableTimeMaximum                   , filteringMassTableTimeMinimum   </data>
   !#  <data scope="self"  >type            (table1DLogarithmicLinear)              :: filteringMassTable                                                                </data>
   !#  <!-- Electron scattering optical depth tables. -->
-  !#  <data scope="module">integer                                   , parameter   :: electronScatteringTablePointsPerDecade=100                                        </data>
-  !#  <data scope="self"  >logical                                                 :: electronScatteringTableInitialized    =.false.                                    </data>
-  !#  <data scope="self"  >integer                                                 :: electronScatteringTableNumberPoints</data>
+  !#  <data scope="module">integer                                   , parameter   :: electronScatteringTablePointsPerDecade =  100                                     </data>
+  !#  <data scope="self"  >logical                                                 :: electronScatteringTableInitialized     =  .false.                                 </data>
+  !#  <data scope="self"  >integer                                                 :: electronScatteringTableNumberPoints                                               </data>
   !#  <data scope="self"  >double precision                                        :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum</data>
   !#  <data scope="self"  >type            (table1DLogarithmicLinear)              :: electronScattering                            , electronScatteringFullyIonized    </data>
   !#  <data scope="self"  >class           (table1D                 ), allocatable :: electronScatteringFullyIonizedInverse         , electronScatteringInverse         </data>
@@ -167,23 +171,19 @@ contains
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
     use Numerical_Integration
-    use Cosmology_Functions
     use FGSL
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
-    class           (cosmologyFunctionsClass      ), pointer               :: cosmologyFunctions_
     type            (fgsl_function                )                        :: integrandFunction
     type            (fgsl_integration_workspace   )                        :: integrationWorkspace
     integer                                                                :: iTime
     logical                                                                :: fullyIonized
 
     if (.not.self%electronScatteringTableInitialized.or.time < self%electronScatteringTableTimeMinimum) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_ => cosmologyFunctions()
-       ! Find minimum and maximum times to tabulate.
-       self%electronScatteringTableTimeMaximum=    cosmologyFunctions_%cosmicTime(1.0d0)
-       self%electronScatteringTableTimeMinimum=min(cosmologyFunctions_%cosmicTime(1.0d0),time)/2.0d0
+      ! Find minimum and maximum times to tabulate.
+       self%electronScatteringTableTimeMaximum=    self%cosmologyFunctions_%cosmicTime(1.0d0)
+       self%electronScatteringTableTimeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time)/2.0d0
        ! Decide how many points to tabulate and allocate table arrays.
        self%electronScatteringTableNumberPoints=int(log10(self%electronScatteringTableTimeMaximum/self%electronScatteringTableTimeMinimum)&
             &*dble(electronScatteringTablePointsPerDecade))+1
@@ -244,37 +244,29 @@ contains
 
     double precision function intergalacticMediumStateElectronScatteringIntegrand(time)
       !% Integrand for electron scattering optical depth calculations.
-      use Cosmology_Functions
-      use Cosmology_Parameters
       use Numerical_Constants_Physical
       use Numerical_Constants_Astronomical
       implicit none
-      double precision                          , intent(in   ) :: time
-      class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
-      class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-      double precision                                          :: electronFraction    , expansionFactor
+      double precision, intent(in   ) :: time
+      double precision                :: electronFraction, expansionFactor
 
-      ! Get the default cosmology.
-      cosmologyParameters_ => cosmologyParameters                (    )
-      ! Get the default cosmology functions object.
-      cosmologyFunctions_  => cosmologyFunctions                 (    )
-      expansionFactor      =  cosmologyFunctions_%expansionFactor(time)
+      expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
       if (fullyIonized) then
          electronFraction=+      hydrogenByMassPrimordial                            /atomicMassHydrogen &
               &           +2.0d0*heliumByMassPrimordial                              /atomicMassHelium
       else
-         electronFraction=       hydrogenByMassPrimordial*self%electronFraction(time)/atomicMassHydrogen
+         electronFraction=+      hydrogenByMassPrimordial*self%electronFraction(time)/atomicMassHydrogen
       end if
-      intergalacticMediumStateElectronScatteringIntegrand &
-           & =+speedLight                                 &
-           &  *gigaYear                                   &
-           &  *thomsonCrossSection                        &
-           &  *massSolar                                  &
-           &  /atomicMassUnit                             &
-           &  /megaParsec         **3                     &
-           &  /expansionFactor    **3                     &
-           &  *cosmologyParameters_%OmegaBaryon    ()     &
-           &  *cosmologyParameters_%densityCritical()     &
+      intergalacticMediumStateElectronScatteringIntegrand  &
+           & =+speedLight                                  &
+           &  *gigaYear                                    &
+           &  *thomsonCrossSection                         &
+           &  *massSolar                                   &
+           &  /atomicMassUnit                              &
+           &  /megaParsec         **3                      &
+           &  /expansionFactor    **3                      &
+           &  *self%cosmologyParameters_%OmegaBaryon    () &
+           &  *self%cosmologyParameters_%densityCritical() &
            &  *electronFraction
       return
     end function intergalacticMediumStateElectronScatteringIntegrand
@@ -285,18 +277,12 @@ contains
     !% Construct a table of filtering mass as a function of cosmological time.
     use FODEIV2
     use ODEIV2_Solver
-    use Cosmology_Functions
-    use Cosmology_Parameters
-    use Linear_Growth
     use Galacticus_Error
     use Numerical_Constants_Math
     use Intergalactic_Medium_Filtering_Masses
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
-    class           (cosmologyParametersClass     ), pointer               :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), pointer               :: cosmologyFunctions_
-    class           (linearGrowthClass            ), pointer               :: linearGrowth_
     double precision                               , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
     double precision                               , dimension(3)          :: massFiltering                     , massFilteringScales
     double precision                               , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
@@ -307,13 +293,9 @@ contains
     double precision                                                       :: timeInitial                       , timeCurrent
 
     if (.not.self%filteringMassTableInitialized .or. time < self%filteringMassTableTimeMinimum) then
-       ! Get required objects.
-       cosmologyFunctions_  => cosmologyFunctions ()
-       cosmologyParameters_ => cosmologyParameters()
-       linearGrowth_        => linearGrowth       ()
        ! Find minimum and maximum times to tabulate.
-       self%filteringMassTableTimeMaximum=max(cosmologyFunctions_%cosmicTime(1.0d0),time      )
-       self%filteringMassTableTimeMinimum=min(cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
+       self%filteringMassTableTimeMaximum=max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
+       self%filteringMassTableTimeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
        ! Decide how many points to tabulate and allocate table arrays.
        self%filteringMassTableNumberPoints=int(log10(self%filteringMassTableTimeMaximum/self%filteringMassTableTimeMinimum)&
             & *dble(filteringMassTablePointsPerDecade))+1
@@ -325,17 +307,17 @@ contains
             &                               self%filteringMassTableNumberPoints  &
             &                              )
        ! Evaluate a suitable starting time for filtering mass calculations.
-       timeInitial=cosmologyFunctions_ %cosmicTime                 (                            &
-            &       cosmologyFunctions_%expansionFactorFromRedshift (                           &
-            &                                                        redshiftMaximumNaozBarkana &
-            &                                                       )                           &
-            &                                                      )
+       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
+            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
+            &                                                             redshiftMaximumNaozBarkana &
+            &                                                            )                           &
+            &                                                           )
        ! Loop over times and populate tables.
        do iTime=1,self%filteringMassTableNumberPoints
           ! Abort if time is too early.
           if (self%filteringMassTable%x(iTime) <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
           ! Set the composite variables used to solve for filtering mass.
-          call Mass_Filtering_ODE_Initial_Conditions(timeInitial,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,massFiltering,massFilteringScales)
+          call Mass_Filtering_ODE_Initial_Conditions(timeInitial,self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,massFiltering,massFilteringScales)
           ! Solve the ODE system
           odeReset   =.true.
           timeCurrent=timeInitial
@@ -364,32 +346,22 @@ contains
     integer function Intergalactic_Medium_State_ODEs(time,properties,propertiesRateOfChange)
       !% Evaluates the ODEs controlling the evolution temperature.
       use ODE_Solver_Error_Codes
-      use Cosmology_Parameters
-      use Cosmology_Functions
-      use Linear_Growth
       use Numerical_Constants_Astronomical
       use Numerical_Constants_Atomic
       use Intergalactic_Medium_Filtering_Masses
       implicit none
-      double precision                               , intent(in  )                :: time
-      double precision                               , intent(in   ), dimension(:) :: properties
-      double precision                               , intent(  out), dimension(:) :: propertiesRateOfChange
-      class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
-      class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
-      class           (linearGrowthClass            ), pointer                     :: linearGrowth_
-      double precision                                                             :: temperature            , massParticleMean
+      double precision, intent(in  )                :: time
+      double precision, intent(in   ), dimension(:) :: properties
+      double precision, intent(  out), dimension(:) :: propertiesRateOfChange
+      double precision                              :: temperature            , massParticleMean
 
-      ! Get required objects.
-      cosmologyParameters_ => cosmologyParameters()
-      cosmologyFunctions_  => cosmologyFunctions ()
-      linearGrowth_        => linearGrowth       ()
        ! Find mean particle mass.
       massParticleMean=+(hydrogenByMassPrimordial*(1.0d0+self%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
            &           /(hydrogenByMassPrimordial*(1.0d0+self%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
       ! Get the temperature.
       temperature=self%temperature(time)
       ! Compute the rates of change for the ODE system.
-      propertiesRateOfChange=Mass_Filtering_ODE_System(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,time,massParticleMean,temperature,properties)
+      propertiesRateOfChange=Mass_Filtering_ODE_System(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,time,massParticleMean,temperature,properties)
       ! Return success.
       Intergalactic_Medium_State_ODEs=FGSL_Success
       return
