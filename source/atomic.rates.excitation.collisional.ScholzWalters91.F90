@@ -27,7 +27,7 @@
      !% An atomic collisional excitation class using the fitting functions of \cite{scholz_collisional_1991}.
      private
    contains
-     procedure :: rate => scholzWalters1991CoolingRate
+     procedure :: coolingRate => scholzWalters1991CoolingRate
   end type atomicExcitationRateCollisionalScholzWalters1991
   
   interface atomicExcitationRateCollisionalScholzWalters1991
