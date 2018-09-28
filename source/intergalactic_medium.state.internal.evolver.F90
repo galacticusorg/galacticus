@@ -116,11 +116,11 @@
         !#   <type>real</type>
         !# </inputParameter>
         ! Build tables of properties and time for the temperature and ionization state densities in the IGM.
-        cosmologyParameters_      => cosmologyParameters            (                    )
-        cosmologyFunctions_       => cosmologyFunctions             (                    )
-        linearGrowth_             => linearGrowth                   (                    )
-        cosmologicalMassVariance_ => cosmologicalMassVariance       (                    )
-        igmInitialState           =  intergalacticMediumStateRecFast(cosmologyParameters_)
+        cosmologyParameters_      => cosmologyParameters            (                                                      )
+        cosmologyFunctions_       => cosmologyFunctions             (                                                      )
+        linearGrowth_             => linearGrowth                   (                                                      )
+        cosmologicalMassVariance_ => cosmologicalMassVariance       (                                                      )
+        igmInitialState           =  intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
         timeMaximum                                                                                 &
              & =cosmologyFunctions_%cosmicTime                 (                                    &
              &  cosmologyFunctions_%expansionFactorFromredshift (                                   &

@@ -48,6 +48,7 @@
      logical                                                        :: interpolationResetElectronFraction             =.true. , interpolationResetTemperature                =.true., &
           &                                                            interpolationResetIonizedHydrogenFraction      =.true. , interpolationResetIonizedHeliumFraction      =.true.
    contains
+     final     ::                                fileDestructor
      procedure :: electronFraction            => fileElectronFraction
      procedure :: neutralHydrogenFraction     => fileNeutralHydrogenFraction
      procedure :: neutralHeliumFraction       => fileNeutralHeliumFraction
@@ -67,9 +68,12 @@ contains
     !% Default constructor for the file \gls{igm} state class.
     use Input_Parameters
     implicit none
-    type(intergalacticMediumStateFile)                :: self
-    type(inputParameters             ), intent(inout) :: parameters
-    type(varying_string              )                :: fileName
+    type (intergalacticMediumStateFile)                :: self
+    type (inputParameters             ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass    ), pointer       :: cosmologyParameters_
+    class(linearGrowthClass           ), pointer       :: linearGrowth_
+    type (varying_string              )                :: fileName
     
     !# <inputParameter>
     !#   <name>fileName</name>
@@ -79,33 +83,47 @@ contains
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    ! Construct the object.
-    self=intergalacticMediumStateFile(fileName)
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
+    self=intergalacticMediumStateFile(fileName,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName) result(self)
+  function fileConstructorInternal(fileName,cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
     !% Constructor for the file \gls{igm} state class.
     use File_Utilities
     implicit none
-    type(intergalacticMediumStateFile)                :: self
-    type(varying_string              ), intent(in   ) :: fileName
-    !# <constructorAssign variables="fileName"/>
+    type (intergalacticMediumStateFile)                        :: self
+    type (varying_string              ), intent(in   )         :: fileName
+    class(cosmologyFunctionsClass     ), intent(inout), target :: cosmologyFunctions_
+    class(cosmologyParametersClass    ), intent(inout), target :: cosmologyParameters_
+    class(linearGrowthClass           ), intent(inout), target :: linearGrowth_
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
 
     self%fileName=File_Name_Expand(char(fileName))
     return
   end function fileConstructorInternal
   
+  subroutine fileDestructor(self)
+    !% Destructor for the file \gls{igm} state class.
+    implicit none
+    type(intergalacticMediumStateFile), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%linearGrowth_"       />
+    return
+  end subroutine fileDestructor
+
   subroutine fileReadData(self)
     !% Read in data describing the state of the intergalactic medium.
     use Galacticus_Error
     use IO_HDF5
-    use Cosmology_Functions
     use File_Utilities
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
-    class  (cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     integer                                              :: fileFormatVersion  , iRedshift
     type   (hdf5Object                  )                :: file
 
@@ -127,11 +145,9 @@ contains
        call file%close      (                                                     )
        call hdf5Access%unset()
        self%redshiftCount=size(self%timeTable)
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_ => cosmologyFunctions()
        ! Convert redshifts to times.
        do iRedshift=1,self%redshiftCount
-          self%timeTable(iRedshift)=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
+          self%timeTable(iRedshift)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%timeTable(iRedshift)))
        end do
        ! Flag that data has now been read.
        self%dataRead=.true.

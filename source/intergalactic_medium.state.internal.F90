@@ -21,7 +21,7 @@
   !% An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
 
   !# <intergalacticMediumState name="intergalacticMediumStateInternal" defaultThreadPrivate="no">
-  !#  <description>The intergalactic medium is assumed to be instantaneously and fully reionized at a fixed redshift, and heated to a fixed temperature.</description>
+  !#  <description>The state of the intergalactic medium is solved for internally.</description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
      !% An \gls{igm} state class for an internally consistent model.
@@ -87,6 +87,7 @@
      !@     <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                                internalDestructor
      procedure :: electronFraction            => internalElectronFraction
      procedure :: temperature                 => internalTemperature
      procedure :: neutralHydrogenFraction     => internalNeutralHydrogenFraction
@@ -115,18 +116,28 @@ contains
     !% Constructor for the {\normalfont \ttfamily internal} \gls{igm} state class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(intergalacticMediumStateInternal)                :: self
-    type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
-
-    self=intergalacticMediumStateInternal()
+    type (intergalacticMediumStateInternal)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_
+    class(linearGrowthClass               ), pointer       :: linearGrowth_
+    
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
+    self=intergalacticMediumStateInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function internalConstructorParameters
 
-  function internalConstructorInternal() result(self)
+  function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
     implicit none
-    type(intergalacticMediumStateInternal) :: self
+    type (intergalacticMediumStateInternal)                        :: self
+    class(cosmologyFunctionsClass         ), intent(inout), target :: cosmologyFunctions_
+    class(cosmologyParametersClass        ), intent(inout), target :: cosmologyParameters_
+    class(linearGrowthClass               ), intent(inout), target :: linearGrowth_
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
 
     allocate  (self%time            (0))
     allocate  (self%temperatureIGM  (0))
@@ -146,6 +157,17 @@ contains
     deallocate(self%massFiltering      )
     return
   end function internalConstructorInternal
+
+  subroutine internalDestructor(self)
+    !% Destructor for the internal \gls{igm} state class.
+    implicit none
+    type(intergalacticMediumStateInternal), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%linearGrowth_"       />
+    return
+  end subroutine internalDestructor
 
   double precision function internalFilteringMass(self,time)
     !% Return the filtering mass of the \gls{igm} in the internal model.

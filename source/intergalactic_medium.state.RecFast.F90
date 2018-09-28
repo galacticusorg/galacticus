@@ -20,7 +20,6 @@
 
   !% An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
 
-  use Cosmology_Parameters
   use File_Utilities
 
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
@@ -29,10 +28,7 @@
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
      !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      private
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
-     type (lockDescriptor          )          :: fileLock
-   contains
-     final :: recFastDestructor
+     type (lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
   
   interface intergalacticMediumStateRecFast
@@ -49,17 +45,22 @@ contains
     implicit none
     type (intergalacticMediumStateRecFast)                :: self
     type (inputParameters                ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    class(linearGrowthClass              ), pointer       :: linearGrowth_
 
     ! Check and read parameters.
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    self=intergalacticMediumStateRecFast(cosmologyParameters_)
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
+    self=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function recFastConstructorParameters
 
-  function recFastConstructorInternal(cosmologyParameters_) result(self)
+  function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    use Cosmology_Parameters            , only : hubbleUnitsStandard
     use System_Command
     use Numerical_Constants_Astronomical
     use Galacticus_Paths
@@ -70,7 +71,9 @@ contains
     use IO_HDF5
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
-    class           (cosmologyParametersClass       ), intent(in   ), target       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass        ), intent(inout), target       :: cosmologyFunctions_
+    class           (cosmologyParametersClass       ), intent(inout), target       :: cosmologyParameters_
+    class           (linearGrowthClass              ), intent(inout), target       :: linearGrowth_
     double precision                                 , allocatable  , dimension(:) :: redshift            , electronFraction , &
          &                                                                            hIonizedFraction    , heIonizedFraction, &
          &                                                                            matterTemperature
@@ -85,7 +88,7 @@ contains
     type            (hdf5Object                     )                              :: outputFile          , dataset          , &
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
-    !# <constructorAssign variables="*cosmologyParameters_"/>
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
 
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
@@ -209,11 +212,3 @@ contains
     call File_Unlock(self%fileLock)
     return
   end function recFastConstructorInternal
-
-  subroutine recFastDestructor(self)
-    implicit none
-    type(intergalacticMediumStateRecFast), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    return
-  end subroutine recFastDestructor
