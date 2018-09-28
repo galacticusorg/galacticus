@@ -1789,7 +1789,7 @@ CODE
 			while ( $subNode ) {
 			    if ( $subNode->{'type'} eq "objectBuilder" ) {
 				print 
-				    "Warning: instance '"                                                                                 .
+				    "Note: instance '"                                                                                    .
 				    $class    ->{'type'}                                                                                  .
 				    "' of function class '"                                                                               .
 				    $directive->{'name'}                                                                                  .
