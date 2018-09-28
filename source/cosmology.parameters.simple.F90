@@ -27,7 +27,6 @@
      double precision :: HubbleConstantValue, OmegaBaryonValue   , OmegaDarkEnergyValue, &
           &              OmegaMatterValue   , temperatureCMBValue
    contains
-     final     ::                    simpleDestructor
      procedure :: OmegaMatter     => simpleOmegaMatter
      procedure :: OmegaDarkEnergy => simpleOmegaDarkEnergy
      procedure :: OmegaBaryon     => simpleOmegaBaryon
@@ -125,16 +124,6 @@ contains
     simpleConstructorInternal%HubbleConstantValue =HubbleConstant
     return
   end function simpleConstructorInternal
-
-  elemental subroutine simpleDestructor(self)
-    !% Destructor for the simple cosmological parameters class.
-    implicit none
-    type(cosmologyParametersSimple), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
-    return
-  end subroutine simpleDestructor
 
   double precision function simpleOmegaMatter(self)
     !% Return the cosmological matter density in units of the critical density at the present day.
